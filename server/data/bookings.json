@@ -1,0 +1,20 @@
+[
+  {
+    "_id": "BOOK-401",
+    "user": "6584c6ef0c25a0ab6e5a0101",
+    "providerName": "Dr. Ramesh Kumar (Pawora Vet Clinic)",
+    "serviceType": "Veterinary",
+    "location": "MG Road, Bangalore",
+    "date": "2026-08-28",
+    "timeSlot": "10:00 AM - 11:00 AM",
+    "petDetails": {
+      "name": "Bruno",
+      "type": "dog",
+      "breed": "German Shepherd"
+    },
+    "status": "Pending",
+    "fee": 600,
+    "paymentStatus": "Unpaid",
+    "createdAt": "2026-08-26T11:52:15.355Z"
+  }
+]

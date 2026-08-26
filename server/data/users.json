@@ -1,0 +1,124 @@
+[
+  {
+    "_id": "60d5ec49ad70591244000001",
+    "name": "Pawora Admin",
+    "email": "admin@pawora.com",
+    "password": "$2b$10$Hl/Rte6lsD43apIN1Njcy.Eql9.69PLcvda2vQbWnS5kxZCwXPimG",
+    "role": "ADMIN",
+    "addresses": [
+      {
+        "name": "Pawora Corporate HQ",
+        "phone": "9876543210",
+        "streetAddress": "12, Luxury Retail Lane, MG Road",
+        "city": "Bangalore",
+        "state": "Karnataka",
+        "postalCode": "560001",
+        "country": "India",
+        "isDefault": true
+      }
+    ],
+    "wishlist": [],
+    "cart": [
+      {
+        "product": "60d5ec49ad70591244000000",
+        "quantity": 1
+      }
+    ]
+  },
+  {
+    "_id": "60d5ec49ad70591244000002",
+    "name": "Aarav Sharma",
+    "email": "customer1@pawora.com",
+    "password": "$2b$10$U.736xolALlgSjji3fzy1eY9eh8cHTD9/vzbEPLxu8tjvkE9GKTTi",
+    "role": "CUSTOMER",
+    "addresses": [
+      {
+        "name": "Aarav Sharma",
+        "phone": "9123456789",
+        "streetAddress": "Block C, Flat 402, Prestige Heights",
+        "city": "Mumbai",
+        "state": "Maharashtra",
+        "postalCode": "400001",
+        "country": "India",
+        "isDefault": true
+      }
+    ],
+    "wishlist": [],
+    "cart": []
+  },
+  {
+    "_id": "60d5ec49ad70591244000003",
+    "name": "Ananya Iyer",
+    "email": "customer2@pawora.com",
+    "password": "$2b$10$kPO6a/L1iIi4GXDowO.lH.zEPwut4LJm98mw/OTTdOrRlxTK2Y.8S",
+    "role": "CUSTOMER",
+    "addresses": [
+      {
+        "name": "Ananya Iyer",
+        "phone": "9822334455",
+        "streetAddress": "Plot 45, Jubilee Hills",
+        "city": "Hyderabad",
+        "state": "Telangana",
+        "postalCode": "500033",
+        "country": "India",
+        "isDefault": true
+      }
+    ],
+    "wishlist": [],
+    "cart": []
+  },
+  {
+    "_id": "60d5ec49ad70591244000004",
+    "name": "Rahul Verma",
+    "email": "customer3@pawora.com",
+    "password": "$2b$10$HNcSnGdfsiBUVXlPYDnjxuktp.GVs.jIByiPyOOFC7a5WEAku4O/i",
+    "role": "CUSTOMER",
+    "addresses": [],
+    "wishlist": [],
+    "cart": []
+  },
+  {
+    "_id": "60d5ec49ad70591244000005",
+    "name": "Pooja Nair",
+    "email": "customer4@pawora.com",
+    "password": "$2b$10$nPyuMcVPvLUNVZ/fd7EyKuTcgKGuH9Cxk9wIFhAFBnHTQA0WjvQ1.",
+    "role": "CUSTOMER",
+    "addresses": [],
+    "wishlist": [],
+    "cart": []
+  },
+  {
+    "_id": "60d5ec49ad70591244000006",
+    "name": "Vikram Singh",
+    "email": "customer5@pawora.com",
+    "password": "$2b$10$vqzioYoxhUz5uI4ys9ThUesjSospXfet4WPscfb/8zZju8Wu4xyLK",
+    "role": "CUSTOMER",
+    "addresses": [],
+    "wishlist": [],
+    "cart": []
+  },
+  {
+    "_id": "6a8ed69e5286ba687930cd78",
+    "name": "kishore",
+    "email": "kishorekumar@gmail.com",
+    "password": "$2b$10$UGy/AcDtSGvYU2MCm9d3r.XPPzK5swBQNK1fI1v.A3V.6aUEOX5pq",
+    "role": "CUSTOMER",
+    "addresses": [],
+    "wishlist": [],
+    "cart": [],
+    "prescriptionHistory": [],
+    "createdAt": "2026-08-26T12:05:50.859Z"
+  },
+  {
+    "_id": "6a8ed9b65286ba687930cd79",
+    "name": "Kishore",
+    "email": "kishore@gmail.com",
+    "password": "$2b$10$M7rQ5GLUrDZe1oATIX9vyuqiMigDHEz9Kq..BIWrJIdALb7/mgMHy",
+    "role": "CUSTOMER",
+    "addresses": [],
+    "wishlist": [],
+    "cart": [],
+    "prescriptionHistory": [],
+    "createdAt": "2026-08-26T12:19:02.436Z"
+  }
+]

@@ -1,0 +1,156 @@
+[
+  {
+    "_id": "60d5ec49ad70591245000000",
+    "name": "Dog Food",
+    "slug": "dog-food",
+    "petType": "dogs",
+    "description": "Nutritious everyday food for dogs",
+    "image": "https://images.unsplash.com/photo-1589924691995-400dc9ecc119?q=80&w=600",
+    "subcategories": [
+      "Dog Food",
+      "Treats",
+      "Toys",
+      "Beds",
+      "Grooming",
+      "Collars & Leashes",
+      "Bowls & Feeders",
+      "Training",
+      "Supplements"
+    ]
+  },
+  {
+    "_id": "60d5ec49ad70591245000001",
+    "name": "Treats",
+    "slug": "dog-treats",
+    "petType": "dogs",
+    "description": "Delicious training treats and chews",
+    "image": "https://images.unsplash.com/photo-1583337130417-3346a1be7dee?q=80&w=600",
+    "subcategories": [
+      "Treats",
+      "Beds",
+      "Grooming",
+      "Collars & Leashes",
+      "Toys",
+      "Supplements"
+    ]
+  },
+  {
+    "_id": "60d5ec49ad70591245000002",
+    "name": "Dog Beds & Cotes",
+    "slug": "dog-beds",
+    "petType": "dogs",
+    "description": "Cozy and orthopedic beds for sleeping",
+    "image": "https://images.unsplash.com/photo-1541599540903-216a46ca1df0?q=80&w=600",
+    "subcategories": [
+      "Beds",
+      "Collars & Leashes"
+    ]
+  },
+  {
+    "_id": "60d5ec49ad70591245000003",
+    "name": "Bird Food",
+    "slug": "bird-food",
+    "petType": "birds",
+    "description": "Premium seed mixes and pellets for birds",
+    "image": "https://images.unsplash.com/photo-1522858547137-f1dcec554f55?q=80&w=600",
+    "subcategories": [
+      "Bird Food",
+      "Supplements"
+    ]
+  },
+  {
+    "_id": "60d5ec49ad70591245000004",
+    "name": "Cages & Habitat",
+    "slug": "bird-cages",
+    "petType": "birds",
+    "description": "Spacious and safe cages for birds",
+    "image": "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?q=80&w=600",
+    "subcategories": [
+      "Cages",
+      "Perches",
+      "Toys",
+      "Feeding Accessories"
+    ]
+  },
+  {
+    "_id": "60d5ec49ad70591245000005",
+    "name": "Terrariums",
+    "slug": "terrariums",
+    "petType": "reptiles",
+    "description": "Premium glass terrariums and lockable enclosures",
+    "image": "https://images.unsplash.com/photo-1504450758481-7338eaa75e6a?q=80&w=600",
+    "subcategories": [
+      "Terrariums",
+      "Substrate",
+      "Décor"
+    ]
+  },
+  {
+    "_id": "60d5ec49ad70591245000006",
+    "name": "Heating & Lighting",
+    "slug": "reptile-heating",
+    "petType": "reptiles",
+    "description": "UVB bulbs and heat regulators",
+    "image": "https://images.unsplash.com/photo-1518382473461-13769c0d16c5?q=80&w=600",
+    "subcategories": [
+      "UVB Lighting",
+      "Heating",
+      "Calcium & Supplements",
+      "Thermometers"
+    ]
+  },
+  {
+    "_id": "60d5ec49ad70591245000007",
+    "name": "Aquariums & Tanks",
+    "slug": "aquariums",
+    "petType": "fish",
+    "description": "Glass fish tanks and nano aquariums",
+    "image": "https://images.unsplash.com/photo-1522069169874-c58ec4b76be5?q=80&w=600",
+    "subcategories": [
+      "Aquariums"
+    ]
+  },
+  {
+    "_id": "60d5ec49ad70591245000008",
+    "name": "Water Care & Filtration",
+    "slug": "water-care",
+    "petType": "fish",
+    "description": "Filters, water conditioners, and clarifiers",
+    "image": "https://images.unsplash.com/photo-1544551763-46a013bb70d5?q=80&w=600",
+    "subcategories": [
+      "Water Conditioners",
+      "Fish Food",
+      "Filters",
+      "Pumps",
+      "Aquarium Lighting",
+      "Aquarium Plants"
+    ]
+  },
+  {
+    "_id": "60d5ec49ad70591245000009",
+    "name": "Vitamins & Supplements",
+    "slug": "pet-vitamins",
+    "petType": "pharmacy",
+    "description": "Immunity boosters, skin and joint care supplements",
+    "image": "https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?q=80&w=600",
+    "subcategories": [
+      "Vitamins",
+      "Supplements",
+      "Joint Care",
+      "Digestive Care"
+    ]
+  },
+  {
+    "_id": "60d5ec49ad7059124500000a",
+    "name": "First Aid & Healthcare",
+    "slug": "pet-healthcare",
+    "petType": "pharmacy",
+    "description": "First aid kits, antiseptic sprays, and dental care",
+    "image": "https://images.unsplash.com/photo-1607619056574-7b8d304b3b86?q=80&w=600",
+    "subcategories": [
+      "First Aid",
+      "Skin Care",
+      "Joint Care"
+    ]
+  }
+]

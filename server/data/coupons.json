@@ -1,0 +1,21 @@
+[
+  {
+    "_id": "60d5ec49ad70591248000001",
+    "code": "PAWORA10",
+    "discountType": "percentage",
+    "discountValue": 10,
+    "minOrderValue": 999,
+    "maxDiscount": 500,
+    "expiresAt": "2027-02-26T09:57:38.068Z",
+    "isActive": true
+  },
+  {
+    "_id": "60d5ec49ad70591248000002",
+    "code": "WELCOME300",
+    "discountType": "flat",
+    "discountValue": 300,
+    "minOrderValue": 2499,
+    "expiresAt": "2027-02-26T09:57:38.068Z",
+    "isActive": true
+  }
+]

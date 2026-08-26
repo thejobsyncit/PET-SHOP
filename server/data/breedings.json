@@ -1,0 +1,28 @@
+[
+  {
+    "_id": "STUD-301",
+    "user": {
+      "_id": "6584c6ef0c25a0ab6e5a0100",
+      "name": "Pawora Admin",
+      "email": "admin@pawora.com"
+    },
+    "studName": "Thor (KCI Registered Champion)",
+    "petType": "dogs",
+    "breed": "Golden Retriever",
+    "age": "2.5 years",
+    "kciNumber": "KCI-RET-98210",
+    "studFee": 15000,
+    "description": "Thor is a purebred KCI-certified golden retriever stud. Highly active, excellent health history, clean pedigree hips checks.",
+    "images": [
+      "https://images.unsplash.com/photo-1552053831-71594a27632d?q=80&w=800"
+    ],
+    "pedigreeDetails": {
+      "sire": "Intl Champion Golden Sun",
+      "dam": "Grand National Winner Lady Star"
+    },
+    "location": "Bangalore, KA",
+    "contactPhone": "+91 94444 33333",
+    "isVerified": true,
+    "createdAt": "2026-08-26T11:52:15.355Z"
+  }
+]

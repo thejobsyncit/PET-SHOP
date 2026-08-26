@@ -1,0 +1,36 @@
+[
+  {
+    "_id": "MSG-501",
+    "sender": {
+      "_id": "6584c6ef0c25a0ab6e5a0101",
+      "name": "Test Customer",
+      "email": "customer1@pawora.com"
+    },
+    "recipient": {
+      "_id": "6584c6ef0c25a0ab6e5a0100",
+      "name": "Pawora Admin",
+      "email": "admin@pawora.com"
+    },
+    "listingRef": "LIST-101",
+    "messageText": "Hello! I am interested in the Alaskan Malamute puppy. Is it still available?",
+    "isRead": false,
+    "createdAt": "2026-08-26T10:52:15.355Z"
+  },
+  {
+    "_id": "MSG-502",
+    "sender": {
+      "_id": "6584c6ef0c25a0ab6e5a0100",
+      "name": "Pawora Admin",
+      "email": "admin@pawora.com"
+    },
+    "recipient": {
+      "_id": "6584c6ef0c25a0ab6e5a0101",
+      "name": "Test Customer",
+      "email": "customer1@pawora.com"
+    },
+    "listingRef": "LIST-101",
+    "messageText": "Yes, it is! You can schedule a home visit this Saturday if you like.",
+    "isRead": true,
+    "createdAt": "2026-08-26T11:22:15.355Z"
+  }
+]

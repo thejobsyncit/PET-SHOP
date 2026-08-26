@@ -1,0 +1,68 @@
+[
+  {
+    "_id": "LIST-101",
+    "user": {
+      "_id": "6584c6ef0c25a0ab6e5a0100",
+      "name": "Pawora Admin",
+      "email": "admin@pawora.com"
+    },
+    "title": "Champion Line Alaskan Malamute Puppies",
+    "petType": "dogs",
+    "breed": "Alaskan Malamute",
+    "age": "2 months",
+    "price": 35000,
+    "description": "Beautiful champion line Alaskan Malamute puppies. De-wormed, vaccinated, and microchipped. Very active and healthy.",
+    "images": [
+      "https://images.unsplash.com/photo-1534361960057-19889db9621e?q=80&w=800"
+    ],
+    "location": "Delhi NCR",
+    "contactPhone": "+91 98765 43210",
+    "isVerified": true,
+    "status": "Available",
+    "createdAt": "2026-08-26T11:52:15.354Z"
+  },
+  {
+    "_id": "LIST-102",
+    "user": {
+      "_id": "6584c6ef0c25a0ab6e5a0100",
+      "name": "Pawora Admin",
+      "email": "admin@pawora.com"
+    },
+    "title": "Sweet Siamese Kitten looking for Rehoming",
+    "petType": "cats",
+    "breed": "Siamese Cat",
+    "age": "4 months",
+    "price": 0,
+    "description": "Very gentle and sweet Siamese kitten looking for a warm family. Loves to cuddle and play with toys.",
+    "images": [
+      "https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?q=80&w=800"
+    ],
+    "location": "Bangalore, KA",
+    "contactPhone": "+91 80123 45678",
+    "isVerified": true,
+    "status": "Available",
+    "createdAt": "2026-08-26T11:52:15.355Z"
+  },
+  {
+    "_id": "LIST-103",
+    "user": {
+      "_id": "6584c6ef0c25a0ab6e5a0101",
+      "name": "Test Customer",
+      "email": "customer1@pawora.com"
+    },
+    "title": "Talking African Grey Parrot with Cage",
+    "petType": "birds",
+    "breed": "African Grey Parrot",
+    "age": "1 year",
+    "price": 45000,
+    "description": "Smart talking parrot, responds to commands and speaks basic phrases. Includes large standing metal cage and food dishes.",
+    "images": [
+      "https://images.unsplash.com/photo-1522856268848-d11edf133a70?q=80&w=800"
+    ],
+    "location": "Mumbai, MH",
+    "contactPhone": "+91 99000 88888",
+    "isVerified": false,
+    "status": "Available",
+    "createdAt": "2026-08-26T11:52:15.355Z"
+  }
+]

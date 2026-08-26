@@ -1,0 +1,63 @@
+[
+  {
+    "_id": "60d5ec49ad70591247000001",
+    "user": "60d5ec49ad70591244000002",
+    "userName": "Aarav Sharma",
+    "product": "60d5ec49ad70591244000000",
+    "rating": 5,
+    "title": "Outstanding Kibble!",
+    "comment": "My golden retriever absolutely loves this food. His coat has gone from dull to shining in just 3 weeks, and his digestion is perfect. Highly recommend Royal Canin!",
+    "verifiedPurchase": true
+  },
+  {
+    "_id": "60d5ec49ad70591247000002",
+    "user": "60d5ec49ad70591244000003",
+    "userName": "Ananya Iyer",
+    "product": "60d5ec49ad70591244000000",
+    "rating": 4,
+    "title": "Great quality but pricey",
+    "comment": "Excellent food for large dogs, but the price keeps increasing. The ingredients are top notch, and my lab does very well on it.",
+    "verifiedPurchase": true
+  },
+  {
+    "_id": "60d5ec49ad70591247000003",
+    "user": "60d5ec49ad70591244000002",
+    "userName": "Aarav Sharma",
+    "product": "60d5ec49ad70591244000015",
+    "rating": 5,
+    "title": "Incredible joint relief!",
+    "comment": "My 10-year-old German Shepherd was struggling to climb stairs. After 2 weeks of Beaphar Joint Fit capsules, she is moving with ease. Remarkable product.",
+    "verifiedPurchase": true
+  },
+  {
+    "_id": "60d5ec49ad70591247000004",
+    "user": "60d5ec49ad70591244000003",
+    "userName": "Ananya Iyer",
+    "product": "60d5ec49ad70591244000010",
+    "rating": 5,
+    "title": "Safe and sturdy terrarium",
+    "comment": "Exo Terra makes the best cages hands down. The front lock works perfectly and it makes spot cleaning so easy. My bearded dragon loves his home.",
+    "verifiedPurchase": true
+  },
+  {
+    "_id": "60d5ec49ad70591247000005",
+    "user": "60d5ec49ad70591244000002",
+    "userName": "Aarav Sharma",
+    "product": "60d5ec49ad70591244000018",
+    "rating": 5,
+    "title": "API Stress Coat is a lifesaver",
+    "comment": "This is the gold standard for water conditioning. Instantly calms my fish and heals any split fins. Will never use another conditioner.",
+    "verifiedPurchase": true
+  },
+  {
+    "_id": "6a8edde42b68e82960355c73",
+    "user": "60d5ec49ad70591244000002",
+    "userName": "Aarav Sharma",
+    "product": "60d5ec49ad70591244000002",
+    "rating": 5,
+    "title": "super",
+    "comment": "supetr",
+    "verifiedPurchase": true,
+    "createdAt": "2026-08-26T12:36:52.884Z"
+  }
+]

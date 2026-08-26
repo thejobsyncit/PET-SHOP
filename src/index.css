@@ -1,0 +1,67 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-secondary text-charcoal font-sans antialiased overflow-x-hidden;
+    letter-spacing: 0.015em;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-serif font-semibold text-primary tracking-tight;
+  }
+}
+
+@layer components {
+  .btn-premium {
+    @apply px-8 py-3.5 bg-primary text-secondary font-medium text-sm tracking-widest rounded-none border border-primary transition-all duration-300 hover:bg-transparent hover:text-primary active:scale-[0.98] cursor-pointer inline-flex items-center justify-center uppercase;
+  }
+
+  .btn-secondary-premium {
+    @apply px-8 py-3.5 bg-transparent text-primary font-medium text-sm tracking-widest rounded-none border border-primary transition-all duration-300 hover:bg-primary hover:text-secondary active:scale-[0.98] cursor-pointer inline-flex items-center justify-center uppercase;
+  }
+
+  .btn-accent {
+    @apply px-8 py-3.5 bg-accent text-primary font-medium text-sm tracking-widest rounded-none border border-accent transition-all duration-300 hover:bg-transparent hover:text-accent active:scale-[0.98] cursor-pointer inline-flex items-center justify-center uppercase;
+  }
+
+  .input-premium {
+    @apply w-full px-4 py-3 bg-white border border-secondary-dark rounded-none text-charcoal text-sm transition-all duration-200 focus:outline-none focus:border-primary placeholder-gray-400;
+  }
+
+  .card-premium {
+    @apply bg-white border border-beige hover:shadow-premium transition-all duration-300 overflow-hidden;
+  }
+}
+
+/* Custom Scrollbar for Luxury Experience */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-secondary;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-secondary-dark transition-all duration-300 hover:bg-primary-light;
+}
+
+/* Glassmorphism Classes */
+.glass-panel {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.glass-panel-dark {
+  background: rgba(15, 46, 35, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
