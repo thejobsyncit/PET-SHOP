@@ -56,7 +56,7 @@ const allowedOrigins = [
 const corsOptions = {
   origin: function (origin, callback) {
     if (!origin) return callback(null, true);
-    if (allowedOrigins.includes(origin) || origin.startsWith('http://localhost:')) {
+    if (allowedOrigins.includes(origin) || origin.startsWith('http://localhost:') || origin.endsWith('.vercel.app')) {
       return callback(null, true);
     }
     return callback(new Error('CORS not allowed'), false);
@@ -81,9 +81,13 @@ const apiLimiter = rateLimit({
 app.use('/api', apiLimiter);
 
 // Ensure uploads folder exists
-const uploadsDir = path.join(__dirname, 'uploads');
-if (!fs.existsSync(uploadsDir)) {
-  fs.mkdirSync(uploadsDir, { recursive: true });
+const uploadsDir = process.env.VERCEL ? '/tmp/uploads' : path.join(__dirname, 'uploads');
+try {
+  if (!fs.existsSync(uploadsDir)) {
+    fs.mkdirSync(uploadsDir, { recursive: true });
+  }
+} catch (err) {
+  console.warn('Warning: Could not create uploads directory:', err.message);
 }
 
 // Serve uploaded prescription/product files statically
@@ -125,3 +129,6 @@ process.on('unhandledRejection', (err) => {
   console.error(`Unhandled Rejection Error: ${err.message}`);
   server.close(() => process.exit(1));
 });
+
+export default app;
+
