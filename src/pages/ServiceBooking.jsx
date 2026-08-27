@@ -1,12 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Calendar, Clock, MapPin, Star, Award, ShieldCheck, CheckCircle2, X } from 'lucide-react';
 import { apiRequest } from '../services/api.js';
 import toast from 'react-hot-toast';
 
 const ServiceBooking = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { isAuthenticated } = useSelector((state) => state.auth);
 
   const [activeTab, setActiveTab] = useState('Veterinary');
@@ -32,8 +33,31 @@ const ServiceBooking = () => {
     Training: [
       { name: 'Major Vikram (Retd.)', clinic: 'Canine Academy of Obedience', rating: 4.9, reviews: 110, fee: 1500, location: 'Whitefield, Bangalore', image: 'https://images.unsplash.com/photo-1534361960057-19889db9621e?q=80&w=800' },
       { name: 'Elite K9 Behaviorist', clinic: 'Therapy & Puppy Training', rating: 4.8, reviews: 88, fee: 1800, location: 'HSR Layout, Bangalore', image: 'https://images.unsplash.com/photo-1601758228041-f3b2795255f1?q=80&w=800' }
+    ],
+    Hostel: [
+      { name: 'Happy Paws Pet Resort & Hostel', clinic: 'AC Suites & 24/7 Care', rating: 4.9, reviews: 145, fee: 800, location: 'Sarjapur, Bangalore', image: 'https://images.unsplash.com/photo-1548199973-03cce0bbc87b?q=80&w=800' },
+      { name: 'Cozy Tails Boarding House', clinic: 'Homely Stay & Play Area', rating: 4.7, reviews: 92, fee: 650, location: 'Hebbal, Bangalore', image: 'https://images.unsplash.com/photo-1537151608828-ea2b11777ee8?q=80&w=800' }
+    ],
+    Walking: [
+      { name: 'Pawsome Walkers Squad', clinic: 'Daily Tracked Dog Walking', rating: 4.8, reviews: 115, fee: 350, location: 'Koramangala, Bangalore', image: 'https://images.unsplash.com/photo-1552053831-71594a27632d?q=80&w=800' },
+      { name: 'Urban Pet Escorts', clinic: 'Private & Group Fitness Walks', rating: 4.9, reviews: 84, fee: 400, location: 'Indiranagar, Bangalore', image: 'https://images.unsplash.com/photo-1507146426996-ef05306b995a?q=80&w=800' }
+    ],
+    Transport: [
+      { name: 'Pet Taxi Express', clinic: 'AC Intercity & Local Relocation', rating: 4.9, reviews: 78, fee: 1500, location: 'Bangalore Metro Area', image: 'https://images.unsplash.com/photo-1544568100-847a948585b9?q=80&w=800' },
+      { name: 'Safe Paws Travel Service', clinic: 'Veterinary Escort & Crate Transport', rating: 4.8, reviews: 54, fee: 1200, location: 'Airport Road, Bangalore', image: 'https://images.unsplash.com/photo-1518717758536-85ae29035b6d?q=80&w=800' }
+    ],
+    Insurance: [
+      { name: 'Pawora Care Shield', clinic: 'Comprehensive Health & Emergency Coverage', rating: 4.9, reviews: 210, fee: 999, location: 'Pan India Coverage', image: 'https://images.unsplash.com/photo-1583337130417-3346a1be7dee?q=80&w=800' },
+      { name: 'Pet Protection Plan', clinic: 'Accident & Surgery Cover', rating: 4.7, reviews: 130, fee: 799, location: 'Pan India Coverage', image: 'https://images.unsplash.com/photo-1576201836106-db1758fd1c97?q=80&w=800' }
     ]
   };
+
+  useEffect(() => {
+    const cat = searchParams.get('category');
+    if (cat && providers[cat]) {
+      setActiveTab(cat);
+    }
+  }, [searchParams]);
 
   const handleOpenBooking = (provider) => {
     if (!isAuthenticated) {
@@ -86,7 +110,7 @@ const ServiceBooking = () => {
 
   return (
     <div className="max-w-7xl mx-auto px-4 md:px-8 py-10 space-y-12 pb-20">
-      
+
       {/* Title */}
       <div className="border-b border-beige pb-6 text-center space-y-2">
         <span className="text-[10px] uppercase tracking-widest text-accent font-bold">🛠 PET UTILITY SERVICES</span>
@@ -97,18 +121,17 @@ const ServiceBooking = () => {
       </div>
 
       {/* Tabs Filter */}
-      <div className="flex gap-1.5 justify-center border-b border-beige pb-4">
-        {['Veterinary', 'Grooming', 'Training'].map(tab => (
+      <div className="flex flex-wrap gap-1.5 justify-center border-b border-beige pb-4">
+        {['Veterinary', 'Hostel', 'Grooming', 'Walking', 'Transport', 'Insurance', 'Training'].map(tab => (
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
-            className={`px-5 py-2.5 text-xs font-bold uppercase tracking-wider transition cursor-pointer ${
-              activeTab === tab 
-                ? 'bg-primary text-white' 
+            className={`px-4 py-2 text-xs font-bold uppercase tracking-wider transition cursor-pointer ${activeTab === tab
+                ? 'bg-primary text-white'
                 : 'bg-white text-gray-500 border border-beige hover:border-primary'
-            }`}
+              }`}
           >
-            {tab}
+            {tab === 'Veterinary' ? 'Vet Consult' : tab}
           </button>
         ))}
       </div>
@@ -117,7 +140,7 @@ const ServiceBooking = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         {providers[activeTab].map((p) => (
           <div key={p.name} className="border border-beige bg-white p-6 grid grid-cols-1 md:grid-cols-12 gap-6 shadow-sm">
-            
+
             {/* Image (5 cols) */}
             <div className="md:col-span-5 aspect-[4/5] overflow-hidden bg-gray-50 border border-beige">
               <img src={p.image} alt={p.name} className="w-full h-full object-cover" />
@@ -165,8 +188,8 @@ const ServiceBooking = () => {
       {showBookingModal && selectedProvider && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div onClick={() => setShowBookingModal(false)} className="fixed inset-0 bg-primary/40 backdrop-blur-sm"></div>
-          
-          <form 
+
+          <form
             onSubmit={handleConfirmBooking}
             className="relative bg-white w-full max-w-md border border-beige shadow-2xl flex flex-col z-10 animate-in fade-in zoom-in-95 duration-200"
           >
@@ -242,15 +265,15 @@ const ServiceBooking = () => {
             </div>
 
             <div className="bg-secondary px-6 py-4 border-t border-beige flex justify-end gap-3 shrink-0">
-              <button 
-                type="button" 
+              <button
+                type="button"
                 onClick={() => setShowBookingModal(false)}
                 className="btn-secondary-premium py-2 text-xs"
               >
                 CANCEL
               </button>
-              <button 
-                type="submit" 
+              <button
+                type="submit"
                 className="btn-premium py-2 text-xs"
               >
                 CONFIRM APPOINTMENT

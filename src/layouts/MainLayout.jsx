@@ -3,6 +3,7 @@ import { Outlet } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import Navbar from '../components/Navbar.jsx';
 import Footer from '../components/Footer.jsx';
+import LeadConsultationModal from '../components/LeadConsultationModal.jsx';
 import { fetchCart } from '../store/slices/cartSlice.js';
 import { fetchWishlist } from '../store/slices/wishlistSlice.js';
 import { fetchProfile } from '../store/slices/authSlice.js';
@@ -23,6 +24,9 @@ const MainLayout = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-secondary">
+      {/* Lead Consultation Popup Modal on Site Load */}
+      <LeadConsultationModal />
+
       {/* Premium Sticky Header */}
       <Navbar />
 
