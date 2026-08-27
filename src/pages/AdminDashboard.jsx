@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
-import { 
+import {
   BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
   PieChart, Pie, Cell
 } from 'recharts';
-import { 
-  TrendingUp, ShoppingBag, Users, Layers, AlertTriangle, Clock, 
+import {
+  TrendingUp, ShoppingBag, Users, Layers, AlertTriangle, Clock,
   Plus, Edit, Trash, Check, X, FileText, CheckCircle, RefreshCw, ChevronRight, MessageSquare, Heart, Lock, Mail, ShieldAlert, Award, ShieldCheck
 } from 'lucide-react';
 import { apiRequest } from '../services/api.js';
@@ -16,9 +16,9 @@ import toast from 'react-hot-toast';
 const AdminDashboard = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  
+
   const { user, isAuthenticated } = useSelector((state) => state.auth);
-  
+
   // Tab control
   const [activeSection, setActiveSection] = useState('overview');
 
@@ -126,7 +126,7 @@ const AdminDashboard = () => {
     try {
       const lData = await apiRequest('/listings');
       if (lData.success) setListingsList(lData.listings);
-      
+
       const sData = await apiRequest('/breeding');
       if (sData.success) setStudsList(sData.studs);
 
@@ -149,7 +149,7 @@ const AdminDashboard = () => {
     setLoginLoading(true);
     const result = await dispatch(login({ email: adminEmail, password: adminPassword }));
     setLoginLoading(false);
-    
+
     if (login.fulfilled.match(result)) {
       const loggedUser = result.payload.user;
       if (loggedUser.role === 'ADMIN') {
@@ -444,8 +444,8 @@ const AdminDashboard = () => {
           </div>
 
           <div className="text-center pt-2">
-            <button 
-              onClick={() => navigate('/')} 
+            <button
+              onClick={() => navigate('/')}
               className="text-[10px] text-gray-400 hover:text-primary uppercase tracking-widest font-semibold cursor-pointer"
             >
               ← Back to main site
@@ -459,11 +459,11 @@ const AdminDashboard = () => {
   // RENDER DYNAMIC EXECUTIVE CONSOLE FOR LOGGED-IN ADMINS WITH VERTICAL SIDEBAR
   return (
     <div className="min-h-screen bg-[#F4F6F4] flex">
-      
+
       {/* 1. LEFT SIDEBAR PANEL (Width 250px) */}
       <aside className="w-64 bg-[#1D3B2E] text-white flex flex-col justify-between p-6 shrink-0 border-r border-[#2E5947]">
         <div className="space-y-8">
-          
+
           {/* Logo Heading */}
           <div className="border-b border-[#2E5947] pb-4">
             <span className="text-[9px] uppercase tracking-widest text-[#7CA085] font-bold block">CONTROL PANEL</span>
@@ -486,11 +486,10 @@ const AdminDashboard = () => {
               <button
                 key={tab.id}
                 onClick={() => setActiveSection(tab.id)}
-                className={`w-full flex items-center gap-3 px-4 py-3 text-xs font-bold uppercase tracking-wider rounded-md transition duration-200 cursor-pointer ${
-                  activeSection === tab.id
+                className={`w-full flex items-center gap-3 px-4 py-3 text-xs font-bold uppercase tracking-wider rounded-md transition duration-200 cursor-pointer ${activeSection === tab.id
                     ? 'bg-[#7CA085] text-[#1D3B2E] shadow-sm'
                     : 'text-[#C2D3C6] hover:bg-[#2E5947] hover:text-[#FAFBF9]'
-                }`}
+                  }`}
               >
                 {tab.icon}
                 <span>{tab.label}</span>
@@ -516,7 +515,7 @@ const AdminDashboard = () => {
 
       {/* 2. RIGHT VIEW MAIN CONSOLE */}
       <main className="flex-grow p-8 overflow-y-auto max-h-screen">
-        
+
         {/* Top bar Header */}
         <div className="flex justify-between items-center border-b border-[#E3EBE5] pb-6 mb-8">
           <div>
@@ -550,7 +549,7 @@ const AdminDashboard = () => {
             {/* SECTION 1: OVERVIEW */}
             {activeSection === 'overview' && (
               <div className="space-y-12 animate-in fade-in duration-200">
-                
+
                 {/* Summary Cards Row with premium tiles */}
                 <div className="grid grid-cols-2 lg:grid-cols-6 gap-6">
                   {[
@@ -758,10 +757,9 @@ const AdminDashboard = () => {
                           </td>
                           <td className="p-3 text-right font-bold text-primary">₹{o.pricing.total}</td>
                           <td className="p-3">
-                            <span className={`font-bold uppercase text-[10px] ${
-                              o.shippingStatus === 'Delivered' ? 'text-green-600' :
-                              o.shippingStatus === 'Cancelled' ? 'text-red-500' : 'text-accent'
-                            }`}>{o.shippingStatus}</span>
+                            <span className={`font-bold uppercase text-[10px] ${o.shippingStatus === 'Delivered' ? 'text-green-600' :
+                                o.shippingStatus === 'Cancelled' ? 'text-red-500' : 'text-accent'
+                              }`}>{o.shippingStatus}</span>
                           </td>
                           <td className="p-3 text-center">
                             <select
@@ -819,10 +817,9 @@ const AdminDashboard = () => {
                             <p className="text-[10px] text-gray-400">Dr. {p.veterinarianName} ({p.clinicName || 'No Clinic'})</p>
                           </td>
                           <td className="p-3">
-                            <span className={`font-bold uppercase text-[10px] ${
-                              p.status === 'Approved' ? 'text-green-600' :
-                              p.status === 'Rejected' ? 'text-red-500' : 'text-accent'
-                            }`}>{p.status}</span>
+                            <span className={`font-bold uppercase text-[10px] ${p.status === 'Approved' ? 'text-green-600' :
+                                p.status === 'Rejected' ? 'text-red-500' : 'text-accent'
+                              }`}>{p.status}</span>
                           </td>
                           <td className="p-3 text-center">
                             <button
@@ -875,11 +872,10 @@ const AdminDashboard = () => {
                           <td className="p-3 text-center">
                             <button
                               onClick={() => handleVerifyListing(l._id, !l.isVerified)}
-                              className={`px-3 py-1.5 font-bold tracking-widest text-[9px] uppercase transition cursor-pointer ${
-                                l.isVerified 
-                                  ? 'bg-[#FAFBF9] text-green-700 border border-green-200' 
+                              className={`px-3 py-1.5 font-bold tracking-widest text-[9px] uppercase transition cursor-pointer ${l.isVerified
+                                  ? 'bg-[#FAFBF9] text-green-700 border border-green-200'
                                   : 'bg-orange-50 text-orange-700 border border-orange-200'
-                              }`}
+                                }`}
                             >
                               {l.isVerified ? 'VERIFIED' : 'PENDING'}
                             </button>
@@ -932,11 +928,10 @@ const AdminDashboard = () => {
                           <td className="p-3 text-center">
                             <button
                               onClick={() => handleVerifyStud(s._id, !s.isVerified)}
-                              className={`px-3 py-1.5 font-bold tracking-widest text-[9px] uppercase transition cursor-pointer ${
-                                s.isVerified 
-                                  ? 'bg-[#FAFBF9] text-green-700 border border-green-200' 
+                              className={`px-3 py-1.5 font-bold tracking-widest text-[9px] uppercase transition cursor-pointer ${s.isVerified
+                                  ? 'bg-[#FAFBF9] text-green-700 border border-green-200'
                                   : 'bg-orange-50 text-orange-700 border border-orange-200'
-                              }`}
+                                }`}
                             >
                               {s.isVerified ? 'KCI CERTIFIED' : 'PENDING CHECK'}
                             </button>
@@ -1012,8 +1007,8 @@ const AdminDashboard = () => {
       {showProductModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div onClick={() => setShowProductModal(false)} className="fixed inset-0 bg-primary/40 backdrop-blur-sm"></div>
-          
-          <form 
+
+          <form
             onSubmit={handleSaveProduct}
             className="relative bg-white w-full max-w-2xl border border-beige shadow-2xl flex flex-col max-h-[90vh] z-10 animate-in fade-in zoom-in-95 duration-200"
           >
@@ -1192,15 +1187,15 @@ const AdminDashboard = () => {
             </div>
 
             <div className="bg-secondary px-6 py-4 border-t border-beige flex justify-end gap-3 shrink-0">
-              <button 
-                type="button" 
+              <button
+                type="button"
                 onClick={() => setShowProductModal(false)}
                 className="btn-secondary-premium py-2 text-xs"
               >
                 CANCEL
               </button>
-              <button 
-                type="submit" 
+              <button
+                type="submit"
                 className="btn-premium py-2 text-xs"
               >
                 SAVE CATALOG RECORD
@@ -1214,7 +1209,7 @@ const AdminDashboard = () => {
       {showPrescModal && activePresc && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div onClick={() => setShowPrescModal(false)} className="fixed inset-0 bg-primary/40 backdrop-blur-sm"></div>
-          
+
           <div className="relative bg-white w-full max-w-2xl border border-beige shadow-2xl flex flex-col max-h-[90vh] z-10 animate-in fade-in zoom-in-95 duration-200">
             <div className="px-6 py-4 bg-primary text-white flex justify-between items-center border-b border-white/10">
               <h3 className="font-serif text-sm font-bold tracking-wider text-[#7CA085] uppercase flex items-center gap-1.5">
@@ -1228,16 +1223,16 @@ const AdminDashboard = () => {
             <div className="p-6 overflow-y-auto space-y-4 text-xs flex flex-col md:flex-row gap-6">
               {/* Document Image view */}
               <div className="w-full md:w-1/2 aspect-square border border-beige bg-gray-50 overflow-hidden shrink-0">
-                <a 
-                  href={activePresc.prescriptionFileUrl.startsWith('/uploads') ? `http://localhost:5000${activePresc.prescriptionFileUrl}` : activePresc.prescriptionFileUrl} 
-                  target="_blank" 
+                <a
+                  href={activePresc.prescriptionFileUrl.startsWith('/uploads') ? `http://localhost:5000${activePresc.prescriptionFileUrl}` : activePresc.prescriptionFileUrl}
+                  target="_blank"
                   rel="noopener noreferrer"
                   title="Click to view full screen file"
                 >
-                  <img 
-                    src={activePresc.prescriptionFileUrl.startsWith('/uploads') ? `http://localhost:5000${activePresc.prescriptionFileUrl}` : activePresc.prescriptionFileUrl} 
-                    alt="Prescription Document file scan" 
-                    className="w-full h-full object-contain cursor-zoom-in" 
+                  <img
+                    src={activePresc.prescriptionFileUrl.startsWith('/uploads') ? `http://localhost:5000${activePresc.prescriptionFileUrl}` : activePresc.prescriptionFileUrl}
+                    alt="Prescription Document file scan"
+                    className="w-full h-full object-contain cursor-zoom-in"
                   />
                 </a>
               </div>
