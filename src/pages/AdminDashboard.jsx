@@ -7,7 +7,7 @@ import {
 } from 'recharts';
 import { 
   TrendingUp, ShoppingBag, Users, Layers, AlertTriangle, Clock, 
-  Plus, Edit, Trash, Check, X, FileText, CheckCircle, RefreshCw, ChevronRight, MessageSquare, Heart, Lock, Mail, ShieldAlert, Award
+  Plus, Edit, Trash, Check, X, FileText, CheckCircle, RefreshCw, ChevronRight, MessageSquare, Heart, Lock, Mail, ShieldAlert, Award, ShieldCheck
 } from 'lucide-react';
 import { apiRequest } from '../services/api.js';
 import { login, logout } from '../store/slices/authSlice.js';
