@@ -13,11 +13,13 @@ const Navbar = () => {
 
   const [isScrolled, setIsScrolled] = useState(false);
   const [petsMenuOpen, setPetsMenuOpen] = useState(false);
+  const [servicesMenuOpen, setServicesMenuOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  
+
   const petsDropdownRef = useRef(null);
+  const servicesDropdownRef = useRef(null);
 
   const { isAuthenticated, user } = useSelector((state) => state.auth);
   const cartItems = useSelector((state) => state.cart.items);
@@ -54,25 +56,36 @@ const Navbar = () => {
     { label: 'Small Pets', path: '/pets?petType=small-pets' }
   ];
 
+  const servicesList = [
+    { label: 'Pet Adoption', path: '/adopt' },
+    { label: 'Pet Hostel', path: '/services?category=Hostel' },
+    { label: 'Pet Grooming', path: '/services?category=Grooming' },
+    { label: 'Pet Walking', path: '/services?category=Walking' },
+    { label: 'Pet Transport', path: '/services?category=Transport' },
+    { label: 'Pet Insurance', path: '/services?category=Insurance' },
+    { label: 'Pet Training', path: '/services?category=Training' },
+    { label: 'Pet Mating', path: '/breeding' },
+    { label: 'Consult A Vet', path: '/services?category=Veterinary' }
+  ];
+
   return (
     <>
       <header className="fixed top-0 left-0 w-full z-40 transition-all duration-300">
-        
+
         {/* Top Announcement Bar */}
         <div className="bg-[#0f3d6b] text-white text-[10px] tracking-widest font-semibold py-2 px-4 text-center border-b border-white/5">
           FREE SHIPPING ON ORDERS ABOVE ₹999
         </div>
 
         {/* Sticky Blue Main Navigation */}
-        <nav 
-          className={`w-full bg-[#15559c] text-white transition-all duration-300 ${
-            isScrolled ? 'py-3 shadow-lg' : 'py-4'
-          }`}
+        <nav
+          className={`w-full bg-[#15559c] text-white transition-all duration-300 ${isScrolled ? 'py-3 shadow-lg' : 'py-4'
+            }`}
         >
           <div className="max-w-7xl mx-auto px-4 md:px-8 flex justify-between items-center">
-            
+
             {/* Hamburger Trigger for Mobile */}
-            <button 
+            <button
               onClick={() => setIsMobileMenuOpen(true)}
               className="lg:hidden p-1 text-white hover:text-[#ffd000] cursor-pointer"
             >
@@ -80,30 +93,29 @@ const Navbar = () => {
             </button>
 
             {/* Left: Brand Logo (Breed n Breeder-style alignment) */}
-            <Link 
-              to="/" 
+            <Link
+              to="/"
               className="font-serif text-xl md:text-2xl tracking-widest text-white font-bold whitespace-nowrap mr-4"
             >
               INDIA PET HUB
             </Link>
 
-            {/* Center Nav Links (Home, Pets Dropdown, Adopt, Breeding, Services, Shop, Blog, Contact Us) */}
+            {/* Center Nav Links */}
             <div className="hidden lg:flex items-center space-x-6 xl:space-x-8">
-              
+
               {/* Home */}
-              <Link 
+              <Link
                 to="/"
-                className={`text-[11px] uppercase tracking-wider font-semibold transition py-1 ${
-                  isActive('/') 
-                    ? 'text-[#ffd000] border-b-2 border-[#ffd000] pb-1' 
-                    : 'text-white hover:text-[#ffd000]'
-                }`}
+                className={`text-[11px] uppercase tracking-wider font-semibold transition py-1 ${isActive('/')
+                  ? 'text-[#ffd000] border-b-2 border-[#ffd000] pb-1'
+                  : 'text-white hover:text-[#ffd000]'
+                  }`}
               >
                 Home
               </Link>
 
               {/* Pets Dropdown Menu */}
-              <div 
+              <div
                 ref={petsDropdownRef}
                 onMouseEnter={() => setPetsMenuOpen(true)}
                 onMouseLeave={() => setPetsMenuOpen(false)}
@@ -111,11 +123,10 @@ const Navbar = () => {
               >
                 <Link
                   to="/pets"
-                  className={`text-[11px] uppercase tracking-wider font-semibold transition flex items-center gap-1 py-1 ${
-                    isActive('/pets') 
-                      ? 'text-[#ffd000] border-b-2 border-[#ffd000] pb-1' 
-                      : 'text-white hover:text-[#ffd000]'
-                  }`}
+                  className={`text-[11px] uppercase tracking-wider font-semibold transition flex items-center gap-1 py-1 ${isActive('/pets')
+                    ? 'text-[#ffd000] border-b-2 border-[#ffd000] pb-1'
+                    : 'text-white hover:text-[#ffd000]'
+                    }`}
                 >
                   Pets <ChevronDown size={10} />
                 </Link>
@@ -137,74 +148,69 @@ const Navbar = () => {
                 )}
               </div>
 
-              {/* Adopt */}
-              <Link 
-                to="/adopt"
-                className={`text-[11px] uppercase tracking-wider font-semibold transition py-1 ${
-                  isActive('/adopt') 
-                    ? 'text-[#ffd000] border-b-2 border-[#ffd000] pb-1' 
-                    : 'text-white hover:text-[#ffd000]'
-                }`}
+              {/* Pet Services Dropdown Menu (Includes Adoption, Hostel, Grooming, Walking, Transport, Insurance, Training, Mating, Consult A Vet) */}
+              <div
+                ref={servicesDropdownRef}
+                onMouseEnter={() => setServicesMenuOpen(true)}
+                onMouseLeave={() => setServicesMenuOpen(false)}
+                className="relative py-2 cursor-pointer"
               >
-                Adopt
-              </Link>
+                <Link
+                  to="/services"
+                  className={`text-[11px] uppercase tracking-wider font-semibold transition flex items-center gap-1 py-1 ${isActive('/services') || isActive('/adopt') || isActive('/breeding')
+                    ? 'text-[#ffd000] border-b-2 border-[#ffd000] pb-1'
+                    : 'text-white hover:text-[#ffd000]'
+                    }`}
+                >
+                  Pet Services <ChevronDown size={10} />
+                </Link>
 
-              {/* Breeding */}
-              <Link 
-                to="/breeding"
-                className={`text-[11px] uppercase tracking-wider font-semibold transition py-1 ${
-                  isActive('/breeding') 
-                    ? 'text-[#ffd000] border-b-2 border-[#ffd000] pb-1' 
-                    : 'text-white hover:text-[#ffd000]'
-                }`}
-              >
-                Breeding
-              </Link>
-
-              {/* Services */}
-              <Link 
-                to="/services"
-                className={`text-[11px] uppercase tracking-wider font-semibold transition py-1 ${
-                  isActive('/services') 
-                    ? 'text-[#ffd000] border-b-2 border-[#ffd000] pb-1' 
-                    : 'text-white hover:text-[#ffd000]'
-                }`}
-              >
-                Services
-              </Link>
+                {/* Dropdown Card */}
+                {servicesMenuOpen && (
+                  <div className="absolute top-full left-0 w-48 bg-white border border-gray-100 shadow-2xl py-1 z-50 rounded-none animate-in fade-in slide-in-from-top-1 duration-150">
+                    {servicesList.map((service) => (
+                      <Link
+                        key={service.label}
+                        to={service.path}
+                        onClick={() => setServicesMenuOpen(false)}
+                        className="block py-2 px-4 text-xs font-semibold text-gray-700 hover:bg-gray-100 hover:text-[#15559c] text-left border-b border-gray-100 last:border-0 transition"
+                      >
+                        {service.label}
+                      </Link>
+                    ))}
+                  </div>
+                )}
+              </div>
 
               {/* Shop */}
-              <Link 
+              <Link
                 to="/shop"
-                className={`text-[11px] uppercase tracking-wider font-semibold transition py-1 ${
-                  isActive('/shop') 
-                    ? 'text-[#ffd000] border-b-2 border-[#ffd000] pb-1' 
-                    : 'text-white hover:text-[#ffd000]'
-                }`}
+                className={`text-[11px] uppercase tracking-wider font-semibold transition py-1 ${isActive('/shop')
+                  ? 'text-[#ffd000] border-b-2 border-[#ffd000] pb-1'
+                  : 'text-white hover:text-[#ffd000]'
+                  }`}
               >
                 Shop
               </Link>
 
               {/* Blog */}
-              <Link 
+              <Link
                 to="/pet-care"
-                className={`text-[11px] uppercase tracking-wider font-semibold transition py-1 ${
-                  isActive('/pet-care') 
-                    ? 'text-[#ffd000] border-b-2 border-[#ffd000] pb-1' 
-                    : 'text-white hover:text-[#ffd000]'
-                }`}
+                className={`text-[11px] uppercase tracking-wider font-semibold transition py-1 ${isActive('/pet-care')
+                  ? 'text-[#ffd000] border-b-2 border-[#ffd000] pb-1'
+                  : 'text-white hover:text-[#ffd000]'
+                  }`}
               >
                 Blog
               </Link>
 
               {/* Contact Us */}
-              <Link 
+              <Link
                 to="/contact"
-                className={`text-[11px] uppercase tracking-wider font-semibold transition py-1 ${
-                  isActive('/contact') 
-                    ? 'text-[#ffd000] border-b-2 border-[#ffd000] pb-1' 
-                    : 'text-white hover:text-[#ffd000]'
-                }`}
+                className={`text-[11px] uppercase tracking-wider font-semibold transition py-1 ${isActive('/contact')
+                  ? 'text-[#ffd000] border-b-2 border-[#ffd000] pb-1'
+                  : 'text-white hover:text-[#ffd000]'
+                  }`}
               >
                 Contact Us
               </Link>
@@ -213,9 +219,9 @@ const Navbar = () => {
 
             {/* Right Side Actions: Search, Chat, Wishlist, Cart + Login / Signup Buttons */}
             <div className="flex items-center space-x-4">
-              
+
               {/* Search Icon */}
-              <button 
+              <button
                 onClick={() => setIsSearchOpen(true)}
                 className="p-1 text-white hover:text-[#ffd000] transition cursor-pointer"
                 title="Search Products"
@@ -225,11 +231,10 @@ const Navbar = () => {
 
               {/* Direct Live Chat center Link */}
               {isAuthenticated && (
-                <Link 
+                <Link
                   to="/chat"
-                  className={`p-1 hover:text-[#ffd000] transition ${
-                    isActive('/chat') ? 'text-[#ffd000]' : 'text-white'
-                  }`}
+                  className={`p-1 hover:text-[#ffd000] transition ${isActive('/chat') ? 'text-[#ffd000]' : 'text-white'
+                    }`}
                   title="Direct Messages / Chat"
                 >
                   <MessageSquare size={18} />
@@ -237,7 +242,7 @@ const Navbar = () => {
               )}
 
               {/* Wishlist Icon */}
-              <Link 
+              <Link
                 to="/wishlist"
                 className="p-1 text-white hover:text-[#ffd000] transition relative"
                 title="My Wishlist"
@@ -251,7 +256,7 @@ const Navbar = () => {
               </Link>
 
               {/* Cart Icon */}
-              <button 
+              <button
                 onClick={() => setIsCartOpen(true)}
                 className="p-1 text-white hover:text-[#ffd000] transition relative cursor-pointer"
                 title="Open Cart"
@@ -268,7 +273,7 @@ const Navbar = () => {
               <div className="hidden lg:flex items-center gap-3">
                 {isAuthenticated ? (
                   <>
-                    <Link 
+                    <Link
                       to="/account"
                       className="border border-white/40 hover:bg-white/10 text-white font-bold px-4 py-2 text-xs tracking-wider rounded-md uppercase transition"
                     >
@@ -283,13 +288,13 @@ const Navbar = () => {
                   </>
                 ) : (
                   <>
-                    <Link 
+                    <Link
                       to="/login"
                       className="bg-[#ffd000] hover:bg-[#e6b800] text-[#15559c] font-bold px-4 py-2 text-xs tracking-wider rounded-md uppercase transition"
                     >
                       Log in
                     </Link>
-                    <Link 
+                    <Link
                       to="/login"
                       className="border border-white/40 hover:bg-white/10 text-white font-bold px-4 py-2 text-xs tracking-wider rounded-md uppercase transition"
                     >
@@ -309,7 +314,7 @@ const Navbar = () => {
       {isMobileMenuOpen && (
         <div className="fixed inset-0 z-50 flex">
           <div onClick={() => setIsMobileMenuOpen(false)} className="fixed inset-0 bg-primary/40 backdrop-blur-sm"></div>
-          
+
           <div className="relative w-full max-w-xs bg-[#15559c] text-white shadow-2xl flex flex-col justify-between p-6 overflow-y-auto">
             <div>
               <div className="flex justify-between items-center mb-8 border-b border-white/10 pb-4">
@@ -322,7 +327,7 @@ const Navbar = () => {
               {/* Mobile links list */}
               <div className="space-y-4 text-xs font-semibold uppercase tracking-wider">
                 <Link to="/" onClick={() => setIsMobileMenuOpen(false)} className="block py-2 hover:text-[#ffd000] border-b border-white/5">Home</Link>
-                
+
                 {/* Pets department expanded on mobile */}
                 <div className="space-y-2 py-1 pl-2 border-l border-white/10">
                   <Link to="/pets" onClick={() => setIsMobileMenuOpen(false)} className="block text-[11px] hover:text-[#ffd000] tracking-widest font-bold">Pets Classifieds</Link>
@@ -331,13 +336,18 @@ const Navbar = () => {
                   ))}
                 </div>
 
-                <Link to="/adopt" onClick={() => setIsMobileMenuOpen(false)} className="block py-2 hover:text-[#ffd000] border-b border-white/5">Adopt</Link>
-                <Link to="/breeding" onClick={() => setIsMobileMenuOpen(false)} className="block py-2 hover:text-[#ffd000] border-b border-white/5">Breeding</Link>
-                <Link to="/services" onClick={() => setIsMobileMenuOpen(false)} className="block py-2 hover:text-[#ffd000] border-b border-white/5">Services</Link>
+                {/* Pet Services expanded on mobile */}
+                <div className="space-y-2 py-1 pl-2 border-l border-white/10">
+                  <Link to="/services" onClick={() => setIsMobileMenuOpen(false)} className="block text-[11px] hover:text-[#ffd000] tracking-widest font-bold">Pet Services</Link>
+                  {servicesList.map(service => (
+                    <Link key={service.label} to={service.path} onClick={() => setIsMobileMenuOpen(false)} className="block py-1 hover:text-[#ffd000] text-[11px] normal-case pl-2">{service.label}</Link>
+                  ))}
+                </div>
+
                 <Link to="/shop" onClick={() => setIsMobileMenuOpen(false)} className="block py-2 hover:text-[#ffd000] border-b border-white/5">Shop</Link>
                 <Link to="/pet-care" onClick={() => setIsMobileMenuOpen(false)} className="block py-2 hover:text-[#ffd000] border-b border-white/5">Blog</Link>
                 <Link to="/contact" onClick={() => setIsMobileMenuOpen(false)} className="block py-2 hover:text-[#ffd000] border-b border-white/5">Contact Us</Link>
-                
+
                 {isAuthenticated && (
                   <Link to="/chat" onClick={() => setIsMobileMenuOpen(false)} className="block py-2 hover:text-[#ffd000] border-b border-white/5">Direct Messages</Link>
                 )}
@@ -349,7 +359,7 @@ const Navbar = () => {
               {isAuthenticated ? (
                 <div className="space-y-3">
                   <p className="text-xs font-bold text-[#ffd000] flex items-center gap-1.5"><User size={14} /> {user?.name}</p>
-                  <Link 
+                  <Link
                     to="/account"
                     onClick={() => setIsMobileMenuOpen(false)}
                     className="block text-xs font-bold text-white hover:text-[#ffd000]"
@@ -389,7 +399,7 @@ const Navbar = () => {
       {/* Global Overlays */}
       <SearchOverlay isOpen={isSearchOpen} onClose={() => setIsSearchOpen(false)} />
       <CartDrawer isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} />
-      
+
       {/* Spacer to push content below navbar */}
       <div className="h-[96px]"></div>
     </>
