@@ -81,9 +81,13 @@ const apiLimiter = rateLimit({
 app.use('/api', apiLimiter);
 
 // Ensure uploads folder exists
-const uploadsDir = path.join(__dirname, 'uploads');
-if (!fs.existsSync(uploadsDir)) {
-  fs.mkdirSync(uploadsDir, { recursive: true });
+const uploadsDir = process.env.VERCEL ? '/tmp/uploads' : path.join(__dirname, 'uploads');
+try {
+  if (!fs.existsSync(uploadsDir)) {
+    fs.mkdirSync(uploadsDir, { recursive: true });
+  }
+} catch (err) {
+  console.warn('Warning: Could not create uploads directory:', err.message);
 }
 
 // Serve uploaded prescription/product files statically
