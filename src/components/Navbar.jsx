@@ -57,6 +57,7 @@ const Navbar = () => {
   ];
 
   const servicesList = [
+    { label: 'Pet Seller', path: '/pets' },
     { label: 'Pet Adoption', path: '/adopt' },
     { label: 'Pet Hostel', path: '/services?category=Hostel' },
     { label: 'Pet Grooming', path: '/services?category=Grooming' },
@@ -65,7 +66,7 @@ const Navbar = () => {
     { label: 'Pet Insurance', path: '/services?category=Insurance' },
     { label: 'Pet Training', path: '/services?category=Training' },
     { label: 'Pet Mating', path: '/breeding' },
-    { label: 'Consult A Vet', path: '/services?category=Veterinary' }
+    { label: 'Vet', path: '/services?category=Veterinary' }
   ];
 
   return (
