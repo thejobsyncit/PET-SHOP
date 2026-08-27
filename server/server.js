@@ -125,3 +125,6 @@ process.on('unhandledRejection', (err) => {
   console.error(`Unhandled Rejection Error: ${err.message}`);
   server.close(() => process.exit(1));
 });
+
+export default app;
+
