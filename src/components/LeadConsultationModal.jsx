@@ -295,10 +295,10 @@ const LeadConsultationModal = () => {
                 </button>
 
                 {/* Header Branding */}
-                <div className="pt-6 pb-3 px-6 text-center bg-gradient-to-b from-purple-50/80 to-white relative">
+                <div className="pt-6 pb-3 px-6 text-center bg-gradient-to-b from-blue-50/80 to-white relative">
 
-                    <div className="flex items-center justify-center gap-2 text-[#7c3aed] font-serif font-extrabold text-xl md:text-2xl tracking-wide">
-                        <Heart size={22} className="fill-[#7c3aed] text-[#7c3aed]" />
+                    <div className="flex items-center justify-center gap-2 text-[#15559c] font-serif font-extrabold text-xl md:text-2xl tracking-wide">
+                        <span className="text-xl">🐾</span>
                         <span>INDIA PET HUB</span>
                     </div>
 
@@ -317,7 +317,7 @@ const LeadConsultationModal = () => {
                             type="button"
                             onClick={() => setActiveTab('user')}
                             className={`flex-1 py-2 px-3 text-xs font-bold rounded-lg transition-all flex items-center justify-center gap-1.5 cursor-pointer ${activeTab === 'user'
-                                    ? 'bg-white text-[#7c3aed] shadow-md font-extrabold'
+                                    ? 'bg-white text-[#15559c] shadow-md font-extrabold'
                                     : 'text-gray-500 hover:text-gray-800'
                                 }`}
                         >
@@ -330,7 +330,7 @@ const LeadConsultationModal = () => {
                             type="button"
                             onClick={() => setActiveTab('provider')}
                             className={`flex-1 py-2 px-3 text-xs font-bold rounded-lg transition-all flex items-center justify-center gap-1.5 cursor-pointer ${activeTab === 'provider'
-                                    ? 'bg-[#7c3aed] text-white shadow-md font-extrabold'
+                                    ? 'bg-[#15559c] text-white shadow-md font-extrabold'
                                     : 'text-gray-500 hover:text-gray-800'
                                 }`}
                         >
@@ -352,7 +352,7 @@ const LeadConsultationModal = () => {
                                 placeholder="Full Name"
                                 value={userFullName}
                                 onChange={(e) => setUserFullName(e.target.value)}
-                                className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-xs md:text-sm focus:outline-none focus:border-[#7c3aed] focus:ring-2 focus:ring-purple-100 transition bg-gray-50/50 hover:bg-white"
+                                className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-xs md:text-sm focus:outline-none focus:border-[#15559c] focus:ring-2 focus:ring-blue-100 transition bg-gray-50/50 hover:bg-white"
                             />
                         </div>
 
@@ -367,11 +367,11 @@ const LeadConsultationModal = () => {
                                     onChange={(e) => handleMobileChange(e, setUserMobileNo, setUserMobileError)}
                                     className={`w-full px-4 py-2.5 border rounded-xl text-xs md:text-sm focus:outline-none transition bg-white pr-24 font-semibold ${userMobileError
                                             ? 'border-red-500 ring-2 ring-red-100 text-red-900 placeholder-red-400'
-                                            : 'border-purple-300 focus:border-[#7c3aed] focus:ring-2 focus:ring-purple-100 shadow-sm'
+                                            : 'border-blue-300 focus:border-[#15559c] focus:ring-2 focus:ring-blue-100 shadow-sm'
                                         }`}
                                     required
                                 />
-                                <span className="absolute right-3 top-1/2 -translate-y-1/2 bg-purple-100 text-[#7c3aed] font-bold text-[10px] uppercase px-2 py-0.5 rounded-md tracking-wider pointer-events-none flex items-center gap-1">
+                                <span className="absolute right-3 top-1/2 -translate-y-1/2 bg-blue-100 text-[#15559c] font-bold text-[10px] uppercase px-2 py-0.5 rounded-md tracking-wider pointer-events-none flex items-center gap-1">
                                     <Phone size={10} /> REQUIRED *
                                 </span>
                             </div>
@@ -381,7 +381,7 @@ const LeadConsultationModal = () => {
                                 </p>
                             ) : (
                                 <p className="text-[10px] text-gray-400 pl-1 font-semibold flex items-center gap-1">
-                                    <Sparkles size={10} className="text-[#7c3aed]" />
+                                    <Sparkles size={10} className="text-[#15559c]" />
                                     Must be exactly 10 digits for instant account access
                                 </p>
                             )}
@@ -395,7 +395,7 @@ const LeadConsultationModal = () => {
                                     placeholder="Email"
                                     value={userEmail}
                                     onChange={(e) => setUserEmail(e.target.value)}
-                                    className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-xs md:text-sm focus:outline-none focus:border-[#7c3aed] focus:ring-2 focus:ring-purple-100 transition bg-gray-50/50 hover:bg-white"
+                                    className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-xs md:text-sm focus:outline-none focus:border-[#15559c] focus:ring-2 focus:ring-blue-100 transition bg-gray-50/50 hover:bg-white"
                                 />
                             </div>
 
@@ -414,14 +414,14 @@ const LeadConsultationModal = () => {
                                         }}
                                         className={`w-full px-4 py-2.5 border rounded-xl text-xs md:text-sm focus:outline-none transition bg-white pr-10 ${userPasswordError
                                                 ? 'border-red-500 ring-2 ring-red-100 text-red-900'
-                                                : 'border-gray-200 focus:border-[#7c3aed] focus:ring-2 focus:ring-purple-100'
+                                                : 'border-gray-200 focus:border-[#15559c] focus:ring-2 focus:ring-blue-100'
                                             }`}
                                         required
                                     />
                                     <button
                                         type="button"
                                         onClick={() => setShowUserPassword(!showUserPassword)}
-                                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-[#7c3aed] transition p-1 cursor-pointer"
+                                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-[#15559c] transition p-1 cursor-pointer"
                                         title={showUserPassword ? "Hide Password" : "View Password"}
                                     >
                                         {showUserPassword ? <EyeOff size={16} /> : <Eye size={16} />}
@@ -434,8 +434,8 @@ const LeadConsultationModal = () => {
                         </div>
 
                         {/* Password Requirement Hints Badge */}
-                        <div className="bg-purple-50/50 p-2 rounded-lg text-[10px] text-purple-900 font-medium space-y-0.5 border border-purple-100">
-                            <span className="font-bold text-[#7c3aed] block">Password Rules (Max 10 chars):</span>
+                        <div className="bg-blue-50/60 p-2.5 rounded-lg text-[10px] text-[#0f3d6b] font-medium space-y-0.5 border border-blue-100">
+                            <span className="font-bold text-[#15559c] block">Password Rules (Max 10 chars):</span>
                             <p>• At least 1 Capital (A-Z), 1 Small (a-z), 1 Number (0-9), & 1 Special char (!@#$%^&*)</p>
                         </div>
 
@@ -447,7 +447,7 @@ const LeadConsultationModal = () => {
                                 <select
                                     value={userState}
                                     onChange={handleUserStateChange}
-                                    className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-xs md:text-sm bg-gray-50/50 hover:bg-white focus:outline-none focus:border-[#7c3aed] focus:ring-2 focus:ring-purple-100 transition font-medium text-gray-700"
+                                    className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-xs md:text-sm bg-gray-50/50 hover:bg-white focus:outline-none focus:border-[#15559c] focus:ring-2 focus:ring-blue-100 transition font-medium text-gray-700"
                                 >
                                     {indianStates.map((s) => (
                                         <option key={s} value={s}>{s}</option>
@@ -467,7 +467,7 @@ const LeadConsultationModal = () => {
                                             setIsUserCityDropdownOpen(true);
                                         }}
                                         onFocus={() => setIsUserCityDropdownOpen(true)}
-                                        className="w-full pl-8 pr-3 py-2.5 border border-gray-200 rounded-xl text-xs md:text-sm focus:outline-none focus:border-[#7c3aed] focus:ring-2 focus:ring-purple-100 transition bg-gray-50/50 hover:bg-white font-medium"
+                                        className="w-full pl-8 pr-3 py-2.5 border border-gray-200 rounded-xl text-xs md:text-sm focus:outline-none focus:border-[#15559c] focus:ring-2 focus:ring-blue-100 transition bg-gray-50/50 hover:bg-white font-medium"
                                     />
                                     <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
                                 </div>
@@ -483,10 +483,10 @@ const LeadConsultationModal = () => {
                                                         setUserCitySearch(c);
                                                         setIsUserCityDropdownOpen(false);
                                                     }}
-                                                    className="px-3 py-2 text-xs text-gray-700 hover:bg-purple-50 hover:text-[#7c3aed] cursor-pointer flex items-center justify-between font-medium transition"
+                                                    className="px-3 py-2 text-xs text-gray-700 hover:bg-blue-50 hover:text-[#15559c] cursor-pointer flex items-center justify-between font-medium transition"
                                                 >
                                                     <span>{c}</span>
-                                                    <MapPin size={10} className="text-purple-400" />
+                                                    <MapPin size={10} className="text-blue-400" />
                                                 </div>
                                             ))
                                         ) : (
@@ -504,7 +504,7 @@ const LeadConsultationModal = () => {
                         <div className="pt-2 flex justify-center">
                             <button
                                 type="submit"
-                                className="w-52 py-3 bg-[#7c3aed] hover:bg-[#6d28d9] text-white font-bold text-xs md:text-sm tracking-wide rounded-xl shadow-lg shadow-purple-200 active:scale-95 transition cursor-pointer flex items-center justify-center gap-2"
+                                className="w-56 py-3 bg-[#15559c] hover:bg-[#0f3d6b] text-white font-bold text-xs md:text-sm tracking-wide rounded-xl shadow-lg shadow-blue-900/20 active:scale-95 transition cursor-pointer flex items-center justify-center gap-2"
                             >
                                 <User size={16} />
                                 Register as User
@@ -525,7 +525,7 @@ const LeadConsultationModal = () => {
                                 placeholder="Business Name / Full Name *"
                                 value={providerBusinessName}
                                 onChange={(e) => setProviderBusinessName(e.target.value)}
-                                className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-xs md:text-sm focus:outline-none focus:border-[#7c3aed] focus:ring-2 focus:ring-purple-100 transition bg-gray-50/50 hover:bg-white font-medium"
+                                className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-xs md:text-sm focus:outline-none focus:border-[#15559c] focus:ring-2 focus:ring-blue-100 transition bg-gray-50/50 hover:bg-white font-medium"
                                 required
                             />
                         </div>
@@ -541,11 +541,11 @@ const LeadConsultationModal = () => {
                                     onChange={(e) => handleMobileChange(e, setProviderMobileNo, setProviderMobileError)}
                                     className={`w-full px-4 py-2.5 border rounded-xl text-xs md:text-sm focus:outline-none transition bg-white pr-24 font-semibold ${providerMobileError
                                             ? 'border-red-500 ring-2 ring-red-100 text-red-900 placeholder-red-400'
-                                            : 'border-purple-300 focus:border-[#7c3aed] focus:ring-2 focus:ring-purple-100 shadow-sm'
+                                            : 'border-blue-300 focus:border-[#15559c] focus:ring-2 focus:ring-blue-100 shadow-sm'
                                         }`}
                                     required
                                 />
-                                <span className="absolute right-3 top-1/2 -translate-y-1/2 bg-purple-100 text-[#7c3aed] font-bold text-[10px] uppercase px-2 py-0.5 rounded-md tracking-wider pointer-events-none flex items-center gap-1">
+                                <span className="absolute right-3 top-1/2 -translate-y-1/2 bg-blue-100 text-[#15559c] font-bold text-[10px] uppercase px-2 py-0.5 rounded-md tracking-wider pointer-events-none flex items-center gap-1">
                                     <Phone size={10} /> REQUIRED *
                                 </span>
                             </div>
@@ -555,7 +555,7 @@ const LeadConsultationModal = () => {
                                 </p>
                             ) : (
                                 <p className="text-[10px] text-gray-400 pl-1 font-semibold flex items-center gap-1">
-                                    <Sparkles size={10} className="text-[#7c3aed]" />
+                                    <Sparkles size={10} className="text-[#15559c]" />
                                     Must be exactly 10 digits for verified client bookings & leads
                                 </p>
                             )}
@@ -576,7 +576,7 @@ const LeadConsultationModal = () => {
                                     }}
                                     className={`w-full px-4 py-2.5 border rounded-xl text-xs md:text-sm focus:outline-none transition ${providerEmailError
                                             ? 'border-red-500 ring-2 ring-red-100 text-red-900'
-                                            : 'border-gray-200 focus:border-[#7c3aed] focus:ring-2 focus:ring-purple-100 bg-gray-50/50 hover:bg-white'
+                                            : 'border-gray-200 focus:border-[#15559c] focus:ring-2 focus:ring-blue-100 bg-gray-50/50 hover:bg-white'
                                         }`}
                                     required
                                 />
@@ -600,14 +600,14 @@ const LeadConsultationModal = () => {
                                         }}
                                         className={`w-full px-4 py-2.5 border rounded-xl text-xs md:text-sm focus:outline-none transition bg-white pr-10 ${providerPasswordError
                                                 ? 'border-red-500 ring-2 ring-red-100 text-red-900'
-                                                : 'border-gray-200 focus:border-[#7c3aed] focus:ring-2 focus:ring-purple-100'
+                                                : 'border-gray-200 focus:border-[#15559c] focus:ring-2 focus:ring-blue-100'
                                             }`}
                                         required
                                     />
                                     <button
                                         type="button"
                                         onClick={() => setShowProviderPassword(!showProviderPassword)}
-                                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-[#7c3aed] transition p-1 cursor-pointer"
+                                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-[#15559c] transition p-1 cursor-pointer"
                                         title={showProviderPassword ? "Hide Password" : "View Password"}
                                     >
                                         {showProviderPassword ? <EyeOff size={16} /> : <Eye size={16} />}
@@ -620,8 +620,8 @@ const LeadConsultationModal = () => {
                         </div>
 
                         {/* Password Requirement Hints Badge */}
-                        <div className="bg-purple-50/50 p-2 rounded-lg text-[10px] text-purple-900 font-medium space-y-0.5 border border-purple-100">
-                            <span className="font-bold text-[#7c3aed] block">Password Rules (Max 10 chars):</span>
+                        <div className="bg-blue-50/60 p-2.5 rounded-lg text-[10px] text-[#0f3d6b] font-medium space-y-0.5 border border-blue-100">
+                            <span className="font-bold text-[#15559c] block">Password Rules (Max 10 chars):</span>
                             <p>• At least 1 Capital (A-Z), 1 Small (a-z), 1 Number (0-9), & 1 Special char (!@#$%^&*)</p>
                         </div>
 
@@ -633,7 +633,7 @@ const LeadConsultationModal = () => {
                                 <select
                                     value={providerState}
                                     onChange={handleProviderStateChange}
-                                    className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-xs md:text-sm bg-gray-50/50 hover:bg-white focus:outline-none focus:border-[#7c3aed] focus:ring-2 focus:ring-purple-100 transition font-medium text-gray-700"
+                                    className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-xs md:text-sm bg-gray-50/50 hover:bg-white focus:outline-none focus:border-[#15559c] focus:ring-2 focus:ring-blue-100 transition font-medium text-gray-700"
                                 >
                                     {indianStates.map((s) => (
                                         <option key={s} value={s}>{s}</option>
@@ -653,7 +653,7 @@ const LeadConsultationModal = () => {
                                             setIsProviderCityDropdownOpen(true);
                                         }}
                                         onFocus={() => setIsProviderCityDropdownOpen(true)}
-                                        className="w-full pl-8 pr-3 py-2.5 border border-gray-200 rounded-xl text-xs md:text-sm focus:outline-none focus:border-[#7c3aed] focus:ring-2 focus:ring-purple-100 transition bg-gray-50/50 hover:bg-white font-medium"
+                                        className="w-full pl-8 pr-3 py-2.5 border border-gray-200 rounded-xl text-xs md:text-sm focus:outline-none focus:border-[#15559c] focus:ring-2 focus:ring-blue-100 transition bg-gray-50/50 hover:bg-white font-medium"
                                     />
                                     <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
                                 </div>
@@ -669,10 +669,10 @@ const LeadConsultationModal = () => {
                                                         setProviderCitySearch(c);
                                                         setIsProviderCityDropdownOpen(false);
                                                     }}
-                                                    className="px-3 py-2 text-xs text-gray-700 hover:bg-purple-50 hover:text-[#7c3aed] cursor-pointer flex items-center justify-between font-medium transition"
+                                                    className="px-3 py-2 text-xs text-gray-700 hover:bg-blue-50 hover:text-[#15559c] cursor-pointer flex items-center justify-between font-medium transition"
                                                 >
                                                     <span>{c}</span>
-                                                    <MapPin size={10} className="text-purple-400" />
+                                                    <MapPin size={10} className="text-blue-400" />
                                                 </div>
                                             ))
                                         ) : (
@@ -688,11 +688,11 @@ const LeadConsultationModal = () => {
 
                         {/* SERVICE CATEGORY DROPDOWN */}
                         <div>
-                            <label className="text-[11px] font-bold text-purple-900 mb-1 block pl-1">Select Provided Service Category *</label>
+                            <label className="text-[11px] font-bold text-[#0f3d6b] mb-1 block pl-1">Select Provided Service Category *</label>
                             <select
                                 value={providerCategory}
                                 onChange={(e) => setProviderCategory(e.target.value)}
-                                className="w-full px-4 py-2.5 border border-purple-300 rounded-xl text-xs md:text-sm bg-purple-50/30 hover:bg-white focus:outline-none focus:border-[#7c3aed] focus:ring-2 focus:ring-purple-100 transition font-semibold text-gray-800 shadow-sm"
+                                className="w-full px-4 py-2.5 border border-blue-300 rounded-xl text-xs md:text-sm bg-blue-50/30 hover:bg-white focus:outline-none focus:border-[#15559c] focus:ring-2 focus:ring-blue-100 transition font-semibold text-gray-800 shadow-sm"
                             >
                                 {providerServiceCategories.map((cat) => (
                                     <option key={cat} value={cat}>{cat}</option>
@@ -704,7 +704,7 @@ const LeadConsultationModal = () => {
                         <div className="pt-1.5 flex justify-center">
                             <button
                                 type="submit"
-                                className="w-60 py-2.5 bg-[#7c3aed] hover:bg-[#6d28d9] text-white font-bold text-xs md:text-sm tracking-wide rounded-xl shadow-lg shadow-purple-200 active:scale-95 transition cursor-pointer flex items-center justify-center gap-2"
+                                className="w-64 py-3 bg-[#15559c] hover:bg-[#0f3d6b] text-white font-bold text-xs md:text-sm tracking-wide rounded-xl shadow-lg shadow-blue-900/20 active:scale-95 transition cursor-pointer flex items-center justify-center gap-2"
                             >
                                 <Briefcase size={16} />
                                 Register as Service Provider
