@@ -1254,7 +1254,7 @@ Create a thermal gradient from the hot basking side to a cool shade side:
 ### 4. Substrate Selection
 For beginners, non-adhesive shelf liner, slate tiles, or paper towels are highly recommended. For advanced keepers, a 50/50 mix of organic topsoil and play sand replicates their natural arid environment without causing gut impaction.`,
     author: 'Dr. Vivek Nair (Herpetologist)',
-    featuredImage: 'https://images.unsplash.com/photo-1504450758481-7338eaa75e6a?q=80&w=800',
+    featuredImage: 'https://images.unsplash.com/photo-1504450874802-0ba2bcd9b5ae?q=80&w=800',
     petType: 'reptiles',
     tags: ['Reptiles', 'Habitat Guide', 'Bearded Dragon', 'Beginners'],
     readTime: '6 min read',
@@ -1342,7 +1342,7 @@ Parrots have a natural drive to chew and explore. Provide toys made of bird-safe
 * **Foraging Toys**: Devices where they must solve a puzzle or chew through cardboard to get a sunflower seed.
 * Avoid toys with mirrors (causes psychological obsession) and small plastic parts that can be swallowed.`,
     author: 'Priya Iyer (Avian Behavioral Specialist)',
-    featuredImage: 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?q=80&w=800',
+    featuredImage: 'https://images.unsplash.com/photo-1673454201378-3867e051dca7?q=80&w=800',
     petType: 'birds',
     tags: ['Birds', 'Cage Setup', 'Bird Toys', 'Pet Care'],
     readTime: '5 min read',
