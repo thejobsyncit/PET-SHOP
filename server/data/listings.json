@@ -19,7 +19,7 @@
     "contactPhone": "+91 98765 43210",
     "isVerified": true,
     "status": "Available",
-    "createdAt": "2026-08-26T11:52:15.354Z"
+    "createdAt": "2026-08-27T10:59:20.778Z"
   },
   {
     "_id": "LIST-102",
@@ -41,7 +41,7 @@
     "contactPhone": "+91 80123 45678",
     "isVerified": true,
     "status": "Available",
-    "createdAt": "2026-08-26T11:52:15.355Z"
+    "createdAt": "2026-08-27T10:59:20.779Z"
   },
   {
     "_id": "LIST-103",
@@ -57,12 +57,12 @@
     "price": 45000,
     "description": "Smart talking parrot, responds to commands and speaks basic phrases. Includes large standing metal cage and food dishes.",
     "images": [
-      "https://images.unsplash.com/photo-1522856268848-d11edf133a70?q=80&w=800"
+      "https://images.unsplash.com/photo-1452570053594-1b985d6ea890?q=80&w=800"
     ],
     "location": "Mumbai, MH",
     "contactPhone": "+91 99000 88888",
     "isVerified": false,
     "status": "Available",
-    "createdAt": "2026-08-26T11:52:15.355Z"
+    "createdAt": "2026-08-27T10:59:20.779Z"
   }
 ]

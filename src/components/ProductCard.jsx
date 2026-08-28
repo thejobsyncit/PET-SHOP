@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
-import { Heart, ShoppingBag, Eye, ShieldAlert, Check, X, ClipboardList } from 'lucide-react';
+import { Heart, ShoppingBag, Eye, ShieldAlert, Check, X, ClipboardList, Minus, Plus } from 'lucide-react';
 import { addToCartAPI } from '../store/slices/cartSlice.js';
 import { toggleWishlistAPI } from '../store/slices/wishlistSlice.js';
 import RatingStars from './RatingStars.jsx';

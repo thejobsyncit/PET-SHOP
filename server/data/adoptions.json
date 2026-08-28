@@ -8,7 +8,7 @@
     "breed": "Indie Dog (Mixed)",
     "age": "1.5 years",
     "rescueStory": "Rescued from a building construction site. Rocky was malnourished but is now fully rehabilitated, vaccinated, and microchipped.",
-    "image": "https://images.unsplash.com/photo-1543466835-00a7907e9de1?q=80&w=800",
+    "image": "https://images.unsplash.com/photo-1537151608828-ea2b11777ee8?q=80&w=800&auto=format&fit=crop",
     "healthStatus": {
       "vaccinated": true,
       "neutered": true,
@@ -16,7 +16,7 @@
     },
     "adoptionFee": 0,
     "inquiries": [],
-    "createdAt": "2026-08-26T11:52:15.355Z"
+    "createdAt": "2026-08-27T10:59:20.779Z"
   },
   {
     "_id": "ADOPT-202",
@@ -27,7 +27,7 @@
     "breed": "Calico Cat",
     "age": "6 months",
     "rescueStory": "Found abandoned during monsoon rains. Luna is highly socialized, extremely affectionate, and gets along well with other pets.",
-    "image": "https://images.unsplash.com/photo-1533738363-b7f9aef128ce?q=80&w=800",
+    "image": "https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?q=80&w=800&auto=format&fit=crop",
     "healthStatus": {
       "vaccinated": true,
       "neutered": false,
@@ -35,6 +35,6 @@
     },
     "adoptionFee": 0,
     "inquiries": [],
-    "createdAt": "2026-08-26T11:52:15.355Z"
+    "createdAt": "2026-08-27T10:59:20.779Z"
   }
 ]

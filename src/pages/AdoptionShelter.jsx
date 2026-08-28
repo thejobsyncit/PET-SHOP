@@ -124,7 +124,7 @@ const AdoptionShelter = () => {
               {/* Pet Photo (5 columns) */}
               <div className="md:col-span-5 aspect-[4/5] overflow-hidden bg-gray-50 border border-beige relative">
                 <img src={a.image} alt={a.petName} className="w-full h-full object-cover" />
-                <span className="absolute bottom-3 left-3 bg-[#ffd000] text-primary text-[8px] font-bold px-2 py-0.5 uppercase tracking-widest">
+                <span className="absolute bottom-3 left-3 bg-accent text-white text-[8px] font-bold px-2 py-0.5 uppercase tracking-widest">
                   {a.breed}
                 </span>
               </div>

@@ -6,7 +6,7 @@
     "discountValue": 10,
     "minOrderValue": 999,
     "maxDiscount": 500,
-    "expiresAt": "2027-02-26T09:57:38.068Z",
+    "expiresAt": "2027-02-27T12:17:28.841Z",
     "isActive": true
   },
   {
@@ -15,7 +15,7 @@
     "discountType": "flat",
     "discountValue": 300,
     "minOrderValue": 2499,
-    "expiresAt": "2027-02-26T09:57:38.068Z",
+    "expiresAt": "2027-02-27T12:17:28.841Z",
     "isActive": true
   }
 ]

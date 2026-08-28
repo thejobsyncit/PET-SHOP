@@ -74,13 +74,13 @@ const Navbar = () => {
       <header className="fixed top-0 left-0 w-full z-40 transition-all duration-300">
 
         {/* Top Announcement Bar */}
-        <div className="bg-[#0f3d6b] text-white text-[10px] tracking-widest font-semibold py-2 px-4 text-center border-b border-white/5">
+        <div className="bg-primary-dark text-white text-[10px] tracking-widest font-semibold py-2 px-4 text-center border-b border-white/5">
           FREE SHIPPING ON ORDERS ABOVE ₹999
         </div>
 
-        {/* Sticky Blue Main Navigation */}
+        {/* Sticky Premium Main Navigation */}
         <nav
-          className={`w-full bg-[#15559c] text-white transition-all duration-300 ${isScrolled ? 'py-3 shadow-lg' : 'py-4'
+          className={`w-full bg-primary text-white transition-all duration-300 ${isScrolled ? 'py-3 shadow-lg' : 'py-4'
             }`}
         >
           <div className="max-w-7xl mx-auto px-4 md:px-8 flex justify-between items-center">
@@ -88,17 +88,17 @@ const Navbar = () => {
             {/* Hamburger Trigger for Mobile */}
             <button
               onClick={() => setIsMobileMenuOpen(true)}
-              className="lg:hidden p-1 text-white hover:text-[#ffd000] cursor-pointer"
+              className="lg:hidden p-1 text-white hover:text-accent-light cursor-pointer"
             >
               <Menu size={22} />
             </button>
 
-            {/* Left: Brand Logo (Breed n Breeder-style alignment) */}
+            {/* Left: Brand Logo */}
             <Link
               to="/"
               className="font-serif text-xl md:text-2xl tracking-widest text-white font-bold whitespace-nowrap mr-4"
             >
-              INDIA PET HUB
+              PAWORA
             </Link>
 
             {/* Center Nav Links */}
@@ -108,8 +108,8 @@ const Navbar = () => {
               <Link
                 to="/"
                 className={`text-[11px] uppercase tracking-wider font-semibold transition py-1 ${isActive('/')
-                  ? 'text-[#ffd000] border-b-2 border-[#ffd000] pb-1'
-                  : 'text-white hover:text-[#ffd000]'
+                  ? 'text-accent-light border-b-2 border-accent-light pb-1'
+                  : 'text-white hover:text-accent-light'
                   }`}
               >
                 Home
@@ -125,8 +125,8 @@ const Navbar = () => {
                 <Link
                   to="/pets"
                   className={`text-[11px] uppercase tracking-wider font-semibold transition flex items-center gap-1 py-1 ${isActive('/pets')
-                    ? 'text-[#ffd000] border-b-2 border-[#ffd000] pb-1'
-                    : 'text-white hover:text-[#ffd000]'
+                    ? 'text-accent-light border-b-2 border-accent-light pb-1'
+                    : 'text-white hover:text-accent-light'
                     }`}
                 >
                   Pets <ChevronDown size={10} />
@@ -140,7 +140,7 @@ const Navbar = () => {
                         key={pet.label}
                         to={pet.path}
                         onClick={() => setPetsMenuOpen(false)}
-                        className="block py-2.5 text-xs font-semibold text-gray-700 hover:bg-gray-55 hover:text-[#15559c] text-center border-b border-gray-100 last:border-0 transition"
+                        className="block py-2.5 text-xs font-semibold text-gray-700 hover:bg-gray-50 hover:text-primary text-center border-b border-gray-100 last:border-0 transition"
                       >
                         {pet.label}
                       </Link>
@@ -149,7 +149,7 @@ const Navbar = () => {
                 )}
               </div>
 
-              {/* Pet Services Dropdown Menu (Includes Adoption, Hostel, Grooming, Walking, Transport, Insurance, Training, Mating, Consult A Vet) */}
+              {/* Pet Services Dropdown Menu */}
               <div
                 ref={servicesDropdownRef}
                 onMouseEnter={() => setServicesMenuOpen(true)}
@@ -159,8 +159,8 @@ const Navbar = () => {
                 <Link
                   to="/services"
                   className={`text-[11px] uppercase tracking-wider font-semibold transition flex items-center gap-1 py-1 ${isActive('/services') || isActive('/adopt') || isActive('/breeding')
-                    ? 'text-[#ffd000] border-b-2 border-[#ffd000] pb-1'
-                    : 'text-white hover:text-[#ffd000]'
+                    ? 'text-accent-light border-b-2 border-accent-light pb-1'
+                    : 'text-white hover:text-accent-light'
                     }`}
                 >
                   Pet Services <ChevronDown size={10} />
@@ -174,7 +174,7 @@ const Navbar = () => {
                         key={service.label}
                         to={service.path}
                         onClick={() => setServicesMenuOpen(false)}
-                        className="block py-2 px-4 text-xs font-semibold text-gray-700 hover:bg-gray-100 hover:text-[#15559c] text-left border-b border-gray-100 last:border-0 transition"
+                        className="block py-2 px-4 text-xs font-semibold text-gray-700 hover:bg-gray-100 hover:text-primary text-left border-b border-gray-100 last:border-0 transition"
                       >
                         {service.label}
                       </Link>
@@ -187,8 +187,8 @@ const Navbar = () => {
               <Link
                 to="/shop"
                 className={`text-[11px] uppercase tracking-wider font-semibold transition py-1 ${isActive('/shop')
-                  ? 'text-[#ffd000] border-b-2 border-[#ffd000] pb-1'
-                  : 'text-white hover:text-[#ffd000]'
+                  ? 'text-accent-light border-b-2 border-accent-light pb-1'
+                  : 'text-white hover:text-accent-light'
                   }`}
               >
                 Shop
@@ -198,8 +198,8 @@ const Navbar = () => {
               <Link
                 to="/pet-care"
                 className={`text-[11px] uppercase tracking-wider font-semibold transition py-1 ${isActive('/pet-care')
-                  ? 'text-[#ffd000] border-b-2 border-[#ffd000] pb-1'
-                  : 'text-white hover:text-[#ffd000]'
+                  ? 'text-accent-light border-b-2 border-accent-light pb-1'
+                  : 'text-white hover:text-accent-light'
                   }`}
               >
                 Blog
@@ -209,8 +209,8 @@ const Navbar = () => {
               <Link
                 to="/contact"
                 className={`text-[11px] uppercase tracking-wider font-semibold transition py-1 ${isActive('/contact')
-                  ? 'text-[#ffd000] border-b-2 border-[#ffd000] pb-1'
-                  : 'text-white hover:text-[#ffd000]'
+                  ? 'text-accent-light border-b-2 border-accent-light pb-1'
+                  : 'text-white hover:text-accent-light'
                   }`}
               >
                 Contact Us
@@ -224,17 +224,17 @@ const Navbar = () => {
               {/* Search Icon */}
               <button
                 onClick={() => setIsSearchOpen(true)}
-                className="p-1 text-white hover:text-[#ffd000] transition cursor-pointer"
+                className="p-1 text-white hover:text-accent-light transition cursor-pointer"
                 title="Search Products"
               >
                 <Search size={18} />
               </button>
 
-              {/* Direct Live Chat center Link */}
+              {/* Direct Live Chat Link */}
               {isAuthenticated && (
                 <Link
                   to="/chat"
-                  className={`p-1 hover:text-[#ffd000] transition ${isActive('/chat') ? 'text-[#ffd000]' : 'text-white'
+                  className={`p-1 hover:text-accent-light transition ${isActive('/chat') ? 'text-accent-light' : 'text-white'
                     }`}
                   title="Direct Messages / Chat"
                 >
@@ -245,12 +245,12 @@ const Navbar = () => {
               {/* Wishlist Icon */}
               <Link
                 to="/wishlist"
-                className="p-1 text-white hover:text-[#ffd000] transition relative"
+                className="p-1 text-white hover:text-accent-light transition relative"
                 title="My Wishlist"
               >
                 <Heart size={18} />
                 {wishlistItems.length > 0 && (
-                  <span className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-[#ffd000] text-primary font-bold text-[8px] flex items-center justify-center rounded-full">
+                  <span className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-accent text-primary font-bold text-[8px] flex items-center justify-center rounded-full">
                     {wishlistItems.length}
                   </span>
                 )}
@@ -259,12 +259,12 @@ const Navbar = () => {
               {/* Cart Icon */}
               <button
                 onClick={() => setIsCartOpen(true)}
-                className="p-1 text-white hover:text-[#ffd000] transition relative cursor-pointer"
+                className="p-1 text-white hover:text-accent-light transition relative cursor-pointer"
                 title="Open Cart"
               >
                 <ShoppingBag size={18} />
                 {cartItems.length > 0 && (
-                  <span className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-white text-[#15559c] font-bold text-[8px] flex items-center justify-center rounded-full">
+                  <span className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-white text-primary font-bold text-[8px] flex items-center justify-center rounded-full">
                     {cartItems.reduce((sum, i) => sum + i.quantity, 0)}
                   </span>
                 )}
@@ -276,13 +276,13 @@ const Navbar = () => {
                   <>
                     <Link
                       to="/account"
-                      className="border border-white/40 hover:bg-white/10 text-white font-bold px-4 py-2 text-xs tracking-wider rounded-md uppercase transition"
+                      className="border border-white/40 hover:bg-white/10 text-white font-bold px-4 py-2 text-xs tracking-wider rounded-none uppercase transition"
                     >
                       My Account
                     </Link>
                     <button
                       onClick={handleLogout}
-                      className="bg-[#ffd000] hover:bg-[#e6b800] text-[#15559c] font-bold px-4 py-2 text-xs tracking-wider rounded-md uppercase transition cursor-pointer flex items-center gap-1"
+                      className="bg-accent hover:bg-accent-dark text-white font-bold px-4 py-2 text-xs tracking-wider rounded-none uppercase transition cursor-pointer flex items-center gap-1"
                     >
                       <LogOut size={14} /> Logout
                     </button>
@@ -291,13 +291,13 @@ const Navbar = () => {
                   <>
                     <Link
                       to="/login"
-                      className="bg-[#ffd000] hover:bg-[#e6b800] text-[#15559c] font-bold px-4 py-2 text-xs tracking-wider rounded-md uppercase transition"
+                      className="bg-accent hover:bg-accent-dark text-white font-bold px-4 py-2 text-xs tracking-wider rounded-none uppercase transition"
                     >
                       Log in
                     </Link>
                     <Link
                       to="/login"
-                      className="border border-white/40 hover:bg-white/10 text-white font-bold px-4 py-2 text-xs tracking-wider rounded-md uppercase transition"
+                      className="border border-white/40 hover:bg-white/10 text-white font-bold px-4 py-2 text-xs tracking-wider rounded-none uppercase transition"
                     >
                       Sign up
                     </Link>
@@ -316,10 +316,10 @@ const Navbar = () => {
         <div className="fixed inset-0 z-50 flex">
           <div onClick={() => setIsMobileMenuOpen(false)} className="fixed inset-0 bg-primary/40 backdrop-blur-sm"></div>
 
-          <div className="relative w-full max-w-xs bg-[#15559c] text-white shadow-2xl flex flex-col justify-between p-6 overflow-y-auto">
+          <div className="relative w-full max-w-xs bg-primary text-white shadow-2xl flex flex-col justify-between p-6 overflow-y-auto">
             <div>
               <div className="flex justify-between items-center mb-8 border-b border-white/10 pb-4">
-                <span className="font-serif text-xl tracking-widest font-bold">INDIA PET HUB</span>
+                <span className="font-serif text-xl tracking-widest font-bold">PAWORA</span>
                 <button onClick={() => setIsMobileMenuOpen(false)} className="p-1 text-white cursor-pointer">
                   <X size={24} />
                 </button>
@@ -327,30 +327,30 @@ const Navbar = () => {
 
               {/* Mobile links list */}
               <div className="space-y-4 text-xs font-semibold uppercase tracking-wider">
-                <Link to="/" onClick={() => setIsMobileMenuOpen(false)} className="block py-2 hover:text-[#ffd000] border-b border-white/5">Home</Link>
+                <Link to="/" onClick={() => setIsMobileMenuOpen(false)} className="block py-2 hover:text-accent-light border-b border-white/5">Home</Link>
 
                 {/* Pets department expanded on mobile */}
                 <div className="space-y-2 py-1 pl-2 border-l border-white/10">
-                  <Link to="/pets" onClick={() => setIsMobileMenuOpen(false)} className="block text-[11px] hover:text-[#ffd000] tracking-widest font-bold">Pets Classifieds</Link>
+                  <Link to="/pets" onClick={() => setIsMobileMenuOpen(false)} className="block text-[11px] hover:text-accent-light tracking-widest font-bold">Pets Classifieds</Link>
                   {petsList.map(pet => (
-                    <Link key={pet.label} to={pet.path} onClick={() => setIsMobileMenuOpen(false)} className="block py-1 hover:text-[#ffd000] text-[11px] normal-case pl-2">{pet.label}</Link>
+                    <Link key={pet.label} to={pet.path} onClick={() => setIsMobileMenuOpen(false)} className="block py-1 hover:text-accent-light text-[11px] normal-case pl-2">{pet.label}</Link>
                   ))}
                 </div>
 
                 {/* Pet Services expanded on mobile */}
                 <div className="space-y-2 py-1 pl-2 border-l border-white/10">
-                  <Link to="/services" onClick={() => setIsMobileMenuOpen(false)} className="block text-[11px] hover:text-[#ffd000] tracking-widest font-bold">Pet Services</Link>
+                  <Link to="/services" onClick={() => setIsMobileMenuOpen(false)} className="block text-[11px] hover:text-accent-light tracking-widest font-bold">Pet Services</Link>
                   {servicesList.map(service => (
-                    <Link key={service.label} to={service.path} onClick={() => setIsMobileMenuOpen(false)} className="block py-1 hover:text-[#ffd000] text-[11px] normal-case pl-2">{service.label}</Link>
+                    <Link key={service.label} to={service.path} onClick={() => setIsMobileMenuOpen(false)} className="block py-1 hover:text-accent-light text-[11px] normal-case pl-2">{service.label}</Link>
                   ))}
                 </div>
 
-                <Link to="/shop" onClick={() => setIsMobileMenuOpen(false)} className="block py-2 hover:text-[#ffd000] border-b border-white/5">Shop</Link>
-                <Link to="/pet-care" onClick={() => setIsMobileMenuOpen(false)} className="block py-2 hover:text-[#ffd000] border-b border-white/5">Blog</Link>
-                <Link to="/contact" onClick={() => setIsMobileMenuOpen(false)} className="block py-2 hover:text-[#ffd000] border-b border-white/5">Contact Us</Link>
+                <Link to="/shop" onClick={() => setIsMobileMenuOpen(false)} className="block py-2 hover:text-accent-light border-b border-white/5">Shop</Link>
+                <Link to="/pet-care" onClick={() => setIsMobileMenuOpen(false)} className="block py-2 hover:text-accent-light border-b border-white/5">Blog</Link>
+                <Link to="/contact" onClick={() => setIsMobileMenuOpen(false)} className="block py-2 hover:text-accent-light border-b border-white/5">Contact Us</Link>
 
                 {isAuthenticated && (
-                  <Link to="/chat" onClick={() => setIsMobileMenuOpen(false)} className="block py-2 hover:text-[#ffd000] border-b border-white/5">Direct Messages</Link>
+                  <Link to="/chat" onClick={() => setIsMobileMenuOpen(false)} className="block py-2 hover:text-accent-light border-b border-white/5">Direct Messages</Link>
                 )}
               </div>
             </div>
@@ -359,17 +359,17 @@ const Navbar = () => {
             <div className="pt-6 border-t border-white/10">
               {isAuthenticated ? (
                 <div className="space-y-3">
-                  <p className="text-xs font-bold text-[#ffd000] flex items-center gap-1.5"><User size={14} /> {user?.name}</p>
+                  <p className="text-xs font-bold text-accent-light flex items-center gap-1.5"><User size={14} /> {user?.name}</p>
                   <Link
                     to="/account"
                     onClick={() => setIsMobileMenuOpen(false)}
-                    className="block text-xs font-bold text-white hover:text-[#ffd000]"
+                    className="block text-xs font-bold text-white hover:text-accent-light"
                   >
                     MY PROFILE
                   </Link>
                   <button
                     onClick={handleLogout}
-                    className="w-full py-2.5 bg-[#ffd000] text-[#15559c] text-xs font-bold uppercase tracking-widest rounded-md cursor-pointer"
+                    className="w-full py-2.5 bg-accent text-white text-xs font-bold uppercase tracking-widest rounded-none cursor-pointer"
                   >
                     LOGOUT
                   </button>
@@ -379,14 +379,14 @@ const Navbar = () => {
                   <Link
                     to="/login"
                     onClick={() => setIsMobileMenuOpen(false)}
-                    className="py-2.5 bg-[#ffd000] text-[#15559c] text-xs font-bold text-center uppercase tracking-widest rounded-md"
+                    className="py-2.5 bg-accent text-white text-xs font-bold text-center uppercase tracking-widest rounded-none"
                   >
                     LOG IN
                   </Link>
                   <Link
                     to="/login"
                     onClick={() => setIsMobileMenuOpen(false)}
-                    className="py-2.5 border border-white/40 text-white text-xs font-bold text-center uppercase tracking-widest rounded-md"
+                    className="py-2.5 border border-white/40 text-white text-xs font-bold text-center uppercase tracking-widest rounded-none"
                   >
                     SIGN UP
                   </Link>
