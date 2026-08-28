@@ -144,11 +144,26 @@ const AccountDashboard = () => {
       {/* Overview Dashboard Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center border-b border-beige pb-6 mb-8 gap-4">
         <div>
-          <span className="text-[10px] uppercase tracking-widest text-accent font-bold">CUSTOMER AREA</span>
-          <h1 className="font-serif text-2xl md:text-3xl text-primary font-medium mt-1">
+          <div className="flex items-center gap-2 mb-1">
+            <span className="text-[10px] uppercase tracking-widest text-accent font-bold">
+              {user.role === 'SERVICE_PROVIDER' ? 'SERVICE PROVIDER PORTAL' : 'CUSTOMER AREA'}
+            </span>
+            {user.role === 'SERVICE_PROVIDER' && (
+              <span className="text-[10px] font-bold bg-blue-100 text-[#15559c] px-2 py-0.5 rounded-md uppercase tracking-wider">
+                {user.serviceCategory || 'Service Partner'}
+              </span>
+            )}
+          </div>
+          <h1 className="font-serif text-2xl md:text-3xl text-primary font-medium">
             Welcome Back, {user.name}
           </h1>
-          <p className="text-xs text-gray-400 font-medium">Logged in as {user.email}</p>
+          <p className="text-xs text-gray-400 font-medium mt-0.5">
+            Logged in as <strong className="text-gray-600">{user.email}</strong>
+            {user.mobile && <span> • Mobile: <strong className="text-gray-600">{user.mobileCountryCode || '+91'} {user.mobile}</strong></span>}
+            {user.whatsapp && <span> • WhatsApp: <strong className="text-emerald-700">{user.whatsappCountryCode || '+91'} {user.whatsapp}</strong></span>}
+            {user.purpose && <span> • Purpose: <strong className="text-primary font-bold">✨ {user.purpose}</strong></span>}
+            {user.location && <span> • Location: <strong className="text-gray-600">{user.location}</strong></span>}
+          </p>
         </div>
         
         <button

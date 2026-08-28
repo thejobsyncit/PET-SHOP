@@ -73,7 +73,7 @@ const LeadConsultationModal = () => {
         'Pet Insurance',
         'Pet Training & Behavior',
         'Pet Mating & Breeding',
-        'Vet'
+        'Consult a Vet'
     ];
 
     // PASSWORD COMPLEXITY VALIDATOR

@@ -24,6 +24,7 @@ import NotFound from './pages/NotFound.jsx';
 // India Pet Hub pages
 import PetClassifieds from './pages/PetClassifieds.jsx';
 import AdoptionShelter from './pages/AdoptionShelter.jsx';
+import AdoptionPetDetail from './pages/AdoptionPetDetail.jsx';
 import BreedingDirectory from './pages/BreedingDirectory.jsx';
 import ServiceBooking from './pages/ServiceBooking.jsx';
 import ChatConsole from './pages/ChatConsole.jsx';
@@ -76,10 +77,13 @@ function App() {
             {/* User Account */}
             <Route path="account" element={<AccountDashboard />} />
             <Route path="login" element={<Login />} />
+            <Route path="signup" element={<Login />} />
+            <Route path="register" element={<Login />} />
             
             {/* India Pet Hub Pillars */}
             <Route path="pets" element={<PetClassifieds />} />
             <Route path="adopt" element={<AdoptionShelter />} />
+            <Route path="adopt/:id" element={<AdoptionPetDetail />} />
             <Route path="breeding" element={<BreedingDirectory />} />
             <Route path="services" element={<ServiceBooking />} />
             <Route path="chat" element={<ChatConsole />} />
