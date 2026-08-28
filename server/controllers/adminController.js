@@ -1,7 +1,7 @@
 import User from '../models/User.js';
 import Product from '../models/Product.js';
 import Order from '../models/Order.js';
-import { isDbConnected, readMockData } from '../utils/mockDb.js';
+import { isDbConnected, readMockData, writeMockData } from '../utils/mockDb.js';
 
 // @desc    Get admin dashboard metrics & charts data
 // @route   GET /api/admin/dashboard
@@ -164,6 +164,91 @@ export const getDashboardStats = async (req, res) => {
       charts: chartsData
     });
 
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// @desc    Get all registered users
+// @route   GET /api/admin/users
+// @access  Private/Admin
+export const getAllUsers = async (req, res) => {
+  try {
+    let users = [];
+    if (isDbConnected()) {
+      users = await User.find({}).select('-password').sort({ createdAt: -1 });
+    } else {
+      const usersList = readMockData('users');
+      users = usersList.map(u => {
+        const { password, ...userWithoutPassword } = u;
+        return userWithoutPassword;
+      });
+    }
+    res.json({ success: true, users });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// @desc    Update user role
+// @route   PUT /api/admin/users/:id/role
+// @access  Private/Admin
+export const updateUserRole = async (req, res) => {
+  try {
+    const { role } = req.body;
+    if (!['CUSTOMER', 'ADMIN'].includes(role)) {
+      return res.status(400).json({ success: false, message: 'Invalid role' });
+    }
+
+    if (isDbConnected()) {
+      const user = await User.findById(req.params.id);
+      if (!user) {
+        return res.status(404).json({ success: false, message: 'User not found' });
+      }
+      user.role = role;
+      await user.save();
+      
+      const updatedUser = { _id: user._id, name: user.name, email: user.email, role: user.role, createdAt: user.createdAt };
+      res.json({ success: true, user: updatedUser });
+    } else {
+      const usersList = readMockData('users');
+      const userIdx = usersList.findIndex(u => u._id.toString() === req.params.id);
+      if (userIdx === -1) {
+        return res.status(404).json({ success: false, message: 'User not found' });
+      }
+      usersList[userIdx].role = role;
+      writeMockData('users', usersList);
+      
+      const { password, ...userWithoutPassword } = usersList[userIdx];
+      res.json({ success: true, user: userWithoutPassword });
+    }
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// @desc    Delete user
+// @route   DELETE /api/admin/users/:id
+// @access  Private/Admin
+export const deleteUser = async (req, res) => {
+  try {
+    if (isDbConnected()) {
+      const user = await User.findById(req.params.id);
+      if (!user) {
+        return res.status(404).json({ success: false, message: 'User not found' });
+      }
+      await User.findByIdAndDelete(req.params.id);
+      res.json({ success: true, message: 'User deleted successfully' });
+    } else {
+      const usersList = readMockData('users');
+      const userIdx = usersList.findIndex(u => u._id.toString() === req.params.id);
+      if (userIdx === -1) {
+        return res.status(404).json({ success: false, message: 'User not found' });
+      }
+      usersList.splice(userIdx, 1);
+      writeMockData('users', usersList);
+      res.json({ success: true, message: 'User deleted successfully' });
+    }
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }

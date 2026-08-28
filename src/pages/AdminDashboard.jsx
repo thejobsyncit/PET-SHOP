@@ -37,6 +37,7 @@ const AdminDashboard = () => {
   const [listingsList, setListingsList] = useState([]);
   const [studsList, setStudsList] = useState([]);
   const [bookingsList, setBookingsList] = useState([]);
+  const [usersList, setUsersList] = useState([]);
   const [loading, setLoading] = useState(true);
 
   // Add/Edit Product form states
@@ -70,6 +71,7 @@ const AdminDashboard = () => {
       loadOrders();
       loadPrescriptions();
       loadAdminMarketplaceData();
+      loadUsers();
     }
   }, [isAuthenticated, user]);
 
@@ -134,6 +136,49 @@ const AdminDashboard = () => {
       if (bData.success) setBookingsList(bData.bookings);
     } catch (err) {
       console.error(err);
+    }
+  };
+
+  const loadUsers = async () => {
+    try {
+      const data = await apiRequest('/admin/users');
+      if (data.success) {
+        setUsersList(data.users);
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleUpdateUserRole = async (userId, newRole) => {
+    try {
+      const data = await apiRequest(`/admin/users/${userId}/role`, {
+        method: 'PUT',
+        body: JSON.stringify({ role: newRole })
+      });
+      if (data.success) {
+        toast.success(`User role updated to ${newRole}`);
+        loadUsers();
+        loadStats();
+      }
+    } catch (err) {
+      toast.error(err.message || 'Failed to update user role.');
+    }
+  };
+
+  const handleDeleteUser = async (userId) => {
+    if (!window.confirm('Are you sure you want to delete this user?')) return;
+    try {
+      const data = await apiRequest(`/admin/users/${userId}`, {
+        method: 'DELETE'
+      });
+      if (data.success) {
+        toast.success('User deleted successfully.');
+        loadUsers();
+        loadStats();
+      }
+    } catch (err) {
+      toast.error(err.message || 'Failed to delete user.');
     }
   };
 
@@ -471,7 +516,6 @@ const AdminDashboard = () => {
               INDIA PET HUB
             </h1>
           </div>
-
           {/* Tab Selection Lists */}
           <nav className="space-y-1">
             {[
@@ -479,9 +523,10 @@ const AdminDashboard = () => {
               { id: 'products', label: 'Manage Products', icon: <Layers size={15} /> },
               { id: 'orders', label: 'Client Orders', icon: <ShoppingBag size={15} /> },
               { id: 'prescriptions', label: 'Rx Verifications', icon: <FileText size={15} /> },
-              { id: 'listings', label: 'Moderating Listings', icon: <Heart size={15} /> },
+              { id: 'listings', label: 'Moderate Listings', icon: <Heart size={15} /> },
               { id: 'studs', label: 'Verify Breeders', icon: <Award size={15} /> },
-              { id: 'bookings', label: 'Services Bookings', icon: <Clock size={15} /> }
+              { id: 'bookings', label: 'Services Bookings', icon: <Clock size={15} /> },
+              { id: 'users', label: 'Registered Users', icon: <Users size={15} /> }
             ].map((tab) => (
               <button
                 key={tab.id}
@@ -528,11 +573,12 @@ const AdminDashboard = () => {
               {activeSection === 'listings' && 'Classified Listings Moderation'}
               {activeSection === 'studs' && 'Breeder KCI Validations'}
               {activeSection === 'bookings' && 'Care Appointment Bookings'}
+              {activeSection === 'users' && 'Registered Users Management'}
             </h2>
           </div>
 
           <button
-            onClick={() => { loadStats(); loadAdminMarketplaceData(); }}
+            onClick={() => { loadStats(); loadAdminMarketplaceData(); loadUsers(); }}
             className="px-4 py-2 bg-white border border-[#E3EBE5] hover:border-primary hover:text-primary text-xs font-bold uppercase tracking-widest flex items-center gap-1.5 transition rounded-md shadow-sm cursor-pointer"
           >
             <RefreshCw size={14} /> REFRESH STATS
@@ -989,6 +1035,70 @@ const AdminDashboard = () => {
                               <option value="Completed">Completed</option>
                               <option value="Cancelled">Cancelled</option>
                             </select>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+
+            {/* PILLAR TAB 8: REGISTERED USERS MANAGER */}
+            {activeSection === 'users' && (
+              <div className="space-y-6 animate-in fade-in duration-200">
+                <h2 className="font-serif text-lg font-bold text-primary border-b border-[#E3EBE5] pb-3">Registered Accounts ({usersList.length})</h2>
+
+                <div className="overflow-x-auto bg-white border border-[#E3EBE5] shadow-sm">
+                  <table className="w-full text-left text-xs border-collapse">
+                    <thead>
+                      <tr className="bg-secondary text-primary font-bold border-b border-[#E3EBE5]">
+                        <th className="p-3">User Name</th>
+                        <th className="p-3">Email Address</th>
+                        <th className="p-3">Join Date</th>
+                        <th className="p-3">Current Role</th>
+                        <th className="p-3 text-center">Change Role</th>
+                        <th className="p-3 text-center">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-[#E3EBE5] text-xs">
+                      {usersList.map((u) => (
+                        <tr key={u._id} className="hover:bg-[#FAFBF9] transition">
+                          <td className="p-3 font-semibold text-primary flex items-center gap-2">
+                            <div className="w-7 h-7 rounded-full bg-[#FAFBF9] border border-[#E3EBE5] flex items-center justify-center font-serif text-[10px] text-primary font-bold">
+                              {u.name ? u.name.charAt(0).toUpperCase() : 'U'}
+                            </div>
+                            <span>{u.name}</span>
+                          </td>
+                          <td className="p-3 font-semibold text-gray-500">{u.email}</td>
+                          <td className="p-3">{u.createdAt ? new Date(u.createdAt).toLocaleDateString() : 'Aug 28, 2026'}</td>
+                          <td className="p-3">
+                            <span className={`font-bold px-2 py-0.5 rounded-full text-[9px] uppercase ${
+                              u.role === 'ADMIN'
+                                ? 'bg-red-50 text-red-700 border border-red-100'
+                                : 'bg-[#FAFBF9] text-gray-600 border border-[#E3EBE5]'
+                            }`}>
+                              {u.role}
+                            </span>
+                          </td>
+                          <td className="p-3 text-center">
+                            <select
+                              value={u.role}
+                              onChange={(e) => handleUpdateUserRole(u._id, e.target.value)}
+                              className="bg-transparent border border-beige p-1 font-bold text-[10px] focus:outline-none cursor-pointer"
+                            >
+                              <option value="CUSTOMER">Customer</option>
+                              <option value="ADMIN">Admin</option>
+                            </select>
+                          </td>
+                          <td className="p-3 text-center">
+                            <button
+                              onClick={() => handleDeleteUser(u._id)}
+                              className="p-2 border border-beige hover:border-red-500 hover:text-red-500 transition cursor-pointer text-gray-500"
+                              title="Delete user"
+                            >
+                              <Trash size={12} />
+                            </button>
                           </td>
                         </tr>
                       ))}

@@ -39,7 +39,7 @@
     ],
     "location": "Bangalore, KA",
     "contactPhone": "+91 80123 45678",
-    "isVerified": true,
+    "isVerified": false,
     "status": "Available",
     "createdAt": "2026-08-27T10:59:20.779Z"
   },
