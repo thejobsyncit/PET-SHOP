@@ -593,7 +593,15 @@ const AdminDashboard = () => {
           </div>
 
           <button
-            onClick={() => { loadStats(); loadAdminMarketplaceData(); loadUsers(); loadEnquiries(); }}
+            onClick={() => { 
+              loadStats(); 
+              loadAdminMarketplaceData(); 
+              loadUsers(); 
+              loadEnquiries(); 
+              loadProducts(); 
+              loadOrders(); 
+              loadPrescriptions(); 
+            }}
             className="px-4 py-2 bg-white border border-[#E3EBE5] hover:border-primary hover:text-primary text-xs font-bold uppercase tracking-widest flex items-center gap-1.5 transition rounded-md shadow-sm cursor-pointer"
           >
             <RefreshCw size={14} /> REFRESH STATS

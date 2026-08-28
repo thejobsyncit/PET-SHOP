@@ -91,5 +91,20 @@
     "addresses": [],
     "wishlist": [],
     "cart": []
+  },
+  {
+    "_id": "6a912da7b08a341adcdc9727",
+    "name": "Aarav",
+    "email": "aarav@pawora.com",
+    "password": "$2b$10$0/HEO0NTHb4rmtgZvRUFNu9HqxRKzlKPYctfG1RQCJYegysyILpm6",
+    "role": "CUSTOMER",
+    "mobile": "9876543210",
+    "location": "Bangalore, Karnataka",
+    "serviceCategory": "",
+    "addresses": [],
+    "wishlist": [],
+    "cart": [],
+    "prescriptionHistory": [],
+    "createdAt": "2026-08-28T06:41:43.234Z"
   }
 ]

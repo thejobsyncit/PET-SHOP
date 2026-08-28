@@ -268,7 +268,7 @@ const Home = () => {
           {/* Editorial images right */}
           <div className="aspect-[4/3] bg-white/5 border border-white/10 relative overflow-hidden">
             <img 
-              src="https://images.unsplash.com/photo-1518382473461-13769c0d16c5?q=80&w=800" 
+              src="https://images.unsplash.com/photo-1666777247416-ee7a95235559?q=80&w=800" 
               alt="Premium pet life care" 
               className="w-full h-full object-cover filter brightness-[0.85]"
             />
