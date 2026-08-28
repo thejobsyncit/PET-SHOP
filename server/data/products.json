@@ -42,7 +42,7 @@
     "lowStockThreshold": 4,
     "images": [
       "https://images.unsplash.com/photo-1589924691995-400dc9ecc119?q=80&w=800",
-      "https://images.unsplash.com/photo-1541599540903-216a46ca1df0?q=80&w=800"
+      "https://images.unsplash.com/photo-1548199973-03cce0bbc87b?q=80&w=800"
     ],
     "category": "Dog Food",
     "subcategory": "Dog Food",
@@ -129,12 +129,12 @@
     ],
     "price": 699,
     "discountPrice": 629,
-    "rating": 5,
-    "reviewCount": 1,
+    "rating": 4.6,
+    "reviewCount": 30,
     "stock": 120,
     "lowStockThreshold": 10,
     "images": [
-      "https://images.unsplash.com/photo-1583337130417-3346a1be7dee?q=80&w=800"
+      "https://images.unsplash.com/photo-1596492784531-6e6eb5ea9993?q=80&w=800&auto=format&fit=crop"
     ],
     "category": "Treats",
     "subcategory": "Treats",
@@ -178,7 +178,7 @@
     "stock": 8,
     "lowStockThreshold": 2,
     "images": [
-      "https://images.unsplash.com/photo-1541599540903-216a46ca1df0?q=80&w=800"
+      "https://images.unsplash.com/photo-1548199973-03cce0bbc87b?q=80&w=800"
     ],
     "category": "Dog Beds & Cotes",
     "subcategory": "Beds",
@@ -258,7 +258,7 @@
     "stock": 50,
     "lowStockThreshold": 6,
     "images": [
-      "https://images.unsplash.com/photo-1576201836106-db1758fd1c97?q=80&w=800"
+      "https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?q=80&w=800"
     ],
     "category": "Treats",
     "subcategory": "Toys",
@@ -350,7 +350,7 @@
     "stock": 15,
     "lowStockThreshold": 3,
     "images": [
-      "https://images.unsplash.com/photo-1589924691995-400dc9ecc119?q=80&w=800"
+      "https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?q=80&w=800&auto=format&fit=crop"
     ],
     "category": "Dog Food",
     "subcategory": "Dog Food",
@@ -390,7 +390,7 @@
     "stock": 22,
     "lowStockThreshold": 4,
     "images": [
-      "https://images.unsplash.com/photo-1589924691995-400dc9ecc119?q=80&w=800"
+      "https://images.unsplash.com/photo-1615900119312-2acd3a71f3aa?q=80&w=800&auto=format&fit=crop"
     ],
     "category": "Treats",
     "subcategory": "Bowls & Feeders",
@@ -436,7 +436,7 @@
     "stock": 90,
     "lowStockThreshold": 10,
     "images": [
-      "https://images.unsplash.com/photo-1607619056574-7b8d304b3b86?q=80&w=800"
+      "https://images.unsplash.com/photo-1581888227599-779811939961?q=80&w=800&auto=format&fit=crop"
     ],
     "category": "Treats",
     "subcategory": "Supplements",
@@ -483,7 +483,7 @@
     "stock": 40,
     "lowStockThreshold": 5,
     "images": [
-      "https://images.unsplash.com/photo-1522858547137-f1dcec554f55?q=80&w=800"
+      "https://images.unsplash.com/photo-1452570053594-1b985d6ea890?q=80&w=800&auto=format&fit=crop"
     ],
     "category": "Bird Food",
     "subcategory": "Bird Food",
@@ -523,7 +523,7 @@
     "stock": 25,
     "lowStockThreshold": 3,
     "images": [
-      "https://images.unsplash.com/photo-1522858547137-f1dcec554f55?q=80&w=800"
+      "https://images.unsplash.com/photo-1480044965905-02098d419e96?q=80&w=800&auto=format&fit=crop"
     ],
     "category": "Cages & Habitat",
     "subcategory": "Perches",
@@ -563,7 +563,7 @@
     "stock": 5,
     "lowStockThreshold": 1,
     "images": [
-      "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?q=80&w=800"
+      "https://images.unsplash.com/photo-1452570053594-1b985d6ea890?q=80&w=800"
     ],
     "category": "Cages & Habitat",
     "subcategory": "Cages",
@@ -608,7 +608,7 @@
     "stock": 150,
     "lowStockThreshold": 15,
     "images": [
-      "https://images.unsplash.com/photo-1522858547137-f1dcec554f55?q=80&w=800"
+      "https://images.unsplash.com/photo-1480044965905-02098d419e96?q=80&w=800&auto=format&fit=crop"
     ],
     "category": "Bird Food",
     "subcategory": "Supplements",
@@ -648,7 +648,7 @@
     "stock": 65,
     "lowStockThreshold": 8,
     "images": [
-      "https://images.unsplash.com/photo-1522858547137-f1dcec554f55?q=80&w=800"
+      "https://images.unsplash.com/photo-1551085254-e96b210db58a?q=80&w=800&auto=format&fit=crop"
     ],
     "category": "Cages & Habitat",
     "subcategory": "Toys",
@@ -695,7 +695,7 @@
     "stock": 55,
     "lowStockThreshold": 5,
     "images": [
-      "https://images.unsplash.com/photo-1522858547137-f1dcec554f55?q=80&w=800"
+      "https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?q=80&w=800&auto=format&fit=crop"
     ],
     "category": "Bird Food",
     "subcategory": "Supplements",
@@ -735,7 +735,7 @@
     "stock": 48,
     "lowStockThreshold": 4,
     "images": [
-      "https://images.unsplash.com/photo-1522858547137-f1dcec554f55?q=80&w=800"
+      "https://images.unsplash.com/photo-1522869635100-9f4c5e86aa37?q=80&w=800&auto=format&fit=crop"
     ],
     "category": "Cages & Habitat",
     "subcategory": "Feeding Accessories",
@@ -780,7 +780,7 @@
     "stock": 72,
     "lowStockThreshold": 6,
     "images": [
-      "https://images.unsplash.com/photo-1522858547137-f1dcec554f55?q=80&w=800"
+      "https://images.unsplash.com/photo-1522869635100-9f4c5e86aa37?q=80&w=800&auto=format&fit=crop"
     ],
     "category": "Bird Food",
     "subcategory": "Grooming",
@@ -820,7 +820,7 @@
     "stock": 4,
     "lowStockThreshold": 1,
     "images": [
-      "https://images.unsplash.com/photo-1504450758481-7338eaa75e6a?q=80&w=800"
+      "https://images.unsplash.com/photo-1542625331-b72c87806d21?q=80&w=800"
     ],
     "category": "Terrariums",
     "subcategory": "Terrariums",
@@ -864,7 +864,7 @@
     "stock": 35,
     "lowStockThreshold": 4,
     "images": [
-      "https://images.unsplash.com/photo-1504450758481-7338eaa75e6a?q=80&w=800"
+      "https://images.unsplash.com/photo-1563281577-a7be47e20db9?q=80&w=800"
     ],
     "category": "Heating & Lighting",
     "subcategory": "UVB Lighting",
@@ -906,7 +906,7 @@
     "stock": 80,
     "lowStockThreshold": 8,
     "images": [
-      "https://images.unsplash.com/photo-1504450758481-7338eaa75e6a?q=80&w=800"
+      "https://images.unsplash.com/photo-1548247416-ec66f4900b2e?q=80&w=800"
     ],
     "category": "Terrariums",
     "subcategory": "Substrate",
@@ -950,7 +950,7 @@
     "stock": 95,
     "lowStockThreshold": 10,
     "images": [
-      "https://images.unsplash.com/photo-1504450758481-7338eaa75e6a?q=80&w=800"
+      "https://images.unsplash.com/photo-1548247416-ec66f4900b2e?q=80&w=800&auto=format&fit=crop"
     ],
     "category": "Heating & Lighting",
     "subcategory": "Calcium & Supplements",
@@ -994,7 +994,7 @@
     "stock": 28,
     "lowStockThreshold": 3,
     "images": [
-      "https://images.unsplash.com/photo-1504450758481-7338eaa75e6a?q=80&w=800"
+      "https://images.unsplash.com/photo-1563281577-a7be47e20db9?q=80&w=800&auto=format&fit=crop"
     ],
     "category": "Heating & Lighting",
     "subcategory": "Heating",
@@ -1036,7 +1036,7 @@
     "stock": 50,
     "lowStockThreshold": 5,
     "images": [
-      "https://images.unsplash.com/photo-1504450758481-7338eaa75e6a?q=80&w=800"
+      "https://images.unsplash.com/photo-1548247416-ec66f4900b2e?q=80&w=800"
     ],
     "category": "Heating & Lighting",
     "subcategory": "Calcium & Supplements",
@@ -1076,7 +1076,7 @@
     "stock": 45,
     "lowStockThreshold": 5,
     "images": [
-      "https://images.unsplash.com/photo-1504450758481-7338eaa75e6a?q=80&w=800"
+      "https://images.unsplash.com/photo-1542625331-b72c87806d21?q=80&w=800"
     ],
     "category": "Heating & Lighting",
     "subcategory": "Thermometers",
@@ -1116,7 +1116,7 @@
     "stock": 60,
     "lowStockThreshold": 5,
     "images": [
-      "https://images.unsplash.com/photo-1504450758481-7338eaa75e6a?q=80&w=800"
+      "https://images.unsplash.com/photo-1563281577-a7be47e20db9?q=80&w=800"
     ],
     "category": "Terrariums",
     "subcategory": "Décor",
@@ -1207,7 +1207,7 @@
     "stock": 120,
     "lowStockThreshold": 10,
     "images": [
-      "https://images.unsplash.com/photo-1522069169874-c58ec4b76be5?q=80&w=800"
+      "https://images.unsplash.com/photo-1535591273668-578e31182c4f?q=80&w=800"
     ],
     "category": "Water Care & Filtration",
     "subcategory": "Fish Food",
@@ -1247,7 +1247,7 @@
     "stock": 6,
     "lowStockThreshold": 1,
     "images": [
-      "https://images.unsplash.com/photo-1522069169874-c58ec4b76be5?q=80&w=800"
+      "https://images.unsplash.com/photo-1544551763-46a013bb70d5?q=80&w=800&auto=format&fit=crop"
     ],
     "category": "Aquariums & Tanks",
     "subcategory": "Aquariums",
@@ -1327,7 +1327,7 @@
     "stock": 50,
     "lowStockThreshold": 6,
     "images": [
-      "https://images.unsplash.com/photo-1544551763-46a013bb70d5?q=80&w=800"
+      "https://images.unsplash.com/photo-1544551763-46a013bb70d5?q=80&w=800&auto=format&fit=crop"
     ],
     "category": "Water Care & Filtration",
     "subcategory": "Pumps",
@@ -1367,7 +1367,7 @@
     "stock": 20,
     "lowStockThreshold": 2,
     "images": [
-      "https://images.unsplash.com/photo-1522069169874-c58ec4b76be5?q=80&w=800"
+      "https://images.unsplash.com/photo-1535591273668-578e31182c4f?q=80&w=800&auto=format&fit=crop"
     ],
     "category": "Water Care & Filtration",
     "subcategory": "Aquarium Lighting",
@@ -1407,7 +1407,7 @@
     "stock": 12,
     "lowStockThreshold": 2,
     "images": [
-      "https://images.unsplash.com/photo-1522069169874-c58ec4b76be5?q=80&w=800"
+      "https://images.unsplash.com/photo-1501854140801-50d01698950b?q=80&w=800&auto=format&fit=crop"
     ],
     "category": "Water Care & Filtration",
     "subcategory": "Aquarium Plants",
@@ -1452,7 +1452,7 @@
     "stock": 65,
     "lowStockThreshold": 8,
     "images": [
-      "https://images.unsplash.com/photo-1607619056574-7b8d304b3b86?q=80&w=800"
+      "https://images.unsplash.com/photo-1628771065518-0d82f1938462?q=80&w=800"
     ],
     "category": "Vitamins & Supplements",
     "subcategory": "Joint Care",
@@ -1497,7 +1497,7 @@
     "stock": 140,
     "lowStockThreshold": 15,
     "images": [
-      "https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?q=80&w=800"
+      "https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?q=80&w=800&auto=format&fit=crop"
     ],
     "category": "Vitamins & Supplements",
     "subcategory": "Vitamins",
@@ -1541,7 +1541,7 @@
     "stock": 90,
     "lowStockThreshold": 10,
     "images": [
-      "https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?q=80&w=800"
+      "https://images.unsplash.com/photo-1628771065518-0d82f1938462?q=80&w=800&auto=format&fit=crop"
     ],
     "category": "Vitamins & Supplements",
     "subcategory": "Digestive Care",
@@ -1581,7 +1581,7 @@
     "stock": 30,
     "lowStockThreshold": 3,
     "images": [
-      "https://images.unsplash.com/photo-1607619056574-7b8d304b3b86?q=80&w=800"
+      "https://images.unsplash.com/photo-1603398938378-e54eab446dde?q=80&w=800&auto=format&fit=crop"
     ],
     "category": "First Aid & Healthcare",
     "subcategory": "First Aid",
@@ -1623,7 +1623,7 @@
     "stock": 50,
     "lowStockThreshold": 10,
     "images": [
-      "https://images.unsplash.com/photo-1607619056574-7b8d304b3b86?q=80&w=800"
+      "https://images.unsplash.com/photo-1628771065518-0d82f1938462?q=80&w=800&auto=format&fit=crop"
     ],
     "category": "First Aid & Healthcare",
     "subcategory": "Joint Care",
@@ -1665,7 +1665,7 @@
     "stock": 40,
     "lowStockThreshold": 8,
     "images": [
-      "https://images.unsplash.com/photo-1607619056574-7b8d304b3b86?q=80&w=800"
+      "https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?q=80&w=800&auto=format&fit=crop"
     ],
     "category": "First Aid & Healthcare",
     "subcategory": "Skin Care",
@@ -1707,7 +1707,7 @@
     "stock": 35,
     "lowStockThreshold": 5,
     "images": [
-      "https://images.unsplash.com/photo-1607619056574-7b8d304b3b86?q=80&w=800"
+      "https://images.unsplash.com/photo-1628771065518-0d82f1938462?q=80&w=800&auto=format&fit=crop"
     ],
     "category": "First Aid & Healthcare",
     "subcategory": "Skin Care",
@@ -1749,7 +1749,7 @@
     "stock": 20,
     "lowStockThreshold": 2,
     "images": [
-      "https://images.unsplash.com/photo-1607619056574-7b8d304b3b86?q=80&w=800"
+      "https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?q=80&w=800&auto=format&fit=crop"
     ],
     "category": "First Aid & Healthcare",
     "subcategory": "Skin Care",

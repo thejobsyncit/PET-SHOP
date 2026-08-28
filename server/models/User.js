@@ -22,8 +22,17 @@ const UserSchema = new mongoose.Schema({
   },
   role: {
     type: String,
-    enum: ['CUSTOMER', 'ADMIN'],
+    enum: ['CUSTOMER', 'ADMIN', 'SERVICE_PROVIDER'],
     default: 'CUSTOMER',
+  },
+  mobile: {
+    type: String,
+  },
+  location: {
+    type: String,
+  },
+  serviceCategory: {
+    type: String,
   },
   addresses: [{
     name: String,

@@ -63,7 +63,7 @@ const Shop = () => {
     dogs: {
       title: 'Dogs & Canines',
       desc: 'Expertly selected nutrition, organic treats, supportive memory-foam beds, leashes, and veterinary healthcare formulations tailored for large, medium, and small breed companions.',
-      hero: 'https://images.unsplash.com/photo-1543466835-00a7907e9de1?q=80&w=1200',
+      hero: 'https://images.unsplash.com/photo-1548199973-03cce0bbc87b?q=80&w=1200&auto=format&fit=crop',
       subcategories: ['Dog Food', 'Treats', 'Beds', 'Grooming', 'Collars & Leashes', 'Bowls & Feeders', 'Training', 'Supplements'],
       faqs: [
         { q: 'How do I choose the correct food type for my puppy?', a: 'Puppies require highly digestible proteins and specialized fat ratios for rapid bone growth. Look for specialized labels like Himalaya Healthy Pet Food for Puppies.' },
@@ -73,7 +73,7 @@ const Shop = () => {
     birds: {
       title: 'Birds & Aviary',
       desc: 'Premium seed blends, trace mineral blocks, Java wood perches, cage systems, and multivitamin drops formulated to maintain optimal plumage, beak size, and bird vitality.',
-      hero: 'https://images.unsplash.com/photo-1480044965905-02098d419e96?q=80&w=1200',
+      hero: 'https://images.unsplash.com/photo-1452570053594-1b985d6ea890?q=80&w=1200&auto=format&fit=crop',
       subcategories: ['Bird Food', 'Cages', 'Perches', 'Toys', 'Supplements', 'Grooming', 'Feeding Accessories'],
       faqs: [
         { q: 'Why are natural wood perches better than plastic dowels?', a: 'Uniform plastic or smooth wood perches cause pressure sores and nail overgrowth. Natural java perches have varying diameters which exercise foot muscles and trim nails naturally.' },
@@ -83,7 +83,7 @@ const Shop = () => {
     reptiles: {
       title: 'Reptiles & Terrariums',
       desc: 'Specialized lockable glass terrariums, linear desert UVB bulbs, heating lamps, mold-resistant substrates, and pure calcium powders for chameleons, bearded dragons, and snakes.',
-      hero: 'https://images.unsplash.com/photo-1504450758481-7338eaa75e6a?q=80&w=1200',
+      hero: 'https://images.unsplash.com/photo-1542625331-b72c87806d21?q=80&w=1200&auto=format&fit=crop',
       subcategories: ['Terrariums', 'Heating', 'UVB Lighting', 'Substrate', 'Food', 'Calcium & Supplements', 'Décor', 'Humidity Equipment', 'Thermometers'],
       faqs: [
         { q: 'Why is UVB lighting mandatory for bearded dragons?', a: 'Bearded dragons are desert species that require high UVB output to synthesize vitamin D3. Without it, they cannot metabolize dietary calcium, leading to fatal Metabolic Bone Disease.' },
@@ -93,7 +93,7 @@ const Shop = () => {
     fish: {
       title: 'Fish & Aquatics',
       desc: 'Premium rimless glass aquariums, multi-stage filtration kits, full spectrum plant LEDs, dechlorinating stress coat conditioners, and biological starter aids.',
-      hero: 'https://images.unsplash.com/photo-1522069169874-c58ec4b76be5?q=80&w=1200',
+      hero: 'https://images.unsplash.com/photo-1544551763-46a013bb70d5?q=80&w=1200&auto=format&fit=crop',
       subcategories: ['Fish Food', 'Aquariums', 'Filters', 'Pumps', 'Aquarium Lighting', 'Water Conditioners', 'Aquarium Plants', 'Décor', 'Cleaning Equipment'],
       faqs: [
         { q: 'What is the Nitrogen Cycle in aquaria?', a: 'It is the biological process where beneficial filter bacteria convert highly toxic fish waste (Ammonia) into toxic Nitrites, and then into harmless Nitrates, which you remove with weekly 25% water changes.' },
@@ -103,7 +103,7 @@ const Shop = () => {
     pharmacy: {
       title: 'Veterinary Pharmacy',
       desc: 'Authorized pharmacy department providing vitamins, joint care chondroitin capsules, digestion syrups, wound antiseptic kits, and strict prescription verification medications.',
-      hero: 'https://images.unsplash.com/photo-1607619056574-7b8d304b3b86?q=80&w=1200',
+      hero: 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?q=80&w=1200&auto=format&fit=crop',
       subcategories: ['Vitamins', 'Supplements', 'Skin Care', 'Joint Care', 'Digestive Care', 'Dental Care', 'First Aid', 'Grooming Healthcare'],
       faqs: [
         { q: 'How do I purchase prescription items (marked with Rx)?', a: 'Add the items to your cart, upload your veterinary prescription on the checkout/pharmacy page, and our licensed pharmacist will verify the upload within 2 hours to confirm shipping.' },

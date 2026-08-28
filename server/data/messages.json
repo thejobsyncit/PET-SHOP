@@ -14,7 +14,7 @@
     "listingRef": "LIST-101",
     "messageText": "Hello! I am interested in the Alaskan Malamute puppy. Is it still available?",
     "isRead": false,
-    "createdAt": "2026-08-26T10:52:15.355Z"
+    "createdAt": "2026-08-27T09:59:20.779Z"
   },
   {
     "_id": "MSG-502",
@@ -31,6 +31,6 @@
     "listingRef": "LIST-101",
     "messageText": "Yes, it is! You can schedule a home visit this Saturday if you like.",
     "isRead": true,
-    "createdAt": "2026-08-26T11:22:15.355Z"
+    "createdAt": "2026-08-27T10:29:20.779Z"
   }
 ]

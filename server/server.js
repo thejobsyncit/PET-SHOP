@@ -28,6 +28,7 @@ import adoptionRoutes from './routes/adoptionRoutes.js';
 import breedingRoutes from './routes/breedingRoutes.js';
 import bookingRoutes from './routes/bookingRoutes.js';
 import chatRoutes from './routes/chatRoutes.js';
+import enquiryRoutes from './routes/enquiryRoutes.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -110,6 +111,7 @@ app.use('/api/adoptions', adoptionRoutes);
 app.use('/api/breeding', breedingRoutes);
 app.use('/api/bookings', bookingRoutes);
 app.use('/api/chats', chatRoutes);
+app.use('/api/enquiries', enquiryRoutes);
 
 // Health check endpoint
 app.get('/health', (req, res) => {

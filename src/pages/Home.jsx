@@ -21,31 +21,31 @@ const Home = () => {
     {
       title: 'DOGS',
       desc: 'Nutritious kibble, organic treats, orthopedic beds, and luxury training gear.',
-      img: 'https://images.unsplash.com/photo-1543466835-00a7907e9de1?q=80&w=600',
+      img: 'https://images.unsplash.com/photo-1548199973-03cce0bbc87b?q=80&w=800&auto=format&fit=crop',
       path: '/shop?petType=dogs'
     },
     {
       title: 'BIRDS',
       desc: 'Gourmet seed mixes, natural wood perches, wrought-iron cages, and vitamins.',
-      img: 'https://images.unsplash.com/photo-1480044965905-02098d419e96?q=80&w=600',
+      img: 'https://images.unsplash.com/photo-1452570053594-1b985d6ea890?q=80&w=800&auto=format&fit=crop',
       path: '/shop?petType=birds'
     },
     {
       title: 'REPTILES',
       desc: 'Glass terrariums, desert UVB bulbs, organic coco substrates, and calcium powders.',
-      img: 'https://images.unsplash.com/photo-1504450758481-7338eaa75e6a?q=80&w=600',
+      img: 'https://images.unsplash.com/photo-1542625331-b72c87806d21?q=80&w=800&auto=format&fit=crop',
       path: '/shop?petType=reptiles'
     },
     {
       title: 'FISH & AQUATICS',
       desc: 'Rimless low-iron tanks, external power filters, LED light panels, and live plants.',
-      img: 'https://images.unsplash.com/photo-1522069169874-c58ec4b76be5?q=80&w=600',
+      img: 'https://images.unsplash.com/photo-1544551763-46a013bb70d5?q=80&w=800&auto=format&fit=crop',
       path: '/shop?petType=fish'
     },
     {
       title: 'PHARMACY',
       desc: 'Veterinary prescription support, joint formulas, skin lotions, and digestive drops.',
-      img: 'https://images.unsplash.com/photo-1607619056574-7b8d304b3b86?q=80&w=600',
+      img: 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?q=80&w=800&auto=format&fit=crop',
       path: '/pharmacy'
     }
   ];
@@ -297,7 +297,7 @@ const Home = () => {
               title: 'Complete Guide to Creating a Bearded Dragon Habitat',
               slug: 'bearded-dragon-habitat-guide',
               summary: 'Everything you need to know about terrarium sizes, UVB lighting, heat, and substrates to keep your bearded dragon healthy.',
-              img: 'https://images.unsplash.com/photo-1504450758481-7338eaa75e6a?q=80&w=600',
+              img: 'https://images.unsplash.com/photo-1542625331-b72c87806d21?q=80&w=800&auto=format&fit=crop',
               tag: 'REPTILES'
             },
             {
@@ -311,7 +311,7 @@ const Home = () => {
               title: 'Beginner’s Guide to Aquarium Care and Water Chemistry',
               slug: 'beginners-guide-aquarium-care',
               summary: 'Demystifying the Nitrogen Cycle, testing pH, and maintaining a thriving freshwater fish tank.',
-              img: 'https://images.unsplash.com/photo-1522069169874-c58ec4b76be5?q=80&w=600',
+              img: 'https://images.unsplash.com/photo-1544551763-46a013bb70d5?q=80&w=800&auto=format&fit=crop',
               tag: 'FISH'
             }
           ].map((blog) => (

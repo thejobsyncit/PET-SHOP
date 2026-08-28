@@ -15,7 +15,7 @@ const generateToken = (id) => {
 // @route   POST /api/auth/register
 // @access  Public
 export const registerUser = async (req, res) => {
-  const { name, email, password } = req.body;
+  const { name, email, password, mobile, role, location, serviceCategory } = req.body;
 
   if (!name || !email || !password) {
     return res.status(400).json({ success: false, message: 'Please provide name, email, and password' });
@@ -28,7 +28,7 @@ export const registerUser = async (req, res) => {
         return res.status(400).json({ success: false, message: 'User already exists with this email' });
       }
 
-      const user = await User.create({ name, email, password });
+      const user = await User.create({ name, email, password, mobile, role, location, serviceCategory });
       res.status(201).json({
         success: true,
         token: generateToken(user._id),
@@ -49,7 +49,10 @@ export const registerUser = async (req, res) => {
         name,
         email: email.toLowerCase(),
         password: hashedPassword,
-        role: 'CUSTOMER',
+        role: role || 'CUSTOMER',
+        mobile: mobile || '',
+        location: location || '',
+        serviceCategory: serviceCategory || '',
         addresses: [],
         wishlist: [],
         cart: [],
