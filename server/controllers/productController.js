@@ -1,3 +1,4 @@
+import mongoose from 'mongoose';
 import Product from '../models/Product.js';
 import { isDbConnected, readMockData, writeMockData } from '../utils/mockDb.js';
 
