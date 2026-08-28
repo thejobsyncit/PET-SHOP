@@ -57,7 +57,6 @@ const Navbar = () => {
   ];
 
   const servicesList = [
-    { label: 'Pet Seller', path: '/pets' },
     { label: 'Pet Adoption', path: '/adopt' },
     { label: 'Pet Hostel', path: '/services?category=Hostel' },
     { label: 'Pet Grooming', path: '/services?category=Grooming' },
@@ -66,7 +65,7 @@ const Navbar = () => {
     { label: 'Pet Insurance', path: '/services?category=Insurance' },
     { label: 'Pet Training', path: '/services?category=Training' },
     { label: 'Pet Mating', path: '/breeding' },
-    { label: 'Vet', path: '/services?category=Veterinary' }
+    { label: 'Consult a Vet', path: '/services?category=Veterinary' }
   ];
 
   return (
@@ -296,7 +295,7 @@ const Navbar = () => {
                       Log in
                     </Link>
                     <Link
-                      to="/login"
+                      to="/signup"
                       className="border border-white/40 hover:bg-white/10 text-white font-bold px-4 py-2 text-xs tracking-wider rounded-md uppercase transition"
                     >
                       Sign up
@@ -384,7 +383,7 @@ const Navbar = () => {
                     LOG IN
                   </Link>
                   <Link
-                    to="/login"
+                    to="/signup"
                     onClick={() => setIsMobileMenuOpen(false)}
                     className="py-2.5 border border-white/40 text-white text-xs font-bold text-center uppercase tracking-widest rounded-md"
                   >

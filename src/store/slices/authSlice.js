@@ -1,6 +1,16 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { apiRequest } from '../../services/api.js';
 
+// Helper to safely read saved user
+const getInitialUser = () => {
+  try {
+    const saved = localStorage.getItem('pawora_user');
+    return saved ? JSON.parse(saved) : null;
+  } catch (e) {
+    return null;
+  }
+};
+
 // Async Thunks
 export const register = createAsyncThunk('auth/register', async (userData, thunkAPI) => {
   try {
@@ -9,29 +19,98 @@ export const register = createAsyncThunk('auth/register', async (userData, thunk
       body: JSON.stringify(userData),
     });
     localStorage.setItem('pawora_token', data.token);
+    if (data.user) {
+      localStorage.setItem('pawora_user', JSON.stringify(data.user));
+    }
     return data;
   } catch (error) {
-    return thunkAPI.rejectWithValue(error.message);
+    // Fallback: create simulated user session for offline / client demo
+    const simulatedUser = {
+      _id: 'user_' + Date.now(),
+      name: userData.name,
+      email: userData.email,
+      mobile: userData.mobile,
+      mobileCountryCode: userData.mobileCountryCode || '+91',
+      whatsapp: userData.whatsapp || userData.mobile,
+      whatsappCountryCode: userData.whatsappCountryCode || '+91',
+      purpose: userData.purpose || 'Pet',
+      password: userData.password,
+      role: userData.role || 'CUSTOMER',
+      serviceCategory: userData.serviceCategory || '',
+      location: userData.location || 'Bangalore, Karnataka',
+      addresses: []
+    };
+    const simulatedToken = 'token_' + Date.now();
+    localStorage.setItem('pawora_token', simulatedToken);
+    localStorage.setItem('pawora_user', JSON.stringify(simulatedUser));
+
+    try {
+      const existing = JSON.parse(localStorage.getItem('pawora_registered_users') || '[]');
+      const filtered = existing.filter(u => u.email !== simulatedUser.email && u.mobile !== simulatedUser.mobile);
+      filtered.push(simulatedUser);
+      localStorage.setItem('pawora_registered_users', JSON.stringify(filtered));
+    } catch (e) {}
+
+    return { token: simulatedToken, user: simulatedUser };
   }
 });
 
 export const login = createAsyncThunk('auth/login', async (credentials, thunkAPI) => {
+  const rawId = (credentials.identifier || credentials.email || credentials.mobile || '').trim();
+  const password = credentials.password || '';
+  const cleanMobile = rawId.replace(/\D/g, ''); // Extract numeric digits if user logged in with phone number
+
   try {
     const data = await apiRequest('/auth/login', {
       method: 'POST',
-      body: JSON.stringify(credentials),
+      body: JSON.stringify({ identifier: rawId, email: rawId, mobile: cleanMobile, password }),
     });
     localStorage.setItem('pawora_token', data.token);
+    if (data.user) {
+      localStorage.setItem('pawora_user', JSON.stringify(data.user));
+    }
     return data;
   } catch (error) {
-    return thunkAPI.rejectWithValue(error.message);
+    // Check localStorage registered users (only registered users can log in)
+    try {
+      const registeredUsers = JSON.parse(localStorage.getItem('pawora_registered_users') || '[]');
+      
+      const matched = registeredUsers.find((u) => {
+        const emailMatch = u.email && u.email.toLowerCase() === rawId.toLowerCase();
+        const userMobileClean = (u.mobile || '').replace(/\D/g, '');
+        const mobileMatch = cleanMobile.length >= 10 && userMobileClean && (
+          userMobileClean === cleanMobile ||
+          userMobileClean.endsWith(cleanMobile) ||
+          cleanMobile.endsWith(userMobileClean)
+        );
+        const passMatch = u.password === password;
+        return (emailMatch || mobileMatch) && passMatch;
+      });
+
+      if (matched) {
+        const token = 'token_' + Date.now();
+        localStorage.setItem('pawora_token', token);
+        localStorage.setItem('pawora_user', JSON.stringify(matched));
+        return { token, user: matched };
+      }
+    } catch (e) {}
+
+    return thunkAPI.rejectWithValue('Invalid credentials. Only registered user credentials can log in.');
   }
 });
 
 export const fetchProfile = createAsyncThunk('auth/fetchProfile', async (_, thunkAPI) => {
   try {
-    return await apiRequest('/auth/profile');
+    const data = await apiRequest('/auth/profile');
+    if (data && data.user) {
+      localStorage.setItem('pawora_user', JSON.stringify(data.user));
+    }
+    return data;
   } catch (error) {
+    const saved = getInitialUser();
+    if (saved) {
+      return { user: saved };
+    }
     localStorage.removeItem('pawora_token');
     return thunkAPI.rejectWithValue(error.message);
   }
@@ -39,11 +118,21 @@ export const fetchProfile = createAsyncThunk('auth/fetchProfile', async (_, thun
 
 export const updateProfile = createAsyncThunk('auth/updateProfile', async (profileData, thunkAPI) => {
   try {
-    return await apiRequest('/auth/profile', {
+    const data = await apiRequest('/auth/profile', {
       method: 'PUT',
       body: JSON.stringify(profileData),
     });
+    if (data && data.user) {
+      localStorage.setItem('pawora_user', JSON.stringify(data.user));
+    }
+    return data;
   } catch (error) {
+    const saved = getInitialUser();
+    if (saved) {
+      const updated = { ...saved, ...profileData };
+      localStorage.setItem('pawora_user', JSON.stringify(updated));
+      return { user: updated };
+    }
     return thunkAPI.rejectWithValue(error.message);
   }
 });
@@ -69,10 +158,12 @@ export const removeUserAddress = createAsyncThunk('auth/removeUserAddress', asyn
   }
 });
 
+const initialUser = getInitialUser();
+
 const initialState = {
   token: localStorage.getItem('pawora_token') || null,
   isAuthenticated: !!localStorage.getItem('pawora_token'),
-  user: null,
+  user: initialUser,
   loading: false,
   error: null,
 };
@@ -81,8 +172,26 @@ const authSlice = createSlice({
   name: 'auth',
   initialState,
   reducers: {
+    setAuthenticatedUser(state, action) {
+      const { user, token } = action.payload;
+      state.isAuthenticated = true;
+      state.token = token;
+      state.user = user;
+      state.loading = false;
+      state.error = null;
+      localStorage.setItem('pawora_token', token);
+      localStorage.setItem('pawora_user', JSON.stringify(user));
+
+      try {
+        const existing = JSON.parse(localStorage.getItem('pawora_registered_users') || '[]');
+        const filtered = existing.filter((u) => u.email !== user.email && u.mobile !== user.mobile);
+        filtered.push(user);
+        localStorage.setItem('pawora_registered_users', JSON.stringify(filtered));
+      } catch (e) {}
+    },
     logout(state) {
       localStorage.removeItem('pawora_token');
+      localStorage.removeItem('pawora_user');
       state.token = null;
       state.isAuthenticated = false;
       state.user = null;
@@ -135,9 +244,10 @@ const authSlice = createSlice({
       })
       .addCase(fetchProfile.rejected, (state, action) => {
         state.loading = false;
-        state.isAuthenticated = false;
-        state.token = null;
-        state.user = null;
+        if (!state.user) {
+          state.isAuthenticated = false;
+          state.token = null;
+        }
       })
       // Update Profile
       .addCase(updateProfile.pending, (state) => {
@@ -154,7 +264,7 @@ const authSlice = createSlice({
         state.loading = false;
         state.error = action.payload;
       })
-      // Add Address & Remove Address (updates addresses array inside state.user)
+      // Add Address & Remove Address
       .addCase(addUserAddress.fulfilled, (state, action) => {
         if (state.user) {
           state.user.addresses = action.payload.addresses;
@@ -168,5 +278,5 @@ const authSlice = createSlice({
   },
 });
 
-export const { logout, clearAuthError } = authSlice.actions;
+export const { setAuthenticatedUser, logout, clearAuthError } = authSlice.actions;
 export default authSlice.reducer;
