@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { MessageSquare, Phone, Mail, MapPin, Clock, Send, ChevronDown } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { apiRequest } from '../services/api.js';
 
 const Contact = () => {
   const [name, setName] = useState('');
@@ -10,17 +11,26 @@ const Contact = () => {
   const [submitting, setSubmitting] = useState(false);
   const [faqOpen, setFaqOpen] = useState(null);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setSubmitting(true);
-    setTimeout(() => {
-      toast.success('Your message has been received! Our support team will respond within 24 hours.');
-      setName('');
-      setEmail('');
-      setSubject('');
-      setMessage('');
+    try {
+      const data = await apiRequest('/enquiries', {
+        method: 'POST',
+        body: JSON.stringify({ name, email, subject, message })
+      });
+      if (data.success) {
+        toast.success('Your message has been received! Our support team will respond within 24 hours.');
+        setName('');
+        setEmail('');
+        setSubject('');
+        setMessage('');
+      }
+    } catch (err) {
+      toast.error(err.message || 'Submission failed. Please try again.');
+    } finally {
       setSubmitting(false);
-    }, 1200);
+    }
   };
 
   const contactFAQs = [

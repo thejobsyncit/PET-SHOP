@@ -1,6 +1,7 @@
 import User from '../models/User.js';
 import Product from '../models/Product.js';
 import Order from '../models/Order.js';
+import Enquiry from '../models/Enquiry.js';
 import { isDbConnected, readMockData, writeMockData } from '../utils/mockDb.js';
 
 // @desc    Get admin dashboard metrics & charts data
@@ -14,6 +15,7 @@ export const getDashboardStats = async (req, res) => {
     let totalRevenue = 0;
     let lowStockCount = 0;
     let pendingOrdersCount = 0;
+    let enquiriesCount = 0;
     let recentOrders = [];
     let chartsData = {
       salesHistory: [],
@@ -27,6 +29,7 @@ export const getDashboardStats = async (req, res) => {
       productsCount = await Product.countDocuments({});
       ordersCount = await Order.countDocuments({});
       pendingOrdersCount = await Order.countDocuments({ shippingStatus: 'Pending' });
+      enquiriesCount = await Enquiry.countDocuments({});
       
       const lowStockProducts = await Product.find({
         $expr: { $lte: ['$stock', '$lowStockThreshold'] }
@@ -102,12 +105,14 @@ export const getDashboardStats = async (req, res) => {
       const usersList = readMockData('users');
       const productsList = readMockData('products');
       const ordersList = readMockData('orders');
+      const enquiriesList = readMockData('enquiries');
 
       usersCount = usersList.filter(u => u.role === 'CUSTOMER').length;
       productsCount = productsList.length;
       ordersCount = ordersList.length;
       pendingOrdersCount = ordersList.filter(o => o.shippingStatus === 'Pending').length;
       lowStockCount = productsList.filter(p => p.stock <= p.lowStockThreshold).length;
+      enquiriesCount = enquiriesList.length;
 
       // Revenue Calculation
       const nonCancelledOrders = ordersList.filter(o => o.shippingStatus !== 'Cancelled');
@@ -158,7 +163,8 @@ export const getDashboardStats = async (req, res) => {
         ordersCount,
         totalRevenue,
         lowStockCount,
-        pendingOrdersCount
+        pendingOrdersCount,
+        enquiriesCount
       },
       recentOrders,
       charts: chartsData
