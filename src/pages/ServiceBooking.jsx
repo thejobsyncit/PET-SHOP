@@ -126,7 +126,7 @@ const ServiceBooking = () => {
 
       {/* Tabs Filter */}
       <div className="flex flex-wrap gap-1.5 justify-center border-b border-beige pb-4">
-        {['Veterinary', 'Hostel', 'Grooming', 'Walking', 'Transport', 'Insurance', 'Training'].map(tab => (
+        {['Veterinary', 'Grooming', 'Walking', 'Transport', 'Insurance', 'Training'].map(tab => (
           <button
             key={tab}
             onClick={() => {
