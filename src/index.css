@@ -51,6 +51,22 @@
   @apply bg-secondary-dark transition-all duration-300 hover:bg-primary-light;
 }
 
+/* Dedicated Scrollbar for Filter Panels */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: #f8fafc;
+  border-radius: 9999px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 9999px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #7c56dc;
+}
+
 /* Glassmorphism Classes */
 .glass-panel {
   background: rgba(255, 255, 255, 0.7);
@@ -192,5 +208,82 @@
 .animate-dog-ear {
   animation: dog-ear-bob 0.85s ease-in-out infinite;
 }
+
+/* ==========================================================================
+   FLYING MACAW ADOPTION MESSENGER ANIMATIONS (Slower & Elegant Gliding)
+   ========================================================================== */
+@keyframes macaw-swoop-flight {
+  0% {
+    transform: translate(90vw, 78vh) scale(0.6) rotate(-14deg);
+    opacity: 0;
+  }
+  8% {
+    opacity: 1;
+    transform: translate(72vw, 55vh) scale(0.85) rotate(-10deg);
+  }
+  30% {
+    transform: translate(48vw, 32vh) scale(1.05) rotate(3deg);
+  }
+  55% {
+    transform: translate(26vw, 22vh) scale(1.08) rotate(-3deg);
+  }
+  80% {
+    opacity: 1;
+    transform: translate(8vw, 16vh) scale(0.98) rotate(-8deg);
+  }
+  94% {
+    opacity: 0.9;
+    transform: translate(-15vw, 10vh) scale(0.85) rotate(-15deg);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-38vw, 5vh) scale(0.7) rotate(-20deg);
+  }
+}
+
+@keyframes macaw-wing-flap {
+  0%, 100% {
+    transform: rotate(-26deg);
+  }
+  50% {
+    transform: rotate(28deg);
+  }
+}
+
+@keyframes macaw-wing-flap-sub {
+  0%, 100% {
+    transform: rotate(20deg);
+  }
+  50% {
+    transform: rotate(-16deg);
+  }
+}
+
+@keyframes macaw-tail-sway {
+  0%, 100% {
+    transform: rotate(-7deg);
+  }
+  50% {
+    transform: rotate(7deg);
+  }
+}
+
+.animate-macaw-swoop-path {
+  animation: macaw-swoop-flight 8.5s cubic-bezier(0.25, 0.85, 0.45, 1) forwards;
+}
+
+.animate-macaw-wing-flap {
+  animation: macaw-wing-flap 0.48s ease-in-out infinite;
+}
+
+.animate-macaw-wing-flap-bottom {
+  animation: macaw-wing-flap-sub 0.48s ease-in-out infinite;
+}
+
+.animate-macaw-tail {
+  animation: macaw-tail-sway 0.95s ease-in-out infinite;
+}
+
+
 
 

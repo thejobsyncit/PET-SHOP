@@ -473,3 +473,153 @@ export const compressImageFile = (file, maxWidth = 800, quality = 0.75) => {
     reader.onerror = (err) => reject(err);
   });
 };
+
+// =========================================================================
+// ADOPTION APPLICATIONS & ENQUIRIES STORAGE SYSTEM
+// =========================================================================
+let memoryApplicationsCache = null;
+
+export const getStoredAdoptionApplications = () => {
+  if (memoryApplicationsCache && Array.isArray(memoryApplicationsCache)) {
+    return memoryApplicationsCache;
+  }
+  try {
+    const saved = localStorage.getItem('pawora_adoption_applications') || sessionStorage.getItem('pawora_adoption_applications');
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      if (Array.isArray(parsed)) {
+        memoryApplicationsCache = parsed;
+        return parsed;
+      }
+    }
+  } catch (e) {
+    console.warn('Applications storage read error:', e);
+  }
+  memoryApplicationsCache = [];
+  return [];
+};
+
+export const saveAdoptionApplication = (newApp) => {
+  const current = getStoredAdoptionApplications();
+  const filtered = current.filter((a) => a.id !== newApp.id);
+  const updated = [newApp, ...filtered];
+  memoryApplicationsCache = updated;
+
+  try {
+    localStorage.setItem('pawora_adoption_applications', JSON.stringify(updated));
+  } catch (e) {
+    try {
+      sessionStorage.setItem('pawora_adoption_applications', JSON.stringify(updated));
+    } catch (se) {}
+  }
+  return updated;
+};
+
+export const updateAdoptionApplicationStatus = (appId, newStatus, guardianNotes = '') => {
+  const current = getStoredAdoptionApplications();
+  const updated = current.map((app) => {
+    if (app.id === appId) {
+      return {
+        ...app,
+        status: newStatus,
+        guardianNotes: guardianNotes || app.guardianNotes,
+        updatedAt: new Date().toISOString()
+      };
+    }
+    return app;
+  });
+  memoryApplicationsCache = updated;
+
+  try {
+    localStorage.setItem('pawora_adoption_applications', JSON.stringify(updated));
+  } catch (e) {
+    try {
+      sessionStorage.setItem('pawora_adoption_applications', JSON.stringify(updated));
+    } catch (se) {}
+  }
+  return updated;
+};
+
+// Get all applications submitted BY a specific user
+export const getUserAdoptionApplications = (user) => {
+  if (!user) return [];
+  const all = getStoredAdoptionApplications();
+  const userId = user._id || user.id;
+  const userEmail = (user.email || '').toLowerCase().trim();
+  const userPhoneClean = (user.mobile || '').replace(/\D/g, '');
+
+  return all.filter((app) => {
+    const appUserId = app.applicantId;
+    const appEmail = (app.applicantEmail || '').toLowerCase().trim();
+    const appPhoneClean = (app.applicantPhone || '').replace(/\D/g, '');
+
+    const idMatch = userId && appUserId && (appUserId === userId || String(appUserId) === String(userId));
+    const emailMatch = userEmail && appEmail && appEmail === userEmail;
+    const phoneMatch = userPhoneClean.length >= 10 && appPhoneClean && (
+      appPhoneClean === userPhoneClean ||
+      appPhoneClean.endsWith(userPhoneClean) ||
+      userPhoneClean.endsWith(appPhoneClean)
+    );
+
+    return idMatch || emailMatch || phoneMatch;
+  });
+};
+
+// Get all pets listed BY a specific user
+export const getGuardianListedPets = (user) => {
+  if (!user) return [];
+  const allPets = getStoredAdoptionPets();
+  const userId = user._id || user.id;
+  const userEmail = (user.email || '').toLowerCase().trim();
+  const userPhoneClean = (user.mobile || '').replace(/\D/g, '');
+
+  return allPets.filter((pet) => {
+    const petOwnerId = pet.ownerId;
+    const petOwnerEmail = (pet.ownerEmail || '').toLowerCase().trim();
+    const petOwnerPhone = (pet.ownerPhone || pet.parentContact || '').replace(/\D/g, '');
+
+    const idMatch = userId && petOwnerId && (petOwnerId === userId || String(petOwnerId) === String(userId));
+    const emailMatch = userEmail && petOwnerEmail && petOwnerEmail === userEmail;
+    const phoneMatch = userPhoneClean.length >= 10 && petOwnerPhone && (
+      petOwnerPhone === userPhoneClean ||
+      petOwnerPhone.endsWith(userPhoneClean) ||
+      userPhoneClean.endsWith(petOwnerPhone)
+    );
+
+    return idMatch || emailMatch || phoneMatch;
+  });
+};
+
+// Get all applications received FOR pets listed by this guardian
+export const getGuardianAdoptionApplications = (user) => {
+  if (!user) return [];
+  const guardianPets = getGuardianListedPets(user);
+  const guardianPetIds = new Set(guardianPets.map((p) => String(p.id)));
+
+  const allApps = getStoredAdoptionApplications();
+  const userId = user._id || user.id;
+  const userEmail = (user.email || '').toLowerCase().trim();
+  const userPhoneClean = (user.mobile || '').replace(/\D/g, '');
+
+  return allApps.filter((app) => {
+    // Matches if the application is for one of the guardian's pets
+    if (app.petId && guardianPetIds.has(String(app.petId))) {
+      return true;
+    }
+    // Or matches guardian ID / phone / email recorded on application
+    const gId = app.guardianId;
+    const gEmail = (app.guardianEmail || '').toLowerCase().trim();
+    const gPhoneClean = (app.guardianPhone || '').replace(/\D/g, '');
+
+    const idMatch = userId && gId && (gId === userId || String(gId) === String(userId));
+    const emailMatch = userEmail && gEmail && gEmail === userEmail;
+    const phoneMatch = userPhoneClean.length >= 10 && gPhoneClean && (
+      gPhoneClean === userPhoneClean ||
+      gPhoneClean.endsWith(userPhoneClean) ||
+      userPhoneClean.endsWith(gPhoneClean)
+    );
+
+    return idMatch || emailMatch || phoneMatch;
+  });
+};
+

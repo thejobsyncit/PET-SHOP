@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
 import {
   X, User, Briefcase, Eye, EyeOff, Search, MapPin, AlertCircle,
   Phone, Check
@@ -260,9 +261,11 @@ const HereForDropdown = ({ value, onChange, error }) => {
 
 const LeadConsultationModal = () => {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
   const { isAuthenticated, loading } = useSelector((state) => state.auth);
   const [isOpen, setIsOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('user'); // 'user' or 'provider'
+  const [hideProviderTab, setHideProviderTab] = useState(false);
 
   // Password Visibility Toggle State
   const [showUserPassword, setShowUserPassword] = useState(false);
@@ -465,6 +468,23 @@ const LeadConsultationModal = () => {
     }
   }, [isAuthenticated]);
 
+  // Global event listener to open registration modal on demand from any page or action
+  useEffect(() => {
+    const handleOpenRegister = (e) => {
+      const tab = e?.detail?.tab || 'user';
+      const hideProvider = Boolean(e?.detail?.hideProviderTab || e?.detail?.source === 'adoption' || e?.detail?.onlyUser);
+      setHideProviderTab(hideProvider);
+      setActiveTab(tab);
+      setIsOpen(true);
+    };
+    window.addEventListener('open-register-modal', handleOpenRegister);
+    window.addEventListener('open-lead-modal', handleOpenRegister);
+    return () => {
+      window.removeEventListener('open-register-modal', handleOpenRegister);
+      window.removeEventListener('open-lead-modal', handleOpenRegister);
+    };
+  }, []);
+
   // Click outside listener to close city search dropdowns
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -481,6 +501,7 @@ const LeadConsultationModal = () => {
 
   const handleClose = () => {
     setIsOpen(false);
+    setHideProviderTab(false);
     sessionStorage.setItem('pawora_lead_modal_closed', 'true');
   };
 
@@ -684,41 +705,43 @@ const LeadConsultationModal = () => {
           </div>
 
           <p className="text-xs text-slate-500 font-medium mt-1 max-w-sm mx-auto">
-            {activeTab === 'user'
+            {hideProviderTab || activeTab === 'user'
               ? 'Please fill in your details to register as a Pet Parent / User'
               : 'Join as a verified Service Provider / Business Partner'}
           </p>
 
-          {/* DUAL TAB SWITCHER HEADER (Exact Match with Signup Page) */}
-          <div className="mt-4 flex bg-slate-100 p-1 rounded-xl max-w-md mx-auto border border-slate-200">
-            {/* Tab 1: Register as User */}
-            <button
-              type="button"
-              onClick={() => setActiveTab('user')}
-              className={`flex-1 py-2 px-3 text-xs font-bold rounded-lg transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
-                activeTab === 'user'
-                  ? 'bg-white text-[#15559c] shadow-md font-extrabold'
-                  : 'text-slate-500 hover:text-slate-800'
-              }`}
-            >
-              <User size={14} />
-              <span>Register as User</span>
-            </button>
+          {/* DUAL TAB SWITCHER HEADER (Hidden when requested from adoption) */}
+          {!hideProviderTab && (
+            <div className="mt-4 flex bg-slate-100 p-1 rounded-xl max-w-md mx-auto border border-slate-200">
+              {/* Tab 1: Register as User */}
+              <button
+                type="button"
+                onClick={() => setActiveTab('user')}
+                className={`flex-1 py-2 px-3 text-xs font-bold rounded-lg transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+                  activeTab === 'user'
+                    ? 'bg-white text-[#15559c] shadow-md font-extrabold'
+                    : 'text-slate-500 hover:text-slate-800'
+                }`}
+              >
+                <User size={14} />
+                <span>Register as User</span>
+              </button>
 
-            {/* Tab 2: Register as Service Provider */}
-            <button
-              type="button"
-              onClick={() => setActiveTab('provider')}
-              className={`flex-1 py-2 px-3 text-xs font-bold rounded-lg transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
-                activeTab === 'provider'
-                  ? 'bg-[#15559c] text-white shadow-md font-extrabold'
-                  : 'text-slate-500 hover:text-slate-800'
-              }`}
-            >
-              <Briefcase size={14} />
-              <span>Service Provider</span>
-            </button>
-          </div>
+              {/* Tab 2: Register as Service Provider */}
+              <button
+                type="button"
+                onClick={() => setActiveTab('provider')}
+                className={`flex-1 py-2 px-3 text-xs font-bold rounded-lg transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+                  activeTab === 'provider'
+                    ? 'bg-[#15559c] text-white shadow-md font-extrabold'
+                    : 'text-slate-500 hover:text-slate-800'
+                }`}
+              >
+                <Briefcase size={14} />
+                <span>Service Provider</span>
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Scrollable Form Body */}
@@ -1234,6 +1257,23 @@ const LeadConsultationModal = () => {
               </div>
             </form>
           )}
+        </div>
+
+        {/* Footer with Login redirect */}
+        <div className="py-3 px-6 bg-slate-50 border-t border-slate-100 text-center shrink-0">
+          <p className="text-xs text-slate-600 font-medium">
+            Already have an account?{' '}
+            <button
+              type="button"
+              onClick={() => {
+                handleClose();
+                navigate('/login');
+              }}
+              className="text-[#15559c] font-bold hover:underline cursor-pointer inline-flex items-center gap-0.5 ml-1"
+            >
+              Log In here &rarr;
+            </button>
+          </p>
         </div>
       </div>
     </div>

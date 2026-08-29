@@ -222,6 +222,14 @@ const AdoptionShelter = () => {
     window.open(`https://wa.me/918306688827?text=${text}`, '_blank');
   };
 
+  // Auto-fill guardian info if logged in when opening Add Pet modal
+  useEffect(() => {
+    if (showAddPetModal && user) {
+      if (user.name && !newPetGuardianName) setNewPetGuardianName(user.name);
+      if (user.mobile && !newPetPhone) setNewPetPhone(user.mobile);
+    }
+  }, [showAddPetModal, user]);
+
   // Handle "Add Pet" Submission (Workable Feature)
   const handleAddPetSubmit = (e) => {
     e.preventDefault();
@@ -260,13 +268,18 @@ const AdoptionShelter = () => {
       personality: newPetPersonality.trim() || 'Friendly, Loving, Playful',
       image: pickedImage,
       gallery: [pickedImage],
-      parentContact: newPetPhone.trim(),
-      parentName: newPetGuardianName.trim() || 'Pet Guardian',
+      ownerId: user ? (user._id || user.id) : ('guest_' + Date.now()),
+      ownerName: user ? user.name : (newPetGuardianName.trim() || 'Pet Guardian'),
+      ownerEmail: user ? user.email : '',
+      ownerPhone: user ? user.mobile : newPetPhone.trim(),
+      parentContact: newPetPhone.trim() || (user ? user.mobile : '+91 8306-688-827'),
+      parentName: newPetGuardianName.trim() || (user ? user.name : 'Pet Guardian'),
       fee: 0,
       vaccinated: newPetVaccinated,
       neutered: newPetNeutered,
       dewormed: newPetDewormed,
-      description: newPetBio.trim() || `${newPetName} is an affectionate ${newPetBreed} looking for a loving forever home.`
+      description: newPetBio.trim() || `${newPetName} is an affectionate ${newPetBreed} looking for a loving forever home.`,
+      createdAt: new Date().toISOString()
     };
 
     // Save permanently in shared storage & memory cache
