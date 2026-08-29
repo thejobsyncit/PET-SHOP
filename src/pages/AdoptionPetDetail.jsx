@@ -4,10 +4,15 @@ import { useSelector } from 'react-redux';
 import {
   Heart, ArrowLeft, MapPin, Phone, MessageSquare, ShieldCheck,
   CheckCircle2, Check, User, Calendar, Award, Share2, Info, Home,
-  Sparkles, AlertCircle
+  Sparkles, AlertCircle, ArrowRight, Lock
 } from 'lucide-react';
 import toast from 'react-hot-toast';
-import { getStoredAdoptionPets } from '../data/adoptionPetsData';
+import { 
+  getStoredAdoptionPets, 
+  saveAdoptionApplication, 
+  getUserAdoptionApplications 
+} from '../data/adoptionPetsData';
+import FlyingMacawMessenger from '../components/FlyingMacawMessenger.jsx';
 
 const AdoptionPetDetail = () => {
   const { id } = useParams();
@@ -26,6 +31,18 @@ const AdoptionPetDetail = () => {
   const [hasPetExperience, setHasPetExperience] = useState('Yes');
   const [adoptionReason, setAdoptionReason] = useState('');
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [existingApplication, setExistingApplication] = useState(null);
+  const [showFlyingMacaw, setShowFlyingMacaw] = useState(false);
+
+  // Check if currently logged in user is the owner/creator of this pet listing
+  const isPetOwner = Boolean(
+    user && pet && (
+      (pet.ownerId && (pet.ownerId === user._id || pet.ownerId === user.id || String(pet.ownerId) === String(user._id || user.id))) ||
+      (pet.ownerEmail && user.email && pet.ownerEmail.toLowerCase().trim() === user.email.toLowerCase().trim()) ||
+      (pet.ownerPhone && user.mobile && pet.ownerPhone.replace(/\D/g, '') === user.mobile.replace(/\D/g, '')) ||
+      (pet.parentContact && user.mobile && pet.parentContact.replace(/\D/g, '') === user.mobile.replace(/\D/g, ''))
+    )
+  );
 
   // Scroll to top on load
   useEffect(() => {
@@ -51,14 +68,23 @@ const AdoptionPetDetail = () => {
     }
   }, [id]);
 
-  // Pre-fill user information if authenticated
+  // Pre-fill user information if authenticated & check for existing application
   useEffect(() => {
     if (user) {
       if (user.name) setApplicantName(user.name);
       if (user.mobile) setApplicantPhone(user.mobile);
       if (user.email) setApplicantEmail(user.email);
+
+      if (pet) {
+        const userApps = getUserAdoptionApplications(user);
+        const matchedApp = userApps.find((a) => String(a.petId) === String(pet.id));
+        if (matchedApp) {
+          setExistingApplication(matchedApp);
+          setIsSubmitted(true);
+        }
+      }
     }
-  }, [user]);
+  }, [user, pet]);
 
   if (!pet) {
     return (
@@ -94,8 +120,33 @@ const AdoptionPetDetail = () => {
   const handleApplicationSubmit = (e) => {
     e.preventDefault();
 
+    // 1. Without login: Do not submit, show registration popup with identical template & format
+    if (!isAuthenticated || !user) {
+      toast.error('Please register or log in as a user to submit an adoption application.', {
+        duration: 5000,
+        icon: '🔒'
+      });
+      window.dispatchEvent(new CustomEvent('open-register-modal', { 
+        detail: { 
+          tab: 'user', 
+          hideProviderTab: true, 
+          source: 'adoption' 
+        } 
+      }));
+      return;
+    }
+
+    // 2. Prevent Pet Owner from applying for their own pet
+    if (isPetOwner) {
+      toast.error('You are the guardian of this pet and cannot apply to adopt your own listing.', {
+        duration: 5000,
+        icon: '🛡️'
+      });
+      return;
+    }
+
     if (!applicantPhone.trim()) {
-      toast.error('Please enter your phone number.');
+      toast.error('Please enter your contact phone number.');
       return;
     }
     if (!adoptionReason.trim()) {
@@ -103,8 +154,35 @@ const AdoptionPetDetail = () => {
       return;
     }
 
+    const applicationData = {
+      id: 'APP-' + Date.now().toString().slice(-6),
+      petId: pet.id,
+      petName: pet.name,
+      petBreed: pet.breed,
+      petType: pet.type || 'dogs',
+      petImage: pet.image,
+      petCity: pet.city,
+      guardianName: pet.parentName || 'Pet Guardian',
+      guardianPhone: pet.parentContact || '8306688827',
+      guardianId: pet.ownerId || null,
+      guardianEmail: pet.ownerEmail || null,
+      applicantId: user._id || user.id,
+      applicantName: applicantName.trim() || user.name,
+      applicantPhone: applicantPhone.trim() || user.mobile,
+      applicantEmail: applicantEmail.trim() || user.email,
+      homeType,
+      hasPetExperience,
+      adoptionReason: adoptionReason.trim(),
+      status: 'Submitted', // 'Submitted' | 'Under Review' | 'Contacted' | 'Approved' | 'Rejected'
+      createdAt: new Date().toISOString()
+    };
+
+    saveAdoptionApplication(applicationData);
+    setExistingApplication(applicationData);
     setIsSubmitted(true);
-    toast.success(`🎉 Adoption application for ${pet.name} submitted successfully! The guardian will call you within 24 hours.`, {
+    setShowFlyingMacaw(true);
+
+    toast.success(`🎉 Adoption application for ${pet.name} submitted successfully! You can track its status in your User Dashboard.`, {
       duration: 6000,
       icon: '🐾'
     });
@@ -114,7 +192,15 @@ const AdoptionPetDetail = () => {
   const relatedPets = pets.filter((p) => p.id !== pet.id).slice(0, 3);
 
   return (
-    <div className="min-h-screen bg-[#faf8fc] text-slate-800 pb-24">
+    <div className="min-h-screen bg-[#faf8fc] text-slate-800 pb-24 relative overflow-x-hidden">
+      
+      {/* Animated Flying Macaw Delivery Messenger */}
+      {showFlyingMacaw && (
+        <FlyingMacawMessenger
+          petName={pet.name}
+          onComplete={() => setShowFlyingMacaw(false)}
+        />
+      )}
       
       {/* Top Breadcrumb Navigation */}
       <div className="bg-white border-b border-purple-100 py-3 px-4 md:px-8">
@@ -340,7 +426,7 @@ const AdoptionPetDetail = () => {
                 </a>
               </div>
 
-              {/* Adoption Application Form */}
+              {/* Adoption Application Form Section */}
               <div className="border-t border-slate-100 pt-4 space-y-4">
                 <div>
                   <h3 className="font-serif text-base font-bold text-slate-900 flex items-center gap-1.5">
@@ -352,26 +438,82 @@ const AdoptionPetDetail = () => {
                   </p>
                 </div>
 
-                {isSubmitted ? (
-                  <div className="p-5 bg-emerald-50 border border-emerald-200 rounded-2xl text-center space-y-2 animate-in fade-in">
-                    <div className="w-12 h-12 bg-emerald-100 text-emerald-700 rounded-full flex items-center justify-center mx-auto">
+                {/* CASE 1: Current Logged In User is the Owner of this Pet */}
+                {isPetOwner ? (
+                  <div className="p-5 bg-purple-50/80 border-2 border-purple-200 rounded-2xl text-center space-y-3 animate-in fade-in">
+                    <div className="w-12 h-12 bg-purple-100 text-[#7c56dc] rounded-full flex items-center justify-center mx-auto shadow-sm">
+                      <ShieldCheck size={26} />
+                    </div>
+                    <div>
+                      <span className="text-[10px] font-extrabold uppercase tracking-wider text-purple-700 bg-purple-100 px-2.5 py-0.5 rounded-full inline-block mb-1">
+                        Pet Guardian Notice
+                      </span>
+                      <h4 className="font-bold text-slate-900 text-sm">You are the Guardian of {pet.name}</h4>
+                      <p className="text-xs text-slate-600 mt-1 leading-relaxed">
+                        You posted this pet for free adoption. As the guardian, you cannot submit an adoption application for your own listing.
+                      </p>
+                    </div>
+                    <div className="pt-2">
+                      <Link
+                        to="/account?tab=adoption-listings"
+                        className="w-full py-2.5 px-4 bg-[#7c56dc] hover:bg-[#6842c8] text-white font-bold text-xs rounded-xl shadow-md shadow-purple-600/20 active:scale-95 transition inline-flex items-center justify-center gap-2"
+                      >
+                        <span>View Received Applications in Dashboard</span>
+                        <ArrowRight size={14} />
+                      </Link>
+                    </div>
+                  </div>
+                ) : isSubmitted ? (
+                  /* CASE 2: Application Already Submitted */
+                  <div className="p-5 bg-emerald-50 border border-emerald-200 rounded-2xl text-center space-y-3 animate-in fade-in">
+                    <div className="w-12 h-12 bg-emerald-100 text-emerald-700 rounded-full flex items-center justify-center mx-auto shadow-sm">
                       <Check size={24} />
                     </div>
-                    <h4 className="font-bold text-emerald-900 text-sm">Application Sent!</h4>
-                    <p className="text-xs text-emerald-700">
-                      The guardian will reach out on your contact number to schedule a meet & greet.
-                    </p>
-                    <button
-                      type="button"
-                      onClick={() => setIsSubmitted(false)}
-                      className="text-xs text-[#7c56dc] font-bold hover:underline pt-2 block mx-auto"
-                    >
-                      Submit another application
-                    </button>
+                    <div>
+                      <span className="text-[10px] font-extrabold uppercase tracking-wider text-emerald-800 bg-emerald-100/90 px-2.5 py-0.5 rounded-full inline-block mb-1 border border-emerald-200">
+                        Status: {existingApplication?.status || 'Submitted'}
+                      </span>
+                      <h4 className="font-bold text-emerald-900 text-sm">Adoption Application Sent!</h4>
+                      <p className="text-xs text-emerald-700 mt-1 leading-relaxed">
+                        The guardian will reach out on your contact number to review your profile and schedule a meet & greet.
+                      </p>
+                    </div>
+                    
+                    <div className="pt-2 flex flex-col gap-2">
+                      <Link
+                        to="/account?tab=my-applications"
+                        className="w-full py-2.5 px-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-xs shadow-sm transition flex items-center justify-center gap-1.5"
+                      >
+                        <span>Track Status in User Dashboard</span>
+                        <ArrowRight size={14} />
+                      </Link>
+
+                      <button
+                        type="button"
+                        onClick={() => setIsSubmitted(false)}
+                        className="text-xs text-[#7c56dc] font-bold hover:underline py-1"
+                      >
+                        Edit / Submit New Application
+                      </button>
+                    </div>
                   </div>
                 ) : (
+                  /* CASE 3: Active Application Form */
                   <form onSubmit={handleApplicationSubmit} className="space-y-3 text-xs">
                     
+                    {/* Non-logged in helper prompt */}
+                    {!isAuthenticated && (
+                      <div className="p-3 bg-blue-50/80 border border-blue-200 rounded-xl text-[11px] text-[#15559c] flex items-start gap-2">
+                        <Lock size={15} className="shrink-0 mt-0.5 text-[#15559c]" />
+                        <div>
+                          <p className="font-bold">Login / Registration Required</p>
+                          <p className="text-slate-600 mt-0.5">
+                            Clicking submit will open the user registration popup so you can track your adoption application.
+                          </p>
+                        </div>
+                      </div>
+                    )}
+
                     <div className="space-y-1">
                       <label className="font-bold text-slate-700 block">Your Full Name *</label>
                       <input

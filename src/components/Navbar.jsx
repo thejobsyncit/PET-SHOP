@@ -59,7 +59,7 @@ const Navbar = () => {
   const servicesList = [
     { label: 'Pet Adoption', path: '/adopt' },
     { label: 'Pet Hostel', path: '/services?category=Hostel' },
-    { label: 'Pet Grooming', path: '/services?category=Grooming' },
+    { label: 'Pet Grooming', path: '/grooming' },
     { label: 'Pet Walking', path: '/services?category=Walking' },
     { label: 'Pet Transport', path: '/services?category=Transport' },
     { label: 'Pet Insurance', path: '/services?category=Insurance' },

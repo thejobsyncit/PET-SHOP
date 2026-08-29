@@ -1,7 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { useNavigate } from 'react-router-dom';
-import { User, MapPin, ClipboardList, ShoppingBag, Plus, Trash2, CheckCircle2, ShieldAlert, Clock, LogOut } from 'lucide-react';
+import { useNavigate, useSearchParams, Link } from 'react-router-dom';
+import {
+  User, MapPin, ClipboardList, ShoppingBag, Plus, Trash2, CheckCircle2,
+  ShieldAlert, Clock, LogOut, Heart, ShieldCheck, MessageSquare, Phone,
+  ExternalLink, Check, AlertCircle, ArrowRight, Sparkles, Filter, ChevronRight
+} from 'lucide-react';
 import { 
   fetchProfile, 
   updateProfile, 
@@ -9,17 +13,25 @@ import {
   removeUserAddress, 
   logout 
 } from '../store/slices/authSlice.js';
+import { 
+  getUserAdoptionApplications, 
+  getGuardianListedPets, 
+  getGuardianAdoptionApplications, 
+  updateAdoptionApplicationStatus 
+} from '../data/adoptionPetsData.js';
 import { apiRequest } from '../services/api.js';
 import toast from 'react-hot-toast';
 
 const AccountDashboard = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   
   const { user, isAuthenticated, loading } = useSelector((state) => state.auth);
   
   // Navigation Tabs state
-  const [activeTab, setActiveTab] = useState('orders');
+  const tabParam = searchParams.get('tab');
+  const [activeTab, setActiveTab] = useState(tabParam || 'orders');
 
   // Form Profile State
   const [name, setName] = useState('');
@@ -40,12 +52,30 @@ const AccountDashboard = () => {
   const [prescriptions, setPrescriptions] = useState([]);
   const [historyLoading, setHistoryLoading] = useState(false);
 
+  // Adoption applications & listed pets states
+  const [userAdoptionApps, setUserAdoptionApps] = useState([]);
+  const [guardianPets, setGuardianPets] = useState([]);
+  const [guardianApps, setGuardianApps] = useState([]);
+
+  // Sync tab with URL search parameter
+  useEffect(() => {
+    if (tabParam) {
+      setActiveTab(tabParam);
+    }
+  }, [tabParam]);
+
+  const handleTabChange = (newTab) => {
+    setActiveTab(newTab);
+    setSearchParams({ tab: newTab });
+  };
+
   useEffect(() => {
     if (!isAuthenticated) {
       navigate('/login');
     } else {
       dispatch(fetchProfile());
       loadUserHistory();
+      loadAdoptionData();
     }
   }, [isAuthenticated, dispatch, navigate]);
 
@@ -53,8 +83,9 @@ const AccountDashboard = () => {
     if (user) {
       setName(user.name || '');
       setEmail(user.email || '');
+      loadAdoptionData();
     }
-  }, [user]);
+  }, [user, activeTab]);
 
   const loadUserHistory = async () => {
     setHistoryLoading(true);
@@ -72,6 +103,27 @@ const AccountDashboard = () => {
     } finally {
       setHistoryLoading(false);
     }
+  };
+
+  const loadAdoptionData = () => {
+    if (user) {
+      const myApps = getUserAdoptionApplications(user);
+      setUserAdoptionApps(myApps);
+
+      const myPets = getGuardianListedPets(user);
+      setGuardianPets(myPets);
+
+      const receivedApps = getGuardianAdoptionApplications(user);
+      setGuardianApps(receivedApps);
+    }
+  };
+
+  const handleUpdateApplicantStatus = (appId, newStatus) => {
+    updateAdoptionApplicationStatus(appId, newStatus);
+    loadAdoptionData();
+    toast.success(`Application status updated to "${newStatus}"!`, {
+      icon: '🐾'
+    });
   };
 
   const handleUpdateProfile = async (e) => {
@@ -129,6 +181,42 @@ const AccountDashboard = () => {
     toast.success('Logged out successfully.');
   };
 
+  // Helper for Status Badge styling
+  const renderStatusBadge = (status) => {
+    switch (status) {
+      case 'Approved':
+        return (
+          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-emerald-100 text-emerald-800 border border-emerald-200">
+            <CheckCircle2 size={12} className="text-emerald-700" /> Approved & Ready
+          </span>
+        );
+      case 'Contacted':
+        return (
+          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-purple-100 text-purple-800 border border-purple-200">
+            <Phone size={12} className="text-purple-700" /> Guardian Contacted
+          </span>
+        );
+      case 'Under Review':
+        return (
+          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-amber-100 text-amber-800 border border-amber-200">
+            <Clock size={12} className="text-amber-700" /> Under Review
+          </span>
+        );
+      case 'Rejected':
+        return (
+          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-rose-100 text-rose-800 border border-rose-200">
+            <ShieldAlert size={12} className="text-rose-700" /> Not Selected
+          </span>
+        );
+      default:
+        return (
+          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-blue-100 text-blue-800 border border-blue-200">
+            <Clock size={12} className="text-blue-700" /> Application Submitted
+          </span>
+        );
+    }
+  };
+
   if (loading || !user) {
     return (
       <div className="max-w-7xl mx-auto px-4 md:px-8 py-20 flex flex-col items-center justify-center space-y-4">
@@ -177,32 +265,44 @@ const AccountDashboard = () => {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
         
         {/* Navigation Sidebar (Left 3 Columns) */}
-        <aside className="lg:col-span-3 bg-white border border-beige p-6 space-y-2 shadow-sm">
+        <aside className="lg:col-span-3 bg-white border border-beige p-6 space-y-2 shadow-sm rounded-xl">
           {[
             { id: 'orders', label: 'Order History', icon: <ShoppingBag size={16} /> },
+            { 
+              id: 'my-applications', 
+              label: `My Adoption Enquiries (${userAdoptionApps.length})`, 
+              icon: <Heart size={16} className={userAdoptionApps.length > 0 ? 'text-rose-500' : ''} /> 
+            },
+            { 
+              id: 'adoption-listings', 
+              label: `My Listed Pets (${guardianPets.length})`, 
+              icon: <ShieldCheck size={16} className={guardianPets.length > 0 ? 'text-[#7c56dc]' : ''} /> 
+            },
             { id: 'prescriptions', label: 'Prescriptions', icon: <ClipboardList size={16} /> },
             { id: 'addresses', label: 'Address Book', icon: <MapPin size={16} /> },
             { id: 'profile', label: 'Profile Details', icon: <User size={16} /> }
           ].map((tab) => (
             <button
               key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={`w-full flex items-center gap-3 px-4 py-3 text-xs font-semibold uppercase tracking-wider transition ${
+              onClick={() => handleTabChange(tab.id)}
+              className={`w-full flex items-center gap-3 px-4 py-3 text-xs font-semibold uppercase tracking-wider transition rounded-lg text-left cursor-pointer ${
                 activeTab === tab.id 
-                  ? 'bg-primary text-white font-bold' 
+                  ? 'bg-primary text-white font-bold shadow-sm' 
                   : 'text-gray-500 hover:bg-secondary hover:text-primary'
               }`}
             >
               {tab.icon}
-              <span>{tab.label}</span>
+              <span className="truncate">{tab.label}</span>
             </button>
           ))}
         </aside>
 
         {/* Dynamic Display Panel (Right 9 Columns) */}
-        <div className="lg:col-span-9 bg-white border border-beige p-6 md:p-8 shadow-sm">
+        <div className="lg:col-span-9 bg-white border border-beige p-6 md:p-8 shadow-sm rounded-xl">
           
-          {/* TAB 1: ORDER HISTORY */}
+          {/* =========================================================================
+              TAB 1: ORDER HISTORY
+             ========================================================================= */}
           {activeTab === 'orders' && (
             <div className="space-y-6">
               <h2 className="font-serif text-lg font-bold text-primary border-b border-beige pb-2">
@@ -214,9 +314,9 @@ const AccountDashboard = () => {
               ) : orders.length > 0 ? (
                 <div className="space-y-4">
                   {orders.map((order) => (
-                    <div key={order._id} className="border border-beige p-5 text-xs space-y-4">
+                    <div key={order._id} className="border border-beige p-5 text-xs space-y-4 rounded-xl">
                       {/* Top metadata */}
-                      <div className="flex flex-wrap justify-between items-center bg-secondary p-3 border-b border-beige gap-2">
+                      <div className="flex flex-wrap justify-between items-center bg-secondary p-3 border-b border-beige gap-2 rounded-lg">
                         <div>
                           <p className="text-gray-400 font-medium">ORDER ID</p>
                           <p className="font-bold text-primary">{order._id}</p>
@@ -243,7 +343,7 @@ const AccountDashboard = () => {
                         {order.orderItems.map((item, idx) => (
                           <div key={idx} className="flex justify-between items-center gap-4">
                             <div className="flex items-center gap-3">
-                              <img src={item.image} alt={item.name} className="w-10 h-10 object-cover bg-gray-100 border border-beige" />
+                              <img src={item.image} alt={item.name} className="w-10 h-10 object-cover bg-gray-100 border border-beige rounded-md" />
                               <div>
                                 <p className="font-semibold text-primary truncate max-w-xs">{item.name}</p>
                                 <p className="text-[10px] text-gray-400">Qty: {item.quantity} • Price: ₹{item.price}</p>
@@ -258,7 +358,7 @@ const AccountDashboard = () => {
                       <div className="flex justify-between items-center border-t border-beige pt-3 text-[11px]">
                         <span className="text-gray-400 font-semibold">Tracking Code: <strong>{order.trackingNumber}</strong></span>
                         {order.prescriptionId && (
-                          <span className="px-2 py-0.5 bg-red-50 border border-red-200 text-red-700 font-semibold uppercase text-[9px]">
+                          <span className="px-2 py-0.5 bg-red-50 border border-red-200 text-red-700 font-semibold uppercase text-[9px] rounded">
                             Prescription order under review
                           </span>
                         )}
@@ -272,7 +372,383 @@ const AccountDashboard = () => {
             </div>
           )}
 
-          {/* TAB 2: PRESCRIPTION HISTORY */}
+          {/* =========================================================================
+              TAB 2: MY ADOPTION ENQUIRIES & APPLICATION STATUS
+             ========================================================================= */}
+          {activeTab === 'my-applications' && (
+            <div className="space-y-6">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-beige pb-3 gap-2">
+                <div>
+                  <h2 className="font-serif text-lg font-bold text-primary flex items-center gap-2">
+                    <Heart size={18} className="text-rose-500" />
+                    <span>My Adoption Enquiries ({userAdoptionApps.length})</span>
+                  </h2>
+                  <p className="text-xs text-gray-500 mt-0.5">
+                    Track the real-time application and screening status of pets you've applied to adopt.
+                  </p>
+                </div>
+                <Link
+                  to="/adopt"
+                  className="px-3.5 py-2 bg-[#7c56dc] hover:bg-[#6842c8] text-white rounded-lg text-xs font-bold transition flex items-center gap-1.5 shadow-sm"
+                >
+                  <Sparkles size={13} />
+                  <span>Browse More Pets</span>
+                </Link>
+              </div>
+
+              {userAdoptionApps.length > 0 ? (
+                <div className="space-y-5">
+                  {userAdoptionApps.map((app) => (
+                    <div
+                      key={app.id}
+                      className="border border-purple-100 rounded-2xl p-5 bg-gradient-to-b from-purple-50/20 to-white shadow-xs space-y-4 hover:border-purple-300 transition"
+                    >
+                      {/* Top Header Row */}
+                      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 pb-3">
+                        <div className="flex items-center gap-2">
+                          <span className="font-mono text-xs font-bold text-slate-700 bg-slate-100 px-2 py-0.5 rounded-md">
+                            {app.id}
+                          </span>
+                          <span className="text-[11px] text-slate-400">
+                            Applied on: {new Date(app.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                          </span>
+                        </div>
+
+                        <div>
+                          {renderStatusBadge(app.status)}
+                        </div>
+                      </div>
+
+                      {/* Main Application Details Row */}
+                      <div className="grid grid-cols-1 md:grid-cols-12 gap-5 items-start">
+                        {/* Pet Thumbnail & Basic Info */}
+                        <div className="md:col-span-4 flex items-start gap-3">
+                          <img
+                            src={app.petImage || 'https://images.unsplash.com/photo-1543466835-00a7907e9de1?q=80&w=800'}
+                            alt={app.petName}
+                            className="w-16 h-16 rounded-xl object-cover border border-purple-100 shrink-0 bg-purple-50"
+                          />
+                          <div className="min-w-0">
+                            <h3 className="font-serif font-bold text-slate-900 text-sm truncate">
+                              {app.petName}
+                            </h3>
+                            <p className="text-xs text-slate-500 truncate">{app.petBreed}</p>
+                            <p className="text-[11px] text-[#7c56dc] font-semibold mt-0.5">{app.petCity}</p>
+                            <Link
+                              to={`/adopt/${app.petId}`}
+                              className="text-[11px] text-[#7c56dc] font-bold hover:underline inline-flex items-center gap-0.5 mt-1"
+                            >
+                              <span>View Pet Listing</span>
+                              <ArrowRight size={11} />
+                            </Link>
+                          </div>
+                        </div>
+
+                        {/* Guardian Contact Info */}
+                        <div className="md:col-span-4 bg-slate-50/80 p-3 rounded-xl border border-slate-200/80 text-xs space-y-1">
+                          <span className="text-[10px] uppercase font-bold text-slate-400 block">Pet Guardian</span>
+                          <p className="font-bold text-slate-800">{app.guardianName || 'Verified Guardian'}</p>
+                          <p className="text-[11px] text-slate-500 flex items-center gap-1">
+                            <Phone size={11} className="text-slate-400" />
+                            <span>{app.guardianPhone || '+91 8306-688-827'}</span>
+                          </p>
+
+                          <div className="pt-2 flex items-center gap-2">
+                            <a
+                              href={`https://wa.me/${(app.guardianPhone || '8306688827').replace(/\D/g, '')}?text=${encodeURIComponent(`Hello ${app.guardianName || 'Guardian'}, I am following up on my adoption application for "${app.petName}" (Ref: ${app.id}) on India Pet Hub.`)}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="py-1 px-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-bold text-[10px] inline-flex items-center gap-1 transition shadow-xs"
+                            >
+                              <MessageSquare size={11} />
+                              <span>WhatsApp</span>
+                            </a>
+                            <a
+                              href={`tel:${app.guardianPhone || '8306688827'}`}
+                              className="py-1 px-2.5 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-bold text-[10px] inline-flex items-center gap-1 transition shadow-xs"
+                            >
+                              <Phone size={11} />
+                              <span>Call</span>
+                            </a>
+                          </div>
+                        </div>
+
+                        {/* Your Application Summary */}
+                        <div className="md:col-span-4 bg-purple-50/40 p-3 rounded-xl border border-purple-100 text-xs space-y-1.5">
+                          <span className="text-[10px] uppercase font-bold text-purple-700 block">Your Submission</span>
+                          <p className="text-slate-600">
+                            <strong className="text-slate-800">Home:</strong> {app.homeType || 'Apartment'} • <strong className="text-slate-800">Exp:</strong> {app.hasPetExperience || 'Yes'}
+                          </p>
+                          <p className="text-[11px] text-slate-600 italic bg-white p-2 rounded-lg border border-purple-50 line-clamp-3">
+                            "{app.adoptionReason}"
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Status Advice Box */}
+                      <div className="bg-slate-50 p-3 rounded-xl text-xs text-slate-600 flex items-center justify-between">
+                        <span className="text-[11px]">
+                          {app.status === 'Approved'
+                            ? '🎉 Great news! Your application is approved. Coordinate with the guardian to bring your new pet home!'
+                            : app.status === 'Contacted'
+                            ? '📞 The guardian has initiated contact. Check your WhatsApp/phone calls for updates.'
+                            : app.status === 'Under Review'
+                            ? '⏳ The guardian is reviewing applications. You will be notified once shortlisted.'
+                            : '🐾 Your application is in the queue. The guardian will reach out within 24–48 hours.'}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="p-10 border border-dashed border-purple-200 rounded-2xl text-center space-y-3 bg-purple-50/20">
+                  <div className="w-14 h-14 bg-purple-100 text-[#7c56dc] rounded-full flex items-center justify-center mx-auto">
+                    <Heart size={28} />
+                  </div>
+                  <h3 className="font-serif text-base font-bold text-slate-800">No Adoption Applications Yet</h3>
+                  <p className="text-xs text-slate-500 max-w-md mx-auto">
+                    You have not applied for any pet adoptions yet. Find your perfect companion from our loving rescue pets!
+                  </p>
+                  <div className="pt-2">
+                    <Link
+                      to="/adopt"
+                      className="px-5 py-2.5 bg-[#7c56dc] hover:bg-[#6842c8] text-white rounded-xl text-xs font-bold shadow-md transition inline-flex items-center gap-1.5"
+                    >
+                      <Sparkles size={14} />
+                      <span>Explore Free Adoption Pets</span>
+                    </Link>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* =========================================================================
+              TAB 3: MY LISTED PETS & RECEIVED APPLICANTS TRACKING
+             ========================================================================= */}
+          {activeTab === 'adoption-listings' && (
+            <div className="space-y-6">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-beige pb-3 gap-2">
+                <div>
+                  <h2 className="font-serif text-lg font-bold text-primary flex items-center gap-2">
+                    <ShieldCheck size={18} className="text-[#7c56dc]" />
+                    <span>My Listed Pets & Received Applications ({guardianPets.length})</span>
+                  </h2>
+                  <p className="text-xs text-gray-500 mt-0.5">
+                    Track all adoption listings you created, manage applicant profiles, and update status in real-time.
+                  </p>
+                </div>
+                <Link
+                  to="/adopt"
+                  className="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold transition flex items-center gap-1.5 shadow-sm"
+                >
+                  <Plus size={14} />
+                  <span>List Pet For Free Adoption</span>
+                </Link>
+              </div>
+
+              {/* Summary Stats Cards */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                <div className="p-3 bg-purple-50/70 border border-purple-100 rounded-xl text-center">
+                  <span className="text-[10px] font-bold text-purple-700 uppercase tracking-wider block">Pets Listed</span>
+                  <span className="text-xl font-extrabold text-slate-900">{guardianPets.length}</span>
+                </div>
+
+                <div className="p-3 bg-blue-50/70 border border-blue-100 rounded-xl text-center">
+                  <span className="text-[10px] font-bold text-blue-700 uppercase tracking-wider block">Total Applicants</span>
+                  <span className="text-xl font-extrabold text-[#15559c]">{guardianApps.length}</span>
+                </div>
+
+                <div className="p-3 bg-amber-50/70 border border-amber-100 rounded-xl text-center">
+                  <span className="text-[10px] font-bold text-amber-700 uppercase tracking-wider block">Under Review</span>
+                  <span className="text-xl font-extrabold text-amber-700">
+                    {guardianApps.filter((a) => a.status === 'Under Review' || a.status === 'Submitted').length}
+                  </span>
+                </div>
+
+                <div className="p-3 bg-emerald-50/70 border border-emerald-100 rounded-xl text-center">
+                  <span className="text-[10px] font-bold text-emerald-700 uppercase tracking-wider block">Approved Adoptions</span>
+                  <span className="text-xl font-extrabold text-emerald-700">
+                    {guardianApps.filter((a) => a.status === 'Approved').length}
+                  </span>
+                </div>
+              </div>
+
+              {guardianPets.length > 0 ? (
+                <div className="space-y-6">
+                  {guardianPets.map((pet) => {
+                    const petApplicants = guardianApps.filter((a) => String(a.petId) === String(pet.id));
+
+                    return (
+                      <div
+                        key={pet.id}
+                        className="border border-purple-200 rounded-2xl p-5 bg-white shadow-sm space-y-5"
+                      >
+                        {/* Pet Info Header */}
+                        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-slate-100 pb-4">
+                          <div className="flex items-center gap-4">
+                            <img
+                              src={pet.image}
+                              alt={pet.name}
+                              className="w-16 h-16 rounded-2xl object-cover border border-purple-100 shrink-0 bg-purple-50 shadow-xs"
+                            />
+                            <div>
+                              <div className="flex items-center gap-2">
+                                <h3 className="font-serif font-bold text-slate-900 text-base">
+                                  {pet.name}
+                                </h3>
+                                <span className="text-[10px] font-bold bg-purple-100 text-[#7c56dc] px-2 py-0.5 rounded-full">
+                                  {pet.gender} • {pet.age}
+                                </span>
+                              </div>
+                              <p className="text-xs text-slate-500">{pet.breed} • {pet.city}</p>
+                              <Link
+                                to={`/adopt/${pet.id}`}
+                                className="text-[11px] text-[#7c56dc] font-bold hover:underline inline-flex items-center gap-1 mt-0.5"
+                              >
+                                <span>View Public Pet Profile</span>
+                                <ExternalLink size={11} />
+                              </Link>
+                            </div>
+                          </div>
+
+                          <div className="text-right flex sm:flex-col items-center sm:items-end justify-between w-full sm:w-auto gap-1">
+                            <span className="text-[10px] uppercase font-bold text-slate-400">Total Inquiries</span>
+                            <span className="px-3 py-1 bg-purple-50 text-[#7c56dc] font-extrabold text-xs rounded-full border border-purple-200">
+                              👥 {petApplicants.length} Applicant{petApplicants.length !== 1 ? 's' : ''}
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Applicants Section */}
+                        <div className="space-y-3">
+                          <h4 className="font-serif text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
+                            <span>Applicants for {pet.name}</span>
+                            <span className="text-[10px] font-normal text-slate-400">({petApplicants.length})</span>
+                          </h4>
+
+                          {petApplicants.length > 0 ? (
+                            <div className="space-y-3">
+                              {petApplicants.map((app) => (
+                                <div
+                                  key={app.id}
+                                  className="border border-slate-200 rounded-xl p-4 bg-slate-50/60 space-y-3 hover:bg-white hover:border-purple-300 transition"
+                                >
+                                  {/* Applicant Header */}
+                                  <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-200/60 pb-2">
+                                    <div className="flex items-center gap-2">
+                                      <div className="w-8 h-8 rounded-full bg-purple-200/80 text-[#7c56dc] font-bold text-xs flex items-center justify-center">
+                                        {app.applicantName ? app.applicantName.charAt(0) : 'U'}
+                                      </div>
+                                      <div>
+                                        <p className="font-bold text-slate-900 text-xs">{app.applicantName}</p>
+                                        <p className="text-[10px] text-slate-400">Ref: {app.id} • {new Date(app.createdAt).toLocaleDateString()}</p>
+                                      </div>
+                                    </div>
+
+                                    {/* Action Status Selector */}
+                                    <div className="flex items-center gap-2">
+                                      <span className="text-[11px] text-slate-500 font-bold hidden sm:inline">Status:</span>
+                                      <select
+                                        value={app.status || 'Submitted'}
+                                        onChange={(e) => handleUpdateApplicantStatus(app.id, e.target.value)}
+                                        className="text-xs font-bold py-1.5 px-3 rounded-lg border border-slate-300 bg-white focus:outline-none focus:border-[#7c56dc] cursor-pointer shadow-2xs"
+                                      >
+                                        <option value="Submitted">Submitted (New)</option>
+                                        <option value="Under Review">Under Review</option>
+                                        <option value="Contacted">Contacted</option>
+                                        <option value="Approved">Approved</option>
+                                        <option value="Rejected">Rejected</option>
+                                      </select>
+                                    </div>
+                                  </div>
+
+                                  {/* Profile Details Grid */}
+                                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs bg-white p-3 rounded-lg border border-slate-100">
+                                    <div>
+                                      <span className="text-[10px] uppercase font-bold text-slate-400 block">Phone & WhatsApp</span>
+                                      <p className="font-bold text-slate-800">{app.applicantPhone}</p>
+                                    </div>
+
+                                    <div>
+                                      <span className="text-[10px] uppercase font-bold text-slate-400 block">Email</span>
+                                      <p className="font-semibold text-slate-700 truncate">{app.applicantEmail || 'Not provided'}</p>
+                                    </div>
+
+                                    <div>
+                                      <span className="text-[10px] uppercase font-bold text-slate-400 block">Living Environment</span>
+                                      <p className="text-slate-700">
+                                        <strong className="text-slate-900">{app.homeType || 'Apartment'}</strong> • Exp: {app.hasPetExperience || 'Yes'}
+                                      </p>
+                                    </div>
+
+                                    <div className="sm:col-span-3 pt-1 border-t border-slate-100">
+                                      <span className="text-[10px] uppercase font-bold text-slate-400 block">Applicant's Note / Adoption Reason:</span>
+                                      <p className="text-slate-700 italic mt-0.5 leading-relaxed bg-slate-50 p-2.5 rounded-md border border-slate-100">
+                                        "{app.adoptionReason}"
+                                      </p>
+                                    </div>
+                                  </div>
+
+                                  {/* Contact Buttons */}
+                                  <div className="flex items-center justify-end gap-2 pt-1">
+                                    <a
+                                      href={`https://wa.me/${(app.applicantPhone || '').replace(/\D/g, '')}?text=${encodeURIComponent(`Hello ${app.applicantName}! Regarding your adoption application for "${pet.name}" on India Pet Hub, I would like to connect with you.`)}`}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="py-1.5 px-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-bold text-xs inline-flex items-center gap-1.5 transition shadow-xs cursor-pointer"
+                                    >
+                                      <MessageSquare size={13} />
+                                      <span>WhatsApp Chat</span>
+                                    </a>
+
+                                    <a
+                                      href={`tel:${app.applicantPhone}`}
+                                      className="py-1.5 px-3 bg-[#7c56dc] hover:bg-[#6842c8] text-white rounded-lg font-bold text-xs inline-flex items-center gap-1.5 transition shadow-xs cursor-pointer"
+                                    >
+                                      <Phone size={13} />
+                                      <span>Call Applicant</span>
+                                    </a>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          ) : (
+                            <div className="p-4 bg-slate-50 rounded-xl text-center text-xs text-slate-400 font-medium">
+                              No one has applied for {pet.name} yet. Share your listing to find loving pet parents!
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="p-10 border border-dashed border-purple-200 rounded-2xl text-center space-y-3 bg-purple-50/20">
+                  <div className="w-14 h-14 bg-purple-100 text-[#7c56dc] rounded-full flex items-center justify-center mx-auto">
+                    <ShieldCheck size={28} />
+                  </div>
+                  <h3 className="font-serif text-base font-bold text-slate-800">You Haven't Listed Any Pets For Adoption Yet</h3>
+                  <p className="text-xs text-slate-500 max-w-md mx-auto">
+                    Are you fostering or rehoming a pet? List them for free adoption on India Pet Hub to connect with verified adopters.
+                  </p>
+                  <div className="pt-2">
+                    <Link
+                      to="/adopt"
+                      className="px-5 py-2.5 bg-[#7c56dc] hover:bg-[#6842c8] text-white rounded-xl text-xs font-bold shadow-md transition inline-flex items-center gap-1.5"
+                    >
+                      <Plus size={14} />
+                      <span>Post Pet For Free Adoption</span>
+                    </Link>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* =========================================================================
+              TAB 4: PRESCRIPTION HISTORY
+             ========================================================================= */}
           {activeTab === 'prescriptions' && (
             <div className="space-y-6">
               <h2 className="font-serif text-lg font-bold text-primary border-b border-beige pb-2">
@@ -284,7 +760,7 @@ const AccountDashboard = () => {
               ) : prescriptions.length > 0 ? (
                 <div className="space-y-4">
                   {prescriptions.map((presc) => (
-                    <div key={presc._id} className="border border-beige p-5 text-xs grid grid-cols-1 md:grid-cols-4 gap-4 items-center">
+                    <div key={presc._id} className="border border-beige p-5 text-xs grid grid-cols-1 md:grid-cols-4 gap-4 items-center rounded-xl">
                       <div className="md:col-span-2 space-y-1">
                         <p className="font-bold text-primary text-sm font-serif">Pet: {presc.patientName}</p>
                         <p className="text-gray-500">Doctor: {presc.veterinarianName} ({presc.clinicName || 'No Clinic'})</p>
@@ -314,14 +790,14 @@ const AccountDashboard = () => {
                           href={presc.prescriptionFileUrl.startsWith('/uploads') ? `http://localhost:5000${presc.prescriptionFileUrl}` : presc.prescriptionFileUrl} 
                           target="_blank" 
                           rel="noopener noreferrer"
-                          className="px-3 py-1.5 bg-primary text-white font-bold tracking-widest text-[10px] hover:bg-accent hover:text-primary transition uppercase inline-block text-center cursor-pointer"
+                          className="px-3 py-1.5 bg-primary text-white font-bold tracking-widest text-[10px] hover:bg-accent hover:text-primary transition uppercase inline-block text-center cursor-pointer rounded"
                         >
                           VIEW DOCUMENT
                         </a>
                       </div>
                       
                       {presc.reviewNotes && (
-                        <div className="col-span-full bg-secondary p-3 border border-beige text-[11px] text-gray-600">
+                        <div className="col-span-full bg-secondary p-3 border border-beige text-[11px] text-gray-600 rounded">
                           <strong>Pharmacist Notes:</strong> {presc.reviewNotes}
                         </div>
                       )}
@@ -334,14 +810,16 @@ const AccountDashboard = () => {
             </div>
           )}
 
-          {/* TAB 3: ADDRESS BOOK */}
+          {/* =========================================================================
+              TAB 5: ADDRESS BOOK
+             ========================================================================= */}
           {activeTab === 'addresses' && (
             <div className="space-y-6">
               <div className="flex justify-between items-center border-b border-beige pb-2">
                 <h2 className="font-serif text-lg font-bold text-primary">Shipping Addresses</h2>
                 <button
                   onClick={() => setShowAddressForm(!showAddressForm)}
-                  className="px-3 py-1.5 bg-primary text-white font-bold tracking-widest text-[10px] hover:bg-accent hover:text-primary transition uppercase flex items-center gap-1 cursor-pointer"
+                  className="px-3 py-1.5 bg-primary text-white font-bold tracking-widest text-[10px] hover:bg-accent hover:text-primary transition uppercase flex items-center gap-1 cursor-pointer rounded"
                 >
                   <Plus size={12} /> {showAddressForm ? 'CLOSE FORM' : 'ADD NEW'}
                 </button>
@@ -349,7 +827,7 @@ const AccountDashboard = () => {
 
               {/* Address Addition Form */}
               {showAddressForm && (
-                <form onSubmit={handleAddAddress} className="border border-beige p-5 space-y-4 bg-secondary">
+                <form onSubmit={handleAddAddress} className="border border-beige p-5 space-y-4 bg-secondary rounded-xl">
                   <h3 className="font-serif text-sm font-semibold text-primary">New Shipping Address</h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <input
@@ -357,7 +835,7 @@ const AccountDashboard = () => {
                       placeholder="Receiver Name"
                       value={addrName}
                       onChange={(e) => setAddrName(e.target.value)}
-                      className="px-3 py-2 border border-beige text-xs bg-white focus:outline-none focus:border-primary"
+                      className="px-3 py-2 border border-beige text-xs bg-white focus:outline-none focus:border-primary rounded"
                       required
                     />
                     <input
@@ -365,7 +843,7 @@ const AccountDashboard = () => {
                       placeholder="Phone Number"
                       value={addrPhone}
                       onChange={(e) => setAddrPhone(e.target.value)}
-                      className="px-3 py-2 border border-beige text-xs bg-white focus:outline-none focus:border-primary"
+                      className="px-3 py-2 border border-beige text-xs bg-white focus:outline-none focus:border-primary rounded"
                       required
                     />
                   </div>
@@ -374,7 +852,7 @@ const AccountDashboard = () => {
                     placeholder="Street Address"
                     value={addrStreet}
                     onChange={(e) => setAddrStreet(e.target.value)}
-                    className="w-full px-3 py-2 border border-beige text-xs bg-white focus:outline-none focus:border-primary"
+                    className="w-full px-3 py-2 border border-beige text-xs bg-white focus:outline-none focus:border-primary rounded"
                     required
                   />
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -383,7 +861,7 @@ const AccountDashboard = () => {
                       placeholder="City"
                       value={addrCity}
                       onChange={(e) => setAddrCity(e.target.value)}
-                      className="px-3 py-2 border border-beige text-xs bg-white focus:outline-none focus:border-primary"
+                      className="px-3 py-2 border border-beige text-xs bg-white focus:outline-none focus:border-primary rounded"
                       required
                     />
                     <input
@@ -391,7 +869,7 @@ const AccountDashboard = () => {
                       placeholder="State"
                       value={addrState}
                       onChange={(e) => setAddrState(e.target.value)}
-                      className="px-3 py-2 border border-beige text-xs bg-white focus:outline-none focus:border-primary"
+                      className="px-3 py-2 border border-beige text-xs bg-white focus:outline-none focus:border-primary rounded"
                       required
                     />
                     <input
@@ -399,7 +877,7 @@ const AccountDashboard = () => {
                       placeholder="Postal Code"
                       value={addrZip}
                       onChange={(e) => setAddrZip(e.target.value)}
-                      className="px-3 py-2 border border-beige text-xs bg-white focus:outline-none focus:border-primary"
+                      className="px-3 py-2 border border-beige text-xs bg-white focus:outline-none focus:border-primary rounded"
                       required
                     />
                   </div>
@@ -413,11 +891,11 @@ const AccountDashboard = () => {
               {user.addresses && user.addresses.length > 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {user.addresses.map((a) => (
-                    <div key={a._id} className="border border-beige p-5 text-xs flex justify-between items-start">
+                    <div key={a._id} className="border border-beige p-5 text-xs flex justify-between items-start rounded-xl">
                       <div className="space-y-1">
                         <p className="font-bold text-primary">
                           {a.name} 
-                          {a.isDefault && <span className="ml-2 bg-accent/20 text-primary border border-accent/30 text-[9px] px-1.5 py-0.5 uppercase font-bold">Default</span>}
+                          {a.isDefault && <span className="ml-2 bg-accent/20 text-primary border border-accent/30 text-[9px] px-1.5 py-0.5 uppercase font-bold rounded">Default</span>}
                         </p>
                         <p className="text-gray-500">{a.streetAddress}</p>
                         <p className="text-gray-500">{a.city}, {a.state} - {a.postalCode}</p>
@@ -439,7 +917,9 @@ const AccountDashboard = () => {
             </div>
           )}
 
-          {/* TAB 4: PROFILE DETAILS */}
+          {/* =========================================================================
+              TAB 6: PROFILE DETAILS
+             ========================================================================= */}
           {activeTab === 'profile' && (
             <div className="space-y-6">
               <h2 className="font-serif text-lg font-bold text-primary border-b border-beige pb-2">
@@ -453,7 +933,7 @@ const AccountDashboard = () => {
                     type="text"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    className="w-full px-3 py-2 border border-beige text-xs focus:outline-none focus:border-primary"
+                    className="w-full px-3 py-2 border border-beige text-xs focus:outline-none focus:border-primary rounded"
                     required
                   />
                 </div>
@@ -464,7 +944,7 @@ const AccountDashboard = () => {
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="w-full px-3 py-2 border border-beige text-xs focus:outline-none focus:border-primary"
+                    className="w-full px-3 py-2 border border-beige text-xs focus:outline-none focus:border-primary rounded"
                     required
                   />
                 </div>
@@ -476,7 +956,7 @@ const AccountDashboard = () => {
                     placeholder="••••••••"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="w-full px-3 py-2 border border-beige text-xs focus:outline-none focus:border-primary"
+                    className="w-full px-3 py-2 border border-beige text-xs focus:outline-none focus:border-primary rounded"
                   />
                 </div>
 

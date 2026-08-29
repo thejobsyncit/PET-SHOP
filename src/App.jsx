@@ -27,6 +27,7 @@ import AdoptionShelter from './pages/AdoptionShelter.jsx';
 import AdoptionPetDetail from './pages/AdoptionPetDetail.jsx';
 import BreedingDirectory from './pages/BreedingDirectory.jsx';
 import ServiceBooking from './pages/ServiceBooking.jsx';
+import GroomingServices from './pages/GroomingServices.jsx';
 import ChatConsole from './pages/ChatConsole.jsx';
 
 function App() {
@@ -86,6 +87,8 @@ function App() {
             <Route path="adopt/:id" element={<AdoptionPetDetail />} />
             <Route path="breeding" element={<BreedingDirectory />} />
             <Route path="services" element={<ServiceBooking />} />
+            <Route path="grooming" element={<GroomingServices />} />
+            <Route path="services/grooming" element={<GroomingServices />} />
             <Route path="chat" element={<ChatConsole />} />
           </Route>
 

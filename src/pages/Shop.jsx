@@ -1,16 +1,62 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import { SlidersHorizontal, ArrowUpDown, ChevronRight, RefreshCw, X, ChevronDown, Check } from 'lucide-react';
+import { 
+  SlidersHorizontal, ArrowUpDown, RefreshCw, X, ChevronDown, Check, 
+  ChevronRight, Sparkles, Filter 
+} from 'lucide-react';
 import { fetchProducts, setFilter, resetFilters } from '../store/slices/productSlice.js';
 import ProductCard from '../components/ProductCard.jsx';
+
+// Brand mappings per pet department & pharmacy pet type
+const DEPARTMENT_BRANDS = {
+  all: ['Royal Canin', 'Pedigree', 'Drools', 'Zoo Med', 'Exo Terra', 'API', 'Hikari', 'Himalaya', 'Beaphar', 'Pawora'],
+  dogs: ['Royal Canin', 'Pedigree', 'Drools', 'Himalaya', 'Beaphar', 'Pawora'],
+  cats: ['Royal Canin', 'Drools', 'Himalaya', 'Beaphar', 'Pawora'],
+  birds: ['Zoo Med', 'Beaphar', 'Himalaya', 'Pawora'],
+  reptiles: ['Exo Terra', 'Zoo Med', 'Pawora'],
+  fish: ['API', 'Hikari', 'Pawora'],
+  pharmacy: ['Himalaya', 'Beaphar', 'Pawora']
+};
+
+const PHARMACY_PET_BRANDS = {
+  all: ['Himalaya', 'Beaphar', 'Pawora'],
+  dog: ['Himalaya', 'Beaphar', 'Pawora'],
+  cat: ['Himalaya', 'Beaphar', 'Pawora'],
+  bird: ['Beaphar', 'Himalaya', 'Pawora'],
+  reptile: ['Zoo Med', 'Exo Terra', 'Pawora'],
+  fish: ['API', 'Hikari', 'Pawora']
+};
+
+const PHARMACY_PET_OPTIONS = [
+  { id: 'all', label: 'All Pharmacy' },
+  { id: 'dog', label: 'Dogs' },
+  { id: 'cat', label: 'Cats' },
+  { id: 'bird', label: 'Birds' },
+  { id: 'reptile', label: 'Reptiles' },
+  { id: 'fish', label: 'Fish & Aquatics' }
+];
+
+const DEPARTMENTS = [
+  { id: 'dogs', label: 'Dogs' },
+  { id: 'cats', label: 'Cats' },
+  { id: 'birds', label: 'Birds' },
+  { id: 'reptiles', label: 'Reptiles' },
+  { id: 'fish', label: 'Fish & Aquatics' },
+  { id: 'pharmacy', label: 'Pharmacy', hasDropdown: true }
+];
 
 const Shop = () => {
   const dispatch = useDispatch();
   const [searchParams, setSearchParams] = useSearchParams();
   const { items: products, total, page, pages, filters, loading } = useSelector((state) => state.products);
+  
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
   const [faqOpen, setFaqOpen] = useState(null);
+  
+  // Pharmacy sub-dropdown state
+  const [isPharmacyDropdownOpen, setIsPharmacyDropdownOpen] = useState(false);
+  const [selectedPharmacyPet, setSelectedPharmacyPet] = useState('all');
 
   // Read URL parameters on mount and load them into Redux state
   useEffect(() => {
@@ -18,12 +64,22 @@ const Shop = () => {
     let petTypeParam = searchParams.get('petType') || '';
     if (!petTypeParam) {
       if (path.includes('/dogs')) petTypeParam = 'dogs';
+      else if (path.includes('/cats')) petTypeParam = 'cats';
       else if (path.includes('/birds')) petTypeParam = 'birds';
       else if (path.includes('/reptiles')) petTypeParam = 'reptiles';
       else if (path.includes('/fish')) petTypeParam = 'fish';
+      else if (path.includes('/pharmacy')) petTypeParam = 'pharmacy';
     }
     const categoryParam = searchParams.get('category') || '';
     const searchParam = searchParams.get('search') || '';
+    const pharmacyPetParam = searchParams.get('pharmacyPet') || 'all';
+
+    if (petTypeParam === 'pharmacy') {
+      setIsPharmacyDropdownOpen(true);
+      if (pharmacyPetParam) {
+        setSelectedPharmacyPet(pharmacyPetParam);
+      }
+    }
     
     dispatch(setFilter({
       petType: petTypeParam,
@@ -41,8 +97,59 @@ const Shop = () => {
     }));
   }, [filters, page, dispatch]);
 
+  // Compute available brands based on current Department / Pharmacy pet selection
+  const currentAvailableBrands = useMemo(() => {
+    if (filters.petType === 'pharmacy') {
+      return PHARMACY_PET_BRANDS[selectedPharmacyPet] || PHARMACY_PET_BRANDS.all;
+    }
+    return DEPARTMENT_BRANDS[filters.petType] || DEPARTMENT_BRANDS.all;
+  }, [filters.petType, selectedPharmacyPet]);
+
   const handleFilterChange = (newFilters) => {
+    // If brand is not explicitly being updated, ensure existing active brands are compatible with new petType
+    if (newFilters.petType !== undefined && newFilters.brand === undefined && filters.brand) {
+      const targetBrands = newFilters.petType === 'pharmacy'
+        ? (PHARMACY_PET_BRANDS[selectedPharmacyPet] || PHARMACY_PET_BRANDS.all)
+        : (DEPARTMENT_BRANDS[newFilters.petType] || DEPARTMENT_BRANDS.all);
+
+      const activeBrandsList = filters.brand.split(',').filter(b => targetBrands.includes(b));
+      newFilters.brand = activeBrandsList.join(',');
+    }
     dispatch(setFilter(newFilters));
+  };
+
+  const handleSelectDepartment = (deptId) => {
+    if (deptId === 'pharmacy') {
+      setIsPharmacyDropdownOpen(!isPharmacyDropdownOpen);
+      handleFilterChange({
+        petType: 'pharmacy',
+        category: '',
+        subcategory: '',
+        search: selectedPharmacyPet !== 'all' ? selectedPharmacyPet : ''
+      });
+      setSearchParams({ petType: 'pharmacy', pharmacyPet: selectedPharmacyPet });
+    } else {
+      setIsPharmacyDropdownOpen(false);
+      setSelectedPharmacyPet('all');
+      handleFilterChange({
+        petType: deptId,
+        category: '',
+        subcategory: '',
+        search: ''
+      });
+      setSearchParams({ petType: deptId });
+    }
+  };
+
+  const handleSelectPharmacyPet = (petId) => {
+    setSelectedPharmacyPet(petId);
+    handleFilterChange({
+      petType: 'pharmacy',
+      category: '',
+      subcategory: '',
+      search: petId !== 'all' ? petId : ''
+    });
+    setSearchParams({ petType: 'pharmacy', pharmacyPet: petId });
   };
 
   const handlePageChange = (pageNum) => {
@@ -55,6 +162,8 @@ const Shop = () => {
 
   const handleClearFilters = () => {
     dispatch(resetFilters());
+    setSelectedPharmacyPet('all');
+    setIsPharmacyDropdownOpen(false);
     setSearchParams({});
   };
 
@@ -64,17 +173,27 @@ const Shop = () => {
       title: 'Dogs & Canines',
       desc: 'Expertly selected nutrition, organic treats, supportive memory-foam beds, leashes, and veterinary healthcare formulations tailored for large, medium, and small breed companions.',
       hero: 'https://images.unsplash.com/photo-1548199973-03cce0bbc87b?q=80&w=1200&auto=format&fit=crop',
-      subcategories: ['Dog Food', 'Treats', 'Beds', 'Grooming', 'Collars & Leashes', 'Bowls & Feeders', 'Training', 'Supplements'],
+      subcategories: ['Dog Food', 'Treats', 'Dog Beds & Cotes', 'Grooming', 'Collars & Leashes', 'Supplements'],
       faqs: [
         { q: 'How do I choose the correct food type for my puppy?', a: 'Puppies require highly digestible proteins and specialized fat ratios for rapid bone growth. Look for specialized labels like Himalaya Healthy Pet Food for Puppies.' },
         { q: 'Why should I buy an elevated food bowl stand?', a: 'Elevating feeding bowls improves digestive alignment, reduces neck strain, and prevents gas bloating during meals in medium and large breeds.' }
+      ]
+    },
+    cats: {
+      title: 'Cats & Felines',
+      desc: 'Nutritious gourmet wet and dry food, scratching trees, catnip toys, grooming brushes, and gentle healthcare products designed for happy, healthy cats.',
+      hero: 'https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?q=80&w=1200&auto=format&fit=crop',
+      subcategories: ['Cat Food', 'Treats', 'Grooming', 'Supplements', 'Beds & Scratchers'],
+      faqs: [
+        { q: 'Why is wet food essential for cats?', a: 'Cats have a low thirst drive. Wet food provides vital hydration to prevent urinary tract infections and kidney issues.' },
+        { q: 'How do I choose the best scratching post?', a: 'Choose tall, sturdy posts made with natural sisal rope so cats can stretch their full body while maintaining their claws.' }
       ]
     },
     birds: {
       title: 'Birds & Aviary',
       desc: 'Premium seed blends, trace mineral blocks, Java wood perches, cage systems, and multivitamin drops formulated to maintain optimal plumage, beak size, and bird vitality.',
       hero: 'https://images.unsplash.com/photo-1452570053594-1b985d6ea890?q=80&w=1200&auto=format&fit=crop',
-      subcategories: ['Bird Food', 'Cages', 'Perches', 'Toys', 'Supplements', 'Grooming', 'Feeding Accessories'],
+      subcategories: ['Bird Food', 'Cages & Habitat', 'Perches', 'Toys', 'Supplements', 'Grooming'],
       faqs: [
         { q: 'Why are natural wood perches better than plastic dowels?', a: 'Uniform plastic or smooth wood perches cause pressure sores and nail overgrowth. Natural java perches have varying diameters which exercise foot muscles and trim nails naturally.' },
         { q: 'How often should a bird have mineral blocks?', a: 'Mineral blocks must be kept inside the cage at all times. They provide vital calcium for bones and shells and keep their beaks trimmed.' }
@@ -84,7 +203,7 @@ const Shop = () => {
       title: 'Reptiles & Terrariums',
       desc: 'Specialized lockable glass terrariums, linear desert UVB bulbs, heating lamps, mold-resistant substrates, and pure calcium powders for chameleons, bearded dragons, and snakes.',
       hero: 'https://images.unsplash.com/photo-1542625331-b72c87806d21?q=80&w=1200&auto=format&fit=crop',
-      subcategories: ['Terrariums', 'Heating', 'UVB Lighting', 'Substrate', 'Food', 'Calcium & Supplements', 'Décor', 'Humidity Equipment', 'Thermometers'],
+      subcategories: ['Terrariums', 'Heating & Lighting', 'Substrate', 'Calcium & Supplements', 'Décor'],
       faqs: [
         { q: 'Why is UVB lighting mandatory for bearded dragons?', a: 'Bearded dragons are desert species that require high UVB output to synthesize vitamin D3. Without it, they cannot metabolize dietary calcium, leading to fatal Metabolic Bone Disease.' },
         { q: 'When do I use calcium with vs without Vitamin D3?', a: 'Use calcium with D3 for indoor reptiles relying on artificial lighting. Use D3-free calcium for reptiles housed outdoors in natural sunlight, to prevent D3 overdose.' }
@@ -94,7 +213,7 @@ const Shop = () => {
       title: 'Fish & Aquatics',
       desc: 'Premium rimless glass aquariums, multi-stage filtration kits, full spectrum plant LEDs, dechlorinating stress coat conditioners, and biological starter aids.',
       hero: 'https://images.unsplash.com/photo-1544551763-46a013bb70d5?q=80&w=1200&auto=format&fit=crop',
-      subcategories: ['Fish Food', 'Aquariums', 'Filters', 'Pumps', 'Aquarium Lighting', 'Water Conditioners', 'Aquarium Plants', 'Décor', 'Cleaning Equipment'],
+      subcategories: ['Aquariums & Tanks', 'Water Care & Filtration', 'Fish Food', 'Aquarium Lighting', 'Plants & Décor'],
       faqs: [
         { q: 'What is the Nitrogen Cycle in aquaria?', a: 'It is the biological process where beneficial filter bacteria convert highly toxic fish waste (Ammonia) into toxic Nitrites, and then into harmless Nitrates, which you remove with weekly 25% water changes.' },
         { q: 'How does API Stress Coat protect fish?', a: 'It dechlorinates tap water instantly and features an Aloe Vera extract layer that repairs skin tissue and creates a synthetic slime coating to reduce transportation stress.' }
@@ -104,7 +223,7 @@ const Shop = () => {
       title: 'Veterinary Pharmacy',
       desc: 'Authorized pharmacy department providing vitamins, joint care chondroitin capsules, digestion syrups, wound antiseptic kits, and strict prescription verification medications.',
       hero: 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?q=80&w=1200&auto=format&fit=crop',
-      subcategories: ['Vitamins', 'Supplements', 'Skin Care', 'Joint Care', 'Digestive Care', 'Dental Care', 'First Aid', 'Grooming Healthcare'],
+      subcategories: ['Vitamins & Supplements', 'First Aid & Healthcare', 'Skin Care', 'Joint Care', 'Digestive Care'],
       faqs: [
         { q: 'How do I purchase prescription items (marked with Rx)?', a: 'Add the items to your cart, upload your veterinary prescription on the checkout/pharmacy page, and our licensed pharmacist will verify the upload within 2 hours to confirm shipping.' },
         { q: 'Can I return veterinary medicines or supplements?', a: 'For safety, we cannot accept returns on veterinary pharmaceutical products once dispatched.' }
@@ -121,7 +240,212 @@ const Shop = () => {
     faqs: []
   };
 
-  const availableBrands = ['Royal Canin', 'Pedigree', 'Drools', 'Zoo Med', 'Exo Terra', 'API', 'Hikari', 'Himalaya', 'Beaphar', 'Pawora'];
+  // Reusable Filter Content (Used for both Desktop Sidebar and Mobile Drawer)
+  const renderFilterSidebar = () => (
+    <div className="space-y-6">
+      <div className="flex justify-between items-center border-b border-beige pb-3">
+        <span className="font-serif text-base text-primary font-bold">FILTERS</span>
+        <button 
+          onClick={handleClearFilters}
+          className="text-[10px] text-accent font-bold hover:text-primary transition uppercase flex items-center gap-1 cursor-pointer"
+        >
+          <RefreshCw size={10} /> CLEAR ALL
+        </button>
+      </div>
+
+      {/* 1. Department Selection with Pharmacy Dropdown */}
+      <div className="space-y-2">
+        <h4 className="text-xs uppercase tracking-widest text-primary font-bold">DEPARTMENT</h4>
+        <div className="space-y-1 text-xs">
+          
+          {/* "All Items" Option */}
+          <button
+            onClick={() => {
+              setIsPharmacyDropdownOpen(false);
+              setSelectedPharmacyPet('all');
+              handleFilterChange({ petType: '', category: '', subcategory: '', search: '' });
+              setSearchParams({});
+            }}
+            className={`flex items-center justify-between w-full py-1.5 px-2 rounded-md font-semibold uppercase tracking-wider text-left transition cursor-pointer ${
+              !filters.petType ? 'bg-primary text-white font-bold' : 'text-gray-600 hover:bg-secondary hover:text-primary'
+            }`}
+          >
+            <span>All Departments</span>
+            {!filters.petType && <Check size={12} />}
+          </button>
+
+          {/* Department Items */}
+          {DEPARTMENTS.map((dept) => {
+            const isDeptActive = filters.petType === dept.id;
+
+            if (dept.hasDropdown) {
+              return (
+                <div key={dept.id} className="space-y-1">
+                  {/* Pharmacy Main Button */}
+                  <button
+                    onClick={() => handleSelectDepartment(dept.id)}
+                    className={`flex items-center justify-between w-full py-1.5 px-2 rounded-md font-semibold uppercase tracking-wider text-left transition cursor-pointer ${
+                      isDeptActive 
+                        ? 'bg-primary text-white font-bold' 
+                        : 'text-gray-600 hover:bg-secondary hover:text-primary'
+                    }`}
+                  >
+                    <span className="flex items-center gap-1.5">
+                      <span>{dept.label}</span>
+                      {selectedPharmacyPet !== 'all' && isDeptActive && (
+                        <span className="text-[10px] normal-case bg-accent text-primary px-1.5 py-0.2 rounded font-bold">
+                          ({selectedPharmacyPet})
+                        </span>
+                      )}
+                    </span>
+                    <ChevronDown
+                      size={14}
+                      className={`transform transition-transform duration-200 ${
+                        isPharmacyDropdownOpen ? 'rotate-180 text-white' : isDeptActive ? 'text-white' : 'text-gray-400'
+                      }`}
+                    />
+                  </button>
+
+                  {/* Pharmacy Sub-Dropdown by Pet Type */}
+                  {isPharmacyDropdownOpen && (
+                    <div className="pl-3 pr-1 py-1 space-y-1 bg-secondary/70 border-l-2 border-primary rounded-r-md animate-in fade-in slide-in-from-top-1 duration-150">
+                      <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block pl-2 pt-1">
+                        Filter Pharmacy By Pet:
+                      </span>
+                      {PHARMACY_PET_OPTIONS.map((subPet) => {
+                        const isSubActive = isDeptActive && selectedPharmacyPet === subPet.id;
+                        return (
+                          <button
+                            key={subPet.id}
+                            onClick={() => handleSelectPharmacyPet(subPet.id)}
+                            className={`flex items-center justify-between w-full py-1.5 px-2.5 rounded text-xs transition cursor-pointer ${
+                              isSubActive
+                                ? 'bg-primary text-white font-bold shadow-xs'
+                                : 'text-gray-600 hover:text-primary hover:bg-white/80 font-medium'
+                            }`}
+                          >
+                            <span className="flex items-center gap-1.5">
+                              <span className="text-[10px]">🐾</span>
+                              <span>{subPet.label}</span>
+                            </span>
+                            {isSubActive && <Check size={11} />}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              );
+            }
+
+            return (
+              <button
+                key={dept.id}
+                onClick={() => handleSelectDepartment(dept.id)}
+                className={`flex items-center justify-between w-full py-1.5 px-2 rounded-md font-semibold uppercase tracking-wider text-left transition cursor-pointer ${
+                  isDeptActive ? 'bg-primary text-white font-bold' : 'text-gray-600 hover:bg-secondary hover:text-primary'
+                }`}
+              >
+                <span>{dept.label}</span>
+                {isDeptActive && <Check size={12} />}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* 2. Dynamic Brands Filter Based on Selected Pet / Department */}
+      <div className="space-y-2 pt-4 border-t border-beige">
+        <div className="flex items-center justify-between">
+          <h4 className="text-xs uppercase tracking-widest text-primary font-bold">BRANDS</h4>
+          <span className="text-[10px] text-accent font-bold">
+            {filters.petType ? `${filters.petType.toUpperCase()}` : 'ALL'}
+          </span>
+        </div>
+
+        <div className="space-y-1.5 max-h-48 overflow-y-auto pr-2">
+          {currentAvailableBrands.length > 0 ? (
+            currentAvailableBrands.map((b) => {
+              const activeBrands = filters.brand ? filters.brand.split(',') : [];
+              const isChecked = activeBrands.includes(b);
+              return (
+                <label key={b} className="flex items-center gap-2 text-xs text-gray-600 hover:text-primary cursor-pointer transition">
+                  <input 
+                    type="checkbox"
+                    checked={isChecked}
+                    onChange={() => {
+                      const updated = isChecked 
+                        ? activeBrands.filter(x => x !== b) 
+                        : [...activeBrands, b];
+                      handleFilterChange({ brand: updated.join(',') });
+                    }}
+                    className="rounded-none border-beige text-primary focus:ring-0 focus:ring-offset-0 cursor-pointer"
+                  />
+                  <span className={isChecked ? 'font-bold text-primary' : 'font-medium'}>{b}</span>
+                </label>
+              );
+            })
+          ) : (
+            <p className="text-xs text-gray-400 italic">No brands listed for this pet.</p>
+          )}
+        </div>
+      </div>
+
+      {/* 3. Price Filter */}
+      <div className="space-y-2 pt-4 border-t border-beige">
+        <h4 className="text-xs uppercase tracking-widest text-primary font-bold">PRICE RANGE</h4>
+        <div className="grid grid-cols-2 gap-2">
+          <input
+            type="number"
+            placeholder="Min ₹"
+            value={filters.minPrice}
+            onChange={(e) => handleFilterChange({ minPrice: e.target.value })}
+            className="px-2.5 py-1.5 border border-beige text-xs focus:outline-none focus:border-primary rounded"
+          />
+          <input
+            type="number"
+            placeholder="Max ₹"
+            value={filters.maxPrice}
+            onChange={(e) => handleFilterChange({ maxPrice: e.target.value })}
+            className="px-2.5 py-1.5 border border-beige text-xs focus:outline-none focus:border-primary rounded"
+          />
+        </div>
+      </div>
+
+      {/* 4. Ratings Filter */}
+      <div className="space-y-2 pt-4 border-t border-beige">
+        <h4 className="text-xs uppercase tracking-widest text-primary font-bold">RATINGS</h4>
+        <div className="space-y-1 text-xs">
+          {[4, 3, 2].map((stars) => (
+            <button
+              key={stars}
+              onClick={() => handleFilterChange({ rating: parseFloat(filters.rating) === stars ? '' : stars })}
+              className={`flex items-center justify-between py-1 px-1.5 rounded w-full text-left font-semibold cursor-pointer transition ${
+                parseFloat(filters.rating) === stars ? 'bg-secondary text-primary font-bold' : 'text-gray-500 hover:text-primary hover:bg-secondary/50'
+              }`}
+            >
+              <span>{stars} Stars & Above</span>
+              {parseFloat(filters.rating) === stars && <Check size={12} className="text-accent" />}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* 5. Prescription Filter */}
+      <div className="space-y-2 pt-4 border-t border-beige">
+        <h4 className="text-xs uppercase tracking-widest text-primary font-bold">PRESCRIPTION</h4>
+        <label className="flex items-center gap-2 text-xs text-gray-600 hover:text-primary cursor-pointer">
+          <input
+            type="checkbox"
+            checked={filters.requiresPrescription === 'true'}
+            onChange={(e) => handleFilterChange({ requiresPrescription: e.target.checked ? 'true' : '' })}
+            className="rounded-none border-beige text-primary focus:ring-0 focus:ring-offset-0 cursor-pointer"
+          />
+          <span className="font-medium">Requires Vet Prescription</span>
+        </label>
+      </div>
+    </div>
+  );
 
   return (
     <div className="space-y-12 pb-20">
@@ -145,14 +469,14 @@ const Shop = () => {
       </section>
 
       {/* 2. SUBCATEGORY PILLS ROW */}
-      {currentMeta.subcategories.length > 0 && (
+      {currentMeta.subcategories && currentMeta.subcategories.length > 0 && (
         <section className="max-w-7xl mx-auto px-4 md:px-8">
           <div className="flex flex-wrap gap-2 justify-center pb-4 border-b border-beige">
             <button
               onClick={() => handleFilterChange({ subcategory: '' })}
-              className={`px-4 py-2 text-xs uppercase tracking-wider font-semibold border transition ${
+              className={`px-4 py-2 text-xs uppercase tracking-wider font-semibold border transition rounded-full cursor-pointer ${
                 !filters.subcategory
-                  ? 'bg-primary text-white border-primary' 
+                  ? 'bg-primary text-white border-primary shadow-xs font-bold' 
                   : 'bg-white text-gray-500 border-beige hover:border-primary'
               }`}
             >
@@ -162,9 +486,9 @@ const Shop = () => {
               <button
                 key={sub}
                 onClick={() => handleFilterChange({ subcategory: sub })}
-                className={`px-4 py-2 text-xs uppercase tracking-wider font-semibold border transition ${
+                className={`px-4 py-2 text-xs uppercase tracking-wider font-semibold border transition rounded-full cursor-pointer ${
                   filters.subcategory === sub 
-                    ? 'bg-primary text-white border-primary' 
+                    ? 'bg-primary text-white border-primary shadow-xs font-bold' 
                     : 'bg-white text-gray-500 border-beige hover:border-primary'
                 }`}
               >
@@ -177,128 +501,72 @@ const Shop = () => {
 
       {/* 3. CATALOG & FILTERS GRID */}
       <section className="max-w-7xl mx-auto px-4 md:px-8">
-        <div className="flex flex-col lg:flex-row gap-8 items-start">
-          
-          {/* LEFT FILTER PANEL (Desktop only) */}
-          <aside className="hidden lg:block w-64 shrink-0 bg-white border border-beige p-6 space-y-6">
-            <div className="flex justify-between items-center border-b border-beige pb-3">
-              <span className="font-serif text-base text-primary font-bold">FILTERS</span>
-              <button 
-                onClick={handleClearFilters}
-                className="text-[10px] text-accent font-bold hover:text-primary transition uppercase flex items-center gap-1"
+        
+        {/* Mobile Filter Toggle Button */}
+        <div className="lg:hidden mb-4 flex justify-between items-center bg-white border border-beige px-4 py-3 rounded-xl shadow-xs">
+          <button
+            onClick={() => setMobileFiltersOpen(true)}
+            className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-primary"
+          >
+            <SlidersHorizontal size={14} />
+            <span>Filter Catalog ({currentAvailableBrands.length} Brands)</span>
+          </button>
+          <span className="text-xs text-gray-500 font-medium">
+            {products.length} Products
+          </span>
+        </div>
+
+        {/* Mobile Filter Modal Drawer */}
+        {mobileFiltersOpen && (
+          <div className="fixed inset-0 z-50 lg:hidden flex justify-end">
+            <div 
+              className="fixed inset-0 bg-black/60 backdrop-blur-xs"
+              onClick={() => setMobileFiltersOpen(false)}
+            ></div>
+            <div className="relative bg-white w-80 max-w-full h-full shadow-2xl p-6 overflow-y-auto z-10 space-y-6">
+              <div className="flex justify-between items-center border-b border-beige pb-3">
+                <span className="font-serif text-lg font-bold text-primary">Catalog Filters</span>
+                <button
+                  onClick={() => setMobileFiltersOpen(false)}
+                  className="p-1 text-gray-400 hover:text-primary rounded-full"
+                >
+                  <X size={18} />
+                </button>
+              </div>
+              {renderFilterSidebar()}
+              <button
+                onClick={() => setMobileFiltersOpen(false)}
+                className="w-full btn-premium py-2.5 text-xs font-bold"
               >
-                <RefreshCw size={10} /> CLEAR ALL
+                Apply Filters & View Products
               </button>
             </div>
+          </div>
+        )}
 
-            {/* Department Selection */}
-            <div className="space-y-2">
-              <h4 className="text-xs uppercase tracking-widest text-primary font-bold">Department</h4>
-              <div className="space-y-1 text-xs">
-                {['dogs', 'birds', 'reptiles', 'fish', 'pharmacy'].map((dept) => (
-                  <button
-                    key={dept}
-                    onClick={() => handleFilterChange({ petType: dept, category: '', subcategory: '' })}
-                    className={`flex items-center justify-between w-full py-1 font-semibold uppercase tracking-wider ${
-                      filters.petType === dept ? 'text-accent' : 'text-gray-500 hover:text-primary'
-                    }`}
-                  >
-                    <span>{dept === 'fish' ? 'Fish & Aquatics' : dept}</span>
-                    {filters.petType === dept && <Check size={12} />}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Brand Filter */}
-            <div className="space-y-2 pt-4 border-t border-beige">
-              <h4 className="text-xs uppercase tracking-widest text-primary font-bold">BRANDS</h4>
-              <div className="space-y-1.5 max-h-48 overflow-y-auto pr-2">
-                {availableBrands.map((b) => {
-                  const activeBrands = filters.brand ? filters.brand.split(',') : [];
-                  const isChecked = activeBrands.includes(b);
-                  return (
-                    <label key={b} className="flex items-center gap-2 text-xs text-gray-600 cursor-pointer">
-                      <input 
-                        type="checkbox"
-                        checked={isChecked}
-                        onChange={() => {
-                          const updated = isChecked 
-                            ? activeBrands.filter(x => x !== b) 
-                            : [...activeBrands, b];
-                          handleFilterChange({ brand: updated.join(',') });
-                        }}
-                        className="rounded-none border-beige text-primary focus:ring-0 focus:ring-offset-0"
-                      />
-                      <span>{b}</span>
-                    </label>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* Price Filter */}
-            <div className="space-y-2 pt-4 border-t border-beige">
-              <h4 className="text-xs uppercase tracking-widest text-primary font-bold">PRICE RANGE</h4>
-              <div className="grid grid-cols-2 gap-2">
-                <input
-                  type="number"
-                  placeholder="Min"
-                  value={filters.minPrice}
-                  onChange={(e) => handleFilterChange({ minPrice: e.target.value })}
-                  className="px-2 py-1.5 border border-beige text-xs focus:outline-none focus:border-primary"
-                />
-                <input
-                  type="number"
-                  placeholder="Max"
-                  value={filters.maxPrice}
-                  onChange={(e) => handleFilterChange({ maxPrice: e.target.value })}
-                  className="px-2 py-1.5 border border-beige text-xs focus:outline-none focus:border-primary"
-                />
-              </div>
-            </div>
-
-            {/* Ratings Filter */}
-            <div className="space-y-2 pt-4 border-t border-beige">
-              <h4 className="text-xs uppercase tracking-widest text-primary font-bold">RATINGS</h4>
-              <div className="space-y-1 text-xs">
-                {[4, 3, 2].map((stars) => (
-                  <button
-                    key={stars}
-                    onClick={() => handleFilterChange({ rating: stars })}
-                    className={`flex items-center gap-2 py-1 w-full text-left font-semibold ${
-                      parseFloat(filters.rating) === stars ? 'text-accent' : 'text-gray-500 hover:text-primary'
-                    }`}
-                  >
-                    <span>{stars} Stars & Above</span>
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Prescription Filter */}
-            <div className="space-y-2 pt-4 border-t border-beige">
-              <h4 className="text-xs uppercase tracking-widest text-primary font-bold">Prescription</h4>
-              <label className="flex items-center gap-2 text-xs text-gray-600 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={filters.requiresPrescription === 'true'}
-                  onChange={(e) => handleFilterChange({ requiresPrescription: e.target.checked ? 'true' : '' })}
-                  className="rounded-none border-beige text-primary focus:ring-0 focus:ring-offset-0"
-                />
-                <span>Requires Vet Prescription</span>
-              </label>
-            </div>
+        <div className="flex flex-col lg:flex-row gap-8 items-start">
+          
+          {/* LEFT FILTER PANEL (Desktop) */}
+          <aside className="hidden lg:block w-64 shrink-0 bg-white border border-beige p-6 space-y-6 rounded-xl shadow-xs sticky top-24">
+            {renderFilterSidebar()}
           </aside>
 
           {/* RIGHT PRODUCT GRID PANEL */}
           <div className="flex-grow w-full space-y-6">
             
             {/* Toolbar: Result Counts & Sorting */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white border border-beige px-6 py-4 shadow-sm">
-              <span className="text-xs text-gray-500 font-semibold uppercase">
-                Showing {products.length} of {total} products
-              </span>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white border border-beige px-6 py-4 shadow-sm rounded-xl">
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-gray-500 font-semibold uppercase">
+                  Showing {products.length} of {total} products
+                </span>
+                {filters.petType && (
+                  <span className="text-[10px] font-bold uppercase bg-secondary text-primary px-2 py-0.5 rounded">
+                    {filters.petType} {selectedPharmacyPet !== 'all' ? `• ${selectedPharmacyPet}` : ''}
+                  </span>
+                )}
+              </div>
+
               <div className="flex items-center gap-4 text-xs font-semibold">
                 <div className="flex items-center gap-1.5">
                   <ArrowUpDown size={14} className="text-gray-400" />
@@ -321,7 +589,7 @@ const Shop = () => {
 
             {/* Active search tag */}
             {filters.search && (
-              <div className="flex items-center gap-2 text-xs bg-white border border-beige p-3 shadow-sm">
+              <div className="flex items-center gap-2 text-xs bg-white border border-beige p-3 shadow-sm rounded-xl">
                 <span className="text-gray-400">Search query:</span>
                 <span className="font-bold text-primary">"{filters.search}"</span>
                 <button 
@@ -337,7 +605,7 @@ const Shop = () => {
             {loading ? (
               <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
                 {[1, 2, 3, 4, 5, 6].map(idx => (
-                  <div key={idx} className="bg-white border border-beige h-[380px] animate-pulse"></div>
+                  <div key={idx} className="bg-white border border-beige h-[380px] animate-pulse rounded-xl"></div>
                 ))}
               </div>
             ) : products.length > 0 ? (
@@ -347,8 +615,15 @@ const Shop = () => {
                 ))}
               </div>
             ) : (
-              <div className="text-center py-20 bg-white border border-beige text-gray-500 text-xs">
-                No products found matching the criteria. Try clearing some filters.
+              <div className="text-center py-20 bg-white border border-beige text-gray-500 text-xs rounded-xl space-y-3">
+                <p className="font-serif text-sm font-semibold text-primary">No products found matching your filter criteria.</p>
+                <p className="text-gray-400">Try clearing active brands or changing your department selection.</p>
+                <button
+                  onClick={handleClearFilters}
+                  className="btn-premium py-2 px-4 text-xs font-bold mt-2"
+                >
+                  Reset All Filters
+                </button>
               </div>
             )}
 
@@ -359,9 +634,9 @@ const Shop = () => {
                   <button
                     key={pNum}
                     onClick={() => handlePageChange(pNum)}
-                    className={`w-9 h-9 border text-xs font-bold transition flex items-center justify-center cursor-pointer ${
+                    className={`w-9 h-9 border text-xs font-bold transition flex items-center justify-center cursor-pointer rounded ${
                       page === pNum 
-                        ? 'bg-primary text-white border-primary' 
+                        ? 'bg-primary text-white border-primary shadow-xs' 
                         : 'bg-white text-gray-500 border-beige hover:border-primary'
                     }`}
                   >
@@ -380,9 +655,9 @@ const Shop = () => {
         <section className="max-w-4xl mx-auto px-6 space-y-6 pt-10">
           <div className="text-center space-y-2">
             <span className="text-[10px] uppercase tracking-widest text-accent font-bold">LEARNING & CARE</span>
-            <h2 className="text-2xl">Expert FAQ & Advice</h2>
+            <h2 className="text-2xl font-serif text-primary">Expert FAQ & Advice</h2>
           </div>
-          <div className="space-y-4 bg-white border border-beige p-6 shadow-sm">
+          <div className="space-y-4 bg-white border border-beige p-6 shadow-sm rounded-xl">
             {currentMeta.faqs.map((faq, idx) => (
               <div key={idx} className="border-b border-beige last:border-b-0 pb-4 last:pb-0">
                 <button

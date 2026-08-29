@@ -54,10 +54,14 @@ const ServiceBooking = () => {
 
   useEffect(() => {
     const cat = searchParams.get('category');
+    if (cat === 'Grooming') {
+      navigate('/grooming');
+      return;
+    }
     if (cat && providers[cat]) {
       setActiveTab(cat);
     }
-  }, [searchParams]);
+  }, [searchParams, navigate]);
 
   const handleOpenBooking = (provider) => {
     if (!isAuthenticated) {
@@ -125,7 +129,13 @@ const ServiceBooking = () => {
         {['Veterinary', 'Hostel', 'Grooming', 'Walking', 'Transport', 'Insurance', 'Training'].map(tab => (
           <button
             key={tab}
-            onClick={() => setActiveTab(tab)}
+            onClick={() => {
+              if (tab === 'Grooming') {
+                navigate('/grooming');
+              } else {
+                setActiveTab(tab);
+              }
+            }}
             className={`px-4 py-2 text-xs font-bold uppercase tracking-wider transition cursor-pointer ${activeTab === tab
                 ? 'bg-primary text-white'
                 : 'bg-white text-gray-500 border border-beige hover:border-primary'
