@@ -27,6 +27,7 @@ import listingRoutes from './routes/listingRoutes.js';
 import adoptionRoutes from './routes/adoptionRoutes.js';
 import breedingRoutes from './routes/breedingRoutes.js';
 import bookingRoutes from './routes/bookingRoutes.js';
+import serviceRoutes from './routes/serviceRoutes.js';
 import chatRoutes from './routes/chatRoutes.js';
 import enquiryRoutes from './routes/enquiryRoutes.js';
 
@@ -110,6 +111,7 @@ app.use('/api/listings', listingRoutes);
 app.use('/api/adoptions', adoptionRoutes);
 app.use('/api/breeding', breedingRoutes);
 app.use('/api/bookings', bookingRoutes);
+app.use('/api/services', serviceRoutes);
 app.use('/api/chats', chatRoutes);
 app.use('/api/enquiries', enquiryRoutes);
 

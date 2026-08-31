@@ -1,13 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
-import { Search, Plus, MapPin, MessageSquare, ShieldCheck, Tag, Phone, X, Heart } from 'lucide-react';
+import { Search, Plus, MapPin, MessageSquare, ShieldCheck, Tag, Phone, X, Heart, Lock, ShieldAlert, Briefcase } from 'lucide-react';
 import { apiRequest } from '../services/api.js';
 import toast from 'react-hot-toast';
 
 const PetClassifieds = () => {
   const navigate = useNavigate();
-  const { isAuthenticated } = useSelector((state) => state.auth);
+  const { isAuthenticated, user } = useSelector((state) => state.auth);
 
   const [listings, setListings] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -112,6 +112,56 @@ const PetClassifieds = () => {
     l.location.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  const isNonSellerProvider = user?.role === 'SERVICE_PROVIDER' && 
+    (user?.serviceCategory || '').toLowerCase() !== 'pet seller';
+
+  if (isNonSellerProvider) {
+    return (
+      <div className="max-w-3xl mx-auto px-4 py-24 text-center space-y-6 animate-in fade-in duration-200">
+        <div className="w-20 h-20 rounded-3xl bg-amber-50 border border-amber-200 text-amber-600 flex items-center justify-center mx-auto shadow-sm">
+          <ShieldAlert size={36} />
+        </div>
+
+        <div className="space-y-3">
+          <span className="px-3.5 py-1 bg-amber-100 text-amber-800 text-xs font-bold uppercase tracking-wider rounded-full border border-amber-200">
+            🔒 Pet Seller Exclusive Section
+          </span>
+          <h1 className="font-serif text-2xl md:text-3xl text-slate-900 font-bold">
+            Access Restricted to Verified Pet Sellers
+          </h1>
+          <p className="text-sm text-slate-600 max-w-lg mx-auto leading-relaxed">
+            Your account is currently registered as a <strong className="text-slate-900">{user?.serviceCategory || 'Service Provider'}</strong>. The Pet Classifieds & Sales marketplace is exclusively reserved for registered <strong>Pet Sellers</strong>.
+          </p>
+        </div>
+
+        <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 max-w-md mx-auto text-xs text-slate-600 text-left space-y-2">
+          <div className="flex items-center gap-2 font-bold text-slate-800">
+            <Briefcase size={14} className="text-[#0F2E23]" />
+            <span>Manage Your Service Appointments</span>
+          </div>
+          <p className="text-[11px] text-slate-500">
+            To view client bookings, configure your operating schedule, and post {user?.serviceCategory || 'service'} packages, please visit your Service Provider Hub.
+          </p>
+        </div>
+
+        <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-3">
+          <button
+            onClick={() => navigate('/provider-dashboard')}
+            className="px-6 py-3 bg-[#0F2E23] hover:bg-[#163e30] text-white text-xs font-bold rounded-xl shadow-md transition cursor-pointer flex items-center gap-2"
+          >
+            <Briefcase size={15} /> Go to {user?.serviceCategory || 'Service'} Dashboard
+          </button>
+          <button
+            onClick={() => navigate('/account')}
+            className="px-6 py-3 bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 text-xs font-bold rounded-xl transition cursor-pointer"
+          >
+            My Profile
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="max-w-7xl mx-auto px-4 md:px-8 py-10 space-y-8 pb-20">
       
@@ -127,7 +177,7 @@ const PetClassifieds = () => {
           onClick={() => setShowAddForm(true)}
           className="px-4 py-2.5 bg-primary hover:bg-accent text-white hover:text-primary font-bold tracking-widest text-xs uppercase flex items-center gap-1.5 transition cursor-pointer"
         >
-          <Plus size={14} /> LIST MY PET
+          <Plus size={14} /> {user?.role === 'SERVICE_PROVIDER' && (user?.serviceCategory || '').toLowerCase() === 'pet seller' ? 'POST PET LISTING (SELLER)' : 'LIST MY PET'}
         </button>
       </div>
 

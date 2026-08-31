@@ -277,8 +277,9 @@ const Login = () => {
 
   const { isAuthenticated, user, error, loading } = useSelector((state) => state.auth);
 
-  // Registration Sub-Tab: 'user' | 'provider'
-  const [registerRoleTab, setRegisterRoleTab] = useState('user');
+  // Role Tabs for Login & Registration
+  const [loginRoleTab, setLoginRoleTab] = useState('user'); // 'user' | 'provider'
+  const [registerRoleTab, setRegisterRoleTab] = useState('user'); // 'user' | 'provider'
 
   // Login Form States (Supports both Email and Mobile Number)
   const [loginIdentifier, setLoginIdentifier] = useState('');
@@ -385,6 +386,9 @@ const Login = () => {
       if (user.role === 'ADMIN') {
         toast.error('Access Denied: Administrator logins must be processed via the secure Admin Gateway.');
         dispatch(logout());
+      } else if (user.role === 'SERVICE_PROVIDER') {
+        toast.success(`Welcome to Provider Dashboard, ${user.name}!`);
+        navigate('/provider-dashboard');
       } else {
         toast.success(`Welcome back, ${user.name}!`);
         navigate('/account');
@@ -1011,68 +1015,221 @@ const Login = () => {
             </div>
           ) : !isSignUp ? (
             /* =========================================================================
-                1. LOGIN FORM (Supports Email and Mobile Number)
+                1. LOGIN FORM WITH 2 ROLES (PET PARENT / USER & SERVICE PROVIDER)
                ========================================================================= */
-            <form onSubmit={handleLoginSubmit} className="space-y-4">
-              <div className="text-center space-y-1 pb-1">
-                <span className="text-[10px] uppercase tracking-widest text-[#15559c] font-bold bg-blue-50 px-2.5 py-0.5 rounded-full border border-blue-100">WELCOME BACK</span>
-                <h2 className="font-serif text-lg md:text-xl font-bold text-slate-800 pt-1">Login to India Pet Hub</h2>
-                <p className="text-xs text-slate-500 font-medium">Enter your credentials to access your account</p>
+            <div className="space-y-4">
+              
+              {/* Login Role Switcher Tabs */}
+              <div className="flex bg-slate-100 p-1 rounded-xl border border-slate-200">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setLoginRoleTab('user');
+                    setLoginIdentifier('');
+                    setLoginPassword('');
+                  }}
+                  className={`flex-1 py-2 px-3 text-xs font-bold rounded-lg transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+                    loginRoleTab === 'user'
+                      ? 'bg-white text-[#15559c] shadow-md font-extrabold'
+                      : 'text-slate-500 hover:text-slate-800'
+                  }`}
+                >
+                  <User size={14} />
+                  <span>Pet Parent / User</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setLoginRoleTab('provider');
+                    setLoginIdentifier('');
+                    setLoginPassword('');
+                  }}
+                  className={`flex-1 py-2 px-3 text-xs font-bold rounded-lg transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+                    loginRoleTab === 'provider'
+                      ? 'bg-[#0F2E23] text-white shadow-md font-extrabold'
+                      : 'text-slate-500 hover:text-slate-800'
+                  }`}
+                >
+                  <Briefcase size={14} />
+                  <span>Service Provider</span>
+                </button>
               </div>
 
-              <div className="space-y-3">
-                {/* Email or Mobile Number Input */}
-                <div className="relative">
-                  <User size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
-                  <input
-                    type="text"
-                    placeholder="Email Address or Mobile Number *"
-                    value={loginIdentifier}
-                    onChange={(e) => setLoginIdentifier(e.target.value)}
-                    className="w-full pl-10 pr-4 py-2.5 border border-slate-200 rounded-xl text-xs md:text-sm focus:outline-none focus:border-[#15559c] focus:ring-2 focus:ring-blue-100 transition bg-slate-50/50 hover:bg-white font-medium"
-                    required
-                  />
+              <form onSubmit={handleLoginSubmit} className="space-y-4">
+                <div className="text-center space-y-1 pb-1">
+                  <span className={`text-[10px] uppercase tracking-widest font-bold px-2.5 py-0.5 rounded-full border ${
+                    loginRoleTab === 'provider'
+                      ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
+                      : 'bg-blue-50 text-[#15559c] border-blue-100'
+                  }`}>
+                    {loginRoleTab === 'provider' ? '💼 SERVICE PROVIDER PORTAL' : '👤 PET PARENT PORTAL'}
+                  </span>
+                  <h2 className="font-serif text-lg md:text-xl font-bold text-slate-800 pt-1">
+                    {loginRoleTab === 'provider' ? 'Service Provider Login' : 'Pet Parent Login'}
+                  </h2>
+                  <p className="text-xs text-slate-500 font-medium">
+                    {loginRoleTab === 'provider'
+                      ? 'Access appointments, manage service catalog, schedule & payouts'
+                      : 'Access your orders, prescriptions & adoption applications'}
+                  </p>
                 </div>
 
-                {/* Password Input */}
-                <div className="relative">
-                  <Lock size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
-                  <input
-                    type={showLoginPassword ? "text" : "password"}
-                    placeholder="Password *"
-                    value={loginPassword}
-                    onChange={(e) => setLoginPassword(e.target.value)}
-                    className="w-full pl-10 pr-10 py-2.5 border border-slate-200 rounded-xl text-xs md:text-sm focus:outline-none focus:border-[#15559c] focus:ring-2 focus:ring-blue-100 transition bg-slate-50/50 hover:bg-white font-medium"
-                    required
-                  />
+                {/* Quick 1-Click Demo Accounts */}
+                {loginRoleTab === 'provider' ? (
+                  <div className="p-3 bg-emerald-50/70 border border-emerald-200/80 rounded-xl space-y-2">
+                    <span className="text-[11px] font-bold text-emerald-900 flex items-center gap-1">
+                      <Sparkles size={12} className="text-emerald-600" /> Quick 1-Click Provider Test Logins:
+                    </span>
+                    <div className="grid grid-cols-2 gap-1.5">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setLoginIdentifier('dr.ramesh@pawora.com');
+                          setLoginPassword('Pass@1234');
+                        }}
+                        className="p-1.5 bg-white border border-emerald-200 rounded-lg text-left hover:bg-emerald-100 transition cursor-pointer"
+                      >
+                        <p className="text-[10px] font-bold text-slate-800 truncate">Dr. Ramesh Kumar</p>
+                        <p className="text-[9px] text-emerald-700 font-semibold">Consult a Vet</p>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setLoginIdentifier('velvetfur@pawora.com');
+                          setLoginPassword('Pass@1234');
+                        }}
+                        className="p-1.5 bg-white border border-emerald-200 rounded-lg text-left hover:bg-emerald-100 transition cursor-pointer"
+                      >
+                        <p className="text-[10px] font-bold text-slate-800 truncate">Velvet Fur Grooming</p>
+                        <p className="text-[9px] text-emerald-700 font-semibold">Pet Grooming Spa</p>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setLoginIdentifier('happypaws@pawora.com');
+                          setLoginPassword('Pass@1234');
+                        }}
+                        className="p-1.5 bg-white border border-emerald-200 rounded-lg text-left hover:bg-emerald-100 transition cursor-pointer"
+                      >
+                        <p className="text-[10px] font-bold text-slate-800 truncate">Happy Paws Resort</p>
+                        <p className="text-[9px] text-emerald-700 font-semibold">Pet Hostel / Boarding</p>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setLoginIdentifier('royalpaws@pawora.com');
+                          setLoginPassword('Pass@1234');
+                        }}
+                        className="p-1.5 bg-white border border-emerald-200 rounded-lg text-left hover:bg-emerald-100 transition cursor-pointer"
+                      >
+                        <p className="text-[10px] font-bold text-slate-800 truncate">Royal Paws Studio</p>
+                        <p className="text-[9px] text-emerald-700 font-semibold">Pet Seller</p>
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="p-2.5 bg-blue-50/70 border border-blue-200/80 rounded-xl flex items-center justify-between">
+                    <div>
+                      <p className="text-[11px] font-bold text-[#15559c]">Demo User Account:</p>
+                      <p className="text-[10px] text-slate-600">priya@pawora.com • Pass@1234</p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setLoginIdentifier('priya@pawora.com');
+                        setLoginPassword('Pass@1234');
+                      }}
+                      className="px-2.5 py-1 bg-[#15559c] text-white rounded-lg text-[10px] font-bold hover:bg-[#0f3d6b] transition cursor-pointer"
+                    >
+                      Fill Demo
+                    </button>
+                  </div>
+                )}
+
+                <div className="space-y-3">
+                  {/* Email or Mobile Number Input */}
+                  <div className="relative">
+                    {loginRoleTab === 'provider' ? (
+                      <Briefcase size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                    ) : (
+                      <User size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                    )}
+                    <input
+                      type="text"
+                      placeholder={loginRoleTab === 'provider' ? "Provider Email or Registered Mobile *" : "Email Address or Mobile Number *"}
+                      value={loginIdentifier}
+                      onChange={(e) => setLoginIdentifier(e.target.value)}
+                      className={`w-full pl-10 pr-4 py-2.5 border rounded-xl text-xs md:text-sm focus:outline-none transition bg-slate-50/50 hover:bg-white font-medium ${
+                        loginRoleTab === 'provider'
+                          ? 'border-slate-200 focus:border-[#0F2E23] focus:ring-2 focus:ring-emerald-100'
+                          : 'border-slate-200 focus:border-[#15559c] focus:ring-2 focus:ring-blue-100'
+                      }`}
+                      required
+                    />
+                  </div>
+
+                  {/* Password Input */}
+                  <div className="relative">
+                    <Lock size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                    <input
+                      type={showLoginPassword ? "text" : "password"}
+                      placeholder="Password *"
+                      value={loginPassword}
+                      onChange={(e) => setLoginPassword(e.target.value)}
+                      className={`w-full pl-10 pr-10 py-2.5 border rounded-xl text-xs md:text-sm focus:outline-none transition bg-slate-50/50 hover:bg-white font-medium ${
+                        loginRoleTab === 'provider'
+                          ? 'border-slate-200 focus:border-[#0F2E23] focus:ring-2 focus:ring-emerald-100'
+                          : 'border-slate-200 focus:border-[#15559c] focus:ring-2 focus:ring-blue-100'
+                      }`}
+                      required
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowLoginPassword(!showLoginPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-[#15559c] transition p-1 cursor-pointer"
+                      title={showLoginPassword ? "Hide Password" : "View Password"}
+                    >
+                      {showLoginPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                    </button>
+                  </div>
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className={`w-full py-3 text-white font-bold text-xs uppercase tracking-wider rounded-xl shadow-lg active:scale-95 transition cursor-pointer flex items-center justify-center gap-2 ${
+                    loginRoleTab === 'provider'
+                      ? 'bg-[#0F2E23] hover:bg-[#163e30] shadow-emerald-950/20'
+                      : 'bg-[#15559c] hover:bg-[#0f3d6b] shadow-blue-900/20'
+                  }`}
+                >
+                  <span>
+                    {loading
+                      ? 'LOGGING IN...'
+                      : loginRoleTab === 'provider'
+                      ? 'LOGIN TO PROVIDER DASHBOARD'
+                      : 'LOGIN TO USER DASHBOARD'}
+                  </span>
+                  <ArrowRight size={14} />
+                </button>
+
+                {/* Switch to Sign Up */}
+                <div className="pt-2 text-center text-xs text-slate-500 font-medium border-t border-slate-100">
+                  Don't have an account?{' '}
                   <button
                     type="button"
-                    onClick={() => setShowLoginPassword(!showLoginPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-[#15559c] transition p-1 cursor-pointer"
-                    title={showLoginPassword ? "Hide Password" : "View Password"}
+                    onClick={() => {
+                      setRegisterRoleTab(loginRoleTab);
+                      navigate('/signup');
+                    }}
+                    className="text-[#15559c] font-bold hover:underline cursor-pointer bg-transparent border-0 inline"
                   >
-                    {showLoginPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                    {loginRoleTab === 'provider' ? 'Register as Service Provider' : 'Create Pet Parent Account'}
                   </button>
                 </div>
-              </div>
-
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full py-3 bg-[#15559c] hover:bg-[#0f3d6b] text-white font-bold text-xs uppercase tracking-wider rounded-xl shadow-lg shadow-blue-900/20 active:scale-95 transition cursor-pointer flex items-center justify-center gap-2"
-              >
-                <span>{loading ? 'LOGGING IN...' : 'LOGIN'}</span>
-                <ArrowRight size={14} />
-              </button>
-
-              {/* Switch to Sign Up */}
-              <div className="pt-2 text-center text-xs text-slate-500 font-medium border-t border-slate-100">
-                Don't have an account?{' '}
-                <Link to="/signup" className="text-[#15559c] font-bold hover:underline cursor-pointer">
-                  Create Account
-                </Link>
-              </div>
-            </form>
+              </form>
+            </div>
           ) : (
             /* =========================================================================
                 2. CREATE ACCOUNT WITH 2 SECTIONS (USER / SERVICE PROVIDER)

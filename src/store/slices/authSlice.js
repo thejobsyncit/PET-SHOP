@@ -71,11 +71,65 @@ export const login = createAsyncThunk('auth/login', async (credentials, thunkAPI
     }
     return data;
   } catch (error) {
-    // Check localStorage registered users (only registered users can log in)
+    // Check demo accounts & localStorage registered users
     try {
+      const DEMO_ACCOUNTS = [
+        {
+          _id: 'prov-vet-01',
+          name: 'Dr. Ramesh Kumar',
+          email: 'dr.ramesh@pawora.com',
+          mobile: '9845012345',
+          password: 'Pass@1234',
+          role: 'SERVICE_PROVIDER',
+          serviceCategory: 'Consult a Vet',
+          location: 'Koramangala, Bangalore, Karnataka'
+        },
+        {
+          _id: 'prov-groom-02',
+          name: 'Velvet Fur Grooming Studio',
+          email: 'velvetfur@pawora.com',
+          mobile: '9845199882',
+          password: 'Pass@1234',
+          role: 'SERVICE_PROVIDER',
+          serviceCategory: 'Pet Grooming Spa',
+          location: 'Indiranagar, Bangalore, Karnataka'
+        },
+        {
+          _id: 'prov-hostel-03',
+          name: 'Happy Paws Pet Resort',
+          email: 'happypaws@pawora.com',
+          mobile: '9731299881',
+          password: 'Pass@1234',
+          role: 'SERVICE_PROVIDER',
+          serviceCategory: 'Pet Hostel / Boarding',
+          location: 'Sarjapur Road, Bangalore, Karnataka'
+        },
+        {
+          _id: 'prov-seller-04',
+          name: 'Royal Paws Elite Pet Sellers',
+          email: 'royalpaws@pawora.com',
+          mobile: '9945122334',
+          password: 'Pass@1234',
+          role: 'SERVICE_PROVIDER',
+          serviceCategory: 'Pet Seller',
+          location: 'Indiranagar, Bangalore, Karnataka'
+        },
+        {
+          _id: 'user-demo-01',
+          name: 'Priya Sharma',
+          email: 'priya@pawora.com',
+          mobile: '9876543210',
+          password: 'Pass@1234',
+          role: 'CUSTOMER',
+          serviceCategory: '',
+          location: 'Bangalore, Karnataka'
+        }
+      ];
+
       const registeredUsers = JSON.parse(localStorage.getItem('pawora_registered_users') || '[]');
+      const allAccounts = [...DEMO_ACCOUNTS, ...registeredUsers];
       
-      const matched = registeredUsers.find((u) => {
+      const matched = allAccounts.find((u) => {
         const emailMatch = u.email && u.email.toLowerCase() === rawId.toLowerCase();
         const userMobileClean = (u.mobile || '').replace(/\D/g, '');
         const mobileMatch = cleanMobile.length >= 10 && userMobileClean && (
@@ -95,7 +149,7 @@ export const login = createAsyncThunk('auth/login', async (credentials, thunkAPI
       }
     } catch (e) {}
 
-    return thunkAPI.rejectWithValue('Invalid credentials. Only registered user credentials can log in.');
+    return thunkAPI.rejectWithValue('Invalid credentials. Please check your email/mobile and password.');
   }
 });
 

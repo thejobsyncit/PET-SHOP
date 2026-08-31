@@ -58,6 +58,18 @@ const ServiceBooking = () => {
       navigate('/grooming');
       return;
     }
+    if (cat === 'Hostel') {
+      navigate('/hostel');
+      return;
+    }
+    if (cat === 'Walking') {
+      navigate('/walking');
+      return;
+    }
+    if (cat === 'Transport') {
+      navigate('/transport');
+      return;
+    }
     if (cat && providers[cat]) {
       setActiveTab(cat);
     }
@@ -65,8 +77,10 @@ const ServiceBooking = () => {
 
   const handleOpenBooking = (provider) => {
     if (!isAuthenticated) {
-      toast.error('Please log in to book a service appointment.');
-      navigate('/login');
+      toast.error('Please register or log in to book a service appointment.', {
+        icon: '🔒'
+      });
+      window.dispatchEvent(new CustomEvent('open-register-modal', { detail: { tab: 'user', hideProviderTab: true, source: 'service' } }));
       return;
     }
     setSelectedProvider(provider);
@@ -132,6 +146,14 @@ const ServiceBooking = () => {
             onClick={() => {
               if (tab === 'Grooming') {
                 navigate('/grooming');
+              } else if (tab === 'Hostel') {
+                navigate('/hostel');
+              } else if (tab === 'Walking') {
+                navigate('/walking');
+              } else if (tab === 'Transport') {
+                navigate('/transport');
+              } else if (tab === 'Training') {
+                navigate('/training');
               } else {
                 setActiveTab(tab);
               }
