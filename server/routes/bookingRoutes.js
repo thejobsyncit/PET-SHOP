@@ -87,7 +87,7 @@ router.put('/:id/status', protect, async (req, res) => {
       if (!booking) return res.status(404).json({ success: false, message: 'Booking not found' });
       
       // Authorize: owner or admin
-      if (booking.user.toString() !== req.user._id.toString() && req.user.role !== 'ADMIN') {
+      if (booking.user.toString() !== req.user._id.toString() && req.user.role !== 'ADMIN' && req.user.role !== 'SUPERADMIN') {
         return res.status(401).json({ success: false, message: 'Not authorized' });
       }
 
@@ -101,7 +101,7 @@ router.put('/:id/status', protect, async (req, res) => {
       if (idx === -1) return res.status(404).json({ success: false, message: 'Booking not found' });
 
       const bOwnerId = bookings[idx].user?._id || bookings[idx].user;
-      if (bOwnerId !== req.user._id.toString() && req.user.role !== 'ADMIN') {
+      if (bOwnerId !== req.user._id.toString() && req.user.role !== 'ADMIN' && req.user.role !== 'SUPERADMIN') {
         return res.status(401).json({ success: false, message: 'Not authorized' });
       }
 

@@ -13,7 +13,7 @@ import { apiRequest } from '../services/api.js';
 import { login, logout } from '../store/slices/authSlice.js';
 import toast from 'react-hot-toast';
 
-const AdminDashboard = () => {
+const SuperAdminDashboard = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
@@ -66,7 +66,7 @@ const AdminDashboard = () => {
   const [prescNotes, setPrescNotes] = useState('');
 
   useEffect(() => {
-    if (isAuthenticated && user && user.role === 'ADMIN') {
+    if (isAuthenticated && user && user.role === 'SUPERADMIN') {
       loadStats();
       loadProducts();
       loadOrders();
@@ -201,7 +201,7 @@ const AdminDashboard = () => {
   const handleAdminLogin = async (e) => {
     e.preventDefault();
     if (!adminEmail || !adminPassword) {
-      toast.error('Please enter both administrator email and password.');
+      toast.error('Please enter both SUPER ADMIN EMAIL and password.');
       return;
     }
     setLoginLoading(true);
@@ -210,13 +210,8 @@ const AdminDashboard = () => {
 
     if (login.fulfilled.match(result)) {
       const loggedUser = result.payload.user;
-      if (loggedUser.role === 'ADMIN') {
-        toast.success('Successfully authenticated as Administrator!');
-      } else if (loggedUser.role === 'SUPERADMIN') {
-        toast.success('Super Administrator authenticated. Redirecting to Super Admin Portal...');
-        setTimeout(() => {
-          navigate('/superadmin.com');
-        }, 1000);
+      if (loggedUser.role === 'SUPERADMIN') {
+        toast.success('Successfully authenticated as Super Administrator!');
       } else {
         toast.error('Access Denied: Standard customer accounts cannot access the admin console.');
         dispatch(logout());
@@ -452,14 +447,14 @@ const AdminDashboard = () => {
   const COLORS = ['#1D3B2E', '#7CA085', '#C2D3C6', '#A1C0AA', '#DFE5DF'];
 
   // CONDITIONAL RENDER: IF NOT ADMIN, RENDER THE ADMIN SIGN IN PANEL INSTEAD OF REDIRECTING
-  if (!isAuthenticated || (user && user.role !== 'ADMIN')) {
+  if (!isAuthenticated || (user && user.role !== 'SUPERADMIN')) {
     return (
       <div className="min-h-screen bg-[#F4F6F4] flex flex-col justify-center items-center p-6">
         <div className="w-full max-w-md bg-white border border-[#E3EBE5] p-8 shadow-md space-y-6">
           <div className="text-center space-y-1">
             <span className="text-[9px] uppercase tracking-widest text-[#7CA085] font-bold">INDIA PET HUB</span>
-            <h2 className="font-serif text-xl font-bold text-primary">Admin Gateway</h2>
-            <p className="text-xs text-gray-400">Please authenticate with administrator credentials.</p>
+            <h2 className="font-serif text-xl font-bold text-primary">Super Admin Gateway</h2>
+            <p className="text-xs text-gray-400">Please authenticate with super administrator credentials.</p>
           </div>
 
           <form onSubmit={handleAdminLogin} className="space-y-4">
@@ -468,7 +463,7 @@ const AdminDashboard = () => {
                 <Mail size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
                 <input
                   type="email"
-                  placeholder="ADMINISTRATOR EMAIL"
+                  placeholder="SUPER ADMIN EMAIL"
                   value={adminEmail}
                   onChange={(e) => setAdminEmail(e.target.value)}
                   className="w-full pl-10 pr-3 py-2.5 border border-[#E3EBE5] text-xs focus:outline-none focus:border-primary"
@@ -498,27 +493,12 @@ const AdminDashboard = () => {
           </form>
 
           {/* Demo Details box */}
-          <div className="bg-[#F1F6F2] p-4 border border-[#E3EBE5] text-[10px] text-gray-500 leading-relaxed space-y-4">
-            <div className="space-y-1">
-              <p className="font-semibold text-primary uppercase tracking-wider flex items-center gap-1">
-                <ShieldCheck size={12} className="text-[#7CA085]" /> Admin Credentials Notice
-              </p>
-              <p><strong>Admin Email:</strong> admin@pawora.com</p>
-              <p><strong>Password:</strong> Admin@123</p>
-            </div>
-            
-            <div className="pt-2 border-t border-[#E3EBE5] space-y-1">
-              <p className="font-semibold text-primary uppercase tracking-wider flex items-center justify-between gap-1">
-                <span className="flex items-center gap-1">
-                  <ShieldCheck size={12} className="text-[#7CA085]" /> Super Admin Access
-                </span>
-                <button onClick={() => navigate('/superadmin.com')} className="text-primary hover:text-[#7CA085] underline">
-                  Go to Portal
-                </button>
-              </p>
-              <p><strong>Superadmin Email:</strong> superadmin@pawora.com</p>
-              <p><strong>Password:</strong> SuperAdmin@123</p>
-            </div>
+          <div className="bg-[#F1F6F2] p-4 border border-[#E3EBE5] text-[10px] text-gray-500 leading-relaxed space-y-1">
+            <p className="font-semibold text-primary uppercase tracking-wider flex items-center gap-1">
+              <ShieldCheck size={12} className="text-[#7CA085]" /> Super Admin Credentials Notice
+            </p>
+            <p><strong>Admin Email:</strong> superadmin@pawora.com</p>
+            <p><strong>Password:</strong> SuperAdmin@123</p>
           </div>
 
           <div className="text-center pt-2">
@@ -1493,4 +1473,4 @@ const AdminDashboard = () => {
   );
 };
 
-export default AdminDashboard;
+export default SuperAdminDashboard;

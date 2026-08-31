@@ -1758,33 +1758,5 @@
     "isBestSeller": false,
     "requiresPrescription": true,
     "discountPercentage": 10
-  },
-  {
-    "_id": "6a91291cabb25270ec054d33",
-    "name": "dog",
-    "slug": "dog",
-    "brand": "rajapalayam",
-    "sku": "SKU-9956",
-    "description": "wqsd",
-    "longDescription": "eqwd",
-    "ingredients": [],
-    "specifications": [],
-    "price": 10000,
-    "discountPrice": 2000,
-    "discountPercentage": 80,
-    "rating": 5,
-    "reviewCount": 0,
-    "stock": 2,
-    "lowStockThreshold": 5,
-    "images": [
-      "https://images.unsplash.com/photo-1589924691995-400dc9ecc119?q=80&w=800"
-    ],
-    "category": "Dog Food",
-    "subcategory": "Dog Food",
-    "petType": "dogs",
-    "isFeatured": false,
-    "isBestSeller": true,
-    "requiresPrescription": false,
-    "createdAt": "2026-08-28T06:22:20.025Z"
   }
 ]

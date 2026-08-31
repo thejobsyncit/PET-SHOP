@@ -10,10 +10,11 @@ import {
 import toast from 'react-hot-toast';
 import { 
   GROOMING_OFFERINGS, 
-  getStoredGroomingProviders, 
-  saveGroomingBooking 
+  getStoredGroomingProviders
 } from '../data/groomingData.js';
 import { INDIAN_STATES_CITIES } from '../data/adoptionPetsData.js';
+import { apiRequest } from '../services/api.js';
+import ScrollReveal from '../components/ScrollReveal.jsx';
 
 const GroomingServices = () => {
   const navigate = useNavigate();
@@ -148,7 +149,7 @@ const GroomingServices = () => {
   };
 
   // Submit Booking Form
-  const handleSubmitBooking = (e) => {
+  const handleSubmitBooking = async (e) => {
     e.preventDefault();
     if (!bookingDate) {
       toast.error('Please pick a booking date.');
@@ -163,31 +164,36 @@ const GroomingServices = () => {
       return;
     }
 
-    const bookingData = {
-      id: 'GBOOK-' + Date.now().toString().slice(-6),
-      providerId: selectedProvider.id,
+    const payload = {
       providerName: selectedProvider.name,
-      groomerName: selectedProvider.groomerName,
-      packageName: selectedPackage?.name || 'Standard Grooming',
-      packagePrice: selectedPackage?.price || selectedProvider.discountPrice || selectedProvider.price,
-      bookingDate,
-      bookingTime,
-      petName,
-      petBreed,
-      petAge,
-      ownerName: user?.name || 'Pet Parent',
-      ownerPhone,
-      specialNotes,
-      status: 'Confirmed',
-      createdAt: new Date().toISOString()
+      serviceType: 'Grooming',
+      location: selectedProvider.city + ', ' + selectedProvider.state,
+      date: bookingDate,
+      timeSlot: bookingTime,
+      petDetails: {
+        name: petName,
+        type: selectedPetType === 'All' ? 'Dog/Cat' : selectedPetType,
+        breed: petBreed
+      },
+      fee: selectedPackage?.price || selectedProvider.discountPrice || selectedProvider.price
     };
 
-    saveGroomingBooking(bookingData);
-    setShowBookingModal(false);
-    toast.success(`🎉 Grooming appointment booked with ${selectedProvider.name} for ${petName}! The groomer will reach out shortly.`, {
-      duration: 6000,
-      icon: '✂️'
-    });
+    try {
+      const data = await apiRequest('/bookings', {
+        method: 'POST',
+        body: JSON.stringify(payload)
+      });
+
+      if (data.success) {
+        setShowBookingModal(false);
+        toast.success(`🎉 Grooming appointment booked with ${selectedProvider.name} for ${petName}! The groomer will reach out shortly.`, {
+          duration: 6000,
+          icon: '✂️'
+        });
+      }
+    } catch (err) {
+      toast.error(err.message || 'Booking reservation failed.');
+    }
   };
 
   // Direct WhatsApp Connect
@@ -266,7 +272,7 @@ const GroomingServices = () => {
                     <select
                       value={selectedPetType}
                       onChange={(e) => setSelectedPetType(e.target.value)}
-                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-800 focus:outline-none focus:border-[#7c56dc]"
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-800 focus:outline-none focus:border-primary"
                     >
                       <option value="All">All Pets</option>
                       <option value="Dogs">Dogs</option>
@@ -280,7 +286,7 @@ const GroomingServices = () => {
                     <select
                       value={selectedState}
                       onChange={handleStateChange}
-                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-800 focus:outline-none focus:border-[#7c56dc]"
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-800 focus:outline-none focus:border-primary"
                     >
                       {Object.keys(INDIAN_STATES_CITIES).map((st) => (
                         <option key={st} value={st}>{st}</option>
@@ -294,7 +300,7 @@ const GroomingServices = () => {
                     <select
                       value={selectedCity}
                       onChange={(e) => setSelectedCity(e.target.value)}
-                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-800 focus:outline-none focus:border-[#7c56dc]"
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-800 focus:outline-none focus:border-primary"
                     >
                       {availableCities.map((ct) => (
                         <option key={ct} value={ct}>{ct}</option>
@@ -309,7 +315,7 @@ const GroomingServices = () => {
                         const el = document.getElementById('providers-catalog');
                         if (el) el.scrollIntoView({ behavior: 'smooth' });
                       }}
-                      className="w-full bg-[#7c56dc] hover:bg-[#6842c2] text-white font-extrabold py-2.5 px-4 rounded-xl text-xs shadow-md transition-all flex items-center justify-center gap-1.5 cursor-pointer active:scale-95"
+                      className="w-full bg-primary hover:bg-[#6842c2] text-white font-extrabold py-2.5 px-4 rounded-xl text-xs shadow-md transition-all flex items-center justify-center gap-1.5 cursor-pointer active:scale-95"
                     >
                       <Search size={14} />
                       <span>Search</span>
@@ -348,7 +354,8 @@ const GroomingServices = () => {
       {/* =========================================================================
           2. "WHY IS PET GROOMING IMPORTANT?" (Screenshot 2 Match)
          ========================================================================= */}
-      <section className="max-w-7xl mx-auto px-4 md:px-8 py-16">
+      <ScrollReveal variant="fade">
+        <section className="max-w-7xl mx-auto px-4 md:px-8 py-16">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
           
           {/* Left Column: Heading, Text & Bath Photo */}
@@ -360,12 +367,12 @@ const GroomingServices = () => {
               <div className="space-y-1 text-xs md:text-sm text-slate-600 font-medium leading-relaxed">
                 <p>Kudos to you for putting your pet first!</p>
                 <p>Because grooming isn't just pampering, it's essential care.</p>
-                <p className="font-semibold text-[#7c56dc]">And, who doesn't want their pet to look Purrrrrfect?</p>
+                <p className="font-semibold text-primary">And, who doesn't want their pet to look Purrrrrfect?</p>
               </div>
             </div>
 
             {/* Bath Photo */}
-            <div className="aspect-[4/3] rounded-3xl overflow-hidden shadow-xl border border-purple-100 bg-slate-100">
+            <div className="aspect-[4/3] rounded-3xl overflow-hidden shadow-xl border border-beige bg-slate-100">
               <img
                 src="https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?q=80&w=800"
                 alt="Dog Getting Gentle Bath"
@@ -424,18 +431,20 @@ const GroomingServices = () => {
           </div>
 
         </div>
-      </section>
+        </section>
+      </ScrollReveal>
 
 
       {/* =========================================================================
           3. "GROOMING STARTS WITH CARE" (Screenshot 3 Match)
          ========================================================================= */}
-      <section className="bg-white border-y border-purple-100 py-16 px-4 md:px-8">
+      <ScrollReveal variant="slideUp">
+        <section className="bg-white border-y border-beige py-16 px-4 md:px-8">
         <div className="max-w-7xl mx-auto text-center space-y-12">
           
           <div className="max-w-2xl mx-auto space-y-2">
             <h2 className="text-2xl md:text-3xl font-extrabold text-slate-900 font-sans">
-              Grooming Starts With <span className="text-[#7c56dc]">Care At Pawora</span>
+              Grooming Starts With <span className="text-primary">Care At Pawora</span>
             </h2>
             <p className="text-xs md:text-sm text-slate-500 font-medium">
               You choose your preferred time, and we will assign a verified professional groomer for your pet.
@@ -480,15 +489,17 @@ const GroomingServices = () => {
           </div>
 
         </div>
-      </section>
+        </section>
+      </ScrollReveal>
 
 
       {/* =========================================================================
           4. "OUR GROOMING OFFERINGS" (Screenshot 4 Match)
          ========================================================================= */}
-      <section className="max-w-7xl mx-auto px-4 md:px-8 py-16 space-y-8">
+      <ScrollReveal variant="fade">
+        <section className="max-w-7xl mx-auto px-4 md:px-8 py-16 space-y-8">
         <div className="text-center space-y-2">
-          <span className="text-[10px] uppercase font-extrabold tracking-widest text-[#7c56dc] bg-purple-50 px-3 py-1 rounded-full border border-purple-200">
+          <span className="text-[10px] uppercase font-extrabold tracking-widest text-primary bg-sand px-3 py-1 rounded-full border border-beige">
             CHOOSE YOUR SERVICE
           </span>
           <h2 className="text-2xl md:text-3xl font-extrabold text-slate-900 font-sans">
@@ -509,12 +520,12 @@ const GroomingServices = () => {
                 onClick={() => setSelectedOffering(isActive ? 'all' : offering.id)}
                 className={`p-4 rounded-2xl border text-center transition-all cursor-pointer flex flex-col items-center justify-between gap-3 ${
                   isActive
-                    ? 'bg-[#7c56dc] text-white border-[#7c56dc] shadow-lg scale-105'
-                    : 'bg-white text-slate-800 border-slate-200 hover:border-[#7c56dc] hover:shadow-md'
+                    ? 'bg-primary text-white border-primary shadow-lg scale-105'
+                    : 'bg-white text-slate-800 border-slate-200 hover:border-primary hover:shadow-md'
                 }`}
               >
                 <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-2xl ${
-                  isActive ? 'bg-white/20' : 'bg-purple-50'
+                  isActive ? 'bg-white/20' : 'bg-sand'
                 }`}>
                   {offering.icon}
                 </div>
@@ -525,29 +536,31 @@ const GroomingServices = () => {
             );
           })}
         </div>
-      </section>
+        </section>
+      </ScrollReveal>
 
 
       {/* =========================================================================
           5. SERVICE PROVIDERS CATALOG & ADVANCED FILTER SECTION (With Price Filter)
          ========================================================================= */}
-      <section id="providers-catalog" className="max-w-7xl mx-auto px-4 md:px-8 pt-4 pb-16 space-y-8">
+      <ScrollReveal variant="fade">
+        <section id="providers-catalog" className="max-w-7xl mx-auto px-4 md:px-8 pt-4 pb-16 space-y-8">
         
         {/* Section Title & Quick Stats */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-purple-100 pb-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-beige pb-4">
           <div>
             <h2 className="text-xl md:text-2xl font-extrabold text-slate-900 font-sans">
               Verified Grooming Service Providers
             </h2>
             <p className="text-xs text-slate-500 font-medium mt-0.5">
-              Showing <span className="font-bold text-[#7c56dc]">{filteredProviders.length}</span> trusted groomers & doorstep vans
+              Showing <span className="font-bold text-primary">{filteredProviders.length}</span> trusted groomers & doorstep vans
             </p>
           </div>
 
           <div className="flex items-center gap-3">
             <button
               onClick={handleResetFilters}
-              className="text-xs font-bold text-slate-500 hover:text-[#7c56dc] transition flex items-center gap-1 cursor-pointer"
+              className="text-xs font-bold text-slate-500 hover:text-primary transition flex items-center gap-1 cursor-pointer"
             >
               <RefreshCw size={12} /> Reset All
             </button>
@@ -559,21 +572,21 @@ const GroomingServices = () => {
           {/* =====================================================================
               LEFT FILTER PANEL (Price Filter, Location, Mode, Rating)
              ===================================================================== */}
-          <aside className="lg:col-span-3 bg-white p-5 rounded-3xl border border-purple-100 shadow-sm sticky top-24 max-h-[calc(100vh-120px)] flex flex-col">
+          <aside className="lg:col-span-3 bg-white p-5 rounded-3xl border border-beige shadow-sm sticky top-24 max-h-[calc(100vh-120px)] flex flex-col">
             
             {/* Fixed Filter Header */}
             <div className="flex justify-between items-center border-b border-slate-100 pb-3 mb-3 shrink-0">
               <span className="text-xs font-extrabold uppercase tracking-wider text-slate-900 flex items-center gap-1.5">
-                <SlidersHorizontal size={14} className="text-[#7c56dc]" />
+                <SlidersHorizontal size={14} className="text-primary" />
                 <span>Filters</span>
               </span>
               <div className="flex items-center gap-2">
-                <span className="text-[10px] font-bold bg-purple-50 text-[#7c56dc] px-2 py-0.5 rounded-full border border-purple-100">
+                <span className="text-[10px] font-bold bg-sand text-primary px-2 py-0.5 rounded-full border border-beige">
                   {filteredProviders.length} Results
                 </span>
                 <button
                   onClick={handleResetFilters}
-                  className="text-[10px] font-bold text-slate-400 hover:text-[#7c56dc] transition flex items-center gap-0.5 cursor-pointer"
+                  className="text-[10px] font-bold text-slate-400 hover:text-primary transition flex items-center gap-0.5 cursor-pointer"
                   title="Reset All Filters"
                 >
                   <RefreshCw size={10} /> Reset
@@ -605,7 +618,7 @@ const GroomingServices = () => {
                     placeholder="Search by name, area, salon..."
                     value={searchKeyword}
                     onChange={(e) => setSearchKeyword(e.target.value)}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-8 pr-3 py-2 text-xs font-medium text-slate-800 focus:outline-none focus:border-[#7c56dc] focus:ring-1 focus:ring-purple-200 transition"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-8 pr-3 py-2 text-xs font-medium text-slate-800 focus:outline-none focus:border-primary focus:ring-1 focus:ring-beige transition"
                   />
                   <Search size={13} className="absolute left-2.5 top-2.5 text-slate-400" />
                 </div>
@@ -633,8 +646,8 @@ const GroomingServices = () => {
                       onClick={() => setPriceRange(tier.id)}
                       className={`flex items-center justify-between w-full py-2 px-3 rounded-xl font-semibold text-left transition cursor-pointer ${
                         priceRange === tier.id
-                          ? 'bg-[#7c56dc] text-white font-bold shadow-xs'
-                          : 'text-slate-600 hover:bg-purple-50 hover:text-[#7c56dc]'
+                          ? 'bg-primary text-white font-bold shadow-xs'
+                          : 'text-slate-600 hover:bg-sand hover:text-primary'
                       }`}
                     >
                       <span>{tier.label}</span>
@@ -679,8 +692,8 @@ const GroomingServices = () => {
                       onClick={() => setSelectedPetType(pt)}
                       className={`py-1.5 px-2 rounded-xl font-bold text-center transition cursor-pointer ${
                         selectedPetType === pt
-                          ? 'bg-[#7c56dc] text-white shadow-xs'
-                          : 'bg-slate-50 text-slate-600 hover:bg-purple-50'
+                          ? 'bg-primary text-white shadow-xs'
+                          : 'bg-slate-50 text-slate-600 hover:bg-sand'
                       }`}
                     >
                       {pt}
@@ -697,7 +710,7 @@ const GroomingServices = () => {
                 <select
                   value={sortBy}
                   onChange={(e) => setSortBy(e.target.value)}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-800 focus:outline-none focus:border-[#7c56dc]"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-800 focus:outline-none focus:border-primary"
                 >
                   <option value="recommended">Recommended (Top Rated)</option>
                   <option value="price-low">Price: Low to High</option>
@@ -716,7 +729,7 @@ const GroomingServices = () => {
                   <select
                     value={selectedState}
                     onChange={handleStateChange}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold text-slate-800 focus:outline-none focus:border-[#7c56dc]"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold text-slate-800 focus:outline-none focus:border-primary"
                   >
                     {Object.keys(INDIAN_STATES_CITIES).map((st) => (
                       <option key={st} value={st}>{st}</option>
@@ -726,7 +739,7 @@ const GroomingServices = () => {
                   <select
                     value={selectedCity}
                     onChange={(e) => setSelectedCity(e.target.value)}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold text-slate-800 focus:outline-none focus:border-[#7c56dc]"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold text-slate-800 focus:outline-none focus:border-primary"
                   >
                     {availableCities.map((ct) => (
                       <option key={ct} value={ct}>{ct}</option>
@@ -751,7 +764,7 @@ const GroomingServices = () => {
                   return (
                     <div
                       key={provider.id}
-                      className="bg-white rounded-3xl border border-purple-100 shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden flex flex-col justify-between group"
+                      className="bg-white rounded-3xl border border-beige shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden flex flex-col justify-between group"
                     >
                       <div>
                         {/* Provider Header Image & Badges */}
@@ -764,7 +777,7 @@ const GroomingServices = () => {
                           <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
 
                           {/* Mode Badge */}
-                          <div className="absolute top-3 left-3 bg-[#7c56dc] text-white text-[10px] font-extrabold px-3 py-1 rounded-full shadow-md">
+                          <div className="absolute top-3 left-3 bg-primary text-white text-[10px] font-extrabold px-3 py-1 rounded-full shadow-md">
                             {provider.serviceMode}
                           </div>
 
@@ -815,7 +828,7 @@ const GroomingServices = () => {
                               {provider.offerings.slice(0, 4).map((off, idx) => (
                                 <span
                                   key={idx}
-                                  className="text-[10px] font-bold bg-purple-50 text-[#7c56dc] px-2.5 py-1 rounded-lg border border-purple-100"
+                                  className="text-[10px] font-bold bg-sand text-primary px-2.5 py-1 rounded-lg border border-beige"
                                 >
                                   {off}
                                 </span>
@@ -869,7 +882,7 @@ const GroomingServices = () => {
                         <div className="grid grid-cols-2 gap-2">
                           <button
                             onClick={() => handleOpenBookingModal(provider)}
-                            className="bg-[#7c56dc] hover:bg-[#6842c2] text-white font-extrabold py-2.5 px-3 rounded-xl text-xs shadow-md transition-all flex items-center justify-center gap-1.5 cursor-pointer active:scale-95"
+                            className="bg-primary hover:bg-[#6842c2] text-white font-extrabold py-2.5 px-3 rounded-xl text-xs shadow-md transition-all flex items-center justify-center gap-1.5 cursor-pointer active:scale-95"
                           >
                             <Calendar size={13} />
                             <span>Book Session</span>
@@ -890,8 +903,8 @@ const GroomingServices = () => {
                 })}
               </div>
             ) : (
-              <div className="text-center py-16 bg-white rounded-3xl border border-purple-100 p-8 space-y-4">
-                <div className="w-16 h-16 bg-purple-50 rounded-full flex items-center justify-center mx-auto text-[#7c56dc]">
+              <div className="text-center py-16 bg-white rounded-3xl border border-beige p-8 space-y-4">
+                <div className="w-16 h-16 bg-sand rounded-full flex items-center justify-center mx-auto text-primary">
                   <Scissors size={28} />
                 </div>
                 <h3 className="text-lg font-extrabold text-slate-900">No Grooming Providers Found</h3>
@@ -900,7 +913,7 @@ const GroomingServices = () => {
                 </p>
                 <button
                   onClick={handleResetFilters}
-                  className="bg-[#7c56dc] text-white font-extrabold px-6 py-2.5 rounded-xl text-xs shadow-md transition hover:bg-[#6842c2]"
+                  className="bg-primary text-white font-extrabold px-6 py-2.5 rounded-xl text-xs shadow-md transition hover:bg-[#6842c2]"
                 >
                   Reset All Filters
                 </button>
@@ -911,7 +924,8 @@ const GroomingServices = () => {
 
         </div>
 
-      </section>
+        </section>
+      </ScrollReveal>
 
 
       {/* =========================================================================
@@ -924,7 +938,7 @@ const GroomingServices = () => {
             onClick={() => setShowBookingModal(false)}
           ></div>
 
-          <div className="relative bg-white rounded-3xl shadow-2xl border border-purple-100 w-full max-w-lg overflow-hidden z-10 animate-in zoom-in-95 duration-150 max-h-[90vh] flex flex-col">
+          <div className="relative bg-white rounded-3xl shadow-2xl border border-beige w-full max-w-lg overflow-hidden z-10 animate-in zoom-in-95 duration-150 max-h-[90vh] flex flex-col">
             
             {/* Modal Header */}
             <div className="bg-gradient-to-r from-[#ffc83b] to-[#f59e0b] p-5 text-slate-950 flex justify-between items-center shrink-0">
@@ -958,7 +972,7 @@ const GroomingServices = () => {
                       onClick={() => setSelectedPackage(pkg)}
                       className={`flex items-start justify-between p-3 rounded-2xl border transition cursor-pointer ${
                         selectedPackage?.name === pkg.name
-                          ? 'border-[#7c56dc] bg-purple-50/60 shadow-xs'
+                          ? 'border-primary bg-sand/60 shadow-xs'
                           : 'border-slate-200 hover:border-slate-300'
                       }`}
                     >
@@ -968,14 +982,14 @@ const GroomingServices = () => {
                           name="groomingPackage"
                           checked={selectedPackage?.name === pkg.name}
                           onChange={() => setSelectedPackage(pkg)}
-                          className="mt-1 text-[#7c56dc] focus:ring-0"
+                          className="mt-1 text-primary focus:ring-0"
                         />
                         <div>
                           <p className="text-xs font-bold text-slate-900">{pkg.name}</p>
                           <p className="text-[10px] text-slate-500">{pkg.desc}</p>
                         </div>
                       </div>
-                      <span className="text-xs font-extrabold text-[#7c56dc] shrink-0">₹{pkg.price}</span>
+                      <span className="text-xs font-extrabold text-primary shrink-0">₹{pkg.price}</span>
                     </label>
                   ))}
                 </div>
@@ -991,7 +1005,7 @@ const GroomingServices = () => {
                     value={bookingDate}
                     min={new Date().toISOString().split('T')[0]}
                     onChange={(e) => setBookingDate(e.target.value)}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-medium text-slate-800 focus:outline-none focus:border-[#7c56dc]"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-medium text-slate-800 focus:outline-none focus:border-primary"
                   />
                 </div>
 
@@ -1000,7 +1014,7 @@ const GroomingServices = () => {
                   <select
                     value={bookingTime}
                     onChange={(e) => setBookingTime(e.target.value)}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-medium text-slate-800 focus:outline-none focus:border-[#7c56dc]"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-medium text-slate-800 focus:outline-none focus:border-primary"
                   >
                     <option value="09:00 AM - 10:30 AM">09:00 AM - 10:30 AM</option>
                     <option value="10:30 AM - 12:00 PM">10:30 AM - 12:00 PM</option>
@@ -1021,7 +1035,7 @@ const GroomingServices = () => {
                     placeholder="e.g. Leo"
                     value={petName}
                     onChange={(e) => setPetName(e.target.value)}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-medium text-slate-800 focus:outline-none focus:border-[#7c56dc]"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-medium text-slate-800 focus:outline-none focus:border-primary"
                   />
                 </div>
 
@@ -1033,7 +1047,7 @@ const GroomingServices = () => {
                     placeholder="e.g. Shih Tzu / Labrador"
                     value={petBreed}
                     onChange={(e) => setPetBreed(e.target.value)}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-medium text-slate-800 focus:outline-none focus:border-[#7c56dc]"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-medium text-slate-800 focus:outline-none focus:border-primary"
                   />
                 </div>
               </div>
@@ -1047,7 +1061,7 @@ const GroomingServices = () => {
                   placeholder="10-digit mobile number"
                   value={ownerPhone}
                   onChange={(e) => setOwnerPhone(e.target.value)}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-medium text-slate-800 focus:outline-none focus:border-[#7c56dc]"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-medium text-slate-800 focus:outline-none focus:border-primary"
                 />
               </div>
 
@@ -1059,7 +1073,7 @@ const GroomingServices = () => {
                   placeholder="e.g. Sensitive skin, timid with dryers, knotty coat..."
                   value={specialNotes}
                   onChange={(e) => setSpecialNotes(e.target.value)}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-medium text-slate-800 focus:outline-none focus:border-[#7c56dc]"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-medium text-slate-800 focus:outline-none focus:border-primary"
                 ></textarea>
               </div>
 
@@ -1067,7 +1081,7 @@ const GroomingServices = () => {
               <div className="pt-2">
                 <button
                   type="submit"
-                  className="w-full bg-[#7c56dc] hover:bg-[#6842c2] text-white font-extrabold py-3 px-4 rounded-xl text-xs shadow-md transition cursor-pointer flex items-center justify-center gap-1.5"
+                  className="w-full bg-primary hover:bg-[#6842c2] text-white font-extrabold py-3 px-4 rounded-xl text-xs shadow-md transition cursor-pointer flex items-center justify-center gap-1.5"
                 >
                   <CheckCircle2 size={15} />
                   <span>Confirm Booking (Pay During Grooming: ₹{selectedPackage?.price || selectedProvider.price})</span>

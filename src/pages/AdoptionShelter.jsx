@@ -16,6 +16,7 @@ import {
   saveAdoptionPet,
   compressImageFile
 } from '../data/adoptionPetsData';
+import ScrollReveal from '../components/ScrollReveal.jsx';
 
 // Hero Auto-Rotating Slides (Dogs, Cats, Birds)
 const HERO_SLIDES = [
@@ -311,7 +312,7 @@ const AdoptionShelter = () => {
           1. HERO BANNER WITH AUTO-SCROLLING ROTATOR (Dogs, Cats, Birds)
          ========================================================================= */}
       <section
-        className="relative overflow-hidden bg-gradient-to-r from-[#EDE8F9] via-[#F3EDFD] to-[#E2D6F8] pt-10 pb-16 md:pt-14 md:pb-20 border-b border-purple-100/70"
+        className="relative overflow-hidden bg-gradient-premium pt-10 pb-16 md:pt-14 md:pb-20 border-b border-beige/70"
       >
         <div className="max-w-7xl mx-auto px-4 md:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
@@ -319,14 +320,14 @@ const AdoptionShelter = () => {
             {/* Left Column: Heading & Subtitle */}
             <div className="lg:col-span-7 space-y-4 text-left">
               
-              <div className="inline-flex items-center gap-2 bg-white/90 border border-purple-200 px-3.5 py-1 rounded-full shadow-xs">
-                <span className="text-[#7c56dc] font-bold text-xs tracking-wider uppercase">🐾 PET ADOPTION IN INDIA</span>
-                <span className="text-[10px] bg-purple-100 text-purple-800 font-bold px-2 py-0.5 rounded-full">100% Free Rehoming</span>
+              <div className="inline-flex items-center gap-2 bg-white/90 border border-beige px-3.5 py-1 rounded-full shadow-xs">
+                <span className="text-primary font-bold text-xs tracking-wider uppercase">🐾 PET ADOPTION IN INDIA</span>
+                <span className="text-[10px] bg-beige text-gold-dark font-bold px-2 py-0.5 rounded-full">100% Free Rehoming</span>
               </div>
 
               <h1 className="font-serif text-3xl sm:text-4xl md:text-5xl lg:text-[46px] font-extrabold text-slate-900 leading-tight">
                 Their second innings <br className="hidden sm:block" />
-                starts with <span className="text-[#7c56dc]">you</span>
+                starts with <span className="text-primary">you</span>
               </h1>
 
               <p className="text-sm md:text-base text-slate-600 font-medium max-w-xl leading-relaxed min-h-[44px]">
@@ -336,7 +337,7 @@ const AdoptionShelter = () => {
               {/* Trust Badges */}
               <div className="pt-2 flex flex-wrap items-center gap-4 text-xs font-semibold text-slate-700">
                 <div className="flex items-center gap-1.5 bg-white/70 backdrop-blur-xs px-3 py-1.5 rounded-lg border border-purple-150">
-                  <ShieldCheck size={16} className="text-[#7c56dc]" />
+                  <ShieldCheck size={16} className="text-primary" />
                   <span>Vaccination Verified</span>
                 </div>
                 <div className="flex items-center gap-1.5 bg-white/70 backdrop-blur-xs px-3 py-1.5 rounded-lg border border-purple-150">
@@ -367,11 +368,11 @@ const AdoptionShelter = () => {
                         }}
                         className="w-full h-full object-cover object-center"
                       />
-                      <div className="absolute inset-0 bg-gradient-to-t from-purple-950/60 via-purple-950/10 to-transparent"></div>
+                      <div className="absolute inset-0 bg-gradient-to-t from-primary/60 via-primary/10 to-transparent"></div>
                       
                       <div className="absolute bottom-4 left-4 text-white z-20">
                         <p className="text-xs font-bold uppercase tracking-wider drop-shadow-xs">{slide.title}</p>
-                        <p className="text-[11px] text-purple-100 drop-shadow-xs">{slide.badge}</p>
+                        <p className="text-[11px] text-beige drop-shadow-xs">{slide.badge}</p>
                       </div>
                     </div>
                   ))}
@@ -390,11 +391,11 @@ const AdoptionShelter = () => {
                 </div>
 
                 {/* Cute Hand-drawn Dog House Illustration Badge */}
-                <div className="absolute -top-4 -right-3 bg-white p-3 rounded-2xl shadow-xl border border-purple-100 transform rotate-3 flex items-center gap-2 z-30">
+                <div className="absolute -top-4 -right-3 bg-white p-3 rounded-2xl shadow-xl border border-beige transform rotate-3 flex items-center gap-2 z-30">
                   <span className="text-2xl">🏠</span>
                   <div className="text-left">
                     <p className="text-[11px] font-bold text-slate-800 leading-tight">Adopt Love</p>
-                    <p className="text-[9px] text-[#7c56dc] font-semibold">Save a Life</p>
+                    <p className="text-[9px] text-primary font-semibold">Save a Life</p>
                   </div>
                 </div>
 
@@ -410,7 +411,7 @@ const AdoptionShelter = () => {
           2. TOP SEARCH FILTER BAR
          ========================================================================= */}
       <div className="max-w-7xl mx-auto px-4 md:px-8 -mt-7 relative z-30">
-        <div className="bg-white p-3 md:p-4 rounded-2xl border border-purple-200/90 shadow-xl grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 items-center">
+        <div className="bg-white p-3 md:p-4 rounded-2xl border border-beige/90 shadow-xl grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 items-center">
           
           {/* 1. Pet Type Selector */}
           <div>
@@ -418,7 +419,7 @@ const AdoptionShelter = () => {
             <select
               value={selectedPetType}
               onChange={(e) => setSelectedPetType(e.target.value)}
-              className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs md:text-sm font-semibold text-slate-700 focus:outline-none focus:border-[#7c56dc] focus:ring-2 focus:ring-purple-100 transition"
+              className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs md:text-sm font-semibold text-slate-700 focus:outline-none focus:border-primary focus:ring-2 focus:ring-beige transition"
             >
               <option value="dogs">Dogs & Puppies</option>
               <option value="cats">Cats & Kittens</option>
@@ -433,7 +434,7 @@ const AdoptionShelter = () => {
             <select
               value={selectedState}
               onChange={(e) => handleStateChange(e.target.value)}
-              className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs md:text-sm font-semibold text-slate-700 focus:outline-none focus:border-[#7c56dc] focus:ring-2 focus:ring-purple-100 transition"
+              className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs md:text-sm font-semibold text-slate-700 focus:outline-none focus:border-primary focus:ring-2 focus:ring-beige transition"
             >
               {Object.keys(INDIAN_STATES_CITIES).map((s) => (
                 <option key={s} value={s}>{s}</option>
@@ -447,7 +448,7 @@ const AdoptionShelter = () => {
             <select
               value={selectedCity}
               onChange={(e) => setSelectedCity(e.target.value)}
-              className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs md:text-sm font-semibold text-slate-700 focus:outline-none focus:border-[#7c56dc] focus:ring-2 focus:ring-purple-100 transition"
+              className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs md:text-sm font-semibold text-slate-700 focus:outline-none focus:border-primary focus:ring-2 focus:ring-beige transition"
             >
               {availableCities.map((c) => (
                 <option key={c} value={c}>{c}</option>
@@ -460,7 +461,7 @@ const AdoptionShelter = () => {
             <button
               type="button"
               onClick={() => toast.success(`Showing results for ${selectedPetType} in ${selectedCity}, ${selectedState}`)}
-              className="w-full py-2.5 bg-[#7c56dc] hover:bg-[#6842c8] text-white font-bold text-xs md:text-sm rounded-xl shadow-lg shadow-purple-600/25 active:scale-95 transition cursor-pointer flex items-center justify-center gap-2"
+              className="w-full py-2.5 bg-primary hover:bg-accent text-white font-bold text-xs md:text-sm rounded-xl shadow-lg shadow-gold/25 active:scale-95 transition cursor-pointer flex items-center justify-center gap-2"
             >
               <Search size={16} />
               <span>Search Pets</span>
@@ -474,388 +475,390 @@ const AdoptionShelter = () => {
       {/* =========================================================================
           3. MAIN CONTENT: SIDEBAR (Filter ON TOP, Most Popular Breeds BELOW)
          ========================================================================= */}
-      <div className="max-w-7xl mx-auto px-4 md:px-8 mt-10">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-
-          {/* -----------------------------------------------------------------
-              LEFT SIDEBAR:
-              1. Add Pet Button Card
-              2. Filter Card (ON TOP as requested)
-              3. Most Popular Breeds Card (BELOW as requested)
-             ----------------------------------------------------------------- */}
-          <aside className="lg:col-span-3 space-y-6">
-            
-            {/* 1. Workable "Add Pet" Card */}
-            <div className="bg-white rounded-2xl border border-purple-100 shadow-sm p-4 space-y-3">
-              <div className="flex items-center justify-between border-b border-slate-100 pb-2">
-                <span className="text-[#7c56dc] font-extrabold text-sm flex items-center gap-1.5">
-                  <Plus size={16} className="text-[#7c56dc]" />
-                  Add Pet
-                </span>
-                <span className="text-[10px] bg-purple-50 text-[#7c56dc] font-bold px-2 py-0.5 rounded-full">List Free</span>
-              </div>
-
-              <p className="text-xs text-slate-500">
-                Have a pet needing a loving home or rescue? List them for adoption for free.
-              </p>
-
-              <button
-                type="button"
-                onClick={() => setShowAddPetModal(true)}
-                className="w-full py-2.5 px-3 bg-[#7c56dc] hover:bg-[#6842c8] text-white rounded-xl font-bold text-xs shadow-md shadow-purple-600/20 active:scale-95 transition cursor-pointer flex items-center justify-center gap-1.5"
-              >
-                <Plus size={15} />
-                <span>List Pet For Adoption</span>
-              </button>
-            </div>
-
-            {/* 2. FILTER CARD (ON TOP) */}
-            <div className="bg-white rounded-2xl border border-purple-100 shadow-sm p-5 space-y-6">
+      <ScrollReveal variant="fade">
+        <div className="max-w-7xl mx-auto px-4 md:px-8 mt-10">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+  
+            {/* -----------------------------------------------------------------
+                LEFT SIDEBAR:
+                1. Add Pet Button Card
+                2. Filter Card (ON TOP as requested)
+                3. Most Popular Breeds Card (BELOW as requested)
+               ----------------------------------------------------------------- */}
+            <aside className="lg:col-span-3 space-y-6">
               
-              <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-                <h3 className="font-serif text-lg font-bold text-slate-800 flex items-center gap-2">
-                  <Filter size={18} className="text-[#7c56dc]" />
-                  Filter
-                </h3>
+              {/* 1. Workable "Add Pet" Card */}
+              <div className="bg-white rounded-2xl border border-beige shadow-sm p-4 space-y-3">
+                <div className="flex items-center justify-between border-b border-slate-100 pb-2">
+                  <span className="text-primary font-extrabold text-sm flex items-center gap-1.5">
+                    <Plus size={16} className="text-primary" />
+                    Add Pet
+                  </span>
+                  <span className="text-[10px] bg-sand text-primary font-bold px-2 py-0.5 rounded-full">List Free</span>
+                </div>
+  
+                <p className="text-xs text-slate-500">
+                  Have a pet needing a loving home or rescue? List them for adoption for free.
+                </p>
+  
                 <button
                   type="button"
-                  onClick={handleResetFilters}
-                  className="text-[11px] font-bold text-[#7c56dc] hover:underline cursor-pointer"
+                  onClick={() => setShowAddPetModal(true)}
+                  className="w-full py-2.5 px-3 bg-primary hover:bg-accent text-white rounded-xl font-bold text-xs shadow-md shadow-gold/20 active:scale-95 transition cursor-pointer flex items-center justify-center gap-1.5"
                 >
-                  Clear All
+                  <Plus size={15} />
+                  <span>List Pet For Adoption</span>
                 </button>
               </div>
-
-              {/* A. Gender */}
-              <div className="space-y-2">
-                <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wider">Gender</h4>
-                <div className="space-y-1.5 text-xs text-slate-600">
-                  {['Male', 'Female', 'Any'].map((g) => (
-                    <label key={g} className="flex items-center gap-2 cursor-pointer hover:text-slate-900">
-                      <input
-                        type="radio"
-                        name="genderFilter"
-                        checked={genderFilter === g}
-                        onChange={() => setGenderFilter(g)}
-                        className="text-[#7c56dc] focus:ring-0 cursor-pointer"
-                      />
-                      <span>{g}</span>
-                    </label>
-                  ))}
-                </div>
-              </div>
-
-              {/* B. Puppy / Pet Quality */}
-              <div className="space-y-2 border-t border-slate-100 pt-4">
-                <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wider">Puppy Quality</h4>
-                <div className="space-y-1.5 text-xs text-slate-600">
-                  {['Pet Quality', 'KCI Registered', 'Champion Bloodline', 'All'].map((q) => (
-                    <label key={q} className="flex items-center gap-2 cursor-pointer hover:text-slate-900">
-                      <input
-                        type="radio"
-                        name="qualityFilter"
-                        checked={qualityFilter === q}
-                        onChange={() => setQualityFilter(q)}
-                        className="text-[#7c56dc] focus:ring-0 cursor-pointer"
-                      />
-                      <span>{q}</span>
-                    </label>
-                  ))}
-                </div>
-              </div>
-
-              {/* C. Budget Range Slider */}
-              <div className="space-y-2 border-t border-slate-100 pt-4">
-                <div className="flex justify-between items-center">
-                  <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wider">Budget</h4>
-                  <span className="text-[11px] font-bold text-[#7c56dc]">₹0 - ₹10L</span>
-                </div>
-                <input
-                  type="range"
-                  min={0}
-                  max={1000000}
-                  step={25000}
-                  value={budgetLimit}
-                  onChange={(e) => setBudgetLimit(Number(e.target.value))}
-                  className="w-full accent-[#7c56dc] cursor-pointer"
-                />
-                <div className="text-[11px] text-slate-500 font-semibold flex justify-between">
-                  <span>0</span>
-                  <span>Your Budget ₹: <strong>{budgetLimit.toLocaleString('en-IN')}</strong></span>
-                  <span>10L</span>
-                </div>
-              </div>
-
-            </div>
-
-            {/* 3. MOST POPULAR BREEDS CARD (BELOW THE FILTER) */}
-            <div className="bg-white rounded-2xl border border-purple-100 shadow-sm p-5 space-y-3">
-              <div className="flex items-center justify-between border-b border-slate-100 pb-2.5">
-                <h3 className="text-base font-bold text-[#7c56dc]">
-                  Most Popular Breeds
-                </h3>
-                {selectedBreedFilter !== 'All' && (
+  
+              {/* 2. FILTER CARD (ON TOP) */}
+              <div className="bg-white rounded-2xl border border-beige shadow-sm p-5 space-y-6">
+                
+                <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                  <h3 className="font-serif text-lg font-bold text-slate-800 flex items-center gap-2">
+                    <Filter size={18} className="text-primary" />
+                    Filter
+                  </h3>
                   <button
                     type="button"
-                    onClick={() => setSelectedBreedFilter('All')}
-                    className="text-[11px] text-[#7c56dc] font-bold hover:underline"
+                    onClick={handleResetFilters}
+                    className="text-[11px] font-bold text-primary hover:underline cursor-pointer"
                   >
-                    Reset
-                  </button>
-                )}
-              </div>
-
-              <div className="space-y-1 text-xs">
-                {POPULAR_BREEDS.filter((b) => selectedPetType === 'all' || b.type === selectedPetType).map((b) => {
-                  const isSelected = selectedBreedFilter === b.name;
-                  return (
-                    <button
-                      key={b.name}
-                      type="button"
-                      onClick={() => {
-                        if (isSelected) {
-                          setSelectedBreedFilter('All');
-                        } else {
-                          setSelectedBreedFilter(b.name);
-                          toast.success(`Filtered by ${b.name}`);
-                        }
-                      }}
-                      className={`w-full flex items-center justify-between py-2 px-2.5 rounded-xl transition font-medium cursor-pointer text-left ${
-                        isSelected
-                          ? 'bg-purple-50 text-[#7c56dc] font-bold border border-purple-200'
-                          : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
-                      }`}
-                    >
-                      <span>{b.name}</span>
-                      <span className={`text-[11px] ${isSelected ? 'text-[#7c56dc] font-bold' : 'text-slate-400'}`}>
-                        ({b.count})
-                      </span>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-
-          </aside>
-
-
-          {/* -----------------------------------------------------------------
-              RIGHT MAIN CONTENT: BREADCRUMB, HEADER, READ MORE & ADOPTION CARDS
-             ----------------------------------------------------------------- */}
-          <main className="lg:col-span-9 space-y-6">
-            
-            {/* Top Breadcrumb & SEO Header Card */}
-            <div className="bg-white rounded-2xl border border-purple-100 p-5 shadow-sm space-y-2">
-              
-              {/* Breadcrumb */}
-              <div className="text-[11px] font-medium text-slate-400 flex items-center gap-1.5">
-                <Link to="/" className="hover:text-slate-700">Home</Link>
-                <span>&gt;</span>
-                <span className="text-[#7c56dc] font-semibold capitalize">
-                  {selectedPetType === 'dogs' ? 'Dogs for adoption' : selectedPetType === 'cats' ? 'Cats for adoption' : selectedPetType === 'birds' ? 'Birds for adoption' : 'Pets for adoption'}
-                </span>
-                {selectedBreedFilter !== 'All' && (
-                  <>
-                    <span>&gt;</span>
-                    <span className="text-slate-700 font-bold">{selectedBreedFilter}</span>
-                  </>
-                )}
-              </div>
-
-              {/* Title & Results Count */}
-              <div className="flex flex-col sm:flex-row sm:items-baseline justify-between gap-1 pt-1">
-                <h2 className="font-serif text-2xl md:text-3xl font-extrabold text-slate-900 capitalize">
-                  {selectedBreedFilter !== 'All'
-                    ? `${selectedBreedFilter} For Adoption`
-                    : selectedPetType === 'dogs'
-                    ? 'Dogs For Adoption'
-                    : selectedPetType === 'cats'
-                    ? 'Cats For Adoption'
-                    : selectedPetType === 'birds'
-                    ? 'Birds For Adoption'
-                    : 'Pets For Adoption'}
-                </h2>
-                <div className="flex items-center gap-2">
-                  <span className="text-xs font-bold text-purple-700 bg-purple-50 px-3 py-1 rounded-full border border-purple-100">
-                    {filteredPets.length} Results Found
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => setShowAddPetModal(true)}
-                    className="sm:hidden px-3 py-1 bg-[#7c56dc] text-white text-xs font-bold rounded-lg flex items-center gap-1"
-                  >
-                    <Plus size={13} /> Add Pet
+                    Clear All
                   </button>
                 </div>
+  
+                {/* A. Gender */}
+                <div className="space-y-2">
+                  <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wider">Gender</h4>
+                  <div className="space-y-1.5 text-xs text-slate-600">
+                    {['Male', 'Female', 'Any'].map((g) => (
+                      <label key={g} className="flex items-center gap-2 cursor-pointer hover:text-slate-900">
+                        <input
+                          type="radio"
+                          name="genderFilter"
+                          checked={genderFilter === g}
+                          onChange={() => setGenderFilter(g)}
+                          className="text-primary focus:ring-0 cursor-pointer"
+                        />
+                        <span>{g}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+  
+                {/* B. Puppy / Pet Quality */}
+                <div className="space-y-2 border-t border-slate-100 pt-4">
+                  <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wider">Puppy Quality</h4>
+                  <div className="space-y-1.5 text-xs text-slate-600">
+                    {['Pet Quality', 'KCI Registered', 'Champion Bloodline', 'All'].map((q) => (
+                      <label key={q} className="flex items-center gap-2 cursor-pointer hover:text-slate-900">
+                        <input
+                          type="radio"
+                          name="qualityFilter"
+                          checked={qualityFilter === q}
+                          onChange={() => setQualityFilter(q)}
+                          className="text-primary focus:ring-0 cursor-pointer"
+                        />
+                        <span>{q}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+  
+                {/* C. Budget Range Slider */}
+                <div className="space-y-2 border-t border-slate-100 pt-4">
+                  <div className="flex justify-between items-center">
+                    <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wider">Budget</h4>
+                    <span className="text-[11px] font-bold text-primary">₹0 - ₹10L</span>
+                  </div>
+                  <input
+                    type="range"
+                    min={0}
+                    max={1000000}
+                    step={25000}
+                    value={budgetLimit}
+                    onChange={(e) => setBudgetLimit(Number(e.target.value))}
+                    className="w-full accent-[#7c56dc] cursor-pointer"
+                  />
+                  <div className="text-[11px] text-slate-500 font-semibold flex justify-between">
+                    <span>0</span>
+                    <span>Your Budget ₹: <strong>{budgetLimit.toLocaleString('en-IN')}</strong></span>
+                    <span>10L</span>
+                  </div>
+                </div>
+  
               </div>
-
-              {/* Description with Read More */}
-              <div className="text-xs text-slate-500 leading-relaxed pt-1">
-                <p>
-                  Are you planning to adopt a pet? You have come to the right place! India Pet Hub provides healthy puppies, dogs, cats and birds for adoption in India. We help you find animal shelters and pet adoption centres near you.
-                  {!isReadMoreOpen && (
+  
+              {/* 3. MOST POPULAR BREEDS CARD (BELOW THE FILTER) */}
+              <div className="bg-white rounded-2xl border border-beige shadow-sm p-5 space-y-3">
+                <div className="flex items-center justify-between border-b border-slate-100 pb-2.5">
+                  <h3 className="text-base font-bold text-primary">
+                    Most Popular Breeds
+                  </h3>
+                  {selectedBreedFilter !== 'All' && (
                     <button
                       type="button"
-                      onClick={() => setIsReadMoreOpen(true)}
-                      className="text-[#7c56dc] font-bold hover:underline ml-1 cursor-pointer"
+                      onClick={() => setSelectedBreedFilter('All')}
+                      className="text-[11px] text-primary font-bold hover:underline"
                     >
-                      ... Read More
+                      Reset
                     </button>
                   )}
-                </p>
-
-                {isReadMoreOpen && (
-                  <div className="mt-2 pt-2 border-t border-slate-100 text-slate-600 space-y-1.5 animate-in fade-in duration-200">
-                    <p>
-                      Every pet listed under our adoption umbrella undergoes medical verification, deworming, and vaccination checks. We connect compassionate pet parents with certified shelters, NGO rescues, and verified pet guardians across India.
-                    </p>
-                    <p>
-                      Adopting a companion brings immense joy to your family while giving a second chance of life to a deserving animal.
-                    </p>
+                </div>
+  
+                <div className="space-y-1 text-xs">
+                  {POPULAR_BREEDS.filter((b) => selectedPetType === 'all' || b.type === selectedPetType).map((b) => {
+                    const isSelected = selectedBreedFilter === b.name;
+                    return (
+                      <button
+                        key={b.name}
+                        type="button"
+                        onClick={() => {
+                          if (isSelected) {
+                            setSelectedBreedFilter('All');
+                          } else {
+                            setSelectedBreedFilter(b.name);
+                            toast.success(`Filtered by ${b.name}`);
+                          }
+                        }}
+                        className={`w-full flex items-center justify-between py-2 px-2.5 rounded-xl transition font-medium cursor-pointer text-left ${
+                          isSelected
+                            ? 'bg-sand text-primary font-bold border border-beige'
+                            : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+                        }`}
+                      >
+                        <span>{b.name}</span>
+                        <span className={`text-[11px] ${isSelected ? 'text-primary font-bold' : 'text-slate-400'}`}>
+                          ({b.count})
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+  
+            </aside>
+  
+  
+            {/* -----------------------------------------------------------------
+                RIGHT MAIN CONTENT: BREADCRUMB, HEADER, READ MORE & ADOPTION CARDS
+               ----------------------------------------------------------------- */}
+            <main className="lg:col-span-9 space-y-6">
+              
+              {/* Top Breadcrumb & SEO Header Card */}
+              <div className="bg-white rounded-2xl border border-beige p-5 shadow-sm space-y-2">
+                
+                {/* Breadcrumb */}
+                <div className="text-[11px] font-medium text-slate-400 flex items-center gap-1.5">
+                  <Link to="/" className="hover:text-slate-700">Home</Link>
+                  <span>&gt;</span>
+                  <span className="text-primary font-semibold capitalize">
+                    {selectedPetType === 'dogs' ? 'Dogs for adoption' : selectedPetType === 'cats' ? 'Cats for adoption' : selectedPetType === 'birds' ? 'Birds for adoption' : 'Pets for adoption'}
+                  </span>
+                  {selectedBreedFilter !== 'All' && (
+                    <>
+                      <span>&gt;</span>
+                      <span className="text-slate-700 font-bold">{selectedBreedFilter}</span>
+                    </>
+                  )}
+                </div>
+  
+                {/* Title & Results Count */}
+                <div className="flex flex-col sm:flex-row sm:items-baseline justify-between gap-1 pt-1">
+                  <h2 className="font-serif text-2xl md:text-3xl font-extrabold text-slate-900 capitalize">
+                    {selectedBreedFilter !== 'All'
+                      ? `${selectedBreedFilter} For Adoption`
+                      : selectedPetType === 'dogs'
+                      ? 'Dogs For Adoption'
+                      : selectedPetType === 'cats'
+                      ? 'Cats For Adoption'
+                      : selectedPetType === 'birds'
+                      ? 'Birds For Adoption'
+                      : 'Pets For Adoption'}
+                  </h2>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-bold text-gold-dark bg-sand px-3 py-1 rounded-full border border-beige">
+                      {filteredPets.length} Results Found
+                    </span>
                     <button
                       type="button"
-                      onClick={() => setIsReadMoreOpen(false)}
-                      className="text-[#7c56dc] font-bold hover:underline cursor-pointer"
+                      onClick={() => setShowAddPetModal(true)}
+                      className="sm:hidden px-3 py-1 bg-primary text-white text-xs font-bold rounded-lg flex items-center gap-1"
                     >
-                      Show Less
+                      <Plus size={13} /> Add Pet
                     </button>
                   </div>
-                )}
+                </div>
+  
+                {/* Description with Read More */}
+                <div className="text-xs text-slate-500 leading-relaxed pt-1">
+                  <p>
+                    Are you planning to adopt a pet? You have come to the right place! India Pet Hub provides healthy puppies, dogs, cats and birds for adoption in India. We help you find animal shelters and pet adoption centres near you.
+                    {!isReadMoreOpen && (
+                      <button
+                        type="button"
+                        onClick={() => setIsReadMoreOpen(true)}
+                        className="text-primary font-bold hover:underline ml-1 cursor-pointer"
+                      >
+                        ... Read More
+                      </button>
+                    )}
+                  </p>
+  
+                  {isReadMoreOpen && (
+                    <div className="mt-2 pt-2 border-t border-slate-100 text-slate-600 space-y-1.5 animate-in fade-in duration-200">
+                      <p>
+                        Every pet listed under our adoption umbrella undergoes medical verification, deworming, and vaccination checks. We connect compassionate pet parents with certified shelters, NGO rescues, and verified pet guardians across India.
+                      </p>
+                      <p>
+                        Adopting a companion brings immense joy to your family while giving a second chance of life to a deserving animal.
+                      </p>
+                      <button
+                        type="button"
+                        onClick={() => setIsReadMoreOpen(false)}
+                        className="text-primary font-bold hover:underline cursor-pointer"
+                      >
+                        Show Less
+                      </button>
+                    </div>
+                  )}
+                </div>
+  
               </div>
-
-            </div>
-
-
-            {/* =========================================================================
-                ADOPTION CARDS GRID (With Separate Page Navigation on "Know More")
-               ========================================================================= */}
-            {filteredPets.length > 0 ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
-                {filteredPets.map((pet) => (
-                  <div
-                    key={pet.id}
-                    className="bg-white rounded-2xl border border-purple-100/90 shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden flex flex-col justify-between group hover:-translate-y-1"
-                  >
-                    
-                    {/* Card Top: Image with Quality Badge (Clickable to detail page) */}
-                    <Link to={`/adopt/${pet.id}`} className="relative aspect-[4/3] overflow-hidden bg-purple-50 block">
-                      <img
-                        src={pet.image}
-                        alt={pet.name}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                        loading="lazy"
-                      />
+  
+  
+              {/* =========================================================================
+                  ADOPTION CARDS GRID (With Separate Page Navigation on "Know More")
+                 ========================================================================= */}
+              {filteredPets.length > 0 ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
+                  {filteredPets.map((pet) => (
+                    <div
+                      key={pet.id}
+                      className="bg-white rounded-2xl border border-beige/90 shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden flex flex-col justify-between group hover:-translate-y-1"
+                    >
                       
-                      {/* Quality Pill Badge Top Right */}
-                      <span className="absolute top-3 right-3 bg-[#7c56dc]/90 backdrop-blur-xs text-white text-[10px] font-bold px-2.5 py-0.5 rounded-md shadow-sm uppercase tracking-wider">
-                        {pet.quality}
-                      </span>
-                    </Link>
-
-                    {/* Card Body: Details */}
-                    <div className="p-4 space-y-2.5 flex-1 flex flex-col justify-between">
-                      
-                      <div className="space-y-1.5">
-                        {/* Name Header */}
-                        <h3 className="text-sm font-bold text-slate-800">
-                          Hi! My name is:{' '}
-                          <Link to={`/adopt/${pet.id}`} className="text-[#7c56dc] font-extrabold text-base hover:underline">
-                            {pet.name}
-                          </Link>
-                        </h3>
-
-                        {/* Specs Row 1 */}
-                        <div className="text-xs text-slate-600 flex items-center justify-between font-medium">
-                          <span className="flex items-center gap-1">
-                            Breed : <strong className="text-slate-800">{pet.breed}</strong>
-                            <Info size={12} className="text-slate-400 inline" title="Verified Breed Information" />
-                          </span>
-                          <span>
-                            Gender : <strong className="text-slate-800">{pet.gender}</strong>
-                          </span>
+                      {/* Card Top: Image with Quality Badge (Clickable to detail page) */}
+                      <Link to={`/adopt/${pet.id}`} className="relative aspect-[4/3] overflow-hidden bg-sand block">
+                        <img
+                          src={pet.image}
+                          alt={pet.name}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                          loading="lazy"
+                        />
+                        
+                        {/* Quality Pill Badge Top Right */}
+                        <span className="absolute top-3 right-3 bg-primary/90 backdrop-blur-xs text-white text-[10px] font-bold px-2.5 py-0.5 rounded-md shadow-sm uppercase tracking-wider">
+                          {pet.quality}
+                        </span>
+                      </Link>
+  
+                      {/* Card Body: Details */}
+                      <div className="p-4 space-y-2.5 flex-1 flex flex-col justify-between">
+                        
+                        <div className="space-y-1.5">
+                          {/* Name Header */}
+                          <h3 className="text-sm font-bold text-slate-800">
+                            Hi! My name is:{' '}
+                            <Link to={`/adopt/${pet.id}`} className="text-primary font-extrabold text-base hover:underline">
+                              {pet.name}
+                            </Link>
+                          </h3>
+  
+                          {/* Specs Row 1 */}
+                          <div className="text-xs text-slate-600 flex items-center justify-between font-medium">
+                            <span className="flex items-center gap-1">
+                              Breed : <strong className="text-slate-800">{pet.breed}</strong>
+                              <Info size={12} className="text-slate-400 inline" title="Verified Breed Information" />
+                            </span>
+                            <span>
+                              Gender : <strong className="text-slate-800">{pet.gender}</strong>
+                            </span>
+                          </div>
+  
+                          {/* Specs Row 2 */}
+                          <div className="text-xs text-slate-600 flex items-center justify-between font-medium">
+                            <span>
+                              Age : <strong className="text-slate-800">{pet.age}</strong>
+                            </span>
+                            <span>
+                              City : <strong className="text-slate-800">{pet.city}</strong>
+                            </span>
+                          </div>
+  
+                          {/* Personality Pill Tag */}
+                          <div className="pt-1">
+                            <span className="inline-block w-full bg-[#fef2f2] text-rose-700 text-[10.5px] font-semibold px-2.5 py-1 rounded-full text-center border border-rose-100/70 truncate">
+                              {pet.personality}
+                            </span>
+                          </div>
+  
+                          {/* Parent Contact Trigger */}
+                          <div className="text-center pt-0.5">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                toast.success(`📞 Contact for ${pet.name}: ${pet.parentContact} (${pet.parentName})`);
+                              }}
+                              className="text-[11px] text-primary font-bold hover:underline inline-flex items-center gap-1 cursor-pointer"
+                            >
+                              <span>{pet.name} Parent Contact</span>
+                              <Phone size={11} />
+                            </button>
+                          </div>
                         </div>
-
-                        {/* Specs Row 2 */}
-                        <div className="text-xs text-slate-600 flex items-center justify-between font-medium">
-                          <span>
-                            Age : <strong className="text-slate-800">{pet.age}</strong>
-                          </span>
-                          <span>
-                            City : <strong className="text-slate-800">{pet.city}</strong>
-                          </span>
-                        </div>
-
-                        {/* Personality Pill Tag */}
-                        <div className="pt-1">
-                          <span className="inline-block w-full bg-[#fef2f2] text-rose-700 text-[10.5px] font-semibold px-2.5 py-1 rounded-full text-center border border-rose-100/70 truncate">
-                            {pet.personality}
-                          </span>
-                        </div>
-
-                        {/* Parent Contact Trigger */}
-                        <div className="text-center pt-0.5">
+  
+                        {/* Action Buttons Row: WhatsApp + Separate Page "Know More" Button */}
+                        <div className="flex items-center gap-2 pt-2 border-t border-slate-100">
+                          {/* WhatsApp Button */}
                           <button
                             type="button"
-                            onClick={() => {
-                              toast.success(`📞 Contact for ${pet.name}: ${pet.parentContact} (${pet.parentName})`);
-                            }}
-                            className="text-[11px] text-[#7c56dc] font-bold hover:underline inline-flex items-center gap-1 cursor-pointer"
+                            onClick={() => handleWhatsAppChat(pet)}
+                            title={`Chat on WhatsApp about ${pet.name}`}
+                            className="w-10 h-10 rounded-xl bg-[#25D366] hover:bg-[#20bd5a] text-white flex items-center justify-center shrink-0 shadow-md shadow-emerald-500/20 active:scale-95 transition cursor-pointer"
                           >
-                            <span>{pet.name} Parent Contact</span>
-                            <Phone size={11} />
+                            <MessageSquare size={18} />
                           </button>
+  
+                          {/* Know More Button -> Navigates to SEPARATE PAGE */}
+                          <Link
+                            to={`/adopt/${pet.id}`}
+                            className="flex-1 py-2.5 px-3 bg-primary hover:bg-accent text-white rounded-xl font-bold text-xs shadow-md shadow-gold/20 active:scale-95 transition cursor-pointer text-center truncate block"
+                          >
+                            Know More About {pet.name}
+                          </Link>
                         </div>
+  
                       </div>
-
-                      {/* Action Buttons Row: WhatsApp + Separate Page "Know More" Button */}
-                      <div className="flex items-center gap-2 pt-2 border-t border-slate-100">
-                        {/* WhatsApp Button */}
-                        <button
-                          type="button"
-                          onClick={() => handleWhatsAppChat(pet)}
-                          title={`Chat on WhatsApp about ${pet.name}`}
-                          className="w-10 h-10 rounded-xl bg-[#25D366] hover:bg-[#20bd5a] text-white flex items-center justify-center shrink-0 shadow-md shadow-emerald-500/20 active:scale-95 transition cursor-pointer"
-                        >
-                          <MessageSquare size={18} />
-                        </button>
-
-                        {/* Know More Button -> Navigates to SEPARATE PAGE */}
-                        <Link
-                          to={`/adopt/${pet.id}`}
-                          className="flex-1 py-2.5 px-3 bg-[#7c56dc] hover:bg-[#6842c8] text-white rounded-xl font-bold text-xs shadow-md shadow-purple-600/20 active:scale-95 transition cursor-pointer text-center truncate block"
-                        >
-                          Know More About {pet.name}
-                        </Link>
-                      </div>
-
+  
                     </div>
-
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="bg-white rounded-2xl border border-purple-100 p-12 text-center space-y-3">
-                <div className="w-12 h-12 mx-auto rounded-full bg-purple-50 flex items-center justify-center text-[#7c56dc]">
-                  <Search size={24} />
+                  ))}
                 </div>
-                <h3 className="font-serif text-lg font-bold text-slate-800">No Adoption Pets Matching Filter</h3>
-                <p className="text-xs text-slate-500 max-w-sm mx-auto">
-                  Try adjusting your breed or city filters to explore more available companion pets.
-                </p>
-                <button
-                  type="button"
-                  onClick={handleResetFilters}
-                  className="px-4 py-2 bg-[#7c56dc] text-white rounded-xl text-xs font-bold transition shadow-xs cursor-pointer"
-                >
-                  Reset All Filters
-                </button>
-              </div>
-            )}
-
-          </main>
-
+              ) : (
+                <div className="bg-white rounded-2xl border border-beige p-12 text-center space-y-3">
+                  <div className="w-12 h-12 mx-auto rounded-full bg-sand flex items-center justify-center text-primary">
+                    <Search size={24} />
+                  </div>
+                  <h3 className="font-serif text-lg font-bold text-slate-800">No Adoption Pets Matching Filter</h3>
+                  <p className="text-xs text-slate-500 max-w-sm mx-auto">
+                    Try adjusting your breed or city filters to explore more available companion pets.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={handleResetFilters}
+                    className="px-4 py-2 bg-primary text-white rounded-xl text-xs font-bold transition shadow-xs cursor-pointer"
+                  >
+                    Reset All Filters
+                  </button>
+                </div>
+              )}
+  
+            </main>
+  
+          </div>
         </div>
-      </div>
+      </ScrollReveal>
 
 
       {/* =========================================================================
@@ -870,15 +873,15 @@ const AdoptionShelter = () => {
 
           <form
             onSubmit={handleAddPetSubmit}
-            className="relative bg-white w-full max-w-xl rounded-2xl shadow-2xl border border-purple-100 overflow-hidden z-10 animate-in fade-in zoom-in-95 duration-200 my-8"
+            className="relative bg-white w-full max-w-xl rounded-2xl shadow-2xl border border-beige overflow-hidden z-10 animate-in fade-in zoom-in-95 duration-200 my-8"
           >
             {/* Header */}
-            <div className="bg-[#7c56dc] text-white px-6 py-4 flex items-center justify-between">
+            <div className="bg-primary text-white px-6 py-4 flex items-center justify-between">
               <div>
                 <h3 className="font-serif text-base font-bold tracking-wide uppercase flex items-center gap-2">
                   <Plus size={18} /> Add Pet For Free Adoption
                 </h3>
-                <p className="text-[11px] text-purple-100 mt-0.5">
+                <p className="text-[11px] text-beige mt-0.5">
                   Help a loving companion find their forever family in India
                 </p>
               </div>
@@ -903,7 +906,7 @@ const AdoptionShelter = () => {
                     placeholder="e.g. Prince, Bella, Rocky"
                     value={newPetName}
                     onChange={(e) => setNewPetName(e.target.value)}
-                    className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-xs focus:outline-none focus:border-[#7c56dc] focus:ring-2 focus:ring-purple-100 font-medium"
+                    className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-xs focus:outline-none focus:border-primary focus:ring-2 focus:ring-beige font-medium"
                     required
                   />
                 </div>
@@ -918,7 +921,7 @@ const AdoptionShelter = () => {
                       const breeds = CATEGORY_BREEDS[selectedType] || CATEGORY_BREEDS.dogs;
                       setNewPetBreed(breeds[0]);
                     }}
-                    className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-xs focus:outline-none focus:border-[#7c56dc] font-medium bg-slate-50"
+                    className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-xs focus:outline-none focus:border-primary font-medium bg-slate-50"
                   >
                     <option value="dogs">🐶 Dog / Puppy</option>
                     <option value="cats">🐱 Cat / Kitten</option>
@@ -934,7 +937,7 @@ const AdoptionShelter = () => {
                   <select
                     value={newPetBreed}
                     onChange={(e) => setNewPetBreed(e.target.value)}
-                    className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-xs focus:outline-none focus:border-[#7c56dc] font-medium bg-slate-50"
+                    className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-xs focus:outline-none focus:border-primary font-medium bg-slate-50"
                   >
                     {(CATEGORY_BREEDS[newPetType] || CATEGORY_BREEDS.dogs).map((breedName) => (
                       <option key={breedName} value={breedName}>
@@ -954,7 +957,7 @@ const AdoptionShelter = () => {
                         onClick={() => setNewPetGender(g)}
                         className={`py-2 text-center rounded-xl font-bold border transition cursor-pointer ${
                           newPetGender === g
-                            ? 'bg-purple-50 border-[#7c56dc] text-[#7c56dc]'
+                            ? 'bg-sand border-primary text-primary'
                             : 'bg-white border-slate-200 text-slate-600'
                         }`}
                       >
@@ -974,7 +977,7 @@ const AdoptionShelter = () => {
                     placeholder="e.g. 10 Weeks or 1 Year"
                     value={newPetAge}
                     onChange={(e) => setNewPetAge(e.target.value)}
-                    className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-xs focus:outline-none focus:border-[#7c56dc] focus:ring-2 focus:ring-purple-100 font-medium"
+                    className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-xs focus:outline-none focus:border-primary focus:ring-2 focus:ring-beige font-medium"
                     required
                   />
                 </div>
@@ -984,7 +987,7 @@ const AdoptionShelter = () => {
                   <select
                     value={newPetQuality}
                     onChange={(e) => setNewPetQuality(e.target.value)}
-                    className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-xs focus:outline-none focus:border-[#7c56dc] font-medium bg-slate-50"
+                    className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-xs focus:outline-none focus:border-primary font-medium bg-slate-50"
                   >
                     <option value="Pet Quality">Pet Quality</option>
                     <option value="KCI Registered">KCI Registered</option>
@@ -1006,7 +1009,7 @@ const AdoptionShelter = () => {
                       const cities = INDIAN_STATES_CITIES[st] || ['Bangalore'];
                       setNewPetCity(cities[1] || cities[0]);
                     }}
-                    className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-xs focus:outline-none focus:border-[#7c56dc] font-medium bg-slate-50"
+                    className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-xs focus:outline-none focus:border-primary font-medium bg-slate-50"
                   >
                     {Object.keys(INDIAN_STATES_CITIES).filter(s => s !== 'All States').map((s) => (
                       <option key={s} value={s}>{s}</option>
@@ -1019,7 +1022,7 @@ const AdoptionShelter = () => {
                   <select
                     value={newPetCity}
                     onChange={(e) => setNewPetCity(e.target.value)}
-                    className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-xs focus:outline-none focus:border-[#7c56dc] font-medium bg-slate-50"
+                    className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-xs focus:outline-none focus:border-primary font-medium bg-slate-50"
                   >
                     {newPetAvailableCities.filter(c => c !== 'All Cities').map((c) => (
                       <option key={c} value={c}>{c}</option>
@@ -1036,7 +1039,7 @@ const AdoptionShelter = () => {
                   placeholder="e.g. Playful, Friendly, intelligent, House-trained"
                   value={newPetPersonality}
                   onChange={(e) => setNewPetPersonality(e.target.value)}
-                  className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-xs focus:outline-none focus:border-[#7c56dc] focus:ring-2 focus:ring-purple-100 font-medium"
+                  className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-xs focus:outline-none focus:border-primary focus:ring-2 focus:ring-beige font-medium"
                 />
               </div>
 
@@ -1049,7 +1052,7 @@ const AdoptionShelter = () => {
                     placeholder="Your Name or Shelter Name"
                     value={newPetGuardianName}
                     onChange={(e) => setNewPetGuardianName(e.target.value)}
-                    className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-xs focus:outline-none focus:border-[#7c56dc] font-medium"
+                    className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-xs focus:outline-none focus:border-primary font-medium"
                     required
                   />
                 </div>
@@ -1061,7 +1064,7 @@ const AdoptionShelter = () => {
                     placeholder="e.g. +91 98765 43210"
                     value={newPetPhone}
                     onChange={(e) => setNewPetPhone(e.target.value)}
-                    className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-xs focus:outline-none focus:border-[#7c56dc] font-medium"
+                    className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-xs focus:outline-none focus:border-primary font-medium"
                     required
                   />
                 </div>
@@ -1073,7 +1076,7 @@ const AdoptionShelter = () => {
                   <label className="font-bold text-slate-700 block">
                     Pet Photo from Gallery / Device
                   </label>
-                  <span className="text-[10px] text-purple-600 font-semibold bg-purple-50 px-2 py-0.5 rounded-md">
+                  <span className="text-[10px] text-gold font-semibold bg-sand px-2 py-0.5 rounded-md">
                     Max size: 5MB
                   </span>
                 </div>
@@ -1090,9 +1093,9 @@ const AdoptionShelter = () => {
                 {!newPetImage ? (
                   <label
                     htmlFor="pet-photo-upload"
-                    className="border-2 border-dashed border-purple-200 hover:border-[#7c56dc] bg-purple-50/40 hover:bg-purple-50/80 rounded-2xl p-4 flex flex-col items-center justify-center gap-2 cursor-pointer transition text-center group"
+                    className="border-2 border-dashed border-beige hover:border-primary bg-sand/40 hover:bg-sand/80 rounded-2xl p-4 flex flex-col items-center justify-center gap-2 cursor-pointer transition text-center group"
                   >
-                    <div className="w-10 h-10 rounded-full bg-purple-100 group-hover:bg-[#7c56dc] text-[#7c56dc] group-hover:text-white flex items-center justify-center transition">
+                    <div className="w-10 h-10 rounded-full bg-beige group-hover:bg-primary text-primary group-hover:text-white flex items-center justify-center transition">
                       <UploadCloud size={20} />
                     </div>
                     <div>
@@ -1105,7 +1108,7 @@ const AdoptionShelter = () => {
                     </div>
                   </label>
                 ) : (
-                  <div className="relative rounded-2xl border border-purple-200 bg-purple-50/50 p-2.5 flex items-center gap-3">
+                  <div className="relative rounded-2xl border border-beige bg-sand/50 p-2.5 flex items-center gap-3">
                     <img
                       src={newPetImage}
                       alt="Preview"
@@ -1120,7 +1123,7 @@ const AdoptionShelter = () => {
                       </p>
                       <label
                         htmlFor="pet-photo-upload"
-                        className="text-[11px] text-[#7c56dc] font-bold hover:underline cursor-pointer inline-block mt-0.5"
+                        className="text-[11px] text-primary font-bold hover:underline cursor-pointer inline-block mt-0.5"
                       >
                         Change Photo
                       </label>
@@ -1138,7 +1141,7 @@ const AdoptionShelter = () => {
               </div>
 
               {/* Medical Verification Checkboxes */}
-              <div className="bg-purple-50/70 p-3 rounded-xl border border-purple-150 space-y-2">
+              <div className="bg-sand/70 p-3 rounded-xl border border-purple-150 space-y-2">
                 <span className="font-bold text-slate-800 block">Health & Verification:</span>
                 <div className="grid grid-cols-3 gap-2">
                   <label className="flex items-center gap-1.5 cursor-pointer font-medium text-slate-700">
@@ -1146,7 +1149,7 @@ const AdoptionShelter = () => {
                       type="checkbox"
                       checked={newPetVaccinated}
                       onChange={(e) => setNewPetVaccinated(e.target.checked)}
-                      className="rounded text-[#7c56dc] focus:ring-0 cursor-pointer"
+                      className="rounded text-primary focus:ring-0 cursor-pointer"
                     />
                     <span>Vaccinated</span>
                   </label>
@@ -1155,7 +1158,7 @@ const AdoptionShelter = () => {
                       type="checkbox"
                       checked={newPetDewormed}
                       onChange={(e) => setNewPetDewormed(e.target.checked)}
-                      className="rounded text-[#7c56dc] focus:ring-0 cursor-pointer"
+                      className="rounded text-primary focus:ring-0 cursor-pointer"
                     />
                     <span>Dewormed</span>
                   </label>
@@ -1164,7 +1167,7 @@ const AdoptionShelter = () => {
                       type="checkbox"
                       checked={newPetNeutered}
                       onChange={(e) => setNewPetNeutered(e.target.checked)}
-                      className="rounded text-[#7c56dc] focus:ring-0 cursor-pointer"
+                      className="rounded text-primary focus:ring-0 cursor-pointer"
                     />
                     <span>Neutered</span>
                   </label>
@@ -1179,7 +1182,7 @@ const AdoptionShelter = () => {
                   placeholder="Tell adopting families about their habits, favorite games, and gentle nature..."
                   value={newPetBio}
                   onChange={(e) => setNewPetBio(e.target.value)}
-                  className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-xs focus:outline-none focus:border-[#7c56dc] font-medium"
+                  className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-xs focus:outline-none focus:border-primary font-medium"
                   required
                 ></textarea>
               </div>
@@ -1197,7 +1200,7 @@ const AdoptionShelter = () => {
               </button>
               <button
                 type="submit"
-                className="px-6 py-2.5 bg-[#7c56dc] hover:bg-[#6842c8] text-white font-bold rounded-xl text-xs shadow-md shadow-purple-600/25 active:scale-95 transition cursor-pointer flex items-center gap-1.5"
+                className="px-6 py-2.5 bg-primary hover:bg-accent text-white font-bold rounded-xl text-xs shadow-md shadow-gold/25 active:scale-95 transition cursor-pointer flex items-center gap-1.5"
               >
                 <Check size={16} />
                 <span>Publish Free Adoption Listing</span>

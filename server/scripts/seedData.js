@@ -30,6 +30,13 @@ export const brands = [
 
 export const users = [
   {
+    name: 'Pawora Superadmin',
+    email: 'superadmin@pawora.com',
+    password: hashPassword('SuperAdmin@123'),
+    role: 'SUPERADMIN',
+    addresses: []
+  },
+  {
     name: 'Pawora Admin',
     email: 'admin@pawora.com',
     password: hashPassword('Admin@123'),

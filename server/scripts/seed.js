@@ -21,6 +21,7 @@ const seedData = async () => {
   
   // 1. Generate Static Object IDs
   const userIds = [
+    new mongoose.Types.ObjectId('60d5ec49ad70591244000000'), // Superadmin
     new mongoose.Types.ObjectId('60d5ec49ad70591244000001'), // Admin
     new mongoose.Types.ObjectId('60d5ec49ad70591244000002'), // Aarav
     new mongoose.Types.ObjectId('60d5ec49ad70591244000003'), // Ananya
@@ -100,36 +101,36 @@ const seedData = async () => {
   const mappedReviews = [
     {
       _id: new mongoose.Types.ObjectId('60d5ec49ad70591247000001'),
-      user: userIds[1],
-      userName: mappedUsers[1].name,
+      user: userIds[2],
+      userName: mappedUsers[2].name,
       product: productIds[0], // Royal Canin
       ...reviews[0]
     },
     {
       _id: new mongoose.Types.ObjectId('60d5ec49ad70591247000002'),
-      user: userIds[2],
-      userName: mappedUsers[2].name,
+      user: userIds[3],
+      userName: mappedUsers[3].name,
       product: productIds[0], // Royal Canin
       ...reviews[1]
     },
     {
       _id: new mongoose.Types.ObjectId('60d5ec49ad70591247000003'),
-      user: userIds[1],
-      userName: mappedUsers[1].name,
+      user: userIds[2],
+      userName: mappedUsers[2].name,
       product: productIds[21], // Beaphar Joint Fit
       ...reviews[2]
     },
     {
       _id: new mongoose.Types.ObjectId('60d5ec49ad70591247000004'),
-      user: userIds[2],
-      userName: mappedUsers[2].name,
+      user: userIds[3],
+      userName: mappedUsers[3].name,
       product: productIds[16], // Exo Terra Glass Terrarium
       ...reviews[3]
     },
     {
       _id: new mongoose.Types.ObjectId('60d5ec49ad70591247000005'),
-      user: userIds[1],
-      userName: mappedUsers[1].name,
+      user: userIds[2],
+      userName: mappedUsers[2].name,
       product: productIds[24], // API Stress Coat
       ...reviews[4]
     }
