@@ -28,7 +28,7 @@ const MegaMenu = ({ category, onClose }) => {
           name: 'Style & Grooming',
           links: [
             { label: 'Leather Collars & Leashes', path: '/shop?petType=dogs&category=Treats&subcategory=Collars+%26+Leashes' },
-            { label: 'Premium Shampoo & Oils', path: '/shop?petType=dogs&category=Treats&subcategory=Grooming' },
+            { label: 'Premium Accessories', path: '/shop?petType=dogs&category=Treats&subcategory=Other+Accessories' },
             { label: 'Supplements & Coat Care', path: '/shop?petType=dogs&category=Treats&subcategory=Supplements' }
           ]
         }
@@ -58,7 +58,7 @@ const MegaMenu = ({ category, onClose }) => {
           name: 'Chews & Play',
           links: [
             { label: 'Wooden Chew Toys', path: '/shop?petType=birds&category=Cages+%26+Habitat&subcategory=Toys' },
-            { label: 'Avian Parasite Sprays', path: '/shop?petType=birds&category=Bird+Food&subcategory=Grooming' }
+            { label: 'Other Bird Accessories', path: '/shop?petType=birds&category=Bird+Food&subcategory=Other+Accessories' }
           ]
         }
       ]

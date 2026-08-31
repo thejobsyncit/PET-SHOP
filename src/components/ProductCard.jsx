@@ -71,32 +71,32 @@ const ProductCard = ({ product }) => {
         onClick={handleCardClick}
         onMouseEnter={() => setHovered(true)}
         onMouseLeave={() => setHovered(false)}
-        className="card-premium group relative flex flex-col h-full cursor-pointer bg-white"
+        className="card-premium group relative flex flex-col h-full cursor-pointer bg-white/95 backdrop-blur-xl"
       >
         {/* Badges Overlay */}
-        <div className="absolute top-3 left-3 z-10 flex flex-col gap-1.5">
+        <div className="absolute top-4 left-4 z-10 flex flex-col gap-2">
           {product.isBestSeller && (
-            <span className="px-2.5 py-1 bg-primary text-secondary text-[9px] font-bold tracking-wider uppercase">
+            <span className="px-3 py-1.5 bg-primary/90 text-white text-[9px] font-black tracking-widest uppercase rounded-full shadow-lg backdrop-blur-md border border-white/20">
               Bestseller
             </span>
           )}
           {product.discountPercentage > 0 && (
-            <span className="px-2.5 py-1 bg-accent text-primary text-[9px] font-bold tracking-wider uppercase">
+            <span className="px-3 py-1.5 bg-amber-400/90 text-primary text-[9px] font-black tracking-widest uppercase rounded-full shadow-lg backdrop-blur-md border border-white/40">
               Save {product.discountPercentage}%
             </span>
           )}
           {product.requiresPrescription && (
-            <span className="px-2.5 py-1 bg-red-600 text-white text-[9px] font-bold tracking-wider uppercase flex items-center gap-1">
+            <span className="px-3 py-1.5 bg-red-600/90 text-white text-[9px] font-black tracking-widest uppercase flex items-center gap-1.5 rounded-full shadow-lg backdrop-blur-md border border-white/20">
               <ClipboardList size={10} /> Rx Required
             </span>
           )}
           {product.stock === 0 && (
-            <span className="px-2.5 py-1 bg-gray-400 text-white text-[9px] font-bold tracking-wider uppercase">
-              Out of stock
+            <span className="px-3 py-1.5 bg-gray-600/90 text-white text-[9px] font-black tracking-widest uppercase rounded-full shadow-lg backdrop-blur-md border border-white/20">
+              Sold Out
             </span>
           )}
           {product.stock > 0 && product.stock <= product.lowStockThreshold && (
-            <span className="px-2.5 py-1 bg-orange-500 text-white text-[9px] font-bold tracking-wider uppercase flex items-center gap-1">
+            <span className="px-3 py-1.5 bg-orange-500/90 text-white text-[9px] font-black tracking-widest uppercase flex items-center gap-1.5 rounded-full shadow-lg backdrop-blur-md border border-white/20">
               <ShieldAlert size={10} /> Low Stock
             </span>
           )}
@@ -105,76 +105,78 @@ const ProductCard = ({ product }) => {
         {/* Wishlist Heart */}
         <button
           onClick={handleToggleWishlist}
-          className="absolute top-3 right-3 z-10 p-2 bg-white/80 backdrop-blur-sm border border-beige hover:bg-white hover:text-red-500 transition duration-300 rounded-full cursor-pointer text-gray-400"
+          className="absolute top-4 right-4 z-20 p-2.5 bg-white/80 backdrop-blur-md border border-white shadow-sm hover:bg-white hover:text-red-500 hover:shadow-lg hover:scale-110 transition-all duration-300 rounded-full cursor-pointer text-gray-400"
         >
           <Heart size={16} className={isWishlisted ? "fill-red-500 text-red-500" : ""} />
         </button>
 
         {/* Image Display */}
-        <div className="relative aspect-square overflow-hidden bg-gray-50 border-b border-beige">
+        <div className="relative aspect-square overflow-hidden bg-gray-50/50">
           <img
             src={hovered && product.images[1] ? product.images[1] : product.images[0]}
             alt={product.name}
-            className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+            className="w-full h-full object-cover transition-all duration-700 ease-out group-hover:scale-[1.15] group-hover:-rotate-1"
           />
 
           {/* Quick Buttons Hover Overlay */}
-          <div className="absolute inset-0 bg-primary/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center gap-3">
+          <div className="absolute inset-0 bg-primary/30 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-all duration-500 flex items-center justify-center gap-4">
             <button
               onClick={handleOpenQuickView}
-              className="p-3 bg-white text-primary hover:bg-accent hover:text-primary transition duration-300 rounded-full shadow-md cursor-pointer"
+              className="p-3.5 bg-white/90 text-primary hover:bg-white hover:scale-110 transition-all duration-300 rounded-full shadow-[0_8px_30px_rgb(0,0,0,0.12)] transform translate-y-8 group-hover:translate-y-0 cursor-pointer"
               title="Quick View"
             >
-              <Eye size={18} />
+              <Eye size={20} />
             </button>
             <button
               onClick={handleQuickAdd}
               disabled={product.stock === 0}
-              className={`p-3 rounded-full shadow-md transition duration-300 cursor-pointer ${
+              className={`p-3.5 rounded-full shadow-[0_8px_30px_rgb(0,0,0,0.12)] transition-all duration-300 transform translate-y-8 group-hover:translate-y-0 cursor-pointer hover:scale-110 ${
                 product.stock === 0 
-                  ? 'bg-gray-200 text-gray-400 cursor-not-allowed' 
-                  : 'bg-primary text-white hover:bg-accent hover:text-primary'
+                  ? 'bg-gray-200/90 text-gray-400 cursor-not-allowed' 
+                  : 'bg-primary/95 text-white hover:bg-primary'
               }`}
               title="Add to Cart"
             >
-              <ShoppingBag size={18} />
+              <ShoppingBag size={20} />
             </button>
           </div>
         </div>
 
         {/* Product Details Section */}
-        <div className="p-4 flex-grow flex flex-col justify-between">
-          <div className="space-y-1">
-            <span className="text-[10px] uppercase tracking-widest text-accent font-semibold block">
+        <div className="p-6 flex-grow flex flex-col justify-between bg-white z-10 relative">
+          <div className="absolute top-0 left-6 right-6 h-px bg-gradient-to-r from-transparent via-gray-200 to-transparent"></div>
+          
+          <div className="space-y-2 mt-2">
+            <span className="text-[10px] uppercase tracking-[0.25em] text-accent font-black block">
               {product.brand}
             </span>
-            <h3 className="font-serif text-sm text-primary font-medium line-clamp-2 min-h-[40px] group-hover:text-accent transition duration-300">
+            <h3 className="font-serif text-base md:text-lg text-primary font-bold line-clamp-2 min-h-[48px] leading-tight group-hover:text-accent transition duration-300">
               {product.name}
             </h3>
             
             {/* Reviews display */}
-            <div className="flex items-center gap-1.5 pt-1">
-              <RatingStars rating={product.rating} size={12} />
-              <span className="text-[10px] text-gray-400 font-medium">({product.reviewCount})</span>
+            <div className="flex items-center gap-2 pt-1">
+              <RatingStars rating={product.rating} size={14} />
+              <span className="text-xs text-gray-400 font-medium tracking-wide">({product.reviewCount} Reviews)</span>
             </div>
           </div>
 
-          <div className="flex justify-between items-end pt-4 border-t border-beige mt-3">
+          <div className="flex justify-between items-end pt-5 mt-4 border-t border-gray-50 border-dashed">
             <div className="flex flex-col">
               {discountPrice ? (
-                <div className="flex items-baseline gap-1.5">
-                  <span className="text-sm font-bold text-primary">₹{discountPrice}</span>
-                  <span className="text-xs text-gray-400 line-through">₹{price}</span>
+                <div className="flex items-baseline gap-2.5">
+                  <span className="text-xl font-black text-primary tracking-tight">₹{discountPrice}</span>
+                  <span className="text-sm text-gray-400 line-through font-medium">₹{price}</span>
                 </div>
               ) : (
-                <span className="text-sm font-bold text-primary">₹{price}</span>
+                <span className="text-xl font-black text-primary tracking-tight">₹{price}</span>
               )}
             </div>
-            <span className="text-[9px] uppercase tracking-wider text-gray-400 font-semibold">
-              {product.petType === 'dogs' ? 'For Dogs' :
-               product.petType === 'birds' ? 'For Birds' :
-               product.petType === 'reptiles' ? 'For Reptiles' :
-               product.petType === 'fish' ? 'For Aquatics' : 'Pharmacy'}
+            <span className="text-[10px] uppercase tracking-widest text-primary font-bold bg-secondary/80 px-3 py-1.5 rounded-lg shadow-sm border border-white">
+              {product.petType === 'dogs' ? 'Dogs' :
+               product.petType === 'birds' ? 'Birds' :
+               product.petType === 'reptiles' ? 'Reptiles' :
+               product.petType === 'fish' ? 'Aquatics' : 'Pharmacy'}
             </span>
           </div>
         </div>

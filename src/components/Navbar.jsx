@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
-import { Search, Heart, ShoppingBag, Menu, X, ChevronDown, User, LogOut, MessageSquare, Briefcase, Lock, ShieldAlert } from 'lucide-react';
+import { Search, Heart, ShoppingBag, Menu, X, ChevronDown, User, LogOut, MessageSquare, PawPrint, Briefcase, Lock, ShieldAlert } from 'lucide-react';
 import SearchOverlay from './SearchOverlay.jsx';
 import CartDrawer from './CartDrawer.jsx';
 import { logout } from '../store/slices/authSlice.js';
@@ -88,7 +88,7 @@ const Navbar = () => {
 
   return (
     <>
-      <header className="fixed top-0 left-0 w-full z-40 transition-all duration-300">
+      <header className="sticky top-0 left-0 w-full z-50 transition-all duration-300">
 
         {/* Top Announcement Bar */}
         <div className="bg-primary-dark text-white text-[10px] tracking-widest font-semibold py-2 px-4 text-center border-b border-white/5">
@@ -113,9 +113,25 @@ const Navbar = () => {
             {/* Left: Brand Logo */}
             <Link
               to="/"
-              className="font-serif text-xl md:text-2xl tracking-widest text-white font-bold whitespace-nowrap mr-4"
+              className="mr-4 flex items-center font-extrabold tracking-tight text-2xl md:text-3xl"
             >
-              PAWORA
+              {/* J-Animal Logo (True Transparent Background) */}
+              <img 
+                src="/logo.png" 
+                alt="Josh Pet Hub Logo" 
+                className="h-10 md:h-12 w-auto object-contain mr-2" 
+              />
+              
+              {/* JOSH PETS HUB (Uniform White) */}
+              <span className="text-white drop-shadow-sm flex items-center font-black tracking-tight">
+                J
+                <div className="relative mx-0.5 flex items-center justify-center bg-white rounded-full w-5 h-5 md:w-6 md:h-6 shadow-sm">
+                  <PawPrint size={14} className="text-orange-500 fill-orange-500" />
+                </div>
+                SH 
+                <span className="ml-1.5 md:ml-2">PETS</span> 
+                <span className="ml-1.5 md:ml-2">HUB</span>
+              </span>
             </Link>
 
             {/* Center Nav Links */}
@@ -374,7 +390,23 @@ const Navbar = () => {
           <div className="relative w-full max-w-xs bg-primary text-white shadow-2xl flex flex-col justify-between p-6 overflow-y-auto">
             <div>
               <div className="flex justify-between items-center mb-8 border-b border-white/10 pb-4">
-                <span className="font-serif text-xl tracking-widest font-bold">PAWORA</span>
+                <div className="flex items-center font-extrabold tracking-tight text-xl">
+                  {/* J-Animal Logo */}
+                  <img 
+                    src="/logo.png" 
+                    alt="Josh Pet Hub Logo" 
+                    className="h-8 w-auto object-contain mr-1.5" 
+                  />
+                  <span className="text-white drop-shadow-sm flex items-center font-black tracking-tight">
+                    J
+                    <div className="relative mx-0.5 flex items-center justify-center bg-white rounded-full w-4 h-4 shadow-sm">
+                      <PawPrint size={10} className="text-orange-500 fill-orange-500" />
+                    </div>
+                    SH 
+                    <span className="ml-1">PETS</span> 
+                    <span className="ml-1">HUB</span>
+                  </span>
+                </div>
                 <button onClick={() => setIsMobileMenuOpen(false)} className="p-1 text-white cursor-pointer">
                   <X size={24} />
                 </button>
@@ -485,9 +517,6 @@ const Navbar = () => {
       {/* Global Overlays */}
       <SearchOverlay isOpen={isSearchOpen} onClose={() => setIsSearchOpen(false)} />
       <CartDrawer isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} />
-
-      {/* Spacer to push content below navbar */}
-      <div className="h-[96px]"></div>
     </>
   );
 };

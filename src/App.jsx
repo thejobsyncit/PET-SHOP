@@ -19,6 +19,7 @@ import About from './pages/About.jsx';
 import Contact from './pages/Contact.jsx';
 import Login from './pages/Login.jsx';
 import AdminDashboard from './pages/AdminDashboard.jsx';
+import SuperAdminDashboard from './pages/SuperAdminDashboard.jsx';
 import ServiceProviderDashboard from './pages/ServiceProviderDashboard.jsx';
 import NotFound from './pages/NotFound.jsx';
 
@@ -115,6 +116,7 @@ function App() {
 
           {/* Admin Panels */}
           <Route path="Admin.com" element={<AdminDashboard />} />
+          <Route path="superadmin.com" element={<SuperAdminDashboard />} />
           
           {/* Fallback 404 */}
           <Route path="*" element={<NotFound />} />

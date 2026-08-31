@@ -99,7 +99,7 @@ router.put('/:id', protect, async (req, res) => {
       if (!listing) return res.status(404).json({ success: false, message: 'Listing not found' });
       
       // Ensure is owner or admin
-      if (listing.user.toString() !== req.user._id.toString() && req.user.role !== 'ADMIN') {
+      if (listing.user.toString() !== req.user._id.toString() && req.user.role !== 'ADMIN' && req.user.role !== 'SUPERADMIN') {
         return res.status(401).json({ success: false, message: 'Not authorized' });
       }
 
@@ -112,7 +112,7 @@ router.put('/:id', protect, async (req, res) => {
       if (idx === -1) return res.status(404).json({ success: false, message: 'Listing not found' });
 
       const lOwnerId = listings[idx].user?._id || listings[idx].user;
-      if (lOwnerId !== req.user._id.toString() && req.user.role !== 'ADMIN') {
+      if (lOwnerId !== req.user._id.toString() && req.user.role !== 'ADMIN' && req.user.role !== 'SUPERADMIN') {
         return res.status(401).json({ success: false, message: 'Not authorized' });
       }
 
@@ -154,7 +154,7 @@ router.delete('/:id', protect, async (req, res) => {
       const listing = await Listing.findById(req.params.id);
       if (!listing) return res.status(404).json({ success: false, message: 'Listing not found' });
 
-      if (listing.user.toString() !== req.user._id.toString() && req.user.role !== 'ADMIN') {
+      if (listing.user.toString() !== req.user._id.toString() && req.user.role !== 'ADMIN' && req.user.role !== 'SUPERADMIN') {
         return res.status(401).json({ success: false, message: 'Not authorized' });
       }
 
@@ -166,7 +166,7 @@ router.delete('/:id', protect, async (req, res) => {
       if (idx === -1) return res.status(404).json({ success: false, message: 'Listing not found' });
 
       const lOwnerId = listings[idx].user?._id || listings[idx].user;
-      if (lOwnerId !== req.user._id.toString() && req.user.role !== 'ADMIN') {
+      if (lOwnerId !== req.user._id.toString() && req.user.role !== 'ADMIN' && req.user.role !== 'SUPERADMIN') {
         return res.status(401).json({ success: false, message: 'Not authorized' });
       }
 

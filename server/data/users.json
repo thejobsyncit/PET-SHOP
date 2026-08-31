@@ -1,9 +1,19 @@
 [
   {
+    "_id": "60d5ec49ad70591244000000",
+    "name": "Pawora Superadmin",
+    "email": "superadmin@pawora.com",
+    "password": "$2b$10$5hHvYLhqwHd7ENqhqgXVCOuEPAgdBpPHa66TAgDCpmI9De2GhzOYK",
+    "role": "SUPERADMIN",
+    "addresses": [],
+    "wishlist": [],
+    "cart": []
+  },
+  {
     "_id": "60d5ec49ad70591244000001",
     "name": "Pawora Admin",
     "email": "admin@pawora.com",
-    "password": "$2b$10$EaSoWoZ8vOsGyiqibjAvv.0ljQbxKr5HDQDRjhd8FYUhw/pZgrdr2",
+    "password": "$2b$10$2oKHUyTgdurmp0uLJ2SBue3Q6U9g.u/9wEyiYhNiy0kUHE.Wcb6x6",
     "role": "ADMIN",
     "addresses": [
       {
@@ -24,7 +34,7 @@
     "_id": "60d5ec49ad70591244000002",
     "name": "Aarav Sharma",
     "email": "customer1@pawora.com",
-    "password": "$2b$10$IuhpvdnnZ8YWx7vYGLXAQOf57csGpyxMSglY.oLAOE6A/WnAR.jt.",
+    "password": "$2b$10$UBKNxbmjqmyMB/rJXKyC2OQSCNSpWezvmv8zj6GAtR1R1LrfTrgJK",
     "role": "CUSTOMER",
     "addresses": [
       {
@@ -45,7 +55,7 @@
     "_id": "60d5ec49ad70591244000003",
     "name": "Ananya Iyer",
     "email": "customer2@pawora.com",
-    "password": "$2b$10$24LGkLMQH6T/yoH9qqJu5uldkurhmS/BpAbkOi6JMuYNUYpspkZwm",
+    "password": "$2b$10$EPA6NUULza9T9jvBIVXDaufTBDE.v7qMYMmDSGBEiD9WNUj3uWUCO",
     "role": "CUSTOMER",
     "addresses": [
       {
@@ -66,7 +76,7 @@
     "_id": "60d5ec49ad70591244000004",
     "name": "Rahul Verma",
     "email": "customer3@pawora.com",
-    "password": "$2b$10$O01hfHlAR5OSNKLAHsiV/O2O.wR5/g2OutdQqmKLL0qX.wus5gXq.",
+    "password": "$2b$10$oyg5M5b2HVs/O2QfX0qZ4.cTA96rPie8.uSHH2/K7V01auFnB6B0O",
     "role": "CUSTOMER",
     "addresses": [],
     "wishlist": [],
@@ -76,7 +86,7 @@
     "_id": "60d5ec49ad70591244000005",
     "name": "Pooja Nair",
     "email": "customer4@pawora.com",
-    "password": "$2b$10$OCPFH13l44dxaRrae7Zio.A15hOX3rTvhuyDztfEeiGam39NmBHmC",
+    "password": "$2b$10$CtyrHFdFhOCOB4hBhwicZ.77DMVRBRQ3DniTK/VBnF07cnrFMR/lO",
     "role": "CUSTOMER",
     "addresses": [],
     "wishlist": [],
@@ -86,25 +96,10 @@
     "_id": "60d5ec49ad70591244000006",
     "name": "Vikram Singh",
     "email": "customer5@pawora.com",
-    "password": "$2b$10$95UYWR5M9q3jxs.Vo0fzNOKSc8EqmXDUEEJf2d0Vgh39NYC0EtEPa",
+    "password": "$2b$10$tFHlrZPmIy5fJiSojHpD9.kYByvgyf4Qanz7EVPsVFHJmLO/DWBma",
     "role": "CUSTOMER",
     "addresses": [],
     "wishlist": [],
     "cart": []
-  },
-  {
-    "_id": "6a912da7b08a341adcdc9727",
-    "name": "Aarav",
-    "email": "aarav@pawora.com",
-    "password": "$2b$10$0/HEO0NTHb4rmtgZvRUFNu9HqxRKzlKPYctfG1RQCJYegysyILpm6",
-    "role": "CUSTOMER",
-    "mobile": "9876543210",
-    "location": "Bangalore, Karnataka",
-    "serviceCategory": "",
-    "addresses": [],
-    "wishlist": [],
-    "cart": [],
-    "prescriptionHistory": [],
-    "createdAt": "2026-08-28T06:41:43.234Z"
   }
 ]

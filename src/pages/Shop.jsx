@@ -3,10 +3,11 @@ import { useSearchParams } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { 
   SlidersHorizontal, ArrowUpDown, RefreshCw, X, ChevronDown, Check, 
-  ChevronRight, Sparkles, Filter 
+  ChevronRight, Sparkles, Filter, SearchX 
 } from 'lucide-react';
 import { fetchProducts, setFilter, resetFilters } from '../store/slices/productSlice.js';
 import ProductCard from '../components/ProductCard.jsx';
+import ScrollReveal from '../components/ScrollReveal.jsx';
 
 // Brand mappings per pet department & pharmacy pet type
 const DEPARTMENT_BRANDS = {
@@ -173,7 +174,14 @@ const Shop = () => {
       title: 'Dogs & Canines',
       desc: 'Expertly selected nutrition, organic treats, supportive memory-foam beds, leashes, and veterinary healthcare formulations tailored for large, medium, and small breed companions.',
       hero: 'https://images.unsplash.com/photo-1548199973-03cce0bbc87b?q=80&w=1200&auto=format&fit=crop',
-      subcategories: ['Dog Food', 'Treats', 'Dog Beds & Cotes', 'Grooming', 'Collars & Leashes', 'Supplements'],
+      subcategories: [
+        { name: 'Dog Food', img: 'https://images.unsplash.com/photo-1589924691995-400dc9ecc119?w=300&auto=format&fit=crop' },
+        { name: 'Treats', img: 'https://images.unsplash.com/photo-1583337130417-3346a1be7dee?w=300&auto=format&fit=crop' },
+        { name: 'Dog Beds & Cotes', img: 'https://images.unsplash.com/photo-1576201836106-db1758fd1c97?w=300&auto=format&fit=crop' },
+        { name: 'Collars & Leashes', img: 'https://images.unsplash.com/photo-1535930891776-0c2dfb7fda1a?w=300&auto=format&fit=crop' },
+        { name: 'Supplements', img: 'https://images.unsplash.com/photo-1601758124510-52d02ddb7cbd?w=300&auto=format&fit=crop' },
+        { name: 'Other Accessories', img: 'https://images.unsplash.com/photo-1527526029430-319f10814151?w=300&auto=format&fit=crop' }
+      ],
       faqs: [
         { q: 'How do I choose the correct food type for my puppy?', a: 'Puppies require highly digestible proteins and specialized fat ratios for rapid bone growth. Look for specialized labels like Himalaya Healthy Pet Food for Puppies.' },
         { q: 'Why should I buy an elevated food bowl stand?', a: 'Elevating feeding bowls improves digestive alignment, reduces neck strain, and prevents gas bloating during meals in medium and large breeds.' }
@@ -183,7 +191,13 @@ const Shop = () => {
       title: 'Cats & Felines',
       desc: 'Nutritious gourmet wet and dry food, scratching trees, catnip toys, grooming brushes, and gentle healthcare products designed for happy, healthy cats.',
       hero: 'https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?q=80&w=1200&auto=format&fit=crop',
-      subcategories: ['Cat Food', 'Treats', 'Grooming', 'Supplements', 'Beds & Scratchers'],
+      subcategories: [
+        { name: 'Cat Food', img: 'https://images.unsplash.com/photo-1513360371669-4adf3dd7dff8?w=300&auto=format&fit=crop' },
+        { name: 'Treats', img: 'https://images.unsplash.com/photo-1533743983669-94fa5c4338ec?w=300&auto=format&fit=crop' },
+        { name: 'Supplements', img: 'https://images.unsplash.com/photo-1574158622682-e40e69881006?w=300&auto=format&fit=crop' },
+        { name: 'Beds & Scratchers', img: 'https://images.unsplash.com/photo-1517331156700-3c241d2b4d83?w=300&auto=format&fit=crop' },
+        { name: 'Other Accessories', img: 'https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=300&auto=format&fit=crop' }
+      ],
       faqs: [
         { q: 'Why is wet food essential for cats?', a: 'Cats have a low thirst drive. Wet food provides vital hydration to prevent urinary tract infections and kidney issues.' },
         { q: 'How do I choose the best scratching post?', a: 'Choose tall, sturdy posts made with natural sisal rope so cats can stretch their full body while maintaining their claws.' }
@@ -193,7 +207,14 @@ const Shop = () => {
       title: 'Birds & Aviary',
       desc: 'Premium seed blends, trace mineral blocks, Java wood perches, cage systems, and multivitamin drops formulated to maintain optimal plumage, beak size, and bird vitality.',
       hero: 'https://images.unsplash.com/photo-1452570053594-1b985d6ea890?q=80&w=1200&auto=format&fit=crop',
-      subcategories: ['Bird Food', 'Cages & Habitat', 'Perches', 'Toys', 'Supplements', 'Grooming'],
+      subcategories: [
+        { name: 'Bird Food', img: 'https://images.unsplash.com/photo-1555685812-4b943f1cb0eb?w=300&auto=format&fit=crop' },
+        { name: 'Cages & Habitat', img: 'https://images.unsplash.com/photo-1522849508890-ce0f90768b20?w=300&auto=format&fit=crop' },
+        { name: 'Perches', img: 'https://images.unsplash.com/photo-1452570053594-1b985d6ea890?w=300&auto=format&fit=crop' },
+        { name: 'Toys', img: 'https://images.unsplash.com/photo-1602058376483-e8eeeb63b320?w=300&auto=format&fit=crop' },
+        { name: 'Supplements', img: 'https://images.unsplash.com/photo-1533591380302-3c1a3556d4ea?w=300&auto=format&fit=crop' },
+        { name: 'Other Accessories', img: 'https://images.unsplash.com/photo-1517789123015-77983ffef1c9?w=300&auto=format&fit=crop' }
+      ],
       faqs: [
         { q: 'Why are natural wood perches better than plastic dowels?', a: 'Uniform plastic or smooth wood perches cause pressure sores and nail overgrowth. Natural java perches have varying diameters which exercise foot muscles and trim nails naturally.' },
         { q: 'How often should a bird have mineral blocks?', a: 'Mineral blocks must be kept inside the cage at all times. They provide vital calcium for bones and shells and keep their beaks trimmed.' }
@@ -203,7 +224,14 @@ const Shop = () => {
       title: 'Reptiles & Terrariums',
       desc: 'Specialized lockable glass terrariums, linear desert UVB bulbs, heating lamps, mold-resistant substrates, and pure calcium powders for chameleons, bearded dragons, and snakes.',
       hero: 'https://images.unsplash.com/photo-1542625331-b72c87806d21?q=80&w=1200&auto=format&fit=crop',
-      subcategories: ['Terrariums', 'Heating & Lighting', 'Substrate', 'Calcium & Supplements', 'Décor'],
+      subcategories: [
+        { name: 'Reptile Food', img: 'https://images.unsplash.com/photo-1589924691995-400dc9ecc119?w=300&auto=format&fit=crop' },
+        { name: 'Terrariums', img: 'https://images.unsplash.com/photo-1522069169874-c58ec4b76be5?w=300&auto=format&fit=crop' },
+        { name: 'Heating & Lighting', img: 'https://images.unsplash.com/photo-1472645977521-95bbf4f0a748?w=300&auto=format&fit=crop' },
+        { name: 'Calcium & Supplements', img: 'https://images.unsplash.com/photo-1627398225058-20d3de3ef908?w=300&auto=format&fit=crop' },
+        { name: 'Décor', img: 'https://images.unsplash.com/photo-1580226955007-88eb7c71d3d6?w=300&auto=format&fit=crop' },
+        { name: 'Other Accessories', img: 'https://images.unsplash.com/photo-1522069169874-c58ec4b76be5?w=300&auto=format&fit=crop' }
+      ],
       faqs: [
         { q: 'Why is UVB lighting mandatory for bearded dragons?', a: 'Bearded dragons are desert species that require high UVB output to synthesize vitamin D3. Without it, they cannot metabolize dietary calcium, leading to fatal Metabolic Bone Disease.' },
         { q: 'When do I use calcium with vs without Vitamin D3?', a: 'Use calcium with D3 for indoor reptiles relying on artificial lighting. Use D3-free calcium for reptiles housed outdoors in natural sunlight, to prevent D3 overdose.' }
@@ -213,7 +241,14 @@ const Shop = () => {
       title: 'Fish & Aquatics',
       desc: 'Premium rimless glass aquariums, multi-stage filtration kits, full spectrum plant LEDs, dechlorinating stress coat conditioners, and biological starter aids.',
       hero: 'https://images.unsplash.com/photo-1544551763-46a013bb70d5?q=80&w=1200&auto=format&fit=crop',
-      subcategories: ['Aquariums & Tanks', 'Water Care & Filtration', 'Fish Food', 'Aquarium Lighting', 'Plants & Décor'],
+      subcategories: [
+        { name: 'Aquariums & Tanks', img: 'https://images.unsplash.com/photo-1522069169874-c58ec4b76be5?w=300&auto=format&fit=crop' },
+        { name: 'Water Care & Filtration', img: 'https://images.unsplash.com/photo-1535591273668-578e3111ea3c?w=300&auto=format&fit=crop' },
+        { name: 'Fish Food', img: 'https://images.unsplash.com/photo-1524704654690-b56c05c78a00?w=300&auto=format&fit=crop' },
+        { name: 'Aquarium Lighting', img: 'https://images.unsplash.com/photo-1582967788606-a171c1080cb0?w=300&auto=format&fit=crop' },
+        { name: 'Plants & Décor', img: 'https://images.unsplash.com/photo-1580226955007-88eb7c71d3d6?w=300&auto=format&fit=crop' },
+        { name: 'Other Accessories', img: 'https://images.unsplash.com/photo-1524704654690-b56c05c78a00?w=300&auto=format&fit=crop' }
+      ],
       faqs: [
         { q: 'What is the Nitrogen Cycle in aquaria?', a: 'It is the biological process where beneficial filter bacteria convert highly toxic fish waste (Ammonia) into toxic Nitrites, and then into harmless Nitrates, which you remove with weekly 25% water changes.' },
         { q: 'How does API Stress Coat protect fish?', a: 'It dechlorinates tap water instantly and features an Aloe Vera extract layer that repairs skin tissue and creates a synthetic slime coating to reduce transportation stress.' }
@@ -223,7 +258,14 @@ const Shop = () => {
       title: 'Veterinary Pharmacy',
       desc: 'Authorized pharmacy department providing vitamins, joint care chondroitin capsules, digestion syrups, wound antiseptic kits, and strict prescription verification medications.',
       hero: 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?q=80&w=1200&auto=format&fit=crop',
-      subcategories: ['Vitamins & Supplements', 'First Aid & Healthcare', 'Skin Care', 'Joint Care', 'Digestive Care'],
+      subcategories: [
+        { name: 'Vitamins & Supplements', img: 'https://images.unsplash.com/photo-1627398225058-20d3de3ef908?w=300&auto=format&fit=crop' },
+        { name: 'First Aid & Healthcare', img: 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=300&auto=format&fit=crop' },
+        { name: 'Skin Care', img: 'https://images.unsplash.com/photo-1584036109968-36e78dbf1454?w=300&auto=format&fit=crop' },
+        { name: 'Joint Care', img: 'https://images.unsplash.com/photo-1555685812-4b943f1cb0eb?w=300&auto=format&fit=crop' },
+        { name: 'Digestive Care', img: 'https://images.unsplash.com/photo-1544568100-847a948585b9?w=300&auto=format&fit=crop' },
+        { name: 'Other Accessories', img: 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=300&auto=format&fit=crop' }
+      ],
       faqs: [
         { q: 'How do I purchase prescription items (marked with Rx)?', a: 'Add the items to your cart, upload your veterinary prescription on the checkout/pharmacy page, and our licensed pharmacist will verify the upload within 2 hours to confirm shipping.' },
         { q: 'Can I return veterinary medicines or supplements?', a: 'For safety, we cannot accept returns on veterinary pharmaceutical products once dispatched.' }
@@ -239,6 +281,33 @@ const Shop = () => {
     subcategories: [],
     faqs: []
   };
+
+  // Build the list of images to slide
+  const heroImages = useMemo(() => {
+    const images = [currentMeta.hero];
+    if (currentMeta.subcategories && currentMeta.subcategories.length > 0) {
+       currentMeta.subcategories.slice(0, 3).forEach(sub => {
+         const hqImg = sub.img.replace('w=300', 'w=1200');
+         images.push(hqImg);
+       });
+    }
+    return images;
+  }, [currentMeta]);
+
+  const [heroIndex, setHeroIndex] = useState(0);
+
+  // Reset index when pet type changes
+  useEffect(() => {
+    setHeroIndex(0);
+  }, [activePet]);
+
+  useEffect(() => {
+    if (heroImages.length <= 1) return;
+    const interval = setInterval(() => {
+      setHeroIndex(prev => (prev + 1) % heroImages.length);
+    }, 4000); // Change image every 4 seconds
+    return () => clearInterval(interval);
+  }, [heroImages.length]);
 
   // Reusable Filter Content (Used for both Desktop Sidebar and Mobile Drawer)
   const renderFilterSidebar = () => (
@@ -277,11 +346,12 @@ const Shop = () => {
           {/* Department Items */}
           {DEPARTMENTS.map((dept) => {
             const isDeptActive = filters.petType === dept.id;
+            const hasSubcategories = dept.id !== 'pharmacy' && petMetadata[dept.id]?.subcategories?.length > 0;
 
-            if (dept.hasDropdown) {
+            if (dept.id === 'pharmacy' || hasSubcategories) {
               return (
                 <div key={dept.id} className="space-y-1">
-                  {/* Pharmacy Main Button */}
+                  {/* Department Main Button */}
                   <button
                     onClick={() => handleSelectDepartment(dept.id)}
                     className={`flex items-center justify-between w-full py-1.5 px-2 rounded-md font-semibold uppercase tracking-wider text-left transition cursor-pointer ${
@@ -292,7 +362,7 @@ const Shop = () => {
                   >
                     <span className="flex items-center gap-1.5">
                       <span>{dept.label}</span>
-                      {selectedPharmacyPet !== 'all' && isDeptActive && (
+                      {dept.id === 'pharmacy' && selectedPharmacyPet !== 'all' && isDeptActive && (
                         <span className="text-[10px] normal-case bg-accent text-primary px-1.5 py-0.2 rounded font-bold">
                           ({selectedPharmacyPet})
                         </span>
@@ -301,38 +371,73 @@ const Shop = () => {
                     <ChevronDown
                       size={14}
                       className={`transform transition-transform duration-200 ${
-                        isPharmacyDropdownOpen ? 'rotate-180 text-white' : isDeptActive ? 'text-white' : 'text-gray-400'
+                        (dept.id === 'pharmacy' ? isPharmacyDropdownOpen : isDeptActive) ? 'rotate-180 text-white' : isDeptActive ? 'text-white' : 'text-gray-400'
                       }`}
                     />
                   </button>
 
-                  {/* Pharmacy Sub-Dropdown by Pet Type */}
-                  {isPharmacyDropdownOpen && (
-                    <div className="pl-3 pr-1 py-1 space-y-1 bg-secondary/70 border-l-2 border-primary rounded-r-md animate-in fade-in slide-in-from-top-1 duration-150">
-                      <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block pl-2 pt-1">
-                        Filter Pharmacy By Pet:
-                      </span>
-                      {PHARMACY_PET_OPTIONS.map((subPet) => {
-                        const isSubActive = isDeptActive && selectedPharmacyPet === subPet.id;
-                        return (
-                          <button
-                            key={subPet.id}
-                            onClick={() => handleSelectPharmacyPet(subPet.id)}
-                            className={`flex items-center justify-between w-full py-1.5 px-2.5 rounded text-xs transition cursor-pointer ${
-                              isSubActive
-                                ? 'bg-primary text-white font-bold shadow-xs'
-                                : 'text-gray-600 hover:text-primary hover:bg-white/80 font-medium'
-                            }`}
-                          >
-                            <span className="flex items-center gap-1.5">
-                              <span className="text-[10px]">🐾</span>
-                              <span>{subPet.label}</span>
-                            </span>
-                            {isSubActive && <Check size={11} />}
-                          </button>
-                        );
-                      })}
-                    </div>
+                  {/* Sub-Dropdown */}
+                  {dept.id === 'pharmacy' ? (
+                    isPharmacyDropdownOpen && (
+                      <div className="pl-3 pr-1 py-1 space-y-1 bg-secondary/70 border-l-2 border-primary rounded-r-md animate-in fade-in slide-in-from-top-1 duration-150">
+                        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block pl-2 pt-1">
+                          Filter Pharmacy By Pet:
+                        </span>
+                        {PHARMACY_PET_OPTIONS.map((subPet) => {
+                          const isSubActive = isDeptActive && selectedPharmacyPet === subPet.id;
+                          return (
+                            <button
+                              key={subPet.id}
+                              onClick={() => handleSelectPharmacyPet(subPet.id)}
+                              className={`flex items-center justify-between w-full py-1.5 px-2.5 rounded text-xs transition cursor-pointer ${
+                                isSubActive
+                                  ? 'bg-primary text-white font-bold shadow-xs'
+                                  : 'text-gray-600 hover:text-primary hover:bg-white/80 font-medium'
+                              }`}
+                            >
+                              <span className="flex items-center gap-1.5">
+                                <span className="text-[10px]">🐾</span>
+                                <span>{subPet.label}</span>
+                              </span>
+                              {isSubActive && <Check size={11} />}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    )
+                  ) : (
+                    isDeptActive && (
+                      <div className="pl-3 pr-1 py-1 space-y-1 bg-secondary/70 border-l-2 border-primary rounded-r-md animate-in fade-in slide-in-from-top-1 duration-150">
+                        <button
+                          onClick={() => handleFilterChange({ subcategory: '' })}
+                          className={`flex items-center justify-between w-full py-1.5 px-2.5 rounded text-xs transition cursor-pointer ${
+                            !filters.subcategory
+                              ? 'bg-primary text-white font-bold shadow-xs'
+                              : 'text-gray-600 hover:text-primary hover:bg-white/80 font-medium'
+                          }`}
+                        >
+                          <span>All {dept.label}</span>
+                          {!filters.subcategory && <Check size={11} />}
+                        </button>
+                        {petMetadata[dept.id].subcategories.map((sub) => {
+                          const isSubActive = filters.subcategory === sub.name;
+                          return (
+                            <button
+                              key={sub.name}
+                              onClick={() => handleFilterChange({ subcategory: sub.name })}
+                              className={`flex items-center justify-between w-full py-1.5 px-2.5 rounded text-xs transition cursor-pointer ${
+                                isSubActive
+                                  ? 'bg-primary text-white font-bold shadow-xs'
+                                  : 'text-gray-600 hover:text-primary hover:bg-white/80 font-medium'
+                              }`}
+                            >
+                              <span>{sub.name}</span>
+                              {isSubActive && <Check size={11} />}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    )
                   )}
                 </div>
               );
@@ -451,231 +556,256 @@ const Shop = () => {
     <div className="space-y-12 pb-20">
       
       {/* 1. CINEMATIC HERO BANNER */}
-      <section className="relative h-[45vh] flex items-center justify-center overflow-hidden border-b border-beige">
-        <div className="absolute inset-0">
-          <img 
-            src={currentMeta.hero} 
-            alt={currentMeta.title} 
-            className="w-full h-full object-cover filter brightness-[0.65]"
-          />
-        </div>
-        <div className="relative z-10 max-w-4xl mx-auto px-6 text-center text-white space-y-4">
-          <span className="text-[10px] tracking-widest font-bold text-accent uppercase">PAWORA LIFE</span>
-          <h1 className="font-serif text-3xl md:text-5xl text-secondary">{currentMeta.title}</h1>
-          <p className="text-xs md:text-sm text-secondary-dark max-w-xl mx-auto leading-relaxed font-light">
+      <section className="relative h-[50vh] md:h-[55vh] flex items-center justify-center overflow-hidden">
+        {heroImages.map((img, idx) => (
+          <div 
+            key={idx} 
+            className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${idx === heroIndex ? 'opacity-100' : 'opacity-0'}`}
+          >
+            <img 
+              src={img} 
+              alt={`${currentMeta.title} slide ${idx + 1}`} 
+              className="w-full h-full object-cover filter brightness-75 scale-105 transform origin-center transition-transform duration-[20s] hover:scale-110"
+            />
+            <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-black/70"></div>
+            <div className="absolute inset-0 bg-gradient-to-t from-[#0F2E23] via-[#0F2E23]/20 to-transparent opacity-80"></div>
+          </div>
+        ))}
+        <ScrollReveal variant="blurIn" className="relative z-10 max-w-4xl mx-auto px-6 text-center text-white space-y-5">
+          <span className="inline-block text-[10px] md:text-xs tracking-[0.25em] font-bold text-amber-400 uppercase bg-black/40 backdrop-blur-md px-4 py-1.5 rounded-full border border-white/10 shadow-2xl">
+            PAWORA LIFE EXCLUSIVE
+          </span>
+          <h1 className="font-serif text-4xl md:text-6xl text-white drop-shadow-2xl tracking-tight leading-tight">
+            {currentMeta.title}
+          </h1>
+          <p className="text-sm md:text-base text-gray-200 max-w-2xl mx-auto leading-relaxed font-light drop-shadow-lg">
             {currentMeta.desc}
           </p>
-        </div>
+        </ScrollReveal>
       </section>
 
-      {/* 2. SUBCATEGORY PILLS ROW */}
-      {currentMeta.subcategories && currentMeta.subcategories.length > 0 && (
-        <section className="max-w-7xl mx-auto px-4 md:px-8">
-          <div className="flex flex-wrap gap-2 justify-center pb-4 border-b border-beige">
-            <button
-              onClick={() => handleFilterChange({ subcategory: '' })}
-              className={`px-4 py-2 text-xs uppercase tracking-wider font-semibold border transition rounded-full cursor-pointer ${
-                !filters.subcategory
-                  ? 'bg-primary text-white border-primary shadow-xs font-bold' 
-                  : 'bg-white text-gray-500 border-beige hover:border-primary'
-              }`}
-            >
-              All Items
-            </button>
-            {currentMeta.subcategories.map((sub) => (
-              <button
-                key={sub}
-                onClick={() => handleFilterChange({ subcategory: sub })}
-                className={`px-4 py-2 text-xs uppercase tracking-wider font-semibold border transition rounded-full cursor-pointer ${
-                  filters.subcategory === sub 
-                    ? 'bg-primary text-white border-primary shadow-xs font-bold' 
-                    : 'bg-white text-gray-500 border-beige hover:border-primary'
-                }`}
-              >
-                {sub}
-              </button>
-            ))}
-          </div>
-        </section>
-      )}
+
 
       {/* 3. CATALOG & FILTERS GRID */}
-      <section className="max-w-7xl mx-auto px-4 md:px-8">
-        
-        {/* Mobile Filter Toggle Button */}
-        <div className="lg:hidden mb-4 flex justify-between items-center bg-white border border-beige px-4 py-3 rounded-xl shadow-xs">
-          <button
-            onClick={() => setMobileFiltersOpen(true)}
-            className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-primary"
-          >
-            <SlidersHorizontal size={14} />
-            <span>Filter Catalog ({currentAvailableBrands.length} Brands)</span>
-          </button>
-          <span className="text-xs text-gray-500 font-medium">
-            {products.length} Products
-          </span>
-        </div>
-
-        {/* Mobile Filter Modal Drawer */}
-        {mobileFiltersOpen && (
-          <div className="fixed inset-0 z-50 lg:hidden flex justify-end">
-            <div 
-              className="fixed inset-0 bg-black/60 backdrop-blur-xs"
-              onClick={() => setMobileFiltersOpen(false)}
-            ></div>
-            <div className="relative bg-white w-80 max-w-full h-full shadow-2xl p-6 overflow-y-auto z-10 space-y-6">
-              <div className="flex justify-between items-center border-b border-beige pb-3">
-                <span className="font-serif text-lg font-bold text-primary">Catalog Filters</span>
+      <ScrollReveal variant="fade">
+        <section className="max-w-7xl mx-auto px-4 md:px-8">
+          
+          {/* Mobile Filter Toggle Button */}
+          <div className="lg:hidden mb-6 flex justify-between items-center bg-white border border-gray-100 px-5 py-4 rounded-2xl shadow-sm">
+            <button
+              onClick={() => setMobileFiltersOpen(true)}
+              className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-primary"
+            >
+              <SlidersHorizontal size={14} />
+              <span>Filter Catalog ({currentAvailableBrands.length} Brands)</span>
+            </button>
+            <span className="text-xs text-gray-500 font-medium">
+              {products.length} Products
+            </span>
+          </div>
+  
+          {/* Mobile Filter Modal Drawer */}
+          {mobileFiltersOpen && (
+            <div className="fixed inset-0 z-50 lg:hidden flex justify-end">
+              <div 
+                className="fixed inset-0 bg-black/60 backdrop-blur-xs"
+                onClick={() => setMobileFiltersOpen(false)}
+              ></div>
+              <div className="relative bg-white w-80 max-w-full h-full shadow-2xl p-6 overflow-y-auto z-10 space-y-6">
+                <div className="flex justify-between items-center border-b border-beige pb-3">
+                  <span className="font-serif text-lg font-bold text-primary">Catalog Filters</span>
+                  <button
+                    onClick={() => setMobileFiltersOpen(false)}
+                    className="p-1 text-gray-400 hover:text-primary rounded-full"
+                  >
+                    <X size={18} />
+                  </button>
+                </div>
+                {renderFilterSidebar()}
                 <button
                   onClick={() => setMobileFiltersOpen(false)}
-                  className="p-1 text-gray-400 hover:text-primary rounded-full"
+                  className="w-full btn-premium py-2.5 text-xs font-bold"
                 >
-                  <X size={18} />
+                  Apply Filters & View Products
                 </button>
               </div>
-              {renderFilterSidebar()}
-              <button
-                onClick={() => setMobileFiltersOpen(false)}
-                className="w-full btn-premium py-2.5 text-xs font-bold"
-              >
-                Apply Filters & View Products
-              </button>
             </div>
-          </div>
-        )}
-
-        <div className="flex flex-col lg:flex-row gap-8 items-start">
-          
-          {/* LEFT FILTER PANEL (Desktop) */}
-          <aside className="hidden lg:block w-64 shrink-0 bg-white border border-beige p-6 space-y-6 rounded-xl shadow-xs sticky top-24">
-            {renderFilterSidebar()}
-          </aside>
-
-          {/* RIGHT PRODUCT GRID PANEL */}
-          <div className="flex-grow w-full space-y-6">
+          )}
+  
+          <div className="flex flex-col lg:flex-row gap-8 items-start">
             
-            {/* Toolbar: Result Counts & Sorting */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white border border-beige px-6 py-4 shadow-sm rounded-xl">
-              <div className="flex items-center gap-2">
-                <span className="text-xs text-gray-500 font-semibold uppercase">
-                  Showing {products.length} of {total} products
-                </span>
-                {filters.petType && (
-                  <span className="text-[10px] font-bold uppercase bg-secondary text-primary px-2 py-0.5 rounded">
-                    {filters.petType} {selectedPharmacyPet !== 'all' ? `• ${selectedPharmacyPet}` : ''}
-                  </span>
-                )}
-              </div>
-
-              <div className="flex items-center gap-4 text-xs font-semibold">
-                <div className="flex items-center gap-1.5">
-                  <ArrowUpDown size={14} className="text-gray-400" />
-                  <span className="text-gray-500 uppercase">Sort By:</span>
+            {/* LEFT FILTER PANEL (Desktop) */}
+            <aside className="hidden lg:block w-72 shrink-0 bg-white/60 backdrop-blur-3xl border border-beige/60 p-7 space-y-6 rounded-3xl shadow-glass sticky top-32 z-10">
+              {renderFilterSidebar()}
+            </aside>
+  
+            {/* RIGHT PRODUCT GRID PANEL */}
+            <div className="flex-1 min-w-0 space-y-6">
+  
+              {/* Premium Subcategories Image Grid */}
+              {currentMeta.subcategories && currentMeta.subcategories.length > 0 && (
+                <div className="mb-8">
+                  <div className="flex items-center gap-4 overflow-x-auto pb-6 pt-2 custom-scrollbar">
+                    <div 
+                      onClick={() => handleFilterChange({ subcategory: '' })}
+                      className={`relative min-w-[150px] h-[110px] rounded-2xl overflow-hidden cursor-pointer group shadow-md transition-all duration-300 ${!filters.subcategory ? 'ring-2 ring-primary ring-offset-4 shadow-xl' : 'hover:shadow-xl hover:-translate-y-1'}`}
+                    >
+                      <img src={currentMeta.hero} alt={`All ${currentMeta.title.split(' ')[0]}`} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 filter group-hover:brightness-110" />
+                      <div className={`absolute inset-0 transition-all duration-500 flex flex-col justify-end p-4 ${!filters.subcategory ? 'bg-gradient-to-t from-primary/90 via-primary/30 to-transparent' : 'bg-gradient-to-t from-black/80 via-black/20 to-transparent group-hover:from-primary/80 group-hover:via-primary/20'}`}>
+                        <span className={`text-white font-bold text-xs uppercase tracking-wider ${!filters.subcategory ? 'translate-y-0' : 'translate-y-2 group-hover:translate-y-0'} transition-transform duration-300 drop-shadow-md`}>All {currentMeta.title.split(' ')[0]}</span>
+                      </div>
+                    </div>
+                    
+                    {currentMeta.subcategories.map((sub) => {
+                      const isActive = filters.subcategory === sub.name;
+                      return (
+                        <div 
+                          key={sub.name}
+                          onClick={() => handleFilterChange({ subcategory: sub.name })}
+                          className={`relative min-w-[150px] h-[110px] rounded-2xl overflow-hidden cursor-pointer group shadow-md transition-all duration-300 ${isActive ? 'ring-2 ring-primary ring-offset-4 shadow-xl' : 'hover:shadow-xl hover:-translate-y-1'}`}
+                        >
+                          <img src={sub.img} alt={sub.name} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 filter group-hover:brightness-110" />
+                          <div className={`absolute inset-0 transition-all duration-500 flex flex-col justify-end p-4 ${isActive ? 'bg-gradient-to-t from-primary/90 via-primary/30 to-transparent' : 'bg-gradient-to-t from-black/80 via-black/20 to-transparent group-hover:from-primary/80 group-hover:via-primary/20'}`}>
+                            <span className={`text-white font-bold text-xs uppercase tracking-wider ${isActive ? 'translate-y-0' : 'translate-y-2 group-hover:translate-y-0'} transition-transform duration-300 drop-shadow-md`}>{sub.name}</span>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
-                <select
-                  value={filters.sort}
-                  onChange={(e) => handleFilterChange({ sort: e.target.value })}
-                  className="bg-transparent border-0 font-bold text-primary focus:outline-none focus:ring-0 cursor-pointer"
-                >
-                  <option value="date_desc">New Arrivals</option>
-                  <option value="price_asc">Price: Low to High</option>
-                  <option value="price_desc">Price: High to Low</option>
-                  <option value="rating_desc">Best Rated</option>
-                  <option value="featured">Featured Collection</option>
-                  <option value="bestseller">Bestsellers</option>
-                </select>
+              )}
+              
+              {/* Toolbar: Result Counts & Sorting */}
+              <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white/60 backdrop-blur-3xl border border-beige/60 px-7 py-5 shadow-glass rounded-2xl">
+                <div className="flex items-center gap-3">
+                  <span className="text-xs text-gray-500 font-bold uppercase tracking-widest">
+                    Showing <span className="text-primary">{products.length}</span> of {total} products
+                  </span>
+                  {filters.petType && (
+                    <span className="text-[9px] font-black uppercase tracking-widest bg-primary text-secondary px-3 py-1 rounded-full shadow-sm">
+                      {filters.petType} {selectedPharmacyPet !== 'all' ? `• ${selectedPharmacyPet}` : ''}
+                    </span>
+                  )}
+                </div>
+  
+                <div className="flex items-center gap-3 text-xs font-bold uppercase tracking-wider">
+                  <div className="flex items-center gap-1.5 text-gray-400">
+                    <ArrowUpDown size={14} />
+                    <span>Sort:</span>
+                  </div>
+                  <div className="relative group">
+                    <select
+                      value={filters.sort}
+                      onChange={(e) => handleFilterChange({ sort: e.target.value })}
+                      className="appearance-none bg-secondary/50 border border-beige hover:border-primary text-primary px-4 py-2 pr-8 rounded-lg cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+                    >
+                      <option value="date_desc">New Arrivals</option>
+                      <option value="price_asc">Price: Low to High</option>
+                      <option value="price_desc">Price: High to Low</option>
+                      <option value="rating_desc">Best Rated</option>
+                      <option value="featured">Featured Collection</option>
+                      <option value="bestseller">Bestsellers</option>
+                    </select>
+                    <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-primary pointer-events-none group-hover:text-accent transition-colors" />
+                  </div>
+                </div>
               </div>
-            </div>
-
-            {/* Active search tag */}
-            {filters.search && (
-              <div className="flex items-center gap-2 text-xs bg-white border border-beige p-3 shadow-sm rounded-xl">
-                <span className="text-gray-400">Search query:</span>
-                <span className="font-bold text-primary">"{filters.search}"</span>
-                <button 
-                  onClick={() => handleFilterChange({ search: '' })}
-                  className="p-0.5 hover:bg-gray-100 rounded-full cursor-pointer ml-1"
-                >
-                  <X size={12} />
-                </button>
-              </div>
-            )}
-
-            {/* Products grid container */}
-            {loading ? (
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
-                {[1, 2, 3, 4, 5, 6].map(idx => (
-                  <div key={idx} className="bg-white border border-beige h-[380px] animate-pulse rounded-xl"></div>
-                ))}
-              </div>
-            ) : products.length > 0 ? (
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
-                {products.map((product) => (
-                  <ProductCard key={product._id} product={product} />
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-20 bg-white border border-beige text-gray-500 text-xs rounded-xl space-y-3">
-                <p className="font-serif text-sm font-semibold text-primary">No products found matching your filter criteria.</p>
-                <p className="text-gray-400">Try clearing active brands or changing your department selection.</p>
-                <button
-                  onClick={handleClearFilters}
-                  className="btn-premium py-2 px-4 text-xs font-bold mt-2"
-                >
-                  Reset All Filters
-                </button>
-              </div>
-            )}
-
-            {/* Pagination Controls */}
-            {pages > 1 && (
-              <div className="flex justify-center items-center gap-2 pt-6">
-                {Array.from({ length: pages }, (_, i) => i + 1).map((pNum) => (
-                  <button
-                    key={pNum}
-                    onClick={() => handlePageChange(pNum)}
-                    className={`w-9 h-9 border text-xs font-bold transition flex items-center justify-center cursor-pointer rounded ${
-                      page === pNum 
-                        ? 'bg-primary text-white border-primary shadow-xs' 
-                        : 'bg-white text-gray-500 border-beige hover:border-primary'
-                    }`}
+  
+              {/* Active search tag */}
+              {filters.search && (
+                <div className="flex items-center gap-2 text-xs bg-white border border-beige p-3 shadow-sm rounded-xl">
+                  <span className="text-gray-400">Search query:</span>
+                  <span className="font-bold text-primary">"{filters.search}"</span>
+                  <button 
+                    onClick={() => handleFilterChange({ search: '' })}
+                    className="p-0.5 hover:bg-gray-100 rounded-full cursor-pointer ml-1"
                   >
-                    {pNum}
+                    <X size={12} />
                   </button>
-                ))}
-              </div>
-            )}
+                </div>
+              )}
+  
+              {/* Products grid container */}
+              {loading ? (
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
+                  {[1, 2, 3, 4, 5, 6].map(idx => (
+                    <div key={idx} className="bg-white border border-gray-100 h-[400px] animate-pulse rounded-2xl"></div>
+                  ))}
+                </div>
+              ) : products.length > 0 ? (
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
+                  {products.map((product) => (
+                    <ProductCard key={product._id} product={product} />
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-24 bg-white border border-gray-100 rounded-2xl space-y-4 flex flex-col items-center shadow-sm">
+                  <div className="w-24 h-24 rounded-full bg-secondary flex items-center justify-center mb-2">
+                    <SearchX size={40} className="text-primary/40" />
+                  </div>
+                  <h3 className="font-serif text-xl font-bold text-primary">No products found</h3>
+                  <p className="text-gray-400 text-sm max-w-sm">We couldn't find anything matching your current filters. Try exploring other categories.</p>
+                  <button
+                    onClick={handleClearFilters}
+                    className="mt-4 px-6 py-2.5 bg-primary text-white text-xs font-bold tracking-widest uppercase rounded-full shadow-md hover:bg-primary/90 transition-all hover:shadow-lg transform hover:-translate-y-0.5 cursor-pointer"
+                  >
+                    Reset All Filters
+                  </button>
+                </div>
+              )}
+  
+              {/* Pagination Controls */}
+              {pages > 1 && (
+                <div className="flex justify-center items-center gap-2 pt-6">
+                  {Array.from({ length: pages }, (_, i) => i + 1).map((pNum) => (
+                    <button
+                      key={pNum}
+                      onClick={() => handlePageChange(pNum)}
+                      className={`w-9 h-9 border text-xs font-bold transition flex items-center justify-center cursor-pointer rounded ${
+                        page === pNum 
+                          ? 'bg-primary text-white border-primary shadow-xs' 
+                          : 'bg-white text-gray-500 border-beige hover:border-primary'
+                      }`}
+                    >
+                      {pNum}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+  
           </div>
-
-        </div>
-      </section>
+        </section>
+      </ScrollReveal>
 
       {/* 4. EDUCATIONAL FAQ ACCORDION SECTION */}
       {currentMeta.faqs && currentMeta.faqs.length > 0 && (
-        <section className="max-w-4xl mx-auto px-6 space-y-6 pt-10">
-          <div className="text-center space-y-2">
-            <span className="text-[10px] uppercase tracking-widest text-accent font-bold">LEARNING & CARE</span>
-            <h2 className="text-2xl font-serif text-primary">Expert FAQ & Advice</h2>
-          </div>
-          <div className="space-y-4 bg-white border border-beige p-6 shadow-sm rounded-xl">
-            {currentMeta.faqs.map((faq, idx) => (
-              <div key={idx} className="border-b border-beige last:border-b-0 pb-4 last:pb-0">
-                <button
-                  onClick={() => setFaqOpen(faqOpen === idx ? null : idx)}
-                  className="w-full flex justify-between items-center text-left py-2 font-serif text-sm font-semibold text-primary hover:text-accent transition cursor-pointer"
-                >
-                  <span>{faq.q}</span>
-                  <ChevronDown size={16} className={`transform transition-transform ${faqOpen === idx ? 'rotate-180' : ''}`} />
-                </button>
-                {faqOpen === idx && (
-                  <p className="text-xs text-gray-500 leading-relaxed pt-2 pl-1 animate-in fade-in slide-in-from-top-1 duration-200">
-                    {faq.a}
-                  </p>
-                )}
-              </div>
-            ))}
-          </div>
-        </section>
+        <ScrollReveal variant="slideUp">
+          <section className="max-w-4xl mx-auto px-6 space-y-6 pt-10">
+            <div className="text-center space-y-2">
+              <span className="text-[10px] uppercase tracking-widest text-accent font-bold">LEARNING & CARE</span>
+              <h2 className="text-2xl font-serif text-primary">Expert FAQ & Advice</h2>
+            </div>
+            <div className="space-y-4 bg-white border border-beige p-6 shadow-sm rounded-xl">
+              {currentMeta.faqs.map((faq, idx) => (
+                <div key={idx} className="border-b border-beige last:border-b-0 pb-4 last:pb-0">
+                  <button
+                    onClick={() => setFaqOpen(faqOpen === idx ? null : idx)}
+                    className="w-full flex justify-between items-center text-left py-2 font-serif text-sm font-semibold text-primary hover:text-accent transition cursor-pointer"
+                  >
+                    <span>{faq.q}</span>
+                    <ChevronDown size={16} className={`transform transition-transform ${faqOpen === idx ? 'rotate-180' : ''}`} />
+                  </button>
+                  {faqOpen === idx && (
+                    <p className="text-xs text-gray-500 leading-relaxed pt-2 pl-1 animate-in fade-in slide-in-from-top-1 duration-200">
+                      {faq.a}
+                    </p>
+                  )}
+                </div>
+              ))}
+            </div>
+          </section>
+        </ScrollReveal>
       )}
 
     </div>

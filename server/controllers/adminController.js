@@ -16,6 +16,8 @@ export const getDashboardStats = async (req, res) => {
     let lowStockCount = 0;
     let pendingOrdersCount = 0;
     let enquiriesCount = 0;
+    let soldProductsCount = 0;
+    let unsoldProductsCount = 0;
     let recentOrders = [];
     let chartsData = {
       salesHistory: [],
@@ -42,6 +44,15 @@ export const getDashboardStats = async (req, res) => {
         { $group: { _id: null, total: { $sum: '$pricing.total' } } }
       ]);
       totalRevenue = revenueStats[0] ? revenueStats[0].total : 0;
+
+      // Unique Sold Products
+      const soldProductsData = await Order.aggregate([
+        { $match: { shippingStatus: { $ne: 'Cancelled' } } },
+        { $unwind: "$orderItems" },
+        { $group: { _id: "$orderItems.product" } }
+      ]);
+      soldProductsCount = soldProductsData.length;
+      unsoldProductsCount = Math.max(0, productsCount - soldProductsCount);
 
       // Recent Orders
       recentOrders = await Order.find({})
@@ -118,6 +129,18 @@ export const getDashboardStats = async (req, res) => {
       const nonCancelledOrders = ordersList.filter(o => o.shippingStatus !== 'Cancelled');
       totalRevenue = nonCancelledOrders.reduce((sum, o) => sum + (o.pricing.total || 0), 0);
 
+      // Unique Sold Products
+      const soldProductIds = new Set();
+      nonCancelledOrders.forEach(o => {
+        if (o.orderItems) {
+          o.orderItems.forEach(item => {
+            if (item.product) soldProductIds.add(item.product.toString());
+          });
+        }
+      });
+      soldProductsCount = soldProductIds.size;
+      unsoldProductsCount = Math.max(0, productsCount - soldProductsCount);
+
       // Recent Orders populated
       recentOrders = ordersList.map(o => {
         const usr = usersList.find(u => u._id.toString() === o.user.toString());
@@ -164,7 +187,9 @@ export const getDashboardStats = async (req, res) => {
         totalRevenue,
         lowStockCount,
         pendingOrdersCount,
-        enquiriesCount
+        enquiriesCount,
+        soldProductsCount,
+        unsoldProductsCount
       },
       recentOrders,
       charts: chartsData
@@ -202,7 +227,7 @@ export const getAllUsers = async (req, res) => {
 export const updateUserRole = async (req, res) => {
   try {
     const { role } = req.body;
-    if (!['CUSTOMER', 'ADMIN'].includes(role)) {
+    if (!['CUSTOMER', 'ADMIN', 'SERVICE_PROVIDER', 'SUPERADMIN'].includes(role)) {
       return res.status(400).json({ success: false, message: 'Invalid role' });
     }
 

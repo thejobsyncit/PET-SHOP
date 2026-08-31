@@ -5,8 +5,12 @@
 @tailwind utilities;
 
 @layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+  
   body {
-    @apply bg-secondary text-charcoal font-sans antialiased overflow-x-hidden;
+    @apply bg-sand text-charcoal font-sans antialiased overflow-x-hidden;
     letter-spacing: 0.015em;
   }
 
@@ -17,11 +21,11 @@
 
 @layer components {
   .btn-premium {
-    @apply px-8 py-3.5 bg-primary text-secondary font-medium text-sm tracking-widest rounded-none border border-primary transition-all duration-300 hover:bg-transparent hover:text-primary active:scale-[0.98] cursor-pointer inline-flex items-center justify-center uppercase;
+    @apply px-8 py-3.5 bg-gradient-premium text-white font-medium text-sm tracking-widest rounded-sm border-none shadow-premium transition-all duration-300 hover:shadow-premium-hover hover:-translate-y-0.5 active:scale-[0.98] cursor-pointer inline-flex items-center justify-center uppercase;
   }
 
   .btn-secondary-premium {
-    @apply px-8 py-3.5 bg-transparent text-primary font-medium text-sm tracking-widest rounded-none border border-primary transition-all duration-300 hover:bg-primary hover:text-secondary active:scale-[0.98] cursor-pointer inline-flex items-center justify-center uppercase;
+    @apply px-8 py-3.5 bg-transparent text-primary font-medium text-sm tracking-widest rounded-sm border border-primary transition-all duration-300 hover:bg-primary hover:text-white hover:shadow-premium hover:-translate-y-0.5 active:scale-[0.98] cursor-pointer inline-flex items-center justify-center uppercase;
   }
 
   .btn-accent {
@@ -29,11 +33,11 @@
   }
 
   .input-premium {
-    @apply w-full px-4 py-3 bg-white border border-secondary-dark rounded-none text-charcoal text-sm transition-all duration-200 focus:outline-none focus:border-primary placeholder-gray-400;
+    @apply w-full px-4 py-3.5 bg-white border border-beige rounded-sm text-charcoal text-sm transition-all duration-300 focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent/20 placeholder-gray-400 shadow-sm;
   }
 
   .card-premium {
-    @apply bg-white border border-beige hover:shadow-premium transition-all duration-300 overflow-hidden;
+    @apply bg-white rounded-2xl border border-beige/60 shadow-premium hover:shadow-premium-hover transition-all duration-500 hover:-translate-y-1 overflow-hidden;
   }
 }
 
