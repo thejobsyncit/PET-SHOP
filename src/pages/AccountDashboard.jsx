@@ -4,7 +4,8 @@ import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import {
   User, MapPin, ClipboardList, ShoppingBag, Plus, Trash2, CheckCircle2,
   ShieldAlert, Clock, LogOut, Heart, ShieldCheck, MessageSquare, Phone,
-  ExternalLink, Check, AlertCircle, ArrowRight, Sparkles, Filter, ChevronRight
+  ExternalLink, Check, AlertCircle, ArrowRight, Sparkles, Filter, ChevronRight,
+  Truck
 } from 'lucide-react';
 import { 
   fetchProfile, 
@@ -19,6 +20,10 @@ import {
   getGuardianAdoptionApplications, 
   updateAdoptionApplicationStatus 
 } from '../data/adoptionPetsData.js';
+import { 
+  getUserTransportEnquiries, 
+  getStoredTransportEnquiries 
+} from '../data/transportData.js';
 import { apiRequest } from '../services/api.js';
 import toast from 'react-hot-toast';
 
@@ -57,6 +62,9 @@ const AccountDashboard = () => {
   const [guardianPets, setGuardianPets] = useState([]);
   const [guardianApps, setGuardianApps] = useState([]);
 
+  // Transport relocation enquiries states
+  const [userTransportEnquiries, setUserTransportEnquiries] = useState([]);
+
   // Sync tab with URL search parameter
   useEffect(() => {
     if (tabParam) {
@@ -72,20 +80,43 @@ const AccountDashboard = () => {
   useEffect(() => {
     if (!isAuthenticated) {
       navigate('/login');
+    } else if (user?.role === 'SERVICE_PROVIDER') {
+      navigate('/provider-dashboard', { replace: true });
     } else {
       dispatch(fetchProfile());
       loadUserHistory();
       loadAdoptionData();
+      loadTransportData();
     }
-  }, [isAuthenticated, dispatch, navigate]);
+  }, [isAuthenticated, user?.role, dispatch, navigate]);
 
   useEffect(() => {
     if (user) {
       setName(user.name || '');
       setEmail(user.email || '');
       loadAdoptionData();
+      loadTransportData();
     }
   }, [user, activeTab]);
+
+  useEffect(() => {
+    const handleEnquiryUpdated = () => {
+      loadTransportData();
+    };
+    window.addEventListener('transport-enquiry-updated', handleEnquiryUpdated);
+    window.addEventListener('transport-enquiry-created', handleEnquiryUpdated);
+    return () => {
+      window.removeEventListener('transport-enquiry-updated', handleEnquiryUpdated);
+      window.removeEventListener('transport-enquiry-created', handleEnquiryUpdated);
+    };
+  }, [user]);
+
+  const loadTransportData = () => {
+    if (user) {
+      const enquiries = getUserTransportEnquiries(user);
+      setUserTransportEnquiries(enquiries);
+    }
+  };
 
   const loadUserHistory = async () => {
     setHistoryLoading(true);
@@ -268,6 +299,11 @@ const AccountDashboard = () => {
         <aside className="lg:col-span-3 bg-white border border-beige p-6 space-y-2 shadow-sm rounded-xl">
           {[
             { id: 'orders', label: 'Order History', icon: <ShoppingBag size={16} /> },
+            { 
+              id: 'transport-enquiries', 
+              label: `Pet Relocation (${userTransportEnquiries.length})`, 
+              icon: <Truck size={16} className={userTransportEnquiries.length > 0 ? 'text-emerald-700' : ''} /> 
+            },
             { 
               id: 'my-applications', 
               label: `My Adoption Enquiries (${userAdoptionApps.length})`, 
@@ -964,6 +1000,161 @@ const AccountDashboard = () => {
                   UPDATE DETAILS
                 </button>
               </form>
+            </div>
+          )}
+
+          {/* =========================================================================
+              TAB: PET RELOCATION & TRANSPORT ENQUIRIES
+             ========================================================================= */}
+          {activeTab === 'transport-enquiries' && (
+            <div className="space-y-6">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-beige pb-4">
+                <div>
+                  <h2 className="font-serif text-lg font-bold text-primary flex items-center gap-2">
+                    <Truck size={20} className="text-emerald-700" />
+                    My Pet Relocation Enquiries & Quotations ({userTransportEnquiries.length})
+                  </h2>
+                  <p className="text-xs text-gray-500 mt-0.5">
+                    Track real-time status of your relocation requests, received transporter quotes, and journey schedules.
+                  </p>
+                </div>
+
+                <Link
+                  to="/transport"
+                  className="px-3.5 py-1.5 bg-[#0F2E23] text-[#D4AF37] hover:text-white text-xs font-bold rounded-xl transition shadow flex items-center gap-1.5"
+                >
+                  <Plus size={14} /> New Relocation Request
+                </Link>
+              </div>
+
+              {userTransportEnquiries.length === 0 ? (
+                <div className="text-center py-12 space-y-4 border border-beige p-8 rounded-2xl">
+                  <div className="w-14 h-14 rounded-full bg-emerald-50 text-[#0F2E23] flex items-center justify-center mx-auto text-2xl">
+                    🚐
+                  </div>
+                  <h3 className="text-sm font-bold text-gray-800">No Relocation Enquiries Submitted Yet</h3>
+                  <p className="text-xs text-gray-500 max-w-sm mx-auto">
+                    Planning to move your dog, cat, or bird across cities? Submit a quick enquiry to get customized quotes.
+                  </p>
+                  <Link
+                    to="/transport"
+                    className="inline-block bg-[#0F2E23] text-white text-xs font-bold px-5 py-2.5 rounded-xl transition hover:bg-[#163e30]"
+                  >
+                    Explore Pet Transport Services
+                  </Link>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {userTransportEnquiries.map((enq) => {
+                    const hasQuote = enq.status === 'Quote Sent' || enq.quoteAmount;
+                    return (
+                      <div
+                        key={enq.id}
+                        className="border border-beige p-5 rounded-2xl bg-white shadow-sm space-y-4 hover:border-primary/40 transition"
+                      >
+                        {/* Header & Status */}
+                        <div className="flex flex-wrap items-start justify-between gap-3 border-b border-beige/60 pb-3">
+                          <div className="space-y-1">
+                            <div className="flex items-center gap-2">
+                              <span className="text-sm font-bold text-primary font-serif">{enq.providerName}</span>
+                              <span className="text-[10px] font-bold uppercase tracking-wider bg-gray-100 text-gray-700 px-2 py-0.5 rounded">
+                                ID: {enq.id}
+                              </span>
+                            </div>
+                            <div className="text-xs text-gray-500 font-medium">
+                              Submitted on: {new Date(enq.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+                            </div>
+                          </div>
+
+                          <div className="flex items-center gap-2">
+                            <span className={`text-[10px] font-extrabold uppercase tracking-wider px-3 py-1 rounded-full ${
+                              hasQuote
+                                ? 'bg-emerald-100 text-emerald-800 border border-emerald-300'
+                                : enq.status.includes('Pending') || enq.status === 'Under Review'
+                                ? 'bg-amber-100 text-amber-800 border border-amber-300'
+                                : 'bg-blue-100 text-blue-800 border border-blue-300'
+                            }`}>
+                              {enq.status}
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Route & Pet Specs */}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 bg-sand/30 p-3.5 rounded-xl border border-beige/70 text-xs">
+                          <div>
+                            <span className="text-[10px] font-bold uppercase text-gray-400 block">Route</span>
+                            <strong className="text-gray-800">{enq.departureCity} ➔ {enq.destinationCity}</strong>
+                            <span className="text-[10px] text-gray-500 block">({enq.relocationType})</span>
+                          </div>
+                          <div>
+                            <span className="text-[10px] font-bold uppercase text-gray-400 block">Pet</span>
+                            <strong className="text-gray-800">{enq.petBreed} ({enq.petSpecies || 'Dog'})</strong>
+                            <span className="text-[10px] text-gray-500 block">{enq.petGender}, {enq.petAge}</span>
+                          </div>
+                          <div>
+                            <span className="text-[10px] font-bold uppercase text-gray-400 block">Date</span>
+                            <strong className="text-gray-800">{enq.expectedDate || 'Flexible'}</strong>
+                            <span className="text-[10px] text-gray-500 block">{enq.preferredModes?.join(', ')}</span>
+                          </div>
+                          <div>
+                            <span className="text-[10px] font-bold uppercase text-gray-400 block">Vaccination</span>
+                            <strong className="text-gray-800">{enq.vaccinationStatus}</strong>
+                            <span className="text-[10px] text-gray-500 block">{enq.travelFriendly}</span>
+                          </div>
+                        </div>
+
+                        {/* Customer Note */}
+                        {enq.note && (
+                          <div className="text-xs text-gray-600 italic bg-white p-2.5 rounded-lg border border-beige/60">
+                            <strong>My Note:</strong> "{enq.note}"
+                          </div>
+                        )}
+
+                        {/* Transporter Response / Official Quote */}
+                        {enq.providerReply ? (
+                          <div className="bg-emerald-50 p-4 rounded-xl border border-emerald-200 text-xs space-y-2">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-1.5 font-bold text-emerald-900">
+                                <ShieldCheck size={15} className="text-emerald-700" />
+                                <span>Official Quotation & Travel Plan from Transporter</span>
+                              </div>
+                              {enq.quoteAmount && (
+                                <span className="text-base font-serif font-extrabold text-[#0F2E23]">
+                                  ₹{enq.quoteAmount.toLocaleString('en-IN')}
+                                </span>
+                              )}
+                            </div>
+                            <p className="text-slate-700">{enq.providerReply}</p>
+
+                            <div className="pt-2 flex items-center justify-between">
+                              <span className="text-[10px] text-emerald-700 font-semibold">
+                                ✓ Sanitized Crate & GPS Updates Included
+                              </span>
+                              <a
+                                href={`https://wa.me/918306944422?text=Hello%2C%20I%20received%20quote%20for%20enquiry%20${enq.id}`}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-[11px] uppercase tracking-wider px-3.5 py-1.5 rounded-lg transition inline-flex items-center gap-1"
+                              >
+                                <MessageSquare size={13} /> Confirm with Coordinator
+                              </a>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="flex items-center justify-between text-xs text-amber-700 bg-amber-50 p-3 rounded-xl border border-amber-200">
+                            <span className="flex items-center gap-1.5 font-semibold">
+                              <Clock size={14} className="animate-spin text-amber-600" />
+                              Transporter is reviewing vehicle availability & formulating your quote.
+                            </span>
+                            <span className="text-[10px] text-gray-500 font-medium">Expected in 1-2 hours</span>
+                          </div>
+                        )}
+
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
             </div>
           )}
 

@@ -458,12 +458,12 @@ const LeadConsultationModal = () => {
   };
 
   useEffect(() => {
-    // Show popup when site opens if not closed during current session and not logged in
+    // Show popup after 5 seconds delay when visiting the site if not closed during current session and not logged in
     const hasBeenClosed = sessionStorage.getItem('pawora_lead_modal_closed');
     if (!hasBeenClosed && !isAuthenticated) {
       const timer = setTimeout(() => {
         setIsOpen(true);
-      }, 700);
+      }, 5000); // 5 seconds delay
       return () => clearTimeout(timer);
     }
   }, [isAuthenticated]);
@@ -472,7 +472,11 @@ const LeadConsultationModal = () => {
   useEffect(() => {
     const handleOpenRegister = (e) => {
       const tab = e?.detail?.tab || 'user';
-      const hideProvider = Boolean(e?.detail?.hideProviderTab || e?.detail?.source === 'adoption' || e?.detail?.onlyUser);
+      const hideProvider = Boolean(
+        e?.detail?.hideProviderTab !== undefined
+          ? e?.detail?.hideProviderTab
+          : (tab === 'user' || e?.detail?.source || e?.detail?.onlyUser)
+      );
       setHideProviderTab(hideProvider);
       setActiveTab(tab);
       setIsOpen(true);

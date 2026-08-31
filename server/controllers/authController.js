@@ -32,7 +32,14 @@ export const registerUser = async (req, res) => {
       res.status(201).json({
         success: true,
         token: generateToken(user._id),
-        user: { id: user._id, name: user.name, email: user.email, role: user.role }
+        user: { 
+          id: user._id, 
+          name: user.name, 
+          email: user.email, 
+          role: user.role,
+          mobile: user.mobile,
+          serviceCategory: user.serviceCategory
+        }
       });
     } else {
       const usersList = readMockData('users');
@@ -66,7 +73,14 @@ export const registerUser = async (req, res) => {
       res.status(201).json({
         success: true,
         token: generateToken(newUser._id),
-        user: { id: newUser._id, name: newUser.name, email: newUser.email, role: newUser.role }
+        user: { 
+          id: newUser._id, 
+          name: newUser.name, 
+          email: newUser.email, 
+          role: newUser.role,
+          mobile: newUser.mobile,
+          serviceCategory: newUser.serviceCategory
+        }
       });
     }
   } catch (error) {
@@ -78,36 +92,59 @@ export const registerUser = async (req, res) => {
 // @route   POST /api/auth/login
 // @access  Public
 export const loginUser = async (req, res) => {
-  const { email, password } = req.body;
+  const { email, mobile, password, identifier } = req.body;
+  const loginKey = (email || identifier || mobile || '').trim();
 
-  if (!email || !password) {
-    return res.status(400).json({ success: false, message: 'Please provide email and password' });
+  if (!loginKey || !password) {
+    return res.status(400).json({ success: false, message: 'Please provide email/mobile and password' });
   }
 
   try {
     if (isDbConnected()) {
-      const user = await User.findOne({ email });
+      const user = await User.findOne({
+        $or: [
+          { email: loginKey.toLowerCase() },
+          { mobile: loginKey }
+        ]
+      });
       if (user && (await user.comparePassword(password))) {
         res.json({
           success: true,
           token: generateToken(user._id),
-          user: { id: user._id, name: user.name, email: user.email, role: user.role }
+          user: { 
+            id: user._id, 
+            name: user.name, 
+            email: user.email, 
+            role: user.role,
+            mobile: user.mobile,
+            serviceCategory: user.serviceCategory
+          }
         });
       } else {
-        res.status(401).json({ success: false, message: 'Invalid email or password' });
+        res.status(401).json({ success: false, message: 'Invalid credentials. Please check your details.' });
       }
     } else {
       const usersList = readMockData('users');
-      const user = usersList.find(u => u.email.toLowerCase() === email.toLowerCase());
+      const user = usersList.find(u => 
+        (u.email && u.email.toLowerCase() === loginKey.toLowerCase()) ||
+        (u.mobile && u.mobile === loginKey)
+      );
       
       if (user && (await bcrypt.compare(password, user.password))) {
         res.json({
           success: true,
           token: generateToken(user._id),
-          user: { id: user._id, name: user.name, email: user.email, role: user.role }
+          user: { 
+            id: user._id, 
+            name: user.name, 
+            email: user.email, 
+            role: user.role,
+            mobile: user.mobile,
+            serviceCategory: user.serviceCategory
+          }
         });
       } else {
-        res.status(401).json({ success: false, message: 'Invalid email or password' });
+        res.status(401).json({ success: false, message: 'Invalid credentials. Please check your details.' });
       }
     }
   } catch (error) {
