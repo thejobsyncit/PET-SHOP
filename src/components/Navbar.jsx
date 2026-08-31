@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
-import { Search, Heart, ShoppingBag, Menu, X, ChevronDown, User, LogOut, MessageSquare } from 'lucide-react';
+import { Search, Heart, ShoppingBag, Menu, X, ChevronDown, User, LogOut, MessageSquare, Briefcase, Lock, ShieldAlert } from 'lucide-react';
 import SearchOverlay from './SearchOverlay.jsx';
 import CartDrawer from './CartDrawer.jsx';
 import { logout } from '../store/slices/authSlice.js';
+import toast from 'react-hot-toast';
 
 const Navbar = () => {
   const navigate = useNavigate();
@@ -48,6 +49,23 @@ const Navbar = () => {
     return location.pathname === path;
   };
 
+  const isNonSellerProvider = user?.role === 'SERVICE_PROVIDER' && 
+    (user?.serviceCategory || '').toLowerCase() !== 'pet seller';
+
+  const handlePetsNavigation = (e, targetPath = '/pets') => {
+    if (isNonSellerProvider) {
+      if (e) e.preventDefault();
+      toast.error(`Access Restricted: The Pet Marketplace is exclusively reserved for registered Pet Sellers. (Your account: ${user?.serviceCategory || 'Service Provider'})`);
+      setPetsMenuOpen(false);
+      setIsMobileMenuOpen(false);
+      navigate('/provider-dashboard');
+      return;
+    }
+    setPetsMenuOpen(false);
+    setIsMobileMenuOpen(false);
+    if (targetPath) navigate(targetPath);
+  };
+
   const petsList = [
     { label: 'Dogs', path: '/pets?petType=dogs' },
     { label: 'Cats', path: '/pets?petType=cats' },
@@ -58,12 +76,12 @@ const Navbar = () => {
 
   const servicesList = [
     { label: 'Pet Adoption', path: '/adopt' },
-    { label: 'Pet Hostel', path: '/services?category=Hostel' },
+    { label: 'Pet Hostel', path: '/hostel' },
     { label: 'Pet Grooming', path: '/grooming' },
-    { label: 'Pet Walking', path: '/services?category=Walking' },
-    { label: 'Pet Transport', path: '/services?category=Transport' },
+    { label: 'Pet Walking', path: '/walking' },
+    { label: 'Pet Transport', path: '/transport' },
+    { label: 'Pet Training', path: '/training' },
     { label: 'Pet Insurance', path: '/services?category=Insurance' },
-    { label: 'Pet Training', path: '/services?category=Training' },
     { label: 'Pet Mating', path: '/breeding' },
     { label: 'Consult a Vet', path: '/services?category=Veterinary' }
   ];
@@ -121,29 +139,58 @@ const Navbar = () => {
                 onMouseLeave={() => setPetsMenuOpen(false)}
                 className="relative py-2 cursor-pointer"
               >
-                <Link
-                  to="/pets"
-                  className={`text-[11px] uppercase tracking-wider font-semibold transition flex items-center gap-1 py-1 ${isActive('/pets')
+                <button
+                  onClick={(e) => handlePetsNavigation(e, '/pets')}
+                  className={`text-[11px] uppercase tracking-wider font-semibold transition flex items-center gap-1 py-1 cursor-pointer bg-transparent border-0 ${isActive('/pets')
                     ? 'text-accent-light border-b-2 border-accent-light pb-1'
                     : 'text-white hover:text-accent-light'
                     }`}
                 >
-                  Pets <ChevronDown size={10} />
-                </Link>
+                  Pets {isNonSellerProvider && <Lock size={11} className="text-amber-300 ml-0.5" />} <ChevronDown size={10} />
+                </button>
 
                 {/* Dropdown Card */}
                 {petsMenuOpen && (
-                  <div className="absolute top-full left-1/2 -translate-x-1/2 w-44 bg-white border border-gray-100 shadow-xl py-1 z-50 rounded-none animate-in fade-in slide-in-from-top-1 duration-150">
-                    {petsList.map((pet) => (
-                      <Link
-                        key={pet.label}
-                        to={pet.path}
-                        onClick={() => setPetsMenuOpen(false)}
-                        className="block py-2.5 text-xs font-semibold text-gray-700 hover:bg-gray-50 hover:text-primary text-center border-b border-gray-100 last:border-0 transition"
-                      >
-                        {pet.label}
-                      </Link>
-                    ))}
+                  <div className="absolute top-full left-1/2 -translate-x-1/2 w-52 bg-white border border-gray-100 shadow-2xl py-1 z-50 rounded-none animate-in fade-in slide-in-from-top-1 duration-150">
+                    {isNonSellerProvider ? (
+                      <div className="p-3.5 text-center space-y-2">
+                        <div className="w-8 h-8 rounded-full bg-amber-50 border border-amber-200 text-amber-600 flex items-center justify-center mx-auto">
+                          <Lock size={14} />
+                        </div>
+                        <span className="text-[10px] font-bold text-amber-800 uppercase tracking-wider block">
+                          Pet Sellers Only
+                        </span>
+                        <p className="text-[11px] text-slate-600 leading-tight">
+                          This marketplace is reserved exclusively for verified Pet Sellers.
+                        </p>
+                        <button
+                          onClick={(e) => handlePetsNavigation(e)}
+                          className="w-full py-1.5 px-2 bg-primary text-white text-[10px] font-bold uppercase tracking-wider hover:bg-primary-light transition cursor-pointer"
+                        >
+                          My Provider Hub →
+                        </button>
+                      </div>
+                    ) : (
+                      <>
+                        {petsList.map((pet) => (
+                          <button
+                            key={pet.label}
+                            onClick={(e) => handlePetsNavigation(e, pet.path)}
+                            className="w-full block py-2.5 text-xs font-semibold text-gray-700 hover:bg-gray-50 hover:text-primary text-center border-b border-gray-100 last:border-0 transition cursor-pointer"
+                          >
+                            {pet.label}
+                          </button>
+                        ))}
+                        {user?.role === 'SERVICE_PROVIDER' && (user?.serviceCategory || '').toLowerCase() === 'pet seller' && (
+                          <button
+                            onClick={(e) => handlePetsNavigation(e, '/pets')}
+                            className="w-full block py-2 text-[11px] font-bold text-emerald-800 bg-emerald-50 hover:bg-emerald-100 text-center border-t border-emerald-200 cursor-pointer"
+                          >
+                            🌟 Post & Manage Pet Listings
+                          </button>
+                        )}
+                      </>
+                    )}
                   </div>
                 )}
               </div>
@@ -270,18 +317,27 @@ const Navbar = () => {
               </button>
 
               {/* Buttons: Log in & Sign up (Dynamic states) */}
-              <div className="hidden lg:flex items-center gap-3">
+              <div className="hidden lg:flex items-center gap-2.5">
                 {isAuthenticated ? (
                   <>
-                    <Link
-                      to="/account"
-                      className="border border-white/40 hover:bg-white/10 text-white font-bold px-4 py-2 text-xs tracking-wider rounded-none uppercase transition"
-                    >
-                      My Account
-                    </Link>
+                    {user?.role === 'SERVICE_PROVIDER' ? (
+                      <Link
+                        to="/provider-dashboard"
+                        className="border border-white/40 hover:bg-white/10 text-white font-bold px-3.5 py-2 text-xs tracking-wider rounded-none uppercase transition"
+                      >
+                        My Dashboard
+                      </Link>
+                    ) : (
+                      <Link
+                        to="/account"
+                        className="border border-white/40 hover:bg-white/10 text-white font-bold px-3.5 py-2 text-xs tracking-wider rounded-none uppercase transition"
+                      >
+                        My Account
+                      </Link>
+                    )}
                     <button
                       onClick={handleLogout}
-                      className="bg-accent hover:bg-accent-dark text-white font-bold px-4 py-2 text-xs tracking-wider rounded-none uppercase transition cursor-pointer flex items-center gap-1"
+                      className="bg-accent hover:bg-accent-dark text-white font-bold px-3.5 py-2 text-xs tracking-wider rounded-none uppercase transition cursor-pointer flex items-center gap-1"
                     >
                       <LogOut size={14} /> Logout
                     </button>
@@ -330,10 +386,30 @@ const Navbar = () => {
 
                 {/* Pets department expanded on mobile */}
                 <div className="space-y-2 py-1 pl-2 border-l border-white/10">
-                  <Link to="/pets" onClick={() => setIsMobileMenuOpen(false)} className="block text-[11px] hover:text-accent-light tracking-widest font-bold">Pets Classifieds</Link>
-                  {petsList.map(pet => (
-                    <Link key={pet.label} to={pet.path} onClick={() => setIsMobileMenuOpen(false)} className="block py-1 hover:text-accent-light text-[11px] normal-case pl-2">{pet.label}</Link>
-                  ))}
+                  <button
+                    onClick={(e) => handlePetsNavigation(e, '/pets')}
+                    className="w-full text-left text-[11px] hover:text-accent-light tracking-widest font-bold flex items-center justify-between cursor-pointer"
+                  >
+                    <span>Pets Classifieds</span>
+                    {isNonSellerProvider && (
+                      <span className="text-[9px] bg-amber-400/20 text-amber-300 px-1.5 py-0.5 rounded font-semibold flex items-center gap-1">
+                        <Lock size={10} /> Sellers Only
+                      </span>
+                    )}
+                  </button>
+                  {!isNonSellerProvider && (
+                    <>
+                      {petsList.map(pet => (
+                        <button
+                          key={pet.label}
+                          onClick={(e) => handlePetsNavigation(e, pet.path)}
+                          className="w-full text-left block py-1 hover:text-accent-light text-[11px] normal-case pl-2 cursor-pointer"
+                        >
+                          {pet.label}
+                        </button>
+                      ))}
+                    </>
+                  )}
                 </div>
 
                 {/* Pet Services expanded on mobile */}
@@ -359,13 +435,23 @@ const Navbar = () => {
               {isAuthenticated ? (
                 <div className="space-y-3">
                   <p className="text-xs font-bold text-accent-light flex items-center gap-1.5"><User size={14} /> {user?.name}</p>
-                  <Link
-                    to="/account"
-                    onClick={() => setIsMobileMenuOpen(false)}
-                    className="block text-xs font-bold text-white hover:text-accent-light"
-                  >
-                    MY PROFILE
-                  </Link>
+                  {user?.role === 'SERVICE_PROVIDER' ? (
+                    <Link
+                      to="/provider-dashboard"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                      className="block text-xs font-bold text-white hover:text-accent-light"
+                    >
+                      MY DASHBOARD
+                    </Link>
+                  ) : (
+                    <Link
+                      to="/account"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                      className="block text-xs font-bold text-white hover:text-accent-light"
+                    >
+                      MY PROFILE
+                    </Link>
+                  )}
                   <button
                     onClick={handleLogout}
                     className="w-full py-2.5 bg-accent text-white text-xs font-bold uppercase tracking-widest rounded-none cursor-pointer"

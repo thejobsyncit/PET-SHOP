@@ -1,48 +1,49 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { 
   Sparkles, Search, MapPin, Phone, MessageSquare, Star, ShieldCheck, 
   Calendar, Clock, CheckCircle2, ChevronRight, X, SlidersHorizontal, 
-  RefreshCw, Check, ArrowRight, Heart, Award, Scissors, Bath, 
-  ShieldAlert, UserCheck, ChevronDown
+  RefreshCw, Check, ArrowRight, Heart, Award, Home, 
+  ShieldAlert, UserCheck, Video, Moon, Sun, Trees, ChevronDown
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { 
-  GROOMING_OFFERINGS, 
-  getStoredGroomingProviders, 
-  saveGroomingBooking 
-} from '../data/groomingData.js';
+  HOSTEL_OFFERINGS,
+  HOSTEL_AMENITIES, 
+  getStoredHostelProviders, 
+  saveHostelBooking 
+} from '../data/hostelData.js';
 import { INDIAN_STATES_CITIES } from '../data/adoptionPetsData.js';
 
-const GroomingServices = () => {
+const HostelServices = () => {
   const navigate = useNavigate();
-  const [searchParams, setSearchParams] = useSearchParams();
   const { isAuthenticated, user } = useSelector((state) => state.auth);
 
   // Search & Filter States
   const [selectedPetType, setSelectedPetType] = useState('All');
   const [selectedState, setSelectedState] = useState('All States');
   const [selectedCity, setSelectedCity] = useState('All Cities');
-  const [selectedOffering, setSelectedOffering] = useState('all');
-  const [priceRange, setPriceRange] = useState('all'); // 'all' | 'under-500' | '500-999' | '1000-1499' | '1500-plus'
-  const [selectedServiceMode, setSelectedServiceMode] = useState('All');
+  const [selectedAmenity, setSelectedAmenity] = useState('all');
+  const [priceRange, setPriceRange] = useState('all'); // 'all' | 'under-500' | '500-899' | '900-1499' | '1500-plus'
+  const [selectedStayType, setSelectedStayType] = useState('All');
   const [sortBy, setSortBy] = useState('recommended');
   const [searchKeyword, setSearchKeyword] = useState('');
 
   // Booking Modal States
   const [selectedProvider, setSelectedProvider] = useState(null);
   const [selectedPackage, setSelectedPackage] = useState(null);
-  const [bookingDate, setBookingDate] = useState('');
-  const [bookingTime, setBookingTime] = useState('10:00 AM - 11:30 AM');
+  const [checkInDate, setCheckInDate] = useState('');
+  const [checkOutDate, setCheckOutDate] = useState('');
   const [petName, setPetName] = useState('');
   const [petBreed, setPetBreed] = useState('');
   const [petAge, setPetAge] = useState('1 Year');
   const [ownerPhone, setOwnerPhone] = useState(user?.mobile || '');
+  const [specialDiet, setSpecialDiet] = useState('Standard (Chicken & Rice)');
   const [specialNotes, setSpecialNotes] = useState('');
   const [showBookingModal, setShowBookingModal] = useState(false);
 
-  const providers = getStoredGroomingProviders();
+  const providers = getStoredHostelProviders();
 
   // Scroll to top on mount
   useEffect(() => {
@@ -63,6 +64,48 @@ const GroomingServices = () => {
     const newState = e.target.value;
     setSelectedState(newState);
     setSelectedCity('All Cities');
+  };
+
+  // Offering Counts Calculator
+  const offeringCounts = useMemo(() => {
+    const counts = {};
+    HOSTEL_OFFERINGS.forEach(off => {
+      if (off.id === 'all') {
+        counts[off.id] = providers.length;
+      } else {
+        counts[off.id] = providers.filter(p => p.amenities.includes(off.name)).length;
+      }
+    });
+    return counts;
+  }, [providers]);
+
+  // Handle Offering Selection with Smooth Feedback
+  const handleSelectOffering = (offeringId) => {
+    setSelectedAmenity((prev) => (prev === offeringId ? 'all' : offeringId));
+  };
+
+  // Helper to find the best matching package based on selected offering
+  const getFeaturedPackageForOffering = (provider, offeringId) => {
+    if (!provider.packages || provider.packages.length === 0) return null;
+    if (offeringId === 'all') return provider.packages[0];
+
+    const target = HOSTEL_OFFERINGS.find(o => o.id === offeringId);
+    if (!target) return provider.packages[0];
+
+    const offeringName = target.name.toLowerCase();
+    const match = provider.packages.find(pkg => {
+      const pName = pkg.name.toLowerCase();
+      const pDesc = pkg.desc.toLowerCase();
+      if (offeringId === 'ac-rooms') return pName.includes('ac') || pDesc.includes('climate') || pDesc.includes('ac');
+      if (offeringId === 'cctv') return pName.includes('cctv') || pDesc.includes('cctv') || pDesc.includes('video');
+      if (offeringId === 'swimming-pool') return pName.includes('pool') || pDesc.includes('pool') || pDesc.includes('splash');
+      if (offeringId === 'vet-on-call') return pName.includes('vet') || pName.includes('medical') || pDesc.includes('vet');
+      if (offeringId === 'home-cooked-meals') return pName.includes('meal') || pDesc.includes('meals') || pDesc.includes('chicken');
+      if (offeringId === 'lawn') return pName.includes('play') || pName.includes('lawn') || pDesc.includes('lawn') || pDesc.includes('garden');
+      if (offeringId === 'video-updates') return pName.includes('video') || pDesc.includes('video') || pDesc.includes('whatsapp');
+      return pName.includes(offeringName) || pDesc.includes(offeringName);
+    });
+    return match || provider.packages[0];
   };
 
   // Filter & Sort Providers
@@ -86,23 +129,23 @@ const GroomingServices = () => {
         return false;
       }
 
-      // 4. Offering Filter
-      if (selectedOffering !== 'all') {
-        const targetOfferingName = GROOMING_OFFERINGS.find(o => o.id === selectedOffering)?.name;
-        if (targetOfferingName && !p.offerings.includes(targetOfferingName)) {
+      // 4. Amenity Filter
+      if (selectedAmenity !== 'all') {
+        const targetAmenityName = HOSTEL_AMENITIES.find(a => a.id === selectedAmenity)?.name;
+        if (targetAmenityName && !p.amenities.includes(targetAmenityName)) {
           return false;
         }
       }
 
-      // 5. Price Filter
-      const effectivePrice = p.discountPrice || p.price;
+      // 5. Price Filter (per night)
+      const effectivePrice = p.discountPrice || p.pricePerNight;
       if (priceRange === 'under-500' && effectivePrice >= 500) return false;
-      if (priceRange === '500-999' && (effectivePrice < 500 || effectivePrice > 999)) return false;
-      if (priceRange === '1000-1499' && (effectivePrice < 1000 || effectivePrice > 1499)) return false;
+      if (priceRange === '500-899' && (effectivePrice < 500 || effectivePrice > 899)) return false;
+      if (priceRange === '900-1499' && (effectivePrice < 900 || effectivePrice > 1499)) return false;
       if (priceRange === '1500-plus' && effectivePrice < 1500) return false;
 
-      // 6. Service Mode Filter
-      if (selectedServiceMode !== 'All' && !p.serviceMode.toLowerCase().includes(selectedServiceMode.toLowerCase())) {
+      // 6. Stay Type Filter
+      if (selectedStayType !== 'All' && !p.stayType.toLowerCase().includes(selectedStayType.toLowerCase())) {
         return false;
       }
 
@@ -114,14 +157,14 @@ const GroomingServices = () => {
           p.area.toLowerCase().includes(query) ||
           p.city.toLowerCase().includes(query) ||
           p.tagline.toLowerCase().includes(query) ||
-          p.groomerName.toLowerCase().includes(query);
+          p.hostName.toLowerCase().includes(query);
         if (!matchesKeyword) return false;
       }
 
       return true;
     }).sort((a, b) => {
-      const priceA = a.discountPrice || a.price;
-      const priceB = b.discountPrice || b.price;
+      const priceA = a.discountPrice || a.pricePerNight;
+      const priceB = b.discountPrice || b.pricePerNight;
 
       if (sortBy === 'price-low') return priceA - priceB;
       if (sortBy === 'price-high') return priceB - priceA;
@@ -131,90 +174,32 @@ const GroomingServices = () => {
     });
   }, [
     providers, selectedPetType, selectedState, selectedCity, 
-    selectedOffering, priceRange, selectedServiceMode, sortBy, searchKeyword
+    selectedAmenity, priceRange, selectedStayType, sortBy, searchKeyword
   ]);
 
-  // Helper to find the best matching package based on selected offering
-  const getFeaturedPackageForOffering = (provider, offeringId) => {
-    if (!provider.packages || provider.packages.length === 0) return null;
-    if (offeringId === 'all') return provider.packages[0];
-
-    const target = GROOMING_OFFERINGS.find(o => o.id === offeringId);
-    if (!target) return provider.packages[0];
-
-    const offeringName = target.name.toLowerCase();
-    
-    // Look for matching package by name or description
-    const match = provider.packages.find(pkg => {
-      const pName = pkg.name.toLowerCase();
-      const pDesc = pkg.desc.toLowerCase();
-      
-      if (offeringId === 'hair-cuts') {
-        return pName.includes('cut') || pName.includes('styling') || pName.includes('haircut') || pDesc.includes('haircut') || pDesc.includes('trim');
-      }
-      if (offeringId === 'spa-bath') {
-        return pName.includes('bath') || pName.includes('spa') || pDesc.includes('bath') || pDesc.includes('shampoo');
-      }
-      if (offeringId === 'nail-clipping') {
-        return pName.includes('hygiene') || pName.includes('nail') || pDesc.includes('nail');
-      }
-      if (offeringId === 'medical-bath') {
-        return pName.includes('medicated') || pName.includes('herbal') || pName.includes('therapy') || pDesc.includes('antiseptic') || pDesc.includes('skin');
-      }
-      if (offeringId === 'knot-mats-removal') {
-        return pName.includes('matting') || pName.includes('de-matting') || pDesc.includes('knot') || pDesc.includes('deshedding');
-      }
-      if (offeringId === 'anti-tick-treatment') {
-        return pName.includes('tick') || pName.includes('flea') || pDesc.includes('tick') || pDesc.includes('parasite');
-      }
-      if (offeringId === 'full-grooming') {
-        return pName.includes('full') || pName.includes('royal') || pName.includes('makeover') || pName.includes('show');
-      }
-
-      return pName.includes(offeringName) || pDesc.includes(offeringName);
-    });
-
-    return match || provider.packages[0];
-  };
-
-  // Offering Counts Calculator
-  const offeringCounts = useMemo(() => {
-    const counts = {};
-    GROOMING_OFFERINGS.forEach(off => {
-      if (off.id === 'all') {
-        counts[off.id] = providers.length;
-      } else {
-        counts[off.id] = providers.filter(p => p.offerings.includes(off.name)).length;
-      }
-    });
-    return counts;
-  }, [providers]);
-
-  // Handle Offering Selection with Smooth Feedback
-  const handleSelectOffering = (offeringId) => {
-    setSelectedOffering((prev) => (prev === offeringId ? 'all' : offeringId));
-  };
-
-  // Open Booking Modal for a provider
+  // Open Booking Modal for a hostel
   const handleOpenBookingModal = (provider, pkg = null) => {
     if (!isAuthenticated) {
-      toast.error('Please register or log in to book a grooming appointment.', {
+      toast.error('Please register or log in to book a pet hostel stay.', {
         icon: '🔒'
       });
-      window.dispatchEvent(new CustomEvent('open-register-modal', { detail: { tab: 'user', hideProviderTab: true, source: 'grooming' } }));
+      window.dispatchEvent(new CustomEvent('open-register-modal', { detail: { tab: 'user', hideProviderTab: true, source: 'hostel' } }));
       return;
     }
     setSelectedProvider(provider);
-    const preselectedPkg = pkg || getFeaturedPackageForOffering(provider, selectedOffering) || provider.packages[0] || null;
-    setSelectedPackage(preselectedPkg);
+    setSelectedPackage(pkg || provider.packages[0] || null);
     setShowBookingModal(true);
   };
 
   // Submit Booking Form
   const handleSubmitBooking = (e) => {
     e.preventDefault();
-    if (!bookingDate) {
-      toast.error('Please pick a booking date.');
+    if (!checkInDate || !checkOutDate) {
+      toast.error('Please pick check-in and check-out dates.');
+      return;
+    }
+    if (new Date(checkOutDate) <= new Date(checkInDate)) {
+      toast.error('Check-out date must be after check-in date.');
       return;
     }
     if (!petName.trim() || !petBreed.trim()) {
@@ -226,18 +211,27 @@ const GroomingServices = () => {
       return;
     }
 
+    // Calculate nights
+    const diffTime = Math.abs(new Date(checkOutDate) - new Date(checkInDate));
+    const nights = Math.max(1, Math.ceil(diffTime / (1000 * 60 * 60 * 24)));
+    const dailyRate = selectedPackage?.price || selectedProvider.discountPrice || selectedProvider.pricePerNight;
+    const totalAmount = nights * dailyRate;
+
     const bookingData = {
-      id: 'GBOOK-' + Date.now().toString().slice(-6),
+      id: 'HSTBK-' + Date.now().toString().slice(-6),
       providerId: selectedProvider.id,
       providerName: selectedProvider.name,
-      groomerName: selectedProvider.groomerName,
-      packageName: selectedPackage?.name || 'Standard Grooming',
-      packagePrice: selectedPackage?.price || selectedProvider.discountPrice || selectedProvider.price,
-      bookingDate,
-      bookingTime,
+      hostName: selectedProvider.hostName,
+      packageName: selectedPackage?.name || 'Standard Stay',
+      dailyRate,
+      nights,
+      totalAmount,
+      checkInDate,
+      checkOutDate,
       petName,
       petBreed,
       petAge,
+      specialDiet,
       ownerName: user?.name || 'Pet Parent',
       ownerPhone,
       specialNotes,
@@ -245,18 +239,18 @@ const GroomingServices = () => {
       createdAt: new Date().toISOString()
     };
 
-    saveGroomingBooking(bookingData);
+    saveHostelBooking(bookingData);
     setShowBookingModal(false);
-    toast.success(`🎉 Grooming appointment booked with ${selectedProvider.name} for ${petName}! The groomer will reach out shortly.`, {
+    toast.success(`🎉 Pet Hostel booking confirmed with ${selectedProvider.name} for ${nights} night(s)! The host will connect with you on WhatsApp.`, {
       duration: 6000,
-      icon: '✂️'
+      icon: '🏨'
     });
   };
 
   // Direct WhatsApp Connect
   const handleWhatsApp = (provider) => {
     const text = encodeURIComponent(
-      `Hello! I want to book a pet grooming session at "${provider.name}" (${provider.city}) found on India Pet Hub.`
+      `Hello! I am inquiring about boarding my pet at "${provider.name}" (${provider.city}) listed on India Pet Hub.`
     );
     window.open(`https://wa.me/91${provider.phone}?text=${text}`, '_blank');
   };
@@ -265,9 +259,9 @@ const GroomingServices = () => {
     setSelectedPetType('All');
     setSelectedState('All States');
     setSelectedCity('All Cities');
-    setSelectedOffering('all');
+    setSelectedAmenity('all');
     setPriceRange('all');
-    setSelectedServiceMode('All');
+    setSelectedStayType('All');
     setSortBy('recommended');
     setSearchKeyword('');
   };
@@ -287,7 +281,7 @@ const GroomingServices = () => {
             <ChevronRight size={12} />
             <Link to="/services" className="hover:text-black transition">Pet Services</Link>
             <ChevronRight size={12} />
-            <span className="font-bold text-slate-900">Dog Grooming</span>
+            <span className="font-bold text-slate-900">Dog Hostel</span>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
@@ -295,29 +289,16 @@ const GroomingServices = () => {
             {/* Left Content Column */}
             <div className="lg:col-span-8 space-y-4">
               <span className="italic font-serif text-lg md:text-xl text-[#6b3ba6] font-semibold tracking-wide block">
-                Pet's Purrrrrfect Look!
+                Pet's Purrrrrfect Staycation!
               </span>
 
               <h1 className="text-3xl md:text-5xl font-extrabold text-slate-950 font-sans tracking-tight leading-tight">
-                Dog Grooming Services Near You
+                Dog Hostel Services Near You
               </h1>
 
               <p className="text-xs md:text-sm text-slate-900/90 font-medium max-w-2xl leading-relaxed">
-                Expert grooming that keeps your pet clean and healthy, helping them look and feel their best.
+                Safe & Verified | 10000+ Trusted | Affordable | Comfortable | No.1 Pan India Presence
               </p>
-
-              {/* Tagline Badges */}
-              <div className="text-[11px] md:text-xs text-slate-900/80 font-bold flex flex-wrap items-center gap-x-2 gap-y-1 pt-1">
-                <span>Clean and Hygienic</span>
-                <span>|</span>
-                <span>Comfortable</span>
-                <span>|</span>
-                <span>Affordable</span>
-                <span>|</span>
-                <span>10K+ Happy Customers</span>
-                <span>|</span>
-                <span>No.1 Pan India</span>
-              </div>
 
               {/* Search Filter Bar */}
               <div className="pt-4 max-w-3xl">
@@ -369,7 +350,7 @@ const GroomingServices = () => {
                   <div className="sm:col-span-3 flex items-end">
                     <button
                       onClick={() => {
-                        const el = document.getElementById('providers-catalog');
+                        const el = document.getElementById('hostels-catalog');
                         if (el) el.scrollIntoView({ behavior: 'smooth' });
                       }}
                       className="w-full bg-[#7c56dc] hover:bg-[#6842c2] text-white font-extrabold py-2.5 px-4 rounded-xl text-xs shadow-md transition-all flex items-center justify-center gap-1.5 cursor-pointer active:scale-95"
@@ -389,14 +370,14 @@ const GroomingServices = () => {
               <div className="relative w-64 h-64 md:w-72 md:h-72">
                 <img
                   src="https://images.unsplash.com/photo-1548199973-03cce0bbc87b?q=80&w=800"
-                  alt="Groomed Happy Dog"
+                  alt="Cozy Pet in Wicker Chair"
                   className="w-full h-full object-cover rounded-3xl shadow-2xl border-4 border-white/80 filter drop-shadow-xl"
                 />
                 <div className="absolute -bottom-3 -left-3 bg-white px-4 py-2 rounded-2xl shadow-lg border border-amber-200 flex items-center gap-2">
-                  <span className="text-xl">✂️</span>
+                  <span className="text-xl">🏨</span>
                   <div>
-                    <p className="text-[10px] font-extrabold text-slate-400 uppercase">Verified Care</p>
-                    <p className="text-xs font-extrabold text-slate-800">100% Gentle Grooming</p>
+                    <p className="text-[10px] font-extrabold text-slate-400 uppercase">Verified Hostels</p>
+                    <p className="text-xs font-extrabold text-slate-800">100% Cage-Free Stay</p>
                   </div>
                 </div>
               </div>
@@ -407,26 +388,27 @@ const GroomingServices = () => {
         </div>
       </section>
 
+
       {/* =========================================================================
-          2. "OUR GROOMING OFFERINGS" (Brought to Top)
+          2. "OUR HOSTEL & BOARDING OFFERINGS" (Interactive Service Bar)
          ========================================================================= */}
       <section className="max-w-7xl mx-auto px-4 md:px-8 pt-8 pb-4 space-y-6">
         <div className="text-center space-y-2">
           <span className="text-[10px] uppercase font-extrabold tracking-widest text-[#7c56dc] bg-purple-50 px-3 py-1 rounded-full border border-purple-200">
-            CHOOSE YOUR SERVICE
+            CHOOSE YOUR STAY TYPE
           </span>
           <h2 className="text-2xl md:text-3xl font-extrabold text-slate-900 font-sans">
-            Our Grooming Offerings
+            Our Hostel & Boarding Offerings
           </h2>
           <p className="text-xs text-slate-500 max-w-md mx-auto">
-            Click on any service offering below to filter verified groomers providing that service.
+            Click on any service offering below to filter verified pet hostels providing that facility.
           </p>
         </div>
 
         {/* Offerings Horizontal Grid */}
         <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3">
-          {GROOMING_OFFERINGS.map((offering) => {
-            const isActive = selectedOffering === offering.id;
+          {HOSTEL_OFFERINGS.map((offering) => {
+            const isActive = selectedAmenity === offering.id;
             const count = offeringCounts[offering.id] ?? 0;
             return (
               <button
@@ -463,23 +445,23 @@ const GroomingServices = () => {
       {/* =========================================================================
           3. SERVICE PROVIDERS CATALOG & ADVANCED FILTER SECTION (Brought to Top)
          ========================================================================= */}
-      <section id="providers-catalog" className="max-w-7xl mx-auto px-4 md:px-8 pt-4 pb-16 space-y-8 scroll-mt-20">
+      <section id="hostels-catalog" className="max-w-7xl mx-auto px-4 md:px-8 pt-4 pb-16 space-y-8 scroll-mt-20">
         
         {/* Section Title & Quick Stats */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-purple-100 pb-4">
           <div>
             <div className="flex flex-wrap items-center gap-2.5">
               <h2 className="text-xl md:text-2xl font-extrabold text-slate-900 font-sans">
-                Verified Grooming Service Providers
+                Verified Pet Hostels & Boarding Homes
               </h2>
-              {selectedOffering !== 'all' && (
+              {selectedAmenity !== 'all' && (
                 <span className="inline-flex items-center gap-1.5 bg-[#7c56dc] text-white text-xs font-bold px-3 py-1 rounded-full shadow-xs animate-in zoom-in-95 duration-150">
-                  <span>{GROOMING_OFFERINGS.find(o => o.id === selectedOffering)?.icon}</span>
-                  <span>{GROOMING_OFFERINGS.find(o => o.id === selectedOffering)?.name}</span>
+                  <span>{HOSTEL_OFFERINGS.find(o => o.id === selectedAmenity)?.icon}</span>
+                  <span>{HOSTEL_OFFERINGS.find(o => o.id === selectedAmenity)?.name}</span>
                   <button
-                    onClick={() => setSelectedOffering('all')}
+                    onClick={() => setSelectedAmenity('all')}
                     className="hover:bg-white/20 rounded-full p-0.5 ml-0.5 cursor-pointer"
-                    title="Clear service filter"
+                    title="Clear facility filter"
                   >
                     <X size={12} />
                   </button>
@@ -488,9 +470,9 @@ const GroomingServices = () => {
             </div>
             <p className="text-xs text-slate-500 font-medium mt-1">
               Showing <span className="font-bold text-[#7c56dc]">{filteredProviders.length}</span> {
-                selectedOffering !== 'all'
-                  ? `verified groomers providing "${GROOMING_OFFERINGS.find(o => o.id === selectedOffering)?.name}"`
-                  : 'trusted groomers & doorstep vans'
+                selectedAmenity !== 'all'
+                  ? `verified boarding hostels providing "${HOSTEL_OFFERINGS.find(o => o.id === selectedAmenity)?.name}"`
+                  : 'verified boarding resorts & home sitters'
               }
             </p>
           </div>
@@ -508,7 +490,7 @@ const GroomingServices = () => {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
           
           {/* =====================================================================
-              LEFT FILTER PANEL
+              LEFT FILTER PANEL (With Top Search & Separate Scrollbar)
              ===================================================================== */}
           <aside className="lg:col-span-3 bg-white p-5 rounded-3xl border border-purple-100 shadow-sm sticky top-24 max-h-[calc(100vh-120px)] flex flex-col">
             
@@ -539,7 +521,7 @@ const GroomingServices = () => {
               <div className="space-y-1.5">
                 <div className="flex justify-between items-center">
                   <h4 className="text-xs font-extrabold uppercase tracking-wider text-slate-900">
-                    Search Groomers
+                    Search Hostels
                   </h4>
                   {searchKeyword && (
                     <button
@@ -553,7 +535,7 @@ const GroomingServices = () => {
                 <div className="relative">
                   <input
                     type="text"
-                    placeholder="Search by salon, groomer, area..."
+                    placeholder="Search by name, area, resort..."
                     value={searchKeyword}
                     onChange={(e) => setSearchKeyword(e.target.value)}
                     className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-8 pr-3 py-2 text-xs font-medium text-slate-800 focus:outline-none focus:border-[#7c56dc] focus:ring-1 focus:ring-purple-200 transition"
@@ -562,15 +544,15 @@ const GroomingServices = () => {
                 </div>
               </div>
 
-              {/* 2. GROOMING SERVICES FILTER */}
+              {/* 2. STAY FEATURES & AMENITIES FILTER */}
               <div className="space-y-2 pt-3 border-t border-slate-100">
                 <div className="flex justify-between items-center">
                   <h4 className="text-xs font-extrabold uppercase tracking-wider text-slate-900">
-                    Services
+                    Facilities
                   </h4>
-                  {selectedOffering !== 'all' && (
+                  {selectedAmenity !== 'all' && (
                     <button
-                      onClick={() => setSelectedOffering('all')}
+                      onClick={() => setSelectedAmenity('all')}
                       className="text-[10px] font-bold text-slate-400 hover:text-red-500 transition"
                     >
                       Clear
@@ -578,13 +560,13 @@ const GroomingServices = () => {
                   )}
                 </div>
                 <div className="space-y-1 text-xs">
-                  {GROOMING_OFFERINGS.map((off) => {
-                    const isSel = selectedOffering === off.id;
+                  {HOSTEL_OFFERINGS.map((off) => {
+                    const isSel = selectedAmenity === off.id;
                     const count = offeringCounts[off.id] ?? 0;
                     return (
                       <button
                         key={off.id}
-                        onClick={() => setSelectedOffering(isSel ? 'all' : off.id)}
+                        onClick={() => setSelectedAmenity(isSel ? 'all' : off.id)}
                         className={`flex items-center justify-between w-full py-1.5 px-2.5 rounded-xl font-semibold text-left transition cursor-pointer ${
                           isSel
                             ? 'bg-[#7c56dc] text-white font-bold shadow-xs'
@@ -606,22 +588,22 @@ const GroomingServices = () => {
                 </div>
               </div>
 
-              {/* 3. PRICE RANGE FILTER (Budget / Affordable Slider) */}
+              {/* 3. PRICE RANGE FILTER (Per Night) */}
               <div className="space-y-2.5 pt-3 border-t border-slate-100">
                 <div className="flex justify-between items-center">
                   <h4 className="text-xs font-extrabold uppercase tracking-wider text-slate-900">
-                    Pricing & Budget
+                    Daily Rate / Night
                   </h4>
                   <span className="text-[10px] font-bold text-amber-600">₹ INR</span>
                 </div>
 
                 <div className="space-y-1 text-xs">
                   {[
-                    { id: 'all', label: 'All Prices' },
-                    { id: 'under-500', label: 'Under ₹500 (Budget Basics)' },
-                    { id: '500-999', label: '₹500 - ₹999 (Popular Choice)' },
-                    { id: '1000-1499', label: '₹1,000 - ₹1,499 (Full Spa)' },
-                    { id: '1500-plus', label: '₹1,500+ (Luxury Van/VIP)' }
+                    { id: 'all', label: 'All Price Ranges' },
+                    { id: 'under-500', label: 'Under ₹500 (Budget Boarding)' },
+                    { id: '500-899', label: '₹500 - ₹899 (Standard AC Suite)' },
+                    { id: '900-1499', label: '₹900 - ₹1,499 (Luxury Resort)' },
+                    { id: '1500-plus', label: '₹1,500+ (VIP Suite & Pool Pass)' }
                   ].map((tier) => (
                     <button
                       key={tier.id}
@@ -639,24 +621,24 @@ const GroomingServices = () => {
                 </div>
               </div>
 
-              {/* 4. SERVICE MODE (Doorstep, Salon, Mobile Van) */}
+              {/* 4. STAY / ROOM TYPE */}
               <div className="space-y-2 pt-3 border-t border-slate-100">
                 <h4 className="text-xs font-extrabold uppercase tracking-wider text-slate-900">
-                  Service Format
+                  Stay Type
                 </h4>
                 <div className="space-y-1 text-xs">
-                  {['All', 'Doorstep Home Visit', 'In-Salon Care', 'Mobile Luxury Van'].map((mode) => (
+                  {['All', 'AC Suite', 'Home Boarding', 'Farmhouse Resort', 'Vet-Supervised'].map((type) => (
                     <button
-                      key={mode}
-                      onClick={() => setSelectedServiceMode(mode)}
+                      key={type}
+                      onClick={() => setSelectedStayType(type)}
                       className={`flex items-center justify-between w-full py-1.5 px-3 rounded-xl font-semibold text-left transition cursor-pointer ${
-                        selectedServiceMode === mode
+                        selectedStayType === type
                           ? 'bg-amber-100 text-amber-900 font-bold'
                           : 'text-slate-600 hover:bg-slate-50'
                       }`}
                     >
-                      <span>{mode}</span>
-                      {selectedServiceMode === mode && <Check size={12} />}
+                      <span>{type}</span>
+                      {selectedStayType === type && <Check size={12} />}
                     </button>
                   ))}
                 </div>
@@ -699,7 +681,7 @@ const GroomingServices = () => {
                     <option value="price-low">Price: Low to High</option>
                     <option value="price-high">Price: High to Low</option>
                     <option value="rating">Highest Star Ratings</option>
-                    <option value="reviews">Most Reviews & Completed</option>
+                    <option value="reviews">Most Reviews & Stays</option>
                   </select>
                   <ChevronDown size={16} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-900 pointer-events-none stroke-[2.5]" />
                 </div>
@@ -717,9 +699,9 @@ const GroomingServices = () => {
             {filteredProviders.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {filteredProviders.map((provider) => {
-                  const targetOfferingName = GROOMING_OFFERINGS.find(o => o.id === selectedOffering)?.name;
-                  const featuredPkg = getFeaturedPackageForOffering(provider, selectedOffering);
-                  const effectivePrice = featuredPkg ? featuredPkg.price : (provider.discountPrice || provider.price);
+                  const targetAmenityName = HOSTEL_OFFERINGS.find(o => o.id === selectedAmenity)?.name;
+                  const featuredPkg = getFeaturedPackageForOffering(provider, selectedAmenity);
+                  const effectivePrice = featuredPkg ? featuredPkg.price : (provider.discountPrice || provider.pricePerNight);
                   
                   return (
                     <div
@@ -736,9 +718,9 @@ const GroomingServices = () => {
                           />
                           <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
 
-                          {/* Service Mode Badge */}
+                          {/* Stay Type Badge */}
                           <div className="absolute top-3 left-3 bg-[#7c56dc] text-white text-[10px] font-extrabold px-3 py-1 rounded-full shadow-md">
-                            {provider.serviceMode}
+                            {provider.stayType}
                           </div>
 
                           {/* Verified Badge */}
@@ -762,7 +744,7 @@ const GroomingServices = () => {
                         {/* Provider Body Details */}
                         <div className="p-5 space-y-4">
                           
-                          {/* Rating, Groomer & Experience */}
+                          {/* Rating, Host & Experience */}
                           <div className="flex items-center justify-between text-xs pb-3 border-b border-slate-100">
                             <div className="flex items-center gap-1.5 font-extrabold text-amber-500">
                               <Star size={14} className="fill-amber-400 text-amber-400" />
@@ -779,19 +761,19 @@ const GroomingServices = () => {
                             "{provider.tagline}"
                           </p>
 
-                          {/* Lead Groomer */}
+                          {/* Host info */}
                           <p className="text-[11px] text-slate-500 font-medium flex items-center gap-1.5">
-                            <span className="font-bold text-slate-700">Lead Specialist:</span> {provider.groomerName}
+                            <span className="font-bold text-slate-700">Host:</span> {provider.hostName}
                           </p>
 
-                          {/* Offerings Included Pills with Matched Highlighting */}
+                          {/* Amenities Included Pills with Matched Highlighting */}
                           <div className="space-y-1.5">
                             <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block">
-                              Services Offered:
+                              Hostel Amenities:
                             </span>
                             <div className="flex flex-wrap gap-1.5">
-                              {provider.offerings.map((offering, idx) => {
-                                const isMatched = selectedOffering !== 'all' && targetOfferingName === offering;
+                              {provider.amenities.map((amenity, idx) => {
+                                const isMatched = selectedAmenity !== 'all' && targetAmenityName === amenity;
                                 return (
                                   <span
                                     key={idx}
@@ -801,32 +783,32 @@ const GroomingServices = () => {
                                         : 'bg-purple-50 text-[#7c56dc] border-purple-100'
                                     }`}
                                   >
-                                    <span>{isMatched ? '✓' : '✂️'}</span>
-                                    <span>{offering}</span>
+                                    <span>{isMatched ? '✓' : '✨'}</span>
+                                    <span>{amenity}</span>
                                   </span>
                                 );
                               })}
                             </div>
                           </div>
 
-                          {/* Dynamic Package Preview tailored to selected service */}
+                          {/* Dynamic Stay Package Preview tailored to selected feature */}
                           {featuredPkg && (
                             <div className={`p-3 rounded-2xl space-y-1 transition ${
-                              selectedOffering !== 'all'
+                              selectedAmenity !== 'all'
                                 ? 'bg-purple-50/90 border border-purple-200/90'
                                 : 'bg-amber-50/70 border border-amber-200/60'
                             }`}>
                               <div className="flex justify-between items-center">
                                 <span className={`text-[10px] font-extrabold uppercase tracking-wide flex items-center gap-1 ${
-                                  selectedOffering !== 'all' ? 'text-[#7c56dc]' : 'text-amber-900'
+                                  selectedAmenity !== 'all' ? 'text-[#7c56dc]' : 'text-amber-900'
                                 }`}>
                                   <span>⭐</span>
-                                  <span>{selectedOffering !== 'all' ? `Matched ${targetOfferingName} Package` : 'Featured Package'}</span>
+                                  <span>{selectedAmenity !== 'all' ? `Matched ${targetAmenityName} Package` : 'Featured Stay Package'}</span>
                                 </span>
                                 <span className={`text-xs font-extrabold ${
-                                  selectedOffering !== 'all' ? 'text-[#7c56dc]' : 'text-slate-900'
+                                  selectedAmenity !== 'all' ? 'text-[#7c56dc]' : 'text-slate-900'
                                 }`}>
-                                  ₹{featuredPkg.price}
+                                  ₹{featuredPkg.price}/night
                                 </span>
                               </div>
                               <p className="text-[11px] font-bold text-slate-800">{featuredPkg.name}</p>
@@ -842,18 +824,19 @@ const GroomingServices = () => {
                         <div className="flex items-baseline justify-between border-t border-slate-100 pt-3">
                           <div>
                             <span className="text-[10px] text-slate-400 font-bold uppercase block">
-                              {selectedOffering !== 'all' ? `${targetOfferingName} Rate` : 'Starting from'}
+                              {selectedAmenity !== 'all' ? `${targetAmenityName} Rate` : 'Starting from'}
                             </span>
                             <div className="flex items-baseline gap-1.5">
                               <span className="text-lg font-extrabold text-slate-950">₹{effectivePrice}</span>
-                              {selectedOffering === 'all' && provider.discountPrice && (
-                                <span className="text-xs text-slate-400 line-through">₹{provider.price}</span>
+                              <span className="text-[11px] text-slate-500">/ night</span>
+                              {selectedAmenity === 'all' && provider.discountPrice && (
+                                <span className="text-xs text-slate-400 line-through ml-1">₹{provider.pricePerNight}</span>
                               )}
                             </div>
                           </div>
 
                           <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-1 rounded-md">
-                            100% Organic Products
+                            24/7 CCTV & Meals Included
                           </span>
                         </div>
 
@@ -864,7 +847,7 @@ const GroomingServices = () => {
                             className="bg-[#7c56dc] hover:bg-[#6842c2] text-white font-extrabold py-2.5 px-3 rounded-xl text-xs shadow-md transition-all flex items-center justify-center gap-1.5 cursor-pointer active:scale-95"
                           >
                             <Calendar size={13} />
-                            <span>Book {selectedOffering !== 'all' ? targetOfferingName : 'Now'}</span>
+                            <span>Book {selectedAmenity !== 'all' ? targetAmenityName : 'Stay'}</span>
                           </button>
 
                           <button
@@ -884,11 +867,11 @@ const GroomingServices = () => {
             ) : (
               <div className="text-center py-16 bg-white rounded-3xl border border-purple-100 p-8 space-y-4">
                 <div className="w-16 h-16 bg-purple-50 rounded-full flex items-center justify-center mx-auto text-[#7c56dc]">
-                  <Scissors size={28} />
+                  <Home size={28} />
                 </div>
-                <h3 className="text-lg font-extrabold text-slate-900">No Grooming Providers Found</h3>
+                <h3 className="text-lg font-extrabold text-slate-900">No Pet Hostels Found</h3>
                 <p className="text-xs text-slate-500 max-w-sm mx-auto">
-                  We couldn't find groomers matching your exact filter combination. Try expanding your price range or selecting All Cities.
+                  We couldn't find hostels matching your exact filter combination. Try expanding your price range or selecting All Cities.
                 </p>
                 <button
                   onClick={handleResetFilters}
@@ -905,80 +888,94 @@ const GroomingServices = () => {
 
       </section>
 
-      {/* =========================================================================
-          4. "WHY IS PET GROOMING IMPORTANT?" (Moved Below Catalog)
-         ========================================================================= */}
-      <section className="max-w-7xl mx-auto px-4 md:px-8 py-16">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
-          
-          {/* Left Column: Heading, Text & Bath Photo */}
-          <div className="lg:col-span-6 space-y-6">
-            <div className="space-y-3">
-              <h2 className="text-2xl md:text-3xl font-serif font-extrabold text-slate-900">
-                Why Is Pet Grooming Important?
-              </h2>
-              <div className="space-y-1 text-xs md:text-sm text-slate-600 font-medium leading-relaxed">
-                <p>Kudos to you for putting your pet first!</p>
-                <p>Because grooming isn't just pampering, it's essential care.</p>
-                <p className="font-semibold text-[#7c56dc]">And, who doesn't want their pet to look Purrrrrfect?</p>
-              </div>
-            </div>
 
-            {/* Bath Photo */}
-            <div className="aspect-[4/3] rounded-3xl overflow-hidden shadow-xl border border-purple-100 bg-slate-100">
-              <img
-                src="https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?q=80&w=800"
-                alt="Dog Getting Gentle Bath"
-                className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
-              />
-            </div>
+      {/* =========================================================================
+          3. "RESULTS BRIGHT AS YOUR PET'S EYES" STATS COUNTERS (Moved Below Catalog)
+         ========================================================================= */}
+      <section className="max-w-7xl mx-auto px-4 md:px-8 py-16 space-y-8">
+        <div className="text-center space-y-2 max-w-2xl mx-auto">
+          <h2 className="text-2xl md:text-3xl font-extrabold text-slate-900 font-sans">
+            Results Bright As Your <span className="text-[#7c56dc]">Pet's Eyes</span>
+          </h2>
+          <p className="text-xs md:text-sm text-slate-500 font-medium">
+            Every wag, purr, and paw-print is a testament to the trust 10000+ pet parents have placed in us.
+          </p>
+        </div>
+
+        {/* 4 Colorful Stat Cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+          
+          {/* Card 1: Purple */}
+          <div className="bg-[#8a68e8] text-white p-8 rounded-3xl shadow-md text-center space-y-2 flex flex-col justify-center transform hover:-translate-y-1 transition duration-200">
+            <span className="text-3xl md:text-4xl font-extrabold tracking-tight">250+</span>
+            <p className="text-xs font-semibold text-white/90">Hostels all over India</p>
           </div>
 
-          {/* Right Column: 2x2 Grid of Benefit Cards */}
-          <div className="lg:col-span-6 grid grid-cols-1 sm:grid-cols-2 gap-5">
+          {/* Card 2: Pink */}
+          <div className="bg-[#ff85a1] text-white p-8 rounded-3xl shadow-md text-center space-y-2 flex flex-col justify-center transform hover:-translate-y-1 transition duration-200">
+            <span className="text-3xl md:text-4xl font-extrabold tracking-tight">10000+</span>
+            <p className="text-xs font-semibold text-white/90">Happy customers</p>
+          </div>
+
+          {/* Card 3: Cyan Blue */}
+          <div className="bg-[#00b0f0] text-white p-8 rounded-3xl shadow-md text-center space-y-2 flex flex-col justify-center transform hover:-translate-y-1 transition duration-200">
+            <span className="text-3xl md:text-4xl font-extrabold tracking-tight">8+</span>
+            <p className="text-xs font-semibold text-white/90">Years in hostel service</p>
+          </div>
+
+          {/* Card 4: Yellow/Gold */}
+          <div className="bg-[#fec338] text-slate-900 p-8 rounded-3xl shadow-md text-center space-y-2 flex flex-col justify-center transform hover:-translate-y-1 transition duration-200">
+            <span className="text-3xl md:text-4xl font-extrabold tracking-tight">7000+</span>
+            <p className="text-xs font-bold text-slate-800">Pets boarded with us</p>
+          </div>
+
+        </div>
+      </section>
+
+
+      {/* =========================================================================
+          4. "YOUR PET FEELS SAFEST" (Photo Cards Moved Below)
+         ========================================================================= */}
+      <section className="bg-white border-y border-purple-100 py-16 px-4 md:px-8">
+        <div className="max-w-7xl mx-auto space-y-10">
+          
+          <div className="text-center space-y-2 max-w-2xl mx-auto">
+            <h2 className="text-2xl md:text-3xl font-extrabold text-slate-900 font-sans">
+              Your Pet Feels Safest
+            </h2>
+            <p className="text-xs md:text-sm text-slate-500 font-medium">
+              In our secure, home-based pet hostels and boardings. Your pet's dream place!
+            </p>
+          </div>
+
+          {/* 3 Real Life Hostel Photo Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             
-            {/* 1. Better Hygiene (Yellow Card) */}
-            <div className="bg-[#fec338] text-slate-900 p-6 rounded-3xl shadow-md space-y-3 flex flex-col justify-center transform hover:-translate-y-1 transition duration-200">
-              <div className="w-12 h-12 bg-white/90 rounded-2xl flex items-center justify-center text-2xl shadow-xs">
-                🛁
-              </div>
-              <h3 className="font-extrabold text-lg">Better Hygiene</h3>
-              <p className="text-xs font-medium text-slate-800 leading-relaxed">
-                Clean pet, fewer germs, fresher cuddles.
-              </p>
+            {/* Photo 1 */}
+            <div className="aspect-[4/3] rounded-3xl overflow-hidden shadow-lg border border-purple-100 bg-slate-100 group">
+              <img
+                src="https://images.unsplash.com/photo-1548199973-03cce0bbc87b?q=80&w=600"
+                alt="Social Communal Play Zone"
+                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+              />
             </div>
 
-            {/* 2. Body Temperature (Cyan/Blue Card) */}
-            <div className="bg-[#00b0f0] text-white p-6 rounded-3xl shadow-md space-y-3 flex flex-col justify-center transform hover:-translate-y-1 transition duration-200">
-              <div className="w-12 h-12 bg-white/20 backdrop-blur-xs rounded-2xl flex items-center justify-center text-2xl shadow-xs">
-                ❄️
-              </div>
-              <h3 className="font-extrabold text-lg">Body Temperature</h3>
-              <p className="text-xs font-medium text-white/95 leading-relaxed">
-                A trimmed fur helps regulate body heat.
-              </p>
+            {/* Photo 2 */}
+            <div className="aspect-[4/3] rounded-3xl overflow-hidden shadow-lg border border-purple-100 bg-slate-100 group">
+              <img
+                src="https://images.unsplash.com/photo-1537151608828-ea2b11777ee8?q=80&w=600"
+                alt="Puppy Sleeping in Blue Bed"
+                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+              />
             </div>
 
-            {/* 3. Shedding and Tangling (Pink Card) */}
-            <div className="bg-[#ff85a1] text-white p-6 rounded-3xl shadow-md space-y-3 flex flex-col justify-center transform hover:-translate-y-1 transition duration-200">
-              <div className="w-12 h-12 bg-white/20 backdrop-blur-xs rounded-2xl flex items-center justify-center text-2xl shadow-xs">
-                🪮
-              </div>
-              <h3 className="font-extrabold text-lg">Shedding and Tangling</h3>
-              <p className="text-xs font-medium text-white/95 leading-relaxed">
-                Shiny, tangle-free coat with regular grooming.
-              </p>
-            </div>
-
-            {/* 4. Diseases Detection (Purple Card) */}
-            <div className="bg-[#8a68e8] text-white p-6 rounded-3xl shadow-md space-y-3 flex flex-col justify-center transform hover:-translate-y-1 transition duration-200">
-              <div className="w-12 h-12 bg-white/20 backdrop-blur-xs rounded-2xl flex items-center justify-center text-2xl shadow-xs">
-                🩺
-              </div>
-              <h3 className="font-extrabold text-lg">Diseases Detection</h3>
-              <p className="text-xs font-medium text-white/95 leading-relaxed">
-                Spot issues early, ensure timely care.
-              </p>
+            {/* Photo 3 */}
+            <div className="aspect-[4/3] rounded-3xl overflow-hidden shadow-lg border border-purple-100 bg-slate-100 group">
+              <img
+                src="https://images.unsplash.com/photo-1541599540903-216a46ca1dc0?q=80&w=600"
+                alt="Loving Caretaker Outdoors"
+                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+              />
             </div>
 
           </div>
@@ -988,59 +985,127 @@ const GroomingServices = () => {
 
 
       {/* =========================================================================
-          5. "GROOMING STARTS WITH CARE" (Moved Below Catalog)
+          5. "WHY DO PET PARENTS CHOOSE PAWORA?" (Testimonials)
+         ========================================================================= */}
+      <section className="max-w-7xl mx-auto px-4 md:px-8 py-16 space-y-12">
+        <div className="text-center space-y-2 max-w-2xl mx-auto">
+          <h2 className="text-2xl md:text-3xl font-extrabold text-slate-900 font-sans">
+            Why Do Pet Parents Choose <span className="text-[#7c56dc]">Pawora?</span>
+          </h2>
+          <p className="text-xs md:text-sm text-slate-500 font-medium">
+            Nationwide presence in 50+ cities including Delhi, Bangalore, Jaipur, and Chennai.
+          </p>
+        </div>
+
+        {/* 3 Host Partner Testimonial Blob Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          
+          {/* Host 1 */}
+          <div className="bg-white p-6 rounded-3xl border border-purple-100 shadow-sm hover:shadow-md transition text-center space-y-4 flex flex-col items-center">
+            <div className="relative w-28 h-28">
+              <div className="absolute inset-0 bg-[#fec338]/30 rounded-full transform -rotate-6"></div>
+              <img
+                src="https://images.unsplash.com/photo-1548199973-03cce0bbc87b?q=80&w=400"
+                alt="Safe & Secure Team"
+                className="relative w-full h-full object-cover rounded-full border-2 border-white shadow-md"
+              />
+            </div>
+            <p className="text-xs text-slate-600 font-medium leading-relaxed">
+              "Our team ensures that your pet is in safe and secure hands with 24/7 round-the-clock loving supervision."
+            </p>
+            <span className="text-[11px] font-bold text-[#7c56dc] hover:underline cursor-pointer">
+              Read more →
+            </span>
+          </div>
+
+          {/* Host 2 */}
+          <div className="bg-white p-6 rounded-3xl border border-purple-100 shadow-sm hover:shadow-md transition text-center space-y-4 flex flex-col items-center">
+            <div className="relative w-28 h-28">
+              <div className="absolute inset-0 bg-[#ff85a1]/30 rounded-full transform rotate-6"></div>
+              <img
+                src="https://images.unsplash.com/photo-1537151608828-ea2b11777ee8?q=80&w=400"
+                alt="Background Checked Partners"
+                className="relative w-full h-full object-cover rounded-full border-2 border-white shadow-md"
+              />
+            </div>
+            <p className="text-xs text-slate-600 font-medium leading-relaxed">
+              "Our host partners are fully background-checked, certified pet lovers with verified hygienic homes."
+            </p>
+            <span className="text-[11px] font-bold text-[#7c56dc] hover:underline cursor-pointer">
+              Read more →
+            </span>
+          </div>
+
+          {/* Host 3 */}
+          <div className="bg-white p-6 rounded-3xl border border-purple-100 shadow-sm hover:shadow-md transition text-center space-y-4 flex flex-col items-center">
+            <div className="relative w-28 h-28">
+              <div className="absolute inset-0 bg-[#8a68e8]/30 rounded-full transform -rotate-6"></div>
+              <img
+                src="https://images.unsplash.com/photo-1541599540903-216a46ca1dc0?q=80&w=400"
+                alt="Real Time Video Updates"
+                className="relative w-full h-full object-cover rounded-full border-2 border-white shadow-md"
+              />
+            </div>
+            <p className="text-xs text-slate-600 font-medium leading-relaxed">
+              "You'll receive real-time photo and video updates on WhatsApp twice a day so you never miss a moment."
+            </p>
+            <span className="text-[11px] font-bold text-[#7c56dc] hover:underline cursor-pointer">
+              Read more →
+            </span>
+          </div>
+
+        </div>
+      </section>
+
+
+      {/* =========================================================================
+          6. "OUR QUICK EASY PROCESS" (Process Steps)
          ========================================================================= */}
       <section className="bg-white border-y border-purple-100 py-16 px-4 md:px-8">
         <div className="max-w-7xl mx-auto text-center space-y-12">
           
           <div className="max-w-2xl mx-auto space-y-2">
             <h2 className="text-2xl md:text-3xl font-extrabold text-slate-900 font-sans">
-              Grooming Starts With <span className="text-[#7c56dc]">Care At Pawora</span>
+              Our Quick Easy <span className="text-[#7c56dc]">Process</span>
             </h2>
             <p className="text-xs md:text-sm text-slate-500 font-medium">
-              You choose your preferred time, and we will assign a verified professional groomer for your pet.
+              Get Safe, Secure and Welcoming environment for your furry companion
             </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             
-            {/* Step 1: Pet-First Approach */}
-            <div className="flex items-start text-left gap-4 p-2">
-              <div className="w-14 h-14 rounded-full bg-[#fec338] text-white flex items-center justify-center text-xl shadow-sm shrink-0">
+            {/* Step 1: Get in Touch */}
+            <div className="flex flex-col items-center text-center space-y-3 p-4">
+              <div className="w-16 h-16 rounded-full bg-[#fec338] text-white flex items-center justify-center text-2xl shadow-md">
                 👤
               </div>
-              <div className="space-y-1">
-                <h3 className="font-extrabold text-base text-slate-900 leading-snug">Pet-First Approach</h3>
-                <p className="text-xs text-slate-600 font-medium leading-relaxed">
-                  The groomer arrives and makes your pet feel safe and relaxed before beginning.
-                </p>
-              </div>
+              <h3 className="font-extrabold text-base text-slate-900">Get in Touch</h3>
+              <p className="text-xs text-slate-500 font-medium max-w-xs leading-relaxed">
+                Call us or fill out the form, our pet care expert will reach out to you shortly.
+              </p>
             </div>
 
-            {/* Step 2: Skin & Coat Assessment */}
-            <div className="flex items-start text-left gap-4 p-2">
-              <div className="w-14 h-14 rounded-full bg-[#ff85a1] text-white flex items-center justify-center text-xl shadow-sm shrink-0">
+            {/* Step 2: Share the Details */}
+            <div className="flex flex-col items-center text-center space-y-3 p-4">
+              <div className="w-16 h-16 rounded-full bg-[#ff85a1] text-white flex items-center justify-center text-2xl shadow-md">
                 🚪
               </div>
-              <div className="space-y-1">
-                <h3 className="font-extrabold text-base text-slate-900 leading-snug">Skin & Coat Assessment</h3>
-                <p className="text-xs text-slate-600 font-medium leading-relaxed">
-                  The groomer assesses your pet's skin type and coat condition for a tailored grooming session.
-                </p>
-              </div>
+              <h3 className="font-extrabold text-base text-slate-900">Share the Details</h3>
+              <p className="text-xs text-slate-500 font-medium max-w-xs leading-relaxed">
+                Tell your pet's needs, hostel, boarding, or sitter, and get all the info you need.
+              </p>
             </div>
 
-            {/* Step 3: Quality Commitment */}
-            <div className="flex items-start text-left gap-4 p-2">
-              <div className="w-14 h-14 rounded-full bg-[#8a68e8] text-white flex items-center justify-center text-xl shadow-sm shrink-0">
+            {/* Step 3: Pay & Relax */}
+            <div className="flex flex-col items-center text-center space-y-3 p-4">
+              <div className="w-16 h-16 rounded-full bg-[#8a68e8] text-white flex items-center justify-center text-2xl shadow-md">
                 🏷️
               </div>
-              <div className="space-y-1">
-                <h3 className="font-extrabold text-base text-slate-900 leading-snug">Quality Commitment</h3>
-                <p className="text-xs text-slate-600 font-medium leading-relaxed">
-                  We use only suitable products and commit to delivering top-quality grooming every time.
-                </p>
-              </div>
+              <h3 className="font-extrabold text-base text-slate-900">Pay & Relax</h3>
+              <p className="text-xs text-slate-500 font-medium max-w-xs leading-relaxed">
+                Confirm your booking and relax, we'll pamper your fur baby with love and care.
+              </p>
             </div>
 
           </div>
@@ -1050,7 +1115,7 @@ const GroomingServices = () => {
 
 
       {/* =========================================================================
-          6. INTERACTIVE APPOINTMENT BOOKING MODAL
+          7. INTERACTIVE HOSTEL STAY BOOKING MODAL
          ========================================================================= */}
       {showBookingModal && selectedProvider && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
@@ -1065,11 +1130,11 @@ const GroomingServices = () => {
             <div className="bg-gradient-to-r from-[#ffc83b] to-[#f59e0b] p-5 text-slate-950 flex justify-between items-center shrink-0">
               <div>
                 <span className="text-[10px] uppercase font-extrabold tracking-wider bg-black/10 px-2 py-0.5 rounded">
-                  Book Grooming Appointment
+                  Reserve Hostel Staycation
                 </span>
                 <h3 className="font-extrabold text-lg mt-0.5">{selectedProvider.name}</h3>
                 <p className="text-[11px] text-slate-900/80 font-medium">
-                  {selectedProvider.area}, {selectedProvider.city} ({selectedProvider.serviceMode})
+                  {selectedProvider.area}, {selectedProvider.city} ({selectedProvider.stayType})
                 </p>
               </div>
               <button
@@ -1083,9 +1148,9 @@ const GroomingServices = () => {
             {/* Modal Scrollable Form */}
             <form onSubmit={handleSubmitBooking} className="p-6 overflow-y-auto space-y-4 flex-1">
               
-              {/* Package Selection */}
+              {/* Room & Package Selection */}
               <div className="space-y-2">
-                <label className="text-xs font-extrabold text-slate-700">Choose Grooming Package</label>
+                <label className="text-xs font-extrabold text-slate-700">Choose Room Type / Package</label>
                 <div className="space-y-2">
                   {selectedProvider.packages.map((pkg, idx) => (
                     <label
@@ -1100,7 +1165,7 @@ const GroomingServices = () => {
                       <div className="flex items-start gap-2.5">
                         <input
                           type="radio"
-                          name="groomingPackage"
+                          name="hostelPackage"
                           checked={selectedPackage?.name === pkg.name}
                           onChange={() => setSelectedPackage(pkg)}
                           className="mt-1 text-[#7c56dc] focus:ring-0"
@@ -1110,39 +1175,36 @@ const GroomingServices = () => {
                           <p className="text-[10px] text-slate-500">{pkg.desc}</p>
                         </div>
                       </div>
-                      <span className="text-xs font-extrabold text-[#7c56dc] shrink-0">₹{pkg.price}</span>
+                      <span className="text-xs font-extrabold text-[#7c56dc] shrink-0">₹{pkg.price}/night</span>
                     </label>
                   ))}
                 </div>
               </div>
 
-              {/* Date & Time Slot */}
+              {/* Check-in & Check-out Dates */}
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1">
-                  <label className="text-[11px] font-bold text-slate-700">Appointment Date *</label>
+                  <label className="text-[11px] font-bold text-slate-700">Check-in Date *</label>
                   <input
                     type="date"
                     required
-                    value={bookingDate}
+                    value={checkInDate}
                     min={new Date().toISOString().split('T')[0]}
-                    onChange={(e) => setBookingDate(e.target.value)}
+                    onChange={(e) => setCheckInDate(e.target.value)}
                     className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-medium text-slate-800 focus:outline-none focus:border-[#7c56dc]"
                   />
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-[11px] font-bold text-slate-700">Time Slot *</label>
-                  <select
-                    value={bookingTime}
-                    onChange={(e) => setBookingTime(e.target.value)}
+                  <label className="text-[11px] font-bold text-slate-700">Check-out Date *</label>
+                  <input
+                    type="date"
+                    required
+                    value={checkOutDate}
+                    min={checkInDate || new Date().toISOString().split('T')[0]}
+                    onChange={(e) => setCheckOutDate(e.target.value)}
                     className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-medium text-slate-800 focus:outline-none focus:border-[#7c56dc]"
-                  >
-                    <option value="09:00 AM - 10:30 AM">09:00 AM - 10:30 AM</option>
-                    <option value="10:30 AM - 12:00 PM">10:30 AM - 12:00 PM</option>
-                    <option value="01:00 PM - 02:30 PM">01:00 PM - 02:30 PM</option>
-                    <option value="03:00 PM - 04:30 PM">03:00 PM - 04:30 PM</option>
-                    <option value="05:00 PM - 06:30 PM">05:00 PM - 06:30 PM</option>
-                  </select>
+                  />
                 </div>
               </div>
 
@@ -1153,7 +1215,7 @@ const GroomingServices = () => {
                   <input
                     type="text"
                     required
-                    placeholder="e.g. Leo"
+                    placeholder="e.g. Bruno"
                     value={petName}
                     onChange={(e) => setPetName(e.target.value)}
                     className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-medium text-slate-800 focus:outline-none focus:border-[#7c56dc]"
@@ -1165,12 +1227,27 @@ const GroomingServices = () => {
                   <input
                     type="text"
                     required
-                    placeholder="e.g. Shih Tzu / Labrador"
+                    placeholder="e.g. Golden Retriever"
                     value={petBreed}
                     onChange={(e) => setPetBreed(e.target.value)}
                     className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-medium text-slate-800 focus:outline-none focus:border-[#7c56dc]"
                   />
                 </div>
+              </div>
+
+              {/* Food & Diet Preference */}
+              <div className="space-y-1">
+                <label className="text-[11px] font-bold text-slate-700">Diet & Food Preference</label>
+                <select
+                  value={specialDiet}
+                  onChange={(e) => setSpecialDiet(e.target.value)}
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-medium text-slate-800 focus:outline-none focus:border-[#7c56dc]"
+                >
+                  <option value="Standard (Chicken & Rice)">Standard Fresh Chicken & Rice / Broth</option>
+                  <option value="Dry Food / Kibble (Royal Canin / Drools)">Commercial Dry Kibble Diet</option>
+                  <option value="Vegetarian (Paneer, Curd & Rice)">Vegetarian (Curd, Rice, Boiled Eggs & Veggies)</option>
+                  <option value="I will provide my pet's food">I will bring my own pet food</option>
+                </select>
               </div>
 
               {/* Contact Phone */}
@@ -1188,10 +1265,10 @@ const GroomingServices = () => {
 
               {/* Special Instructions */}
               <div className="space-y-1">
-                <label className="text-[11px] font-bold text-slate-700">Special Notes (Optional)</label>
+                <label className="text-[11px] font-bold text-slate-700">Special Medical / Behavioral Notes</label>
                 <textarea
                   rows="2"
-                  placeholder="e.g. Sensitive skin, timid with dryers, knotty coat..."
+                  placeholder="e.g. Needs daily ear drops, shy around loud noises, loves fetch..."
                   value={specialNotes}
                   onChange={(e) => setSpecialNotes(e.target.value)}
                   className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-medium text-slate-800 focus:outline-none focus:border-[#7c56dc]"
@@ -1205,7 +1282,7 @@ const GroomingServices = () => {
                   className="w-full bg-[#7c56dc] hover:bg-[#6842c2] text-white font-extrabold py-3 px-4 rounded-xl text-xs shadow-md transition cursor-pointer flex items-center justify-center gap-1.5"
                 >
                   <CheckCircle2 size={15} />
-                  <span>Confirm Booking (Pay During Grooming: ₹{selectedPackage?.price || selectedProvider.price})</span>
+                  <span>Confirm Stay Reservation (Pay During Check-In)</span>
                 </button>
               </div>
 
@@ -1219,4 +1296,4 @@ const GroomingServices = () => {
   );
 };
 
-export default GroomingServices;
+export default HostelServices;

@@ -52,19 +52,23 @@
 }
 
 /* Dedicated Scrollbar for Filter Panels */
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: #0F2E23 #f1f5f9;
+}
 .custom-scrollbar::-webkit-scrollbar {
-  width: 6px;
+  width: 5px;
 }
 .custom-scrollbar::-webkit-scrollbar-track {
-  background: #f8fafc;
+  background: #f1f5f9;
   border-radius: 9999px;
 }
 .custom-scrollbar::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
+  background: #0F2E23;
   border-radius: 9999px;
 }
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: #7c56dc;
+  background: #164E3D;
 }
 
 /* Glassmorphism Classes */

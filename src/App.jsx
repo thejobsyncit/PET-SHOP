@@ -19,6 +19,7 @@ import About from './pages/About.jsx';
 import Contact from './pages/Contact.jsx';
 import Login from './pages/Login.jsx';
 import AdminDashboard from './pages/AdminDashboard.jsx';
+import ServiceProviderDashboard from './pages/ServiceProviderDashboard.jsx';
 import NotFound from './pages/NotFound.jsx';
 
 // India Pet Hub pages
@@ -28,6 +29,10 @@ import AdoptionPetDetail from './pages/AdoptionPetDetail.jsx';
 import BreedingDirectory from './pages/BreedingDirectory.jsx';
 import ServiceBooking from './pages/ServiceBooking.jsx';
 import GroomingServices from './pages/GroomingServices.jsx';
+import HostelServices from './pages/HostelServices.jsx';
+import WalkingServices from './pages/WalkingServices.jsx';
+import PetTransport from './pages/PetTransport.jsx';
+import PetTraining from './pages/PetTraining.jsx';
 import ChatConsole from './pages/ChatConsole.jsx';
 
 function App() {
@@ -89,7 +94,23 @@ function App() {
             <Route path="services" element={<ServiceBooking />} />
             <Route path="grooming" element={<GroomingServices />} />
             <Route path="services/grooming" element={<GroomingServices />} />
+            <Route path="hostel" element={<HostelServices />} />
+            <Route path="services/hostel" element={<HostelServices />} />
+            <Route path="walking" element={<WalkingServices />} />
+            <Route path="services/walking" element={<WalkingServices />} />
+            <Route path="dog-walking" element={<WalkingServices />} />
+            <Route path="transport" element={<PetTransport />} />
+            <Route path="services/transport" element={<PetTransport />} />
+            <Route path="pet-transport" element={<PetTransport />} />
+            <Route path="training" element={<PetTraining />} />
+            <Route path="services/training" element={<PetTraining />} />
+            <Route path="pet-training" element={<PetTraining />} />
+            <Route path="dog-training" element={<PetTraining />} />
             <Route path="chat" element={<ChatConsole />} />
+
+            {/* Service Provider Platform */}
+            <Route path="provider-dashboard" element={<ServiceProviderDashboard />} />
+            <Route path="provider/dashboard" element={<ServiceProviderDashboard />} />
           </Route>
 
           {/* Admin Panels */}
