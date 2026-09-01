@@ -85,7 +85,7 @@ const SERVICES = [
   {
     id: 'vet',
     title: 'Consult a Vet',
-    path: '/services?category=Veterinary',
+    path: '/veterinary',
     icon: <Stethoscope size={28} className="text-teal-600" />,
     bg: 'bg-teal-50',
     border: 'border-teal-200',
@@ -116,7 +116,8 @@ const ServiceBooking = () => {
     if (category === 'Grooming') navigate('/grooming');
     else if (category === 'Dog Walking') navigate('/walking');
     else if (category === 'Hostel') navigate('/hostel');
-    else navigate('/services?category=Veterinary');
+    else if (category === 'Veterinary') navigate('/veterinary');
+    else navigate('/veterinary');
   };
 
   return (

@@ -24,9 +24,6 @@ const MainLayout = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-secondary">
-      {/* Lead Consultation Popup Modal on Site Load */}
-      <LeadConsultationModal />
-
       {/* Premium Sticky Header */}
       <Navbar />
 
@@ -37,6 +34,9 @@ const MainLayout = () => {
 
       {/* Premium Footer */}
       <Footer />
+
+      {/* Lead Consultation Popup Modal */}
+      <LeadConsultationModal />
     </div>
   );
 };

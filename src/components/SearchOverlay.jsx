@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, X, TrendingUp, Sparkles, ArrowRight, CornerDownLeft, Flame, ShieldCheck } from 'lucide-react';
+import { Search, X, TrendingUp, Sparkles, ArrowRight, CornerDownLeft, Flame, ShieldCheck, PawPrint } from 'lucide-react';
 import { apiRequest } from '../services/api.js';
 import WalkingDogOnLine from './WalkingDogOnLine.jsx';
 
@@ -90,20 +90,28 @@ const SearchOverlay = ({ isOpen, onClose }) => {
   ];
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto bg-[#091f36] text-white flex flex-col transition-all duration-300">
+    <div className="fixed inset-0 z-[100] overflow-y-auto bg-[#091f36] text-white flex flex-col transition-all duration-300">
       
-      {/* Top Bar Header matching India Pet Hub navbar */}
+      {/* Top Bar Header matching JOSH PETS HUB navbar */}
       <div className="relative z-10 w-full max-w-6xl mx-auto px-6 py-6 md:py-8 flex justify-between items-center border-b border-[#184575]">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-[#15559c] border border-[#ffd000]/40 flex items-center justify-center shadow-md">
-            <span className="text-xl">🐾</span>
-          </div>
-          <div>
-            <span className="font-serif text-xl md:text-2xl font-bold tracking-widest text-white">
-              INDIA PET HUB
+          <img 
+            src="/logo.png" 
+            alt="JOSH PETS HUB Logo" 
+            className="h-10 w-auto object-contain" 
+          />
+          <div className="flex items-center">
+            <span className="text-white drop-shadow-sm flex items-center font-black tracking-tight text-xl md:text-2xl">
+              J
+              <div className="relative mx-0.5 flex items-center justify-center bg-white rounded-full w-5 h-5 shadow-xs">
+                <PawPrint size={13} className="text-orange-500 fill-orange-500" />
+              </div>
+              SH 
+              <span className="ml-1.5 text-white">PETS</span> 
+              <span className="ml-1.5 text-white">HUB</span>
             </span>
             <span className="hidden md:inline-block ml-3 px-2.5 py-0.5 rounded-full bg-[#15559c] border border-[#ffd000]/40 text-[10px] uppercase font-bold tracking-widest text-[#ffd000]">
-              Verified Pet Search
+              Verified Search
             </span>
           </div>
         </div>

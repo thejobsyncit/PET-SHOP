@@ -1841,13 +1841,13 @@ const ServiceProviderDashboard = () => {
           MODAL 2: APPOINTMENT SLIP / PET CARE SHEET MODAL
          ========================================================================= */}
       {selectedBookingForSlip && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-150">
-          <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-200 space-y-5 relative">
+        <div className="fixed inset-0 z-[100] overflow-y-auto p-2 sm:p-4 bg-slate-900/60 backdrop-blur-xs flex flex-col items-center justify-start sm:justify-center animate-in fade-in duration-150">
+          <div className="bg-white rounded-2xl max-w-lg w-full p-4 sm:p-6 shadow-2xl border border-slate-200 space-y-4 my-auto relative flex flex-col min-h-0 max-h-[88vh] overflow-y-auto custom-scrollbar">
             <button
               onClick={() => setSelectedBookingForSlip(null)}
-              className="absolute top-4 right-4 p-1.5 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 cursor-pointer"
+              className="absolute top-3.5 right-3.5 p-1.5 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 cursor-pointer"
             >
-              <X size={18} />
+              <X size={16} />
             </button>
 
             {/* Slip Header */}
@@ -1929,13 +1929,13 @@ const ServiceProviderDashboard = () => {
           MODAL 3: PAYOUT WITHDRAWAL REQUEST
          ========================================================================= */}
       {showPayoutModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-150">
-          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 space-y-5 relative">
+        <div className="fixed inset-0 z-[100] overflow-y-auto p-2 sm:p-4 bg-slate-900/60 backdrop-blur-xs flex flex-col items-center justify-start sm:justify-center animate-in fade-in duration-150">
+          <div className="bg-white rounded-2xl max-w-md w-full p-4 sm:p-6 shadow-2xl border border-slate-200 space-y-4 my-auto relative flex flex-col min-h-0 max-h-[88vh] overflow-y-auto custom-scrollbar">
             <button
               onClick={() => setShowPayoutModal(false)}
-              className="absolute top-4 right-4 p-1.5 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 cursor-pointer"
+              className="absolute top-3.5 right-3.5 p-1.5 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 cursor-pointer"
             >
-              <X size={18} />
+              <X size={16} />
             </button>
 
             <div className="space-y-1">
@@ -2103,13 +2103,13 @@ const PostServiceModal = ({ isOpen, onClose, currentProvider, editingService, on
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm overflow-y-auto animate-in fade-in duration-150">
-      <div className="bg-white rounded-2xl max-w-2xl w-full p-6 sm:p-8 shadow-2xl border border-slate-200 space-y-6 my-8 max-h-[90vh] overflow-y-auto">
+    <div className="fixed inset-0 z-[100] overflow-y-auto p-2 sm:p-4 bg-slate-900/60 backdrop-blur-xs flex flex-col items-center justify-start sm:justify-center animate-in fade-in duration-150">
+      <div className="bg-white rounded-2xl max-w-2xl w-full p-4 sm:p-7 shadow-2xl border border-slate-200 space-y-5 my-auto max-h-[88vh] flex flex-col min-h-0 overflow-hidden">
         
         {/* Modal Top */}
-        <div className="flex items-center justify-between pb-4 border-b border-slate-100">
+        <div className="flex items-center justify-between pb-4 border-b border-slate-100 shrink-0">
           <div>
-            <h3 className="text-xl font-serif font-bold text-slate-900">
+            <h3 className="text-lg sm:text-xl font-serif font-bold text-slate-900">
               {editingService ? 'Edit Service Offering' : 'Post New Service Offering'}
             </h3>
             <p className="text-xs text-slate-500">
@@ -2118,13 +2118,13 @@ const PostServiceModal = ({ isOpen, onClose, currentProvider, editingService, on
           </div>
           <button
             onClick={onClose}
-            className="p-2 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 cursor-pointer"
+            className="p-1.5 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 cursor-pointer"
           >
             <X size={18} />
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-5 text-xs">
+        <form onSubmit={handleSubmit} className="space-y-4 text-xs overflow-y-auto flex-1 min-h-0 custom-scrollbar pr-1">
           
           {/* Row 1: Title & Category */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

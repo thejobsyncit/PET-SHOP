@@ -26,18 +26,42 @@ const Navbar = () => {
   const cartItems = useSelector((state) => state.cart.items);
   const wishlistItems = useSelector((state) => state.wishlist.items);
 
-  // Monitor scroll for compact header transitions
+  // Monitor scroll for compact header transitions with RAF and passive listener
   useEffect(() => {
+    let ticking = false;
     const handleScroll = () => {
-      if (window.scrollY > 40) {
-        setIsScrolled(true);
-      } else {
-        setIsScrolled(false);
+      if (!ticking) {
+        window.requestAnimationFrame(() => {
+          setIsScrolled(window.scrollY > 40);
+          ticking = false;
+        });
+        ticking = true;
       }
     };
-    window.addEventListener('scroll', handleScroll);
+    window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+
+  // Close dropdowns on outside click
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (petsDropdownRef.current && !petsDropdownRef.current.contains(event.target)) {
+        setPetsMenuOpen(false);
+      }
+      if (servicesDropdownRef.current && !servicesDropdownRef.current.contains(event.target)) {
+        setServicesMenuOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  // Close dropdowns on route changes
+  useEffect(() => {
+    setPetsMenuOpen(false);
+    setServicesMenuOpen(false);
+    setIsMobileMenuOpen(false);
+  }, [location.pathname, location.search]);
 
   const handleLogout = () => {
     dispatch(logout());
@@ -47,6 +71,12 @@ const Navbar = () => {
 
   const isActive = (path) => {
     return location.pathname === path;
+  };
+
+  const isServicesActive = () => {
+    return ['/services', '/adopt', '/hostel', '/grooming', '/walking', '/transport', '/training', '/insurance', '/breeding'].some(
+      (path) => location.pathname === path || location.pathname.startsWith(`${path}/`)
+    );
   };
 
   const isNonSellerProvider = user?.role === 'SERVICE_PROVIDER' && 
@@ -104,14 +134,14 @@ const Navbar = () => {
     { label: 'Pet Walking', path: '/walking', icon: <Footprints size={16} className="text-amber-500" />, desc: 'Daily fitness & walking' },
     { label: 'Pet Transport', path: '/transport', icon: <Truck size={16} className="text-emerald-500" />, desc: 'AC cabs for local/intercity' },
     { label: 'Pet Training', path: '/training', icon: <GraduationCap size={16} className="text-indigo-500" />, desc: 'Expert behavioral classes' },
-    { label: 'Pet Insurance', path: '/services?category=Insurance', icon: <ShieldAlert size={16} className="text-red-500" />, desc: 'Comprehensive health cover' },
-    { label: 'Pet Mating', path: '/breeding', icon: <Heart size={16} className="text-rose-500" />, desc: 'Verified breeding services' },
-    { label: 'Consult a Vet', path: '/services?category=Veterinary', icon: <Stethoscope size={16} className="text-teal-500" />, desc: 'Online/Clinic medical care' }
+    { label: 'Pet Insurance', path: '/insurance', icon: <ShieldAlert size={16} className="text-red-500" />, desc: 'Comprehensive health cover' },
+    { label: 'Pet Mating/Breeding', path: '/breeding', icon: <Heart size={16} className="text-rose-500" />, desc: 'Paws matched in heaven • Studs & Mates' },
+    { label: 'Consult a Vet', path: '/veterinary', icon: <Stethoscope size={16} className="text-teal-500" />, desc: 'Online/Clinic medical care' }
   ];
 
   return (
     <>
-      <header className="sticky top-0 left-0 w-full z-50 transition-all duration-300">
+      <header className="sticky top-0 left-0 w-full z-40 transition-all duration-300">
 
         {/* Top Announcement Bar */}
         <div className="bg-primary-dark text-white text-[10px] tracking-widest font-semibold py-2 px-4 text-center border-b border-white/5">
@@ -514,7 +544,7 @@ const Navbar = () => {
 
                 {/* Pet Services expanded on mobile */}
                 <div className="space-y-2 py-1 pl-2 border-l border-white/10">
-                  <Link to="/services" onClick={() => setIsMobileMenuOpen(false)} className="block text-[11px] hover:text-accent-light tracking-widest font-bold">Pet Services</Link>
+                  <span className="block text-[11px] text-accent-light tracking-widest font-bold uppercase">Pet Services</span>
                   {servicesList.map(service => (
                     <Link key={service.label} to={service.path} onClick={() => setIsMobileMenuOpen(false)} className="block py-1 hover:text-accent-light text-[11px] normal-case pl-2">{service.label}</Link>
                   ))}

@@ -606,7 +606,7 @@ const Shop = () => {
   
           {/* Mobile Filter Modal Drawer */}
           {mobileFiltersOpen && (
-            <div className="fixed inset-0 z-50 lg:hidden flex justify-end">
+            <div className="fixed inset-0 z-[100] lg:hidden flex justify-end">
               <div 
                 className="fixed inset-0 bg-black/60 backdrop-blur-xs"
                 onClick={() => setMobileFiltersOpen(false)}

@@ -491,7 +491,7 @@ const AccountDashboard = () => {
 
                           <div className="pt-2 flex items-center gap-2">
                             <a
-                              href={`https://wa.me/${(app.guardianPhone || '8306688827').replace(/\D/g, '')}?text=${encodeURIComponent(`Hello ${app.guardianName || 'Guardian'}, I am following up on my adoption application for "${app.petName}" (Ref: ${app.id}) on India Pet Hub.`)}`}
+                              href={`https://wa.me/${(app.guardianPhone || '8306688827').replace(/\D/g, '')}?text=${encodeURIComponent(`Hello ${app.guardianName || 'Guardian'}, I am following up on my adoption application for "${app.petName}" (Ref: ${app.id}) on JOSH PETS HUB.`)}`}
                               target="_blank"
                               rel="noopener noreferrer"
                               className="py-1 px-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-bold text-[10px] inline-flex items-center gap-1 transition shadow-xs"
@@ -729,7 +729,7 @@ const AccountDashboard = () => {
                                   {/* Contact Buttons */}
                                   <div className="flex items-center justify-end gap-2 pt-1">
                                     <a
-                                      href={`https://wa.me/${(app.applicantPhone || '').replace(/\D/g, '')}?text=${encodeURIComponent(`Hello ${app.applicantName}! Regarding your adoption application for "${pet.name}" on India Pet Hub, I would like to connect with you.`)}`}
+                                      href={`https://wa.me/${(app.applicantPhone || '').replace(/\D/g, '')}?text=${encodeURIComponent(`Hello ${app.applicantName}! Regarding your adoption application for "${pet.name}" on JOSH PETS HUB, I would like to connect with you.`)}`}
                                       target="_blank"
                                       rel="noopener noreferrer"
                                       className="py-1.5 px-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-bold text-xs inline-flex items-center gap-1.5 transition shadow-xs cursor-pointer"
@@ -766,7 +766,7 @@ const AccountDashboard = () => {
                   </div>
                   <h3 className="font-serif text-base font-bold text-slate-800">You Haven't Listed Any Pets For Adoption Yet</h3>
                   <p className="text-xs text-slate-500 max-w-md mx-auto">
-                    Are you fostering or rehoming a pet? List them for free adoption on India Pet Hub to connect with verified adopters.
+                    Are you fostering or rehoming a pet? List them for free adoption on JOSH PETS HUB to connect with verified adopters.
                   </p>
                   <div className="pt-2">
                     <Link
