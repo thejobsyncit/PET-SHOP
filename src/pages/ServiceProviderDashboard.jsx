@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
+import { useSelector } from 'react-redux';
 import {
-  Calendar, Clock, MapPin, Star, ShieldCheck, CheckCircle2,
+  Calendar, Clock, MapPin, Star, ShieldCheck, CircleCheck,
   X, Plus, Search, Phone, MessageSquare, AlertCircle,
   TrendingUp, DollarSign, Briefcase, Eye, EyeOff, Edit3,
   Trash2, Check, FileText, Download, Send, Zap, CheckCircle,
@@ -29,6 +30,7 @@ import {
 } from '../data/transportData.js';
 import { apiRequest } from '../services/api.js';
 import toast from 'react-hot-toast';
+import PetSellerDashboard from './PetSellerDashboard.jsx';
 
 const ServiceProviderDashboard = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -37,15 +39,26 @@ const ServiceProviderDashboard = () => {
   const activeTabParam = searchParams.get('tab') || 'appointments';
   const [activeTab, setActiveTab] = useState(activeTabParam);
 
-  // Active Provider Profile (defaults to logged in user or demo persona)
+  // Active Provider Profile (Driven by actual logged in user)
+  const { user } = useSelector(state => state.auth);
   const [profiles, setProfiles] = useState(() => getStoredProviderProfiles());
-  const [selectedProviderId, setSelectedProviderId] = useState(() => {
-    return profiles[0]?.id || 'prov-vet-01';
-  });
 
   const currentProvider = useMemo(() => {
-    return profiles.find(p => p.id === selectedProviderId) || profiles[0];
-  }, [profiles, selectedProviderId]);
+    if (user && user.role === 'SERVICE_PROVIDER') {
+      const matchProfile = profiles.find(p => p.serviceCategory.toLowerCase() === (user.serviceCategory || '').toLowerCase()) || profiles[0];
+      return {
+        ...matchProfile,
+        id: user._id || user.id,
+        name: user.name,
+        serviceCategory: user.serviceCategory || 'Veterinary',
+        avatar: user.avatar || user.profilePicture || 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?q=80&w=400',
+        isOnline: true
+      };
+    }
+    return profiles[0];
+  }, [profiles, user]);
+
+  const isSeller = currentProvider?.serviceCategory?.toLowerCase() === 'pet seller';
 
   // Main Datasets State
   const [services, setServices] = useState(() => getAllStoredServices());
@@ -138,7 +151,7 @@ const ServiceProviderDashboard = () => {
     return bookings.filter(b => {
       if (b.providerId && b.providerId === currentProvider.id) return true;
       if (b.providerName && currentProvider.name && b.providerName.toLowerCase().includes(currentProvider.name.toLowerCase().split(' ')[0])) return true;
-      return true; // show in demo view
+      return false;
     });
   }, [bookings, currentProvider]);
 
@@ -181,7 +194,7 @@ const ServiceProviderDashboard = () => {
     return services.filter(s => {
       if (s.providerId && s.providerId === currentProvider.id) return true;
       if (s.providerName && currentProvider.name && s.providerName.toLowerCase().includes(currentProvider.name.toLowerCase().split(' ')[0])) return true;
-      return true;
+      return false;
     });
   }, [services, currentProvider]);
 
@@ -397,6 +410,16 @@ const ServiceProviderDashboard = () => {
     }));
   };
 
+  if (isSeller) {
+    return (
+      <PetSellerDashboard 
+        currentProvider={currentProvider} 
+        profiles={profiles} 
+        handleToggleOnline={handleToggleOnline} 
+      />
+    );
+  }
+
   return (
     <div className="min-h-screen bg-[#FAF9F5] text-slate-900 pt-28 pb-20 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto space-y-8">
@@ -461,24 +484,6 @@ const ServiceProviderDashboard = () => {
             {/* Right: Quick Controls & Demo Switcher */}
             <div className="flex flex-col sm:flex-row lg:flex-col items-start lg:items-end gap-3 shrink-0">
               
-              {/* Demo Persona Switcher (Allows testing all categories: Vet, Grooming, Hostel) */}
-              <div className="bg-black/30 backdrop-blur-md px-3.5 py-2 rounded-xl border border-white/10 flex items-center gap-2">
-                <span className="text-[11px] text-white/70 font-semibold uppercase tracking-wider">
-                  Test Persona:
-                </span>
-                <select
-                  value={selectedProviderId}
-                  onChange={(e) => setSelectedProviderId(e.target.value)}
-                  className="bg-white/15 text-white text-xs font-bold rounded-lg px-2.5 py-1 outline-none border border-white/20 cursor-pointer"
-                >
-                  {profiles.map((p) => (
-                    <option key={p.id} value={p.id} className="bg-slate-900 text-white">
-                      {p.name} ({p.serviceCategory})
-                    </option>
-                  ))}
-                </select>
-              </div>
-
               {/* Status Toggles & Post Service Trigger */}
               <div className="flex flex-wrap items-center gap-2">
                 <button
@@ -510,7 +515,7 @@ const ServiceProviderDashboard = () => {
                   }}
                   className="px-4 py-1.5 rounded-xl bg-[#ffd000] hover:bg-[#ffd000]/90 text-[#0F2E23] font-bold text-xs flex items-center gap-1.5 shadow-md transition cursor-pointer active:scale-95"
                 >
-                  <Plus size={15} /> Post New Service
+                  <Plus size={15} /> {isSeller ? 'Post New Pet' : 'Post New Service'}
                 </button>
               </div>
 
@@ -527,7 +532,7 @@ const ServiceProviderDashboard = () => {
           {/* Tile 1: Active Bookings */}
           <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm hover:shadow-md transition">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-bold uppercase tracking-wider text-slate-500">Bookings Queue</span>
+              <span className="text-xs font-bold uppercase tracking-wider text-slate-500">{isSeller ? 'Buyer Inquiries' : 'Bookings Queue'}</span>
               <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
                 <Calendar size={20} />
               </div>
@@ -536,7 +541,7 @@ const ServiceProviderDashboard = () => {
               <span className="text-3xl font-serif font-bold text-slate-900">{stats.totalBookings}</span>
               {stats.pendingBookings > 0 && (
                 <span className="text-xs font-bold text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full animate-pulse">
-                  {stats.pendingBookings} Needs Action
+                  {stats.pendingBookings} {isSeller ? 'Inquiries' : 'Needs Action'}
                 </span>
               )}
             </div>
@@ -575,7 +580,7 @@ const ServiceProviderDashboard = () => {
           {/* Tile 3: Active Services */}
           <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm hover:shadow-md transition">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-bold uppercase tracking-wider text-slate-500">Active Services</span>
+              <span className="text-xs font-bold uppercase tracking-wider text-slate-500">{isSeller ? 'Active Listings' : 'Active Services'}</span>
               <div className="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center">
                 <Briefcase size={20} />
               </div>
@@ -613,11 +618,11 @@ const ServiceProviderDashboard = () => {
            ========================================================================= */}
         <div className="flex items-center gap-2 overflow-x-auto pb-2 border-b border-slate-200 no-scrollbar">
           {[
-            { id: 'appointments', label: 'Track Appointments & Bookings', icon: Calendar, count: stats.totalBookings, badge: stats.pendingBookings },
+            { id: 'appointments', label: isSeller ? 'Track Enquiries & Sales' : 'Track Appointments & Bookings', icon: Calendar, count: stats.totalBookings, badge: stats.pendingBookings },
             { id: 'relocation-enquiries', label: 'Relocation Enquiries', icon: Truck, count: transportEnquiries.length, badge: transportEnquiries.filter(e => e.status.includes('Pending') || e.status === 'Under Review').length },
-            { id: 'services', label: 'My Service Catalog', icon: Briefcase, count: providerServices.length },
-            { id: 'post-service', label: 'Post New Service', icon: Plus, isAction: true },
-            { id: 'schedule', label: 'Operating Schedule & Profile', icon: Clock },
+            { id: 'services', label: isSeller ? 'My Pet Catalog' : 'My Service Catalog', icon: Briefcase, count: providerServices.length },
+            { id: 'post-service', label: isSeller ? 'Post New Pet' : 'Post New Service', icon: Plus, isAction: true },
+            { id: 'schedule', label: isSeller ? 'Seller Profile & Details' : 'Operating Schedule & Profile', icon: Clock },
             { id: 'payouts', label: 'Earnings & Payouts', icon: DollarSign },
             { id: 'reviews', label: 'Client Reviews', icon: Star, count: reviews.length }
           ].map((tab) => {
@@ -841,7 +846,7 @@ const ServiceProviderDashboard = () => {
                                 : 'bg-rose-100 text-rose-800 border border-rose-300'
                             }`}>
                               {isPending && <Clock size={12} className="text-amber-700 animate-spin" />}
-                              {isConfirmed && <CheckCircle2 size={12} className="text-emerald-700" />}
+                              {isConfirmed && <CircleCheck size={12} className="text-emerald-700" />}
                               {isInProgress && <Zap size={12} className="text-sky-700 animate-pulse" />}
                               {isCompleted && <Check size={12} className="text-slate-700" />}
                               {isCancelled && <X size={12} className="text-rose-700" />}
@@ -1613,7 +1618,7 @@ const ServiceProviderDashboard = () => {
                 </div>
 
                 <div className="flex items-center gap-2 text-xs font-semibold bg-emerald-50 text-emerald-800 px-3 py-1.5 rounded-xl border border-emerald-200">
-                  <CheckCircle2 size={14} />
+                  <CircleCheck size={14} />
                   <span>Auto-Synced with Customer Portal</span>
                 </div>
               </div>

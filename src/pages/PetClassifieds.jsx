@@ -1,17 +1,29 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useSelector } from 'react-redux';
-import { Search, Plus, MapPin, MessageSquare, ShieldCheck, Tag, Phone, X, Heart, Lock, ShieldAlert, Briefcase } from 'lucide-react';
+import { Search, Plus, MapPin, MessageSquare, ShieldCheck, Tag, Phone, X, Heart, Lock, ShieldAlert, Briefcase, Clock, Syringe } from 'lucide-react';
 import { apiRequest } from '../services/api.js';
 import toast from 'react-hot-toast';
 
 const PetClassifieds = () => {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { isAuthenticated, user } = useSelector((state) => state.auth);
 
   const [listings, setListings] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [selectedPetType, setSelectedPetType] = useState('all');
+  
+  const selectedPetType = searchParams.get('petType') || 'all';
+  
+  const setSelectedPetType = (type) => {
+    if (type === 'all') {
+      searchParams.delete('petType');
+    } else {
+      searchParams.set('petType', type);
+    }
+    setSearchParams(searchParams, { replace: true });
+  };
+
   const [searchQuery, setSearchQuery] = useState('');
   const [showAddForm, setShowAddForm] = useState(false);
 
@@ -24,7 +36,20 @@ const PetClassifieds = () => {
   const [location, setLocation] = useState('');
   const [contactPhone, setContactPhone] = useState('');
   const [description, setDescription] = useState('');
-  const [imageUrl, setImageUrl] = useState('');
+  const [imageFile, setImageFile] = useState(null);
+  const [vaccinationFile, setVaccinationFile] = useState(null);
+  const [quantity, setQuantity] = useState(1);
+
+  const handleFileChange = (e, setter) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setter(reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   useEffect(() => {
     loadListings();
@@ -67,7 +92,9 @@ const PetClassifieds = () => {
       description,
       location,
       contactPhone,
-      images: imageUrl ? [imageUrl] : undefined
+      quantity: parseInt(quantity) || 1,
+      images: imageFile ? [imageFile] : undefined,
+      vaccinationCertificate: vaccinationFile || undefined
     };
 
     try {
@@ -87,7 +114,9 @@ const PetClassifieds = () => {
         setLocation('');
         setContactPhone('');
         setDescription('');
-        setImageUrl('');
+        setImageFile(null);
+        setVaccinationFile(null);
+        setQuantity(1);
         loadListings();
       }
     } catch (err) {
@@ -101,8 +130,39 @@ const PetClassifieds = () => {
       navigate('/login');
       return;
     }
-    // We navigate to chat page passing recipientId state
     navigate('/chat', { state: { recipientId: owner._id || owner, ownerName: owner.name } });
+  };
+
+  const handleBuy = async (id) => {
+    if (!isAuthenticated) {
+      toast.error('Please login to purchase a pet.');
+      navigate('/login');
+      return;
+    }
+    
+    if (window.confirm('Are you sure you want to purchase this pet? The stock will decrease by 1.')) {
+      try {
+        const data = await apiRequest(`/listings/${id}/buy`, { method: 'PUT' });
+        if (data.success) {
+          toast.success('Successfully purchased! The seller will be notified.');
+          loadListings();
+        }
+      } catch (err) {
+        toast.error(err.message || 'Purchase failed.');
+      }
+    }
+  };
+
+  const handleSellOne = async (id) => {
+    try {
+      const data = await apiRequest(`/listings/${id}/sell`, { method: 'PUT' });
+      if (data.success) {
+        toast.success('Successfully marked 1 pet as sold!');
+        loadListings();
+      }
+    } catch (err) {
+      toast.error(err.message || 'Failed to mark as sold.');
+    }
   };
 
   // Filter listings locally on search query
@@ -245,9 +305,33 @@ const PetClassifieds = () => {
                   </span>
 
                   {/* Verification Badge */}
-                  {l.isVerified && (
+                  {l.isVerified ? (
                     <span className="absolute top-3 right-3 bg-green-600 text-white text-[8px] font-bold px-2 py-0.5 uppercase tracking-widest flex items-center gap-0.5">
                       <ShieldCheck size={10} /> Verified
+                    </span>
+                  ) : (
+                    <span className="absolute top-3 right-3 bg-orange-100 text-orange-800 border border-orange-200 text-[8px] font-bold px-2 py-0.5 uppercase tracking-widest flex items-center gap-0.5">
+                      <Clock size={10} /> Pending
+                    </span>
+                  )}
+
+                  {/* Vaccinated Badge */}
+                  {l.vaccinationCertificate && (
+                    <span className="absolute top-10 right-3 bg-blue-100 text-blue-800 border border-blue-200 text-[8px] font-bold px-2 py-0.5 uppercase tracking-widest flex items-center gap-0.5 mt-1">
+                      <Syringe size={10} /> Vaccinated
+                    </span>
+                  )}
+
+                  {/* Sold Out / Quantity Badge */}
+                  {l.status === 'Sold Out' || l.quantity === 0 ? (
+                    <div className="absolute inset-0 bg-white/60 backdrop-blur-[2px] flex items-center justify-center z-10">
+                      <span className="bg-black text-white px-4 py-2 text-sm font-black tracking-widest uppercase rotate-[-12deg] shadow-2xl border-2 border-white">
+                        SOLD OUT
+                      </span>
+                    </div>
+                  ) : (
+                    <span className="absolute top-3 left-3 bg-white/90 text-primary text-[9px] font-bold px-2 py-0.5 uppercase tracking-widest shadow-sm rounded-sm">
+                      Available: {l.quantity || 1}
                     </span>
                   )}
                 </div>
@@ -274,20 +358,37 @@ const PetClassifieds = () => {
                   <span>{l.location}</span>
                 </div>
 
-                <div className="grid grid-cols-2 gap-2 pt-1">
+                <div className="grid grid-cols-2 gap-2 pt-1 relative z-20">
                   <a 
-                    href={`tel:${l.contactPhone}`}
-                    className="py-2 border border-beige hover:border-primary text-[10px] tracking-widest font-bold uppercase text-center text-primary flex items-center justify-center gap-1 transition"
+                    href={l.status === 'Sold Out' || l.quantity === 0 ? '#' : `tel:${l.contactPhone}`}
+                    className={`py-2 border text-[10px] tracking-widest font-bold uppercase text-center flex items-center justify-center gap-1 transition ${l.status === 'Sold Out' || l.quantity === 0 ? 'border-gray-200 text-gray-400 cursor-not-allowed bg-gray-50' : 'border-beige hover:border-primary text-primary'}`}
+                    onClick={(e) => {
+                      if (l.status === 'Sold Out' || l.quantity === 0) e.preventDefault();
+                    }}
                   >
                     <Phone size={12} /> CALL OWNER
                   </a>
                   <button
                     onClick={() => handleStartChat(l.user)}
-                    className="py-2 bg-primary text-white hover:bg-accent hover:text-primary text-[10px] tracking-widest font-bold uppercase flex items-center justify-center gap-1 transition cursor-pointer"
+                    disabled={l.status === 'Sold Out' || l.quantity === 0}
+                    className={`py-2 text-[10px] tracking-widest font-bold uppercase flex items-center justify-center gap-1 transition ${l.status === 'Sold Out' || l.quantity === 0 ? 'bg-gray-200 text-gray-400 cursor-not-allowed' : 'bg-primary text-white hover:bg-accent hover:text-primary cursor-pointer'}`}
                   >
                     <MessageSquare size={12} /> CHAT NOW
                   </button>
                 </div>
+                
+                {/* Buy Action */}
+                {l.status !== 'Sold Out' && l.quantity !== 0 && (
+                  <div className="pt-2">
+                    <button
+                      onClick={() => handleBuy(l._id)}
+                      className="w-full py-2 bg-[#ffd000] hover:bg-[#e6bb00] text-[#0F2E23] text-[11px] font-black tracking-widest uppercase rounded-md transition cursor-pointer shadow-sm flex items-center justify-center gap-2"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></svg>
+                      BUY NOW
+                    </button>
+                  </div>
+                )}
               </div>
 
             </div>
@@ -306,10 +407,10 @@ const PetClassifieds = () => {
           
           <form 
             onSubmit={handleCreateListing}
-            className="relative bg-white w-full max-w-lg border border-beige shadow-2xl flex flex-col max-h-[90vh] z-10 animate-in fade-in zoom-in-95 duration-200"
+            className="relative bg-white w-full max-w-2xl border border-beige shadow-2xl flex flex-col max-h-[90vh] z-10 animate-in fade-in zoom-in-95 duration-200"
           >
             <div className="px-6 py-4 bg-primary text-white flex justify-between items-center border-b border-white/10">
-              <h3 className="font-serif text-sm font-bold tracking-wider text-accent uppercase flex items-center gap-1">
+              <h3 className="font-serif text-base font-bold tracking-wider text-accent uppercase flex items-center gap-1">
                 List Pet for Sale / Rehome
               </h3>
               <button type="button" onClick={() => setShowAddForm(false)} className="text-white hover:text-accent cursor-pointer">
@@ -317,7 +418,7 @@ const PetClassifieds = () => {
               </button>
             </div>
 
-            <div className="p-6 overflow-y-auto space-y-4 text-xs">
+            <div className="p-6 overflow-y-auto space-y-5 text-sm">
               <div className="space-y-1">
                 <label className="text-gray-500 font-semibold block">Listing Title *</label>
                 <input
@@ -325,7 +426,7 @@ const PetClassifieds = () => {
                   placeholder="e.g. Purebred Siberian Husky Puppies"
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
-                  className="w-full px-3 py-2 border border-beige text-xs focus:outline-none focus:border-primary"
+                  className="w-full px-3 py-2.5 border border-beige text-sm focus:outline-none focus:border-primary"
                   required
                 />
               </div>
@@ -336,7 +437,7 @@ const PetClassifieds = () => {
                   <select
                     value={petType}
                     onChange={(e) => setPetType(e.target.value)}
-                    className="w-full px-3 py-2 border border-beige text-xs bg-white focus:outline-none focus:border-primary"
+                    className="w-full px-3 py-2.5 border border-beige text-sm bg-white focus:outline-none focus:border-primary"
                   >
                     <option value="dogs">Dogs</option>
                     <option value="cats">Cats</option>
@@ -352,7 +453,7 @@ const PetClassifieds = () => {
                     placeholder="e.g. Alaskan Malamute"
                     value={breed}
                     onChange={(e) => setBreed(e.target.value)}
-                    className="w-full px-3 py-2 border border-beige text-xs focus:outline-none focus:border-primary"
+                    className="w-full px-3 py-2.5 border border-beige text-sm focus:outline-none focus:border-primary"
                     required
                   />
                 </div>
@@ -366,7 +467,7 @@ const PetClassifieds = () => {
                     placeholder="e.g. 3 months"
                     value={age}
                     onChange={(e) => setAge(e.target.value)}
-                    className="w-full px-3 py-2 border border-beige text-xs focus:outline-none focus:border-primary"
+                    className="w-full px-3 py-2.5 border border-beige text-sm focus:outline-none focus:border-primary"
                     required
                   />
                 </div>
@@ -377,7 +478,7 @@ const PetClassifieds = () => {
                     placeholder="e.g. 15000"
                     value={price}
                     onChange={(e) => setPrice(e.target.value)}
-                    className="w-full px-3 py-2 border border-beige text-xs focus:outline-none focus:border-primary"
+                    className="w-full px-3 py-2.5 border border-beige text-sm focus:outline-none focus:border-primary"
                     required
                   />
                 </div>
@@ -388,13 +489,13 @@ const PetClassifieds = () => {
                     placeholder="e.g. Delhi NCR"
                     value={location}
                     onChange={(e) => setLocation(e.target.value)}
-                    className="w-full px-3 py-2 border border-beige text-xs focus:outline-none focus:border-primary"
+                    className="w-full px-3 py-2.5 border border-beige text-sm focus:outline-none focus:border-primary"
                     required
                   />
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="space-y-1">
                   <label className="text-gray-500 font-semibold block">Contact Phone *</label>
                   <input
@@ -402,46 +503,69 @@ const PetClassifieds = () => {
                     placeholder="Phone number"
                     value={contactPhone}
                     onChange={(e) => setContactPhone(e.target.value)}
-                    className="w-full px-3 py-2 border border-beige text-xs focus:outline-none focus:border-primary"
+                    className="w-full px-3 py-2.5 border border-beige text-sm focus:outline-none focus:border-primary"
                     required
                   />
                 </div>
                 <div className="space-y-1">
-                  <label className="text-gray-500 font-semibold block">Image Link (optional)</label>
+                  <label className="text-gray-500 font-semibold block">Number of Pets (Quantity) *</label>
                   <input
-                    type="text"
-                    placeholder="Image URL link"
-                    value={imageUrl}
-                    onChange={(e) => setImageUrl(e.target.value)}
-                    className="w-full px-3 py-2 border border-beige text-xs focus:outline-none focus:border-primary"
+                    type="number"
+                    min="1"
+                    placeholder="e.g. 4"
+                    value={quantity}
+                    onChange={(e) => setQuantity(e.target.value)}
+                    className="w-full px-3 py-2.5 border border-beige text-sm focus:outline-none focus:border-primary"
+                    required
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-gray-500 font-semibold block">Pet Image *</label>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => handleFileChange(e, setImageFile)}
+                    className="w-full px-3 py-2 border border-beige text-sm focus:outline-none focus:border-primary file:mr-2 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-sm file:font-bold file:bg-secondary file:text-primary hover:file:bg-beige"
+                    required
                   />
                 </div>
               </div>
 
-              <div className="space-y-1">
-                <label className="text-gray-500 font-semibold block">Description & Health history *</label>
-                <textarea
-                  rows={4}
-                  placeholder="Describe your pet's vaccination checks, personality details..."
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  className="w-full px-3 py-2 border border-beige text-xs focus:outline-none focus:border-primary"
-                  required
-                ></textarea>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <label className="text-gray-500 font-semibold block">Vaccination Certificate (optional)</label>
+                  <input
+                    type="file"
+                    accept="image/*,application/pdf"
+                    onChange={(e) => handleFileChange(e, setVaccinationFile)}
+                    className="w-full px-3 py-2 border border-beige text-sm focus:outline-none focus:border-primary file:mr-2 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-sm file:font-bold file:bg-secondary file:text-primary hover:file:bg-beige"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-gray-500 font-semibold block">Description & Health history *</label>
+                  <textarea
+                    rows={3}
+                    placeholder="Describe your pet's vaccination checks, personality details..."
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    className="w-full px-3 py-2.5 border border-beige text-sm focus:outline-none focus:border-primary"
+                    required
+                  ></textarea>
+                </div>
               </div>
             </div>
 
-            <div className="bg-secondary px-6 py-4 border-t border-beige flex justify-end gap-3 shrink-0">
+            <div className="bg-secondary px-6 py-5 border-t border-beige flex justify-end gap-3 shrink-0">
               <button 
                 type="button" 
                 onClick={() => setShowAddForm(false)}
-                className="btn-secondary-premium py-2 text-xs"
+                className="btn-secondary-premium py-2.5 px-6 text-sm"
               >
                 CANCEL
               </button>
               <button 
                 type="submit" 
-                className="btn-premium py-2 text-xs"
+                className="btn-premium py-2.5 px-6 text-sm"
               >
                 PUBLISH CLASSIFIED
               </button>

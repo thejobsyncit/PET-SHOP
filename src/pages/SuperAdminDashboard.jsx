@@ -395,7 +395,8 @@ const SuperAdminDashboard = () => {
         loadAdminMarketplaceData();
       }
     } catch (err) {
-      toast.error('Listing verification failed.');
+      toast.error(`Error: ${err.message || 'Listing verification failed.'}`);
+      console.error(err);
     }
   };
 
@@ -921,6 +922,7 @@ const SuperAdminDashboard = () => {
                     <thead>
                       <tr className="bg-secondary text-primary font-bold border-b border-[#E3EBE5]">
                         <th className="p-3">Listing Details</th>
+                        <th className="p-3">Inventory</th>
                         <th className="p-3">Owner Contact</th>
                         <th className="p-3">Price</th>
                         <th className="p-3">Location</th>
@@ -934,6 +936,18 @@ const SuperAdminDashboard = () => {
                           <td className="p-3 space-y-1">
                             <p className="font-bold text-primary">{l.title}</p>
                             <p className="text-[10px] text-gray-400">Breed: {l.breed} • Age: {l.age}</p>
+                          </td>
+                          <td className="p-3 space-y-1">
+                            {l.status === 'Sold Out' || l.quantity === 0 ? (
+                              <span className="bg-red-100 text-red-800 font-bold px-2 py-0.5 rounded-sm text-[10px] uppercase tracking-wider inline-block">
+                                SOLD OUT
+                              </span>
+                            ) : (
+                              <>
+                                <p className="font-bold text-primary text-[11px]">Available: {l.quantity || 1}</p>
+                                <p className="text-[10px] text-gray-400">Sold: {l.soldCount || 0}</p>
+                              </>
+                            )}
                           </td>
                           <td className="p-3">
                             <p className="font-semibold">{l.user?.name}</p>

@@ -18,6 +18,12 @@ const ChatConsole = () => {
   const [loadingMessages, setLoadingMessages] = useState(false);
 
   const messagesEndRef = useRef(null);
+  const activeContactRef = useRef(null);
+
+  // Sync ref with state
+  useEffect(() => {
+    activeContactRef.current = activeContact;
+  }, [activeContact]);
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -46,8 +52,8 @@ const ChatConsole = () => {
       const data = await apiRequest('/chats/rooms');
       if (data.success) {
         setRooms(data.rooms);
-        // Pre-select first room if no contact is selected
-        if (data.rooms.length > 0 && !activeContact) {
+        // Pre-select first room if no contact is selected and no state redirect
+        if (data.rooms.length > 0 && !activeContactRef.current && !location.state?.recipientId) {
           setActiveContact(data.rooms[0]);
           loadMessages(data.rooms[0]._id);
         }
@@ -188,8 +194,13 @@ const ChatConsole = () => {
                 {loadingMessages ? (
                   <p className="text-xs text-gray-400 text-center">Loading message logs...</p>
                 ) : messages.length > 0 ? (
-                  messages.map((m) => {
-                    const isMe = (m.sender?._id || m.sender) === user._id.toString();
+                  messages.map((m, index) => {
+                    // Check if all messages are from the exact same sender (common during solo prototype testing)
+                    const isSoloTesting = messages.every(msg => (msg.sender?._id || msg.sender) === (messages[0].sender?._id || messages[0].sender));
+                    
+                    // If solo testing, alternate visually: 1st message Left (buyer), 2nd message Right (seller reply)
+                    const isMe = isSoloTesting ? (index % 2 !== 0) : ((m.sender?._id || m.sender).toString() === user._id.toString());
+                    
                     return (
                       <div 
                         key={m._id} 

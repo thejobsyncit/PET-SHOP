@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { 
   Sparkles, Search, MapPin, Phone, MessageSquare, Star, ShieldCheck, 
-  Calendar, Clock, CheckCircle2, ChevronRight, X, SlidersHorizontal, 
+  Calendar, Clock, CircleCheck, ChevronRight, X, SlidersHorizontal, 
   RefreshCw, Check, ArrowRight, Heart, Award, Home, 
   ShieldAlert, UserCheck, Video, Moon, Sun, Trees, ChevronDown
 } from 'lucide-react';
@@ -1281,7 +1281,7 @@ const HostelServices = () => {
                   type="submit"
                   className="w-full bg-[#7c56dc] hover:bg-[#6842c2] text-white font-extrabold py-3 px-4 rounded-xl text-xs shadow-md transition cursor-pointer flex items-center justify-center gap-1.5"
                 >
-                  <CheckCircle2 size={15} />
+                  <CircleCheck size={15} />
                   <span>Confirm Stay Reservation (Pay During Check-In)</span>
                 </button>
               </div>

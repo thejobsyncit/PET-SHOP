@@ -3,7 +3,7 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import {
   Heart, ArrowLeft, MapPin, Phone, MessageSquare, ShieldCheck,
-  CheckCircle2, Check, User, Calendar, Award, Share2, Info, Home,
+  CircleCheck, Check, User, Calendar, Award, Share2, Info, Home,
   Sparkles, AlertCircle, ArrowRight, Lock
 } from 'lucide-react';
 import toast from 'react-hot-toast';
@@ -341,7 +341,7 @@ const AdoptionPetDetail = () => {
                 <h3 className="font-serif text-base font-bold text-slate-900">Health & Medical Records</h3>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   <div className="flex items-center gap-2.5 p-3 rounded-xl bg-emerald-50 border border-emerald-150 text-emerald-800">
-                    <CheckCircle2 size={18} className="text-emerald-600 shrink-0" />
+                    <CircleCheck size={18} className="text-emerald-600 shrink-0" />
                     <div>
                       <p className="text-xs font-bold">Vaccinated</p>
                       <p className="text-[10px] text-emerald-600">Up to date on shots</p>
@@ -349,7 +349,7 @@ const AdoptionPetDetail = () => {
                   </div>
 
                   <div className="flex items-center gap-2.5 p-3 rounded-xl bg-blue-50 border border-blue-150 text-blue-800">
-                    <CheckCircle2 size={18} className="text-blue-600 shrink-0" />
+                    <CircleCheck size={18} className="text-blue-600 shrink-0" />
                     <div>
                       <p className="text-xs font-bold">Dewormed</p>
                       <p className="text-[10px] text-blue-600">Internal parasite clear</p>

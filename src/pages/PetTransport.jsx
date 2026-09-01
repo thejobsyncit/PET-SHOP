@@ -3,7 +3,7 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { 
   Sparkles, Search, MapPin, Phone, MessageSquare, Star, ShieldCheck, 
-  Calendar, Clock, CheckCircle2, ChevronRight, X, SlidersHorizontal, 
+  Calendar, Clock, CircleCheck, ChevronRight, X, SlidersHorizontal, 
   RefreshCw, Check, ArrowRight, Heart, Award, Navigation, 
   Compass, ShieldAlert, UserCheck, Truck, Plane, Train, Anchor,
   Scale, FileText, Send, HelpCircle, Info, ChevronDown, CheckSquare, Square
@@ -662,7 +662,7 @@ const PetTransport = () => {
               <div className="px-5 pb-4 pt-3 border-t border-stone-100 flex items-center justify-between text-[11px] font-bold text-[#13274F]">
                 <span className="text-gray-400 uppercase tracking-wider text-[10px]">Phase 0{idx + 1}</span>
                 <span className="flex items-center gap-1 text-emerald-600 font-semibold text-[11px]">
-                  <CheckCircle2 size={13} /> Ready
+                  <CircleCheck size={13} /> Ready
                 </span>
               </div>
             </div>
@@ -1401,7 +1401,7 @@ const PetTransport = () => {
                     <td className="p-3 font-bold text-slate-700 bg-stone-50">100% Climate Control (AC)</td>
                     {comparedProviders.map((p) => (
                       <td key={p.id} className="p-3 text-center font-bold text-emerald-700">
-                        <CheckCircle2 size={16} className="inline mr-1" /> Guaranteed
+                        <CircleCheck size={16} className="inline mr-1" /> Guaranteed
                       </td>
                     ))}
                   </tr>
@@ -1409,7 +1409,7 @@ const PetTransport = () => {
                     <td className="p-3 font-bold text-slate-700 bg-stone-50">Live GPS & WhatsApp Updates</td>
                     {comparedProviders.map((p) => (
                       <td key={p.id} className="p-3 text-center font-bold text-emerald-700">
-                        <CheckCircle2 size={16} className="inline mr-1" /> Real-time Link
+                        <CircleCheck size={16} className="inline mr-1" /> Real-time Link
                       </td>
                     ))}
                   </tr>
