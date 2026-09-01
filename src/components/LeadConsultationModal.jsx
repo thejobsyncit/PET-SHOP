@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import {
   X, User, Briefcase, Eye, EyeOff, Search, MapPin, AlertCircle,
-  Phone, Check
+  Phone, Check, PawPrint
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useDispatch, useSelector } from 'react-redux';
@@ -128,7 +128,7 @@ const CountryCodePicker = ({ value, onChange, id = 'country-picker' }) => {
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="h-full px-3 py-2.5 bg-slate-100/90 hover:bg-slate-200/90 active:bg-slate-300/80 text-slate-700 text-xs md:text-sm font-semibold rounded-l-xl border-r border-slate-300 flex items-center gap-1.5 cursor-pointer transition select-none"
+        className="h-full px-2.5 sm:px-3 py-2 bg-slate-100/90 hover:bg-slate-200/90 active:bg-slate-300/80 text-slate-700 text-xs md:text-sm font-semibold rounded-l-xl border-r border-slate-300 flex items-center gap-1 cursor-pointer transition select-none"
         title="Select Country Dial Code"
       >
         <span className="text-base leading-none">{selectedItem.flag}</span>
@@ -137,7 +137,7 @@ const CountryCodePicker = ({ value, onChange, id = 'country-picker' }) => {
       </button>
 
       {isOpen && (
-        <div className="absolute left-0 top-full mt-1.5 w-64 bg-white border border-slate-200 rounded-xl shadow-2xl z-50 overflow-hidden animate-in fade-in zoom-in-95">
+        <div className="absolute left-0 top-full mt-1 w-64 bg-white border border-slate-200 rounded-xl shadow-2xl z-50 overflow-hidden animate-in fade-in zoom-in-95">
           <div className="p-2 border-b border-slate-100 bg-slate-50">
             <div className="relative">
               <input
@@ -206,7 +206,7 @@ const HereForDropdown = ({ value, onChange, error }) => {
       {/* Dropdown Closed Trigger Container */}
       <div
         onClick={() => setIsOpen(!isOpen)}
-        className={`w-full px-4 py-2.5 border rounded-xl text-xs md:text-sm bg-white flex items-center justify-between cursor-pointer transition select-none shadow-xs ${
+        className={`w-full px-3.5 py-2 border rounded-xl text-xs md:text-sm bg-white flex items-center justify-between cursor-pointer transition select-none shadow-xs ${
           error
             ? 'border-red-500 ring-2 ring-red-100'
             : isOpen
@@ -683,32 +683,44 @@ const LeadConsultationModal = () => {
   if (!isOpen || isAuthenticated) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 animate-in fade-in duration-300">
+    <div className="fixed inset-0 z-[100] overflow-y-auto bg-black/75 backdrop-blur-xs p-3 sm:p-5 flex flex-col items-center justify-start sm:justify-center animate-in fade-in duration-200">
       {/* Semi-transparent Backdrop Overlay */}
       <div
         onClick={handleClose}
-        className="fixed inset-0 bg-black/65 backdrop-blur-sm transition-opacity"
+        className="fixed inset-0 bg-transparent"
       ></div>
 
       {/* Main Popup Modal Window */}
-      <div className="relative bg-white w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden border border-slate-200 z-10 animate-in zoom-in-95 duration-200 max-h-[92vh] flex flex-col">
+      <div className="relative bg-white w-full max-w-md rounded-2xl shadow-2xl overflow-hidden border border-slate-200 z-10 flex flex-col min-h-0 max-h-[82vh] sm:max-h-[85vh] my-auto">
         {/* Close Button X */}
         <button
           onClick={handleClose}
-          className="absolute top-4 right-4 text-slate-400 hover:text-slate-700 bg-slate-100 hover:bg-slate-200 p-1.5 rounded-full transition cursor-pointer z-30"
+          className="absolute top-3 right-3 text-slate-400 hover:text-slate-700 bg-slate-100 hover:bg-slate-200 p-1.5 rounded-full transition cursor-pointer z-30"
           title="Close Popup"
         >
-          <X size={18} />
+          <X size={16} />
         </button>
 
-        {/* Header Branding */}
-        <div className="pt-6 pb-3 px-6 text-center bg-gradient-to-b from-blue-50/80 to-white relative shrink-0">
-          <div className="flex items-center justify-center gap-2 text-[#15559c] font-serif font-extrabold text-xl md:text-2xl tracking-wide">
-            <span className="text-xl">🐾</span>
-            <span>INDIA PET HUB</span>
+        {/* Header Branding (Compact) */}
+        <div className="pt-3.5 pb-2 px-4 sm:px-6 text-center bg-gradient-to-b from-emerald-50/60 to-white relative shrink-0">
+          <div className="flex items-center justify-center gap-2 mb-1">
+            <img 
+              src="/logo.png" 
+              alt="JOSH PETS HUB Logo" 
+              className="h-8 sm:h-9 w-auto object-contain" 
+            />
+            <span className="text-[#0F2E23] flex items-center font-black tracking-tight text-lg sm:text-xl">
+              J
+              <div className="relative mx-0.5 flex items-center justify-center bg-[#0F2E23] rounded-full w-4 h-4 sm:w-5 sm:h-5 shadow-xs">
+                <PawPrint size={11} className="text-orange-500 fill-orange-500" />
+              </div>
+              SH 
+              <span className="ml-1 sm:ml-1.5 text-[#0F2E23]">PETS</span> 
+              <span className="ml-1 sm:ml-1.5 text-[#0F2E23]">HUB</span>
+            </span>
           </div>
 
-          <p className="text-xs text-slate-500 font-medium mt-1 max-w-sm mx-auto">
+          <p className="text-[10.5px] sm:text-[11px] text-slate-500 font-medium mt-0.5 max-w-sm mx-auto">
             {hideProviderTab || activeTab === 'user'
               ? 'Please fill in your details to register as a Pet Parent / User'
               : 'Join as a verified Service Provider / Business Partner'}
@@ -716,18 +728,18 @@ const LeadConsultationModal = () => {
 
           {/* DUAL TAB SWITCHER HEADER (Hidden when requested from adoption) */}
           {!hideProviderTab && (
-            <div className="mt-4 flex bg-slate-100 p-1 rounded-xl max-w-md mx-auto border border-slate-200">
+            <div className="mt-2 flex bg-slate-100 p-0.5 rounded-xl max-w-md mx-auto border border-slate-200">
               {/* Tab 1: Register as User */}
               <button
                 type="button"
                 onClick={() => setActiveTab('user')}
-                className={`flex-1 py-2 px-3 text-xs font-bold rounded-lg transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+                className={`flex-1 py-1.5 px-2 text-[10.5px] sm:text-[11px] font-bold rounded-lg transition-all flex items-center justify-center gap-1 cursor-pointer ${
                   activeTab === 'user'
                     ? 'bg-white text-[#15559c] shadow-md font-extrabold'
                     : 'text-slate-500 hover:text-slate-800'
                 }`}
               >
-                <User size={14} />
+                <User size={12} />
                 <span>Register as User</span>
               </button>
 
@@ -735,26 +747,26 @@ const LeadConsultationModal = () => {
               <button
                 type="button"
                 onClick={() => setActiveTab('provider')}
-                className={`flex-1 py-2 px-3 text-xs font-bold rounded-lg transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+                className={`flex-1 py-1.5 px-2 text-[10.5px] sm:text-[11px] font-bold rounded-lg transition-all flex items-center justify-center gap-1 cursor-pointer ${
                   activeTab === 'provider'
                     ? 'bg-[#15559c] text-white shadow-md font-extrabold'
                     : 'text-slate-500 hover:text-slate-800'
                 }`}
               >
-                <Briefcase size={14} />
+                <Briefcase size={12} />
                 <span>Service Provider</span>
               </button>
             </div>
           )}
         </div>
 
-        {/* Scrollable Form Body */}
-        <div className="overflow-y-auto px-6 md:px-8 pb-7 pt-2 flex-1">
+        {/* Scrollable Form Body with explicit min-h-0 and flex-1 */}
+        <div className="overflow-y-auto flex-1 min-h-0 px-4 sm:px-6 py-2.5 space-y-2 text-xs custom-scrollbar">
           {/* =============================================================
               TAB 1: USER REGISTRATION FORM
              ============================================================= */}
           {activeTab === 'user' && (
-            <form onSubmit={handleUserSubmit} className="space-y-3.5">
+            <form onSubmit={handleUserSubmit} className="space-y-2.5">
               {/* Full Name */}
               <div>
                 <input
@@ -762,7 +774,7 @@ const LeadConsultationModal = () => {
                   placeholder="Full Name"
                   value={userFullName}
                   onChange={(e) => setUserFullName(e.target.value)}
-                  className="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-xs md:text-sm focus:outline-none focus:border-[#15559c] focus:ring-2 focus:ring-blue-100 transition bg-slate-50/50 hover:bg-white font-medium"
+                  className="w-full px-3.5 py-2 border border-slate-200 rounded-xl text-xs md:text-sm focus:outline-none focus:border-[#15559c] focus:ring-2 focus:ring-blue-100 transition bg-slate-50/50 hover:bg-white font-medium"
                 />
               </div>
 
@@ -798,20 +810,20 @@ const LeadConsultationModal = () => {
                         }
                       }
                     }}
-                    className="w-full px-3.5 py-2.5 rounded-r-xl text-xs md:text-sm focus:outline-none bg-white font-semibold text-slate-800 placeholder-slate-400"
+                    className="w-full px-3.5 py-2 rounded-r-xl text-xs md:text-sm focus:outline-none bg-white font-semibold text-slate-800 placeholder-slate-400"
                     required
                   />
                 </div>
                 {userMobileError && (
-                  <p className="text-[11px] font-bold text-red-500 pl-1 flex items-center gap-1">
-                    <AlertCircle size={12} /> {userMobileError}
+                  <p className="text-[10px] font-bold text-red-500 pl-1 flex items-center gap-1">
+                    <AlertCircle size={11} /> {userMobileError}
                   </p>
                 )}
               </div>
 
               {/* WhatsApp No with Country Code Selector & Same as Mobile toggle (MANDATORY & NUMBERS ONLY) */}
-              <div className="space-y-1">
-                <div className="flex justify-end pl-0.5">
+              <div className="space-y-0.5">
+                <div className="flex justify-end pl-0.5 pb-0.5">
                   <label className="text-[10.5px] text-[#15559c] font-bold flex items-center gap-1.5 cursor-pointer select-none">
                     <input
                       type="checkbox"
@@ -849,19 +861,19 @@ const LeadConsultationModal = () => {
                         setUserSameAsMobile(false);
                       }
                     }}
-                    className="w-full px-3.5 py-2.5 rounded-r-xl text-xs md:text-sm focus:outline-none bg-white font-semibold text-slate-800 placeholder-slate-400"
+                    className="w-full px-3.5 py-2 rounded-r-xl text-xs md:text-sm focus:outline-none bg-white font-semibold text-slate-800 placeholder-slate-400"
                     required
                   />
                 </div>
                 {userWhatsappError && (
-                  <p className="text-[11px] font-bold text-red-500 pl-1 flex items-center gap-1">
-                    <AlertCircle size={12} /> {userWhatsappError}
+                  <p className="text-[10px] font-bold text-red-500 pl-1 flex items-center gap-1">
+                    <AlertCircle size={11} /> {userWhatsappError}
                   </p>
                 )}
               </div>
 
-              {/* "I'm here for" Dropdown Component matching Reference Image */}
-              <div className="space-y-1">
+              {/* "I'm here for" Dropdown Component */}
+              <div className="space-y-0.5">
                 <HereForDropdown
                   value={userPurpose}
                   onChange={(val) => {
@@ -871,25 +883,25 @@ const LeadConsultationModal = () => {
                   error={userPurposeError}
                 />
                 {userPurposeError && (
-                  <p className="text-[11px] font-bold text-red-500 pl-1 flex items-center gap-1">
-                    <AlertCircle size={12} /> {userPurposeError}
+                  <p className="text-[10px] font-bold text-red-500 pl-1 flex items-center gap-1">
+                    <AlertCircle size={11} /> {userPurposeError}
                   </p>
                 )}
               </div>
 
               {/* Email & Password Grid */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                 <div>
                   <input
                     type="email"
                     placeholder="Email"
                     value={userEmail}
                     onChange={(e) => setUserEmail(e.target.value)}
-                    className="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-xs md:text-sm focus:outline-none focus:border-[#15559c] focus:ring-2 focus:ring-blue-100 transition bg-slate-50/50 hover:bg-white font-medium"
+                    className="w-full px-3.5 py-2 border border-slate-200 rounded-xl text-xs md:text-sm focus:outline-none focus:border-[#15559c] focus:ring-2 focus:ring-blue-100 transition bg-slate-50/50 hover:bg-white font-medium"
                   />
                 </div>
 
-                <div className="space-y-1">
+                <div className="space-y-0.5">
                   <div className="relative">
                     <input
                       type={showUserPassword ? 'text' : 'password'}
@@ -901,7 +913,7 @@ const LeadConsultationModal = () => {
                         setUserPassword(val);
                         setUserPasswordError(validatePassword(val));
                       }}
-                      className={`w-full px-4 py-2.5 border rounded-xl text-xs md:text-sm focus:outline-none transition bg-white pr-10 ${
+                      className={`w-full px-3.5 py-2 border rounded-xl text-xs md:text-sm focus:outline-none transition bg-white pr-9 ${
                         userPasswordError
                           ? 'border-red-500 ring-2 ring-red-100 text-red-900'
                           : 'border-slate-200 focus:border-[#15559c] focus:ring-2 focus:ring-blue-100'
@@ -911,10 +923,10 @@ const LeadConsultationModal = () => {
                     <button
                       type="button"
                       onClick={() => setShowUserPassword(!showUserPassword)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-[#15559c] transition p-1 cursor-pointer"
+                      className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-[#15559c] transition p-1 cursor-pointer"
                       title={showUserPassword ? 'Hide Password' : 'View Password'}
                     >
-                      {showUserPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                      {showUserPassword ? <EyeOff size={15} /> : <Eye size={15} />}
                     </button>
                   </div>
                   {userPasswordError && (
@@ -926,18 +938,18 @@ const LeadConsultationModal = () => {
               </div>
 
               {/* Password Rules Badge */}
-              <div className="bg-blue-50/60 p-2.5 rounded-lg text-[10px] text-[#0f3d6b] font-medium space-y-0.5 border border-blue-100">
+              <div className="bg-blue-50/60 p-2 rounded-lg text-[9.5px] sm:text-[10px] text-[#0f3d6b] font-medium space-y-0.5 border border-blue-100 leading-tight">
                 <span className="font-bold text-[#15559c] block">Password Rules (Max 10 chars):</span>
                 <p>• At least 1 Capital (A-Z), 1 Small (a-z), 1 Number (0-9), & 1 Special char (!@#$%^&*)</p>
               </div>
 
               {/* State & Searchable City Grid */}
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-2 gap-2.5">
                 <div>
                   <select
                     value={userState}
                     onChange={handleUserStateChange}
-                    className="w-full px-3 py-2.5 border border-slate-200 rounded-xl text-xs md:text-sm bg-slate-50/50 hover:bg-white focus:outline-none focus:border-[#15559c] focus:ring-2 focus:ring-blue-100 transition font-medium text-slate-700"
+                    className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs md:text-sm bg-slate-50/50 hover:bg-white focus:outline-none focus:border-[#15559c] focus:ring-2 focus:ring-blue-100 transition font-medium text-slate-700"
                   >
                     {indianStates.map((s) => (
                       <option key={s} value={s}>{s}</option>
@@ -956,9 +968,9 @@ const LeadConsultationModal = () => {
                         setIsUserCityDropdownOpen(true);
                       }}
                       onFocus={() => setIsUserCityDropdownOpen(true)}
-                      className="w-full pl-8 pr-3 py-2.5 border border-slate-200 rounded-xl text-xs md:text-sm focus:outline-none focus:border-[#15559c] focus:ring-2 focus:ring-blue-100 transition bg-slate-50/50 hover:bg-white font-medium"
+                      className="w-full pl-8 pr-3 py-2 border border-slate-200 rounded-xl text-xs md:text-sm focus:outline-none focus:border-[#15559c] focus:ring-2 focus:ring-blue-100 transition bg-slate-50/50 hover:bg-white font-medium"
                     />
-                    <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+                    <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
                   </div>
 
                   {isUserCityDropdownOpen && (
@@ -971,7 +983,7 @@ const LeadConsultationModal = () => {
                               setUserCitySearch(c);
                               setIsUserCityDropdownOpen(false);
                             }}
-                            className="px-3 py-2 text-xs text-slate-700 hover:bg-blue-50 hover:text-[#15559c] cursor-pointer flex items-center justify-between font-medium transition"
+                            className="px-3 py-1.5 text-xs text-slate-700 hover:bg-blue-50 hover:text-[#15559c] cursor-pointer flex items-center justify-between font-medium transition"
                           >
                             <span>{c}</span>
                             <MapPin size={10} className="text-blue-400" />
@@ -988,13 +1000,13 @@ const LeadConsultationModal = () => {
               </div>
 
               {/* Register as User Button */}
-              <div className="pt-2">
+              <div className="pt-1.5">
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full py-3 bg-[#15559c] hover:bg-[#0f3d6b] text-white font-bold text-xs md:text-sm tracking-wide rounded-xl shadow-lg shadow-blue-900/20 active:scale-95 transition cursor-pointer flex items-center justify-center gap-2"
+                  className="w-full py-2.5 bg-[#15559c] hover:bg-[#0f3d6b] text-white font-bold text-xs md:text-sm tracking-wide rounded-xl shadow-md shadow-blue-900/20 active:scale-95 transition cursor-pointer flex items-center justify-center gap-1.5"
                 >
-                  <User size={16} />
+                  <User size={15} />
                   <span>{loading ? 'REGISTERING...' : 'Register as User'}</span>
                 </button>
               </div>
@@ -1005,7 +1017,7 @@ const LeadConsultationModal = () => {
               TAB 2: SERVICE PROVIDER REGISTRATION FORM
              ============================================================= */}
           {activeTab === 'provider' && (
-            <form onSubmit={handleProviderSubmit} className="space-y-3.5">
+            <form onSubmit={handleProviderSubmit} className="space-y-2.5">
               {/* Business Name */}
               <div>
                 <input
@@ -1013,7 +1025,7 @@ const LeadConsultationModal = () => {
                   placeholder="Business Name / Full Name *"
                   value={providerBusinessName}
                   onChange={(e) => setProviderBusinessName(e.target.value)}
-                  className="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-xs md:text-sm focus:outline-none focus:border-[#15559c] focus:ring-2 focus:ring-blue-100 transition bg-slate-50/50 hover:bg-white font-medium"
+                  className="w-full px-3.5 py-2 border border-slate-200 rounded-xl text-xs md:text-sm focus:outline-none focus:border-[#15559c] focus:ring-2 focus:ring-blue-100 transition bg-slate-50/50 hover:bg-white font-medium"
                   required
                 />
               </div>
@@ -1050,20 +1062,20 @@ const LeadConsultationModal = () => {
                         }
                       }
                     }}
-                    className="w-full px-3.5 py-2.5 rounded-r-xl text-xs md:text-sm focus:outline-none bg-white font-semibold text-slate-800 placeholder-slate-400"
+                    className="w-full px-3.5 py-2 rounded-r-xl text-xs md:text-sm focus:outline-none bg-white font-semibold text-slate-800 placeholder-slate-400"
                     required
                   />
                 </div>
                 {providerMobileError && (
-                  <p className="text-[11px] font-bold text-red-500 pl-1 flex items-center gap-1">
-                    <AlertCircle size={12} /> {providerMobileError}
+                  <p className="text-[10px] font-bold text-red-500 pl-1 flex items-center gap-1">
+                    <AlertCircle size={11} /> {providerMobileError}
                   </p>
                 )}
               </div>
 
               {/* WhatsApp No for Provider with Country Code Selector & Same as Mobile */}
-              <div className="space-y-1">
-                <div className="flex justify-end pl-0.5">
+              <div className="space-y-0.5">
+                <div className="flex justify-end pl-0.5 pb-0.5">
                   <label className="text-[10.5px] text-[#15559c] font-bold flex items-center gap-1.5 cursor-pointer select-none">
                     <input
                       type="checkbox"
@@ -1101,13 +1113,13 @@ const LeadConsultationModal = () => {
                         setProviderSameAsMobile(false);
                       }
                     }}
-                    className="w-full px-3.5 py-2.5 rounded-r-xl text-xs md:text-sm focus:outline-none bg-white font-semibold text-slate-800 placeholder-slate-400"
+                    className="w-full px-3.5 py-2 rounded-r-xl text-xs md:text-sm focus:outline-none bg-white font-semibold text-slate-800 placeholder-slate-400"
                     required
                   />
                 </div>
                 {providerWhatsappError && (
-                  <p className="text-[11px] font-bold text-red-500 pl-1 flex items-center gap-1">
-                    <AlertCircle size={12} /> {providerWhatsappError}
+                  <p className="text-[10px] font-bold text-red-500 pl-1 flex items-center gap-1">
+                    <AlertCircle size={11} /> {providerWhatsappError}
                   </p>
                 )}
               </div>
@@ -1117,7 +1129,7 @@ const LeadConsultationModal = () => {
                 <select
                   value={providerCategory}
                   onChange={(e) => setProviderCategory(e.target.value)}
-                  className="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-xs md:text-sm bg-slate-50/50 hover:bg-white focus:outline-none focus:border-[#15559c] focus:ring-2 focus:ring-blue-100 transition font-medium text-slate-700"
+                  className="w-full px-3.5 py-2 border border-slate-200 rounded-xl text-xs md:text-sm bg-slate-50/50 hover:bg-white focus:outline-none focus:border-[#15559c] focus:ring-2 focus:ring-blue-100 transition font-medium text-slate-700"
                 >
                   {providerServiceCategories.map((c) => (
                     <option key={c} value={c}>{c}</option>
@@ -1126,8 +1138,8 @@ const LeadConsultationModal = () => {
               </div>
 
               {/* Business Email & Password */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div className="space-y-1">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                <div className="space-y-0.5">
                   <input
                     type="email"
                     placeholder="Business Email *"
@@ -1138,7 +1150,7 @@ const LeadConsultationModal = () => {
                         setProviderEmailError('');
                       }
                     }}
-                    className={`w-full px-4 py-2.5 border rounded-xl text-xs md:text-sm focus:outline-none transition bg-white font-medium ${
+                    className={`w-full px-3.5 py-2 border rounded-xl text-xs md:text-sm focus:outline-none transition bg-white font-medium ${
                       providerEmailError
                         ? 'border-red-500 ring-2 ring-red-100 text-red-900'
                         : 'border-slate-200 focus:border-[#15559c] focus:ring-2 focus:ring-blue-100'
@@ -1150,7 +1162,7 @@ const LeadConsultationModal = () => {
                   )}
                 </div>
 
-                <div className="space-y-1">
+                <div className="space-y-0.5">
                   <div className="relative">
                     <input
                       type={showProviderPassword ? 'text' : 'password'}
@@ -1162,7 +1174,7 @@ const LeadConsultationModal = () => {
                         setProviderPassword(val);
                         setProviderPasswordError(validatePassword(val));
                       }}
-                      className={`w-full px-4 py-2.5 border rounded-xl text-xs md:text-sm focus:outline-none transition bg-white pr-10 ${
+                      className={`w-full px-3.5 py-2 border rounded-xl text-xs md:text-sm focus:outline-none transition bg-white pr-9 ${
                         providerPasswordError
                           ? 'border-red-500 ring-2 ring-red-100 text-red-900'
                           : 'border-slate-200 focus:border-[#15559c] focus:ring-2 focus:ring-blue-100'
@@ -1172,10 +1184,10 @@ const LeadConsultationModal = () => {
                     <button
                       type="button"
                       onClick={() => setShowProviderPassword(!showProviderPassword)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-[#15559c] transition p-1 cursor-pointer"
+                      className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-[#15559c] transition p-1 cursor-pointer"
                       title={showProviderPassword ? 'Hide Password' : 'View Password'}
                     >
-                      {showProviderPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                      {showProviderPassword ? <EyeOff size={15} /> : <Eye size={15} />}
                     </button>
                   </div>
                   {providerPasswordError && (
@@ -1187,18 +1199,18 @@ const LeadConsultationModal = () => {
               </div>
 
               {/* Password Rules Badge */}
-              <div className="bg-blue-50/60 p-2.5 rounded-lg text-[10px] text-[#0f3d6b] font-medium space-y-0.5 border border-blue-100">
+              <div className="bg-blue-50/60 p-2 rounded-lg text-[9.5px] sm:text-[10px] text-[#0f3d6b] font-medium space-y-0.5 border border-blue-100 leading-tight">
                 <span className="font-bold text-[#15559c] block">Password Rules (Max 10 chars):</span>
                 <p>• At least 1 Capital (A-Z), 1 Small (a-z), 1 Number (0-9), & 1 Special char (!@#$%^&*)</p>
               </div>
 
               {/* State & Searchable City Grid */}
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-2 gap-2.5">
                 <div>
                   <select
                     value={providerState}
                     onChange={handleProviderStateChange}
-                    className="w-full px-3 py-2.5 border border-slate-200 rounded-xl text-xs md:text-sm bg-slate-50/50 hover:bg-white focus:outline-none focus:border-[#15559c] focus:ring-2 focus:ring-blue-100 transition font-medium text-slate-700"
+                    className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs md:text-sm bg-slate-50/50 hover:bg-white focus:outline-none focus:border-[#15559c] focus:ring-2 focus:ring-blue-100 transition font-medium text-slate-700"
                   >
                     {indianStates.map((s) => (
                       <option key={s} value={s}>{s}</option>
@@ -1217,9 +1229,9 @@ const LeadConsultationModal = () => {
                         setIsProviderCityDropdownOpen(true);
                       }}
                       onFocus={() => setIsProviderCityDropdownOpen(true)}
-                      className="w-full pl-8 pr-3 py-2.5 border border-slate-200 rounded-xl text-xs md:text-sm focus:outline-none focus:border-[#15559c] focus:ring-2 focus:ring-blue-100 transition bg-slate-50/50 hover:bg-white font-medium"
+                      className="w-full pl-8 pr-3 py-2 border border-slate-200 rounded-xl text-xs md:text-sm focus:outline-none focus:border-[#15559c] focus:ring-2 focus:ring-blue-100 transition bg-slate-50/50 hover:bg-white font-medium"
                     />
-                    <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+                    <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
                   </div>
 
                   {isProviderCityDropdownOpen && (
@@ -1232,7 +1244,7 @@ const LeadConsultationModal = () => {
                               setProviderCitySearch(c);
                               setIsProviderCityDropdownOpen(false);
                             }}
-                            className="px-3 py-2 text-xs text-slate-700 hover:bg-blue-50 hover:text-[#15559c] cursor-pointer flex items-center justify-between font-medium transition"
+                            className="px-3 py-1.5 text-xs text-slate-700 hover:bg-blue-50 hover:text-[#15559c] cursor-pointer flex items-center justify-between font-medium transition"
                           >
                             <span>{c}</span>
                             <MapPin size={10} className="text-blue-400" />
@@ -1249,13 +1261,13 @@ const LeadConsultationModal = () => {
               </div>
 
               {/* Register as Service Provider Button */}
-              <div className="pt-2">
+              <div className="pt-1.5">
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full py-3 bg-[#15559c] hover:bg-[#0f3d6b] text-white font-bold text-xs md:text-sm tracking-wide rounded-xl shadow-lg shadow-blue-900/20 active:scale-95 transition cursor-pointer flex items-center justify-center gap-2"
+                  className="w-full py-2.5 bg-[#15559c] hover:bg-[#0f3d6b] text-white font-bold text-xs md:text-sm tracking-wide rounded-xl shadow-md shadow-blue-900/20 active:scale-95 transition cursor-pointer flex items-center justify-center gap-1.5"
                 >
-                  <Briefcase size={16} />
+                  <Briefcase size={15} />
                   <span>{loading ? 'REGISTERING...' : 'Register as Service Provider'}</span>
                 </button>
               </div>
@@ -1264,7 +1276,7 @@ const LeadConsultationModal = () => {
         </div>
 
         {/* Footer with Login redirect */}
-        <div className="py-3 px-6 bg-slate-50 border-t border-slate-100 text-center shrink-0">
+        <div className="py-2.5 px-4 sm:px-6 bg-slate-50 border-t border-slate-100 text-center shrink-0">
           <p className="text-xs text-slate-600 font-medium">
             Already have an account?{' '}
             <button

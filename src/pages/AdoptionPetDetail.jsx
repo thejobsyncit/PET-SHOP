@@ -111,7 +111,7 @@ const AdoptionPetDetail = () => {
   // Handle direct WhatsApp inquiry
   const handleWhatsApp = () => {
     const text = encodeURIComponent(
-      `Hello! I am interested in adopting "${pet.name}" (${pet.breed}, ${pet.city}) listed on India Pet Hub.`
+      `Hello! I am interested in adopting "${pet.name}" (${pet.breed}, ${pet.city}) listed on JOSH PETS HUB.`
     );
     window.open(`https://wa.me/918306688827?text=${text}`, '_blank');
   };
@@ -369,10 +369,10 @@ const AdoptionPetDetail = () => {
               {/* Adoption Process Guarantee */}
               <div className="bg-purple-50/60 p-4 rounded-2xl border border-purple-100 space-y-2 text-xs text-slate-700">
                 <p className="font-bold text-[#7c56dc] flex items-center gap-1.5">
-                  <Sparkles size={16} /> India Pet Hub Adoption Commitment
+                  <Sparkles size={16} /> JOSH PETS HUB Adoption Commitment
                 </p>
                 <p className="text-[11.5px] leading-relaxed text-slate-600">
-                  Every pet adopted through India Pet Hub receives free post-adoption guidance, a starter medical passport, and direct connection with verified animal shelters.
+                  Every pet adopted through JOSH PETS HUB receives free post-adoption guidance, a starter medical passport, and direct connection with verified animal shelters.
                 </p>
               </div>
 

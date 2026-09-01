@@ -250,7 +250,7 @@ const HostelServices = () => {
   // Direct WhatsApp Connect
   const handleWhatsApp = (provider) => {
     const text = encodeURIComponent(
-      `Hello! I am inquiring about boarding my pet at "${provider.name}" (${provider.city}) listed on India Pet Hub.`
+      `Hello! I am inquiring about boarding my pet at "${provider.name}" (${provider.city}) listed on JOSH PETS HUB.`
     );
     window.open(`https://wa.me/91${provider.phone}?text=${text}`, '_blank');
   };
@@ -1118,13 +1118,13 @@ const HostelServices = () => {
           7. INTERACTIVE HOSTEL STAY BOOKING MODAL
          ========================================================================= */}
       {showBookingModal && selectedProvider && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-[100] overflow-y-auto bg-black/60 backdrop-blur-xs p-2 sm:p-4 flex flex-col items-center justify-start sm:justify-center animate-in fade-in duration-150">
           <div 
-            className="fixed inset-0 bg-black/60 backdrop-blur-xs transition-opacity"
+            className="fixed inset-0 bg-transparent"
             onClick={() => setShowBookingModal(false)}
           ></div>
 
-          <div className="relative bg-white rounded-3xl shadow-2xl border border-purple-100 w-full max-w-lg overflow-hidden z-10 animate-in zoom-in-95 duration-150 max-h-[90vh] flex flex-col">
+          <div className="relative bg-white rounded-3xl shadow-2xl border border-purple-100 w-full max-w-lg overflow-hidden z-10 my-auto max-h-[85vh] sm:max-h-[88vh] flex flex-col min-h-0">
             
             {/* Modal Header */}
             <div className="bg-gradient-to-r from-[#ffc83b] to-[#f59e0b] p-5 text-slate-950 flex justify-between items-center shrink-0">
