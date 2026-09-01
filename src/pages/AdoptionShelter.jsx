@@ -218,7 +218,7 @@ const AdoptionShelter = () => {
   // Open WhatsApp direct chat
   const handleWhatsAppChat = (pet) => {
     const text = encodeURIComponent(
-      `Hello! I am interested in adopting "${pet.name}" (${pet.breed}, ${pet.city}) listed on India Pet Hub.`
+      `Hello! I am interested in adopting "${pet.name}" (${pet.breed}, ${pet.city}) listed on JOSH PETS HUB.`
     );
     window.open(`https://wa.me/918306688827?text=${text}`, '_blank');
   };
@@ -694,7 +694,7 @@ const AdoptionShelter = () => {
                 {/* Description with Read More */}
                 <div className="text-xs text-slate-500 leading-relaxed pt-1">
                   <p>
-                    Are you planning to adopt a pet? You have come to the right place! India Pet Hub provides healthy puppies, dogs, cats and birds for adoption in India. We help you find animal shelters and pet adoption centres near you.
+                    Are you planning to adopt a pet? You have come to the right place! JOSH PETS HUB provides healthy puppies, dogs, cats and birds for adoption in India. We help you find animal shelters and pet adoption centres near you.
                     {!isReadMoreOpen && (
                       <button
                         type="button"
@@ -865,18 +865,18 @@ const AdoptionShelter = () => {
           4. WORKABLE "ADD PET FOR ADOPTION" MODAL
          ========================================================================= */}
       {showAddPetModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto">
+        <div className="fixed inset-0 z-[100] overflow-y-auto bg-slate-900/60 backdrop-blur-xs p-2 sm:p-4 flex flex-col items-center justify-start sm:justify-center animate-in fade-in duration-200">
           <div
             onClick={() => setShowAddPetModal(false)}
-            className="fixed inset-0 bg-slate-900/50 backdrop-blur-xs transition-opacity"
+            className="fixed inset-0 bg-transparent"
           ></div>
 
           <form
             onSubmit={handleAddPetSubmit}
-            className="relative bg-white w-full max-w-xl rounded-2xl shadow-2xl border border-beige overflow-hidden z-10 animate-in fade-in zoom-in-95 duration-200 my-8"
+            className="relative bg-white w-full max-w-xl rounded-2xl shadow-2xl border border-beige overflow-hidden z-10 flex flex-col min-h-0 max-h-[85vh] sm:max-h-[88vh] my-auto"
           >
             {/* Header */}
-            <div className="bg-primary text-white px-6 py-4 flex items-center justify-between">
+            <div className="bg-primary text-white px-6 py-4 flex items-center justify-between shrink-0">
               <div>
                 <h3 className="font-serif text-base font-bold tracking-wide uppercase flex items-center gap-2">
                   <Plus size={18} /> Add Pet For Free Adoption
@@ -895,7 +895,7 @@ const AdoptionShelter = () => {
             </div>
 
             {/* Form Fields Grid */}
-            <div className="p-6 space-y-4 max-h-[75vh] overflow-y-auto text-xs">
+            <div className="p-4 sm:p-6 space-y-4 overflow-y-auto flex-1 min-h-0 text-xs custom-scrollbar">
               
               {/* Pet Name & Category */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">

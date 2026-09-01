@@ -1132,10 +1132,10 @@ const PetTraining = () => {
         </div>
       </section>
 
-      {/* 7. AUTH-PROTECTED BOOKING MODAL (Fitted inside screen max-h-[90vh]) */}
+      {/* 7. AUTH-PROTECTED BOOKING MODAL */}
       {showBookingModal && selectedProviderForBooking && (
-        <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-3 md:p-4">
-          <div className="bg-white w-full max-w-lg rounded-3xl shadow-2xl border border-stone-200 overflow-hidden flex flex-col max-h-[90vh] animate-in fade-in zoom-in-95">
+        <div className="fixed inset-0 z-[100] bg-black/75 backdrop-blur-sm flex flex-col items-center justify-start sm:justify-center p-2 sm:p-4 overflow-y-auto animate-in fade-in duration-150">
+          <div className="bg-white w-full max-w-lg rounded-3xl shadow-2xl border border-stone-200 overflow-hidden flex flex-col min-h-0 max-h-[85vh] sm:max-h-[88vh] my-auto animate-in fade-in zoom-in-95">
             
             {/* Sticky Header */}
             <div className="bg-purple-900 text-white p-4 md:p-5 flex items-center justify-between shrink-0 border-b border-purple-800">
@@ -1288,10 +1288,10 @@ const PetTraining = () => {
         </div>
       )}
 
-      {/* 8. PER-PROVIDER ENQUIRY MODAL (Fitted inside screen max-h-[90vh]) */}
+      {/* 8. PER-PROVIDER ENQUIRY MODAL */}
       {showEnquiryModal && selectedProviderForEnquiry && (
-        <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-3 md:p-4">
-          <div className="bg-white w-full max-w-lg rounded-3xl shadow-2xl border border-stone-200 overflow-hidden flex flex-col max-h-[90vh] animate-in fade-in zoom-in-95">
+        <div className="fixed inset-0 z-[100] bg-black/75 backdrop-blur-sm flex flex-col items-center justify-start sm:justify-center p-2 sm:p-4 overflow-y-auto animate-in fade-in duration-150">
+          <div className="bg-white w-full max-w-lg rounded-3xl shadow-2xl border border-stone-200 overflow-hidden flex flex-col min-h-0 max-h-[85vh] sm:max-h-[88vh] my-auto animate-in fade-in zoom-in-95">
             
             {/* Sticky Header */}
             <div className="bg-purple-900 text-white p-4 md:p-5 flex items-center justify-between shrink-0 border-b border-purple-800">

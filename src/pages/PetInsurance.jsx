@@ -4,6 +4,7 @@ import { useSelector } from 'react-redux';
 import {
   ShieldCheck,
   Shield,
+  ShieldAlert,
   Star,
   CheckCircle2,
   Calendar,
@@ -54,6 +55,130 @@ import {
 } from '../data/insuranceData.js';
 import { INDIAN_STATES_CITIES } from '../data/adoptionPetsData.js';
 
+// Species-Specific Insurance Coverage Options & Medical Protection Tiers
+export const SPECIES_COVERAGE_OPTIONS = {
+  Dog: [
+    {
+      id: 'dog-comprehensive',
+      label: 'Comprehensive Canine Health (Surgeries + Illness + Trauma)',
+      baseCost: 3500,
+      riderCost: 1200,
+      sumInsured: '₹5,00,000',
+      desc: '360° canine protection covering emergency trauma, tumor surgeries, parvovirus/tick fever, and ICU hospitalization.'
+    },
+    {
+      id: 'dog-surgery',
+      label: 'Critical Care & Hip Dysplasia Surgery Cover',
+      baseCost: 3200,
+      riderCost: 800,
+      sumInsured: '₹3,50,000',
+      desc: 'Dedicated canine cover for orthopedic surgeries, joint disorders, GDV (bloat), and specialized ICU monitoring.'
+    },
+    {
+      id: 'dog-opd',
+      label: 'Canine Routine OPD, Deworming & Wellness',
+      baseCost: 2800,
+      riderCost: 600,
+      sumInsured: '₹2,00,000',
+      desc: 'Coverage for outpatient consultations, skin allergy therapies, ear hematoma, and preventive health checkups.'
+    },
+    {
+      id: 'dog-liability',
+      label: 'Third-Party Liability & Guard Dog Bite Protection',
+      baseCost: 2400,
+      riderCost: 500,
+      sumInsured: '₹10,00,000 Legal',
+      desc: 'Legal indemnification protecting pet parents against accidental bite lawsuits, legal defense, and property damages.'
+    }
+  ],
+  Cat: [
+    {
+      id: 'cat-comprehensive',
+      label: 'Comprehensive Feline Care (Kidney/UTI + Surgery + Accidents)',
+      baseCost: 2800,
+      riderCost: 900,
+      sumInsured: '₹4,00,000',
+      desc: 'Full feline cover for FLUTD (urinary blockages), chronic renal failure, trauma surgeries, and cancer therapy.'
+    },
+    {
+      id: 'cat-foreign-body',
+      label: 'Feline Indoor Accident & Foreign Body Ingestion Cover',
+      baseCost: 2400,
+      riderCost: 700,
+      sumInsured: '₹3,00,000',
+      desc: 'Emergency endoscopy and abdominal surgery for swallowed strings/toys, high-rise syndrome, and fracture repairs.'
+    },
+    {
+      id: 'cat-senior-renal',
+      label: 'Senior Cat Renal & Dental Stomatitis Safeguard',
+      baseCost: 3100,
+      riderCost: 850,
+      sumInsured: '₹3,50,000',
+      desc: 'Tailored for cats 5+ years covering dialysis monitoring, recurring bloodwork, and dental extractions.'
+    },
+    {
+      id: 'cat-wellness',
+      label: 'Feline Wellness, Vaccines & Parasite Defense',
+      baseCost: 2100,
+      riderCost: 450,
+      sumInsured: '₹1,50,000',
+      desc: 'Routine vet visits, annual FVRCP/Rabies vaccinations, deworming, and tick/flea treatments.'
+    }
+  ],
+  Bird: [
+    {
+      id: 'bird-critical',
+      label: 'Avian Critical Care & Feather/Beak Surgery',
+      baseCost: 2200,
+      riderCost: 600,
+      sumInsured: '₹2,00,000',
+      desc: 'Specialized avian microsurgery, egg-binding emergencies, crop impaction, and beak fracture repairs.'
+    },
+    {
+      id: 'bird-respiratory',
+      label: 'Avian Respiratory & Psittacosis Hospitalization',
+      baseCost: 1900,
+      riderCost: 500,
+      sumInsured: '₹1,50,000',
+      desc: 'Inpatient nebulization chambers, fungal aspergillosis therapy, and emergency avian oxygenation.'
+    },
+    {
+      id: 'bird-escape',
+      label: 'Accidental Escape & Recovery Search Assistance',
+      baseCost: 1600,
+      riderCost: 350,
+      sumInsured: '₹75,000',
+      desc: 'Emergency lost bird search broadcasting, reward reimbursement, and recapture assistance allowance.'
+    }
+  ],
+  'Exotic Pets': [
+    {
+      id: 'exotic-comprehensive',
+      label: 'Exotic Pet Specialized Surgical & Trauma Care',
+      baseCost: 3800,
+      riderCost: 1100,
+      sumInsured: '₹3,50,000',
+      desc: 'Specialized exotic surgeon fees for rabbits, guinea pigs, hamsters, and reptiles with full anesthesia cover.'
+    },
+    {
+      id: 'exotic-gi-stasis',
+      label: 'GI Stasis & Dental Malocclusion Emergency Cover',
+      baseCost: 3200,
+      riderCost: 800,
+      sumInsured: '₹2,50,000',
+      desc: 'Emergency 24/7 hospitalization for life-threatening gut stasis, syringe feeding ICU, and molar burring.'
+    },
+    {
+      id: 'exotic-habitat-mbd',
+      label: 'Metabolic Bone Disease & Habitat Health Safeguard',
+      baseCost: 2700,
+      riderCost: 650,
+      sumInsured: '₹1,75,000',
+      desc: 'Diagnostics, UV deficiency rehabilitation, nutritional deficiency treatments, and habitat health audits.'
+    }
+  ]
+};
+
 const PetInsurance = () => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -100,10 +225,14 @@ const PetInsurance = () => {
   const [selectedProviderForDetails, setSelectedProviderForDetails] = useState(null);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
 
+  // Detailed Quote Modal State
+  const [detailedQuote, setDetailedQuote] = useState(null);
+  const [showQuoteModal, setShowQuoteModal] = useState(false);
+
   // Quick Premium Calculator State (Hero Widget)
   const [calcPetType, setCalcPetType] = useState('Dog');
-  const [calcAge, setCalcAge] = useState('Puppy / Kitten (2-12 months)');
-  const [calcCoverNeed, setCalcCoverNeed] = useState('Comprehensive (Illness + Accident + Surgery)');
+  const [calcAge, setCalcAge] = useState('Puppy (2 - 12 months)');
+  const [calcCoverNeed, setCalcCoverNeed] = useState(SPECIES_COVERAGE_OPTIONS['Dog'][0].label);
   const [calcEstimatedCost, setCalcEstimatedCost] = useState(null);
 
   // Load Providers on Mount
@@ -111,6 +240,17 @@ const PetInsurance = () => {
     window.scrollTo(0, 0);
     setProviders(getStoredInsuranceProviders());
   }, []);
+
+  // Sync owner info when user logs in/registers
+  useEffect(() => {
+    if (user) {
+      if (user.name) setOwnerName(user.name);
+      if (user.mobile || user.phone) setOwnerPhone(user.mobile || user.phone);
+      if (user.email) setOwnerEmail(user.email);
+      if (user.city) setOwnerCity(user.city);
+      if (user.state) setOwnerState(user.state);
+    }
+  }, [user]);
 
   // Update available cities when state changes
   const handleStateChange = (e) => {
@@ -149,16 +289,25 @@ const PetInsurance = () => {
     setSortBy('recommended');
   };
 
-  // Compare toggles
+  // Compare toggles (Enforce Exactly Max 3 Providers simultaneously)
   const handleToggleCompare = (provider) => {
     if (comparedProviders.some((p) => p.id === provider.id)) {
-      setComparedProviders(comparedProviders.filter((p) => p.id !== provider.id));
+      const remaining = comparedProviders.filter((p) => p.id !== provider.id);
+      setComparedProviders(remaining);
+      toast.success(`Removed ${provider.name} from comparison.`);
     } else {
       if (comparedProviders.length >= 3) {
-        toast.error('You can compare up to 3 insurance plans simultaneously.');
+        toast.error('You can compare a maximum of 3 insurance providers simultaneously. Please remove one provider to add another.', {
+          duration: 4000,
+          icon: '⚖️'
+        });
         return;
       }
-      setComparedProviders([...comparedProviders, provider]);
+      const updated = [...comparedProviders, provider];
+      setComparedProviders(updated);
+      toast.success(`Added ${provider.name} to comparison (${updated.length}/3 selected).`, {
+        icon: '📊'
+      });
     }
   };
 
@@ -231,31 +380,217 @@ const PetInsurance = () => {
     sortBy
   ]);
 
-  // Quick Calculator action
+  // Species Selection Handler (Dynamically updates coverage options for that species)
+  const handleSelectPetSpecies = (species) => {
+    setCalcPetType(species);
+    const availableOpts = SPECIES_COVERAGE_OPTIONS[species] || SPECIES_COVERAGE_OPTIONS['Dog'];
+    if (availableOpts && availableOpts.length > 0) {
+      setCalcCoverNeed(availableOpts[0].label);
+    }
+    if (species === 'Dog') setCalcAge('Puppy (2 - 12 months)');
+    else if (species === 'Cat') setCalcAge('Kitten (2 - 12 months)');
+    else setCalcAge('Young / Juvenile');
+  };
+
+  // Quick Calculator action with Species-Specific Detailed Breakdown & Modal Trigger
   const handleCalculateQuote = (e) => {
-    e.preventDefault();
-    let base = 3500;
-    if (calcPetType === 'Cat') base = 2800;
-    if (calcPetType === 'Bird') base = 2200;
-    if (calcPetType === 'Exotic Pets') base = 3800;
+    if (e) e.preventDefault();
+    const availableOpts = SPECIES_COVERAGE_OPTIONS[calcPetType] || SPECIES_COVERAGE_OPTIONS['Dog'];
+    const currentOpt = availableOpts.find((o) => o.label === calcCoverNeed) || availableOpts[0];
 
-    if (calcAge.includes('Senior')) base *= 1.4;
-    else if (calcAge.includes('Puppy')) base *= 0.9;
+    let base = currentOpt ? currentOpt.baseCost : 3500;
+    const riderCost = currentOpt ? currentOpt.riderCost : 1000;
+    const sumInsured = currentOpt ? currentOpt.sumInsured : '₹5,00,000';
 
-    if (calcCoverNeed.includes('Comprehensive')) base += 1200;
-    if (calcCoverNeed.includes('Surgery')) base += 800;
+    if (calcAge.includes('Senior')) {
+      base *= 1.35;
+    } else if (calcAge.includes('Puppy') || calcAge.includes('Kitten') || calcAge.includes('Young')) {
+      base *= 0.9;
+    }
 
-    setCalcEstimatedCost(Math.round(base));
-    toast.success(`Estimated Premium: ₹${Math.round(base)}/year (approx. ₹${Math.round(base / 12)}/month)`);
+    const netBase = Math.round(base + riderCost);
+    const gst = Math.round(netBase * 0.18);
+    const totalAnnual = netBase + gst;
+    const monthlyEmi = Math.round(totalAnnual / 12);
 
-    // Auto adjust filter
+    const quoteData = {
+      quoteId: `PAW-QUOTE-${Date.now().toString().slice(-6)}`,
+      date: new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }),
+      validUntil: new Date(Date.now() + 30 * 86400000).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }),
+      petSpecies: calcPetType,
+      ageGroup: calcAge,
+      coverageType: currentOpt.label,
+      coverageDesc: currentOpt.desc,
+      basePremium: Math.round(base),
+      riderCost: riderCost,
+      netBase: netBase,
+      gst: gst,
+      totalAnnual: totalAnnual,
+      monthlyEmi: monthlyEmi,
+      sumInsured: sumInsured,
+      cashlessClinics: '1,500+ Across India',
+      claimRatio: '98.8% Approved Claims',
+      inclusions: [
+        `${calcPetType} Specialized Surgical & Inpatient Care`,
+        `Emergency Accidental Trauma & Intensive Care Safeguard`,
+        `Direct Cashless Settlement at 1,500+ Partner Clinics`,
+        `24/7 Virtual Veterinary Tele-Consultation Hotline`,
+        `Pre & Post Hospitalization Diagnostics (30 Days)`,
+        `Lost / Stolen Pet Advertising & Search Assistance`
+      ],
+      matchingProviders: providers.filter((p) =>
+        p.speciesCovered.includes(calcPetType === 'Dog' ? 'Dogs' : calcPetType === 'Cat' ? 'Cats' : 'Birds')
+      ).slice(0, 3)
+    };
+
+    setCalcEstimatedCost(totalAnnual);
+    setDetailedQuote(quoteData);
+    setShowQuoteModal(true);
+    toast.success(`Generated tailored quote for ${calcPetType}!`);
+
+    // Auto adjust species filter
     if (calcPetType !== 'All Pets') {
       setSelectedSpecies(calcPetType === 'Dog' ? 'Dogs' : calcPetType === 'Cat' ? 'Cats' : 'Birds');
     }
   };
 
-  // Open Application Modal
+  // Download / Print Official Quote Slip
+  const handleDownloadQuotePDF = (quote) => {
+    if (!quote) return;
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) {
+      toast.error('Please allow popups to download/print your official insurance quote.');
+      return;
+    }
+
+    printWindow.document.write(`
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>Pet Insurance Official Quotation - ${quote.quoteId}</title>
+        <style>
+          body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color: #1e293b; padding: 40px; max-width: 800px; margin: auto; }
+          .header { display: flex; justify-content: space-between; border-bottom: 2px solid #0F2E23; padding-bottom: 20px; margin-bottom: 25px; }
+          .brand { font-size: 24px; font-weight: 900; color: #0F2E23; letter-spacing: -0.5px; }
+          .badge { background: #ecfdf5; color: #065f46; border: 1px solid #a7f3d0; padding: 4px 10px; font-size: 11px; font-weight: bold; border-radius: 4px; }
+          .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 25px; }
+          .card { background: #f8fafc; border: 1px solid #e2e8f0; padding: 15px; border-radius: 8px; }
+          .title { font-size: 11px; text-transform: uppercase; font-weight: bold; color: #64748b; margin-bottom: 5px; }
+          .value { font-size: 15px; font-weight: bold; color: #0f172a; }
+          table { width: 100%; border-collapse: collapse; margin-bottom: 25px; }
+          th { background: #0F2E23; color: white; padding: 10px; font-size: 12px; text-align: left; }
+          td { border-bottom: 1px solid #e2e8f0; padding: 10px; font-size: 12px; }
+          .total-row { background: #f1f5f9; font-weight: bold; font-size: 14px; }
+          .total-price { font-size: 22px; color: #0F2E23; }
+          .features-list { list-style: none; padding: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 25px; }
+          .features-list li { font-size: 12px; color: #334155; }
+          .features-list li:before { content: '✓ '; color: #10b981; font-weight: bold; }
+          .footer { text-align: center; border-top: 1px solid #e2e8f0; padding-top: 20px; font-size: 11px; color: #94a3b8; }
+          @media print {
+            body { padding: 0; }
+            .no-print { display: none; }
+          }
+        </style>
+      </head>
+      <body>
+        <div class="header">
+          <div>
+            <div class="brand">🐾 JOSH PETS HUB</div>
+            <div style="font-size: 12px; color: #64748b;">India Pet Health Insurance Bureau</div>
+          </div>
+          <div style="text-align: right;">
+            <div class="badge">IRDAI APPROVED QUOTE</div>
+            <div style="font-size: 11px; margin-top: 5px; color: #64748b;">Quote ID: <strong>${quote.quoteId}</strong></div>
+            <div style="font-size: 11px; color: #64748b;">Issued: ${quote.date} | Valid for 30 Days</div>
+          </div>
+        </div>
+
+        <div class="grid">
+          <div class="card">
+            <div class="title">Pet Information</div>
+            <div class="value">${quote.petSpecies} (${quote.ageGroup})</div>
+            <div style="font-size: 12px; color: #64748b; margin-top: 4px;">Risk Status: Standard Health Evaluation</div>
+          </div>
+          <div class="card">
+            <div class="title">Coverage Plan Selected</div>
+            <div class="value">${quote.coverageType}</div>
+            <div style="font-size: 12px; color: #059669; font-weight: bold; margin-top: 4px;">Max Sum Insured: ${quote.sumInsured}</div>
+          </div>
+        </div>
+
+        <table style="width: 100%;">
+          <thead>
+            <tr>
+              <th>Coverage Item & Rider Description</th>
+              <th style="text-align: right;">Amount (INR)</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Base Inpatient Surgery & Trauma Safeguard</td>
+              <td style="text-align: right;">₹${quote.basePremium.toLocaleString('en-IN')}</td>
+            </tr>
+            <tr>
+              <td>${quote.coverageType} Critical Illness & Diagnostic Rider</td>
+              <td style="text-align: right;">₹${quote.riderCost.toLocaleString('en-IN')}</td>
+            </tr>
+            <tr>
+              <td>Goods & Services Tax (GST 18%)</td>
+              <td style="text-align: right;">₹${quote.gst.toLocaleString('en-IN')}</td>
+            </tr>
+            <tr class="total-row">
+              <td>Total Guaranteed Annual Premium</td>
+              <td style="text-align: right;" class="total-price">₹${quote.totalAnnual.toLocaleString('en-IN')} / year</td>
+            </tr>
+            <tr>
+              <td colspan="2" style="font-size: 11px; color: #059669; text-align: right; background: #ecfdf5;">
+                Monthly Zero-Cost EMI Option: <strong>₹${quote.monthlyEmi.toLocaleString('en-IN')} / month</strong>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div style="margin-bottom: 10px; font-weight: bold; font-size: 13px;">Guaranteed Inclusions in this Quote:</div>
+        <ul class="features-list">
+          ${quote.inclusions.map((inc) => `<li>${inc}</li>`).join('')}
+        </ul>
+
+        <div class="footer">
+          This quotation is digitally generated by Josh Pets Hub in partnership with licensed IRDAI Insurance Underwriters in India.<br />
+          For claim approvals or instant policy binding, present this Quote ID #${quote.quoteId} or call our 24/7 toll-free helpline.
+        </div>
+        <script>
+          window.onload = function() { window.print(); }
+        </script>
+      </body>
+      </html>
+    `);
+    printWindow.document.close();
+  };
+
+  // Open Application Modal (Requires User to be Registered / Logged In)
   const handleOpenApplyModal = (provider) => {
+    if (!isAuthenticated) {
+      setShowDetailsModal(false);
+      setShowCompareModal(false);
+      setShowQuoteModal(false);
+      toast('Please sign up or log in to complete your pet insurance application.', {
+        icon: '🔐',
+        duration: 4000
+      });
+      window.dispatchEvent(
+        new CustomEvent('open-register-modal', {
+          detail: {
+            tab: 'user',
+            hideProviderTab: true,
+            source: 'insurance-apply',
+            providerName: provider?.name
+          }
+        })
+      );
+      return;
+    }
+
     setSelectedProviderForApply(provider);
     setSelectedTierIndex(1); // Default to Gold / middle tier if available
     setSelectedAddons([]);
@@ -394,7 +729,7 @@ const PetInsurance = () => {
                         <button
                           key={type}
                           type="button"
-                          onClick={() => setCalcPetType(type)}
+                          onClick={() => handleSelectPetSpecies(type)}
                           className={`py-2 px-1 text-center font-bold tracking-wider text-[11px] border transition cursor-pointer ${
                             calcPetType === type
                               ? 'bg-primary text-white border-primary shadow-sm'
@@ -416,26 +751,67 @@ const PetInsurance = () => {
                       onChange={(e) => setCalcAge(e.target.value)}
                       className="w-full p-2.5 bg-gray-50 border border-gray-200 text-xs font-semibold focus:outline-none focus:border-primary"
                     >
-                      <option>Puppy / Kitten (2-12 months)</option>
-                      <option>Adult Pet (1 - 7 years)</option>
-                      <option>Senior Pet (8+ years)</option>
+                      {calcPetType === 'Dog' && (
+                        <>
+                          <option>Puppy (2 - 12 months)</option>
+                          <option>Adult Dog (1 - 7 years)</option>
+                          <option>Senior Dog (8+ years)</option>
+                        </>
+                      )}
+                      {calcPetType === 'Cat' && (
+                        <>
+                          <option>Kitten (2 - 12 months)</option>
+                          <option>Adult Cat (1 - 7 years)</option>
+                          <option>Senior Cat (8+ years)</option>
+                        </>
+                      )}
+                      {calcPetType === 'Bird' && (
+                        <>
+                          <option>Young Bird (Fledgling / Juvenile)</option>
+                          <option>Adult Bird (1 - 5 years)</option>
+                          <option>Mature / Senior Bird (6+ years)</option>
+                        </>
+                      )}
+                      {calcPetType === 'Exotic Pets' && (
+                        <>
+                          <option>Juvenile Exotic (Under 1 year)</option>
+                          <option>Adult Exotic (1 - 4 years)</option>
+                          <option>Senior Exotic (5+ years)</option>
+                        </>
+                      )}
                     </select>
                   </div>
 
                   <div>
-                    <label className="block font-bold text-slate-700 uppercase tracking-wider text-[10px] mb-1">
-                      3. Coverage Type Needed
-                    </label>
+                    <div className="flex items-center justify-between mb-1">
+                      <label className="block font-bold text-slate-700 uppercase tracking-wider text-[10px]">
+                        3. Coverage Type Needed
+                      </label>
+                      <span className="text-[10px] text-emerald-800 font-bold bg-emerald-50 px-1.5 py-0.5 border border-emerald-200">
+                        {calcPetType} Specialized
+                      </span>
+                    </div>
                     <select
                       value={calcCoverNeed}
                       onChange={(e) => setCalcCoverNeed(e.target.value)}
                       className="w-full p-2.5 bg-gray-50 border border-gray-200 text-xs font-semibold focus:outline-none focus:border-primary"
                     >
-                      <option>Comprehensive (Illness + Accident + Surgery)</option>
-                      <option>Surgery & Critical Illness Only</option>
-                      <option>Everyday OPD & Routine Wellness</option>
-                      <option>Third-Party Liability & Legal Guard</option>
+                      {(SPECIES_COVERAGE_OPTIONS[calcPetType] || SPECIES_COVERAGE_OPTIONS['Dog']).map((opt) => (
+                        <option key={opt.id} value={opt.label}>
+                          {opt.label}
+                        </option>
+                      ))}
                     </select>
+
+                    {/* Helpful dynamic description badge */}
+                    {(() => {
+                      const currentOpt = (SPECIES_COVERAGE_OPTIONS[calcPetType] || []).find((o) => o.label === calcCoverNeed);
+                      return currentOpt ? (
+                        <div className="text-[10.5px] text-slate-600 bg-slate-50 p-2 border border-slate-200 mt-1.5 rounded-none leading-relaxed">
+                          <span className="font-bold text-emerald-900">Inclusions:</span> {currentOpt.desc}
+                        </div>
+                      ) : null;
+                    })()}
                   </div>
 
                   <button
@@ -445,16 +821,26 @@ const PetInsurance = () => {
                     <Sparkles size={14} className="text-accent-light" /> Calculate Instant Quote
                   </button>
 
-                  {calcEstimatedCost && (
-                    <div className="p-3 bg-emerald-50 border border-emerald-200 text-emerald-900 mt-2 rounded-none flex items-center justify-between">
-                      <div>
-                        <div className="text-[10px] uppercase font-bold text-emerald-700 tracking-wider">Estimated Premium</div>
-                        <div className="text-lg font-bold font-serif text-emerald-950">₹{calcEstimatedCost} <span className="text-xs font-normal text-slate-600">/ year</span></div>
+                  {calcEstimatedCost && detailedQuote && (
+                    <div className="space-y-2 mt-3 animate-in fade-in zoom-in-95 duration-200">
+                      <div className="p-3 bg-emerald-50 border border-emerald-200 text-emerald-900 rounded-none flex items-center justify-between">
+                        <div>
+                          <div className="text-[10px] uppercase font-bold text-emerald-700 tracking-wider">Estimated Premium</div>
+                          <div className="text-lg font-bold font-serif text-emerald-950">₹{calcEstimatedCost.toLocaleString('en-IN')} <span className="text-xs font-normal text-slate-600">/ year</span></div>
+                        </div>
+                        <div className="text-right">
+                          <span className="text-xs font-bold text-emerald-800">~₹{Math.round(calcEstimatedCost / 12).toLocaleString('en-IN')}/mo</span>
+                          <div className="text-[10px] text-slate-500">Zero Cost EMI</div>
+                        </div>
                       </div>
-                      <div className="text-right">
-                        <span className="text-xs font-bold text-emerald-800">~₹{Math.round(calcEstimatedCost / 12)}/mo</span>
-                        <div className="text-[10px] text-slate-500">Zero Cost EMI</div>
-                      </div>
+
+                      <button
+                        type="button"
+                        onClick={() => setShowQuoteModal(true)}
+                        className="w-full py-2.5 bg-[#0F2E23] hover:bg-[#184534] text-white font-bold text-xs uppercase tracking-wider transition flex items-center justify-center gap-2 cursor-pointer shadow-sm border border-emerald-900"
+                      >
+                        <FileText size={14} className="text-[#ffc83b]" /> View Detailed Breakdown & Download PDF
+                      </button>
                     </div>
                   )}
                 </form>
@@ -469,7 +855,7 @@ const PetInsurance = () => {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
           
           {/* ================= LEFT SIDEBAR: FILTERS & FEATURES ================= */}
-          <aside className="lg:col-span-4 bg-white border border-gray-200 p-5 lg:sticky lg:top-28 shadow-sm space-y-6">
+          <aside className="lg:col-span-4 bg-white border border-gray-200 p-4 sm:p-5 lg:sticky lg:top-24 shadow-sm space-y-6 max-h-[calc(100vh-6.5rem)] overflow-y-auto custom-scrollbar">
             {/* Header & Reset Button */}
             <div className="flex items-center justify-between pb-3 border-b border-gray-100">
               <div className="flex items-center gap-2">
@@ -500,6 +886,27 @@ const PetInsurance = () => {
                   className="w-full pl-8 pr-3 py-2 text-xs bg-gray-50 border border-gray-200 rounded-none focus:outline-none focus:border-primary"
                 />
                 <Search size={14} className="absolute left-2.5 top-3 text-slate-400" />
+              </div>
+            </div>
+
+            {/* Sort By Filter (Inside Filter Sidebar) */}
+            <div>
+              <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                Sort By
+              </label>
+              <div className="relative">
+                <select
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value)}
+                  className="w-full px-3 py-2 bg-gray-50 border border-gray-200 text-xs font-semibold text-slate-800 rounded-none focus:outline-none focus:border-primary cursor-pointer appearance-none"
+                >
+                  <option value="recommended">Recommended / Best Value</option>
+                  <option value="rating">Highest User Rating</option>
+                  <option value="price-asc">Lowest Premium First</option>
+                  <option value="sum-desc">Highest Sum Insured</option>
+                  <option value="claim-speed">Claim Settlement Speed</option>
+                </select>
+                <ChevronDown size={14} className="absolute right-2.5 top-2.5 text-slate-400 pointer-events-none" />
               </div>
             </div>
 
@@ -677,7 +1084,7 @@ const PetInsurance = () => {
           {/* ================= RIGHT MAIN: LIST OF PET INSURANCE PROVIDERS ================= */}
           <main className="lg:col-span-8 space-y-6">
             
-            {/* Search & Sort Results Header */}
+            {/* Results Header */}
             <div className="bg-white border border-gray-200 p-4 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div>
                 <h2 className="font-serif font-bold text-lg text-primary">
@@ -688,22 +1095,10 @@ const PetInsurance = () => {
                 </p>
               </div>
 
-              {/* Sort By Dropdown */}
               <div className="flex items-center gap-2">
-                <span className="text-xs font-bold text-slate-600 uppercase tracking-wider whitespace-nowrap">
-                  Sort By:
+                <span className="text-[11px] font-bold text-emerald-800 bg-emerald-50 px-2.5 py-1 border border-emerald-200">
+                  🛡️ 100% IRDAI Compliant
                 </span>
-                <select
-                  value={sortBy}
-                  onChange={(e) => setSortBy(e.target.value)}
-                  className="bg-gray-50 border border-gray-200 text-xs font-semibold py-1.5 px-3 rounded-none focus:outline-none focus:border-primary cursor-pointer"
-                >
-                  <option value="recommended">Recommended / Best Value</option>
-                  <option value="rating">Highest User Rating</option>
-                  <option value="price-asc">Lowest Premium First</option>
-                  <option value="sum-desc">Highest Sum Insured</option>
-                  <option value="claim-speed">Claim Settlement Speed</option>
-                </select>
               </div>
             </div>
 
@@ -886,13 +1281,14 @@ const PetInsurance = () => {
                           <button
                             type="button"
                             onClick={() => handleToggleCompare(provider)}
-                            className={`px-3 py-2 text-xs font-bold uppercase tracking-wider border transition cursor-pointer flex items-center gap-1 ${
+                            className={`px-3 py-2 text-xs font-bold uppercase tracking-wider border transition cursor-pointer flex items-center gap-1.5 ${
                               isCompared
-                                ? 'bg-emerald-800 text-white border-emerald-800'
-                                : 'bg-white text-slate-700 border-gray-300 hover:bg-gray-100'
+                                ? 'bg-emerald-800 text-white border-emerald-800 shadow-xs'
+                                : 'bg-white text-slate-700 border-gray-300 hover:bg-gray-100 hover:border-emerald-700'
                             }`}
+                            title={isCompared ? 'Remove from comparison' : 'Add to side-by-side comparison'}
                           >
-                            {isCompared ? <CheckSquare size={13} /> : <Square size={13} />}
+                            {isCompared ? <CheckSquare size={14} className="text-[#ffc83b]" /> : <Square size={14} />}
                             {isCompared ? 'Comparing' : 'Compare'}
                           </button>
 
@@ -925,52 +1321,288 @@ const PetInsurance = () => {
         </div>
       </section>
 
-      {/* 3. FLOATING COMPARISON DOCK (When 1-3 plans selected) */}
+      {/* 3. REFINED 3-SLOT FLOATING COMPARISON DOCK */}
       {comparedProviders.length > 0 && (
-        <div className="fixed bottom-0 left-0 right-0 z-40 bg-primary-dark text-white p-4 border-t-2 border-accent-light shadow-2xl animate-in slide-in-from-bottom duration-200">
-          <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-full bg-accent text-primary flex items-center justify-center font-bold text-xs">
-                {comparedProviders.length}
-              </div>
-              <div>
-                <h4 className="font-serif font-bold text-sm text-white">Compare Pet Insurance Plans</h4>
-                <div className="text-[11px] text-slate-300 flex items-center gap-2">
-                  {comparedProviders.map((p) => (
-                    <span key={p.id} className="bg-white/10 px-2 py-0.5 rounded text-[10px]">
-                      {p.name.split(' ')[0]}
-                    </span>
-                  ))}
+        <div className="fixed bottom-0 left-0 right-0 z-[90] bg-[#0F2E23] text-white p-3 sm:p-4 border-t-2 border-[#ffc83b] shadow-2xl animate-in slide-in-from-bottom duration-200">
+          <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-3 sm:gap-4">
+            
+            {/* Left info & slot indicator */}
+            <div className="flex items-center gap-3 w-full md:w-auto justify-between md:justify-start">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-full bg-[#ffc83b] text-[#0F2E23] flex items-center justify-center font-extrabold text-xs shadow-md">
+                  {comparedProviders.length}/3
+                </div>
+                <div>
+                  <h4 className="font-serif font-bold text-xs sm:text-sm text-white tracking-wide">
+                    Compare Insurance Underwriters ({comparedProviders.length}/3)
+                  </h4>
+                  <p className="text-[10px] text-slate-300">
+                    {comparedProviders.length === 3 
+                      ? 'Maximum 3 providers selected for comparison' 
+                      : `Select up to ${3 - comparedProviders.length} more provider${3 - comparedProviders.length > 1 ? 's' : ''}`}
+                  </p>
                 </div>
               </div>
             </div>
 
-            <div className="flex items-center gap-3">
+            {/* Middle: 3 Visual Slots Preview */}
+            <div className="flex items-center gap-2 overflow-x-auto max-w-full py-1">
+              {[0, 1, 2].map((slotIdx) => {
+                const prov = comparedProviders[slotIdx];
+                return prov ? (
+                  <div
+                    key={prov.id}
+                    className="flex items-center gap-2 bg-white/10 hover:bg-white/15 border border-white/20 px-2.5 py-1 rounded text-xs transition shrink-0"
+                  >
+                    <img src={prov.logo} alt={prov.name} className="w-5 h-5 object-cover rounded-full" />
+                    <span className="font-bold text-white text-[11px] truncate max-w-[110px]">
+                      {prov.name.split(' ')[0]}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => handleToggleCompare(prov)}
+                      className="text-white/60 hover:text-red-400 p-0.5 cursor-pointer"
+                      title="Remove provider"
+                    >
+                      <X size={12} />
+                    </button>
+                  </div>
+                ) : (
+                  <div
+                    key={slotIdx}
+                    className="flex items-center gap-1.5 border border-dashed border-white/30 text-white/50 px-2.5 py-1 rounded text-[11px] select-none shrink-0"
+                  >
+                    <span className="text-[10px] font-bold">Slot {slotIdx + 1}</span>
+                    <span className="text-[9px] text-white/40">(Empty)</span>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Right Buttons */}
+            <div className="flex items-center gap-2.5 w-full md:w-auto justify-end">
               <button
+                type="button"
                 onClick={() => setComparedProviders([])}
-                className="text-xs text-slate-300 hover:text-white underline cursor-pointer"
+                className="text-xs text-slate-300 hover:text-white underline cursor-pointer px-2"
               >
-                Clear
+                Clear All
               </button>
+
               <button
+                type="button"
                 onClick={() => setShowCompareModal(true)}
-                className="px-5 py-2 bg-accent hover:bg-accent-light text-primary font-bold text-xs uppercase tracking-widest transition cursor-pointer flex items-center gap-1.5"
+                className="px-4 sm:px-5 py-2 bg-[#ffc83b] hover:bg-[#ffe082] text-[#0F2E23] font-bold text-xs uppercase tracking-wider transition cursor-pointer flex items-center gap-1.5 shadow-md"
               >
-                Compare Side-by-Side <ChevronRight size={14} />
+                <Scale size={14} /> Compare Side-by-Side ({comparedProviders.length}/3)
               </button>
             </div>
+
           </div>
         </div>
       )}
 
-      {/* 4. COMPARISON MATRIX MODAL */}
+      {/* 4. DETAILED INSURANCE QUOTE MODAL (With Downloadable PDF Slip & Cost Breakdown) */}
+      {showQuoteModal && detailedQuote && (
+        <div className="fixed inset-0 z-[100] overflow-y-auto bg-black/75 backdrop-blur-xs p-2 sm:p-4 flex flex-col items-center justify-start sm:justify-center animate-in fade-in duration-200">
+          <div className="relative bg-white text-slate-900 w-full max-w-2xl sm:max-w-3xl my-auto shadow-2xl border border-gray-200 rounded-2xl overflow-hidden flex flex-col min-h-0 max-h-[85vh] sm:max-h-[88vh]">
+            
+            {/* Modal Header with Branding */}
+            <div className="bg-[#0F2E23] text-white px-5 sm:px-6 py-4 flex items-center justify-between shrink-0 border-b border-white/10">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-lg bg-[#ffc83b] text-[#0F2E23] flex items-center justify-center font-bold text-base shadow">
+                  🛡️
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h3 className="font-serif font-bold text-base sm:text-lg text-white">
+                      Official Pet Insurance Quotation
+                    </h3>
+                    <span className="text-[10px] bg-emerald-500/20 text-emerald-300 border border-emerald-400/30 px-2 py-0.5 font-bold uppercase tracking-wider rounded">
+                      IRDAI Verified
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-slate-300">
+                    Quote ID: <strong className="text-[#ffc83b]">{detailedQuote.quoteId}</strong> • Valid for 30 Days ({detailedQuote.validUntil})
+                  </p>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setShowQuoteModal(false)}
+                className="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition cursor-pointer"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            {/* Modal Scrollable Body */}
+            <div className="p-4 sm:p-6 overflow-y-auto flex-1 min-h-0 space-y-5 text-xs custom-scrollbar">
+              
+              {/* Pet & Plan Summary Banner */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 bg-slate-50 border border-slate-200 p-3.5 rounded-xl">
+                <div>
+                  <span className="text-[10px] uppercase font-bold text-slate-500 block">Pet Profile</span>
+                  <strong className="text-sm text-slate-900 font-serif">{detailedQuote.petSpecies}</strong>
+                  <span className="text-[11px] text-slate-600 block">{detailedQuote.ageGroup}</span>
+                </div>
+                <div>
+                  <span className="text-[10px] uppercase font-bold text-slate-500 block">Coverage Scope</span>
+                  <strong className="text-xs text-primary font-bold block">{detailedQuote.coverageType}</strong>
+                  <span className="text-[11px] text-emerald-700 font-semibold">Max Cover: {detailedQuote.sumInsured}</span>
+                </div>
+                <div>
+                  <span className="text-[10px] uppercase font-bold text-slate-500 block">Network Benefits</span>
+                  <span className="text-xs text-slate-800 font-bold block">{detailedQuote.cashlessClinics}</span>
+                  <span className="text-[11px] text-slate-600">{detailedQuote.claimRatio}</span>
+                </div>
+              </div>
+
+              {/* Comprehensive Premium Financial Breakdown Table */}
+              <div>
+                <h4 className="font-bold text-slate-800 uppercase tracking-wider text-[11px] mb-2 flex items-center gap-1.5">
+                  <FileText size={14} className="text-primary" /> Itemized Premium Breakdown (INR)
+                </h4>
+                <div className="border border-gray-200 rounded-xl overflow-hidden">
+                  <table className="w-full text-xs text-left">
+                    <thead className="bg-slate-100 text-slate-700 font-bold border-b border-gray-200">
+                      <tr>
+                        <th className="p-2.5">Coverage Line Item & Medical Rider</th>
+                        <th className="p-2.5 text-right">Amount</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-100">
+                      <tr>
+                        <td className="p-2.5 font-medium text-slate-800">
+                          Base Inpatient Surgery, ICU & Accidental Hospitalization
+                        </td>
+                        <td className="p-2.5 text-right font-bold text-slate-900">
+                          ₹{detailedQuote.basePremium.toLocaleString('en-IN')}
+                        </td>
+                      </tr>
+                      <tr>
+                        <td className="p-2.5 font-medium text-slate-800">
+                          {detailedQuote.coverageType} Critical Illness & Diagnostic Rider
+                        </td>
+                        <td className="p-2.5 text-right font-bold text-slate-900">
+                          ₹{detailedQuote.riderCost.toLocaleString('en-IN')}
+                        </td>
+                      </tr>
+                      <tr>
+                        <td className="p-2.5 font-medium text-slate-800">
+                          Cashless Processing Across 1,500+ Clinics & 24/7 Tele-Vet Access
+                        </td>
+                        <td className="p-2.5 text-right font-bold text-emerald-600 uppercase">
+                          FREE
+                        </td>
+                      </tr>
+                      <tr>
+                        <td className="p-2.5 font-medium text-slate-500">
+                          Mandatory Goods & Services Tax (GST 18%)
+                        </td>
+                        <td className="p-2.5 text-right text-slate-600">
+                          ₹{detailedQuote.gst.toLocaleString('en-IN')}
+                        </td>
+                      </tr>
+                      <tr className="bg-emerald-50/80 font-bold text-emerald-950 border-t-2 border-emerald-200">
+                        <td className="p-3 text-sm">
+                          Total Guaranteed Annual Premium
+                        </td>
+                        <td className="p-3 text-right text-base sm:text-lg text-emerald-950 font-serif">
+                          ₹{detailedQuote.totalAnnual.toLocaleString('en-IN')} <span className="text-xs font-normal text-slate-600">/ yr</span>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+
+                <div className="mt-2 p-2.5 bg-blue-50/70 border border-blue-200 text-blue-900 rounded-lg flex items-center justify-between text-xs">
+                  <span className="font-medium">Flexible Monthly Zero-Cost EMI Option:</span>
+                  <strong className="text-sm font-serif">~₹{detailedQuote.monthlyEmi.toLocaleString('en-IN')} / month</strong>
+                </div>
+              </div>
+
+              {/* Policy Inclusions List */}
+              <div>
+                <h4 className="font-bold text-slate-800 uppercase tracking-wider text-[11px] mb-2 flex items-center gap-1.5">
+                  <CheckCircle2 size={14} className="text-emerald-600" /> Key Features Covered Under This Quotation
+                </h4>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  {detailedQuote.inclusions.map((inc, i) => (
+                    <div key={i} className="flex items-center gap-2 p-2 bg-slate-50 border border-slate-200 rounded-lg">
+                      <span className="text-emerald-600 font-bold">✓</span>
+                      <span className="text-slate-700 text-xs font-medium">{inc}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Recommended Matching Underwriters */}
+              <div>
+                <h4 className="font-bold text-slate-800 uppercase tracking-wider text-[11px] mb-2 flex items-center gap-1.5">
+                  <Award size={14} className="text-amber-600" /> Recommended Matching Underwriters
+                </h4>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                  {detailedQuote.matchingProviders.map((prov) => (
+                    <div key={prov.id} className="p-3 bg-white border border-gray-200 rounded-xl shadow-xs space-y-2 flex flex-col justify-between">
+                      <div className="flex items-center gap-2">
+                        <img src={prov.logo} alt={prov.name} className="w-8 h-8 object-cover rounded-lg border border-gray-200" />
+                        <div>
+                          <strong className="text-xs text-slate-900 font-bold block leading-tight">{prov.name}</strong>
+                          <span className="text-[10px] text-slate-500">{prov.company}</span>
+                        </div>
+                      </div>
+                      <div className="flex justify-between items-center text-[11px] pt-1 border-t border-gray-100">
+                        <span className="text-slate-500">Claim Ratio:</span>
+                        <strong className="text-emerald-700">{prov.claimSettlementRatio}</strong>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setShowQuoteModal(false);
+                          handleOpenApplyModal(prov);
+                        }}
+                        className="w-full py-1.5 bg-primary hover:bg-primary-dark text-white font-bold text-[11px] uppercase tracking-wider rounded transition cursor-pointer"
+                      >
+                        Apply with {prov.name.split(' ')[0]}
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+            </div>
+
+            {/* Modal Footer Actions */}
+            <div className="p-3.5 sm:p-4 bg-slate-50 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-3 shrink-0">
+              <div className="text-[11px] text-slate-500">
+                Rate guaranteed for 30 calendar days. No obligation required.
+              </div>
+
+              <div className="flex items-center gap-2.5 w-full sm:w-auto justify-end">
+                <button
+                  type="button"
+                  onClick={() => handleDownloadQuotePDF(detailedQuote)}
+                  className="w-full sm:w-auto px-5 py-2.5 bg-[#0F2E23] hover:bg-[#184534] text-white font-bold text-xs uppercase tracking-wider rounded-xl transition flex items-center justify-center gap-2 cursor-pointer shadow-md"
+                >
+                  <Download size={14} className="text-[#ffc83b]" /> Download / Print PDF Quote
+                </button>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      )}
+
+      {/* 5. COMPARISON MATRIX MODAL */}
       {showCompareModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm overflow-y-auto">
-          <div className="bg-white text-slate-800 w-full max-w-5xl my-8 p-6 shadow-2xl rounded-none relative">
-            <div className="flex items-center justify-between pb-4 border-b border-gray-200 mb-6">
+        <div className="fixed inset-0 z-[100] overflow-y-auto bg-black/70 backdrop-blur-sm p-2 sm:p-4 flex flex-col items-center justify-start sm:justify-center animate-in fade-in duration-200">
+          <div className="bg-white text-slate-800 w-full max-w-5xl my-auto p-4 sm:p-6 shadow-2xl rounded-none relative flex flex-col min-h-0 max-h-[88vh] overflow-hidden">
+            <div className="flex items-center justify-between pb-4 border-b border-gray-200 mb-4 shrink-0">
               <div className="flex items-center gap-2">
                 <Scale className="text-primary" size={22} />
-                <h3 className="font-serif font-bold text-xl text-primary">
+                <h3 className="font-serif font-bold text-lg sm:text-xl text-primary">
                   Side-by-Side Insurance Comparison
                 </h3>
               </div>
@@ -982,7 +1614,7 @@ const PetInsurance = () => {
               </button>
             </div>
 
-            <div className="overflow-x-auto">
+            <div className="overflow-auto flex-1 min-h-0 custom-scrollbar">
               <table className="w-full text-xs text-left border-collapse border border-gray-200">
                 <thead>
                   <tr className="bg-primary text-white">
@@ -1091,11 +1723,11 @@ const PetInsurance = () => {
 
       {/* 5. POLICY APPLICATION MODAL */}
       {showApplyModal && selectedProviderForApply && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm overflow-y-auto">
-          <div className="bg-white text-slate-800 w-full max-w-2xl my-8 p-6 shadow-2xl border border-gray-200 rounded-none relative">
+        <div className="fixed inset-0 z-[100] overflow-y-auto bg-black/70 backdrop-blur-sm p-2 sm:p-4 flex flex-col items-center justify-start sm:justify-center animate-in fade-in duration-200">
+          <div className="bg-white text-slate-800 w-full max-w-2xl my-auto p-4 sm:p-6 shadow-2xl border border-gray-200 rounded-none relative flex flex-col min-h-0 max-h-[88vh] overflow-y-auto custom-scrollbar">
             <button
               onClick={() => setShowApplyModal(false)}
-              className="absolute right-5 top-5 p-1 text-slate-400 hover:text-red-500 transition cursor-pointer"
+              className="absolute right-4 top-4 p-1 text-slate-400 hover:text-red-500 transition cursor-pointer z-20"
             >
               <X size={20} />
             </button>
@@ -1363,11 +1995,11 @@ const PetInsurance = () => {
 
       {/* 6. POLICY DETAILS & BROCHURE MODAL */}
       {showDetailsModal && selectedProviderForDetails && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm overflow-y-auto">
-          <div className="bg-white text-slate-800 w-full max-w-3xl my-8 p-6 shadow-2xl border border-gray-200 rounded-none relative">
+        <div className="fixed inset-0 z-[100] overflow-y-auto bg-black/70 backdrop-blur-sm p-2 sm:p-4 flex flex-col items-center justify-start sm:justify-center animate-in fade-in duration-200">
+          <div className="bg-white text-slate-800 w-full max-w-3xl my-auto p-4 sm:p-6 shadow-2xl border border-gray-200 rounded-none relative flex flex-col min-h-0 max-h-[88vh] overflow-y-auto custom-scrollbar">
             <button
               onClick={() => setShowDetailsModal(false)}
-              className="absolute right-5 top-5 p-1 text-slate-400 hover:text-red-500 transition cursor-pointer"
+              className="absolute right-4 top-4 p-1 text-slate-400 hover:text-red-500 transition cursor-pointer z-20"
             >
               <X size={20} />
             </button>
@@ -1464,9 +2096,10 @@ const PetInsurance = () => {
                     setShowDetailsModal(false);
                     handleOpenApplyModal(selectedProviderForDetails);
                   }}
-                  className="px-6 py-2 bg-primary text-white text-xs font-bold uppercase tracking-widest hover:bg-primary-dark transition cursor-pointer"
+                  className="px-6 py-2 bg-primary text-white text-xs font-bold uppercase tracking-widest hover:bg-primary-dark transition cursor-pointer flex items-center gap-1.5 shadow-sm"
                 >
-                  Apply for this Plan
+                  <ShieldCheck size={14} className="text-accent-light" />
+                  Get Covered Now
                 </button>
               </div>
             </div>

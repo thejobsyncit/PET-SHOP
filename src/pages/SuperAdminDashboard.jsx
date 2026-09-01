@@ -452,7 +452,7 @@ const SuperAdminDashboard = () => {
       <div className="min-h-screen bg-[#F4F6F4] flex flex-col justify-center items-center p-6">
         <div className="w-full max-w-md bg-white border border-[#E3EBE5] p-8 shadow-md space-y-6">
           <div className="text-center space-y-1">
-            <span className="text-[9px] uppercase tracking-widest text-[#7CA085] font-bold">INDIA PET HUB</span>
+            <span className="text-[9px] uppercase tracking-widest text-[#7CA085] font-bold">JOSH PETS HUB</span>
             <h2 className="font-serif text-xl font-bold text-primary">Super Admin Gateway</h2>
             <p className="text-xs text-gray-400">Please authenticate with super administrator credentials.</p>
           </div>
@@ -523,11 +523,14 @@ const SuperAdminDashboard = () => {
         <div className="space-y-8">
 
           {/* Logo Heading */}
-          <div className="border-b border-[#2E5947] pb-4">
-            <span className="text-[9px] uppercase tracking-widest text-[#7CA085] font-bold block">CONTROL PANEL</span>
-            <h1 className="font-serif text-lg font-bold tracking-wider text-[#FAFBF9] mt-0.5 whitespace-nowrap">
-              INDIA PET HUB
-            </h1>
+          <div className="border-b border-[#2E5947] pb-4 flex items-center gap-2">
+            <img src="/logo.png" alt="JOSH PETS HUB" className="h-8 w-auto object-contain" />
+            <div>
+              <span className="text-[9px] uppercase tracking-widest text-[#7CA085] font-bold block">CONTROL PANEL</span>
+              <h1 className="font-serif text-base font-bold tracking-wider text-[#FAFBF9] mt-0.5 whitespace-nowrap">
+                JOSH PETS HUB
+              </h1>
+            </div>
           </div>
           {/* Tab Selection Lists */}
           <nav className="space-y-1">
@@ -1184,14 +1187,14 @@ const SuperAdminDashboard = () => {
 
       {/* POPUP MODAL: ADD / EDIT PRODUCT */}
       {showProductModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div onClick={() => setShowProductModal(false)} className="fixed inset-0 bg-primary/40 backdrop-blur-sm"></div>
+        <div className="fixed inset-0 z-[100] overflow-y-auto bg-primary/60 backdrop-blur-xs p-2 sm:p-4 flex flex-col items-center justify-start sm:justify-center animate-in fade-in duration-200">
+          <div onClick={() => setShowProductModal(false)} className="fixed inset-0 bg-transparent"></div>
 
           <form
             onSubmit={handleSaveProduct}
-            className="relative bg-white w-full max-w-2xl border border-beige shadow-2xl flex flex-col max-h-[90vh] z-10 animate-in fade-in zoom-in-95 duration-200"
+            className="relative bg-white w-full max-w-2xl border border-beige shadow-2xl flex flex-col min-h-0 max-h-[85vh] sm:max-h-[88vh] z-10 my-auto overflow-hidden"
           >
-            <div className="px-6 py-4 bg-primary text-white flex justify-between items-center border-b border-white/10">
+            <div className="px-4 sm:px-6 py-3.5 bg-primary text-white flex justify-between items-center border-b border-white/10 shrink-0">
               <h3 className="font-serif text-sm font-bold tracking-wider text-accent uppercase">
                 {editingProductId ? 'Edit Product Parameters' : 'Add New Product Record'}
               </h3>
@@ -1200,7 +1203,7 @@ const SuperAdminDashboard = () => {
               </button>
             </div>
 
-            <div className="p-6 overflow-y-auto space-y-4 text-xs">
+            <div className="p-4 sm:p-6 overflow-y-auto flex-1 min-h-0 space-y-4 text-xs">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-1">
                   <label className="text-gray-500 font-semibold block">Product Name *</label>
@@ -1387,11 +1390,11 @@ const SuperAdminDashboard = () => {
 
       {/* POPUP MODAL: EVALUATE PRESCRIPTION */}
       {showPrescModal && activePresc && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div onClick={() => setShowPrescModal(false)} className="fixed inset-0 bg-primary/40 backdrop-blur-sm"></div>
+        <div className="fixed inset-0 z-[100] overflow-y-auto bg-primary/60 backdrop-blur-xs p-2 sm:p-4 flex flex-col items-center justify-start sm:justify-center animate-in fade-in duration-200">
+          <div onClick={() => setShowPrescModal(false)} className="fixed inset-0 bg-transparent"></div>
 
-          <div className="relative bg-white w-full max-w-2xl border border-beige shadow-2xl flex flex-col max-h-[90vh] z-10 animate-in fade-in zoom-in-95 duration-200">
-            <div className="px-6 py-4 bg-primary text-white flex justify-between items-center border-b border-white/10">
+          <div className="relative bg-white w-full max-w-2xl border border-beige shadow-2xl flex flex-col min-h-0 max-h-[85vh] sm:max-h-[88vh] z-10 my-auto overflow-hidden">
+            <div className="px-4 sm:px-6 py-3.5 bg-primary text-white flex justify-between items-center border-b border-white/10 shrink-0">
               <h3 className="font-serif text-sm font-bold tracking-wider text-[#7CA085] uppercase flex items-center gap-1.5">
                 <FileText size={16} /> Evaluate Prescription Document
               </h3>
@@ -1400,7 +1403,7 @@ const SuperAdminDashboard = () => {
               </button>
             </div>
 
-            <div className="p-6 overflow-y-auto space-y-4 text-xs flex flex-col md:flex-row gap-6">
+            <div className="p-4 sm:p-6 overflow-y-auto flex-1 min-h-0 space-y-4 text-xs flex flex-col md:flex-row gap-6">
               {/* Document Image view */}
               <div className="w-full md:w-1/2 aspect-square border border-beige bg-gray-50 overflow-hidden shrink-0">
                 <a

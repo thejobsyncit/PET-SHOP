@@ -37,6 +37,7 @@ const WalkingServices = lazy(() => import('./pages/WalkingServices.jsx'));
 const PetTransport = lazy(() => import('./pages/PetTransport.jsx'));
 const PetTraining = lazy(() => import('./pages/PetTraining.jsx'));
 const PetInsurance = lazy(() => import('./pages/PetInsurance.jsx'));
+const VeterinaryServices = lazy(() => import('./pages/VeterinaryServices.jsx'));
 const ChatConsole = lazy(() => import('./pages/ChatConsole.jsx'));
 
 function App() {
@@ -46,16 +47,21 @@ function App() {
         <ScrollToTop />
         {/* Toast Alerts Overlay */}
         <Toaster 
-          position="bottom-right"
+          position="top-right"
+          containerStyle={{
+            top: 75,
+            right: 20
+          }}
           toastOptions={{
             duration: 3000,
             style: {
               background: '#0F2E23',
               color: '#FAF9F5',
-              borderRadius: '0px',
-              border: '1px solid #FAF9F5',
+              borderRadius: '8px',
+              border: '1px solid rgba(250, 249, 245, 0.2)',
               fontSize: '12px',
-              letterSpacing: '0.05em'
+              letterSpacing: '0.03em',
+              boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.3)'
             }
           }}
         />
@@ -115,6 +121,10 @@ function App() {
               <Route path="insurance" element={<PetInsurance />} />
               <Route path="services/insurance" element={<PetInsurance />} />
               <Route path="pet-insurance" element={<PetInsurance />} />
+              <Route path="veterinary" element={<VeterinaryServices />} />
+              <Route path="services/veterinary" element={<VeterinaryServices />} />
+              <Route path="vet" element={<VeterinaryServices />} />
+              <Route path="consult-a-vet" element={<VeterinaryServices />} />
               <Route path="chat" element={<ChatConsole />} />
 
               {/* Service Provider Platform */}

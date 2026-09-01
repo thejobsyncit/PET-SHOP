@@ -112,13 +112,13 @@ const Navbar = () => {
     { label: 'Pet Transport', path: '/transport', icon: <Truck size={16} className="text-emerald-500" />, desc: 'AC cabs for local/intercity' },
     { label: 'Pet Training', path: '/training', icon: <GraduationCap size={16} className="text-indigo-500" />, desc: 'Expert behavioral classes' },
     { label: 'Pet Insurance', path: '/insurance', icon: <ShieldAlert size={16} className="text-red-500" />, desc: 'Comprehensive health cover' },
-    { label: 'Pet Mating', path: '/breeding', icon: <Heart size={16} className="text-rose-500" />, desc: 'Verified breeding services' },
-    { label: 'Consult a Vet', path: '/services?category=Veterinary', icon: <Stethoscope size={16} className="text-teal-500" />, desc: 'Online/Clinic medical care' }
+    { label: 'Pet Mating/Breeding', path: '/breeding', icon: <Heart size={16} className="text-rose-500" />, desc: 'Paws matched in heaven • Studs & Mates' },
+    { label: 'Consult a Vet', path: '/veterinary', icon: <Stethoscope size={16} className="text-teal-500" />, desc: 'Online/Clinic medical care' }
   ];
 
   return (
     <>
-      <header className="sticky top-0 left-0 w-full z-50 transition-all duration-300">
+      <header className="sticky top-0 left-0 w-full z-40 transition-all duration-300">
 
         {/* Top Announcement Bar */}
         <div className="bg-primary-dark text-white text-[10px] tracking-widest font-semibold py-2 px-4 text-center border-b border-white/5">

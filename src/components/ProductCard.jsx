@@ -184,15 +184,15 @@ const ProductCard = ({ product }) => {
 
       {/* QUICK VIEW MODAL */}
       {quickViewOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div onClick={() => setQuickViewOpen(false)} className="fixed inset-0 bg-primary/40 backdrop-blur-sm"></div>
+        <div className="fixed inset-0 z-[100] overflow-y-auto bg-primary/60 backdrop-blur-xs p-2 sm:p-4 flex flex-col items-center justify-start sm:justify-center animate-in fade-in duration-200">
+          <div onClick={() => setQuickViewOpen(false)} className="fixed inset-0 bg-transparent"></div>
           
-          <div className="relative bg-secondary w-full max-w-3xl border border-beige shadow-2xl flex flex-col md:flex-row overflow-hidden animate-in fade-in zoom-in-95 duration-200 z-10">
+          <div className="relative bg-secondary w-full max-w-3xl border border-beige shadow-2xl flex flex-col md:flex-row min-h-0 max-h-[88vh] overflow-y-auto md:overflow-hidden my-auto z-10">
             <button 
               onClick={() => setQuickViewOpen(false)}
-              className="absolute top-4 right-4 p-1 bg-white border border-beige hover:bg-gray-100 rounded-full z-20 cursor-pointer"
+              className="absolute top-3 right-3 p-1 bg-white border border-beige hover:bg-gray-100 rounded-full z-20 cursor-pointer shadow-sm"
             >
-              <X size={18} className="text-primary" />
+              <X size={16} className="text-primary" />
             </button>
 
             {/* Left Image Pane */}

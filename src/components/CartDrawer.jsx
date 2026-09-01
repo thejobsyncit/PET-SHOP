@@ -49,7 +49,7 @@ const CartDrawer = ({ isOpen, onClose }) => {
   const neededForFreeShipping = freeShippingThreshold - pricing.subtotal;
 
   return (
-    <div className="fixed inset-0 z-50 overflow-hidden">
+    <div className="fixed inset-0 z-[100] overflow-hidden">
       {/* Overlay Backdrop */}
       <div 
         onClick={onClose}
