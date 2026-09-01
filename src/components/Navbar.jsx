@@ -39,6 +39,27 @@ const Navbar = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  // Close dropdowns on outside click
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (petsDropdownRef.current && !petsDropdownRef.current.contains(event.target)) {
+        setPetsMenuOpen(false);
+      }
+      if (servicesDropdownRef.current && !servicesDropdownRef.current.contains(event.target)) {
+        setServicesMenuOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  // Close dropdowns on route changes
+  useEffect(() => {
+    setPetsMenuOpen(false);
+    setServicesMenuOpen(false);
+    setIsMobileMenuOpen(false);
+  }, [location.pathname, location.search]);
+
   const handleLogout = () => {
     dispatch(logout());
     setIsMobileMenuOpen(false);
@@ -47,6 +68,12 @@ const Navbar = () => {
 
   const isActive = (path) => {
     return location.pathname === path;
+  };
+
+  const isServicesActive = () => {
+    return ['/services', '/adopt', '/hostel', '/grooming', '/walking', '/transport', '/training', '/insurance', '/breeding'].some(
+      (path) => location.pathname === path || location.pathname.startsWith(`${path}/`)
+    );
   };
 
   const isNonSellerProvider = user?.role === 'SERVICE_PROVIDER' && 
@@ -81,7 +108,7 @@ const Navbar = () => {
     { label: 'Pet Walking', path: '/walking', icon: <Footprints size={16} className="text-amber-500" />, desc: 'Daily fitness & walking' },
     { label: 'Pet Transport', path: '/transport', icon: <Truck size={16} className="text-emerald-500" />, desc: 'AC cabs for local/intercity' },
     { label: 'Pet Training', path: '/training', icon: <GraduationCap size={16} className="text-indigo-500" />, desc: 'Expert behavioral classes' },
-    { label: 'Pet Insurance', path: '/services?category=Insurance', icon: <ShieldAlert size={16} className="text-red-500" />, desc: 'Comprehensive health cover' },
+    { label: 'Pet Insurance', path: '/insurance', icon: <ShieldAlert size={16} className="text-red-500" />, desc: 'Comprehensive health cover' },
     { label: 'Pet Mating', path: '/breeding', icon: <Heart size={16} className="text-rose-500" />, desc: 'Verified breeding services' },
     { label: 'Consult a Vet', path: '/services?category=Veterinary', icon: <Stethoscope size={16} className="text-teal-500" />, desc: 'Online/Clinic medical care' }
   ];
@@ -232,15 +259,16 @@ const Navbar = () => {
                 onMouseLeave={() => setServicesMenuOpen(false)}
                 className="relative py-2 cursor-pointer"
               >
-                <Link
-                  to="/services"
-                  className={`text-[11px] uppercase tracking-wider font-semibold transition flex items-center gap-1 py-1 ${isActive('/services') || isActive('/adopt') || isActive('/breeding')
+                <button
+                  type="button"
+                  onClick={() => setServicesMenuOpen(prev => !prev)}
+                  className={`text-[11px] uppercase tracking-wider font-semibold transition flex items-center gap-1 py-1 cursor-pointer bg-transparent border-0 ${servicesMenuOpen || isServicesActive()
                     ? 'text-accent-light border-b-2 border-accent-light pb-1'
                     : 'text-white hover:text-accent-light'
                     }`}
                 >
-                  Pet Services <ChevronDown size={10} />
-                </Link>
+                  Pet Services <ChevronDown size={10} className={`transition-transform duration-200 ${servicesMenuOpen ? 'rotate-180' : ''}`} />
+                </button>
 
                 {/* Dropdown Card with Scroll */}
                 {servicesMenuOpen && (
@@ -473,7 +501,7 @@ const Navbar = () => {
 
                 {/* Pet Services expanded on mobile */}
                 <div className="space-y-2 py-1 pl-2 border-l border-white/10">
-                  <Link to="/services" onClick={() => setIsMobileMenuOpen(false)} className="block text-[11px] hover:text-accent-light tracking-widest font-bold">Pet Services</Link>
+                  <span className="block text-[11px] text-accent-light tracking-widest font-bold uppercase">Pet Services</span>
                   {servicesList.map(service => (
                     <Link key={service.label} to={service.path} onClick={() => setIsMobileMenuOpen(false)} className="block py-1 hover:text-accent-light text-[11px] normal-case pl-2">{service.label}</Link>
                   ))}

@@ -34,6 +34,7 @@ import HostelServices from './pages/HostelServices.jsx';
 import WalkingServices from './pages/WalkingServices.jsx';
 import PetTransport from './pages/PetTransport.jsx';
 import PetTraining from './pages/PetTraining.jsx';
+import PetInsurance from './pages/PetInsurance.jsx';
 import ChatConsole from './pages/ChatConsole.jsx';
 
 function App() {
@@ -107,6 +108,9 @@ function App() {
             <Route path="services/training" element={<PetTraining />} />
             <Route path="pet-training" element={<PetTraining />} />
             <Route path="dog-training" element={<PetTraining />} />
+            <Route path="insurance" element={<PetInsurance />} />
+            <Route path="services/insurance" element={<PetInsurance />} />
+            <Route path="pet-insurance" element={<PetInsurance />} />
             <Route path="chat" element={<ChatConsole />} />
 
             {/* Service Provider Platform */}
