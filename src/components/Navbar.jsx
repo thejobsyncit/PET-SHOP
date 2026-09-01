@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
-import { Search, Heart, ShoppingBag, Menu, X, ChevronDown, User, LogOut, MessageSquare, PawPrint, Briefcase, Lock, ShieldAlert } from 'lucide-react';
+import { Search, Heart, ShoppingBag, Menu, X, ChevronDown, User, LogOut, MessageSquare, PawPrint, Briefcase, Lock, ShieldAlert, Home, Scissors, Footprints, Truck, GraduationCap, Stethoscope } from 'lucide-react';
 import SearchOverlay from './SearchOverlay.jsx';
 import CartDrawer from './CartDrawer.jsx';
 import { logout } from '../store/slices/authSlice.js';
@@ -67,23 +67,23 @@ const Navbar = () => {
   };
 
   const petsList = [
-    { label: 'Dogs', path: '/pets?petType=dogs' },
-    { label: 'Cats', path: '/pets?petType=cats' },
-    { label: 'Birds', path: '/pets?petType=birds' },
-    { label: 'Reptiles', path: '/pets?petType=reptiles' },
-    { label: 'Small Pets', path: '/pets?petType=small-pets' }
+    { label: 'Dogs', path: '/pets?petType=dogs', icon: <span className="text-lg">🐶</span>, desc: 'Puppies & Adult Dogs' },
+    { label: 'Cats', path: '/pets?petType=cats', icon: <span className="text-lg">🐱</span>, desc: 'Kittens & Adult Cats' },
+    { label: 'Birds', path: '/pets?petType=birds', icon: <span className="text-lg">🦜</span>, desc: 'Parrots, Finches & more' },
+    { label: 'Reptiles', path: '/pets?petType=reptiles', icon: <span className="text-lg">🐢</span>, desc: 'Turtles, Lizards & Snakes' },
+    { label: 'Small Pets', path: '/pets?petType=small-pets', icon: <span className="text-lg">🐹</span>, desc: 'Hamsters, Rabbits & Guinea Pigs' }
   ];
 
   const servicesList = [
-    { label: 'Pet Adoption', path: '/adopt' },
-    { label: 'Pet Hostel', path: '/hostel' },
-    { label: 'Pet Grooming', path: '/grooming' },
-    { label: 'Pet Walking', path: '/walking' },
-    { label: 'Pet Transport', path: '/transport' },
-    { label: 'Pet Training', path: '/training' },
-    { label: 'Pet Insurance', path: '/services?category=Insurance' },
-    { label: 'Pet Mating', path: '/breeding' },
-    { label: 'Consult a Vet', path: '/services?category=Veterinary' }
+    { label: 'Pet Adoption', path: '/adopt', icon: <Heart size={16} className="text-pink-500" />, desc: 'Find a new loving friend' },
+    { label: 'Pet Hostel', path: '/hostel', icon: <Home size={16} className="text-blue-500" />, desc: 'Safe boarding & daycare' },
+    { label: 'Pet Grooming', path: '/grooming', icon: <Scissors size={16} className="text-purple-500" />, desc: 'Premium spa & styling' },
+    { label: 'Pet Walking', path: '/walking', icon: <Footprints size={16} className="text-amber-500" />, desc: 'Daily fitness & walking' },
+    { label: 'Pet Transport', path: '/transport', icon: <Truck size={16} className="text-emerald-500" />, desc: 'AC cabs for local/intercity' },
+    { label: 'Pet Training', path: '/training', icon: <GraduationCap size={16} className="text-indigo-500" />, desc: 'Expert behavioral classes' },
+    { label: 'Pet Insurance', path: '/services?category=Insurance', icon: <ShieldAlert size={16} className="text-red-500" />, desc: 'Comprehensive health cover' },
+    { label: 'Pet Mating', path: '/breeding', icon: <Heart size={16} className="text-rose-500" />, desc: 'Verified breeding services' },
+    { label: 'Consult a Vet', path: '/services?category=Veterinary', icon: <Stethoscope size={16} className="text-teal-500" />, desc: 'Online/Clinic medical care' }
   ];
 
   return (
@@ -167,43 +167,57 @@ const Navbar = () => {
 
                 {/* Dropdown Card */}
                 {petsMenuOpen && (
-                  <div className="absolute top-full left-1/2 -translate-x-1/2 w-52 bg-white border border-gray-100 shadow-2xl py-1 z-50 rounded-none animate-in fade-in slide-in-from-top-1 duration-150">
+                  <div className="absolute top-full -left-12 w-64 bg-white border border-slate-100 shadow-2xl z-50 rounded-2xl animate-in fade-in slide-in-from-top-2 duration-200 overflow-hidden">
+                    <div className="bg-primary/5 px-4 py-2.5 border-b border-primary/10 flex justify-between items-center">
+                      <span className="text-[10px] font-bold text-primary uppercase tracking-widest">Pet Categories</span>
+                      <button onClick={(e) => handlePetsNavigation(e, '/pets')} className="text-[9px] font-bold text-accent hover:underline cursor-pointer bg-transparent border-0">View All</button>
+                    </div>
                     {isNonSellerProvider ? (
-                      <div className="p-3.5 text-center space-y-2">
+                      <div className="p-5 text-center space-y-2">
                         <div className="w-8 h-8 rounded-full bg-amber-50 border border-amber-200 text-amber-600 flex items-center justify-center mx-auto">
                           <Lock size={14} />
                         </div>
-                        <span className="text-[10px] font-bold text-amber-800 uppercase tracking-wider block">
+                        <span className="text-[11px] font-bold text-amber-800 uppercase tracking-wider block">
                           Pet Sellers Only
                         </span>
-                        <p className="text-[11px] text-slate-600 leading-tight">
+                        <p className="text-[10px] text-slate-600 leading-relaxed">
                           This marketplace is reserved exclusively for verified Pet Sellers.
                         </p>
                         <button
                           onClick={(e) => handlePetsNavigation(e)}
-                          className="w-full py-1.5 px-2 bg-primary text-white text-[10px] font-bold uppercase tracking-wider hover:bg-primary-light transition cursor-pointer"
+                          className="w-full py-2 mt-2 bg-primary text-white text-[10px] font-bold uppercase tracking-wider hover:bg-primary-light transition cursor-pointer rounded-xl shadow-sm"
                         >
                           My Provider Hub →
                         </button>
                       </div>
                     ) : (
                       <>
-                        {petsList.map((pet) => (
-                          <button
-                            key={pet.label}
-                            onClick={(e) => handlePetsNavigation(e, pet.path)}
-                            className="w-full block py-2.5 text-xs font-semibold text-gray-700 hover:bg-gray-50 hover:text-primary text-center border-b border-gray-100 last:border-0 transition cursor-pointer"
-                          >
-                            {pet.label}
-                          </button>
-                        ))}
+                        <div className="max-h-[320px] overflow-y-auto custom-scrollbar">
+                          {petsList.map((pet) => (
+                            <button
+                              key={pet.label}
+                              onClick={(e) => handlePetsNavigation(e, pet.path)}
+                              className="w-full flex items-center gap-2.5 px-3 py-2 hover:bg-slate-50 border-b border-slate-50 last:border-0 transition-colors group cursor-pointer text-left bg-transparent border-t-0 border-l-0 border-r-0 outline-none"
+                            >
+                              <div className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center group-hover:scale-110 group-hover:bg-white group-hover:shadow-sm transition-all shrink-0">
+                                {pet.icon}
+                              </div>
+                              <div>
+                                <div className="text-xs font-bold text-slate-800 group-hover:text-primary transition-colors">{pet.label}</div>
+                                <div className="text-[9px] text-slate-500 font-medium">{pet.desc}</div>
+                              </div>
+                            </button>
+                          ))}
+                        </div>
                         {user?.role === 'SERVICE_PROVIDER' && (user?.serviceCategory || '').toLowerCase() === 'pet seller' && (
-                          <button
-                            onClick={(e) => handlePetsNavigation(e, '/pets')}
-                            className="w-full block py-2 text-[11px] font-bold text-emerald-800 bg-emerald-50 hover:bg-emerald-100 text-center border-t border-emerald-200 cursor-pointer"
-                          >
-                            🌟 Post & Manage Pet Listings
-                          </button>
+                          <div className="p-2 border-t border-slate-100 bg-slate-50">
+                            <button
+                              onClick={(e) => handlePetsNavigation(e, '/pets')}
+                              className="w-full py-2 text-[10px] font-bold text-emerald-800 bg-emerald-100/50 hover:bg-emerald-100 rounded-xl border border-emerald-200/50 transition cursor-pointer flex items-center justify-center gap-1.5"
+                            >
+                              🌟 Post & Manage Pet Listings
+                            </button>
+                          </div>
                         )}
                       </>
                     )}
@@ -228,19 +242,32 @@ const Navbar = () => {
                   Pet Services <ChevronDown size={10} />
                 </Link>
 
-                {/* Dropdown Card */}
+                {/* Dropdown Card with Scroll */}
                 {servicesMenuOpen && (
-                  <div className="absolute top-full left-0 w-48 bg-white border border-gray-100 shadow-2xl py-1 z-50 rounded-none animate-in fade-in slide-in-from-top-1 duration-150">
-                    {servicesList.map((service) => (
-                      <Link
-                        key={service.label}
-                        to={service.path}
-                        onClick={() => setServicesMenuOpen(false)}
-                        className="block py-2 px-4 text-xs font-semibold text-gray-700 hover:bg-gray-100 hover:text-primary text-left border-b border-gray-100 last:border-0 transition"
-                      >
-                        {service.label}
-                      </Link>
-                    ))}
+                  <div className="absolute top-full -left-12 w-64 bg-white border border-slate-100 shadow-2xl z-50 rounded-2xl animate-in fade-in slide-in-from-top-2 duration-200 overflow-hidden">
+                    <div className="bg-primary/5 px-4 py-2.5 border-b border-primary/10 flex justify-between items-center">
+                      <span className="text-[10px] font-bold text-primary uppercase tracking-widest">Premium Services</span>
+                      <Link to="/services" className="text-[9px] font-bold text-accent hover:underline">View Hub</Link>
+                    </div>
+                    {/* SCROLL DOWN DESIGN */}
+                    <div className="max-h-[320px] overflow-y-auto custom-scrollbar">
+                      {servicesList.map((service) => (
+                        <Link
+                          key={service.label}
+                          to={service.path}
+                          onClick={() => setServicesMenuOpen(false)}
+                          className="flex items-center gap-2.5 px-3 py-2 hover:bg-slate-50 border-b border-slate-50 last:border-0 transition-colors group"
+                        >
+                          <div className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center group-hover:scale-110 group-hover:bg-white group-hover:shadow-sm transition-all shrink-0">
+                            {service.icon}
+                          </div>
+                          <div>
+                            <div className="text-xs font-bold text-slate-800 group-hover:text-primary transition-colors">{service.label}</div>
+                            <div className="text-[9px] text-slate-500 font-medium">{service.desc}</div>
+                          </div>
+                        </Link>
+                      ))}
+                    </div>
                   </div>
                 )}
               </div>
