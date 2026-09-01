@@ -1,11 +1,11 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { 
   Search, MapPin, Star, ShieldCheck, 
   ChevronRight, ArrowRight, Heart, Award,
   Scissors, Home, Footprints, Truck, GraduationCap, ShieldAlert, Stethoscope,
-  CheckCircle2
+  CircleCheck
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -347,7 +347,7 @@ const ServiceBooking = () => {
             {
               title: "Secure Payments & Booking",
               desc: "Book instantly online. Your payments are held securely until the service is successfully completed.",
-              icon: <CheckCircle2 size={32} className="text-blue-500" />
+              icon: <CircleCheck size={32} className="text-blue-500" />
             },
             {
               title: "24/7 Pet Parent Support",

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
-import { CreditCard, Truck, CheckCircle2, ChevronRight, ShoppingBag, ClipboardList } from 'lucide-react';
+import { CreditCard, Truck, CircleCheck, ChevronRight, ShoppingBag, ClipboardList } from 'lucide-react';
 import { clearCartAPI } from '../store/slices/cartSlice.js';
 import { apiRequest } from '../services/api.js';
 import toast from 'react-hot-toast';
@@ -187,7 +187,7 @@ const Checkout = () => {
       {step === 4 && confirmedOrder ? (
         // STEP 4: ORDER CONFIRMED VIEW
         <div className="max-w-2xl mx-auto bg-white border border-beige p-8 text-center space-y-6 shadow-sm">
-          <CheckCircle2 size={56} className="mx-auto text-green-600 animate-bounce" />
+          <CircleCheck size={56} className="mx-auto text-green-600 animate-bounce" />
           <h2 className="font-serif text-xl font-bold text-primary">Your order is confirmed!</h2>
           <p className="text-xs text-gray-500 max-w-md mx-auto leading-relaxed">
             Thank you for shopping at Pawora. Your order has been registered under ID <strong>{confirmedOrder._id}</strong>. We sent a receipt to your registered email address.

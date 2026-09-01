@@ -3,7 +3,7 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { 
   Sparkles, Search, MapPin, Phone, MessageSquare, Star, ShieldCheck, 
-  Calendar, Clock, CheckCircle2, ChevronRight, X, SlidersHorizontal, 
+  Calendar, Clock, CircleCheck, ChevronRight, X, SlidersHorizontal, 
   RefreshCw, Check, ArrowRight, Heart, Award, Footprints, Navigation, 
   Compass, ShieldAlert, UserCheck, ChevronDown
 } from 'lucide-react';
@@ -760,7 +760,7 @@ const WalkingServices = () => {
                           <div className="grid grid-cols-2 gap-1.5 pt-1">
                             {provider.features.map((feat, idx) => (
                               <div key={idx} className="text-[10px] font-semibold text-slate-600 flex items-center gap-1">
-                                <CheckCircle2 size={11} className="text-emerald-500 shrink-0" />
+                                <CircleCheck size={11} className="text-emerald-500 shrink-0" />
                                 <span className="truncate">{feat}</span>
                               </div>
                             ))}
@@ -1190,7 +1190,7 @@ const WalkingServices = () => {
                   type="submit"
                   className="w-full bg-[#7c56dc] hover:bg-[#6842c2] text-white font-extrabold py-3 rounded-2xl text-xs shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-98"
                 >
-                  <CheckCircle2 size={16} />
+                  <CircleCheck size={16} />
                   <span>Confirm Walk Booking (₹{selectedPackage?.price || selectedProvider.price})</span>
                 </button>
               </div>

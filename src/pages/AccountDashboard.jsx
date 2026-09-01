@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import {
-  User, MapPin, ClipboardList, ShoppingBag, Plus, Trash2, CheckCircle2,
+  User, MapPin, ClipboardList, ShoppingBag, Plus, Trash2, CircleCheck,
   ShieldAlert, Clock, LogOut, Heart, ShieldCheck, MessageSquare, Phone,
   ExternalLink, Check, AlertCircle, ArrowRight, Sparkles, Filter, ChevronRight,
   Truck
@@ -218,7 +218,7 @@ const AccountDashboard = () => {
       case 'Approved':
         return (
           <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-emerald-100 text-emerald-800 border border-emerald-200">
-            <CheckCircle2 size={12} className="text-emerald-700" /> Approved & Ready
+            <CircleCheck size={12} className="text-emerald-700" /> Approved & Ready
           </span>
         );
       case 'Contacted':
@@ -807,7 +807,7 @@ const AccountDashboard = () => {
                       <div className="flex items-center gap-1.5">
                         {presc.status === 'Approved' ? (
                           <span className="text-green-600 font-bold uppercase flex items-center gap-1">
-                            <CheckCircle2 size={16} /> Approved
+                            <CircleCheck size={16} /> Approved
                           </span>
                         ) : presc.status === 'Rejected' ? (
                           <span className="text-red-500 font-bold uppercase flex items-center gap-1">

@@ -40,6 +40,10 @@ const listingSchema = new mongoose.Schema({
     type: String,
     required: true
   },
+  vaccinationCertificate: {
+    type: String,
+    default: null
+  },
   contactPhone: {
     type: String,
     required: true
@@ -48,9 +52,22 @@ const listingSchema = new mongoose.Schema({
     type: Boolean,
     default: false
   },
+  quantity: {
+    type: Number,
+    required: true,
+    default: 1
+  },
+  soldCount: {
+    type: Number,
+    default: 0
+  },
+  soldOutAt: {
+    type: Date,
+    default: null
+  },
   status: {
     type: String,
-    enum: ['Available', 'Sold', 'Adopted', 'Cancelled'],
+    enum: ['Available', 'Sold', 'Adopted', 'Cancelled', 'Sold Out'],
     default: 'Available'
   }
 }, { timestamps: true });

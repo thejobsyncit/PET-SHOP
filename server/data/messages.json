@@ -47,5 +47,80 @@
     "messageText": "Hello, is this pet still available?",
     "isRead": false,
     "createdAt": "2026-08-28T06:44:20.518Z"
+  },
+  {
+    "_id": "MSG-515359",
+    "sender": {
+      "_id": "60d5ec49ad70591244000000",
+      "name": "Pawora Superadmin",
+      "email": "superadmin@pawora.com"
+    },
+    "recipient": {
+      "_id": "60d5ec49ad70591244000000",
+      "name": "Recipient Profile"
+    },
+    "messageText": "hi",
+    "isRead": false,
+    "createdAt": "2026-09-01T05:23:52.895Z"
+  },
+  {
+    "_id": "MSG-460273",
+    "sender": {
+      "_id": "prov-seller-04",
+      "name": "Simulated Demo User",
+      "email": "demo@pawora.com"
+    },
+    "recipient": {
+      "_id": "prov-seller-04",
+      "name": "Recipient Profile"
+    },
+    "messageText": "hi",
+    "isRead": false,
+    "createdAt": "2026-09-01T10:56:40.713Z"
+  },
+  {
+    "_id": "MSG-207805",
+    "sender": {
+      "_id": "prov-seller-04",
+      "name": "Simulated Demo User",
+      "email": "demo@pawora.com"
+    },
+    "recipient": {
+      "_id": "prov-seller-04",
+      "name": "Recipient Profile"
+    },
+    "messageText": "hi",
+    "isRead": false,
+    "createdAt": "2026-09-01T11:29:00.725Z"
+  },
+  {
+    "_id": "MSG-522671",
+    "sender": {
+      "_id": "prov-seller-04",
+      "name": "Simulated Demo User",
+      "email": "demo@pawora.com"
+    },
+    "recipient": {
+      "_id": "prov-seller-04",
+      "name": "Recipient Profile"
+    },
+    "messageText": "hi",
+    "isRead": false,
+    "createdAt": "2026-09-01T11:31:19.548Z"
+  },
+  {
+    "_id": "MSG-248654",
+    "sender": {
+      "_id": "prov-seller-04",
+      "name": "Simulated Demo User",
+      "email": "demo@pawora.com"
+    },
+    "recipient": {
+      "_id": "prov-seller-04",
+      "name": "Recipient Profile"
+    },
+    "messageText": "hi",
+    "isRead": false,
+    "createdAt": "2026-09-01T11:35:52.091Z"
   }
 ]

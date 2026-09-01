@@ -82,16 +82,39 @@ const Navbar = () => {
   const isNonSellerProvider = user?.role === 'SERVICE_PROVIDER' && 
     (user?.serviceCategory || '').toLowerCase() !== 'pet seller';
 
-  const handlePetsNavigation = (e, targetPath = '/pets') => {
+  const isPetSeller = user?.role === 'SERVICE_PROVIDER' && 
+    (user?.serviceCategory || '').toLowerCase() === 'pet seller';
+
+  const handlePetsNavigation = (e, targetPath = '/pets', isHubRedirect = false) => {
     if (isNonSellerProvider) {
       if (e) e.preventDefault();
-      toast.error(`Access Restricted: The Pet Marketplace is exclusively reserved for registered Pet Sellers. (Your account: ${user?.serviceCategory || 'Service Provider'})`);
-      setPetsMenuOpen(false);
-      setIsMobileMenuOpen(false);
-      navigate('/provider-dashboard');
+      if (isHubRedirect) {
+        setPetsMenuOpen(false);
+        setIsMobileMenuOpen(false);
+        navigate('/provider-dashboard');
+      } else {
+        toast.error(`Access Restricted: The Pet Marketplace is exclusively reserved for registered Pet Sellers. (Your account: ${user?.serviceCategory || 'Service Provider'})`, { id: 'pet-restrict' });
+      }
       return;
     }
     setPetsMenuOpen(false);
+    setIsMobileMenuOpen(false);
+    if (targetPath) navigate(targetPath);
+  };
+
+  const handleServicesNavigation = (e, targetPath = '/services', isHubRedirect = false) => {
+    if (isPetSeller) {
+      if (e) e.preventDefault();
+      if (isHubRedirect) {
+        setServicesMenuOpen(false);
+        setIsMobileMenuOpen(false);
+        navigate('/provider-dashboard');
+      } else {
+        toast.error(`Access Restricted: Pet Services are exclusively for Pet Service Professionals. (Your account: Pet Seller)`, { id: 'srv-restrict' });
+      }
+      return;
+    }
+    setServicesMenuOpen(false);
     setIsMobileMenuOpen(false);
     if (targetPath) navigate(targetPath);
   };
@@ -214,7 +237,7 @@ const Navbar = () => {
                           This marketplace is reserved exclusively for verified Pet Sellers.
                         </p>
                         <button
-                          onClick={(e) => handlePetsNavigation(e)}
+                          onClick={(e) => handlePetsNavigation(e, '/pets', true)}
                           className="w-full py-2 mt-2 bg-primary text-white text-[10px] font-bold uppercase tracking-wider hover:bg-primary-light transition cursor-pointer rounded-xl shadow-sm"
                         >
                           My Provider Hub →
@@ -263,14 +286,13 @@ const Navbar = () => {
                 className="relative py-2 cursor-pointer"
               >
                 <button
-                  type="button"
-                  onClick={() => setServicesMenuOpen(prev => !prev)}
-                  className={`text-[11px] uppercase tracking-wider font-semibold transition flex items-center gap-1 py-1 cursor-pointer bg-transparent border-0 ${servicesMenuOpen || isServicesActive()
+                  onClick={(e) => handleServicesNavigation(e, '/services')}
+                  className={`text-[11px] uppercase tracking-wider font-semibold transition flex items-center gap-1 py-1 cursor-pointer bg-transparent border-0 ${isActive('/services') || isActive('/adopt') || isActive('/breeding')
                     ? 'text-accent-light border-b-2 border-accent-light pb-1'
                     : 'text-white hover:text-accent-light'
                     }`}
                 >
-                  Pet Services <ChevronDown size={10} className={`transition-transform duration-200 ${servicesMenuOpen ? 'rotate-180' : ''}`} />
+                  Pet Services {isPetSeller && <Lock size={11} className="text-amber-300 ml-0.5" />} <ChevronDown size={10} />
                 </button>
 
                 {/* Dropdown Card with Scroll */}
@@ -278,27 +300,45 @@ const Navbar = () => {
                   <div className="absolute top-full -left-12 w-64 bg-white border border-slate-100 shadow-2xl z-50 rounded-2xl animate-in fade-in slide-in-from-top-2 duration-200 overflow-hidden">
                     <div className="bg-primary/5 px-4 py-2.5 border-b border-primary/10 flex justify-between items-center">
                       <span className="text-[10px] font-bold text-primary uppercase tracking-widest">Premium Services</span>
-                      <Link to="/services" className="text-[9px] font-bold text-accent hover:underline">View Hub</Link>
+                      <button onClick={(e) => handleServicesNavigation(e, '/services')} className="text-[9px] font-bold text-accent hover:underline cursor-pointer bg-transparent border-0">View Hub</button>
                     </div>
-                    {/* SCROLL DOWN DESIGN */}
-                    <div className="max-h-[320px] overflow-y-auto custom-scrollbar">
-                      {servicesList.map((service) => (
-                        <Link
-                          key={service.label}
-                          to={service.path}
-                          onClick={() => setServicesMenuOpen(false)}
-                          className="flex items-center gap-2.5 px-3 py-2 hover:bg-slate-50 border-b border-slate-50 last:border-0 transition-colors group"
+                    {isPetSeller ? (
+                      <div className="p-5 text-center space-y-2">
+                        <div className="w-8 h-8 rounded-full bg-amber-50 border border-amber-200 text-amber-600 flex items-center justify-center mx-auto">
+                          <Lock size={14} />
+                        </div>
+                        <span className="text-[11px] font-bold text-amber-800 uppercase tracking-wider block">
+                          Service Providers Only
+                        </span>
+                        <p className="text-[10px] text-slate-600 leading-relaxed">
+                          This section is reserved exclusively for verified Pet Service Professionals.
+                        </p>
+                        <button
+                          onClick={(e) => handleServicesNavigation(e, '/services', true)}
+                          className="w-full py-2 mt-2 bg-primary text-white text-[10px] font-bold uppercase tracking-wider hover:bg-primary-light transition cursor-pointer rounded-xl shadow-sm"
                         >
-                          <div className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center group-hover:scale-110 group-hover:bg-white group-hover:shadow-sm transition-all shrink-0">
-                            {service.icon}
-                          </div>
-                          <div>
-                            <div className="text-xs font-bold text-slate-800 group-hover:text-primary transition-colors">{service.label}</div>
-                            <div className="text-[9px] text-slate-500 font-medium">{service.desc}</div>
-                          </div>
-                        </Link>
-                      ))}
-                    </div>
+                          My Provider Hub →
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="max-h-[320px] overflow-y-auto custom-scrollbar">
+                        {servicesList.map((service) => (
+                          <button
+                            key={service.label}
+                            onClick={(e) => handleServicesNavigation(e, service.path)}
+                            className="w-full flex items-center gap-2.5 px-3 py-2 hover:bg-slate-50 border-b border-slate-50 last:border-0 transition-colors group cursor-pointer text-left bg-transparent border-t-0 border-l-0 border-r-0 outline-none"
+                          >
+                            <div className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center group-hover:scale-110 group-hover:bg-white group-hover:shadow-sm transition-all shrink-0">
+                              {service.icon}
+                            </div>
+                            <div>
+                              <div className="text-xs font-bold text-slate-800 group-hover:text-primary transition-colors">{service.label}</div>
+                              <div className="text-[9px] text-slate-500 font-medium">{service.desc}</div>
+                            </div>
+                          </button>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 )}
               </div>

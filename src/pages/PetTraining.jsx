@@ -7,7 +7,7 @@ import {
   Award,
   Star,
   ShieldCheck,
-  CheckCircle2,
+  CircleCheck,
   Calendar,
   Clock,
   MapPin,
@@ -607,7 +607,7 @@ const PetTraining = () => {
                   <img src={t.avatar} alt={t.name} className="w-full h-full object-cover" />
                 </div>
                 <div className="absolute -bottom-2 right-0 bg-purple-600 text-white rounded-full p-1 shadow">
-                  <CheckCircle2 size={14} />
+                  <CircleCheck size={14} />
                 </div>
               </div>
 

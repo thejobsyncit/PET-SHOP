@@ -3,7 +3,7 @@ import { useSelector } from 'react-redux';
 import { Link, useNavigate } from 'react-router-dom';
 import {
   Heart, MapPin, Search, Phone, MessageSquare, Info, ShieldCheck,
-  CheckCircle2, X, Plus, ChevronRight, Sparkles, Filter, SlidersHorizontal,
+  CircleCheck, X, Plus, ChevronRight, Sparkles, Filter, SlidersHorizontal,
   Home, Award, Calendar, User, Check, ArrowRight, ChevronLeft,
   UploadCloud, Camera, Image as ImageIcon
 } from 'lucide-react';
@@ -341,7 +341,7 @@ const AdoptionShelter = () => {
                   <span>Vaccination Verified</span>
                 </div>
                 <div className="flex items-center gap-1.5 bg-white/70 backdrop-blur-xs px-3 py-1.5 rounded-lg border border-purple-150">
-                  <CheckCircle2 size={16} className="text-emerald-600" />
+                  <CircleCheck size={16} className="text-emerald-600" />
                   <span>Certified Animal Shelters</span>
                 </div>
               </div>

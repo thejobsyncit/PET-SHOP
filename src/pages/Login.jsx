@@ -4,8 +4,8 @@ import { useNavigate, useLocation, Link } from 'react-router-dom';
 import {
   Lock, Mail, User, ShieldCheck, Sparkles, ArrowRight,
   Briefcase, Phone, Eye, EyeOff, Search, MapPin, AlertCircle,
-  CheckCircle2, RotateCcw, Edit3, Smartphone, KeyRound,
-  ChevronDown, MessageSquare, Check, HelpCircle, PawPrint
+  CircleCheck, RotateCcw, Edit3, Smartphone, KeyRound,
+  ChevronDown, MessageSquare, Check, HelpCircle
 } from 'lucide-react';
 import { login, register, setAuthenticatedUser, clearAuthError, logout } from '../store/slices/authSlice.js';
 import toast from 'react-hot-toast';
@@ -979,7 +979,7 @@ const Login = () => {
                     <span>VERIFYING OTP & OPENING DASHBOARD...</span>
                   ) : (
                     <>
-                      <CheckCircle2 size={16} />
+                      <CircleCheck size={16} />
                       <span>
                         {pendingUserData?.role === 'SERVICE_PROVIDER'
                           ? 'VERIFY PARTNER OTP & OPEN DASHBOARD'
