@@ -17,11 +17,16 @@ import {
   saveTransportEnquiry
 } from '../data/transportData.js';
 import { INDIAN_STATES_CITIES } from '../data/adoptionPetsData.js';
+import ServiceAccessLock, { isServicePathLockedForUser } from '../components/ServiceAccessLock.jsx';
 
 const PetTransport = () => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const { isAuthenticated, user } = useSelector((state) => state.auth);
+
+  if (isServicePathLockedForUser(user, '/transport')) {
+    return <ServiceAccessLock serviceName="Pet Transport & Relocation" attemptedPath="/transport" />;
+  }
 
   // Search & Filter States
   const [selectedMode, setSelectedMode] = useState('All'); // 'All' | 'Road Transport' | 'Rail Transport' | 'Air Transport' | 'Ship Transport'

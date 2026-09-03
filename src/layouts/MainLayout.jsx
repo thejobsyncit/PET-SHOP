@@ -4,6 +4,7 @@ import { useDispatch } from 'react-redux';
 import Navbar from '../components/Navbar.jsx';
 import Footer from '../components/Footer.jsx';
 import LeadConsultationModal from '../components/LeadConsultationModal.jsx';
+import ErrorBoundary from '../components/ErrorBoundary.jsx';
 import { fetchCart } from '../store/slices/cartSlice.js';
 import { fetchWishlist } from '../store/slices/wishlistSlice.js';
 import { fetchProfile } from '../store/slices/authSlice.js';
@@ -29,7 +30,9 @@ const MainLayout = () => {
 
       {/* Main Outlet page Content */}
       <main className="flex-grow">
-        <Outlet />
+        <ErrorBoundary>
+          <Outlet />
+        </ErrorBoundary>
       </main>
 
       {/* Premium Footer */}

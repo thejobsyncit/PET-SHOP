@@ -15,7 +15,22 @@ const generateToken = (id) => {
 // @route   POST /api/auth/register
 // @access  Public
 export const registerUser = async (req, res) => {
-  const { name, email, password, mobile, role, location, serviceCategory } = req.body;
+  const {
+    name,
+    email,
+    password,
+    mobile,
+    role,
+    location,
+    serviceCategory,
+    businessName,
+    govtProofType,
+    govtProofNumber,
+    govtProofDoc,
+    verificationStatus,
+    shelterCapacity,
+    bio
+  } = req.body;
 
   if (!name || !email || !password) {
     return res.status(400).json({ success: false, message: 'Please provide name, email, and password' });
@@ -28,7 +43,22 @@ export const registerUser = async (req, res) => {
         return res.status(400).json({ success: false, message: 'User already exists with this email' });
       }
 
-      const user = await User.create({ name, email, password, mobile, role, location, serviceCategory });
+      const user = await User.create({
+        name,
+        email,
+        password,
+        mobile,
+        role,
+        location,
+        serviceCategory,
+        businessName: businessName || name,
+        govtProofType: govtProofType || 'AWBI / NGO Registration Certificate',
+        govtProofNumber: govtProofNumber || '',
+        govtProofDoc: govtProofDoc || '',
+        verificationStatus: verificationStatus || 'Verified',
+        shelterCapacity: shelterCapacity || 50,
+        bio: bio || ''
+      });
       res.status(201).json({
         success: true,
         token: generateToken(user._id),
@@ -38,7 +68,15 @@ export const registerUser = async (req, res) => {
           email: user.email, 
           role: user.role,
           mobile: user.mobile,
-          serviceCategory: user.serviceCategory
+          location: user.location,
+          serviceCategory: user.serviceCategory,
+          businessName: user.businessName,
+          govtProofType: user.govtProofType,
+          govtProofNumber: user.govtProofNumber,
+          govtProofDoc: user.govtProofDoc,
+          verificationStatus: user.verificationStatus,
+          shelterCapacity: user.shelterCapacity,
+          bio: user.bio
         }
       });
     } else {
@@ -60,6 +98,13 @@ export const registerUser = async (req, res) => {
         mobile: mobile || '',
         location: location || '',
         serviceCategory: serviceCategory || '',
+        businessName: businessName || name,
+        govtProofType: govtProofType || 'AWBI / NGO Registration Certificate',
+        govtProofNumber: govtProofNumber || '',
+        govtProofDoc: govtProofDoc || '',
+        verificationStatus: verificationStatus || 'Verified',
+        shelterCapacity: shelterCapacity || 50,
+        bio: bio || '',
         addresses: [],
         wishlist: [],
         cart: [],
@@ -79,7 +124,15 @@ export const registerUser = async (req, res) => {
           email: newUser.email, 
           role: newUser.role,
           mobile: newUser.mobile,
-          serviceCategory: newUser.serviceCategory
+          location: newUser.location,
+          serviceCategory: newUser.serviceCategory,
+          businessName: newUser.businessName,
+          govtProofType: newUser.govtProofType,
+          govtProofNumber: newUser.govtProofNumber,
+          govtProofDoc: newUser.govtProofDoc,
+          verificationStatus: newUser.verificationStatus,
+          shelterCapacity: newUser.shelterCapacity,
+          bio: newUser.bio
         }
       });
     }
@@ -117,7 +170,15 @@ export const loginUser = async (req, res) => {
             email: user.email, 
             role: user.role,
             mobile: user.mobile,
-            serviceCategory: user.serviceCategory
+            location: user.location,
+            serviceCategory: user.serviceCategory,
+            businessName: user.businessName,
+            govtProofType: user.govtProofType,
+            govtProofNumber: user.govtProofNumber,
+            govtProofDoc: user.govtProofDoc,
+            verificationStatus: user.verificationStatus,
+            shelterCapacity: user.shelterCapacity,
+            bio: user.bio
           }
         });
       } else {
@@ -140,7 +201,15 @@ export const loginUser = async (req, res) => {
             email: user.email, 
             role: user.role,
             mobile: user.mobile,
-            serviceCategory: user.serviceCategory
+            location: user.location,
+            serviceCategory: user.serviceCategory,
+            businessName: user.businessName,
+            govtProofType: user.govtProofType,
+            govtProofNumber: user.govtProofNumber,
+            govtProofDoc: user.govtProofDoc,
+            verificationStatus: user.verificationStatus,
+            shelterCapacity: user.shelterCapacity,
+            bio: user.bio
           }
         });
       } else {

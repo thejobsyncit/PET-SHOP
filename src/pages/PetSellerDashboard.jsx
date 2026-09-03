@@ -161,7 +161,7 @@ const PetSellerDashboard = ({
 
   useEffect(() => {
     fetchListings();
-  }, [currentProvider.id]);
+  }, [currentProvider?.id]);
 
   useEffect(() => {
     if (activeTab === 'inquiries') {
@@ -218,18 +218,13 @@ const PetSellerDashboard = ({
         setAge('');
         setPrice('');
         setOriginalPrice('');
-        setLocation('');
-        setContactPhone('');
         setDescription('');
         setImageFile(null);
         setVaccinationFile(null);
-        setQuantity(1);
-        
-        // Refresh listings immediately to show in dashboard
         fetchListings();
       }
     } catch (err) {
-      toast.error(err.message || 'Failed to submit listing.');
+      toast.error(err.message || 'Failed to create pet listing');
     }
   };
 
@@ -247,6 +242,7 @@ const PetSellerDashboard = ({
     return acc;
   }, 0);
 
+  // Safe Stats Calculation
   const stats = {
     totalListings: myPets.length,
     availableStock: activePets.reduce((acc, curr) => acc + (curr.quantity || 1), 0),
@@ -255,20 +251,20 @@ const PetSellerDashboard = ({
     revenue: soldPets.reduce((acc, curr) => acc + (curr.price || 0), 0),
     discounts: totalDiscountGiven || 1500, 
     inquiries: 12,
-    rating: currentProvider.rating || 4.9,
-    reviews: currentProvider.reviewsCount || 100
+    rating: currentProvider?.rating || 4.9,
+    reviews: currentProvider?.reviewsCount || 100
   };
 
   const navItems = [
     { id: 'inventory', label: 'My Pet Inventory', icon: PawPrint, count: stats.totalListings },
     { id: 'orders', label: 'Sales & Orders', icon: DollarSign, count: stats.totalOrders },
     { id: 'inquiries', label: 'Buyer Leads', icon: MessageSquare, count: stats.inquiries },
-    { id: 'profile', label: 'Seller Profile', icon: Settings }
+    { id: 'profile', label: 'Profile', icon: Settings }
   ];
 
   // Fix Profile Avatar - Use actual user's avatar if they are logged in, otherwise fallback
-  const displayAvatar = user?.avatar || user?.profilePicture || 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?q=80&w=400';
-  const displayName = user?.name || currentProvider.name;
+  const displayAvatar = user?.avatar || user?.profilePicture || currentProvider?.avatar || 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?q=80&w=400';
+  const displayName = user?.name || currentProvider?.name || 'Pet Seller';
 
   return (
     <div className="min-h-screen bg-[#FAF9F5] text-slate-900 font-sans selection:bg-[#0F2E23]/20 selection:text-[#0F2E23] flex">
@@ -291,7 +287,7 @@ const PetSellerDashboard = ({
                 className="relative w-24 h-24 rounded-full object-cover border-4 border-white shadow-lg"
               />
               <div className="absolute bottom-1 right-1 w-5 h-5 bg-white rounded-full flex items-center justify-center shadow-sm">
-                <span className={`w-3 h-3 rounded-full ${currentProvider.isOnline ? 'bg-emerald-500' : 'bg-slate-400'}`}></span>
+                <span className={`w-3 h-3 rounded-full ${currentProvider?.isOnline ? 'bg-emerald-500' : 'bg-slate-400'}`}></span>
               </div>
             </div>
             <div>

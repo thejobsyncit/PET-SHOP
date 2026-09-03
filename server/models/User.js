@@ -34,6 +34,33 @@ const UserSchema = new mongoose.Schema({
   serviceCategory: {
     type: String,
   },
+  businessName: {
+    type: String,
+    trim: true,
+  },
+  govtProofType: {
+    type: String,
+    default: 'AWBI / NGO Registration Certificate',
+  },
+  govtProofNumber: {
+    type: String,
+    trim: true,
+  },
+  govtProofDoc: {
+    type: String,
+  },
+  verificationStatus: {
+    type: String,
+    enum: ['Pending', 'Verified', 'Under Review', 'Rejected'],
+    default: 'Verified',
+  },
+  shelterCapacity: {
+    type: Number,
+    default: 50,
+  },
+  bio: {
+    type: String,
+  },
   addresses: [{
     name: String,
     phone: String,

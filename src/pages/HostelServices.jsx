@@ -15,10 +15,15 @@ import {
   saveHostelBooking 
 } from '../data/hostelData.js';
 import { INDIAN_STATES_CITIES } from '../data/adoptionPetsData.js';
+import ServiceAccessLock, { isServicePathLockedForUser } from '../components/ServiceAccessLock.jsx';
 
 const HostelServices = () => {
   const navigate = useNavigate();
   const { isAuthenticated, user } = useSelector((state) => state.auth);
+
+  if (isServicePathLockedForUser(user, '/hostel')) {
+    return <ServiceAccessLock serviceName="Pet Hostel & Daycare" attemptedPath="/hostel" />;
+  }
 
   // Search & Filter States
   const [selectedPetType, setSelectedPetType] = useState('All');

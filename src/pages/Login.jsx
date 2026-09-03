@@ -5,7 +5,7 @@ import {
   Lock, Mail, User, ShieldCheck, Sparkles, ArrowRight,
   Briefcase, Phone, Eye, EyeOff, Search, MapPin, AlertCircle,
   CircleCheck, RotateCcw, Edit3, Smartphone, KeyRound,
-  ChevronDown, MessageSquare, Check, HelpCircle
+  ChevronDown, MessageSquare, Check, HelpCircle, PawPrint
 } from 'lucide-react';
 import { login, register, setAuthenticatedUser, clearAuthError, logout } from '../store/slices/authSlice.js';
 import toast from 'react-hot-toast';
@@ -314,6 +314,9 @@ const Login = () => {
 
   // Service Provider Registration States
   const [providerBusinessName, setProviderBusinessName] = useState('');
+  const [providerGovtProofType, setProviderGovtProofType] = useState('AWBI / Section 8 NGO Certificate');
+  const [providerGovtProofNumber, setProviderGovtProofNumber] = useState('');
+  const [providerGovtProofDoc, setProviderGovtProofDoc] = useState('');
   const [providerCountryCode, setProviderCountryCode] = useState('+91');
   const [providerMobileNo, setProviderMobileNo] = useState('');
   const [providerMobileError, setProviderMobileError] = useState('');
@@ -689,6 +692,10 @@ const Login = () => {
 
     const payload = {
       name: providerBusinessName || 'Pet Partner',
+      businessName: providerBusinessName || 'Pet Partner',
+      govtProofType: providerGovtProofType,
+      govtProofNumber: providerGovtProofNumber,
+      govtProofDoc: providerGovtProofDoc,
       email: providerEmail,
       mobile: providerMobileNo,
       mobileCountryCode: providerCountryCode,
@@ -822,7 +829,11 @@ const Login = () => {
 
       toast.success(`🎉 Mobile verified successfully! Welcome ${pendingUserData?.name || 'Pet Parent'}!`);
       setIsOtpStep(false);
-      navigate('/account');
+      if (pendingUserData?.role === 'SERVICE_PROVIDER') {
+        navigate('/provider-dashboard');
+      } else {
+        navigate('/account');
+      }
     } catch (err) {
       toast.error('Verification could not be completed. Please try again.');
     } finally {
@@ -973,7 +984,7 @@ const Login = () => {
                 <button
                   type="submit"
                   disabled={verifyingOtp || otpDigits.join('').length !== 6}
-                  className="w-full py-3.5 bg-[#15559c] hover:bg-[#0f3d6b] disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold text-xs uppercase tracking-wider rounded-xl shadow-lg shadow-blue-900/20 active:scale-95 transition cursor-pointer flex items-center justify-center gap-2"
+                  className="w-full py-3.5 bg-[#0F2E23] hover:bg-[#163e30] disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold text-xs uppercase tracking-wider rounded-xl shadow-lg shadow-[#0F2E23]/20 active:scale-95 transition cursor-pointer flex items-center justify-center gap-2"
                 >
                   {verifyingOtp ? (
                     <span>VERIFYING OTP & OPENING DASHBOARD...</span>
@@ -1091,7 +1102,29 @@ const Login = () => {
                     <span className="text-[11px] font-bold text-emerald-900 flex items-center gap-1">
                       <Sparkles size={12} className="text-emerald-600" /> Quick 1-Click Provider Test Logins:
                     </span>
-                    <div className="grid grid-cols-2 gap-1.5">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setLoginIdentifier('adopt@pawora.com');
+                          setLoginPassword('Pass@1234');
+                        }}
+                        className="p-1.5 bg-white border border-emerald-300 rounded-lg text-left hover:bg-emerald-100 transition cursor-pointer shadow-2xs"
+                      >
+                        <p className="text-[10px] font-black text-slate-800 truncate">🏠 Hope Sanctuary</p>
+                        <p className="text-[9px] text-emerald-800 font-bold">Pet Adoption</p>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setLoginIdentifier('royalpaws@pawora.com');
+                          setLoginPassword('Pass@1234');
+                        }}
+                        className="p-1.5 bg-white border border-emerald-200 rounded-lg text-left hover:bg-emerald-100 transition cursor-pointer"
+                      >
+                        <p className="text-[10px] font-bold text-slate-800 truncate">Royal Paws Studio</p>
+                        <p className="text-[9px] text-emerald-700 font-semibold">Pet Seller</p>
+                      </button>
                       <button
                         type="button"
                         onClick={() => {
@@ -1111,7 +1144,7 @@ const Login = () => {
                         }}
                         className="p-1.5 bg-white border border-emerald-200 rounded-lg text-left hover:bg-emerald-100 transition cursor-pointer"
                       >
-                        <p className="text-[10px] font-bold text-slate-800 truncate">Velvet Fur Grooming</p>
+                        <p className="text-[10px] font-bold text-slate-800 truncate">Velvet Fur Spa</p>
                         <p className="text-[9px] text-emerald-700 font-semibold">Pet Grooming Spa</p>
                       </button>
                       <button
@@ -1120,21 +1153,10 @@ const Login = () => {
                           setLoginIdentifier('happypaws@pawora.com');
                           setLoginPassword('Pass@1234');
                         }}
-                        className="p-1.5 bg-white border border-emerald-200 rounded-lg text-left hover:bg-emerald-100 transition cursor-pointer"
+                        className="p-1.5 bg-white border border-emerald-200 rounded-lg text-left hover:bg-emerald-100 transition cursor-pointer col-span-2 sm:col-span-1"
                       >
                         <p className="text-[10px] font-bold text-slate-800 truncate">Happy Paws Resort</p>
-                        <p className="text-[9px] text-emerald-700 font-semibold">Pet Hostel / Boarding</p>
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setLoginIdentifier('royalpaws@pawora.com');
-                          setLoginPassword('Pass@1234');
-                        }}
-                        className="p-1.5 bg-white border border-emerald-200 rounded-lg text-left hover:bg-emerald-100 transition cursor-pointer"
-                      >
-                        <p className="text-[10px] font-bold text-slate-800 truncate">Royal Paws Studio</p>
-                        <p className="text-[9px] text-emerald-700 font-semibold">Pet Seller</p>
+                        <p className="text-[9px] text-emerald-700 font-semibold">Pet Hostel</p>
                       </button>
                     </div>
                   </div>
@@ -1208,11 +1230,7 @@ const Login = () => {
                 <button
                   type="submit"
                   disabled={loading}
-                  className={`w-full py-3 text-white font-bold text-xs uppercase tracking-wider rounded-xl shadow-lg active:scale-95 transition cursor-pointer flex items-center justify-center gap-2 ${
-                    loginRoleTab === 'provider'
-                      ? 'bg-[#0F2E23] hover:bg-[#163e30] shadow-emerald-950/20'
-                      : 'bg-[#15559c] hover:bg-[#0f3d6b] shadow-blue-900/20'
-                  }`}
+                  className="w-full py-3 text-white font-bold text-xs uppercase tracking-wider rounded-xl shadow-lg bg-[#0F2E23] hover:bg-[#163e30] shadow-[#0F2E23]/20 active:scale-95 transition cursor-pointer flex items-center justify-center gap-2"
                 >
                   <span>
                     {loading
@@ -1253,7 +1271,7 @@ const Login = () => {
                   onClick={() => setRegisterRoleTab('user')}
                   className={`flex-1 py-2 px-3 text-xs font-bold rounded-lg transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
                     registerRoleTab === 'user'
-                      ? 'bg-white text-[#15559c] shadow-md font-extrabold'
+                      ? 'bg-[#0F2E23] text-white shadow-md font-extrabold'
                       : 'text-slate-500 hover:text-slate-800'
                   }`}
                 >
@@ -1266,7 +1284,7 @@ const Login = () => {
                   onClick={() => setRegisterRoleTab('provider')}
                   className={`flex-1 py-2 px-3 text-xs font-bold rounded-lg transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
                     registerRoleTab === 'provider'
-                      ? 'bg-[#15559c] text-white shadow-md font-extrabold'
+                      ? 'bg-[#0F2E23] text-white shadow-md font-extrabold'
                       : 'text-slate-500 hover:text-slate-800'
                   }`}
                 >
@@ -1514,7 +1532,7 @@ const Login = () => {
                     <button
                       type="submit"
                       disabled={loading}
-                      className="w-full py-3 bg-[#15559c] hover:bg-[#0f3d6b] text-white font-bold text-xs md:text-sm tracking-wide rounded-xl shadow-lg shadow-blue-900/20 active:scale-95 transition cursor-pointer flex items-center justify-center gap-2"
+                      className="w-full py-3 bg-[#0F2E23] hover:bg-[#163e30] text-white font-bold text-xs md:text-sm tracking-wide rounded-xl shadow-lg shadow-[#0F2E23]/20 active:scale-95 transition cursor-pointer flex items-center justify-center gap-2"
                     >
                       <User size={16} />
                       <span>{loading ? 'REGISTERING...' : 'Register as User'}</span>
@@ -1528,16 +1546,45 @@ const Login = () => {
                  ----------------------------------------------------------------- */}
               {registerRoleTab === 'provider' && (
                 <form onSubmit={handleProviderSubmit} className="space-y-3.5">
-                  {/* Business Name */}
-                  <div>
+                  {/* Business / Shelter Legal Name */}
+                  <div className="space-y-1">
                     <input
                       type="text"
-                      placeholder="Business Name / Full Name *"
+                      placeholder={providerCategory === 'Pet Adoption' ? "Shelter / NGO / Rescue Center Legal Name *" : "Business Name / Organization Legal Name *"}
                       value={providerBusinessName}
                       onChange={(e) => setProviderBusinessName(e.target.value)}
                       className="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-xs md:text-sm focus:outline-none focus:border-[#15559c] focus:ring-2 focus:ring-blue-100 transition bg-slate-50/50 hover:bg-white font-medium"
                       required
                     />
+                  </div>
+
+                  {/* Government Proof Type & Registration Number Grid */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 bg-emerald-50/50 p-2.5 rounded-xl border border-emerald-200/60">
+                    <div>
+                      <label className="text-[10px] font-bold text-emerald-900 block mb-0.5">Govt Proof / Registration Type *</label>
+                      <select
+                        value={providerGovtProofType}
+                        onChange={(e) => setProviderGovtProofType(e.target.value)}
+                        className="w-full px-2.5 py-1.5 bg-white border border-emerald-200 rounded-lg text-[11px] font-semibold text-slate-800 focus:outline-none"
+                      >
+                        <option value="AWBI / Section 8 NGO Certificate">AWBI / Section 8 NGO Reg</option>
+                        <option value="Society Registration / Trust Deed">Society / Trust Deed</option>
+                        <option value="Municipal Shelter License">Municipal Shelter License</option>
+                        <option value="Trade License / GSTIN">Trade License / GSTIN</option>
+                        <option value="Founder Govt Identity Proof (PAN/Aadhaar)">Founder Govt ID (PAN/Aadhaar)</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="text-[10px] font-bold text-emerald-900 block mb-0.5">Govt Registration / Proof No *</label>
+                      <input
+                        type="text"
+                        placeholder="e.g. AWBI/KAR/2023/8892"
+                        value={providerGovtProofNumber}
+                        onChange={(e) => setProviderGovtProofNumber(e.target.value)}
+                        className="w-full px-2.5 py-1.5 bg-white border border-emerald-200 rounded-lg text-[11px] font-semibold text-slate-800 focus:outline-none placeholder-slate-400"
+                        required
+                      />
+                    </div>
                   </div>
 
                   {/* Mobile No with Country Code Selector & Strict Numbers Validation */}
@@ -1768,7 +1815,7 @@ const Login = () => {
                     <button
                       type="submit"
                       disabled={loading}
-                      className="w-full py-3 bg-[#15559c] hover:bg-[#0f3d6b] text-white font-bold text-xs md:text-sm tracking-wide rounded-xl shadow-lg shadow-blue-900/20 active:scale-95 transition cursor-pointer flex items-center justify-center gap-2"
+                      className="w-full py-3 bg-[#0F2E23] hover:bg-[#163e30] text-white font-bold text-xs md:text-sm tracking-wide rounded-xl shadow-lg shadow-[#0F2E23]/20 active:scale-95 transition cursor-pointer flex items-center justify-center gap-2"
                     >
                       <Briefcase size={16} />
                       <span>{loading ? 'REGISTERING...' : 'Register as Service Provider'}</span>

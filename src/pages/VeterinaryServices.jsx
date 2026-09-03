@@ -42,10 +42,15 @@ import {
   saveVetAppointment
 } from '../data/veterinaryData.js';
 import { INDIAN_STATES_CITIES } from '../data/adoptionPetsData.js';
+import ServiceAccessLock, { isServicePathLockedForUser } from '../components/ServiceAccessLock.jsx';
 
 export default function VeterinaryServices() {
   const navigate = useNavigate();
   const { isAuthenticated, user } = useSelector((state) => state.auth);
+
+  if (isServicePathLockedForUser(user, '/veterinary')) {
+    return <ServiceAccessLock serviceName="Consult a Vet (Veterinary Care)" attemptedPath="/veterinary" />;
+  }
 
   // Doctors data from safe localStorage
   const [doctors, setDoctors] = useState(() => getStoredVetDoctors());

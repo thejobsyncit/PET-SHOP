@@ -15,11 +15,16 @@ import {
 import { INDIAN_STATES_CITIES } from '../data/adoptionPetsData.js';
 import { apiRequest } from '../services/api.js';
 import ScrollReveal from '../components/ScrollReveal.jsx';
+import ServiceAccessLock, { isServicePathLockedForUser } from '../components/ServiceAccessLock.jsx';
 
 const GroomingServices = () => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const { isAuthenticated, user } = useSelector((state) => state.auth);
+
+  if (isServicePathLockedForUser(user, '/grooming')) {
+    return <ServiceAccessLock serviceName="Pet Grooming Spa" attemptedPath="/grooming" />;
+  }
 
   // Search & Filter States
   const [selectedPetType, setSelectedPetType] = useState('All');

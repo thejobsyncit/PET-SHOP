@@ -14,11 +14,16 @@ import {
   saveWalkingBooking 
 } from '../data/walkingData.js';
 import { INDIAN_STATES_CITIES } from '../data/adoptionPetsData.js';
+import ServiceAccessLock, { isServicePathLockedForUser } from '../components/ServiceAccessLock.jsx';
 
 const WalkingServices = () => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const { isAuthenticated, user } = useSelector((state) => state.auth);
+
+  if (isServicePathLockedForUser(user, '/walking')) {
+    return <ServiceAccessLock serviceName="Pet Walking & Fitness" attemptedPath="/walking" />;
+  }
 
   // Search & Filter States
   const [selectedPetType, setSelectedPetType] = useState('All');

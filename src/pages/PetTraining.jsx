@@ -38,10 +38,15 @@ import {
   saveTrainingEnquiry
 } from '../data/trainingData.js';
 import { INDIAN_STATES_CITIES } from '../data/adoptionPetsData.js';
+import ServiceAccessLock, { isServicePathLockedForUser } from '../components/ServiceAccessLock.jsx';
 
 const PetTraining = () => {
   const navigate = useNavigate();
   const { isAuthenticated, user } = useSelector((state) => state.auth);
+
+  if (isServicePathLockedForUser(user, '/training')) {
+    return <ServiceAccessLock serviceName="Pet Training & Behavior" attemptedPath="/training" />;
+  }
 
   // State Management
   const [providers, setProviders] = useState([]);
