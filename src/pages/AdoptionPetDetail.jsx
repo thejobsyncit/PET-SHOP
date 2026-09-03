@@ -10,7 +10,8 @@ import toast from 'react-hot-toast';
 import { 
   getStoredAdoptionPets, 
   saveAdoptionApplication, 
-  getUserAdoptionApplications 
+  getUserAdoptionApplications,
+  saveAdoptionInquiry 
 } from '../data/adoptionPetsData';
 import FlyingMacawMessenger from '../components/FlyingMacawMessenger.jsx';
 
@@ -33,6 +34,12 @@ const AdoptionPetDetail = () => {
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [existingApplication, setExistingApplication] = useState(null);
   const [showFlyingMacaw, setShowFlyingMacaw] = useState(false);
+
+  // In-App Inquiry Modal State
+  const [showInquiryModal, setShowInquiryModal] = useState(false);
+  const [inquiryQuestion, setInquiryQuestion] = useState('');
+  const [inquirySenderName, setInquirySenderName] = useState('');
+  const [inquirySenderPhone, setInquirySenderPhone] = useState('');
 
   // Check if currently logged in user is the owner/creator of this pet listing
   const isPetOwner = Boolean(
@@ -71,8 +78,14 @@ const AdoptionPetDetail = () => {
   // Pre-fill user information if authenticated & check for existing application
   useEffect(() => {
     if (user) {
-      if (user.name) setApplicantName(user.name);
-      if (user.mobile) setApplicantPhone(user.mobile);
+      if (user.name) {
+        setApplicantName(user.name);
+        setInquirySenderName(user.name);
+      }
+      if (user.mobile) {
+        setApplicantPhone(user.mobile);
+        setInquirySenderPhone(user.mobile);
+      }
       if (user.email) setApplicantEmail(user.email);
 
       if (pet) {
@@ -86,34 +99,42 @@ const AdoptionPetDetail = () => {
     }
   }, [user, pet]);
 
-  if (!pet) {
-    return (
-      <div className="min-h-screen bg-[#faf8fc] flex items-center justify-center p-4">
-        <div className="bg-white p-8 rounded-2xl border border-purple-100 shadow-md max-w-md text-center space-y-4">
-          <div className="w-16 h-16 bg-purple-50 rounded-full flex items-center justify-center mx-auto text-[#7c56dc]">
-            <AlertCircle size={32} />
-          </div>
-          <h2 className="text-xl font-serif font-bold text-slate-800">Pet Listing Not Found</h2>
-          <p className="text-xs text-slate-500">
-            The pet listing you are looking for might have been adopted or removed.
-          </p>
-          <Link
-            to="/adopt"
-            className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#7c56dc] text-white rounded-xl font-bold text-xs shadow-md transition"
-          >
-            <ArrowLeft size={16} /> Back to All Adoption Pets
-          </Link>
-        </div>
-      </div>
-    );
-  }
+  // Handle in-app question inquiry submission
+  const handleInquirySubmit = (e) => {
+    e.preventDefault();
+    if (!inquiryQuestion.trim()) {
+      toast.error('Please enter your question or message.');
+      return;
+    }
+    const sender = inquirySenderName.trim() || user?.name || 'Prospective Adopter';
+    const contact = inquirySenderPhone.trim() || user?.mobile || '';
 
-  // Handle direct WhatsApp inquiry
-  const handleWhatsApp = () => {
-    const text = encodeURIComponent(
-      `Hello! I am interested in adopting "${pet.name}" (${pet.breed}, ${pet.city}) listed on JOSH PETS HUB.`
-    );
-    window.open(`https://wa.me/918306688827?text=${text}`, '_blank');
+    saveAdoptionInquiry({
+      id: 'lead_' + Date.now(),
+      petId: pet.id,
+      buyer: sender,
+      pet: `${pet.name} (${pet.breed})`,
+      phone: contact,
+      email: user?.email || '',
+      date: 'Just now',
+      message: inquiryQuestion.trim(),
+      unread: true,
+      messages: [
+        {
+          id: 'msg_' + Date.now(),
+          sender: sender,
+          messageText: inquiryQuestion.trim(),
+          createdAt: new Date().toISOString()
+        }
+      ]
+    });
+
+    setShowInquiryModal(false);
+    setInquiryQuestion('');
+    toast.success(`✉️ Your inquiry for ${pet.name} was sent directly to the shelter! They will review and reply in their dashboard.`, {
+      duration: 5000,
+      icon: '💬'
+    });
   };
 
   // Handle Application Submit
@@ -178,6 +199,29 @@ const AdoptionPetDetail = () => {
     };
 
     saveAdoptionApplication(applicationData);
+
+    // Also register as an active lead in the provider's chat inquiries
+    saveAdoptionInquiry({
+      id: 'lead_' + Date.now(),
+      petId: pet.id,
+      buyer: applicantName.trim() || user.name,
+      pet: `${pet.name} (${pet.breed})`,
+      phone: applicantPhone.trim() || user.mobile,
+      email: applicantEmail.trim() || user.email,
+      date: 'Just now',
+      message: `Adoption Screening Application: "${adoptionReason.trim()}" (Home: ${homeType}, Experience: ${hasPetExperience})`,
+      unread: true,
+      applicationId: applicationData.id,
+      messages: [
+        {
+          id: 'msg_' + Date.now(),
+          sender: applicantName.trim() || user.name,
+          messageText: `Hello! I have submitted an official adoption screening application for ${pet.name}. Reason: "${adoptionReason.trim()}". Living in ${homeType}, Prior experience: ${hasPetExperience}. Looking forward to connecting with you!`,
+          createdAt: new Date().toISOString()
+        }
+      ]
+    });
+
     setExistingApplication(applicationData);
     setIsSubmitted(true);
     setShowFlyingMacaw(true);
@@ -406,7 +450,7 @@ const AdoptionPetDetail = () => {
                 </div>
               </div>
 
-              {/* Instant WhatsApp & Call Buttons */}
+              {/* Instant WhatsApp, Call & In-App Direct Chat Buttons */}
               <div className="grid grid-cols-2 gap-3">
                 <button
                   type="button"
@@ -425,6 +469,16 @@ const AdoptionPetDetail = () => {
                   <span>Call Guardian</span>
                 </a>
               </div>
+
+              {/* Direct In-App Chat Inquiry Trigger */}
+              <button
+                type="button"
+                onClick={() => setShowInquiryModal(true)}
+                className="w-full py-2.5 px-4 bg-purple-50 hover:bg-purple-100 text-[#7c56dc] rounded-xl font-bold text-xs border border-purple-200 transition flex items-center justify-center gap-2 cursor-pointer shadow-xs"
+              >
+                <MessageSquare size={15} />
+                <span>💬 Ask Shelter a Question / Start Chat</span>
+              </button>
 
               {/* Adoption Application Form Section */}
               <div className="border-t border-slate-100 pt-4 space-y-4">
@@ -642,6 +696,87 @@ const AdoptionPetDetail = () => {
                   </div>
                 </div>
               ))}
+            </div>
+          </div>
+        )}
+
+        {/* Direct In-App Question Modal */}
+        {showInquiryModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
+            <div className="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-8 shadow-2xl space-y-5 relative">
+              <div className="flex justify-between items-center pb-3 border-b border-slate-100">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-10 h-10 rounded-2xl bg-purple-100 text-[#7c56dc] flex items-center justify-center font-bold">
+                    <MessageSquare size={20} />
+                  </div>
+                  <div>
+                    <h3 className="text-base font-bold text-slate-900">Ask Shelter About {pet.name}</h3>
+                    <p className="text-[11px] text-slate-500">Your message will go directly to the provider's dashboard chat.</p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowInquiryModal(false)}
+                  className="p-1.5 rounded-full hover:bg-slate-100 text-slate-400 hover:text-slate-700 transition cursor-pointer"
+                >
+                  <X size={18} />
+                </button>
+              </div>
+
+              <form onSubmit={handleInquirySubmit} className="space-y-4">
+                <div>
+                  <label className="text-xs font-bold text-slate-700 block mb-1">Your Name *</label>
+                  <input
+                    type="text"
+                    value={inquirySenderName}
+                    onChange={(e) => setInquirySenderName(e.target.value)}
+                    placeholder="Enter your full name"
+                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium focus:outline-none focus:border-[#7c56dc]"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="text-xs font-bold text-slate-700 block mb-1">Contact Phone Number *</label>
+                  <input
+                    type="tel"
+                    value={inquirySenderPhone}
+                    onChange={(e) => setInquirySenderPhone(e.target.value)}
+                    placeholder="e.g. 9876543210"
+                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium focus:outline-none focus:border-[#7c56dc]"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="text-xs font-bold text-slate-700 block mb-1">Your Question / Message *</label>
+                  <textarea
+                    rows={4}
+                    value={inquiryQuestion}
+                    onChange={(e) => setInquiryQuestion(e.target.value)}
+                    placeholder={`e.g. Hi! Is ${pet.name} friendly around other pets and toddlers? Can we schedule a visit to your sanctuary?`}
+                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium focus:outline-none focus:border-[#7c56dc]"
+                    required
+                  />
+                </div>
+
+                <div className="flex items-center justify-end gap-3 pt-2 border-t border-slate-100">
+                  <button
+                    type="button"
+                    onClick={() => setShowInquiryModal(false)}
+                    className="px-4 py-2 border border-slate-200 text-slate-600 rounded-xl text-xs font-bold hover:bg-slate-50 transition cursor-pointer"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="px-5 py-2 bg-[#7c56dc] hover:bg-[#6842c8] text-white rounded-xl text-xs font-bold shadow-md transition cursor-pointer flex items-center gap-1.5"
+                  >
+                    <span>Send Message</span>
+                    <ArrowRight size={14} />
+                  </button>
+                </div>
+              </form>
             </div>
           </div>
         )}

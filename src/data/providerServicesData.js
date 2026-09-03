@@ -5,6 +5,7 @@
 
 // Available Service Categories for Provider Dashboard
 export const SERVICE_CATEGORIES = [
+  { id: 'Adoption', name: 'Pet Adoption & Rescue Shelter', icon: '🏠', color: 'emerald' },
   { id: 'Veterinary', name: 'Veterinary & Healthcare', icon: '🩺', color: 'emerald' },
   { id: 'Grooming', name: 'Pet Grooming & Spa', icon: '✂️', color: 'sky' },
   { id: 'Hostel', name: 'Pet Hostel & Boarding', icon: '🏨', color: 'amber' },
@@ -162,6 +163,46 @@ export const DEMO_PROVIDER_PERSONAS = [
       Sunday: { open: '10:00 AM', close: '06:00 PM', active: true }
     },
     amenities: ['KCI Lineage Certificate', 'Microchip Implantation', 'Health & Genetic Guarantee', 'First Vaccine Kit Included', 'Free Delivery in Bangalore']
+  },
+  {
+    id: 'prov-adopt-05',
+    name: 'Hope Animal Sanctuary & Adoption Center',
+    businessName: 'Hope Animal Welfare Foundation & Sanctuary',
+    role: 'SERVICE_PROVIDER',
+    serviceCategory: 'Pet Adoption',
+    title: 'AWBI Registered Non-Profit Pet Shelter & Rescue Center',
+    clinicName: 'Hope Animal Rescue & Adoption Sanctuary',
+    govtProofType: 'AWBI / Section 8 NGO Certificate',
+    govtProofNumber: 'AWBI/KAR/2023/NGO-88942',
+    govtProofDoc: 'https://images.unsplash.com/photo-1589829545856-d10d557cf95f?q=80&w=800',
+    verificationStatus: 'Verified',
+    shelterCapacity: 85,
+    experience: '11+ Years Rescue & Rehoming',
+    rating: 4.98,
+    reviewsCount: 420,
+    phone: '+91 98455 77661',
+    whatsapp: '+91 98455 77661',
+    email: 'adopt@pawora.com',
+    location: 'Whitefield, Bangalore, Karnataka',
+    city: 'Bangalore',
+    state: 'Karnataka',
+    area: 'Whitefield',
+    pincode: '560066',
+    bio: 'Dedicated non-profit rescue sanctuary providing compassionate foster care, medical rehabilitation, and loving forever homes for abandoned, rescued, and stray animals across India.',
+    avatar: 'https://images.unsplash.com/photo-1548767797-d8c844163c4c?q=80&w=400',
+    coverImage: 'https://images.unsplash.com/photo-1548199973-03cce0bbc87b?q=80&w=1200',
+    isOnline: true,
+    acceptingEmergency: true,
+    operatingHours: {
+      Monday: { open: '09:00 AM', close: '07:00 PM', active: true },
+      Tuesday: { open: '09:00 AM', close: '07:00 PM', active: true },
+      Wednesday: { open: '09:00 AM', close: '07:00 PM', active: true },
+      Thursday: { open: '09:00 AM', close: '07:00 PM', active: true },
+      Friday: { open: '09:00 AM', close: '07:00 PM', active: true },
+      Saturday: { open: '09:00 AM', close: '08:00 PM', active: true },
+      Sunday: { open: '10:00 AM', close: '06:00 PM', active: true }
+    },
+    amenities: ['AWBI Certified Facility', 'Quarantine & Intensive Care Ward', 'Open Social Play Yard', 'Veterinary Care On-Site', 'Adopter Counseling Lounge', 'Free Lifetime Microchipping']
   }
 ];
 
@@ -709,9 +750,16 @@ export const saveAllStoredPayouts = (payouts) => {
 export const getStoredProviderProfiles = () => {
   try {
     const raw = localStorage.getItem(STORAGE_PROFILES_KEY);
-    if (raw) return JSON.parse(raw);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        return parsed;
+      }
+    }
   } catch (e) {}
-  localStorage.setItem(STORAGE_PROFILES_KEY, JSON.stringify(DEMO_PROVIDER_PERSONAS));
+  try {
+    localStorage.setItem(STORAGE_PROFILES_KEY, JSON.stringify(DEMO_PROVIDER_PERSONAS));
+  } catch (e) {}
   return DEMO_PROVIDER_PERSONAS;
 };
 

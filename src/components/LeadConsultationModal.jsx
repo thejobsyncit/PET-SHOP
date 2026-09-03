@@ -735,7 +735,7 @@ const LeadConsultationModal = () => {
                 onClick={() => setActiveTab('user')}
                 className={`flex-1 py-1.5 px-2 text-[10.5px] sm:text-[11px] font-bold rounded-lg transition-all flex items-center justify-center gap-1 cursor-pointer ${
                   activeTab === 'user'
-                    ? 'bg-white text-[#15559c] shadow-md font-extrabold'
+                    ? 'bg-[#0F2E23] text-white shadow-md font-extrabold'
                     : 'text-slate-500 hover:text-slate-800'
                 }`}
               >
@@ -749,7 +749,7 @@ const LeadConsultationModal = () => {
                 onClick={() => setActiveTab('provider')}
                 className={`flex-1 py-1.5 px-2 text-[10.5px] sm:text-[11px] font-bold rounded-lg transition-all flex items-center justify-center gap-1 cursor-pointer ${
                   activeTab === 'provider'
-                    ? 'bg-[#15559c] text-white shadow-md font-extrabold'
+                    ? 'bg-[#0F2E23] text-white shadow-md font-extrabold'
                     : 'text-slate-500 hover:text-slate-800'
                 }`}
               >
@@ -1004,7 +1004,7 @@ const LeadConsultationModal = () => {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full py-2.5 bg-[#15559c] hover:bg-[#0f3d6b] text-white font-bold text-xs md:text-sm tracking-wide rounded-xl shadow-md shadow-blue-900/20 active:scale-95 transition cursor-pointer flex items-center justify-center gap-1.5"
+                  className="w-full py-2.5 bg-[#0F2E23] hover:bg-[#163e30] text-white font-bold text-xs md:text-sm tracking-wide rounded-xl shadow-md shadow-[#0F2E23]/20 active:scale-95 transition cursor-pointer flex items-center justify-center gap-1.5"
                 >
                   <User size={15} />
                   <span>{loading ? 'REGISTERING...' : 'Register as User'}</span>
@@ -1265,7 +1265,7 @@ const LeadConsultationModal = () => {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full py-2.5 bg-[#15559c] hover:bg-[#0f3d6b] text-white font-bold text-xs md:text-sm tracking-wide rounded-xl shadow-md shadow-blue-900/20 active:scale-95 transition cursor-pointer flex items-center justify-center gap-1.5"
+                  className="w-full py-2.5 bg-[#0F2E23] hover:bg-[#163e30] text-white font-bold text-xs md:text-sm tracking-wide rounded-xl shadow-md shadow-[#0F2E23]/20 active:scale-95 transition cursor-pointer flex items-center justify-center gap-1.5"
                 >
                   <Briefcase size={15} />
                   <span>{loading ? 'REGISTERING...' : 'Register as Service Provider'}</span>

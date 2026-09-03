@@ -477,6 +477,70 @@ export const compressImageFile = (file, maxWidth = 800, quality = 0.75) => {
 // =========================================================================
 // ADOPTION APPLICATIONS & ENQUIRIES STORAGE SYSTEM
 // =========================================================================
+export const DEFAULT_ADOPTION_APPLICATIONS = [
+  {
+    id: 'app_101',
+    petId: 'adopt_1',
+    petName: 'Prince',
+    petBreed: 'Golden Retriever',
+    petType: 'dogs',
+    petImage: 'https://images.unsplash.com/photo-1552053831-71594a27632d?q=80&w=800',
+    guardianName: 'Hope Animal Welfare Foundation',
+    guardianPhone: '+91 98455 77661',
+    guardianId: 'prov-adopt-05',
+    applicantId: 'user-demo-01',
+    applicantName: 'Vikram Sengupta',
+    applicantPhone: '+91 98451 22311',
+    applicantEmail: 'vikram.sengupta@gmail.com',
+    homeType: 'Independent House with Fenced Garden',
+    hasPetExperience: true,
+    adoptionReason: 'We have a large yard and had a rescue Golden for 11 years. Our family is eager to welcome and cherish Prince.',
+    status: 'Under Review',
+    createdAt: new Date(Date.now() - 24 * 3600 * 1000).toISOString()
+  },
+  {
+    id: 'app_102',
+    petId: 'adopt_3',
+    petName: 'Daisy',
+    petBreed: 'Shih Tzu',
+    petType: 'dogs',
+    petImage: 'https://images.unsplash.com/photo-1543466835-00a7907e9de1?q=80&w=800',
+    guardianName: 'Hope Animal Welfare Foundation',
+    guardianPhone: '+91 98455 77661',
+    guardianId: 'prov-adopt-05',
+    applicantId: 'user-demo-02',
+    applicantName: 'Sneha Kapoor',
+    applicantPhone: '+91 97312 88772',
+    applicantEmail: 'sneha.kapoor@outlook.com',
+    homeType: 'Spacious Apartment with Enclosed Balcony',
+    hasPetExperience: true,
+    adoptionReason: 'Work from home full time. Looking for a gentle indoor companion to love and care for lifelong.',
+    status: 'Approved',
+    createdAt: new Date(Date.now() - 48 * 3600 * 1000).toISOString()
+  },
+  {
+    id: 'app_103',
+    petId: 'adopt_2',
+    petName: 'Leo',
+    petBreed: 'Golden Retriever',
+    petType: 'dogs',
+    petImage: 'https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?q=80&w=800',
+    guardianName: 'Hope Animal Welfare Foundation',
+    guardianPhone: '+91 98455 77661',
+    guardianId: 'prov-adopt-05',
+    applicantId: 'user-demo-03',
+    applicantName: 'Arjun Menon',
+    applicantPhone: '+91 99450 11998',
+    applicantEmail: 'arjun.menon@gmail.com',
+    homeType: 'Independent Villa with Lawn',
+    hasPetExperience: false,
+    adoptionReason: 'First time pet parent, completed pet parenting courses, and ready for home inspection anytime.',
+    status: 'Submitted',
+    createdAt: new Date(Date.now() - 12 * 3600 * 1000).toISOString()
+  }
+];
+
+// In-memory cache for adoption applications to ensure fast instant sync
 let memoryApplicationsCache = null;
 
 export const getStoredAdoptionApplications = () => {
@@ -487,7 +551,7 @@ export const getStoredAdoptionApplications = () => {
     const saved = localStorage.getItem('pawora_adoption_applications') || sessionStorage.getItem('pawora_adoption_applications');
     if (saved) {
       const parsed = JSON.parse(saved);
-      if (Array.isArray(parsed)) {
+      if (Array.isArray(parsed) && parsed.length > 0) {
         memoryApplicationsCache = parsed;
         return parsed;
       }
@@ -495,8 +559,11 @@ export const getStoredAdoptionApplications = () => {
   } catch (e) {
     console.warn('Applications storage read error:', e);
   }
-  memoryApplicationsCache = [];
-  return [];
+  memoryApplicationsCache = DEFAULT_ADOPTION_APPLICATIONS;
+  try {
+    localStorage.setItem('pawora_adoption_applications', JSON.stringify(DEFAULT_ADOPTION_APPLICATIONS));
+  } catch (e) {}
+  return DEFAULT_ADOPTION_APPLICATIONS;
 };
 
 export const saveAdoptionApplication = (newApp) => {
@@ -543,83 +610,205 @@ export const updateAdoptionApplicationStatus = (appId, newStatus, guardianNotes 
 // Get all applications submitted BY a specific user
 export const getUserAdoptionApplications = (user) => {
   if (!user) return [];
-  const all = getStoredAdoptionApplications();
-  const userId = user._id || user.id;
-  const userEmail = (user.email || '').toLowerCase().trim();
-  const userPhoneClean = (user.mobile || '').replace(/\D/g, '');
+  try {
+    const all = getStoredAdoptionApplications() || [];
+    const userId = String(user._id || user.id || '');
+    const userEmail = String(user.email || '').toLowerCase().trim();
+    const userPhoneClean = String(user.mobile || user.phone || '').replace(/\D/g, '');
 
-  return all.filter((app) => {
-    const appUserId = app.applicantId;
-    const appEmail = (app.applicantEmail || '').toLowerCase().trim();
-    const appPhoneClean = (app.applicantPhone || '').replace(/\D/g, '');
+    return all.filter((app) => {
+      if (!app) return false;
+      const appUserId = String(app.applicantId || '');
+      const appEmail = String(app.applicantEmail || '').toLowerCase().trim();
+      const appPhoneClean = String(app.applicantPhone || '').replace(/\D/g, '');
 
-    const idMatch = userId && appUserId && (appUserId === userId || String(appUserId) === String(userId));
-    const emailMatch = userEmail && appEmail && appEmail === userEmail;
-    const phoneMatch = userPhoneClean.length >= 10 && appPhoneClean && (
-      appPhoneClean === userPhoneClean ||
-      appPhoneClean.endsWith(userPhoneClean) ||
-      userPhoneClean.endsWith(appPhoneClean)
-    );
+      const idMatch = userId && appUserId && appUserId === userId;
+      const emailMatch = userEmail && appEmail && appEmail === userEmail;
+      const phoneMatch = userPhoneClean.length >= 10 && appPhoneClean && (
+        appPhoneClean === userPhoneClean ||
+        appPhoneClean.endsWith(userPhoneClean) ||
+        userPhoneClean.endsWith(appPhoneClean)
+      );
 
-    return idMatch || emailMatch || phoneMatch;
-  });
+      return idMatch || emailMatch || phoneMatch;
+    });
+  } catch (e) {
+    console.error('Error in getUserAdoptionApplications:', e);
+    return [];
+  }
 };
 
 // Get all pets listed BY a specific user
 export const getGuardianListedPets = (user) => {
   if (!user) return [];
-  const allPets = getStoredAdoptionPets();
-  const userId = user._id || user.id;
-  const userEmail = (user.email || '').toLowerCase().trim();
-  const userPhoneClean = (user.mobile || '').replace(/\D/g, '');
+  try {
+    const allPets = getStoredAdoptionPets() || [];
+    const userId = String(user._id || user.id || '');
+    const userEmail = String(user.email || '').toLowerCase().trim();
+    const userPhoneClean = String(user.mobile || user.phone || '').replace(/\D/g, '');
 
-  return allPets.filter((pet) => {
-    const petOwnerId = pet.ownerId;
-    const petOwnerEmail = (pet.ownerEmail || '').toLowerCase().trim();
-    const petOwnerPhone = (pet.ownerPhone || pet.parentContact || '').replace(/\D/g, '');
+    return allPets.filter((pet) => {
+      if (!pet) return false;
+      const petOwnerId = String(pet.ownerId || '');
+      const petOwnerEmail = String(pet.ownerEmail || '').toLowerCase().trim();
+      const petOwnerPhone = String(pet.ownerPhone || pet.parentContact || '').replace(/\D/g, '');
 
-    const idMatch = userId && petOwnerId && (petOwnerId === userId || String(petOwnerId) === String(userId));
-    const emailMatch = userEmail && petOwnerEmail && petOwnerEmail === userEmail;
-    const phoneMatch = userPhoneClean.length >= 10 && petOwnerPhone && (
-      petOwnerPhone === userPhoneClean ||
-      petOwnerPhone.endsWith(userPhoneClean) ||
-      userPhoneClean.endsWith(petOwnerPhone)
-    );
+      const idMatch = userId && petOwnerId && petOwnerId === userId;
+      const emailMatch = userEmail && petOwnerEmail && petOwnerEmail === userEmail;
+      const phoneMatch = userPhoneClean.length >= 10 && petOwnerPhone && (
+        petOwnerPhone === userPhoneClean ||
+        petOwnerPhone.endsWith(userPhoneClean) ||
+        userPhoneClean.endsWith(petOwnerPhone)
+      );
 
-    return idMatch || emailMatch || phoneMatch;
-  });
+      return idMatch || emailMatch || phoneMatch;
+    });
+  } catch (e) {
+    console.error('Error in getGuardianListedPets:', e);
+    return [];
+  }
 };
 
 // Get all applications received FOR pets listed by this guardian
 export const getGuardianAdoptionApplications = (user) => {
   if (!user) return [];
-  const guardianPets = getGuardianListedPets(user);
-  const guardianPetIds = new Set(guardianPets.map((p) => String(p.id)));
+  try {
+    const guardianPets = getGuardianListedPets(user) || [];
+    const guardianPetIds = new Set(guardianPets.map((p) => String(p?.id || '')));
 
-  const allApps = getStoredAdoptionApplications();
-  const userId = user._id || user.id;
-  const userEmail = (user.email || '').toLowerCase().trim();
-  const userPhoneClean = (user.mobile || '').replace(/\D/g, '');
+    const allApps = getStoredAdoptionApplications() || [];
+    const userId = String(user._id || user.id || '');
+    const userEmail = String(user.email || '').toLowerCase().trim();
+    const userPhoneClean = String(user.mobile || user.phone || '').replace(/\D/g, '');
 
-  return allApps.filter((app) => {
-    // Matches if the application is for one of the guardian's pets
-    if (app.petId && guardianPetIds.has(String(app.petId))) {
-      return true;
-    }
-    // Or matches guardian ID / phone / email recorded on application
-    const gId = app.guardianId;
-    const gEmail = (app.guardianEmail || '').toLowerCase().trim();
-    const gPhoneClean = (app.guardianPhone || '').replace(/\D/g, '');
+    return allApps.filter((app) => {
+      if (!app) return false;
+      if (app.petId && guardianPetIds.has(String(app.petId))) {
+        return true;
+      }
+      const gId = String(app.guardianId || '');
+      const gEmail = String(app.guardianEmail || '').toLowerCase().trim();
+      const gPhoneClean = String(app.guardianPhone || '').replace(/\D/g, '');
 
-    const idMatch = userId && gId && (gId === userId || String(gId) === String(userId));
-    const emailMatch = userEmail && gEmail && gEmail === userEmail;
-    const phoneMatch = userPhoneClean.length >= 10 && gPhoneClean && (
-      gPhoneClean === userPhoneClean ||
-      gPhoneClean.endsWith(userPhoneClean) ||
-      userPhoneClean.endsWith(gPhoneClean)
-    );
+      const idMatch = userId && gId && gId === userId;
+      const emailMatch = userEmail && gEmail && gEmail === userEmail;
+      const phoneMatch = userPhoneClean.length >= 10 && gPhoneClean && (
+        gPhoneClean === userPhoneClean ||
+        gPhoneClean.endsWith(userPhoneClean) ||
+        userPhoneClean.endsWith(gPhoneClean)
+      );
 
-    return idMatch || emailMatch || phoneMatch;
-  });
+      return idMatch || emailMatch || phoneMatch;
+    });
+  } catch (e) {
+    console.error('Error in getGuardianAdoptionApplications:', e);
+    return [];
+  }
 };
+
+// Default Initial Inquiries for Pet Adoption Dashboard Demo
+export const DEFAULT_ADOPTION_INQUIRIES = [
+  {
+    id: 'lead_1',
+    petId: 'adopt_1',
+    buyer: 'Aarav Mehta',
+    pet: 'Prince (Golden Retriever)',
+    phone: '+91 98201 44552',
+    email: 'aarav.m@example.com',
+    date: 'Today, 10:15 AM',
+    message: 'Hi, I saw Prince is available for adoption. Can my family visit the sanctuary this Saturday?',
+    unread: true,
+    messages: [
+      {
+        id: 'm1',
+        sender: 'Aarav Mehta',
+        messageText: 'Hi, I saw Prince is available for adoption. Can my family visit the sanctuary this Saturday?',
+        createdAt: new Date(Date.now() - 7200000).toISOString()
+      },
+      {
+        id: 'm2',
+        sender: 'provider',
+        messageText: 'Hello Aarav! Yes, Prince is doing great. You and your family are welcome to visit our sanctuary between 10:00 AM and 5:00 PM this Saturday.',
+        createdAt: new Date(Date.now() - 3600000).toISOString()
+      }
+    ]
+  },
+  {
+    id: 'lead_2',
+    petId: 'adopt_2',
+    buyer: 'Kavita Iyer',
+    pet: 'Leo (Golden Retriever)',
+    phone: '+91 97422 11983',
+    email: 'kavita.iyer@example.com',
+    date: 'Yesterday, 04:30 PM',
+    message: 'Hello! Is Leo comfortable around other senior dogs? We have a 6-year-old rescued Indie dog.',
+    unread: false,
+    messages: [
+      {
+        id: 'm1',
+        sender: 'Kavita Iyer',
+        messageText: 'Hello! Is Leo comfortable around other senior dogs? We have a 6-year-old rescued Indie dog.',
+        createdAt: new Date(Date.now() - 86400000).toISOString()
+      },
+      {
+        id: 'm2',
+        sender: 'provider',
+        messageText: 'Hi Kavita! Leo is exceptionally gentle and socialized with dogs of all ages. A companion dog would actually help him settle even faster!',
+        createdAt: new Date(Date.now() - 43200000).toISOString()
+      }
+    ]
+  },
+  {
+    id: 'lead_3',
+    petId: 'adopt_3',
+    buyer: 'Dr. Vivek Nair',
+    pet: 'Daisy (Shih Tzu)',
+    phone: '+91 99011 88231',
+    email: 'dr.vivek@example.com',
+    date: '2 days ago',
+    message: 'Submitted the adoption screening form for Daisy. Looking forward to your approval!',
+    unread: false,
+    messages: [
+      {
+        id: 'm1',
+        sender: 'Dr. Vivek Nair',
+        messageText: 'Submitted the adoption screening form for Daisy. Looking forward to your approval!',
+        createdAt: new Date(Date.now() - 172800000).toISOString()
+      }
+    ]
+  }
+];
+
+export const getStoredAdoptionInquiries = () => {
+  try {
+    const saved = localStorage.getItem('pawora_adoption_inquiries') || sessionStorage.getItem('pawora_adoption_inquiries');
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        return parsed;
+      }
+    }
+  } catch (e) {
+    console.warn('Inquiries storage read error:', e);
+  }
+  return DEFAULT_ADOPTION_INQUIRIES;
+};
+
+export const saveAdoptionInquiry = (newInquiry) => {
+  const current = getStoredAdoptionInquiries();
+  const existingIdx = current.findIndex(i => i.id === newInquiry.id);
+  let updated;
+  if (existingIdx !== -1) {
+    updated = [...current];
+    updated[existingIdx] = { ...updated[existingIdx], ...newInquiry };
+  } else {
+    updated = [newInquiry, ...current];
+  }
+
+  try {
+    localStorage.setItem('pawora_adoption_inquiries', JSON.stringify(updated));
+  } catch (e) {}
+  return updated;
+};
+
 

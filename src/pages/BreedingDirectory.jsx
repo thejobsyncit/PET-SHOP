@@ -35,10 +35,15 @@ import {
   saveMatingEnquiry
 } from '../data/breedingData.js';
 import { INDIAN_STATES_CITIES } from '../data/adoptionPetsData.js';
+import ServiceAccessLock, { isServicePathLockedForUser } from '../components/ServiceAccessLock.jsx';
 
 const BreedingDirectory = () => {
   const navigate = useNavigate();
   const { isAuthenticated, user } = useSelector((state) => state.auth);
+
+  if (isServicePathLockedForUser(user, '/breeding')) {
+    return <ServiceAccessLock serviceName="Pet Mating & Breeding" attemptedPath="/breeding" />;
+  }
 
   // Mating Pets Data
   const [pets, setPets] = useState([]);

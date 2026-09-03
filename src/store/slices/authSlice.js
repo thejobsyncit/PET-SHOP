@@ -28,6 +28,7 @@ export const register = createAsyncThunk('auth/register', async (userData, thunk
     const simulatedUser = {
       _id: 'user_' + Date.now(),
       name: userData.name,
+      businessName: userData.businessName || userData.name,
       email: userData.email,
       mobile: userData.mobile,
       mobileCountryCode: userData.mobileCountryCode || '+91',
@@ -37,6 +38,12 @@ export const register = createAsyncThunk('auth/register', async (userData, thunk
       password: userData.password,
       role: userData.role || 'CUSTOMER',
       serviceCategory: userData.serviceCategory || '',
+      govtProofType: userData.govtProofType || 'AWBI / NGO Registration Certificate',
+      govtProofNumber: userData.govtProofNumber || '',
+      govtProofDoc: userData.govtProofDoc || '',
+      verificationStatus: userData.verificationStatus || 'Verified',
+      shelterCapacity: userData.shelterCapacity || 50,
+      bio: userData.bio || '',
       location: userData.location || 'Bangalore, Karnataka',
       addresses: []
     };
@@ -113,6 +120,23 @@ export const login = createAsyncThunk('auth/login', async (credentials, thunkAPI
           role: 'SERVICE_PROVIDER',
           serviceCategory: 'Pet Seller',
           location: 'Indiranagar, Bangalore, Karnataka'
+        },
+        {
+          _id: 'prov-adopt-05',
+          name: 'Hope Animal Sanctuary & Adoption Center',
+          businessName: 'Hope Animal Welfare Foundation & Sanctuary',
+          email: 'adopt@pawora.com',
+          mobile: '9845577661',
+          password: 'Pass@1234',
+          role: 'SERVICE_PROVIDER',
+          serviceCategory: 'Pet Adoption',
+          govtProofType: 'AWBI / Section 8 NGO Certificate',
+          govtProofNumber: 'AWBI/KAR/2023/NGO-88942',
+          govtProofDoc: 'https://images.unsplash.com/photo-1589829545856-d10d557cf95f?q=80&w=800',
+          verificationStatus: 'Verified',
+          shelterCapacity: 85,
+          bio: 'Dedicated non-profit rescue sanctuary providing compassionate foster care, medical rehabilitation, and loving forever homes.',
+          location: 'Whitefield, Bangalore, Karnataka'
         },
         {
           _id: 'user-demo-01',

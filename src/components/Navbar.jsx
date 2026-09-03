@@ -5,6 +5,7 @@ import { Search, Heart, ShoppingBag, Menu, X, ChevronDown, User, LogOut, Message
 import SearchOverlay from './SearchOverlay.jsx';
 import CartDrawer from './CartDrawer.jsx';
 import { logout } from '../store/slices/authSlice.js';
+import { isServicePathLockedForUser } from './ServiceAccessLock.jsx';
 import toast from 'react-hot-toast';
 
 const Navbar = () => {
@@ -103,14 +104,14 @@ const Navbar = () => {
   };
 
   const handleServicesNavigation = (e, targetPath = '/services', isHubRedirect = false) => {
-    if (isPetSeller) {
+    if (isServicePathLockedForUser(user, targetPath)) {
       if (e) e.preventDefault();
       if (isHubRedirect) {
         setServicesMenuOpen(false);
         setIsMobileMenuOpen(false);
         navigate('/provider-dashboard');
       } else {
-        toast.error(`Access Restricted: Pet Services are exclusively for Pet Service Professionals. (Your account: Pet Seller)`, { id: 'srv-restrict' });
+        toast.error(`🔒 Access Locked: You are signed in as a ${user?.serviceCategory || 'Service Provider'}. This service is locked for your account. Please access your dedicated Provider Dashboard.`, { id: 'srv-restrict' });
       }
       return;
     }
@@ -322,21 +323,36 @@ const Navbar = () => {
                       </div>
                     ) : (
                       <div className="max-h-[320px] overflow-y-auto custom-scrollbar">
-                        {servicesList.map((service) => (
-                          <button
-                            key={service.label}
-                            onClick={(e) => handleServicesNavigation(e, service.path)}
-                            className="w-full flex items-center gap-2.5 px-3 py-2 hover:bg-slate-50 border-b border-slate-50 last:border-0 transition-colors group cursor-pointer text-left bg-transparent border-t-0 border-l-0 border-r-0 outline-none"
-                          >
-                            <div className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center group-hover:scale-110 group-hover:bg-white group-hover:shadow-sm transition-all shrink-0">
-                              {service.icon}
-                            </div>
-                            <div>
-                              <div className="text-xs font-bold text-slate-800 group-hover:text-primary transition-colors">{service.label}</div>
-                              <div className="text-[9px] text-slate-500 font-medium">{service.desc}</div>
-                            </div>
-                          </button>
-                        ))}
+                        {servicesList.map((service) => {
+                          const isLocked = isServicePathLockedForUser(user, service.path);
+                          return (
+                            <button
+                              key={service.label}
+                              onClick={(e) => handleServicesNavigation(e, service.path)}
+                              className={`w-full flex items-center justify-between gap-2.5 px-3 py-2 border-b border-slate-50 last:border-0 transition-colors group cursor-pointer text-left bg-transparent border-t-0 border-l-0 border-r-0 outline-none ${
+                                isLocked ? 'opacity-70 hover:bg-amber-50/50' : 'hover:bg-slate-50'
+                              }`}
+                            >
+                              <div className="flex items-center gap-2.5 min-w-0">
+                                <div className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center group-hover:scale-110 group-hover:bg-white group-hover:shadow-sm transition-all shrink-0">
+                                  {service.icon}
+                                </div>
+                                <div className="min-w-0">
+                                  <div className="text-xs font-bold text-slate-800 group-hover:text-primary transition-colors flex items-center gap-1.5">
+                                    <span className="truncate">{service.label}</span>
+                                    {isLocked && <Lock size={11} className="text-amber-500 shrink-0" />}
+                                  </div>
+                                  <div className="text-[9px] text-slate-500 font-medium truncate">{service.desc}</div>
+                                </div>
+                              </div>
+                              {isLocked && (
+                                <span className="text-[9px] text-amber-600 font-bold bg-amber-50 px-1.5 py-0.5 rounded shrink-0">
+                                  Locked
+                                </span>
+                              )}
+                            </button>
+                          );
+                        })}
                       </div>
                     )}
                   </div>
@@ -545,9 +561,23 @@ const Navbar = () => {
                 {/* Pet Services expanded on mobile */}
                 <div className="space-y-2 py-1 pl-2 border-l border-white/10">
                   <span className="block text-[11px] text-accent-light tracking-widest font-bold uppercase">Pet Services</span>
-                  {servicesList.map(service => (
-                    <Link key={service.label} to={service.path} onClick={() => setIsMobileMenuOpen(false)} className="block py-1 hover:text-accent-light text-[11px] normal-case pl-2">{service.label}</Link>
-                  ))}
+                  {servicesList.map(service => {
+                    const isLocked = isServicePathLockedForUser(user, service.path);
+                    return (
+                      <button
+                        key={service.label}
+                        onClick={(e) => handleServicesNavigation(e, service.path)}
+                        className="w-full text-left py-1 hover:text-accent-light text-[11px] normal-case pl-2 flex items-center justify-between cursor-pointer bg-transparent border-0 text-white"
+                      >
+                        <span>{service.label}</span>
+                        {isLocked && (
+                          <span className="text-[9px] bg-amber-400/20 text-amber-300 px-1.5 py-0.5 rounded font-semibold flex items-center gap-1">
+                            <Lock size={10} /> Locked
+                          </span>
+                        )}
+                      </button>
+                    );
+                  })}
                 </div>
 
                 <Link to="/shop" onClick={() => setIsMobileMenuOpen(false)} className="block py-2 hover:text-accent-light border-b border-white/5">Shop</Link>

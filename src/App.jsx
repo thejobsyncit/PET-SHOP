@@ -6,6 +6,7 @@ import { store } from './store/index.js';
 import MainLayout from './layouts/MainLayout.jsx';
 import PageLoader from './components/PageLoader.jsx';
 import ScrollToTop from './components/ScrollToTop.jsx';
+import ErrorBoundary from './components/ErrorBoundary.jsx';
 
 // Lazy Loaded Route Chunks for Blazing-Fast Page Transitions & Micro Bundle Sizes
 const Home = lazy(() => import('./pages/Home.jsx'));
@@ -43,8 +44,9 @@ const ChatConsole = lazy(() => import('./pages/ChatConsole.jsx'));
 function App() {
   return (
     <Provider store={store}>
-      <BrowserRouter>
-        <ScrollToTop />
+      <ErrorBoundary>
+        <BrowserRouter>
+          <ScrollToTop />
         {/* Toast Alerts Overlay */}
         <Toaster 
           position="top-right"
@@ -141,6 +143,7 @@ function App() {
           </Routes>
         </Suspense>
       </BrowserRouter>
+      </ErrorBoundary>
     </Provider>
   );
 }

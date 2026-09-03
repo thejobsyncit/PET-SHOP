@@ -370,22 +370,22 @@ const AccountDashboard = () => {
                         </div>
                         <div>
                           <p className="text-gray-400 font-medium">TOTAL AMOUNT</p>
-                          <p className="font-bold text-primary">₹{order.pricing.total}</p>
+                          <p className="font-bold text-primary">₹{order.pricing?.total || order.total || 0}</p>
                         </div>
                       </div>
 
                       {/* Items Row */}
                       <div className="space-y-3">
-                        {order.orderItems.map((item, idx) => (
+                        {(order.orderItems || []).map((item, idx) => (
                           <div key={idx} className="flex justify-between items-center gap-4">
                             <div className="flex items-center gap-3">
-                              <img src={item.image} alt={item.name} className="w-10 h-10 object-cover bg-gray-100 border border-beige rounded-md" />
+                              <img src={item.image || 'https://images.unsplash.com/photo-1543466835-00a7907e9de1?q=80&w=800'} alt={item.name} className="w-10 h-10 object-cover bg-gray-100 border border-beige rounded-md" />
                               <div>
                                 <p className="font-semibold text-primary truncate max-w-xs">{item.name}</p>
                                 <p className="text-[10px] text-gray-400">Qty: {item.quantity} • Price: ₹{item.price}</p>
                               </div>
                             </div>
-                            <span className="font-bold text-primary">₹{item.price * item.quantity}</span>
+                            <span className="font-bold text-primary">₹{(item.price || 0) * (item.quantity || 1)}</span>
                           </div>
                         ))}
                       </div>

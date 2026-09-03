@@ -103,10 +103,16 @@ const TOP_PROVIDERS = [
   { id: 4, name: 'Happy Paws Resort', category: 'Hostel', rating: 4.9, reviews: 145, location: 'Bangalore', image: 'https://images.unsplash.com/photo-1548199973-03cce0bbc87b?q=80&w=800' }
 ];
 
+import ServiceAccessLock, { isServicePathLockedForUser } from '../components/ServiceAccessLock.jsx';
+
 const ServiceBooking = () => {
   const navigate = useNavigate();
-  const { isAuthenticated } = useSelector((state) => state.auth);
+  const { isAuthenticated, user } = useSelector((state) => state.auth);
   const [selectedCategory, setSelectedCategory] = useState('All');
+
+  if (isServicePathLockedForUser(user, '/services')) {
+    return <ServiceAccessLock serviceName="Pet Services Hub" attemptedPath="/services" />;
+  }
 
   useEffect(() => {
     window.scrollTo(0, 0);

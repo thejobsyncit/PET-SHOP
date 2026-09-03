@@ -179,10 +179,16 @@ export const SPECIES_COVERAGE_OPTIONS = {
   ]
 };
 
+import ServiceAccessLock, { isServicePathLockedForUser } from '../components/ServiceAccessLock.jsx';
+
 const PetInsurance = () => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const { isAuthenticated, user } = useSelector((state) => state.auth);
+
+  if (isServicePathLockedForUser(user, '/insurance')) {
+    return <ServiceAccessLock serviceName="Pet Insurance" attemptedPath="/insurance" />;
+  }
 
   // Filter States
   const [providers, setProviders] = useState([]);
