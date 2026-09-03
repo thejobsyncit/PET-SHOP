@@ -30,6 +30,7 @@ import bookingRoutes from './routes/bookingRoutes.js';
 import serviceRoutes from './routes/serviceRoutes.js';
 import chatRoutes from './routes/chatRoutes.js';
 import enquiryRoutes from './routes/enquiryRoutes.js';
+import paymentRoutes from './routes/paymentRoutes.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -114,6 +115,7 @@ app.use('/api/bookings', bookingRoutes);
 app.use('/api/services', serviceRoutes);
 app.use('/api/chats', chatRoutes);
 app.use('/api/enquiries', enquiryRoutes);
+app.use('/api/payments', paymentRoutes);
 
 // Health check endpoint
 app.get('/health', (req, res) => {
@@ -135,4 +137,4 @@ process.on('unhandledRejection', (err) => {
 });
 
 export default app;
-
+// restart trigger

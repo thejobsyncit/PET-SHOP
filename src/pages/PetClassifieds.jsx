@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useSelector } from 'react-redux';
-import { Search, Plus, MapPin, MessageSquare, ShieldCheck, Tag, Phone, X, Heart, Lock, ShieldAlert, Briefcase, Clock, Syringe } from 'lucide-react';
+import { Search, Plus, MapPin, MessageSquare, ShieldCheck, Tag, Phone, X, Heart, Lock, ShieldAlert, Briefcase, Clock, Syringe, CreditCard, Check, Shield } from 'lucide-react';
 import { apiRequest } from '../services/api.js';
 import toast from 'react-hot-toast';
 
@@ -26,6 +26,12 @@ const PetClassifieds = () => {
 
   const [searchQuery, setSearchQuery] = useState('');
   const [showAddForm, setShowAddForm] = useState(false);
+
+  // Checkout states
+  const [checkoutPet, setCheckoutPet] = useState(null);
+  const [paymentMethod, setPaymentMethod] = useState('Credit Card');
+  const [isProcessingPayment, setIsProcessingPayment] = useState(false);
+  const [paymentStep, setPaymentStep] = useState('details'); // 'details', 'processing', 'success'
 
   // Form states
   const [title, setTitle] = useState('');
@@ -133,23 +139,44 @@ const PetClassifieds = () => {
     navigate('/chat', { state: { recipientId: owner._id || owner, ownerName: owner.name } });
   };
 
-  const handleBuy = async (id) => {
+  const handleBuy = (pet) => {
     if (!isAuthenticated) {
       toast.error('Please login to purchase a pet.');
       navigate('/login');
       return;
     }
-    
-    if (window.confirm('Are you sure you want to purchase this pet? The stock will decrease by 1.')) {
-      try {
-        const data = await apiRequest(`/listings/${id}/buy`, { method: 'PUT' });
-        if (data.success) {
+    setCheckoutPet(pet);
+  };
+
+  const handleConfirmPurchase = async () => {
+    if (paymentMethod !== 'Cash on Delivery') {
+      setPaymentStep('processing');
+      // simulate network/gateway delay for Razorpay/Stripe
+      await new Promise(resolve => setTimeout(resolve, 2500));
+    } else {
+      setIsProcessingPayment(true);
+    }
+
+    try {
+      const data = await apiRequest(`/listings/${checkoutPet._id}/buy`, { method: 'PUT' });
+      if (data.success) {
+        if (paymentMethod !== 'Cash on Delivery') {
+          setPaymentStep('success');
+          // play success for a brief moment before closing
+          await new Promise(resolve => setTimeout(resolve, 1500));
+        } else {
           toast.success('Successfully purchased! The seller will be notified.');
-          loadListings();
         }
-      } catch (err) {
-        toast.error(err.message || 'Purchase failed.');
+        
+        setCheckoutPet(null);
+        setPaymentStep('details');
+        setIsProcessingPayment(false);
+        loadListings();
       }
+    } catch (err) {
+      toast.error(err.message || 'Purchase failed.');
+      setPaymentStep('details');
+      setIsProcessingPayment(false);
     }
   };
 
@@ -233,12 +260,14 @@ const PetClassifieds = () => {
           <p className="text-xs text-gray-500 font-normal mt-0.5">Verify credentials, adopt locally, and find healthy litters near you.</p>
         </div>
         
-        <button
-          onClick={() => setShowAddForm(true)}
-          className="w-full sm:w-auto px-5 py-3 bg-primary hover:bg-accent text-white hover:text-primary font-bold tracking-widest text-xs uppercase flex items-center justify-center gap-1.5 transition cursor-pointer shadow-sm active:scale-[0.98]"
-        >
-          <Plus size={15} /> {user?.role === 'SERVICE_PROVIDER' && (user?.serviceCategory || '').toLowerCase() === 'pet seller' ? 'POST PET LISTING (SELLER)' : 'LIST MY PET'}
-        </button>
+        {(user?.role === 'SERVICE_PROVIDER' && (user?.serviceCategory || '').toLowerCase() === 'pet seller') || user?.role === 'ADMIN' || user?.role === 'SUPERADMIN' ? (
+          <button
+            onClick={() => setShowAddForm(true)}
+            className="w-full sm:w-auto px-5 py-3 bg-primary hover:bg-accent text-white hover:text-primary font-bold tracking-widest text-xs uppercase flex items-center justify-center gap-1.5 transition cursor-pointer shadow-sm active:scale-[0.98]"
+          >
+            <Plus size={15} /> POST PET LISTING
+          </button>
+        ) : null}
       </div>
 
       {/* Filters & Search Row */}
@@ -389,7 +418,7 @@ const PetClassifieds = () => {
                 {l.status !== 'Sold Out' && l.quantity !== 0 && (
                   <div className="pt-2">
                     <button
-                      onClick={() => handleBuy(l._id)}
+                      onClick={() => handleBuy(l)}
                       className="w-full py-2 bg-[#ffd000] hover:bg-[#e6bb00] text-[#0F2E23] text-[11px] font-black tracking-widest uppercase rounded-md transition cursor-pointer shadow-sm flex items-center justify-center gap-2"
                     >
                       <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></svg>
@@ -584,6 +613,123 @@ const PetClassifieds = () => {
               </button>
             </div>
           </form>
+        </div>
+      )}
+
+      {/* CHECKOUT MODAL OVERLAY */}
+      {checkoutPet && (
+        <div className="fixed inset-0 z-[110] bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in duration-200">
+          <div className="bg-white border border-beige shadow-2xl w-full max-w-md overflow-hidden animate-in zoom-in-95 duration-200">
+            <div className="bg-primary px-6 py-4 flex justify-between items-center">
+              <h3 className="font-serif text-lg font-bold text-white flex items-center gap-2">
+                <CreditCard size={18} className="text-accent" /> Checkout Securely
+              </h3>
+              {paymentStep === 'details' && (
+                <button 
+                  onClick={() => setCheckoutPet(null)}
+                  className="text-white hover:text-accent p-1 cursor-pointer"
+                >
+                  <X size={18} />
+                </button>
+              )}
+            </div>
+            
+            <div className="p-6">
+              
+              {paymentStep === 'processing' && (
+                <div className="py-16 flex flex-col items-center justify-center space-y-5 animate-in fade-in zoom-in-95 duration-300">
+                   <div className="relative">
+                     <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-primary"></div>
+                     <div className="absolute inset-0 flex items-center justify-center text-accent">
+                       <Shield size={20} />
+                     </div>
+                   </div>
+                   <div className="text-center">
+                     <h3 className="text-lg font-bold text-primary font-serif">Processing Payment...</h3>
+                     <p className="text-xs text-gray-500 mt-1">Please do not close this window or press back.</p>
+                   </div>
+                   <div className="flex items-center gap-1.5 text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-8 bg-gray-50 px-3 py-1.5 rounded-full border border-gray-100">
+                     <Lock size={12} /> Secured by Razorpay
+                   </div>
+                </div>
+              )}
+
+              {paymentStep === 'success' && (
+                <div className="py-16 flex flex-col items-center justify-center space-y-4 animate-in fade-in zoom-in-95 duration-300">
+                   <div className="w-20 h-20 bg-green-100 text-green-600 rounded-full flex items-center justify-center shadow-inner">
+                     <Check size={40} className="animate-[bounce_0.5s_ease-in-out_1]" />
+                   </div>
+                   <div className="text-center">
+                     <h3 className="text-xl font-bold text-green-700 font-serif">Payment Successful!</h3>
+                     <p className="text-xs text-gray-500 mt-1 font-medium">Your order has been confirmed.</p>
+                   </div>
+                </div>
+              )}
+
+              {paymentStep === 'details' && (
+                <div className="space-y-6 animate-in fade-in duration-300">
+                  {/* Pet Info */}
+                  <div className="flex gap-4 p-4 border border-beige bg-secondary rounded-xl">
+                    <img src={checkoutPet.images[0]} alt={checkoutPet.title} className="w-16 h-16 object-cover bg-gray-100 rounded-lg shadow-sm" />
+                    <div>
+                      <h4 className="font-bold text-primary text-sm line-clamp-1">{checkoutPet.title}</h4>
+                      <p className="text-xs text-gray-500 uppercase tracking-widest mt-1">{checkoutPet.breed}</p>
+                      <p className="text-primary font-black mt-1">₹{(checkoutPet.price || 0).toLocaleString('en-IN')}</p>
+                    </div>
+                  </div>
+
+                  {/* Payment Method */}
+                  <div className="space-y-3">
+                    <label className="text-xs font-bold text-gray-500 uppercase tracking-wider block">Select Payment Method</label>
+                    <div className="grid gap-2">
+                      {['Credit Card', 'UPI', 'Net Banking', 'Cash on Delivery'].map((method) => (
+                        <label 
+                          key={method}
+                          className={`flex items-center gap-3 p-3.5 border cursor-pointer text-xs font-semibold rounded-lg transition-colors ${
+                            paymentMethod === method ? 'border-primary bg-secondary text-primary shadow-sm' : 'border-beige text-gray-500 hover:border-primary/50 hover:bg-gray-50'
+                          }`}
+                        >
+                          <input 
+                            type="radio" 
+                            name="pet-payment" 
+                            checked={paymentMethod === method}
+                            onChange={() => setPaymentMethod(method)}
+                            className="text-primary focus:ring-0" 
+                          />
+                          <span>{method === 'Credit Card' ? 'Credit / Debit Card' : method}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Summary & Action */}
+                  <div className="pt-5 border-t border-beige space-y-5">
+                    <div className="flex justify-between items-center text-sm font-bold text-primary bg-[#fdfaf2] p-3 rounded-lg border border-[#e6c968]/30">
+                      <span>Grand Total</span>
+                      <span>₹{(checkoutPet.price || 0).toLocaleString('en-IN')}</span>
+                    </div>
+                    
+                    <button
+                      onClick={handleConfirmPurchase}
+                      disabled={isProcessingPayment}
+                      className="w-full btn-premium py-3 text-xs uppercase shadow-md flex items-center justify-center gap-2"
+                    >
+                      {isProcessingPayment ? (
+                        <>
+                          <div className="w-3 h-3 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
+                          PROCESSING...
+                        </>
+                      ) : (
+                        <>
+                          <Lock size={14} /> PAY ₹{(checkoutPet.price || 0).toLocaleString('en-IN')} SECURELY
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
       )}
 

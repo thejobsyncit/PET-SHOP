@@ -1,6 +1,6 @@
 import express from 'express';
 import Service from '../models/Service.js';
-import { protect } from '../middleware/auth.js';
+import { protect, optionalAuth } from '../middleware/auth.js';
 import { isDbConnected, readMockData, writeMockData } from '../utils/mockDb.js';
 
 const router = express.Router();

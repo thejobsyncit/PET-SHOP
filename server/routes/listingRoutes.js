@@ -15,17 +15,17 @@ router.get('/', optionalAuth, async (req, res) => {
       const query = {};
       if (petType) query.petType = petType;
       
-      // Auto-delete listings sold out > 48 hours ago
-      const twoDaysAgo = new Date(Date.now() - 48 * 60 * 60 * 1000);
-      await Listing.deleteMany({ soldOutAt: { $lt: twoDaysAgo } });
+      // Auto-delete listings sold out > 20 minutes ago
+      const twentyMinsAgo = new Date(Date.now() - 20 * 60 * 1000);
+      await Listing.deleteMany({ soldOutAt: { $lt: twentyMinsAgo } });
       
       listings = await Listing.find(query).populate('user', 'name email');
     } else {
       listings = readMockData('listings');
-      // Auto-remove sold out > 48 hours ago
-      const twoDaysAgo = new Date(Date.now() - 48 * 60 * 60 * 1000);
+      // Auto-remove sold out > 20 minutes ago
+      const twentyMinsAgo = new Date(Date.now() - 20 * 60 * 1000);
       const filteredListings = listings.filter(l => {
-        if (l.soldOutAt && new Date(l.soldOutAt) < twoDaysAgo) return false;
+        if (l.soldOutAt && new Date(l.soldOutAt) < twentyMinsAgo) return false;
         return true;
       });
       if (listings.length !== filteredListings.length) {
@@ -41,13 +41,7 @@ router.get('/', optionalAuth, async (req, res) => {
     const isAdmin = req.user && (req.user.role === 'ADMIN' || req.user.role === 'SUPERADMIN');
     
     if (!isAdmin) {
-      listings = listings.filter(l => {
-        const isOwner = req.user && (
-          (l.user?._id?.toString() === req.user._id?.toString()) || 
-          (l.user?.toString() === req.user._id?.toString())
-        );
-        return l.isVerified === true || isOwner;
-      });
+      listings = listings.filter(l => l.isVerified === true && l.paymentStatus === 'paid');
     }
 
     res.json({ success: true, listings });
@@ -74,7 +68,7 @@ router.get('/my', protect, async (req, res) => {
 // POST create listing
 router.post('/', protect, async (req, res) => {
   try {
-    const { title, petType, breed, age, price, description, images, location, contactPhone, quantity, vaccinationCertificate } = req.body;
+    const { title, petType, breed, age, price, description, images, location, contactPhone, quantity, vaccinationCertificate, paymentStatus, paymentAmount } = req.body;
     let newListing;
 
     if (isDbConnected()) {
@@ -90,7 +84,10 @@ router.post('/', protect, async (req, res) => {
         location,
         vaccinationCertificate: vaccinationCertificate || null,
         contactPhone,
-        quantity: parseInt(quantity) || 1
+        quantity: parseInt(quantity) || 1,
+        paymentStatus: paymentStatus || 'pending',
+        paymentAmount: paymentAmount || 200,
+        isVerified: paymentStatus === 'paid'
       });
     } else {
       const listings = readMockData('listings');
@@ -107,10 +104,12 @@ router.post('/', protect, async (req, res) => {
         location,
         vaccinationCertificate: vaccinationCertificate || null,
         contactPhone,
-        isVerified: false,
+        isVerified: paymentStatus === 'paid',
         quantity: parseInt(quantity) || 1,
         soldCount: 0,
         status: 'Available',
+        paymentStatus: paymentStatus || 'pending',
+        paymentAmount: paymentAmount || 200,
         soldOutAt: null,
         createdAt: new Date().toISOString()
       };
@@ -166,8 +165,9 @@ router.put('/:id/buy', protect, async (req, res) => {
       const listing = await Listing.findById(req.params.id);
       if (!listing) return res.status(404).json({ success: false, message: 'Listing not found' });
       
-      if (listing.quantity > 0) {
-        listing.quantity -= 1;
+      let currentQty = listing.quantity !== undefined && listing.quantity !== null ? Number(listing.quantity) : 1;
+      if (currentQty > 0) {
+        listing.quantity = currentQty - 1;
         listing.soldCount = (listing.soldCount || 0) + 1;
         if (listing.quantity === 0) {
           listing.status = 'Sold Out';
@@ -181,8 +181,9 @@ router.put('/:id/buy', protect, async (req, res) => {
       const idx = listings.findIndex(l => l._id === req.params.id);
       if (idx === -1) return res.status(404).json({ success: false, message: 'Listing not found' });
 
-      if (listings[idx].quantity > 0) {
-        listings[idx].quantity -= 1;
+      let currentQty = listings[idx].quantity !== undefined && listings[idx].quantity !== null ? Number(listings[idx].quantity) : 1;
+      if (currentQty > 0) {
+        listings[idx].quantity = currentQty - 1;
         listings[idx].soldCount = (listings[idx].soldCount || 0) + 1;
         if (listings[idx].quantity === 0) {
           listings[idx].status = 'Sold Out';
@@ -210,8 +211,9 @@ router.put('/:id/sell', protect, async (req, res) => {
         return res.status(401).json({ success: false, message: 'Not authorized' });
       }
 
-      if (listing.quantity > 0) {
-        listing.quantity -= 1;
+      let currentQty = listing.quantity !== undefined && listing.quantity !== null ? Number(listing.quantity) : 1;
+      if (currentQty > 0) {
+        listing.quantity = currentQty - 1;
         listing.soldCount = (listing.soldCount || 0) + 1;
         if (listing.quantity === 0) {
           listing.status = 'Sold Out';
@@ -230,8 +232,9 @@ router.put('/:id/sell', protect, async (req, res) => {
         return res.status(401).json({ success: false, message: 'Not authorized' });
       }
 
-      if (listings[idx].quantity > 0) {
-        listings[idx].quantity -= 1;
+      let currentQty = listings[idx].quantity !== undefined && listings[idx].quantity !== null ? Number(listings[idx].quantity) : 1;
+      if (currentQty > 0) {
+        listings[idx].quantity = currentQty - 1;
         listings[idx].soldCount = (listings[idx].soldCount || 0) + 1;
         if (listings[idx].quantity === 0) {
           listings[idx].status = 'Sold Out';

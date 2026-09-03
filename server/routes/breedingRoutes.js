@@ -1,12 +1,12 @@
 import express from 'express';
 import Breeding from '../models/Breeding.js';
-import { protect, admin } from '../middleware/auth.js';
+import { protect, admin, optionalAuth } from '../middleware/auth.js';
 import { isDbConnected, readMockData, writeMockData } from '../utils/mockDb.js';
 
 const router = express.Router();
 
 // GET verified studs list
-router.get('/', async (req, res) => {
+router.get('/', optionalAuth, async (req, res) => {
   try {
     const { breed } = req.query;
     let studs = [];
@@ -20,6 +20,19 @@ router.get('/', async (req, res) => {
       if (breed) {
         studs = studs.filter(s => s.breed.toLowerCase().includes(breed.toLowerCase()));
       }
+    }
+
+    // Filter logic for verification
+    const isAdmin = req.user && (req.user.role === 'ADMIN' || req.user.role === 'SUPERADMIN');
+    
+    if (!isAdmin) {
+      studs = studs.filter(s => {
+        const isOwner = req.user && (
+          (s.user?._id?.toString() === req.user._id?.toString()) || 
+          (s.user?.toString() === req.user._id?.toString())
+        );
+        return s.isVerified === true || isOwner;
+      });
     }
 
     res.json({ success: true, studs });

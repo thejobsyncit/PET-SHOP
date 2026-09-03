@@ -61,6 +61,15 @@ const listingSchema = new mongoose.Schema({
     type: Number,
     default: 0
   },
+  paymentStatus: {
+    type: String,
+    enum: ['pending', 'paid', 'failed'],
+    default: 'pending'
+  },
+  paymentAmount: {
+    type: Number,
+    default: 200
+  },
   soldOutAt: {
     type: Date,
     default: null

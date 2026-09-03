@@ -321,13 +321,15 @@ const AccountDashboard = () => {
             <button
               key={tab.id}
               onClick={() => handleTabChange(tab.id)}
-              className={`w-full flex items-center gap-3 px-4 py-3 text-xs font-semibold uppercase tracking-wider transition rounded-lg text-left cursor-pointer ${
+              className={`w-full flex items-center gap-3 px-4 py-3.5 text-xs font-bold tracking-wider uppercase transition rounded-xl text-left cursor-pointer group ${
                 activeTab === tab.id 
-                  ? 'bg-primary text-white font-bold shadow-sm' 
-                  : 'text-gray-500 hover:bg-secondary hover:text-primary'
+                  ? 'bg-[#0F2E23] text-[#d4af37] shadow-md border border-[#163f30]' 
+                  : 'text-gray-500 hover:bg-[#f8efcd]/40 hover:text-[#0F2E23] border border-transparent'
               }`}
             >
-              {tab.icon}
+              <div className={`p-1.5 rounded-lg transition-colors ${activeTab === tab.id ? 'bg-[#163f30] text-[#d4af37]' : 'bg-gray-100 text-gray-400 group-hover:bg-[#d4af37]/20 group-hover:text-[#0F2E23]'}`}>
+                {tab.icon}
+              </div>
               <span className="truncate">{tab.label}</span>
             </button>
           ))}
@@ -403,7 +405,24 @@ const AccountDashboard = () => {
                   ))}
                 </div>
               ) : (
-                <p className="text-xs text-gray-500 italic">You have not placed any orders yet.</p>
+                <div className="p-10 border border-dashed border-[#d4af37]/40 rounded-2xl text-center space-y-3 bg-[#fdfaf2] shadow-sm">
+                  <div className="w-14 h-14 bg-[#f8efcd] text-[#0F2E23] rounded-full flex items-center justify-center mx-auto border border-[#e6c968]">
+                    <ShoppingBag size={24} />
+                  </div>
+                  <h3 className="font-serif text-lg font-bold text-[#0F2E23]">No Orders Placed Yet</h3>
+                  <p className="text-xs text-gray-500 max-w-md mx-auto leading-relaxed">
+                    You haven't made any purchases yet. Explore our premium selection of pet food, accessories, and grooming products!
+                  </p>
+                  <div className="pt-3">
+                    <Link
+                      to="/shop"
+                      className="px-5 py-2.5 bg-[#0F2E23] text-[#d4af37] hover:text-white hover:bg-[#163f30] rounded-xl text-xs font-bold shadow transition inline-flex items-center gap-1.5"
+                    >
+                      <Sparkles size={14} />
+                      <span>Explore Shop</span>
+                    </Link>
+                  </div>
+                </div>
               )}
             </div>
           )}
@@ -841,7 +860,24 @@ const AccountDashboard = () => {
                   ))}
                 </div>
               ) : (
-                <p className="text-xs text-gray-500 italic">No prescriptions uploaded yet.</p>
+                <div className="p-10 border border-dashed border-blue-200 rounded-2xl text-center space-y-3 bg-blue-50/30 shadow-sm">
+                  <div className="w-14 h-14 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mx-auto border border-blue-200">
+                    <ClipboardList size={24} />
+                  </div>
+                  <h3 className="font-serif text-lg font-bold text-gray-800">No Prescriptions Uploaded</h3>
+                  <p className="text-xs text-gray-500 max-w-md mx-auto leading-relaxed">
+                    You haven't uploaded any veterinary prescriptions yet. Securely upload them at the pharmacy to purchase medicines.
+                  </p>
+                  <div className="pt-3">
+                    <Link
+                      to="/pharmacy"
+                      className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold shadow transition inline-flex items-center gap-1.5"
+                    >
+                      <Plus size={14} />
+                      <span>Visit Pharmacy</span>
+                    </Link>
+                  </div>
+                </div>
               )}
             </div>
           )}
@@ -948,7 +984,24 @@ const AccountDashboard = () => {
                   ))}
                 </div>
               ) : (
-                <p className="text-xs text-gray-500 italic">No addresses saved. Add a default shipping address above.</p>
+                <div className="p-10 border border-dashed border-gray-200 rounded-2xl text-center space-y-3 bg-gray-50/50 shadow-sm">
+                  <div className="w-14 h-14 bg-gray-200 text-gray-600 rounded-full flex items-center justify-center mx-auto border border-gray-300">
+                    <MapPin size={24} />
+                  </div>
+                  <h3 className="font-serif text-lg font-bold text-gray-800">No Addresses Saved</h3>
+                  <p className="text-xs text-gray-500 max-w-md mx-auto leading-relaxed">
+                    You haven't added any shipping addresses yet. Add one now for a faster checkout experience on your next order.
+                  </p>
+                  <div className="pt-3">
+                    <button
+                      onClick={() => setShowAddressForm(true)}
+                      className="px-5 py-2.5 bg-[#0F2E23] text-white hover:bg-[#163f30] rounded-xl text-xs font-bold shadow transition inline-flex items-center gap-1.5 cursor-pointer"
+                    >
+                      <Plus size={14} />
+                      <span>Add New Address</span>
+                    </button>
+                  </div>
+                </div>
               )}
             </div>
           )}

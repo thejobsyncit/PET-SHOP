@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
+import { updateProfile } from '../store/slices/authSlice.js';
 import {
   PawPrint, Calendar, Star, TrendingUp, DollarSign, Clock, MapPin, 
   MessageSquare, Plus, Search, ChevronRight, Phone, ShieldCheck, Mail, Heart, Settings,
-  Tag, ShoppingBag, AlertCircle, LayoutDashboard, LogOut, CheckCircle, X, Send
+  Tag, ShoppingBag, AlertCircle, LayoutDashboard, LogOut, CheckCircle, X, Send, CreditCard, Loader2
 } from 'lucide-react';
 import { apiRequest } from '../services/api.js';
 import toast from 'react-hot-toast';
@@ -20,6 +21,20 @@ const PetSellerDashboard = ({
   const [activeTab, setActiveTab] = useState(activeTabParam);
 
   const { user } = useSelector(state => state.auth);
+  const dispatch = useDispatch();
+
+  const [profileName, setProfileName] = useState(user?.name || currentProvider.name || '');
+  const [profileAvatar, setProfileAvatar] = useState(user?.avatar || user?.profilePicture || currentProvider.avatar || '');
+
+  const handleUpdateProfile = async (e) => {
+    e.preventDefault();
+    const result = await dispatch(updateProfile({ name: profileName, avatar: profileAvatar, profilePicture: profileAvatar }));
+    if (updateProfile.fulfilled.match(result)) {
+      toast.success('Seller profile updated successfully!');
+    } else {
+      toast.error('Failed to update profile');
+    }
+  };
 
   const [allListings, setAllListings] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -89,6 +104,11 @@ const PetSellerDashboard = ({
   const [quantity, setQuantity] = useState(1);
   const [imageFile, setImageFile] = useState(null);
   const [vaccinationFile, setVaccinationFile] = useState(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  
+  // Payment Modal State
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [isProcessingPayment, setIsProcessingPayment] = useState(false);
 
   useEffect(() => {
     if (activeTabParam) {
@@ -104,7 +124,7 @@ const PetSellerDashboard = ({
   const fetchListings = async () => {
     setLoading(true);
     try {
-      const data = await apiRequest('/listings');
+      const data = await apiRequest('/listings/my');
       if (data.success) {
         setAllListings(data.listings);
       }
@@ -180,7 +200,7 @@ const PetSellerDashboard = ({
     }
   };
 
-  const handleCreateListing = async (e) => {
+  const triggerPayment = (e) => {
     e.preventDefault();
 
     if (!title || !breed || !age || !location || !contactPhone || !description) {
@@ -188,6 +208,101 @@ const PetSellerDashboard = ({
       return;
     }
 
+    // Show the payment modal
+    setShowPaymentModal(true);
+  };
+
+  const loadRazorpayScript = () => {
+    return new Promise((resolve) => {
+      const script = document.createElement('script');
+      script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+      script.onload = () => resolve(true);
+      script.onerror = () => resolve(false);
+      document.body.appendChild(script);
+    });
+  };
+
+  const submitPaidListing = async () => {
+    setIsProcessingPayment(true);
+
+    try {
+      // 1. Load Razorpay script
+      const res = await loadRazorpayScript();
+      if (!res) {
+        toast.error('Failed to load Razorpay script. Check your connection.');
+        setIsProcessingPayment(false);
+        return;
+      }
+
+      // 2. Create Order on Backend
+      const orderResponse = await apiRequest('/payments/create-order', {
+        method: 'POST',
+        body: JSON.stringify({ amount: 200 })
+      });
+
+      if (!orderResponse.success) {
+        toast.error('Could not create payment order');
+        setIsProcessingPayment(false);
+        return;
+      }
+
+      // 3. Initialize Razorpay Checkout
+      const options = {
+        key: 'rzp_test_placeholder_key_id', // Replace with real key ID or fetch from backend
+        amount: orderResponse.amount,
+        currency: orderResponse.currency,
+        name: 'Pawora Pet Shop',
+        description: 'Listing Fee for ' + title,
+        image: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?q=80&w=400',
+        order_id: orderResponse.orderId,
+        handler: async function (response) {
+          try {
+            // 4. Verify Payment on Backend
+            const verifyRes = await apiRequest('/payments/verify', {
+              method: 'POST',
+              body: JSON.stringify({
+                razorpay_order_id: response.razorpay_order_id,
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_signature: response.razorpay_signature,
+              })
+            });
+
+            if (verifyRes.success) {
+              // 5. Submit Listing after successful payment
+              await finalizeListingSubmission();
+            } else {
+              toast.error('Payment verification failed!');
+            }
+          } catch (err) {
+            toast.error('Verification error: ' + err.message);
+          }
+        },
+        prefill: {
+          name: profileName || 'Pet Seller',
+          email: user?.email || 'seller@example.com',
+          contact: contactPhone || '9999999999',
+        },
+        theme: {
+          color: '#0F2E23',
+        },
+        modal: {
+          ondismiss: function() {
+            setIsProcessingPayment(false);
+            toast.error('Payment cancelled');
+          }
+        }
+      };
+
+      const paymentObject = new window.Razorpay(options);
+      paymentObject.open();
+
+    } catch (err) {
+      toast.error(err.message || 'Payment initiation failed.');
+      setIsProcessingPayment(false);
+    }
+  };
+
+  const finalizeListingSubmission = async () => {
     const payload = {
       title,
       petType,
@@ -200,7 +315,9 @@ const PetSellerDashboard = ({
       contactPhone,
       quantity: parseInt(quantity) || 1,
       images: imageFile ? [imageFile] : undefined,
-      vaccinationCertificate: vaccinationFile || undefined
+      vaccinationCertificate: vaccinationFile || undefined,
+      paymentStatus: 'paid',
+      paymentAmount: 200
     };
 
     try {
@@ -210,8 +327,10 @@ const PetSellerDashboard = ({
       });
 
       if (data.success) {
-        toast.success('Your pet listing has been published successfully!');
+        toast.success('Payment successful! Your pet listing has been published.');
+        setShowPaymentModal(false);
         setShowAddForm(false);
+        
         // Clear inputs
         setTitle('');
         setBreed('');
@@ -221,16 +340,30 @@ const PetSellerDashboard = ({
         setDescription('');
         setImageFile(null);
         setVaccinationFile(null);
+        setQuantity(1);
+        
+        // Refresh listings immediately
         fetchListings();
       }
     } catch (err) {
-      toast.error(err.message || 'Failed to create pet listing');
+      toast.error(err.message || 'Failed to submit listing after payment.');
+    } finally {
+      setIsProcessingPayment(false);
+    }
     }
   };
 
   const myPets = useMemo(() => {
-    return allListings;
-  }, [allListings, currentProvider]);
+    if (!searchQuery.trim()) return allListings;
+    const query = searchQuery.toLowerCase().trim();
+    return allListings.filter(pet => {
+      return (
+        pet.title?.toLowerCase().includes(query) ||
+        pet.breed?.toLowerCase().includes(query) ||
+        pet.petType?.toLowerCase().includes(query)
+      );
+    });
+  }, [allListings, currentProvider, searchQuery]);
 
   const activePets = myPets.filter(p => p.status !== 'Sold Out' && p.quantity > 0);
   const soldPets = myPets.filter(p => p.status === 'Sold Out' || p.quantity === 0);
@@ -461,6 +594,8 @@ const PetSellerDashboard = ({
                     <input 
                       type="text" 
                       placeholder="Search your pets..." 
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
                       className="bg-slate-50 border border-slate-200 rounded-xl pl-9 pr-4 py-2 text-sm text-slate-700 placeholder-slate-400 focus:outline-none focus:border-[#0F2E23] focus:ring-1 focus:ring-[#0F2E23] w-64 transition shadow-sm"
                     />
                   </div>
@@ -714,16 +849,70 @@ const PetSellerDashboard = ({
               </div>
             )}
 
+          {activeTab === 'profile' && (
+            <div className="space-y-6 animate-in fade-in zoom-in-95 duration-300">
+              <h2 className="text-xl font-sans font-black text-[#0F2E23] flex items-center gap-2">
+                <Settings size={22} className="text-[#ffd000]" /> Seller Profile Settings
+              </h2>
+              
+              <div className="bg-white border border-slate-200 rounded-2xl p-8 shadow-sm max-w-2xl">
+                <form onSubmit={handleUpdateProfile} className="space-y-6">
+                  
+                  <div className="flex flex-col md:flex-row gap-6 items-start">
+                    <div className="shrink-0 flex flex-col items-center gap-3">
+                      <img 
+                        src={profileAvatar || 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?q=80&w=400'} 
+                        alt="Profile" 
+                        className="w-24 h-24 rounded-full object-cover border-4 border-slate-100 shadow-sm"
+                      />
+                    </div>
+                    <div className="flex-1 space-y-4 w-full">
+                      <div className="space-y-1.5">
+                        <label className="text-slate-600 font-black text-xs uppercase tracking-wider block">Seller/Brand Name</label>
+                        <input
+                          type="text"
+                          value={profileName}
+                          onChange={(e) => setProfileName(e.target.value)}
+                          className="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-[#0F2E23] focus:ring-1 focus:ring-[#0F2E23] shadow-sm bg-slate-50"
+                          required
+                        />
+                      </div>
+                      
+                      <div className="space-y-1.5">
+                        <label className="text-slate-600 font-black text-xs uppercase tracking-wider block">Profile Image</label>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={(e) => handleFileChange(e, setProfileAvatar)}
+                          className="w-full px-3 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-[#0F2E23] shadow-sm bg-slate-50 file:mr-2 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-black file:bg-[#0F2E23] file:text-white hover:file:bg-[#163e30]"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="pt-4 border-t border-slate-100 flex justify-end">
+                    <button 
+                      type="submit" 
+                      className="px-6 py-3 bg-[#0F2E23] hover:bg-[#163e30] text-white font-black text-xs uppercase tracking-wider rounded-xl transition shadow-md"
+                    >
+                      Save Profile Changes
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          )}
+
         </div>
       </main>
 
       {/* OVERLAY MODAL: CREATE NEW LISTING */}
       {showAddForm && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
           <div onClick={() => setShowAddForm(false)} className="fixed inset-0 bg-[#0F2E23]/40 backdrop-blur-sm"></div>
           
           <form 
-            onSubmit={handleCreateListing}
+            onSubmit={triggerPayment}
             className="relative bg-white w-full max-w-2xl border border-slate-200 rounded-2xl shadow-2xl flex flex-col max-h-[90vh] z-10 animate-in fade-in zoom-in-95 duration-200 overflow-hidden"
           >
             <div className="px-6 py-5 bg-[#0F2E23] text-white flex justify-between items-center">
@@ -898,6 +1087,78 @@ const PetSellerDashboard = ({
               </button>
             </div>
           </form>
+        </div>
+      )}
+
+      {/* PAYMENT MODAL */}
+      {showPaymentModal && (
+        <div className="fixed inset-0 z-[70] flex items-center justify-center p-4">
+          <div className="fixed inset-0 bg-[#0F2E23]/60 backdrop-blur-md"></div>
+          
+          <div className="relative bg-white w-full max-w-md border border-slate-200 rounded-3xl shadow-2xl flex flex-col z-10 animate-in fade-in zoom-in-95 duration-300 overflow-hidden">
+            {/* Header */}
+            <div className="bg-[#0F2E23] p-6 text-center relative overflow-hidden">
+              <div className="absolute top-0 right-0 p-4 opacity-10">
+                <PawPrint size={100} />
+              </div>
+              <div className="w-16 h-16 bg-[#ffd000] rounded-full mx-auto flex items-center justify-center mb-4 relative z-10 shadow-lg border-4 border-[#0F2E23]">
+                <CreditCard size={28} className="text-[#0F2E23]" />
+              </div>
+              <h3 className="font-sans text-xl font-black text-white relative z-10">Listing Fee Required</h3>
+              <p className="text-sm text-slate-300 mt-2 relative z-10 font-medium">To publish this listing, a one-time fee is required.</p>
+            </div>
+
+            {/* Content */}
+            <div className="p-8 space-y-6">
+              <div className="bg-slate-50 border border-slate-200 rounded-2xl p-5 shadow-inner">
+                <div className="flex justify-between items-center mb-3">
+                  <span className="text-sm font-bold text-slate-500">Listing:</span>
+                  <span className="text-sm font-black text-[#0F2E23] line-clamp-1 text-right ml-4">{title || 'New Pet'}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm font-bold text-slate-500">Amount to Pay:</span>
+                  <span className="text-2xl font-black text-[#0F2E23]">₹200</span>
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                <p className="text-xs text-center font-bold text-slate-500 uppercase tracking-widest">Select Payment Method</p>
+                <div className="grid grid-cols-2 gap-3">
+                  <button type="button" className="py-3 px-4 rounded-xl border-2 border-[#0F2E23] bg-[#0F2E23]/5 font-black text-[#0F2E23] text-sm flex items-center justify-center gap-2 hover:bg-[#0F2E23]/10 transition">
+                    UPI (GPay/PhonePe)
+                  </button>
+                  <button type="button" className="py-3 px-4 rounded-xl border border-slate-200 bg-white font-black text-slate-600 text-sm flex items-center justify-center gap-2 hover:bg-slate-50 hover:border-slate-300 transition">
+                    Card / NetBanking
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Actions */}
+            <div className="bg-slate-50 p-6 border-t border-slate-200 flex flex-col gap-3">
+              <button 
+                onClick={submitPaidListing}
+                disabled={isProcessingPayment}
+                className="w-full py-4 rounded-xl bg-[#0F2E23] text-[#ffd000] font-black text-sm uppercase tracking-widest hover:bg-[#163e30] transition shadow-lg flex justify-center items-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
+              >
+                {isProcessingPayment ? (
+                  <>
+                    <Loader2 size={18} className="animate-spin" />
+                    Processing...
+                  </>
+                ) : (
+                  <>Pay ₹200 & Publish</>
+                )}
+              </button>
+              <button 
+                onClick={() => setShowPaymentModal(false)}
+                disabled={isProcessingPayment}
+                className="w-full py-3 rounded-xl bg-transparent text-slate-500 font-bold text-xs uppercase tracking-widest hover:text-slate-700 transition"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
         </div>
       )}
 
