@@ -438,7 +438,7 @@ const PetAdoptionDashboard = ({
   // Sidebar Menu Items matching exact layout
   const navItems = [
     { id: 'inventory', label: 'My Pet Inventory', icon: PawPrint, count: stats.availableStock },
-    { id: 'applications', label: 'Sales & Orders', icon: DollarSign, count: stats.pendingApps },
+    { id: 'applications', label: 'Adoption Applications', icon: FileText, count: stats.pendingApps },
     { id: 'inquiries', label: 'Buyer Leads', icon: MessageSquare, count: inquiries.length },
     { id: 'profile', label: 'Profile', icon: Settings },
     { id: 'rehomed', label: 'Forever Homes', icon: Home, count: stats.soldOutCount }
@@ -1183,7 +1183,7 @@ const PetAdoptionDashboard = ({
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-6 border-b border-slate-100">
               <div>
                 <h2 className="text-xl font-black text-[#0F2E23] flex items-center gap-2">
-                  <FileText size={22} className="text-amber-500" /> Adoption Orders & Screening Applications
+                  <FileText size={22} className="text-amber-500" /> Adoption Applications & Screening
                 </h2>
                 <p className="text-xs text-slate-500 font-medium mt-0.5">
                   Screen applicants based on their living situation, pet experience, and background before approving adoptions.
