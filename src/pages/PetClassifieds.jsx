@@ -136,7 +136,14 @@ const PetClassifieds = () => {
       navigate('/login');
       return;
     }
-    navigate('/chat', { state: { recipientId: owner._id || owner, ownerName: owner.name } });
+    
+    const ownerId = owner._id || owner;
+    if (ownerId === user?._id) {
+      toast.error('You cannot chat with yourself.');
+      return;
+    }
+    
+    navigate('/chat', { state: { recipientId: ownerId, ownerName: owner.name || 'Seller' } });
   };
 
   const handleBuy = (pet) => {
@@ -145,6 +152,18 @@ const PetClassifieds = () => {
       navigate('/login');
       return;
     }
+    
+    if (user?.role !== 'USER') {
+      toast.error('Only customers can purchase pets. Sellers cannot buy pets.');
+      return;
+    }
+    
+    const ownerId = pet.user?._id || pet.user;
+    if (ownerId === user?._id) {
+      toast.error('You cannot buy your own pet listing.');
+      return;
+    }
+
     setCheckoutPet(pet);
   };
 

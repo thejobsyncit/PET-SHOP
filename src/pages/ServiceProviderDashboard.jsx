@@ -1,12 +1,12 @@
 import React from 'react';
-import PetAdoptionDashboard from './PetAdoptionDashboard.jsx';
+import PetSellerDashboard from './PetSellerDashboard.jsx';
 
 /**
  * ServiceProviderDashboard
- * Dedicated dashboard for Pet Adoption & Rescue Service Providers, Shelters, and Pet Partners.
+ * Dedicated dashboard for Pet Sellers.
  */
 const ServiceProviderDashboard = (props) => {
-  return <PetAdoptionDashboard {...props} />;
+  return <PetSellerDashboard {...props} />;
 };
 
 export default ServiceProviderDashboard;

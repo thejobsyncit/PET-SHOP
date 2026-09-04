@@ -14,11 +14,11 @@ router.get('/', optionalAuth, async (req, res) => {
     if (isDbConnected()) {
       const query = {};
       if (petType) query.petType = petType;
-      
+
       // Auto-delete listings sold out > 20 minutes ago
       const twentyMinsAgo = new Date(Date.now() - 20 * 60 * 1000);
       await Listing.deleteMany({ soldOutAt: { $lt: twentyMinsAgo } });
-      
+
       listings = await Listing.find(query).populate('user', 'name email');
     } else {
       listings = readMockData('listings');
@@ -32,14 +32,14 @@ router.get('/', optionalAuth, async (req, res) => {
         writeMockData('listings', filteredListings);
         listings = filteredListings;
       }
-      
+
       if (petType) {
         listings = listings.filter(l => l.petType === petType);
       }
     }
     // Filter logic for verification
     const isAdmin = req.user && (req.user.role === 'ADMIN' || req.user.role === 'SUPERADMIN');
-    
+
     if (!isAdmin) {
       listings = listings.filter(l => l.isVerified === true && l.paymentStatus === 'paid');
     }
@@ -123,20 +123,31 @@ router.post('/', protect, async (req, res) => {
   }
 });
 
-// PUT update status (Sold/Available/Adopted)
+// PUT update listing
 router.put('/:id', protect, async (req, res) => {
   try {
-    const { status } = req.body;
+    const { status, title, petType, breed, age, price, originalPrice, description, location, contactPhone, quantity } = req.body;
     if (isDbConnected()) {
       const listing = await Listing.findById(req.params.id);
       if (!listing) return res.status(404).json({ success: false, message: 'Listing not found' });
-      
+
       // Ensure is owner or admin
       if (listing.user.toString() !== req.user._id.toString() && req.user.role !== 'ADMIN' && req.user.role !== 'SUPERADMIN') {
         return res.status(401).json({ success: false, message: 'Not authorized' });
       }
 
-      listing.status = status;
+      if (status !== undefined) listing.status = status;
+      if (title !== undefined) listing.title = title;
+      if (petType !== undefined) listing.petType = petType;
+      if (breed !== undefined) listing.breed = breed;
+      if (age !== undefined) listing.age = age;
+      if (price !== undefined) listing.price = price;
+      if (originalPrice !== undefined) listing.originalPrice = originalPrice;
+      if (description !== undefined) listing.description = description;
+      if (location !== undefined) listing.location = location;
+      if (contactPhone !== undefined) listing.contactPhone = contactPhone;
+      if (quantity !== undefined) listing.quantity = quantity;
+
       await listing.save();
       return res.json({ success: true, listing });
     } else {
@@ -149,7 +160,18 @@ router.put('/:id', protect, async (req, res) => {
         return res.status(401).json({ success: false, message: 'Not authorized' });
       }
 
-      listings[idx].status = status;
+      if (status !== undefined) listings[idx].status = status;
+      if (title !== undefined) listings[idx].title = title;
+      if (petType !== undefined) listings[idx].petType = petType;
+      if (breed !== undefined) listings[idx].breed = breed;
+      if (age !== undefined) listings[idx].age = age;
+      if (price !== undefined) listings[idx].price = price;
+      if (originalPrice !== undefined) listings[idx].originalPrice = originalPrice;
+      if (description !== undefined) listings[idx].description = description;
+      if (location !== undefined) listings[idx].location = location;
+      if (contactPhone !== undefined) listings[idx].contactPhone = contactPhone;
+      if (quantity !== undefined) listings[idx].quantity = quantity;
+
       writeMockData('listings', listings);
       return res.json({ success: true, listing: listings[idx] });
     }
@@ -164,7 +186,7 @@ router.put('/:id/buy', protect, async (req, res) => {
     if (isDbConnected()) {
       const listing = await Listing.findById(req.params.id);
       if (!listing) return res.status(404).json({ success: false, message: 'Listing not found' });
-      
+
       let currentQty = listing.quantity !== undefined && listing.quantity !== null ? Number(listing.quantity) : 1;
       if (currentQty > 0) {
         listing.quantity = currentQty - 1;
@@ -191,7 +213,7 @@ router.put('/:id/buy', protect, async (req, res) => {
         }
         writeMockData('listings', listings);
       }
-      
+
       return res.json({ success: true, listing: listings[idx] });
     }
   } catch (err) {
@@ -205,7 +227,7 @@ router.put('/:id/sell', protect, async (req, res) => {
     if (isDbConnected()) {
       const listing = await Listing.findById(req.params.id);
       if (!listing) return res.status(404).json({ success: false, message: 'Listing not found' });
-      
+
       // Ensure is owner or admin
       if (listing.user.toString() !== req.user._id.toString() && req.user.role !== 'ADMIN' && req.user.role !== 'SUPERADMIN') {
         return res.status(401).json({ success: false, message: 'Not authorized' });
@@ -242,7 +264,7 @@ router.put('/:id/sell', protect, async (req, res) => {
         }
         writeMockData('listings', listings);
       }
-      
+
       return res.json({ success: true, listing: listings[idx] });
     }
   } catch (err) {

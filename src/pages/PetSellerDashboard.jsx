@@ -5,7 +5,7 @@ import { updateProfile } from '../store/slices/authSlice.js';
 import {
   PawPrint, Calendar, Star, TrendingUp, DollarSign, Clock, MapPin, 
   MessageSquare, Plus, Search, ChevronRight, Phone, ShieldCheck, Mail, Heart, Settings,
-  Tag, ShoppingBag, AlertCircle, LayoutDashboard, LogOut, CheckCircle, X, Send, CreditCard, Loader2
+  Tag, ShoppingBag, AlertCircle, LayoutDashboard, LogOut, CheckCircle, X, Send, CreditCard, Loader2, Edit3, Check
 } from 'lucide-react';
 import { apiRequest } from '../services/api.js';
 import toast from 'react-hot-toast';
@@ -17,20 +17,21 @@ const PetSellerDashboard = ({
 }) => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
-  const activeTabParam = searchParams.get('tab') || 'inventory';
+  const activeTabParam = searchParams.get('tab') || localStorage.getItem('sellerDashboardTab') || 'inventory';
   const [activeTab, setActiveTab] = useState(activeTabParam);
 
   const { user } = useSelector(state => state.auth);
   const dispatch = useDispatch();
-
-  const [profileName, setProfileName] = useState(user?.name || currentProvider.name || '');
-  const [profileAvatar, setProfileAvatar] = useState(user?.avatar || user?.profilePicture || currentProvider.avatar || '');
+  const [profileName, setProfileName] = useState(user?.name || currentProvider?.name || '');
+  const [profileAvatar, setProfileAvatar] = useState(user?.avatar || user?.profilePicture || currentProvider?.avatar || '');
+  const [isEditingProfile, setIsEditingProfile] = useState(false);
 
   const handleUpdateProfile = async (e) => {
     e.preventDefault();
     const result = await dispatch(updateProfile({ name: profileName, avatar: profileAvatar, profilePicture: profileAvatar }));
     if (updateProfile.fulfilled.match(result)) {
       toast.success('Seller profile updated successfully!');
+      setIsEditingProfile(false);
     } else {
       toast.error('Failed to update profile');
     }
@@ -91,6 +92,7 @@ const PetSellerDashboard = ({
   };
 
   // Add Listing Modal State
+  const [editListingId, setEditListingId] = useState(null);
   const [showAddForm, setShowAddForm] = useState(false);
   const [title, setTitle] = useState('');
   const [petType, setPetType] = useState('dogs');
@@ -105,6 +107,38 @@ const PetSellerDashboard = ({
   const [imageFile, setImageFile] = useState(null);
   const [vaccinationFile, setVaccinationFile] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
+
+  const handleEditListing = (pet) => {
+    setEditListingId(pet._id);
+    setTitle(pet.title || '');
+    setPetType(pet.petType || 'dogs');
+    setBreed(pet.breed || '');
+    setAge(pet.age || '');
+    setPrice(pet.price || '');
+    setOriginalPrice(pet.originalPrice || '');
+    setLocation(pet.location || '');
+    setContactPhone(pet.contactPhone || '');
+    setDescription(pet.description || '');
+    setQuantity(pet.quantity || 1);
+    setImageFile(null); // Force upload new if they want, else backend keeps old
+    setShowAddForm(true);
+  };
+
+  const handleAddNew = () => {
+    setEditListingId(null);
+    setTitle('');
+    setPetType('dogs');
+    setBreed('');
+    setAge('');
+    setPrice('');
+    setOriginalPrice('');
+    setLocation('');
+    setContactPhone('');
+    setDescription('');
+    setQuantity(1);
+    setImageFile(null);
+    setShowAddForm(true);
+  };
   
   // Payment Modal State
   const [showPaymentModal, setShowPaymentModal] = useState(false);
@@ -113,12 +147,14 @@ const PetSellerDashboard = ({
   useEffect(() => {
     if (activeTabParam) {
       setActiveTab(activeTabParam);
+      localStorage.setItem('sellerDashboardTab', activeTabParam);
     }
   }, [activeTabParam]);
 
   const handleTabChange = (tabName) => {
     setActiveTab(tabName);
     setSearchParams({ tab: tabName });
+    localStorage.setItem('sellerDashboardTab', tabName);
   };
 
   const fetchListings = async () => {
@@ -200,12 +236,17 @@ const PetSellerDashboard = ({
     }
   };
 
-  const triggerPayment = (e) => {
+  const triggerPayment = async (e) => {
     e.preventDefault();
 
     if (!title || !breed || !age || !location || !contactPhone || !description) {
       toast.error('Please fill in all required listing details.');
       return;
+    }
+
+    if (editListingId) {
+       await finalizeListingSubmission();
+       return;
     }
 
     // Show the payment modal
@@ -321,17 +362,20 @@ const PetSellerDashboard = ({
     };
 
     try {
-      const data = await apiRequest('/listings', {
-        method: 'POST',
+      const url = editListingId ? `/listings/${editListingId}` : '/listings';
+      const method = editListingId ? 'PUT' : 'POST';
+      const data = await apiRequest(url, {
+        method,
         body: JSON.stringify(payload)
       });
 
       if (data.success) {
-        toast.success('Payment successful! Your pet listing has been published.');
+        toast.success(editListingId ? 'Listing updated successfully!' : 'Payment successful! Your pet listing has been published.');
         setShowPaymentModal(false);
         setShowAddForm(false);
         
         // Clear inputs
+        setEditListingId(null);
         setTitle('');
         setBreed('');
         setAge('');
@@ -350,7 +394,6 @@ const PetSellerDashboard = ({
     } finally {
       setIsProcessingPayment(false);
     }
-    }
   };
 
   const myPets = useMemo(() => {
@@ -366,7 +409,8 @@ const PetSellerDashboard = ({
   }, [allListings, currentProvider, searchQuery]);
 
   const activePets = myPets.filter(p => p.status !== 'Sold Out' && p.quantity > 0);
-  const soldPets = myPets.filter(p => p.status === 'Sold Out' || p.quantity === 0);
+  const soldOutPets = myPets.filter(p => p.status === 'Sold Out' || p.quantity === 0);
+  const petsWithSales = myPets.filter(p => p.soldCount > 0 || p.status === 'Sold Out' || p.quantity === 0);
   
   const totalDiscountGiven = myPets.reduce((acc, curr) => {
     if (curr.originalPrice && curr.price && curr.originalPrice > curr.price) {
@@ -379,9 +423,9 @@ const PetSellerDashboard = ({
   const stats = {
     totalListings: myPets.length,
     availableStock: activePets.reduce((acc, curr) => acc + (curr.quantity || 1), 0),
-    soldOutCount: soldPets.length,
-    totalOrders: soldPets.reduce((acc, curr) => acc + (curr.soldCount || 1), 0),
-    revenue: soldPets.reduce((acc, curr) => acc + (curr.price || 0), 0),
+    soldOutCount: soldOutPets.length,
+    totalOrders: petsWithSales.reduce((acc, curr) => acc + (curr.soldCount || 1), 0),
+    revenue: petsWithSales.reduce((acc, curr) => acc + ((curr.soldCount || 1) * (curr.price || 0)), 0),
     discounts: totalDiscountGiven || 1500, 
     inquiries: 12,
     rating: currentProvider?.rating || 4.9,
@@ -423,11 +467,32 @@ const PetSellerDashboard = ({
                 <span className={`w-3 h-3 rounded-full ${currentProvider?.isOnline ? 'bg-emerald-500' : 'bg-slate-400'}`}></span>
               </div>
             </div>
-            <div>
-              <h2 className="text-xl font-sans font-black text-[#0F2E23] tracking-tight leading-tight">
-                {displayName}
-              </h2>
-              <span className="inline-flex mt-2 bg-[#ffd000]/10 text-[#0F2E23] border border-[#ffd000]/30 text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-widest items-center gap-1 shadow-sm">
+            <div className="w-full px-4">
+              {isEditingProfile ? (
+                <form onSubmit={handleUpdateProfile} className="flex items-center gap-2 justify-center mt-2">
+                  <input
+                    type="text"
+                    value={profileName}
+                    onChange={(e) => setProfileName(e.target.value)}
+                    className="w-full text-center text-sm font-black text-[#0F2E23] border-b-2 border-[#ffd000] focus:outline-none bg-transparent"
+                    autoFocus
+                  />
+                  <button type="submit" className="text-emerald-600 hover:text-emerald-700 p-1">
+                    <Check size={16} />
+                  </button>
+                  <button type="button" onClick={() => setIsEditingProfile(false)} className="text-rose-600 hover:text-rose-700 p-1">
+                    <X size={16} />
+                  </button>
+                </form>
+              ) : (
+                <div className="flex items-center justify-center gap-2 mt-2 group/edit cursor-pointer" onClick={() => setIsEditingProfile(true)}>
+                  <h2 className="text-xl font-sans font-black text-[#0F2E23] tracking-tight leading-tight">
+                    {profileName || displayName}
+                  </h2>
+                  <Edit3 size={14} className="text-slate-300 group-hover/edit:text-[#ffd000] transition" />
+                </div>
+              )}
+              <span className="inline-flex mt-2 bg-[#ffd000]/10 text-[#0F2E23] border border-[#ffd000]/30 text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-widest items-center justify-center gap-1 shadow-sm mx-auto">
                 <ShieldCheck size={12} className="text-amber-500" /> Elite Seller
               </span>
             </div>
@@ -495,7 +560,7 @@ const PetSellerDashboard = ({
           </div>
           
           <button
-            onClick={() => setShowAddForm(true)}
+            onClick={handleAddNew}
             className="px-6 py-3 bg-[#ffd000] hover:bg-[#ffdf4d] text-[#0F2E23] text-xs font-black uppercase tracking-wider rounded-xl shadow-sm hover:shadow-md transition-all cursor-pointer flex items-center gap-2"
           >
             <Plus size={16} /> Post New Pet Listing
@@ -611,7 +676,7 @@ const PetSellerDashboard = ({
                   <h3 className="text-lg font-black text-[#0F2E23]">No Pets Listed Yet</h3>
                   <p className="text-sm text-slate-500 max-w-sm">Start listing your healthy, verified pets to reach thousands of potential pet parents.</p>
                   <button
-                    onClick={() => setShowAddForm(true)}
+                    onClick={handleAddNew}
                     className="px-6 py-3 bg-[#0F2E23] hover:bg-[#163e30] text-white text-xs font-black uppercase tracking-wider rounded-xl mt-3 transition shadow-md"
                   >
                     Post First Pet
@@ -651,10 +716,17 @@ const PetSellerDashboard = ({
                         <div className="p-5 flex flex-col flex-1 space-y-4">
                           <h3 className="font-sans font-black text-[#0F2E23] text-base leading-tight line-clamp-2">{pet.title}</h3>
                           
-                          <div className="flex items-center justify-between text-[11px] font-black text-slate-500 uppercase tracking-wider">
+                          <div className="flex items-center justify-between text-[11px] font-black text-slate-500 uppercase tracking-wider mb-2">
                             <span className="bg-slate-50 px-2.5 py-1 rounded-md border border-slate-100">{pet.breed}</span>
                             <span className="bg-slate-50 px-2.5 py-1 rounded-md border border-slate-100">{pet.age}</span>
                           </div>
+                          
+                          {(pet.soldCount > 0 || isSold) && (
+                            <div className="bg-emerald-50 border border-emerald-100 p-2.5 rounded-xl flex items-center justify-between text-xs">
+                              <span className="font-bold text-emerald-700 flex items-center gap-1.5"><DollarSign size={14}/> Sold: {pet.soldCount || (isSold ? 1 : 0)}</span>
+                              <span className="font-black text-emerald-700">₹{((pet.soldCount || (isSold ? 1 : 0)) * (pet.price || 0)).toLocaleString('en-IN')}</span>
+                            </div>
+                          )}
                           
                           <div className="flex items-center justify-between border-t border-slate-100 pt-4 mt-auto">
                             <div>
@@ -666,20 +738,29 @@ const PetSellerDashboard = ({
                               </div>
                             </div>
                             <div className="flex gap-2">
+                              <button 
+                                onClick={() => handleTabChange('inquiries')}
+                                className="px-2 py-2 rounded-xl border border-sky-200 bg-sky-50 hover:bg-sky-100 text-sky-700 transition flex items-center justify-center"
+                                title="View Buyer Leads"
+                              >
+                                <MessageSquare size={16} />
+                              </button>
                               {!isSold && (
                                 <button 
                                   onClick={() => handleSellOne(pet._id)}
-                                  className="px-3 py-2 rounded-xl border border-amber-200 bg-amber-50 hover:bg-amber-100 text-amber-700 transition flex items-center justify-center gap-1.5 text-xs font-black uppercase tracking-wider"
+                                  className="px-3 py-2 rounded-xl border border-amber-200 bg-amber-50 hover:bg-amber-100 text-amber-700 transition flex items-center justify-center gap-1 text-xs font-black uppercase tracking-wider"
                                   title="Mark 1 Sold Offline"
                                 >
-                                  Sell 1 (-)
+                                  Sell (-)
                                 </button>
                               )}
                               <button 
-                                className={`px-3 py-2 rounded-xl border transition flex items-center justify-center gap-1.5 text-xs font-black uppercase tracking-wider ${isSold ? 'border-slate-200 text-slate-400 bg-slate-50 cursor-not-allowed w-full' : 'border-[#0F2E23] text-[#0F2E23] hover:bg-[#0F2E23] hover:text-white bg-white'}`}
+                                onClick={isSold ? undefined : () => handleEditListing(pet)}
+                                disabled={isSold}
+                                className={`px-2 py-2 rounded-xl border transition flex items-center justify-center gap-1.5 text-xs font-black uppercase tracking-wider ${isSold ? 'border-slate-200 text-slate-400 bg-slate-50 cursor-not-allowed' : 'border-[#0F2E23] text-[#0F2E23] hover:bg-[#0F2E23] hover:text-white bg-white'}`}
                                 title="Manage Listing"
                               >
-                                <Settings size={14} /> Manage
+                                <Settings size={16} />
                               </button>
                             </div>
                           </div>
@@ -697,7 +778,7 @@ const PetSellerDashboard = ({
               <h2 className="text-xl font-sans font-black text-[#0F2E23] flex items-center gap-2">
                 <DollarSign size={22} className="text-[#ffd000]" /> Sales & Orders History
               </h2>
-              {soldPets.length === 0 ? (
+              {petsWithSales.length === 0 ? (
                  <div className="bg-slate-50 border border-dashed border-slate-200 rounded-2xl p-12 text-center text-slate-500 text-sm font-medium">
                    No sales history recorded yet. When a pet is marked as sold, it will appear here.
                  </div>
@@ -713,12 +794,14 @@ const PetSellerDashboard = ({
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100">
-                      {soldPets.map(pet => (
+                      {petsWithSales.map(pet => (
                         <tr key={pet._id} className="hover:bg-slate-50/80 transition">
                           <td className="px-6 py-4 flex items-center gap-4">
-                            <img src={pet.images?.[0] || 'https://images.unsplash.com/photo-1543466835-00a7907e9de1?q=80&w=800'} alt={pet.title} className="w-14 h-14 rounded-xl object-cover border border-slate-200 grayscale" />
+                            <img src={pet.images?.[0] || 'https://images.unsplash.com/photo-1543466835-00a7907e9de1?q=80&w=800'} alt={pet.title} className={`w-14 h-14 rounded-xl object-cover border border-slate-200 ${pet.status === 'Sold Out' || pet.quantity === 0 ? 'grayscale' : ''}`} />
                             <div>
-                              <div className="font-black text-[#0F2E23] line-clamp-1">{pet.title}</div>
+                              <div className="font-black text-[#0F2E23] line-clamp-1">
+                                {pet.title} {pet.soldCount > 0 && <span className="text-[10px] bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded ml-1">x{pet.soldCount}</span>}
+                              </div>
                               <div className="text-xs text-slate-500 mt-0.5">{pet.breed}</div>
                             </div>
                           </td>
@@ -917,7 +1000,7 @@ const PetSellerDashboard = ({
           >
             <div className="px-6 py-5 bg-[#0F2E23] text-white flex justify-between items-center">
               <h3 className="font-sans text-lg font-black tracking-wider text-[#ffd000] uppercase flex items-center gap-2">
-                <Plus size={20} /> List Pet for Sale
+                <Plus size={20} /> {editListingId ? 'Edit Pet Listing' : 'List Pet for Sale'}
               </h3>
               <button type="button" onClick={() => setShowAddForm(false)} className="text-slate-300 hover:text-white transition cursor-pointer">
                 <X size={20} />
@@ -1083,7 +1166,7 @@ const PetSellerDashboard = ({
                 type="submit" 
                 className="px-6 py-2.5 rounded-xl bg-[#0F2E23] hover:bg-[#163e30] text-white font-black text-xs uppercase tracking-wider transition shadow-md"
               >
-                Publish Listing
+                {editListingId ? 'Update Listing' : 'Publish Listing'}
               </button>
             </div>
           </form>
