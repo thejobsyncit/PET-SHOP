@@ -26,6 +26,13 @@ const PetSellerDashboard = ({
   const [profileAvatar, setProfileAvatar] = useState(user?.avatar || user?.profilePicture || currentProvider?.avatar || '');
   const [isEditingProfile, setIsEditingProfile] = useState(false);
 
+  useEffect(() => {
+    if (user) {
+      setProfileName(user.name || currentProvider?.name || '');
+      setProfileAvatar(user.avatar || user.profilePicture || currentProvider?.avatar || '');
+    }
+  }, [user, currentProvider]);
+
   const handleUpdateProfile = async (e) => {
     e.preventDefault();
     const result = await dispatch(updateProfile({ name: profileName, avatar: profileAvatar, profilePicture: profileAvatar }));

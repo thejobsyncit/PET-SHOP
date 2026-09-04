@@ -7,6 +7,9 @@ const UserSchema = new mongoose.Schema({
     required: [true, 'Name is required'],
     trim: true,
   },
+  avatar: {
+    type: String,
+  },
   email: {
     type: String,
     required: [true, 'Email is required'],

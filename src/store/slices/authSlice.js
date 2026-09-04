@@ -179,6 +179,15 @@ export const login = createAsyncThunk('auth/login', async (credentials, thunkAPI
 
 export const fetchProfile = createAsyncThunk('auth/fetchProfile', async (_, thunkAPI) => {
   try {
+    const token = localStorage.getItem('pawora_token');
+    console.log('[authSlice] fetchProfile called, token:', token);
+    if (token && token.startsWith('token_')) {
+      const saved = getInitialUser();
+      if (saved) {
+        return { user: saved };
+      }
+      throw new Error('No local user found for simulated token');
+    }
     const data = await apiRequest('/auth/profile');
     if (data && data.user) {
       localStorage.setItem('pawora_user', JSON.stringify(data.user));
@@ -196,6 +205,17 @@ export const fetchProfile = createAsyncThunk('auth/fetchProfile', async (_, thun
 
 export const updateProfile = createAsyncThunk('auth/updateProfile', async (profileData, thunkAPI) => {
   try {
+    const token = localStorage.getItem('pawora_token');
+    console.log('[authSlice] updateProfile called, token:', token, 'profileData:', profileData);
+    if (token && token.startsWith('token_')) {
+      const saved = getInitialUser();
+      if (saved) {
+        const updated = { ...saved, ...profileData };
+        localStorage.setItem('pawora_user', JSON.stringify(updated));
+        return { user: updated };
+      }
+      throw new Error('No local user found for simulated token');
+    }
     const data = await apiRequest('/auth/profile', {
       method: 'PUT',
       body: JSON.stringify(profileData),

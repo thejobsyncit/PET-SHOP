@@ -240,7 +240,7 @@ export const getUserProfile = async (req, res) => {
 // @route   PUT /api/auth/profile
 // @access  Private
 export const updateUserProfile = async (req, res) => {
-  const { name, email, password } = req.body;
+  const { name, email, password, avatar, profilePicture, businessName } = req.body;
 
   try {
     const userId = req.user._id || req.user.id;
@@ -249,6 +249,8 @@ export const updateUserProfile = async (req, res) => {
       if (user) {
         user.name = name || user.name;
         user.email = email || user.email;
+        if (avatar || profilePicture) user.avatar = avatar || profilePicture;
+        if (businessName) user.businessName = businessName;
         if (password) {
           user.password = password;
         }
@@ -260,6 +262,8 @@ export const updateUserProfile = async (req, res) => {
             name: updatedUser.name,
             email: updatedUser.email,
             role: updatedUser.role,
+            avatar: updatedUser.avatar,
+            businessName: updatedUser.businessName,
             addresses: updatedUser.addresses
           }
         });
@@ -272,6 +276,8 @@ export const updateUserProfile = async (req, res) => {
       if (idx !== -1) {
         usersList[idx].name = name || usersList[idx].name;
         usersList[idx].email = email ? email.toLowerCase() : usersList[idx].email;
+        if (avatar || profilePicture) usersList[idx].avatar = avatar || profilePicture;
+        if (businessName) usersList[idx].businessName = businessName;
         if (password) {
           const salt = await bcrypt.genSalt(10);
           usersList[idx].password = await bcrypt.hash(password, salt);
