@@ -181,12 +181,13 @@ export const fetchProfile = createAsyncThunk('auth/fetchProfile', async (_, thun
   try {
     const token = localStorage.getItem('pawora_token');
     console.log('[authSlice] fetchProfile called, token:', token);
-    if (token && token.startsWith('token_')) {
-      const saved = getInitialUser();
-      if (saved) {
-        return { user: saved };
-      }
-      throw new Error('No local user found for simulated token');
+    
+    // BYPASS BACKEND ENTIRELY FOR ALL USERS:
+    // Since Vercel has a read-only filesystem, any changes made to users.json are lost.
+    // We MUST prefer the localStorage version which has the user's latest local edits (like avatars).
+    const saved = getInitialUser();
+    if (saved) {
+      return { user: saved };
     }
     const data = await apiRequest('/auth/profile');
     if (data && data.user) {
@@ -207,14 +208,14 @@ export const updateProfile = createAsyncThunk('auth/updateProfile', async (profi
   try {
     const token = localStorage.getItem('pawora_token');
     console.log('[authSlice] updateProfile called, token:', token, 'profileData:', profileData);
-    if (token && token.startsWith('token_')) {
-      const saved = getInitialUser();
-      if (saved) {
-        const updated = { ...saved, ...profileData };
-        localStorage.setItem('pawora_user', JSON.stringify(updated));
-        return { user: updated };
-      }
-      throw new Error('No local user found for simulated token');
+    
+    // BYPASS BACKEND ENTIRELY FOR ALL USERS:
+    // Vercel serverless functions cannot persist changes to users.json.
+    const saved = getInitialUser();
+    if (saved) {
+      const updated = { ...saved, ...profileData };
+      localStorage.setItem('pawora_user', JSON.stringify(updated));
+      return { user: updated };
     }
     const data = await apiRequest('/auth/profile', {
       method: 'PUT',
