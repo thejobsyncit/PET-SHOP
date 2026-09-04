@@ -648,3 +648,38 @@ export const saveVetAppointment = (appointment) => {
     return [];
   }
 };
+
+export const getVetAppointments = () => {
+  try {
+    const current = JSON.parse(localStorage.getItem('pawora_vet_appointments') || '[]');
+    return current;
+  } catch (e) {
+    console.warn('Failed to get vet appointments from localStorage', e);
+    return [];
+  }
+};
+
+export const updateVetProfile = (profileData) => {
+  try {
+    const currentDoctors = getStoredVetDoctors();
+    
+    // Check if vet exists
+    const existingIndex = currentDoctors.findIndex(doc => doc.id === profileData.id);
+    
+    let updatedDoctors;
+    if (existingIndex >= 0) {
+      // Update existing
+      updatedDoctors = [...currentDoctors];
+      updatedDoctors[existingIndex] = { ...updatedDoctors[existingIndex], ...profileData };
+    } else {
+      // Add new
+      updatedDoctors = [profileData, ...currentDoctors];
+    }
+    
+    localStorage.setItem('pawora_vet_doctors_v2', JSON.stringify(updatedDoctors));
+    return updatedDoctors;
+  } catch (e) {
+    console.warn('Failed to update vet profile in localStorage', e);
+    return [];
+  }
+};
