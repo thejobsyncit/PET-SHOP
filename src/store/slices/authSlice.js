@@ -215,6 +215,19 @@ export const updateProfile = createAsyncThunk('auth/updateProfile', async (profi
     if (saved) {
       const updated = { ...saved, ...profileData };
       localStorage.setItem('pawora_user', JSON.stringify(updated));
+      
+      // Persist changes across logouts by saving to local registered users
+      try {
+        const registered = JSON.parse(localStorage.getItem('pawora_registered_users') || '[]');
+        const idx = registered.findIndex(u => u._id === updated._id);
+        if (idx !== -1) {
+          registered[idx] = { ...registered[idx], ...updated };
+        } else {
+          registered.push(updated);
+        }
+        localStorage.setItem('pawora_registered_users', JSON.stringify(registered));
+      } catch (e) {}
+
       return { user: updated };
     }
     const data = await apiRequest('/auth/profile', {
