@@ -520,7 +520,7 @@ const SuperAdminDashboard = () => {
     <div className="min-h-screen bg-[#F4F6F4] flex">
 
       {/* 1. LEFT SIDEBAR PANEL (Width 250px) */}
-      <aside className="w-64 bg-[#1D3B2E] text-white flex flex-col justify-between p-6 shrink-0 border-r border-[#2E5947]">
+      <aside className="w-64 bg-gradient-to-b from-[#1D3B2E] to-[#0F2E23] text-white flex flex-col justify-between p-6 shrink-0 border-r border-white/5 shadow-2xl relative z-20">
         <div className="space-y-8">
 
           {/* Logo Heading */}
@@ -549,9 +549,9 @@ const SuperAdminDashboard = () => {
               <button
                 key={tab.id}
                 onClick={() => setActiveSection(tab.id)}
-                className={`w-full flex items-center gap-3 px-4 py-3 text-xs font-bold uppercase tracking-wider rounded-md transition duration-200 cursor-pointer ${activeSection === tab.id
-                    ? 'bg-[#7CA085] text-[#1D3B2E] shadow-sm'
-                    : 'text-[#C2D3C6] hover:bg-[#2E5947] hover:text-[#FAFBF9]'
+                className={`w-full flex items-center gap-3 px-4 py-3 text-xs font-bold uppercase tracking-wider rounded-r-md rounded-l-none transition-all duration-300 cursor-pointer ${activeSection === tab.id
+                    ? 'bg-white/10 backdrop-blur-md text-white border-l-4 border-accent shadow-sm'
+                    : 'text-[#C2D3C6] hover:bg-white/5 hover:text-[#FAFBF9] border-l-4 border-transparent'
                   }`}
               >
                 {tab.icon}
@@ -580,10 +580,10 @@ const SuperAdminDashboard = () => {
       <main className="flex-grow p-8 overflow-y-auto max-h-screen">
 
         {/* Top bar Header */}
-        <div className="flex justify-between items-center border-b border-[#E3EBE5] pb-6 mb-8">
+        <div className="sticky top-0 z-30 bg-[#F4F6F4]/90 backdrop-blur-md flex justify-between items-center border-b border-[#E3EBE5] pb-4 pt-4 mb-8 -mx-8 px-8 -mt-8 shadow-sm">
           <div>
             <span className="text-[10px] uppercase tracking-widest text-[#7CA085] font-bold block">ADMINISTRATION PORTAL</span>
-            <h2 className="font-serif text-2xl text-[#1D3B2E] font-medium mt-0.5">
+            <h2 className="font-serif text-3xl text-primary font-bold mt-1">
               {activeSection === 'overview' && 'Executive Metrics Overview'}
               {activeSection === 'products' && 'Product Catalogue Manager'}
               {activeSection === 'orders' && 'Client Transaction Logs'}
@@ -606,7 +606,7 @@ const SuperAdminDashboard = () => {
               loadOrders(); 
               loadPrescriptions(); 
             }}
-            className="px-4 py-2 bg-white border border-[#E3EBE5] hover:border-primary hover:text-primary text-xs font-bold uppercase tracking-widest flex items-center gap-1.5 transition rounded-md shadow-sm cursor-pointer"
+            className="btn-secondary-premium !py-2 !px-4 !text-[10px] gap-2"
           >
             <RefreshCw size={14} /> REFRESH STATS
           </button>
@@ -628,24 +628,24 @@ const SuperAdminDashboard = () => {
                 {/* Summary Cards Row with premium tiles */}
                 <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
                   {[
-                    { label: 'Total Revenue', value: `₹${stats.totalRevenue}`, icon: <TrendingUp size={16} />, iconBg: 'bg-emerald-50 text-emerald-700' },
-                    { label: 'Total Orders', value: stats.ordersCount, icon: <ShoppingBag size={16} />, iconBg: 'bg-blue-50 text-blue-700' },
-                    { label: 'Customers', value: stats.usersCount, icon: <Users size={16} />, iconBg: 'bg-purple-50 text-purple-700' },
-                    { label: 'Total SKU Count', value: stats.productsCount, icon: <Layers size={16} />, iconBg: 'bg-amber-50 text-amber-700' },
-                    { label: 'Products Sold', value: stats.soldProductsCount || 0, icon: <CheckCircle size={16} />, iconBg: 'bg-teal-50 text-teal-700' },
-                    { label: 'Unsold Products', value: stats.unsoldProductsCount || 0, icon: <X size={16} />, iconBg: 'bg-gray-100 text-gray-700' },
-                    { label: 'Pending Orders', value: stats.pendingOrdersCount, icon: <Clock size={16} />, iconBg: 'bg-orange-50 text-orange-700' },
-                    { label: 'Low Stock Alert', value: stats.lowStockCount, icon: <AlertTriangle size={16} />, iconBg: 'bg-rose-50 text-rose-700' },
-                    { label: 'New Enquiries', value: stats.enquiriesCount || 0, icon: <Mail size={16} />, iconBg: 'bg-indigo-50 text-indigo-700' }
+                    { label: 'Total Revenue', value: `₹${stats.totalRevenue}`, icon: <TrendingUp size={20} />, iconBg: 'bg-emerald-50 text-emerald-600' },
+                    { label: 'Total Orders', value: stats.ordersCount, icon: <ShoppingBag size={20} />, iconBg: 'bg-blue-50 text-blue-600' },
+                    { label: 'Customers', value: stats.usersCount, icon: <Users size={20} />, iconBg: 'bg-purple-50 text-purple-600' },
+                    { label: 'Total SKU Count', value: stats.productsCount, icon: <Layers size={20} />, iconBg: 'bg-amber-50 text-amber-600' },
+                    { label: 'Products Sold', value: stats.soldProductsCount || 0, icon: <CheckCircle size={20} />, iconBg: 'bg-teal-50 text-teal-600' },
+                    { label: 'Unsold Products', value: stats.unsoldProductsCount || 0, icon: <X size={20} />, iconBg: 'bg-gray-100 text-gray-600' },
+                    { label: 'Pending Orders', value: stats.pendingOrdersCount, icon: <Clock size={20} />, iconBg: 'bg-orange-50 text-orange-600' },
+                    { label: 'Low Stock Alert', value: stats.lowStockCount, icon: <AlertTriangle size={20} />, iconBg: 'bg-rose-50 text-rose-600' },
+                    { label: 'New Enquiries', value: stats.enquiriesCount || 0, icon: <Mail size={20} />, iconBg: 'bg-indigo-50 text-indigo-600' }
                   ].map((c) => (
-                    <div key={c.label} className="bg-white border border-[#E3EBE5] p-5 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-300">
-                      <div className="flex justify-between items-center mb-4">
-                        <span className="text-[9px] uppercase font-bold text-gray-400 tracking-wider">{c.label}</span>
-                        <div className={`w-8 h-8 rounded-full flex items-center justify-center ${c.iconBg}`}>
+                    <div key={c.label} className="card-premium p-6 flex flex-col justify-between">
+                      <div className="flex justify-between items-start mb-6">
+                        <span className="text-[10px] uppercase font-bold text-gray-500 tracking-wider w-2/3 leading-tight">{c.label}</span>
+                        <div className={`w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 shadow-sm ${c.iconBg}`}>
                           {c.icon}
                         </div>
                       </div>
-                      <p className="text-xl font-bold font-serif text-[#1D3B2E]">{c.value}</p>
+                      <p className="text-3xl font-bold font-serif text-primary truncate">{c.value}</p>
                     </div>
                   ))}
                 </div>
@@ -654,7 +654,7 @@ const SuperAdminDashboard = () => {
                 {charts && (
                   <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
                     {/* Revenue over time */}
-                    <div className="lg:col-span-8 bg-white border border-[#E3EBE5] p-6 shadow-sm space-y-4">
+                    <div className="lg:col-span-8 card-premium p-6 space-y-4">
                       <h3 className="font-serif text-sm font-bold text-primary border-b border-[#E3EBE5] pb-2">Sales Revenue History</h3>
                       <div className="h-72">
                         <ResponsiveContainer width="100%" height="100%">
@@ -672,7 +672,7 @@ const SuperAdminDashboard = () => {
                     </div>
 
                     {/* Category distributions */}
-                    <div className="lg:col-span-4 bg-white border border-[#E3EBE5] p-6 shadow-sm space-y-4">
+                    <div className="lg:col-span-4 card-premium p-6 space-y-4">
                       <h3 className="font-serif text-sm font-bold text-primary border-b border-[#E3EBE5] pb-2">Department Distributions</h3>
                       <div className="h-72 flex justify-center items-center">
                         <ResponsiveContainer width="100%" height="100%">
@@ -701,30 +701,32 @@ const SuperAdminDashboard = () => {
                 )}
 
                 {/* Recent Orders Overview */}
-                <div className="bg-white border border-[#E3EBE5] p-6 shadow-sm space-y-4">
-                  <h3 className="font-serif text-sm font-bold text-primary border-b border-[#E3EBE5] pb-2">Recent Order Logs</h3>
+                <div className="card-premium space-y-0">
+                  <div className="p-6 border-b border-[#E3EBE5]">
+                    <h3 className="font-serif text-lg font-bold text-primary">Recent Order Logs</h3>
+                  </div>
                   <div className="overflow-x-auto">
                     <table className="w-full text-left text-xs border-collapse">
                       <thead>
-                        <tr className="bg-secondary text-primary font-bold border-b border-[#E3EBE5]">
-                          <th className="p-3">Order ID</th>
-                          <th className="p-3">Customer</th>
-                          <th className="p-3">Method</th>
-                          <th className="p-3">Shipping Status</th>
-                          <th className="p-3 text-right">Total (INR)</th>
+                        <tr className="bg-[#F1F6F2] text-primary font-bold border-b border-[#E3EBE5]">
+                          <th className="p-4 uppercase tracking-wider text-[10px]">Order ID</th>
+                          <th className="p-4 uppercase tracking-wider text-[10px]">Customer</th>
+                          <th className="p-4 uppercase tracking-wider text-[10px]">Method</th>
+                          <th className="p-4 uppercase tracking-wider text-[10px]">Shipping Status</th>
+                          <th className="p-4 uppercase tracking-wider text-[10px] text-right">Total (INR)</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-[#E3EBE5]">
                         {recentOrders.map((o) => (
-                          <tr key={o._id} className="hover:bg-[#FAFBF9] transition">
-                            <td className="p-3 font-semibold text-primary">{o._id}</td>
-                            <td className="p-3">
-                              <p className="font-semibold">{o.user.name}</p>
-                              <p className="text-[10px] text-gray-400">{o.user.email}</p>
+                          <tr key={o._id} className="hover:bg-[#F9FAF9] transition-colors duration-300">
+                            <td className="p-4 font-semibold text-primary">{o._id}</td>
+                            <td className="p-4">
+                              <p className="font-bold text-sm">{o.user.name}</p>
+                              <p className="text-[10px] text-gray-500">{o.user.email}</p>
                             </td>
-                            <td className="p-3">{o.paymentMethod}</td>
-                            <td className="p-3 font-bold uppercase text-[#7CA085]">{o.shippingStatus}</td>
-                            <td className="p-3 text-right font-bold text-primary">₹{o.pricing.total}</td>
+                            <td className="p-4 text-xs font-medium text-gray-600">{o.paymentMethod}</td>
+                            <td className="p-4 font-bold uppercase text-[10px] tracking-wider text-accent">{o.shippingStatus}</td>
+                            <td className="p-4 text-right font-bold text-primary text-sm">₹{o.pricing.total}</td>
                           </tr>
                         ))}
                       </tbody>
@@ -748,40 +750,40 @@ const SuperAdminDashboard = () => {
                   </button>
                 </div>
 
-                <div className="overflow-x-auto bg-white border border-[#E3EBE5] shadow-sm">
+                <div className="card-premium overflow-x-auto">
                   <table className="w-full text-left text-xs border-collapse">
                     <thead>
-                      <tr className="bg-secondary text-primary font-bold border-b border-[#E3EBE5]">
-                        <th className="p-3">Image</th>
-                        <th className="p-3">Product details</th>
-                        <th className="p-3">SKU</th>
-                        <th className="p-3">Pricing</th>
-                        <th className="p-3">Stock count</th>
-                        <th className="p-3 text-center">Actions</th>
+                      <tr className="bg-[#F1F6F2] text-primary font-bold border-b border-[#E3EBE5]">
+                        <th className="p-4 uppercase tracking-wider text-[10px]">Image</th>
+                        <th className="p-4 uppercase tracking-wider text-[10px]">Product details</th>
+                        <th className="p-4 uppercase tracking-wider text-[10px]">SKU</th>
+                        <th className="p-4 uppercase tracking-wider text-[10px]">Pricing</th>
+                        <th className="p-4 uppercase tracking-wider text-[10px]">Stock count</th>
+                        <th className="p-4 uppercase tracking-wider text-[10px] text-center">Actions</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-[#E3EBE5]">
                       {productsList.map((p) => (
-                        <tr key={p._id} className="hover:bg-[#FAFBF9] transition">
-                          <td className="p-3">
+                        <tr key={p._id} className="hover:bg-[#F9FAF9] transition-colors duration-300">
+                          <td className="p-4">
                             <img src={p.images[0]} alt={p.name} className="w-12 h-12 object-cover bg-gray-50 border border-[#E3EBE5]" />
                           </td>
-                          <td className="p-3 space-y-1">
+                          <td className="p-4 space-y-1">
                             <p className="font-bold text-primary truncate max-w-xs">{p.name}</p>
                             <p className="text-[10px] text-accent uppercase font-bold tracking-wider">{p.brand} • {p.petType}</p>
                             {p.requiresPrescription && <span className="text-[9px] bg-red-100 text-red-800 font-bold px-1.5 py-0.5 rounded-full">Rx Required</span>}
                           </td>
-                          <td className="p-3 font-semibold text-gray-500">{p.sku}</td>
-                          <td className="p-3">
+                          <td className="p-4 font-semibold text-gray-500">{p.sku}</td>
+                          <td className="p-4">
                             <p className="font-bold text-primary">₹{p.discountPrice || p.price}</p>
                             {p.discountPrice && <p className="text-[10px] text-gray-400 line-through">₹{p.price}</p>}
                           </td>
-                          <td className="p-3">
+                          <td className="p-4">
                             <span className={`font-bold ${p.stock === 0 ? 'text-red-500' : p.stock <= p.lowStockThreshold ? 'text-orange-500' : 'text-green-600'}`}>
                               {p.stock} units
                             </span>
                           </td>
-                          <td className="p-3 text-center">
+                          <td className="p-4 text-center">
                             <div className="flex justify-center gap-2">
                               <button
                                 onClick={() => handleOpenEditProduct(p)}
@@ -812,34 +814,34 @@ const SuperAdminDashboard = () => {
               <div className="space-y-6 animate-in fade-in duration-200">
                 <h2 className="font-serif text-lg font-bold text-primary border-b border-[#E3EBE5] pb-3">Client Order Logs ({ordersList.length})</h2>
 
-                <div className="overflow-x-auto bg-white border border-[#E3EBE5] shadow-sm">
+                <div className="card-premium overflow-x-auto">
                   <table className="w-full text-left text-xs border-collapse">
                     <thead>
-                      <tr className="bg-secondary text-primary font-bold border-b border-[#E3EBE5]">
-                        <th className="p-3">Order ID</th>
-                        <th className="p-3">Date</th>
-                        <th className="p-3">Customer info</th>
-                        <th className="p-3 text-right">Pricing (INR)</th>
-                        <th className="p-3">Shipping Status</th>
-                        <th className="p-3 text-center">Actions</th>
+                      <tr className="bg-[#F1F6F2] text-primary font-bold border-b border-[#E3EBE5]">
+                        <th className="p-4 uppercase tracking-wider text-[10px]">Order ID</th>
+                        <th className="p-4 uppercase tracking-wider text-[10px]">Date</th>
+                        <th className="p-4 uppercase tracking-wider text-[10px]">Customer info</th>
+                        <th className="p-4 uppercase tracking-wider text-[10px] text-right">Pricing (INR)</th>
+                        <th className="p-4 uppercase tracking-wider text-[10px]">Shipping Status</th>
+                        <th className="p-4 uppercase tracking-wider text-[10px] text-center">Actions</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-[#E3EBE5]">
                       {ordersList.map((o) => (
-                        <tr key={o._id} className="hover:bg-[#FAFBF9] transition text-xs">
-                          <td className="p-3 font-semibold text-primary">{o._id}</td>
-                          <td className="p-3">{new Date(o.createdAt).toLocaleDateString()}</td>
-                          <td className="p-3">
+                        <tr key={o._id} className="hover:bg-[#F9FAF9] transition-colors duration-300">
+                          <td className="p-4 font-semibold text-primary">{o._id}</td>
+                          <td className="p-4">{new Date(o.createdAt).toLocaleDateString()}</td>
+                          <td className="p-4">
                             <p className="font-bold">{o.user?.name || 'Guest user'}</p>
                             <p className="text-[10px] text-gray-400">{o.user?.email}</p>
                           </td>
-                          <td className="p-3 text-right font-bold text-primary">₹{o.pricing.total}</td>
-                          <td className="p-3">
+                          <td className="p-4 text-right font-bold text-primary text-sm">₹{o.pricing.total}</td>
+                          <td className="p-4">
                             <span className={`font-bold uppercase text-[10px] ${o.shippingStatus === 'Delivered' ? 'text-green-600' :
                                 o.shippingStatus === 'Cancelled' ? 'text-red-500' : 'text-accent'
                               }`}>{o.shippingStatus}</span>
                           </td>
-                          <td className="p-3 text-center">
+                          <td className="p-4 text-center">
                             <select
                               value={o.shippingStatus}
                               onChange={(e) => handleUpdateOrderStatus(o._id, e.target.value)}
@@ -869,37 +871,37 @@ const SuperAdminDashboard = () => {
               <div className="space-y-6 animate-in fade-in duration-200">
                 <h2 className="font-serif text-lg font-bold text-primary border-b border-[#E3EBE5] pb-3">Prescriptions Queue ({prescriptionsList.length})</h2>
 
-                <div className="overflow-x-auto bg-white border border-[#E3EBE5] shadow-sm">
+                <div className="card-premium overflow-x-auto">
                   <table className="w-full text-left text-xs border-collapse">
                     <thead>
-                      <tr className="bg-secondary text-primary font-bold border-b border-[#E3EBE5]">
-                        <th className="p-3">Presc ID</th>
-                        <th className="p-3">Upload Date</th>
-                        <th className="p-3">Customer info</th>
-                        <th className="p-3">Patient & Doctor details</th>
-                        <th className="p-3">Review Status</th>
-                        <th className="p-3 text-center">Verify Action</th>
+                      <tr className="bg-[#F1F6F2] text-primary font-bold border-b border-[#E3EBE5]">
+                        <th className="p-4 uppercase tracking-wider text-[10px]">Presc ID</th>
+                        <th className="p-4 uppercase tracking-wider text-[10px]">Upload Date</th>
+                        <th className="p-4 uppercase tracking-wider text-[10px]">Customer info</th>
+                        <th className="p-4 uppercase tracking-wider text-[10px]">Patient & Doctor details</th>
+                        <th className="p-4 uppercase tracking-wider text-[10px]">Review Status</th>
+                        <th className="p-4 uppercase tracking-wider text-[10px] text-center">Verify Action</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-[#E3EBE5] text-xs">
                       {prescriptionsList.map((p) => (
-                        <tr key={p._id} className="hover:bg-[#FAFBF9] transition">
-                          <td className="p-3 font-semibold text-primary">{p._id}</td>
-                          <td className="p-3">{new Date(p.createdAt).toLocaleDateString()}</td>
-                          <td className="p-3">
+                        <tr key={p._id} className="hover:bg-[#F9FAF9] transition-colors duration-300">
+                          <td className="p-4 font-semibold text-primary">{p._id}</td>
+                          <td className="p-4">{new Date(p.createdAt).toLocaleDateString()}</td>
+                          <td className="p-4">
                             <p className="font-bold">{p.user?.name}</p>
                             <p className="text-[10px] text-gray-400">{p.user?.email}</p>
                           </td>
-                          <td className="p-3">
+                          <td className="p-4">
                             <p className="font-bold text-primary">Pet: {p.patientName}</p>
                             <p className="text-[10px] text-gray-400">Dr. {p.veterinarianName} ({p.clinicName || 'No Clinic'})</p>
                           </td>
-                          <td className="p-3">
+                          <td className="p-4">
                             <span className={`font-bold uppercase text-[10px] ${p.status === 'Approved' ? 'text-green-600' :
                                 p.status === 'Rejected' ? 'text-red-500' : 'text-accent'
                               }`}>{p.status}</span>
                           </td>
-                          <td className="p-3 text-center">
+                          <td className="p-4 text-center">
                             <button
                               onClick={() => handleOpenVerifyPresc(p)}
                               className="px-3 py-1.5 border border-[#E3EBE5] hover:border-primary text-[10px] tracking-wider uppercase font-bold flex items-center justify-center gap-1 mx-auto cursor-pointer"
@@ -920,27 +922,27 @@ const SuperAdminDashboard = () => {
               <div className="space-y-6 animate-in fade-in duration-200">
                 <h2 className="font-serif text-lg font-bold text-primary border-b border-[#E3EBE5] pb-3">Moderate Classified Listings ({listingsList.length})</h2>
 
-                <div className="overflow-x-auto bg-white border border-[#E3EBE5] shadow-sm">
+                <div className="card-premium overflow-x-auto">
                   <table className="w-full text-left text-xs border-collapse">
                     <thead>
-                      <tr className="bg-secondary text-primary font-bold border-b border-[#E3EBE5]">
-                        <th className="p-3">Listing Details</th>
-                        <th className="p-3">Inventory</th>
-                        <th className="p-3">Owner Contact</th>
-                        <th className="p-3">Price</th>
-                        <th className="p-3">Location</th>
-                        <th className="p-3 text-center">Verification Stamp</th>
-                        <th className="p-3 text-center">Remove</th>
+                      <tr className="bg-[#F1F6F2] text-primary font-bold border-b border-[#E3EBE5]">
+                        <th className="p-4 uppercase tracking-wider text-[10px]">Listing Details</th>
+                        <th className="p-4 uppercase tracking-wider text-[10px]">Inventory</th>
+                        <th className="p-4 uppercase tracking-wider text-[10px]">Owner Contact</th>
+                        <th className="p-4 uppercase tracking-wider text-[10px]">Price</th>
+                        <th className="p-4 uppercase tracking-wider text-[10px]">Location</th>
+                        <th className="p-4 uppercase tracking-wider text-[10px] text-center">Verification Stamp</th>
+                        <th className="p-4 uppercase tracking-wider text-[10px] text-center">Remove</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-[#E3EBE5] text-xs">
                       {listingsList.map((l) => (
-                        <tr key={l._id} className="hover:bg-[#FAFBF9] transition">
-                          <td className="p-3 space-y-1">
+                        <tr key={l._id} className="hover:bg-[#F9FAF9] transition-colors duration-300">
+                          <td className="p-4 space-y-1">
                             <p className="font-bold text-primary">{l.title}</p>
                             <p className="text-[10px] text-gray-400">Breed: {l.breed} • Age: {l.age}</p>
                           </td>
-                          <td className="p-3 space-y-1">
+                          <td className="p-4 space-y-1">
                             {l.status === 'Sold Out' || l.quantity === 0 ? (
                               <span className="bg-red-100 text-red-800 font-bold px-2 py-0.5 rounded-sm text-[10px] uppercase tracking-wider inline-block">
                                 SOLD OUT
@@ -952,15 +954,15 @@ const SuperAdminDashboard = () => {
                               </>
                             )}
                           </td>
-                          <td className="p-3">
+                          <td className="p-4">
                             <p className="font-semibold">{l.user?.name}</p>
                             <p className="text-[10px] text-gray-400">{l.contactPhone}</p>
                           </td>
                           <td className="p-3 font-bold text-primary">
                             {l.price === 0 ? 'Free Rehoming' : `₹${l.price}`}
                           </td>
-                          <td className="p-3">{l.location}</td>
-                          <td className="p-3 text-center">
+                          <td className="p-4">{l.location}</td>
+                          <td className="p-4 text-center">
                             <button
                               onClick={() => handleVerifyListing(l._id, !l.isVerified)}
                               className={`px-3 py-1.5 font-bold tracking-widest text-[9px] uppercase transition cursor-pointer ${l.isVerified
@@ -971,7 +973,7 @@ const SuperAdminDashboard = () => {
                               {l.isVerified ? 'VERIFIED' : 'PENDING'}
                             </button>
                           </td>
-                          <td className="p-3 text-center">
+                          <td className="p-4 text-center">
                             <button
                               onClick={() => handleDeleteListing(l._id)}
                               className="p-2 border border-beige hover:border-red-500 hover:text-red-500 transition cursor-pointer"
@@ -992,31 +994,31 @@ const SuperAdminDashboard = () => {
               <div className="space-y-6 animate-in fade-in duration-200">
                 <h2 className="font-serif text-lg font-bold text-primary border-b border-[#E3EBE5] pb-3">Verify Breeder KCI Registrations ({studsList.length})</h2>
 
-                <div className="overflow-x-auto bg-white border border-[#E3EBE5] shadow-sm">
+                <div className="card-premium overflow-x-auto">
                   <table className="w-full text-left text-xs border-collapse">
                     <thead>
-                      <tr className="bg-secondary text-primary font-bold border-b border-[#E3EBE5]">
-                        <th className="p-3">Stud Profile</th>
-                        <th className="p-3">KCI License No.</th>
-                        <th className="p-3">Breeder Contact</th>
-                        <th className="p-3">Stud Fee</th>
-                        <th className="p-3 text-center">Breeder Status</th>
+                      <tr className="bg-[#F1F6F2] text-primary font-bold border-b border-[#E3EBE5]">
+                        <th className="p-4 uppercase tracking-wider text-[10px]">Stud Profile</th>
+                        <th className="p-4 uppercase tracking-wider text-[10px]">KCI License No.</th>
+                        <th className="p-4 uppercase tracking-wider text-[10px]">Breeder Contact</th>
+                        <th className="p-4 uppercase tracking-wider text-[10px]">Stud Fee</th>
+                        <th className="p-4 uppercase tracking-wider text-[10px] text-center">Breeder Status</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-[#E3EBE5] text-xs">
                       {studsList.map((s) => (
-                        <tr key={s._id} className="hover:bg-[#FAFBF9] transition">
-                          <td className="p-3 space-y-1">
+                        <tr key={s._id} className="hover:bg-[#F9FAF9] transition-colors duration-300">
+                          <td className="p-4 space-y-1">
                             <p className="font-bold text-primary">{s.studName}</p>
                             <p className="text-[10px] text-gray-400">Breed: {s.breed} • Age: {s.age}</p>
                           </td>
                           <td className="p-3 font-semibold text-gray-500 uppercase">{s.kciNumber}</td>
-                          <td className="p-3">
+                          <td className="p-4">
                             <p className="font-semibold">{s.user?.name}</p>
                             <p className="text-[10px] text-gray-400">{s.contactPhone}</p>
                           </td>
                           <td className="p-3 font-bold text-primary">₹{s.studFee}</td>
-                          <td className="p-3 text-center">
+                          <td className="p-4 text-center">
                             <button
                               onClick={() => handleVerifyStud(s._id, !s.isVerified)}
                               className={`px-3 py-1.5 font-bold tracking-widest text-[9px] uppercase transition cursor-pointer ${s.isVerified
@@ -1040,36 +1042,36 @@ const SuperAdminDashboard = () => {
               <div className="space-y-6 animate-in fade-in duration-200">
                 <h2 className="font-serif text-lg font-bold text-primary border-b border-[#E3EBE5] pb-3">Service Appointments & Bookings ({bookingsList.length})</h2>
 
-                <div className="overflow-x-auto bg-white border border-[#E3EBE5] shadow-sm">
+                <div className="card-premium overflow-x-auto">
                   <table className="w-full text-left text-xs border-collapse">
                     <thead>
-                      <tr className="bg-secondary text-primary font-bold border-b border-[#E3EBE5]">
-                        <th className="p-3">Appointment ID</th>
-                        <th className="p-3">Service & Provider</th>
-                        <th className="p-3">Customer & Pet</th>
-                        <th className="p-3">Date & Time Slot</th>
-                        <th className="p-3">Consultation Fee</th>
-                        <th className="p-3 text-center">Booking Status</th>
+                      <tr className="bg-[#F1F6F2] text-primary font-bold border-b border-[#E3EBE5]">
+                        <th className="p-4 uppercase tracking-wider text-[10px]">Appointment ID</th>
+                        <th className="p-4 uppercase tracking-wider text-[10px]">Service & Provider</th>
+                        <th className="p-4 uppercase tracking-wider text-[10px]">Customer & Pet</th>
+                        <th className="p-4 uppercase tracking-wider text-[10px]">Date & Time Slot</th>
+                        <th className="p-4 uppercase tracking-wider text-[10px]">Consultation Fee</th>
+                        <th className="p-4 uppercase tracking-wider text-[10px] text-center">Booking Status</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-[#E3EBE5] text-xs">
                       {bookingsList.map((b) => (
-                        <tr key={b._id} className="hover:bg-[#FAFBF9] transition">
-                          <td className="p-3 font-semibold text-primary">{b._id}</td>
-                          <td className="p-3 space-y-1">
+                        <tr key={b._id} className="hover:bg-[#F9FAF9] transition-colors duration-300">
+                          <td className="p-4 font-semibold text-primary">{b._id}</td>
+                          <td className="p-4 space-y-1">
                             <p className="font-bold text-primary">{b.serviceType}</p>
                             <p className="text-[10px] text-gray-400">Dr./Groomer: {b.providerName}</p>
                           </td>
-                          <td className="p-3">
+                          <td className="p-4">
                             <p className="font-semibold">{b.user?.name || 'Client'}</p>
                             <p className="text-[10px] text-[#7CA085] uppercase font-bold">Pet: {b.petDetails?.name} ({b.petDetails?.breed})</p>
                           </td>
-                          <td className="p-3 space-y-1">
+                          <td className="p-4 space-y-1">
                             <p className="font-semibold">{b.date}</p>
                             <p className="text-[10px] text-gray-400">{b.timeSlot}</p>
                           </td>
                           <td className="p-3 font-bold text-primary">₹{b.fee}</td>
-                          <td className="p-3 text-center">
+                          <td className="p-4 text-center">
                             <select
                               value={b.status}
                               onChange={(e) => handleUpdateBookingStatus(b._id, e.target.value)}
@@ -1094,34 +1096,34 @@ const SuperAdminDashboard = () => {
               <div className="space-y-6 animate-in fade-in duration-200">
                 <h2 className="font-serif text-lg font-bold text-primary border-b border-[#E3EBE5] pb-3">Registered Accounts ({usersList.length})</h2>
 
-                <div className="overflow-x-auto bg-white border border-[#E3EBE5] shadow-sm">
+                <div className="card-premium overflow-x-auto">
                   <table className="w-full text-left text-xs border-collapse">
                     <thead>
-                      <tr className="bg-secondary text-primary font-bold border-b border-[#E3EBE5]">
-                        <th className="p-3">User Name</th>
-                        <th className="p-3">Email Address</th>
-                        <th className="p-3">Phone</th>
-                        <th className="p-3">Location</th>
-                        <th className="p-3">Category</th>
-                        <th className="p-3">Current Role</th>
-                        <th className="p-3 text-center">Change Role</th>
-                        <th className="p-3 text-center">Actions</th>
+                      <tr className="bg-[#F1F6F2] text-primary font-bold border-b border-[#E3EBE5]">
+                        <th className="p-4 uppercase tracking-wider text-[10px]">User Name</th>
+                        <th className="p-4 uppercase tracking-wider text-[10px]">Email Address</th>
+                        <th className="p-4 uppercase tracking-wider text-[10px]">Phone</th>
+                        <th className="p-4 uppercase tracking-wider text-[10px]">Location</th>
+                        <th className="p-4 uppercase tracking-wider text-[10px]">Category</th>
+                        <th className="p-4 uppercase tracking-wider text-[10px]">Current Role</th>
+                        <th className="p-4 uppercase tracking-wider text-[10px] text-center">Change Role</th>
+                        <th className="p-4 uppercase tracking-wider text-[10px] text-center">Actions</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-[#E3EBE5] text-xs">
                       {usersList.map((u) => (
-                        <tr key={u._id} className="hover:bg-[#FAFBF9] transition">
+                        <tr key={u._id} className="hover:bg-[#F9FAF9] transition-colors duration-300">
                           <td className="p-3 font-semibold text-primary flex items-center gap-2">
                             <div className="w-7 h-7 rounded-full bg-[#FAFBF9] border border-[#E3EBE5] flex items-center justify-center font-serif text-[10px] text-primary font-bold">
                               {u.name ? u.name.charAt(0).toUpperCase() : 'U'}
                             </div>
                             <span>{u.name}</span>
                           </td>
-                          <td className="p-3 font-semibold text-gray-500">{u.email}</td>
-                          <td className="p-3">{u.mobile || 'N/A'}</td>
-                          <td className="p-3">{u.location || 'N/A'}</td>
-                          <td className="p-3">{u.serviceCategory || 'N/A'}</td>
-                          <td className="p-3">
+                          <td className="p-4 font-semibold text-gray-500">{u.email}</td>
+                          <td className="p-4">{u.mobile || 'N/A'}</td>
+                          <td className="p-4">{u.location || 'N/A'}</td>
+                          <td className="p-4">{u.serviceCategory || 'N/A'}</td>
+                          <td className="p-4">
                             <span className={`font-bold px-2 py-0.5 rounded-full text-[9px] uppercase ${
                               u.role === 'ADMIN'
                                 ? 'bg-red-50 text-red-700 border border-red-100'
@@ -1132,7 +1134,7 @@ const SuperAdminDashboard = () => {
                               {u.role}
                             </span>
                           </td>
-                          <td className="p-3 text-center">
+                          <td className="p-4 text-center">
                             <select
                               value={u.role}
                               onChange={(e) => handleUpdateUserRole(u._id, e.target.value)}
@@ -1143,7 +1145,7 @@ const SuperAdminDashboard = () => {
                               <option value="ADMIN">Admin</option>
                             </select>
                           </td>
-                          <td className="p-3 text-center">
+                          <td className="p-4 text-center">
                             <button
                               onClick={() => handleDeleteUser(u._id)}
                               className="p-2 border border-beige hover:border-red-500 hover:text-red-500 transition cursor-pointer text-gray-500"
@@ -1165,22 +1167,22 @@ const SuperAdminDashboard = () => {
               <div className="space-y-6 animate-in fade-in duration-200">
                 <h2 className="font-serif text-lg font-bold text-primary border-b border-[#E3EBE5] pb-3">Contact Form Submissions ({enquiriesList.length})</h2>
 
-                <div className="overflow-x-auto bg-white border border-[#E3EBE5] shadow-sm">
+                <div className="card-premium overflow-x-auto">
                   <table className="w-full text-left text-xs border-collapse">
                     <thead>
-                      <tr className="bg-secondary text-primary font-bold border-b border-[#E3EBE5]">
-                        <th className="p-3">Sender Name</th>
-                        <th className="p-3">Email Address</th>
-                        <th className="p-3">Subject</th>
-                        <th className="p-3">Message Body</th>
-                        <th className="p-3 text-right">Date Received</th>
+                      <tr className="bg-[#F1F6F2] text-primary font-bold border-b border-[#E3EBE5]">
+                        <th className="p-4 uppercase tracking-wider text-[10px]">Sender Name</th>
+                        <th className="p-4 uppercase tracking-wider text-[10px]">Email Address</th>
+                        <th className="p-4 uppercase tracking-wider text-[10px]">Subject</th>
+                        <th className="p-4 uppercase tracking-wider text-[10px]">Message Body</th>
+                        <th className="p-4 uppercase tracking-wider text-[10px] text-right">Date Received</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-[#E3EBE5] text-xs">
                       {enquiriesList.map((e) => (
-                        <tr key={e._id} className="hover:bg-[#FAFBF9] transition">
-                          <td className="p-3 font-semibold text-primary">{e.name}</td>
-                          <td className="p-3 font-semibold text-gray-500">{e.email}</td>
+                        <tr key={e._id} className="hover:bg-[#F9FAF9] transition-colors duration-300">
+                          <td className="p-4 font-semibold text-primary">{e.name}</td>
+                          <td className="p-4 font-semibold text-gray-500">{e.email}</td>
                           <td className="p-3 font-bold text-accent">{e.subject}</td>
                           <td className="p-3 text-gray-600 max-w-sm leading-relaxed">{e.message}</td>
                           <td className="p-3 text-right text-gray-400">

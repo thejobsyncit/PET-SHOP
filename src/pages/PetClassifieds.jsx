@@ -153,8 +153,8 @@ const PetClassifieds = () => {
       return;
     }
     
-    if (user?.role !== 'USER') {
-      toast.error('Only customers can purchase pets. Sellers cannot buy pets.');
+    if (user?.role === 'SERVICE_PROVIDER' && (user?.serviceCategory || '').toLowerCase() === 'pet seller') {
+      toast.error('Sellers cannot buy pets.');
       return;
     }
     

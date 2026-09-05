@@ -209,3 +209,25 @@ export const getStoredWalkingBookings = () => {
   }
   return [];
 };
+
+export const saveWalkingProvider = (providerData) => {
+  try {
+    const existing = getStoredWalkingProviders();
+    const index = existing.findIndex(p => p.id === providerData.id);
+    
+    let updated;
+    if (index >= 0) {
+      updated = [...existing];
+      updated[index] = { ...updated[index], ...providerData };
+    } else {
+      updated = [providerData, ...existing];
+    }
+    
+    localStorage.setItem(STORAGE_KEY_PROVIDERS, JSON.stringify(updated));
+    return true;
+  } catch (e) {
+    console.error('Failed to save walking provider', e);
+    return false;
+  }
+};
+

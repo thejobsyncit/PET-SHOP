@@ -249,7 +249,7 @@ export const fetchProfile = createAsyncThunk('auth/fetchProfile', async (_, thun
     if (saved) {
       return { user: saved };
     }
-    localStorage.removeItem('pawora_token');
+    // Avoid automatically logging out the user if the backend fetch fails
     return thunkAPI.rejectWithValue(error.message);
   }
 });
@@ -406,10 +406,8 @@ const authSlice = createSlice({
       })
       .addCase(fetchProfile.rejected, (state, action) => {
         state.loading = false;
-        if (!state.user) {
-          state.isAuthenticated = false;
-          state.token = null;
-        }
+        state.error = action.payload;
+        // Do not force logout on profile fetch failure to prevent accidental logouts
       })
       // Update Profile
       .addCase(updateProfile.pending, (state) => {
