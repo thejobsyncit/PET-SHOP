@@ -139,6 +139,56 @@ export const login = createAsyncThunk('auth/login', async (credentials, thunkAPI
           location: 'Whitefield, Bangalore, Karnataka'
         },
         {
+          _id: 'prov-walk-06',
+          name: 'Swift Paws Walking',
+          email: 'swiftpaws@pawora.com',
+          mobile: '9845112233',
+          password: 'Pass@1234',
+          role: 'SERVICE_PROVIDER',
+          serviceCategory: 'Pet Walking & Fitness',
+          location: 'Jayanagar, Bangalore, Karnataka'
+        },
+        {
+          _id: 'prov-trans-07',
+          name: 'SafePet Transit',
+          email: 'safepet@pawora.com',
+          mobile: '9845223344',
+          password: 'Pass@1234',
+          role: 'SERVICE_PROVIDER',
+          serviceCategory: 'Pet Transport & Relocation',
+          location: 'Hebbal, Bangalore, Karnataka'
+        },
+        {
+          _id: 'prov-train-08',
+          name: 'Clever Canines',
+          email: 'clevercanines@pawora.com',
+          mobile: '9845334455',
+          password: 'Pass@1234',
+          role: 'SERVICE_PROVIDER',
+          serviceCategory: 'Pet Training & Behavior',
+          location: 'HSR Layout, Bangalore, Karnataka'
+        },
+        {
+          _id: 'prov-insure-09',
+          name: 'PawProtect Insurance',
+          email: 'pawinsure@pawora.com',
+          mobile: '9845445566',
+          password: 'Pass@1234',
+          role: 'SERVICE_PROVIDER',
+          serviceCategory: 'Pet Insurance',
+          location: 'Koramangala, Bangalore, Karnataka'
+        },
+        {
+          _id: 'prov-breed-10',
+          name: 'Elite Breeds Hub',
+          email: 'elitebreed@pawora.com',
+          mobile: '9845556677',
+          password: 'Pass@1234',
+          role: 'SERVICE_PROVIDER',
+          serviceCategory: 'Pet Mating & Breeding',
+          location: 'Yelahanka, Bangalore, Karnataka'
+        },
+        {
           _id: 'user-demo-01',
           name: 'Priya Sharma',
           email: 'priya@pawora.com',

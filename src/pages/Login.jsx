@@ -1153,10 +1153,65 @@ const Login = () => {
                           setLoginIdentifier('happypaws@pawora.com');
                           setLoginPassword('Pass@1234');
                         }}
-                        className="p-1.5 bg-white border border-emerald-200 rounded-lg text-left hover:bg-emerald-100 transition cursor-pointer col-span-2 sm:col-span-1"
+                        className="p-1.5 bg-white border border-emerald-200 rounded-lg text-left hover:bg-emerald-100 transition cursor-pointer"
                       >
                         <p className="text-[10px] font-bold text-slate-800 truncate">Happy Paws Resort</p>
                         <p className="text-[9px] text-emerald-700 font-semibold">Pet Hostel</p>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setLoginIdentifier('swiftpaws@pawora.com');
+                          setLoginPassword('Pass@1234');
+                        }}
+                        className="p-1.5 bg-white border border-emerald-200 rounded-lg text-left hover:bg-emerald-100 transition cursor-pointer"
+                      >
+                        <p className="text-[10px] font-bold text-slate-800 truncate">Swift Paws Walking</p>
+                        <p className="text-[9px] text-emerald-700 font-semibold">Pet Walking & Fitness</p>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setLoginIdentifier('safepet@pawora.com');
+                          setLoginPassword('Pass@1234');
+                        }}
+                        className="p-1.5 bg-white border border-emerald-200 rounded-lg text-left hover:bg-emerald-100 transition cursor-pointer"
+                      >
+                        <p className="text-[10px] font-bold text-slate-800 truncate">SafePet Transit</p>
+                        <p className="text-[9px] text-emerald-700 font-semibold">Pet Transport</p>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setLoginIdentifier('clevercanines@pawora.com');
+                          setLoginPassword('Pass@1234');
+                        }}
+                        className="p-1.5 bg-white border border-emerald-200 rounded-lg text-left hover:bg-emerald-100 transition cursor-pointer"
+                      >
+                        <p className="text-[10px] font-bold text-slate-800 truncate">Clever Canines</p>
+                        <p className="text-[9px] text-emerald-700 font-semibold">Pet Training</p>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setLoginIdentifier('pawinsure@pawora.com');
+                          setLoginPassword('Pass@1234');
+                        }}
+                        className="p-1.5 bg-white border border-emerald-200 rounded-lg text-left hover:bg-emerald-100 transition cursor-pointer"
+                      >
+                        <p className="text-[10px] font-bold text-slate-800 truncate">PawProtect</p>
+                        <p className="text-[9px] text-emerald-700 font-semibold">Pet Insurance</p>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setLoginIdentifier('elitebreed@pawora.com');
+                          setLoginPassword('Pass@1234');
+                        }}
+                        className="p-1.5 bg-white border border-emerald-200 rounded-lg text-left hover:bg-emerald-100 transition cursor-pointer"
+                      >
+                        <p className="text-[10px] font-bold text-slate-800 truncate">Elite Breeds</p>
+                        <p className="text-[9px] text-emerald-700 font-semibold">Mating & Breeding</p>
                       </button>
                     </div>
                   </div>
