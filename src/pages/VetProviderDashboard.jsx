@@ -544,7 +544,7 @@ const VetProviderDashboard = ({
                 </div>
               )}
               <span className="inline-flex mt-2 bg-[#ffd000]/10 text-[#0F2E23] border border-[#ffd000]/30 text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-widest items-center justify-center gap-1 shadow-sm mx-auto">
-                <ShieldCheck size={12} className="text-amber-500" /> Elite Seller
+                <ShieldCheck size={12} className="text-amber-500" /> Elite Vet
               </span>
             </div>
           </div>
