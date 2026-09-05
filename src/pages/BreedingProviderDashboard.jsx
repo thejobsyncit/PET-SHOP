@@ -8,16 +8,235 @@ import {
   Tag, ShoppingBag, AlertCircle, LayoutDashboard, LogOut, CheckCircle, X, Send, CreditCard, Loader2, Edit3, Check, Stethoscope, FileText, Building
 } from 'lucide-react';
 import { apiRequest } from '../services/api.js';
+import { getStoredMatingPets } from '../data/breedingData.js';
+
 import toast from 'react-hot-toast';
 
-const BreedingProviderContent = ({ activeTab }) => {
+
+const ListingsModule = ({ user }) => {
+  const [studs, setStuds] = useState([]);
+
+  useEffect(() => {
+    const allPets = getStoredMatingPets();
+    // Filter pets belonging to this user (using name/phone as mock auth check)
+    const myPets = allPets.filter(p => p.parentName === user?.name || p.parentPhone === user?.mobile || p.whatsappNumber === user?.mobile);
+    setStuds(myPets);
+  }, [user]);
+
   return (
-    <div className="flex flex-col items-center justify-center h-full min-h-[400px] text-center">
-      <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center text-slate-400 mb-4">
-        <LayoutDashboard size={24} />
+    <div className="space-y-6 animate-in fade-in duration-300">
+      <div className="flex justify-between items-center border-b border-slate-100 pb-4">
+        <div>
+          <h2 className="text-xl font-black text-[#0F2E23]">Active Studs/Mates</h2>
+          <p className="text-sm text-slate-500 font-medium">Manage your breeding profiles and stud fees.</p>
+        </div>
+        <button className="bg-[#0F2E23] hover:bg-emerald-800 text-white px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider flex items-center gap-2 transition-colors">
+          <Plus size={16} /> Add Profile
+        </button>
       </div>
-      <h3 className="text-xl font-bold text-slate-800 mb-2">{activeTab.charAt(0).toUpperCase() + activeTab.slice(1)} Module</h3>
-      <p className="text-slate-500 max-w-sm">This module is currently under development. Check back soon for updates!</p>
+
+      {studs.length === 0 ? (
+        <div className="text-center py-10 bg-slate-50 rounded-2xl border border-dashed border-slate-200">
+          <PawPrint size={40} className="mx-auto text-slate-300 mb-3" />
+          <h3 className="text-lg font-bold text-slate-700">No Mating Profiles Found</h3>
+          <p className="text-slate-500 mt-1">You haven't listed any pets for mating yet.</p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {studs.map((stud) => (
+            <div key={stud.id} className="bg-white border border-slate-200 rounded-2xl overflow-hidden hover:shadow-lg transition-shadow duration-300 group flex flex-col">
+              <div className="h-40 overflow-hidden relative">
+                <img src={stud.image} alt={stud.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                <div className="absolute top-3 right-3">
+                  <span className="px-2 py-1 rounded-full text-[10px] font-black uppercase tracking-wider shadow-sm bg-emerald-100 text-emerald-700">
+                    Active
+                  </span>
+                </div>
+              </div>
+              <div className="p-5 flex flex-col flex-1">
+                <div className="flex justify-between items-start mb-2">
+                  <div>
+                    <h3 className="text-lg font-black text-[#0F2E23]">{stud.name}</h3>
+                    <p className="text-xs font-bold text-slate-500">{stud.breed}</p>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-lg font-black text-amber-600">₹{stud.price.toLocaleString()}</div>
+                    <div className="text-[9px] uppercase tracking-wider text-slate-400 font-bold">Fee</div>
+                  </div>
+                </div>
+                <div className="flex items-center gap-4 mt-auto pt-4 border-t border-slate-100 text-sm">
+                  <div className="flex items-center gap-1 text-slate-600">
+                    <Calendar size={14} className="text-slate-400" /> {stud.age}
+                  </div>
+                  <div className="flex items-center gap-1 text-slate-600">
+                    <CheckCircle size={14} className="text-emerald-500" /> 0 matches
+                  </div>
+                </div>
+                <div className="mt-4 flex gap-2">
+                  <button className="flex-1 bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-700 py-2 rounded-lg text-xs font-bold transition-colors">Edit</button>
+                  <button className="flex-1 bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-700 py-2 rounded-lg text-xs font-bold transition-colors">Pause</button>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
+const MatchesModule = ({ user }) => {
+  const [requests, setRequests] = useState([]);
+
+  useEffect(() => {
+    try {
+      const enquiries = JSON.parse(localStorage.getItem('pawora_mating_enquiries') || '[]');
+      const myPets = getStoredMatingPets().filter(p => p.parentName === user?.name || p.parentPhone === user?.mobile || p.whatsappNumber === user?.mobile);
+      const myPetIds = myPets.map(p => p.id);
+      
+      const myRequests = enquiries.filter(enq => myPetIds.includes(enq.petId));
+      
+      // Enhance requests with target pet details
+      const enhancedRequests = myRequests.map(req => {
+        const targetPet = myPets.find(p => p.id === req.petId);
+        return {
+          ...req,
+          targetPetName: targetPet ? targetPet.name : 'Unknown Pet'
+        };
+      });
+      
+      setRequests(enhancedRequests);
+    } catch(e) {
+      console.error(e);
+    }
+  }, [user]);
+
+  return (
+    <div className="space-y-6 animate-in fade-in duration-300">
+      <div className="border-b border-slate-100 pb-4">
+        <h2 className="text-xl font-black text-[#0F2E23]">Match Requests</h2>
+        <p className="text-sm text-slate-500 font-medium">Review and accept breeding requests for your studs.</p>
+      </div>
+
+      {requests.length === 0 ? (
+        <div className="text-center py-10 bg-slate-50 rounded-2xl border border-dashed border-slate-200">
+          <Heart size={40} className="mx-auto text-slate-300 mb-3" />
+          <h3 className="text-lg font-bold text-slate-700">No Requests Yet</h3>
+          <p className="text-slate-500 mt-1">When users inquire about your pets, they will appear here.</p>
+        </div>
+      ) : (
+        <div className="space-y-4">
+          {requests.map((req) => (
+            <div key={req.id} className="bg-white border border-slate-200 rounded-2xl p-5 hover:border-emerald-500/30 transition-colors shadow-sm">
+              <div className="flex flex-col md:flex-row justify-between gap-4">
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-1 rounded-md">{req.id || 'REQ-NEW'}</span>
+                    <span className="text-xs font-bold text-slate-400">•</span>
+                    <span className="text-sm font-black text-[#0F2E23]">{req.ownerName}</span>
+                  </div>
+                  <h3 className="text-lg font-bold text-slate-800 mt-2">Request for <span className="text-amber-600">{req.targetPetName}</span></h3>
+                  <div className="flex items-center gap-4 mt-2 text-sm text-slate-600 font-medium">
+                    <div className="flex items-center gap-1.5"><PawPrint size={14} className="text-slate-400"/> {req.petBreed} ({req.petName})</div>
+                    <div className="flex items-center gap-1.5"><Phone size={14} className="text-slate-400"/> {req.ownerPhone}</div>
+                  </div>
+                  <div className="mt-3 p-3 bg-slate-50 rounded-xl border border-slate-100 text-sm text-slate-600 italic">
+                    "{req.message}"
+                  </div>
+                  <div className="mt-2 text-xs text-slate-400 font-medium">
+                    Received: {new Date(req.createdAt).toLocaleString()}
+                  </div>
+                </div>
+                <div className="flex md:flex-col gap-2 justify-center border-t md:border-t-0 md:border-l border-slate-100 pt-4 md:pt-0 md:pl-6 min-w-[140px]">
+                  <button className="flex-1 w-full bg-emerald-600 hover:bg-emerald-700 text-white py-2 px-4 rounded-xl text-xs font-bold transition-colors">Accept Match</button>
+                  <button className="flex-1 w-full bg-slate-100 hover:bg-slate-200 text-slate-700 py-2 px-4 rounded-xl text-xs font-bold transition-colors">Call Owner</button>
+                  <button className="flex-1 w-full bg-white hover:bg-rose-50 text-rose-600 border border-slate-200 hover:border-rose-200 py-2 px-4 rounded-xl text-xs font-bold transition-colors">Decline</button>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
+const MessagesModule = () => {
+  const inquiries = [
+    { id: 1, name: 'Vikram Singh', pet: 'Golden Retriever (F)', date: 'Today, 10:30 AM', message: 'Hi! I saw Maximus\'s profile and he looks like a perfect match for our Bella. What is your availability next month?', isUnread: true },
+    { id: 2, name: 'Sneha Reddy', pet: 'Siberian Husky (F)', date: 'Yesterday, 4:15 PM', message: 'Hello, do you require any specific health clearances before booking a mating session with Shadow?', isUnread: true },
+    { id: 3, name: 'Amit Patel', pet: 'Labrador (F)', date: 'Oct 02, 2026', message: 'Thank you for the information. We will get back to you after discussing with our vet.', isUnread: false },
+    { id: 4, name: 'Pooja Sharma', pet: 'German Shepherd (F)', date: 'Sep 28, 2026', message: 'Is the stud fee negotiable if we travel to your facility in Yelahanka?', isUnread: false },
+  ];
+
+  return (
+    <div className="space-y-6 animate-in fade-in duration-300">
+      <div className="border-b border-slate-100 pb-4 flex justify-between items-end">
+        <div>
+          <h2 className="text-xl font-black text-[#0F2E23]">Client Inquiries</h2>
+          <p className="text-sm text-slate-500 font-medium">Respond to pet owners interested in your breeding services.</p>
+        </div>
+        <div className="text-sm font-bold text-emerald-600 bg-emerald-50 px-3 py-1.5 rounded-lg border border-emerald-100">
+          2 Unread
+        </div>
+      </div>
+
+      <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm flex flex-col md:flex-row min-h-[500px]">
+        {/* Left Side: Inbox List */}
+        <div className="w-full md:w-1/3 border-r border-slate-200 flex flex-col bg-slate-50/50">
+          <div className="p-4 border-b border-slate-200">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+              <input type="text" placeholder="Search messages..." className="w-full pl-9 pr-4 py-2 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all" />
+            </div>
+          </div>
+          <div className="flex-1 overflow-y-auto">
+            {inquiries.map((inq, idx) => (
+              <div key={inq.id} className={`p-4 border-b border-slate-100 cursor-pointer transition-colors ${idx === 0 ? 'bg-white border-l-4 border-l-emerald-500' : 'hover:bg-white border-l-4 border-l-transparent'}`}>
+                <div className="flex justify-between items-start mb-1">
+                  <h4 className={`text-sm font-bold ${inq.isUnread ? 'text-[#0F2E23]' : 'text-slate-600'}`}>{inq.name}</h4>
+                  <span className="text-[10px] font-bold text-slate-400">{inq.date}</span>
+                </div>
+                <div className="text-[11px] font-bold text-emerald-600 mb-1.5 flex items-center gap-1"><PawPrint size={10}/> {inq.pet}</div>
+                <p className={`text-xs line-clamp-2 ${inq.isUnread ? 'text-slate-700 font-medium' : 'text-slate-500'}`}>{inq.message}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Right Side: Chat View */}
+        <div className="w-full md:w-2/3 flex flex-col bg-white">
+          <div className="p-4 border-b border-slate-200 flex justify-between items-center bg-slate-50/50">
+            <div>
+              <h3 className="text-base font-black text-[#0F2E23]">Vikram Singh</h3>
+              <p className="text-xs font-bold text-emerald-600">Interested in: Maximus</p>
+            </div>
+            <button className="text-slate-400 hover:text-[#0F2E23] transition-colors"><Settings size={18}/></button>
+          </div>
+          
+          <div className="flex-1 p-6 overflow-y-auto space-y-6 bg-slate-50/30">
+            <div className="flex flex-col items-center mb-6">
+              <span className="text-[10px] font-bold text-slate-400 bg-slate-100 px-3 py-1 rounded-full uppercase tracking-wider">Today</span>
+            </div>
+            
+            <div className="flex items-start gap-3">
+              <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold text-xs shrink-0">VS</div>
+              <div className="bg-white border border-slate-200 p-3.5 rounded-2xl rounded-tl-sm shadow-sm max-w-[80%]">
+                <p className="text-sm text-slate-700">{inquiries[0].message}</p>
+                <span className="text-[9px] font-bold text-slate-400 mt-2 block">10:30 AM</span>
+              </div>
+            </div>
+          </div>
+          
+          <div className="p-4 border-t border-slate-200 bg-white">
+            <div className="flex items-center gap-2">
+              <button className="p-2 text-slate-400 hover:text-emerald-600 transition-colors bg-slate-50 rounded-xl"><Plus size={20}/></button>
+              <input type="text" placeholder="Type your reply here..." className="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all" />
+              <button className="p-2.5 bg-[#0F2E23] text-white hover:bg-emerald-800 transition-colors rounded-xl shadow-sm"><Send size={18}/></button>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };
@@ -313,7 +532,7 @@ const BreedingProviderDashboard = ({
 
         {/* TAB CONTENT */}
         <div className="bg-white rounded-3xl p-8 lg:p-10 border border-slate-200 min-h-[500px] shadow-sm">
-          <BreedingProviderContent activeTab={activeTab} />
+          <BreedingProviderContent activeTab={activeTab} user={user} />
         </div>
       </main>
 

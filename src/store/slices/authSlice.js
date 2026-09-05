@@ -484,10 +484,8 @@ const authSlice = createSlice({
       })
       .addCase(fetchProfile.rejected, (state, action) => {
         state.loading = false;
-        if (!state.user) {
-          state.isAuthenticated = false;
-          state.token = null;
-        }
+        state.error = action.payload;
+        // Do not force logout on profile fetch failure to prevent accidental logouts
       })
       // Update Profile
       .addCase(updateProfile.pending, (state) => {
