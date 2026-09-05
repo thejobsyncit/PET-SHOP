@@ -10,6 +10,13 @@ import {
 import { apiRequest } from '../services/api.js';
 import toast from 'react-hot-toast';
 import VetProviderContent from './VetProviderContent.jsx';
+import { 
+  getVetAppointments, 
+  getStoredVetWallet, 
+  getStoredVetPrescriptions, 
+  getStoredVetChats, 
+  getStoredVetServicesFees 
+} from '../data/veterinaryData.js';
 
 const VetProviderDashboard = ({ 
   currentProvider, 
@@ -18,7 +25,9 @@ const VetProviderDashboard = ({
 }) => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
-  const activeTabParam = searchParams.get('tab') || localStorage.getItem('sellerDashboardTab') || 'inventory';
+  const rawTab = searchParams.get('tab') || localStorage.getItem('vetDashboardTab') || 'services';
+  const validTabs = ['appointments', 'services', 'records', 'messages', 'hours', 'reviews', 'wallet', 'profile'];
+  const activeTabParam = validTabs.includes(rawTab) ? rawTab : 'services';
   const [activeTab, setActiveTab] = useState(activeTabParam);
 
   const { user } = useSelector(state => state.auth);
@@ -27,18 +36,50 @@ const VetProviderDashboard = ({
   const [profileAvatar, setProfileAvatar] = useState(user?.avatar || user?.profilePicture || currentProvider?.avatar || '');
   const [isEditingProfile, setIsEditingProfile] = useState(false);
 
+  // Vet Live Datasets & Dynamic KPI Metrics
+  const [vetAppointments, setVetAppointments] = useState(() => getVetAppointments());
+  const [vetWallet, setVetWallet] = useState(() => getStoredVetWallet());
+  const [vetPrescriptions, setVetPrescriptions] = useState(() => getStoredVetPrescriptions());
+  const [vetChats, setVetChats] = useState(() => getStoredVetChats());
+  const [vetServicesFees, setVetServicesFees] = useState(() => getStoredVetServicesFees());
+
+  const refreshVetStats = () => {
+    setVetAppointments(getVetAppointments());
+    setVetWallet(getStoredVetWallet());
+    setVetPrescriptions(getStoredVetPrescriptions());
+    setVetChats(getStoredVetChats());
+    setVetServicesFees(getStoredVetServicesFees());
+  };
+
+  useEffect(() => {
+    refreshVetStats();
+    window.addEventListener('vet-data-updated', refreshVetStats);
+    return () => window.removeEventListener('vet-data-updated', refreshVetStats);
+  }, []);
+
   useEffect(() => {
     if (user) {
-      setProfileName(user.name || currentProvider?.name || '');
-      setProfileAvatar(user.avatar || user.profilePicture || currentProvider?.avatar || '');
+      if (user.name) setProfileName(user.name);
+      if (user.avatar || user.profilePicture) {
+        setProfileAvatar(user.avatar || user.profilePicture);
+      }
     }
-  }, [user, currentProvider]);
+  }, [user]);
 
   const handleUpdateProfile = async (e) => {
-    e.preventDefault();
-    const result = await dispatch(updateProfile({ name: profileName, avatar: profileAvatar, profilePicture: profileAvatar }));
+    if (e) e.preventDefault();
+    if (!profileName?.trim()) {
+      toast.error('Provider name cannot be empty');
+      return;
+    }
+    const result = await dispatch(updateProfile({ 
+      name: profileName.trim(), 
+      businessName: profileName.trim(),
+      avatar: profileAvatar, 
+      profilePicture: profileAvatar 
+    }));
     if (updateProfile.fulfilled.match(result)) {
-      toast.success('Seller profile updated successfully!');
+      toast.success('Doctor profile updated successfully!');
       setIsEditingProfile(false);
     } else {
       toast.error('Failed to update profile');
@@ -155,14 +196,14 @@ const VetProviderDashboard = ({
   useEffect(() => {
     if (activeTabParam) {
       setActiveTab(activeTabParam);
-      localStorage.setItem('sellerDashboardTab', activeTabParam);
+      localStorage.setItem('vetDashboardTab', activeTabParam);
     }
   }, [activeTabParam]);
 
   const handleTabChange = (tabName) => {
     setActiveTab(tabName);
     setSearchParams({ tab: tabName });
-    localStorage.setItem('sellerDashboardTab', tabName);
+    localStorage.setItem('vetDashboardTab', tabName);
   };
 
   const fetchListings = async () => {
@@ -453,22 +494,25 @@ const VetProviderDashboard = ({
     return acc;
   }, 0);
 
-  // Safe Stats Calculation
+  const pendingAppointments = vetAppointments.filter(a => a.status === 'In Queue' || a.status === 'Confirmed');
+  const completedAppointments = vetAppointments.filter(a => a.status === 'Completed');
+  const activeServicesCount = (vetServicesFees?.inClinic?.active ? 1 : 0) + (vetServicesFees?.video?.active ? 1 : 0) + (vetServicesFees?.home?.active ? 1 : 0);
+
+  // Safe Stats Calculation for Vet Provider
   const stats = {
-    totalListings: myPets.length,
-    availableStock: activePets.reduce((acc, curr) => acc + (curr.quantity || 1), 0),
-    soldOutCount: soldOutPets.length,
-    totalOrders: petsWithSales.reduce((acc, curr) => acc + (curr.soldCount || 1), 0),
-    revenue: petsWithSales.reduce((acc, curr) => acc + ((curr.soldCount || 1) * (curr.price || 0)), 0),
-    discounts: totalDiscountGiven || 1500, 
-    inquiries: 12,
+    totalAppointments: vetAppointments.length,
+    pendingPatients: pendingAppointments.length,
+    completedConsults: completedAppointments.length,
+    revenue: (vetWallet?.lifetimeRevenue || 35897) + completedAppointments.reduce((acc, curr) => acc + (Number(curr.fee) || 800), 0),
+    discounts: 1500, 
+    inquiries: vetChats.length,
     rating: currentProvider?.rating || 4.9,
-    reviews: currentProvider?.reviewsCount || 100
+    reviews: currentProvider?.reviewsCount || 124
   };
 
   // Fix Profile Avatar - Use actual user's avatar if they are logged in, otherwise fallback
-  const displayAvatar = user?.avatar || user?.profilePicture || currentProvider?.avatar || 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?q=80&w=400';
-  const displayName = user?.name || currentProvider?.name || 'Pet Seller';
+  const displayAvatar = user?.avatar || user?.profilePicture || currentProvider?.avatar || 'https://images.unsplash.com/photo-1622253692010-333f2da6031d?auto=format&fit=crop&w=600&q=80';
+  const displayName = user?.name || currentProvider?.name || 'Dr. Ramesh Kumar';
 
   return (
     <div className="min-h-screen bg-[#FAF9F5] text-slate-900 font-sans selection:bg-[#0F2E23]/20 selection:text-[#0F2E23] flex">
@@ -554,10 +598,10 @@ const VetProviderDashboard = ({
             <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 px-3">Main Menu</div>
             <ul className="space-y-1">
               {[
-                { id: 'appointments', label: 'Appointments & Queue', count: 5, icon: Calendar },
-                { id: 'services', label: 'Clinical Services & Fees', count: 3, icon: Stethoscope },
-                { id: 'records', label: 'E-Prescriptions & Records', count: 2, icon: FileText },
-                { id: 'messages', label: 'Tele-Consult Messages', count: 1, icon: MessageSquare },
+                { id: 'appointments', label: 'Appointments & Queue', count: pendingAppointments.length, icon: Calendar },
+                { id: 'services', label: 'Clinical Services & Fees', count: activeServicesCount, icon: Stethoscope },
+                { id: 'records', label: 'E-Prescriptions & Records', count: vetPrescriptions.length, icon: FileText },
+                { id: 'messages', label: 'Tele-Consult Messages', count: vetChats.length, icon: MessageSquare },
                 { id: 'hours', label: 'Clinic Hours & Slots', icon: Clock },
                 { id: 'reviews', label: 'Patient Reviews', extra: '4.9 ★', icon: Star },
                 { id: 'wallet', label: 'Wallet & Payouts', icon: DollarSign },
@@ -565,8 +609,8 @@ const VetProviderDashboard = ({
               ].map(item => (
                 <li key={item.id}>
                   <button
-                    onClick={() => setActiveTab(item.id)}
-                    className={`w-full flex items-center justify-between px-4 py-3 rounded-2xl transition-all duration-300 group ${
+                    onClick={() => handleTabChange(item.id)}
+                    className={`w-full flex items-center justify-between px-4 py-3 rounded-2xl transition-all duration-300 group cursor-pointer ${
                       activeTab === item.id 
                         ? 'bg-[#0F2E23] text-white shadow-md' 
                         : 'text-slate-500 hover:bg-emerald-50 hover:text-emerald-700'
@@ -604,7 +648,7 @@ const VetProviderDashboard = ({
               toast.success('Logged out successfully');
               navigate('/');
             }}
-            className="w-full bg-white border border-rose-200 text-rose-600 hover:bg-rose-50 hover:border-rose-300 text-xs font-black uppercase tracking-widest rounded-xl px-4 py-3 flex items-center justify-center gap-2 shadow-sm transition-all"
+            className="w-full bg-white border border-rose-200 text-rose-600 hover:bg-rose-50 hover:border-rose-300 text-xs font-black uppercase tracking-widest rounded-xl px-4 py-3 flex items-center justify-center gap-2 shadow-sm transition-all cursor-pointer"
           >
             <LogOut size={16} /> Logout
           </button>
@@ -645,7 +689,7 @@ const VetProviderDashboard = ({
                 <PawPrint size={16} />
               </div>
             </div>
-            <div className="text-3xl font-sans font-black text-[#0F2E23] mb-1">{stats.totalListings}</div>
+            <div className="text-3xl font-sans font-black text-[#0F2E23] mb-1">{stats.totalAppointments}</div>
             <div className="text-[10px] text-slate-500 font-black uppercase tracking-wider mt-2">All time</div>
           </div>
 
@@ -654,10 +698,10 @@ const VetProviderDashboard = ({
             <div className="flex justify-between items-center mb-4 relative z-10">
               <span className="text-[10px] font-black text-emerald-600 uppercase tracking-widest">Pending Patients</span>
               <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-500 flex items-center justify-center group-hover:scale-110 transition duration-300 border border-emerald-100">
-                <ShoppingBag size={16} />
+                <Clock size={16} />
               </div>
             </div>
-            <div className="text-3xl font-sans font-black text-[#0F2E23] mb-1 relative z-10">{stats.availableStock}</div>
+            <div className="text-3xl font-sans font-black text-[#0F2E23] mb-1 relative z-10">{stats.pendingPatients}</div>
             <div className="text-[10px] text-emerald-600 font-black uppercase tracking-wider mt-2 relative z-10">In queue</div>
           </div>
 
@@ -666,10 +710,10 @@ const VetProviderDashboard = ({
             <div className="flex justify-between items-center mb-4 relative z-10">
               <span className="text-[10px] font-black text-rose-600 uppercase tracking-widest">Completed Consults</span>
               <div className="w-8 h-8 rounded-lg bg-rose-50 text-rose-500 flex items-center justify-center group-hover:scale-110 transition duration-300 border border-rose-100">
-                <AlertCircle size={16} />
+                <CheckCircle size={16} />
               </div>
             </div>
-            <div className="text-3xl font-sans font-black text-[#0F2E23] mb-1 relative z-10">{stats.soldOutCount}</div>
+            <div className="text-3xl font-sans font-black text-[#0F2E23] mb-1 relative z-10">{stats.completedConsults}</div>
             <div className="text-[10px] text-rose-600 font-black uppercase tracking-wider mt-2 relative z-10">Treated patients</div>
           </div>
 
@@ -685,7 +729,7 @@ const VetProviderDashboard = ({
               <div className="text-2xl font-sans font-black text-[#0F2E23]">₹{stats.revenue.toLocaleString('en-IN')}</div>
             </div>
             <div className="text-[10px] text-amber-600 font-black uppercase tracking-wider mt-2 relative z-10">
-              {stats.totalOrders} total consultations
+              {stats.completedConsults} completed consultations
             </div>
           </div>
 

@@ -10,6 +10,110 @@ import {
 import { apiRequest } from '../services/api.js';
 import toast from 'react-hot-toast';
 
+export const SELLER_PET_BREEDS = {
+  dogs: [
+    'Labrador Retriever',
+    'Golden Retriever',
+    'German Shepherd',
+    'Siberian Husky',
+    'Shih Tzu',
+    'Pug',
+    'Beagle',
+    'Pomeranian',
+    'Rottweiler',
+    'Doberman Pinscher',
+    'French Bulldog',
+    'Indian Spitz',
+    'Indian Breed (Indie / Pariah)',
+    'Lhasa Apso',
+    'Cocker Spaniel',
+    'Chow Chow',
+    'Tibetan Mastiff',
+    'Samoyed',
+    'Boxer',
+    'Great Dane',
+    'Saint Bernard',
+    'Dalmatian',
+    'Maltese',
+    'Chihuahua',
+    'Alaskan Malamute',
+    'Poodle (Toy / Standard)',
+    'Cane Corso',
+    'Bullmastiff'
+  ],
+  cats: [
+    'Persian Cat',
+    'Maine Coon',
+    'British Shorthair',
+    'Siamese Cat',
+    'Ragdoll',
+    'Bengal Cat',
+    'Scottish Fold',
+    'Sphynx',
+    'Indie / Domestic Shorthair',
+    'Russian Blue',
+    'American Shorthair',
+    'Himalayan Cat',
+    'Birman',
+    'Abyssinian'
+  ],
+  birds: [
+    'Cockatiel',
+    'Budgerigar (Budgie)',
+    'Lovebird (Fischer / Peach-faced)',
+    'African Grey Parrot',
+    'Sun Conure',
+    'Macaw (Blue & Gold / Scarlet)',
+    'Amazon Parrot',
+    'Canary',
+    'Finch (Zebra / Gouldian)',
+    'Cockatoo',
+    'Eclectus Parrot',
+    'Indian Ringneck Parakeet',
+    'Pigeon / Dove (Fantail / Jacobin)'
+  ],
+  fish: [
+    'Flowerhorn Cichlid',
+    'Super Red Arowana',
+    'Discus Fish (Blue Diamond / Pigeon Blood)',
+    'Halfmoon Betta / Fighter Fish',
+    'Show Guppy (Full Red / Blue / Moscow)',
+    'Angelfish (Altum / Koi / Marble)',
+    'Goldfish (Oranda / Ranchu / Black Moor)',
+    'Koi Carp',
+    'Neon / Cardinal Tetra',
+    'Oscar Fish (Albino / Tiger)',
+    'Monster Fish / Cichlids',
+    'Marine / Clownfish'
+  ],
+  reptiles: [
+    'Bearded Dragon',
+    'Leopard Gecko',
+    'Corn Snake',
+    'Ball Python',
+    'Red-Eared Slider Turtle',
+    'Indian Star Tortoise (Legal Exotic)',
+    'Chameleon (Veiled / Panther)',
+    'Crested Gecko',
+    'Green Iguana'
+  ],
+  'small-pets': [
+    'Holland Lop Rabbit',
+    'Netherland Dwarf Rabbit',
+    'Lionhead Rabbit',
+    'Angora Rabbit',
+    'Syrian Hamster',
+    'Dwarf Hamster (Roborovski / Winter White)',
+    'Guinea Pig (Abyssinian / Peruvian / American)',
+    'Sugar Glider',
+    'Chinchilla',
+    'Ferret',
+    'Hedgehog (African Pygmy)'
+  ]
+};
+
+import { safeSetItem, safeGetItem } from '../utils/safeStorage.js';
+
 const PetSellerDashboard = ({ 
   currentProvider, 
   profiles, 
@@ -17,7 +121,7 @@ const PetSellerDashboard = ({
 }) => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
-  const activeTabParam = searchParams.get('tab') || localStorage.getItem('sellerDashboardTab') || 'inventory';
+  const activeTabParam = searchParams.get('tab') || safeGetItem('sellerDashboardTab') || 'inventory';
   const [activeTab, setActiveTab] = useState(activeTabParam);
 
   const { user } = useSelector(state => state.auth);
@@ -28,14 +132,25 @@ const PetSellerDashboard = ({
 
   useEffect(() => {
     if (user) {
-      setProfileName(user.name || currentProvider?.name || '');
-      setProfileAvatar(user.avatar || user.profilePicture || currentProvider?.avatar || '');
+      if (user.name) setProfileName(user.name);
+      if (user.avatar || user.profilePicture) {
+        setProfileAvatar(user.avatar || user.profilePicture);
+      }
     }
-  }, [user, currentProvider]);
+  }, [user]);
 
   const handleUpdateProfile = async (e) => {
-    e.preventDefault();
-    const result = await dispatch(updateProfile({ name: profileName, avatar: profileAvatar, profilePicture: profileAvatar }));
+    if (e) e.preventDefault();
+    if (!profileName?.trim()) {
+      toast.error('Seller name cannot be empty');
+      return;
+    }
+    const result = await dispatch(updateProfile({ 
+      name: profileName.trim(), 
+      businessName: profileName.trim(),
+      avatar: profileAvatar, 
+      profilePicture: profileAvatar 
+    }));
     if (updateProfile.fulfilled.match(result)) {
       toast.success('Seller profile updated successfully!');
       setIsEditingProfile(false);
@@ -103,7 +218,9 @@ const PetSellerDashboard = ({
   const [showAddForm, setShowAddForm] = useState(false);
   const [title, setTitle] = useState('');
   const [petType, setPetType] = useState('dogs');
-  const [breed, setBreed] = useState('');
+  const [breed, setBreed] = useState(SELLER_PET_BREEDS.dogs[0]);
+  const [customBreed, setCustomBreed] = useState('');
+  const [isCustomBreed, setIsCustomBreed] = useState(false);
   const [age, setAge] = useState('');
   const [price, setPrice] = useState('');
   const [originalPrice, setOriginalPrice] = useState('');
@@ -115,11 +232,29 @@ const PetSellerDashboard = ({
   const [vaccinationFile, setVaccinationFile] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
 
+  const handleCategoryChange = (newType) => {
+    setPetType(newType);
+    const available = SELLER_PET_BREEDS[newType] || SELLER_PET_BREEDS.dogs;
+    setIsCustomBreed(false);
+    setCustomBreed('');
+    setBreed(available[0] || '');
+  };
+
   const handleEditListing = (pet) => {
     setEditListingId(pet._id);
     setTitle(pet.title || '');
-    setPetType(pet.petType || 'dogs');
-    setBreed(pet.breed || '');
+    const mappedType = pet.petType || 'dogs';
+    setPetType(mappedType);
+    const available = SELLER_PET_BREEDS[mappedType] || SELLER_PET_BREEDS.dogs;
+    if (pet.breed && available.includes(pet.breed)) {
+      setBreed(pet.breed);
+      setIsCustomBreed(false);
+      setCustomBreed('');
+    } else {
+      setBreed(pet.breed || available[0]);
+      setIsCustomBreed(Boolean(pet.breed && !available.includes(pet.breed)));
+      setCustomBreed(pet.breed || '');
+    }
     setAge(pet.age || '');
     setPrice(pet.price || '');
     setOriginalPrice(pet.originalPrice || '');
@@ -135,7 +270,9 @@ const PetSellerDashboard = ({
     setEditListingId(null);
     setTitle('');
     setPetType('dogs');
-    setBreed('');
+    setBreed(SELLER_PET_BREEDS.dogs[0]);
+    setIsCustomBreed(false);
+    setCustomBreed('');
     setAge('');
     setPrice('');
     setOriginalPrice('');
@@ -154,14 +291,14 @@ const PetSellerDashboard = ({
   useEffect(() => {
     if (activeTabParam) {
       setActiveTab(activeTabParam);
-      localStorage.setItem('sellerDashboardTab', activeTabParam);
+      safeSetItem('sellerDashboardTab', activeTabParam);
     }
   }, [activeTabParam]);
 
   const handleTabChange = (tabName) => {
     setActiveTab(tabName);
     setSearchParams({ tab: tabName });
-    localStorage.setItem('sellerDashboardTab', tabName);
+    safeSetItem('sellerDashboardTab', tabName);
   };
 
   const fetchListings = async () => {
@@ -272,7 +409,8 @@ const PetSellerDashboard = ({
   const triggerPayment = async (e) => {
     e.preventDefault();
 
-    if (!title || !breed || !age || !location || !contactPhone || !description) {
+    const finalBreed = (isCustomBreed ? customBreed : breed)?.trim();
+    if (!title || !finalBreed || !age || !location || !contactPhone || !description) {
       toast.error('Please fill in all required listing details.');
       return;
     }
@@ -377,10 +515,11 @@ const PetSellerDashboard = ({
   };
 
   const finalizeListingSubmission = async () => {
+    const finalBreed = (isCustomBreed ? customBreed : breed)?.trim() || 'Standard Breed';
     const payload = {
       title,
       petType,
-      breed,
+      breed: finalBreed,
       age,
       price: price ? parseFloat(price) : 0,
       originalPrice: originalPrice ? parseFloat(originalPrice) : undefined,
@@ -473,8 +612,8 @@ const PetSellerDashboard = ({
   ];
 
   // Fix Profile Avatar - Use actual user's avatar if they are logged in, otherwise fallback
-  const displayAvatar = user?.avatar || user?.profilePicture || currentProvider?.avatar || 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?q=80&w=400';
-  const displayName = user?.name || currentProvider?.name || 'Pet Seller';
+  const displayAvatar = user?.avatar || user?.profilePicture || profileAvatar || currentProvider?.avatar || 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?q=80&w=400';
+  const displayName = user?.name || profileName || currentProvider?.name || 'Pet Seller';
 
   return (
     <div className="min-h-screen bg-[#FAF9F5] text-slate-900 font-sans selection:bg-[#0F2E23]/20 selection:text-[#0F2E23] flex">
@@ -1058,28 +1197,60 @@ const PetSellerDashboard = ({
                   <label className="text-slate-600 font-black text-xs uppercase tracking-wider block">Pet Category *</label>
                   <select
                     value={petType}
-                    onChange={(e) => setPetType(e.target.value)}
-                    className="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm bg-slate-50 focus:outline-none focus:border-[#0F2E23] focus:ring-1 focus:ring-[#0F2E23] shadow-sm"
+                    onChange={(e) => handleCategoryChange(e.target.value)}
+                    className="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm bg-slate-50 focus:outline-none focus:border-[#0F2E23] focus:ring-1 focus:ring-[#0F2E23] shadow-sm font-semibold text-slate-800 cursor-pointer"
                   >
                     <option value="dogs">Dogs</option>
                     <option value="cats">Cats</option>
                     <option value="birds">Birds</option>
+                    <option value="fish">Fish / Aquatic</option>
                     <option value="reptiles">Reptiles</option>
                     <option value="small-pets">Small Pets</option>
                   </select>
                 </div>
                 <div className="space-y-1.5">
                   <label className="text-slate-600 font-black text-xs uppercase tracking-wider block">Breed *</label>
+                  <select
+                    value={isCustomBreed ? 'other' : breed}
+                    onChange={(e) => {
+                      if (e.target.value === 'other') {
+                        setIsCustomBreed(true);
+                        setBreed(customBreed || '');
+                      } else {
+                        setIsCustomBreed(false);
+                        setBreed(e.target.value);
+                      }
+                    }}
+                    className="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm bg-slate-50 focus:outline-none focus:border-[#0F2E23] focus:ring-1 focus:ring-[#0F2E23] shadow-sm font-semibold text-slate-800 cursor-pointer"
+                    required
+                  >
+                    {(SELLER_PET_BREEDS[petType] || SELLER_PET_BREEDS.dogs).map((b) => (
+                      <option key={b} value={b}>{b}</option>
+                    ))}
+                    <option value="other">Other / Custom Breed (Type below)</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* If Custom Breed is selected, show custom text input */}
+              {isCustomBreed && (
+                <div className="space-y-1.5 animate-in fade-in zoom-in-95 duration-150">
+                  <label className="text-slate-600 font-black text-xs uppercase tracking-wider block">
+                    Enter Custom Breed Name *
+                  </label>
                   <input
                     type="text"
-                    placeholder="e.g. Alaskan Malamute"
-                    value={breed}
-                    onChange={(e) => setBreed(e.target.value)}
-                    className="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-[#0F2E23] focus:ring-1 focus:ring-[#0F2E23] shadow-sm bg-slate-50"
+                    placeholder={`e.g. Rare Crossbreed / Specific ${petType === 'dogs' ? 'Dog' : petType === 'cats' ? 'Cat' : petType === 'birds' ? 'Bird' : 'Pet'} Breed`}
+                    value={customBreed}
+                    onChange={(e) => {
+                      setCustomBreed(e.target.value);
+                      setBreed(e.target.value);
+                    }}
+                    className="w-full px-4 py-3 border border-emerald-400 rounded-xl text-sm focus:outline-none focus:border-[#0F2E23] focus:ring-1 focus:ring-[#0F2E23] shadow-sm bg-emerald-50/50 font-medium text-slate-800"
                     required
                   />
                 </div>
-              </div>
+              )}
 
               <div className="grid grid-cols-2 md:grid-cols-4 gap-5">
                 <div className="space-y-1.5">

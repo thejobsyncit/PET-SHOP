@@ -637,11 +637,105 @@ export const getStoredVetDoctors = () => {
   return INITIAL_VET_DOCTORS;
 };
 
+export const INITIAL_VET_APPOINTMENTS = [
+  {
+    id: 'app-001',
+    doctorId: 'my-vet-profile',
+    doctorName: 'Dr. Ramesh Kumar',
+    clinicName: 'Pawora Luxury Vet Clinic & Diagnostic Center',
+    petName: 'Bruno',
+    petSpecies: 'Dog',
+    petBreed: 'Golden Retriever',
+    ownerName: 'Aarav Sharma',
+    ownerPhone: '+91 98234 56789',
+    bookingDate: 'Today',
+    bookingTimeSlot: '11:00 AM',
+    bookingMode: 'In-Clinic Visit',
+    petSymptoms: 'Persistent ear scratching and head shaking since yesterday morning.',
+    status: 'In Queue',
+    fee: 800,
+    createdAt: new Date().toISOString()
+  },
+  {
+    id: 'app-002',
+    doctorId: 'my-vet-profile',
+    doctorName: 'Dr. Ramesh Kumar',
+    clinicName: 'Pawora Luxury Vet Clinic & Diagnostic Center',
+    petName: 'Coco',
+    petSpecies: 'Dog',
+    petBreed: 'Shih Tzu',
+    ownerName: 'Priya Sundaram',
+    ownerPhone: '+91 98765 43210',
+    bookingDate: 'Today',
+    bookingTimeSlot: '02:30 PM',
+    bookingMode: '24/7 Video Tele-Consult',
+    petSymptoms: 'Routine 7-in-1 DHPPi Annual Booster & Rabies vaccination advisory.',
+    status: 'In Queue',
+    fee: 500,
+    createdAt: new Date().toISOString()
+  },
+  {
+    id: 'app-003',
+    doctorId: 'my-vet-profile',
+    doctorName: 'Dr. Ramesh Kumar',
+    clinicName: 'Pawora Luxury Vet Clinic & Diagnostic Center',
+    petName: 'Milo',
+    petSpecies: 'Cat',
+    petBreed: 'Persian Cat',
+    ownerName: 'Vikram Joshi',
+    ownerPhone: '+91 98111 22334',
+    bookingDate: 'Tomorrow',
+    bookingTimeSlot: '04:00 PM',
+    bookingMode: 'Home Visit Vet',
+    petSymptoms: 'Urinary discomfort follow-up and dietary assessment at home.',
+    status: 'Confirmed',
+    fee: 1500,
+    createdAt: new Date().toISOString()
+  },
+  {
+    id: 'app-004',
+    doctorId: 'my-vet-profile',
+    doctorName: 'Dr. Ramesh Kumar',
+    clinicName: 'Pawora Luxury Vet Clinic & Diagnostic Center',
+    petName: 'Bella',
+    petSpecies: 'Dog',
+    petBreed: 'Labrador Retriever',
+    ownerName: 'Neha Gupta',
+    ownerPhone: '+91 97654 32109',
+    bookingDate: 'Yesterday',
+    bookingTimeSlot: '10:00 AM',
+    bookingMode: 'In-Clinic Visit',
+    petSymptoms: 'Post-op orthopedic knee suture inspection and dressing change.',
+    status: 'Completed',
+    fee: 800,
+    createdAt: new Date(Date.now() - 86400000).toISOString()
+  },
+  {
+    id: 'app-005',
+    doctorId: 'my-vet-profile',
+    doctorName: 'Dr. Ramesh Kumar',
+    clinicName: 'Pawora Luxury Vet Clinic & Diagnostic Center',
+    petName: 'Leo',
+    petSpecies: 'Dog',
+    petBreed: 'Beagle',
+    ownerName: 'Rohan Verma',
+    ownerPhone: '+91 98450 12345',
+    bookingDate: 'Aug 29, 2026',
+    bookingTimeSlot: '06:00 PM',
+    bookingMode: '24/7 Video Tele-Consult',
+    petSymptoms: 'Paw licking and allergy redness check.',
+    status: 'Completed',
+    fee: 500,
+    createdAt: new Date(Date.now() - 86400000 * 3).toISOString()
+  }
+];
+
 export const saveVetAppointment = (appointment) => {
   try {
-    const current = JSON.parse(localStorage.getItem('pawora_vet_appointments') || '[]');
+    const current = getVetAppointments();
     const updated = [appointment, ...current];
     localStorage.setItem('pawora_vet_appointments', JSON.stringify(updated));
+    window.dispatchEvent(new CustomEvent('vet-data-updated', { detail: { type: 'appointment', action: 'create', appointment } }));
     return updated;
   } catch (e) {
     console.warn('Failed to save vet appointment to localStorage', e);
@@ -651,10 +745,36 @@ export const saveVetAppointment = (appointment) => {
 
 export const getVetAppointments = () => {
   try {
-    const current = JSON.parse(localStorage.getItem('pawora_vet_appointments') || '[]');
-    return current;
+    const saved = localStorage.getItem('pawora_vet_appointments');
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+    }
   } catch (e) {
     console.warn('Failed to get vet appointments from localStorage', e);
+  }
+
+  try {
+    localStorage.setItem('pawora_vet_appointments', JSON.stringify(INITIAL_VET_APPOINTMENTS));
+  } catch (e) {}
+
+  return INITIAL_VET_APPOINTMENTS;
+};
+
+export const updateVetAppointmentStatus = (id, newStatus, additionalData = {}) => {
+  try {
+    const current = getVetAppointments();
+    const updated = current.map(app => {
+      if (app.id === id) {
+        return { ...app, status: newStatus, ...additionalData, updatedAt: new Date().toISOString() };
+      }
+      return app;
+    });
+    localStorage.setItem('pawora_vet_appointments', JSON.stringify(updated));
+    window.dispatchEvent(new CustomEvent('vet-data-updated', { detail: { type: 'appointment', action: 'update', id, newStatus } }));
+    return updated;
+  } catch (e) {
+    console.warn('Failed to update vet appointment status', e);
     return [];
   }
 };
@@ -677,9 +797,452 @@ export const updateVetProfile = (profileData) => {
     }
     
     localStorage.setItem('pawora_vet_doctors_v2', JSON.stringify(updatedDoctors));
+    window.dispatchEvent(new CustomEvent('vet-data-updated', { detail: { type: 'profile', profile: profileData } }));
     return updatedDoctors;
   } catch (e) {
     console.warn('Failed to update vet profile in localStorage', e);
     return [];
   }
 };
+
+export const INITIAL_VET_PRESCRIPTIONS = [
+  {
+    id: 'RX-2026-0841',
+    date: 'Today, 10:45 AM',
+    petName: 'Bruno',
+    petSpecies: 'Dog',
+    petBreed: 'Golden Retriever',
+    petAge: '3.5 Years',
+    petWeight: '28.5 kg',
+    ownerName: 'Aarav Sharma',
+    ownerPhone: '+91 98234 56789',
+    diagnosis: 'Otitis Externa (Bilateral Ear Canal Infection)',
+    vitals: { temp: '101.4 °F', weight: '28.5 kg', pulse: '88 bpm' },
+    symptoms: 'Head shaking, brown ceruminous discharge in ear canal, erythema and mild itching.',
+    medicines: [
+      { name: 'Otolin Antibacterial Ear Drops', dosage: '4 drops into each ear canal', frequency: 'Twice daily', duration: '7 days', instructions: 'Clean outer ear with saline before instilling drops.' },
+      { name: 'Amoxiclav 625mg Tablets', dosage: '1 tablet after food', frequency: 'Twice daily', duration: '5 days', instructions: 'Ensure full course is completed.' }
+    ],
+    advice: 'Strictly avoid water entering ear canals while bathing. Re-evaluate with otoscopy if head shaking persists.',
+    followUpDate: 'In 7 days (Sept 12, 2026)',
+    doctorName: 'Dr. Ramesh Kumar',
+    doctorDegrees: 'B.V.Sc & A.H, M.V.Sc (Veterinary Surgery)',
+    vciRegistration: 'VCI/2010/KA-08492',
+    clinicName: 'Pawora Luxury Vet Clinic & Diagnostic Center',
+    clinicAddress: 'MG Road, Bangalore, Karnataka • Phone: +91 98450 88219',
+    createdAt: new Date().toISOString()
+  },
+  {
+    id: 'RX-2026-0839',
+    date: 'Yesterday, 03:15 PM',
+    petName: 'Coco',
+    petSpecies: 'Dog',
+    petBreed: 'Shih Tzu',
+    petAge: '1.5 Years',
+    petWeight: '6.2 kg',
+    ownerName: 'Priya Sundaram',
+    ownerPhone: '+91 98765 43210',
+    diagnosis: 'Annual Core Vaccination & Broad-Spectrum Deworming',
+    vitals: { temp: '101.1 °F', weight: '6.2 kg', pulse: '102 bpm' },
+    symptoms: 'Routine preventive wellness assessment. Healthy vitals and mucous membranes.',
+    medicines: [
+      { name: 'Nobivac DHPPi + L4 Vaccine', dosage: '1 mL Subcutaneous (Clinic Administered)', frequency: 'Single Dose', duration: 'Completed', instructions: 'Batch #NVB-9081. Recorded in pet health passport.' },
+      { name: 'Drontal Plus Flavor Deworming Tablet', dosage: '1 tablet with morning meal', frequency: 'Single Dose', duration: '1 day', instructions: 'Repeat deworming every 3 months.' }
+    ],
+    advice: 'Mild lethargy for 24-48 hours post vaccination is normal. Avoid strenuous play today.',
+    followUpDate: 'Annual booster in Sept 2027',
+    doctorName: 'Dr. Ramesh Kumar',
+    doctorDegrees: 'B.V.Sc & A.H, M.V.Sc (Veterinary Surgery)',
+    vciRegistration: 'VCI/2010/KA-08492',
+    clinicName: 'Pawora Luxury Vet Clinic & Diagnostic Center',
+    clinicAddress: 'MG Road, Bangalore, Karnataka • Phone: +91 98450 88219',
+    createdAt: new Date(Date.now() - 86400000).toISOString()
+  },
+  {
+    id: 'RX-2026-0822',
+    date: 'Aug 30, 2026',
+    petName: 'Milo',
+    petSpecies: 'Cat',
+    petBreed: 'Persian Cat',
+    petAge: '4 Years',
+    petWeight: '4.1 kg',
+    ownerName: 'Vikram Joshi',
+    ownerPhone: '+91 98111 22334',
+    diagnosis: 'Feline Lower Urinary Tract Disease (FLUTD / Idiopathic Cystitis)',
+    vitals: { temp: '100.8 °F', weight: '4.1 kg', pulse: '130 bpm' },
+    symptoms: 'Dysuria, frequent litter box visits, straining, mild hematuria.',
+    medicines: [
+      { name: 'Royal Canin Urinary S/O Wet Pouches', dosage: '1 pouch morning, 1 pouch evening', frequency: 'Twice daily', duration: '30 days', instructions: 'Strict dietary control. Do not feed dry kibble.' },
+      { name: 'Cystease Advanced GAG Bladder Support', dosage: '1 capsule opened & mixed in wet food', frequency: 'Once daily', duration: '14 days', instructions: 'Promotes mucosal glycosaminoglycan layer.' }
+    ],
+    advice: 'Encourage hydration using a cat water fountain. Keep litter box exceptionally clean in quiet area.',
+    followUpDate: 'In 14 days for repeat urine analysis',
+    doctorName: 'Dr. Ramesh Kumar',
+    doctorDegrees: 'B.V.Sc & A.H, M.V.Sc (Veterinary Surgery)',
+    vciRegistration: 'VCI/2010/KA-08492',
+    clinicName: 'Pawora Luxury Vet Clinic & Diagnostic Center',
+    clinicAddress: 'MG Road, Bangalore, Karnataka • Phone: +91 98450 88219',
+    createdAt: new Date(Date.now() - 86400000 * 6).toISOString()
+  }
+];
+
+export const getStoredVetPrescriptions = () => {
+  try {
+    const saved = localStorage.getItem('pawora_vet_prescriptions');
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+    }
+  } catch (e) {
+    console.warn('Failed to get vet prescriptions from localStorage', e);
+  }
+
+  try {
+    localStorage.setItem('pawora_vet_prescriptions', JSON.stringify(INITIAL_VET_PRESCRIPTIONS));
+  } catch (e) {}
+
+  return INITIAL_VET_PRESCRIPTIONS;
+};
+
+export const saveVetPrescription = (rx) => {
+  try {
+    const current = getStoredVetPrescriptions();
+    const updated = [rx, ...current];
+    localStorage.setItem('pawora_vet_prescriptions', JSON.stringify(updated));
+    window.dispatchEvent(new CustomEvent('vet-data-updated', { detail: { type: 'prescription', rx } }));
+    return updated;
+  } catch (e) {
+    console.warn('Failed to save vet prescription', e);
+    return [];
+  }
+};
+
+export const INITIAL_VET_SCHEDULE = {
+  emergency: true,
+  days: {
+    Monday: { isOpen: true, start: '09:00', end: '21:00', slots: ['09:00 - 13:00', '17:00 - 21:00'] },
+    Tuesday: { isOpen: true, start: '09:00', end: '21:00', slots: ['09:00 - 13:00', '17:00 - 21:00'] },
+    Wednesday: { isOpen: true, start: '09:00', end: '21:00', slots: ['09:00 - 13:00', '17:00 - 21:00'] },
+    Thursday: { isOpen: true, start: '09:00', end: '21:00', slots: ['09:00 - 13:00', '17:00 - 21:00'] },
+    Friday: { isOpen: true, start: '09:00', end: '21:00', slots: ['09:00 - 13:00', '17:00 - 21:00'] },
+    Saturday: { isOpen: true, start: '09:00', end: '21:00', slots: ['09:00 - 14:00', '16:00 - 20:00'] },
+    Sunday: { isOpen: false, start: '10:00', end: '16:00', slots: ['10:00 - 14:00'] },
+  }
+};
+
+export const getStoredVetSchedule = () => {
+  try {
+    const saved = localStorage.getItem('pawora_vet_schedule');
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      if (parsed && parsed.days) return parsed;
+    }
+  } catch (e) {
+    console.warn('Failed to read schedule from localStorage', e);
+  }
+
+  try {
+    localStorage.setItem('pawora_vet_schedule', JSON.stringify(INITIAL_VET_SCHEDULE));
+  } catch (e) {}
+
+  return INITIAL_VET_SCHEDULE;
+};
+
+export const saveVetSchedule = (schedule) => {
+  try {
+    localStorage.setItem('pawora_vet_schedule', JSON.stringify(schedule));
+    window.dispatchEvent(new CustomEvent('vet-data-updated', { detail: { type: 'schedule', schedule } }));
+    return schedule;
+  } catch (e) {
+    console.warn('Failed to save schedule to localStorage', e);
+    return schedule;
+  }
+};
+
+export const INITIAL_VET_WALLET = {
+  availableBalance: 4100,
+  lifetimeRevenue: 35897,
+  bankAccount: {
+    bankName: 'HDFC Bank Limited',
+    accountNumber: '**** **** 4892',
+    ifsc: 'HDFC0001248',
+    holderName: 'Dr. Ramesh Kumar'
+  },
+  transactions: [
+    { id: 'TXN-9842A1', date: 'Aug 28, 2026', amount: 4500, status: 'Settled', type: 'Bank Payout', notes: 'Weekly IMPS Settlement' },
+    { id: 'TXN-8731B4', date: 'Aug 21, 2026', amount: 2800, status: 'Settled', type: 'Bank Payout', notes: 'Weekly IMPS Settlement' },
+    { id: 'TXN-7620C9', date: 'Aug 14, 2026', amount: 3250, status: 'Settled', type: 'Bank Payout', notes: 'Weekly IMPS Settlement' }
+  ]
+};
+
+export const getStoredVetWallet = () => {
+  try {
+    const saved = localStorage.getItem('pawora_vet_wallet');
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      if (parsed && typeof parsed.availableBalance === 'number') return parsed;
+    }
+  } catch (e) {
+    console.warn('Failed to read wallet from localStorage', e);
+  }
+
+  try {
+    localStorage.setItem('pawora_vet_wallet', JSON.stringify(INITIAL_VET_WALLET));
+  } catch (e) {}
+
+  return INITIAL_VET_WALLET;
+};
+
+export const withdrawVetFunds = (amount) => {
+  try {
+    const wallet = getStoredVetWallet();
+    const withdrawAmt = Math.min(amount, wallet.availableBalance);
+    if (withdrawAmt <= 0) return { success: false, message: 'Invalid or zero withdrawal amount' };
+
+    const newTxn = {
+      id: `TXN-${Math.random().toString(36).substring(2, 8).toUpperCase()}`,
+      date: 'Today',
+      amount: withdrawAmt,
+      status: 'Settled',
+      type: 'Bank Payout',
+      notes: 'Instant IMPS Payout to HDFC Bank **** 4892'
+    };
+
+    const updated = {
+      ...wallet,
+      availableBalance: wallet.availableBalance - withdrawAmt,
+      transactions: [newTxn, ...wallet.transactions]
+    };
+
+    localStorage.setItem('pawora_vet_wallet', JSON.stringify(updated));
+    window.dispatchEvent(new CustomEvent('vet-data-updated', { detail: { type: 'wallet', wallet: updated, newTxn } }));
+    return { success: true, txn: newTxn, wallet: updated };
+  } catch (e) {
+    console.warn('Failed to process withdrawal', e);
+    return { success: false, message: e.message };
+  }
+};
+
+export const INITIAL_VET_REVIEWS = [
+  {
+    id: 'rev-1',
+    name: 'Aditi Kumar',
+    avatarInitial: 'AK',
+    time: '2 days ago',
+    petType: 'Golden Retriever',
+    rating: 5,
+    comment: 'Dr. Ramesh is extremely patient and thorough. My Golden Retriever was very anxious but the doctor calmed him down effortlessly. The clinic is very clean and well-equipped.',
+    reply: null
+  },
+  {
+    id: 'rev-2',
+    name: 'Siddharth Jain',
+    avatarInitial: 'SJ',
+    time: '1 week ago',
+    petType: 'Persian Cat',
+    rating: 4,
+    comment: 'Good doctor, explained the diagnosis clearly via Video Consult. The digital prescription was generated immediately after the call.',
+    reply: null
+  },
+  {
+    id: 'rev-3',
+    name: 'Meera Nambiar',
+    avatarInitial: 'MN',
+    time: '2 weeks ago',
+    petType: 'Beagle',
+    rating: 5,
+    comment: 'Exceptional orthopedic diagnosis. Handled the surgical suture check with extreme tenderness. Bruno is running around happily again!',
+    reply: {
+      text: 'Thank you Meera! It was our pleasure caring for your energetic boy. Remember to continue his joint supplements as prescribed.',
+      date: '10 days ago'
+    }
+  }
+];
+
+export const getStoredVetReviews = () => {
+  try {
+    const saved = localStorage.getItem('pawora_vet_reviews');
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+    }
+  } catch (e) {
+    console.warn('Failed to get vet reviews from localStorage', e);
+  }
+
+  try {
+    localStorage.setItem('pawora_vet_reviews', JSON.stringify(INITIAL_VET_REVIEWS));
+  } catch (e) {}
+
+  return INITIAL_VET_REVIEWS;
+};
+
+export const addVetReviewReply = (reviewId, replyText) => {
+  try {
+    const current = getStoredVetReviews();
+    const updated = current.map(rev => {
+      if (rev.id === reviewId) {
+        return {
+          ...rev,
+          reply: {
+            text: replyText,
+            date: 'Just now'
+          }
+        };
+      }
+      return rev;
+    });
+
+    localStorage.setItem('pawora_vet_reviews', JSON.stringify(updated));
+    window.dispatchEvent(new CustomEvent('vet-data-updated', { detail: { type: 'review', reviewId } }));
+    return updated;
+  } catch (e) {
+    console.warn('Failed to save review reply', e);
+    return [];
+  }
+};
+
+export const INITIAL_VET_CHATS = [
+  {
+    id: 'chat-aarav',
+    patientName: 'Aarav Sharma',
+    petName: 'Bruno',
+    petBreed: 'Golden Retriever',
+    phone: '+91 98234 56789',
+    avatar: 'https://i.pravatar.cc/150?img=11',
+    lastMessage: 'Got it Doctor, I booked the 11:00 AM slot. See you shortly at the clinic!',
+    lastTime: '10:45 AM',
+    unread: 0,
+    messages: [
+      { id: 'm1', sender: 'patient', text: 'Hello Dr. Ramesh! Bruno has been scratching his left ear since yesterday morning. Should I bring him in today?', time: '10:30 AM' },
+      { id: 'm2', sender: 'doctor', text: 'Hello Aarav! Yes, please bring Bruno in for an otoscopic check. In the meantime, please avoid putting water in his ear.', time: '10:35 AM' },
+      { id: 'm3', sender: 'patient', text: 'Got it Doctor, I booked the 11:00 AM slot. See you shortly at the clinic!', time: '10:45 AM' }
+    ]
+  },
+  {
+    id: 'chat-priya',
+    patientName: 'Priya Sundaram',
+    petName: 'Coco',
+    petBreed: 'Shih Tzu',
+    phone: '+91 98765 43210',
+    avatar: 'https://i.pravatar.cc/150?img=5',
+    lastMessage: 'Hi Priya, as long as she has no fever or lethargy, we can proceed with the vaccination today.',
+    lastTime: 'Yesterday',
+    unread: 0,
+    messages: [
+      { id: 'm10', sender: 'patient', text: 'Good morning Dr. Ramesh, Coco is due for her annual booster today. Is it fine to bring her if she had minor sneezing 2 days ago?', time: 'Yesterday 09:15 AM' },
+      { id: 'm11', sender: 'doctor', text: 'Hi Priya, as long as she has no fever or lethargy, we can proceed with the vaccination today.', time: 'Yesterday 09:30 AM' }
+    ]
+  },
+  {
+    id: 'chat-vikram',
+    patientName: 'Vikram Joshi',
+    petName: 'Milo',
+    petBreed: 'Persian Cat',
+    phone: '+91 98111 22334',
+    avatar: 'https://i.pravatar.cc/150?img=8',
+    lastMessage: 'Wonderful news Vikram! Continue the dietary fiber formula for another 2 weeks.',
+    lastTime: 'Aug 30',
+    unread: 0,
+    messages: [
+      { id: 'm20', sender: 'patient', text: 'Dr. Ramesh, Milo is drinking water much better now after the Royal Canin urinary diet.', time: 'Aug 30 11:00 AM' },
+      { id: 'm21', sender: 'doctor', text: 'Wonderful news Vikram! Continue the dietary fiber formula for another 2 weeks.', time: 'Aug 30 11:15 AM' }
+    ]
+  }
+];
+
+export const getStoredVetChats = () => {
+  try {
+    const saved = localStorage.getItem('pawora_vet_chats');
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+    }
+  } catch (e) {
+    console.warn('Failed to get vet chats from localStorage', e);
+  }
+
+  try {
+    localStorage.setItem('pawora_vet_chats', JSON.stringify(INITIAL_VET_CHATS));
+  } catch (e) {}
+
+  return INITIAL_VET_CHATS;
+};
+
+export const sendVetChatMessage = (chatId, text, sender = 'doctor', attachment = null) => {
+  try {
+    const current = getStoredVetChats();
+    const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    const updated = current.map(chat => {
+      if (chat.id === chatId) {
+        const newMsg = {
+          id: `msg-${Date.now()}`,
+          sender,
+          text,
+          attachment,
+          time: timeStr
+        };
+        return {
+          ...chat,
+          lastMessage: text,
+          lastTime: timeStr,
+          messages: [...chat.messages, newMsg]
+        };
+      }
+      return chat;
+    });
+
+    localStorage.setItem('pawora_vet_chats', JSON.stringify(updated));
+    window.dispatchEvent(new CustomEvent('vet-data-updated', { detail: { type: 'chat', chatId } }));
+    return updated;
+  } catch (e) {
+    console.warn('Failed to send vet chat message', e);
+    return [];
+  }
+};
+
+export const INITIAL_VET_SERVICES_FEES = {
+  inClinic: { active: true, fee: 800 },
+  video: { active: true, fee: 500 },
+  home: { active: true, fee: 1500 },
+  specializations: [
+    'General Physician & Vaccines',
+    'Orthopedics & Soft Tissue Surgery',
+    'Pet Nutrition',
+    'Feline Medicine'
+  ]
+};
+
+export const getStoredVetServicesFees = () => {
+  try {
+    const saved = localStorage.getItem('pawora_vet_services_fees');
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      if (parsed && parsed.inClinic) return parsed;
+    }
+  } catch (e) {
+    console.warn('Failed to get vet services fees from localStorage', e);
+  }
+
+  try {
+    localStorage.setItem('pawora_vet_services_fees', JSON.stringify(INITIAL_VET_SERVICES_FEES));
+  } catch (e) {}
+
+  return INITIAL_VET_SERVICES_FEES;
+};
+
+export const saveVetServicesFees = (servicesState, specializations) => {
+  try {
+    const data = {
+      ...servicesState,
+      specializations: specializations || INITIAL_VET_SERVICES_FEES.specializations
+    };
+    localStorage.setItem('pawora_vet_services_fees', JSON.stringify(data));
+    window.dispatchEvent(new CustomEvent('vet-data-updated', { detail: { type: 'services_fees', data } }));
+    return data;
+  } catch (e) {
+    console.warn('Failed to save vet services fees', e);
+    return servicesState;
+  }
+};
+

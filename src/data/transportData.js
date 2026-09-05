@@ -461,27 +461,385 @@ export const saveStoredTransportProviders = (providers) => {
   } catch (_e) {}
 };
 
-// Bookings
+/**
+ * Get the single transport service listing published by a specific provider.
+ */
+export const getProviderTransportService = (userIdOrEmail) => {
+  if (!userIdOrEmail) return null;
+  const providers = getStoredTransportProviders();
+  const searchKey = String(userIdOrEmail).trim().toLowerCase();
+  return providers.find(p => 
+    (p.providerUserId && String(p.providerUserId).toLowerCase() === searchKey) ||
+    (p.providerEmail && p.providerEmail.toLowerCase() === searchKey) ||
+    (p.email && p.email.toLowerCase() === searchKey) ||
+    (p.id && p.id.toLowerCase() === searchKey) ||
+    (p.name && (p.name.toLowerCase() === searchKey || searchKey.includes(p.name.toLowerCase())))
+  ) || null;
+};
+
+/**
+ * Save or update the provider's SINGLE transport service listing.
+ * Strict 1-service rule: If the provider already has a service, it updates that service.
+ */
+export const saveOrUpdateTransportService = (serviceData, user) => {
+  const providers = getStoredTransportProviders();
+  const userId = user?._id || user?.id || 'usr-' + Date.now();
+  const userEmail = user?.email || '';
+  const searchKey = (userId || userEmail).toLowerCase();
+
+  // Find existing service for this provider (strictly 1 service per provider)
+  const existingIdx = providers.findIndex(p => 
+    (p.providerUserId && String(p.providerUserId).toLowerCase() === searchKey) ||
+    (userEmail && p.providerEmail && p.providerEmail.toLowerCase() === userEmail.toLowerCase()) ||
+    (userEmail && p.email && p.email.toLowerCase() === userEmail.toLowerCase()) ||
+    (serviceData.id && p.id === serviceData.id)
+  );
+
+  const finalService = {
+    id: existingIdx !== -1 ? providers[existingIdx].id : ('TRP-PRV-' + Date.now().toString(36).toUpperCase()),
+    name: serviceData.name || user?.businessName || user?.name || 'SafePet Transit',
+    tagline: serviceData.tagline || 'Dedicated AC Pet Transport & Inter-City Doorstep Relocation',
+    leadCoordinator: serviceData.leadCoordinator || user?.name || 'Lead Coordinator',
+    experience: serviceData.experience || '6+ Years Experience',
+    verified: true,
+    iataCertified: !!serviceData.iataCertified,
+    rating: existingIdx !== -1 ? providers[existingIdx].rating : 5.0,
+    reviews: existingIdx !== -1 ? providers[existingIdx].reviews : 1,
+    deliveredCount: existingIdx !== -1 ? providers[existingIdx].deliveredCount : 85,
+    state: serviceData.state || 'Karnataka',
+    city: serviceData.city || 'Bangalore',
+    area: serviceData.area || 'Citywide & Airport Corridor',
+    coverage: serviceData.coverage || 'Pan-India & State Corridors',
+    corridors: Array.isArray(serviceData.corridors) 
+      ? serviceData.corridors 
+      : (serviceData.corridors ? serviceData.corridors.split(',').map(s => s.trim()).filter(Boolean) : ['Bangalore ⇄ Chennai', 'Bangalore ⇄ Hyderabad', 'Pan-India Air']),
+    petTypes: Array.isArray(serviceData.petTypes) && serviceData.petTypes.length > 0 
+      ? serviceData.petTypes 
+      : ['Dogs', 'Cats', 'Birds', 'Small Animals'],
+    modes: Array.isArray(serviceData.modes) && serviceData.modes.length > 0 
+      ? serviceData.modes 
+      : ['Road Transport', 'Air Transport'],
+    basePrice: Number(serviceData.basePrice) || 1299,
+    pricePerKm: Number(serviceData.pricePerKm) || 26,
+    interstateMin: Number(serviceData.interstateMin) || 7200,
+    vehicleTypes: Array.isArray(serviceData.vehicleTypes) && serviceData.vehicleTypes.length > 0 
+      ? serviceData.vehicleTypes 
+      : ['AC Pet Cruiser Van', 'Innova Crysta AC Pet Cab'],
+    amenities: Array.isArray(serviceData.amenities) && serviceData.amenities.length > 0 
+      ? serviceData.amenities 
+      : ['100% Climate Controlled AC', 'Live GPS Tracking', 'Sanitized Kennels', 'Hydration Stops Every 3 Hrs', 'Vet Onboard Available'],
+    phone: serviceData.phone || user?.mobile || '+91 98452 23344',
+    whatsapp: serviceData.whatsapp || serviceData.phone || user?.mobile || '+91 98452 23344',
+    email: userEmail || serviceData.email || 'safepet@pawora.com',
+    providerEmail: userEmail || 'safepet@pawora.com',
+    providerUserId: userId,
+    image: serviceData.image || 'https://images.unsplash.com/photo-1541599540903-216a46ca1dc0?q=80&w=800',
+    packages: serviceData.packages || [
+      {
+        id: 'pkg-default-1',
+        name: `${serviceData.city || 'City'} Doorstep Pet Cab`,
+        price: Number(serviceData.basePrice) || 1299,
+        ratePerKm: Number(serviceData.pricePerKm) || 26,
+        desc: 'Dedicated sanitized air-conditioned vehicle for local veterinary, airport and daycare trips.'
+      },
+      {
+        id: 'pkg-default-2',
+        name: `${serviceData.city || 'Inter-City'} Highway Pet Express`,
+        price: Number(serviceData.interstateMin) || 7200,
+        ratePerKm: Number(serviceData.pricePerKm) || 26,
+        desc: 'Direct highway inter-city relocation with continuous GPS updates, water and walking breaks.'
+      }
+    ],
+    updatedAt: new Date().toISOString()
+  };
+
+  if (existingIdx !== -1) {
+    providers[existingIdx] = { ...providers[existingIdx], ...finalService };
+  } else {
+    // Put at top so it is immediately visible on the public directory
+    providers.unshift(finalService);
+  }
+
+  saveStoredTransportProviders(providers);
+  window.dispatchEvent(new CustomEvent('transport-providers-updated', { detail: finalService }));
+  return finalService;
+};
+
+export const deleteProviderTransportService = (serviceId) => {
+  try {
+    const providers = getStoredTransportProviders();
+    const filtered = providers.filter(p => p.id !== serviceId);
+    saveStoredTransportProviders(filtered);
+    window.dispatchEvent(new CustomEvent('transport-providers-updated', { detail: { deletedId: serviceId } }));
+    return true;
+  } catch (_e) {
+    return false;
+  }
+};
+
+// Seed Bookings
+export const INITIAL_DEMO_BOOKINGS = [
+  {
+    id: 'TRP-BK-1082',
+    petName: 'Bruno',
+    petSpecies: 'Dog',
+    petBreed: 'Labrador Retriever',
+    petAge: '3 Years',
+    customerName: 'Vikram Malhotra',
+    customerPhone: '+91 98451 22334',
+    customerEmail: 'vikram.m@gmail.com',
+    originState: 'Karnataka',
+    originCity: 'Bangalore',
+    destState: 'Telangana',
+    destCity: 'Hyderabad',
+    travelDate: '2026-09-08',
+    mode: 'Road Transport',
+    vehicleType: 'AC Pet Cruiser Van',
+    distanceKm: 570,
+    totalAmount: 17459,
+    status: 'Confirmed',
+    pickupAddress: 'Prestige Lakeside Habitat, Varthur, Whitefield, Bangalore',
+    dropAddress: 'Banjara Hills, Road No. 12, Hyderabad',
+    driverName: 'Ramesh Gowda',
+    driverPhone: '+91 98459 11223',
+    notes: 'Doorstep pickup at 7 AM. Needs 2 hydration breaks and light dry kibble.',
+    createdAt: new Date(Date.now() - 3600000 * 24).toISOString()
+  },
+  {
+    id: 'TRP-BK-1083',
+    petName: 'Bella & Milo',
+    petSpecies: 'Cat',
+    petBreed: 'Persian & British Shorthair',
+    petAge: '2 Years',
+    customerName: 'Sunita Rao',
+    customerPhone: '+91 98203 44556',
+    customerEmail: 'sunita.rao@gmail.com',
+    originState: 'Karnataka',
+    originCity: 'Bangalore',
+    destState: 'Tamil Nadu',
+    destCity: 'Chennai',
+    travelDate: '2026-09-11',
+    mode: 'Road Transport',
+    vehicleType: 'Innova Crysta AC Pet Cab',
+    distanceKm: 345,
+    totalAmount: 9800,
+    status: 'In Transit',
+    pickupAddress: 'Indiranagar 100ft Road, Bangalore',
+    dropAddress: 'Adyar, Chennai',
+    driverName: 'Suresh Kumar',
+    driverPhone: '+91 98451 88990',
+    notes: 'Keep crates separated with gentle soothing pheromone spray.',
+    createdAt: new Date(Date.now() - 3600000 * 48).toISOString()
+  },
+  {
+    id: 'TRP-BK-1080',
+    petName: 'Leo',
+    petSpecies: 'Dog',
+    petBreed: 'Golden Retriever',
+    petAge: '4 Years',
+    customerName: 'Aditya Mehta',
+    customerPhone: '+91 97123 99887',
+    customerEmail: 'aditya.m@gmail.com',
+    originState: 'Karnataka',
+    originCity: 'Bangalore',
+    destState: 'Maharashtra',
+    destCity: 'Mumbai',
+    travelDate: '2026-08-28',
+    mode: 'Air Transport',
+    vehicleType: 'IATA Pressurized Air Cargo',
+    distanceKm: 980,
+    totalAmount: 24500,
+    status: 'Completed',
+    pickupAddress: 'Koramangala 4th Block, Bangalore',
+    dropAddress: 'Juhu Tara Road, Mumbai',
+    driverName: 'Capt. Rajesh Sharma',
+    driverPhone: '+91 98201 22334',
+    notes: 'Successfully delivered to doorstep on time. Health certificate verified.',
+    createdAt: new Date(Date.now() - 3600000 * 200).toISOString()
+  }
+];
+
 export const getStoredTransportBookings = () => {
   try {
     const data = localStorage.getItem('pawora_transport_bookings');
-    if (data) return JSON.parse(data);
+    if (data) {
+      const parsed = JSON.parse(data);
+      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+    }
   } catch (_e) {}
-  return [];
+  return INITIAL_DEMO_BOOKINGS;
+};
+
+export const saveStoredTransportBookings = (bookings) => {
+  try {
+    localStorage.setItem('pawora_transport_bookings', JSON.stringify(bookings));
+  } catch (_e) {}
 };
 
 export const saveTransportBooking = (bookingData) => {
   try {
     const current = getStoredTransportBookings();
-    current.unshift(bookingData);
-    localStorage.setItem('pawora_transport_bookings', JSON.stringify(current));
-    
-    // Also dispatch an event for any listener
-    window.dispatchEvent(new CustomEvent('transport-booking-created', { detail: bookingData }));
-    return true;
+    const newBooking = {
+      id: 'TRP-BK-' + Math.floor(1000 + Math.random() * 9000),
+      createdAt: new Date().toISOString(),
+      status: 'Confirmed',
+      ...bookingData
+    };
+    current.unshift(newBooking);
+    saveStoredTransportBookings(current);
+    window.dispatchEvent(new CustomEvent('transport-booking-created', { detail: newBooking }));
+    return newBooking;
   } catch (_e) {
-    return false;
+    return null;
   }
+};
+
+export const updateTransportBookingStatus = (bookingId, status, driverNotes = null) => {
+  try {
+    const current = getStoredTransportBookings();
+    const idx = current.findIndex(b => b.id === bookingId);
+    if (idx !== -1) {
+      current[idx].status = status;
+      if (driverNotes) current[idx].driverNotes = driverNotes;
+      saveStoredTransportBookings(current);
+      window.dispatchEvent(new CustomEvent('transport-booking-updated', { detail: current[idx] }));
+      return current[idx];
+    }
+  } catch (_e) {}
+  return null;
+};
+
+// Seed Vehicles
+export const INITIAL_DEMO_VEHICLES = [
+  {
+    id: 'VEH-01',
+    name: 'Toyota Innova Crysta AC Pet Cruiser',
+    regNumber: 'KA-01-MJ-4921',
+    type: 'Private AC Cab',
+    capacity: '2 Large Dogs or 4 Cats',
+    climateControl: 'Dual AC Climate Control (18°C - 24°C)',
+    features: ['Non-slip rubber matting', 'Safety partition barrier', 'First Aid & Oxygen Kit', 'Live GPS Tracking'],
+    baseRate: 1499,
+    kmRate: 28,
+    status: 'Active',
+    year: '2023',
+    fuelType: 'Diesel',
+    lastSanitized: 'Today, 08:30 AM'
+  },
+  {
+    id: 'VEH-02',
+    name: 'Force Urbania AC Interstate Pet Van',
+    regNumber: 'KA-04-NX-8821',
+    type: 'Interstate AC Van',
+    capacity: '6 Large IATA Kennels',
+    climateControl: '100% Dual Rear AC with Temperature Telemetry',
+    features: ['Independent kennel slots', 'Ramp for senior dogs', 'Dashcam + Cabin CCTV', 'Food & Hydration storage'],
+    baseRate: 2499,
+    kmRate: 32,
+    status: 'Active',
+    year: '2024',
+    fuelType: 'Diesel',
+    lastSanitized: 'Yesterday, 06:00 PM'
+  },
+  {
+    id: 'VEH-03',
+    name: 'Maruti Ertiga AC Local Pet Taxi',
+    regNumber: 'KA-05-PQ-3319',
+    type: 'Intra-City Pet Taxi',
+    capacity: '1 Large or 2 Medium Pets',
+    climateControl: 'Rear AC Vents',
+    features: ['Waterproof seat cover', 'Harness anchors', 'Sanitized after every ride'],
+    baseRate: 999,
+    kmRate: 22,
+    status: 'Active',
+    year: '2022',
+    fuelType: 'CNG / Petrol',
+    lastSanitized: 'Today, 10:15 AM'
+  },
+  {
+    id: 'VEH-04',
+    name: 'IATA Air Transport Crate Carrier',
+    regNumber: 'IATA-CARGO-CR8',
+    type: 'Air Cargo Specialist',
+    capacity: 'IATA-400 & IATA-500 Standard Crates',
+    climateControl: 'Airline Pressurized Climate Spec',
+    features: ['IATA Live Animals Regulations (LAR) Approved', 'Airport cargo terminal priority access'],
+    baseRate: 4500,
+    kmRate: 0,
+    status: 'Active',
+    year: '2024',
+    fuelType: 'Aviation Logistics',
+    lastSanitized: 'Today, 07:00 AM'
+  }
+];
+
+export const getStoredTransportVehicles = () => {
+  try {
+    const data = localStorage.getItem('pawora_transport_vehicles');
+    if (data) {
+      const parsed = JSON.parse(data);
+      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+    }
+  } catch (_e) {}
+  return INITIAL_DEMO_VEHICLES;
+};
+
+export const saveStoredTransportVehicles = (vehicles) => {
+  try {
+    localStorage.setItem('pawora_transport_vehicles', JSON.stringify(vehicles));
+    window.dispatchEvent(new CustomEvent('transport-vehicles-updated', { detail: vehicles }));
+  } catch (_e) {}
+};
+
+// Seed Customer Reviews
+export const INITIAL_DEMO_REVIEWS = [
+  {
+    id: 'REV-01',
+    customerName: 'Pooja Hegde',
+    petName: 'Simba (Golden Retriever)',
+    route: 'Bangalore ⇄ Mumbai',
+    rating: 5,
+    date: '3 days ago',
+    comment: 'Exceptional service! Simba was transported in the private Innova Crysta. The live WhatsApp updates with photos at every hydration break gave us complete peace of mind.',
+    reply: 'Thank you Pooja! Simba was an absolute joy to travel with. Happy to have safely reunited your family!'
+  },
+  {
+    id: 'REV-02',
+    customerName: 'Karthik Raman',
+    petName: 'Oreo & Coco (Indie Pups)',
+    route: 'Bangalore ⇄ Chennai',
+    rating: 5,
+    date: '1 week ago',
+    comment: 'Smooth doorstep pickup and safe delivery. Very courteous driver and excellent climate control inside the vehicle.',
+    reply: 'Thank you Karthik for trusting us with Oreo and Coco!'
+  },
+  {
+    id: 'REV-03',
+    customerName: 'Dr. Alok Verma',
+    petName: 'Thor (Rottweiler)',
+    route: 'Bangalore ⇄ Hyderabad',
+    rating: 5,
+    date: '2 weeks ago',
+    comment: 'Handled a large, protective dog with tremendous care and professionalism. The crate was clean, spacious and well-ventilated.',
+    reply: 'Thor was very well behaved once settled! Thanks for booking with us.'
+  }
+];
+
+export const getStoredTransportReviews = () => {
+  try {
+    const data = localStorage.getItem('pawora_transport_reviews');
+    if (data) {
+      const parsed = JSON.parse(data);
+      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+    }
+  } catch (_e) {}
+  return INITIAL_DEMO_REVIEWS;
+};
+
+export const saveStoredTransportReviews = (reviews) => {
+  try {
+    localStorage.setItem('pawora_transport_reviews', JSON.stringify(reviews));
+  } catch (_e) {}
 };
 
 // Enquiries

@@ -36,6 +36,23 @@ export const CATEGORY_BREEDS = {
     'Sun Conure',
     'Canary / Finch',
     'Other Bird Breed'
+  ],
+  'small-pets': [
+    'Holland Lop Rabbit',
+    'Netherland Dwarf Rabbit',
+    'Guinea Pig (Abyssinian)',
+    'Syrian Hamster',
+    'Roborovski Hamster',
+    'Chinchilla',
+    'Other Small Pet'
+  ],
+  reptiles: [
+    'Bearded Dragon',
+    'Leopard Gecko',
+    'Red-Eared Slider Turtle',
+    'Corn Snake',
+    'Ball Python',
+    'Other Reptile'
   ]
 };
 
@@ -394,9 +411,6 @@ export const DEFAULT_ADOPTION_PETS = [
 let memoryPetsCache = null;
 
 export const getStoredAdoptionPets = () => {
-  if (memoryPetsCache && Array.isArray(memoryPetsCache) && memoryPetsCache.length > 0) {
-    return memoryPetsCache;
-  }
   try {
     const saved = localStorage.getItem('pawora_adoption_pets') || sessionStorage.getItem('pawora_adoption_pets');
     if (saved) {
@@ -409,26 +423,48 @@ export const getStoredAdoptionPets = () => {
   } catch (e) {
     console.warn('Storage read warning:', e);
   }
+  if (memoryPetsCache && Array.isArray(memoryPetsCache) && memoryPetsCache.length > 0) {
+    return memoryPetsCache;
+  }
   memoryPetsCache = DEFAULT_ADOPTION_PETS;
+  try {
+    localStorage.setItem('pawora_adoption_pets', JSON.stringify(DEFAULT_ADOPTION_PETS));
+  } catch (e) {}
   return DEFAULT_ADOPTION_PETS;
+};
+
+export const setStoredAdoptionPets = (petsList) => {
+  memoryPetsCache = petsList;
+  try {
+    localStorage.setItem('pawora_adoption_pets', JSON.stringify(petsList));
+  } catch (e) {
+    console.warn('LocalStorage quota warning, falling back to sessionStorage & memory cache', e);
+    try {
+      sessionStorage.setItem('pawora_adoption_pets', JSON.stringify(petsList));
+    } catch (se) {}
+  }
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent('adoption-pets-updated', { detail: petsList }));
+  }
+  return petsList;
 };
 
 export const saveAdoptionPet = (newPet) => {
   const current = getStoredAdoptionPets();
-  // Ensure no duplicate IDs
-  const filtered = current.filter((p) => p.id !== newPet.id);
-  const updated = [newPet, ...filtered];
-  memoryPetsCache = updated;
-
-  try {
-    localStorage.setItem('pawora_adoption_pets', JSON.stringify(updated));
-  } catch (e) {
-    console.warn('LocalStorage quota warning, falling back to sessionStorage & memory cache', e);
-    try {
-      sessionStorage.setItem('pawora_adoption_pets', JSON.stringify(updated));
-    } catch (se) {}
+  const existingIdx = current.findIndex((p) => p.id === newPet.id);
+  let updated;
+  if (existingIdx >= 0) {
+    updated = current.map((p) => (p.id === newPet.id ? { ...p, ...newPet } : p));
+  } else {
+    updated = [newPet, ...current];
   }
-  return updated;
+  return setStoredAdoptionPets(updated);
+};
+
+export const deleteAdoptionPet = (petId) => {
+  const current = getStoredAdoptionPets();
+  const updated = current.filter((p) => p.id !== petId);
+  return setStoredAdoptionPets(updated);
 };
 
 // Canvas-based image compressor to turn any 5MB-10MB camera photo into a lightweight ~60KB web image

@@ -4,6 +4,7 @@ import { useSelector } from 'react-redux';
 import { Search, Plus, MapPin, MessageSquare, ShieldCheck, Tag, Phone, X, Heart, Lock, ShieldAlert, Briefcase, Clock, Syringe, CreditCard, Check, Shield } from 'lucide-react';
 import { apiRequest } from '../services/api.js';
 import toast from 'react-hot-toast';
+import { SELLER_PET_BREEDS } from './PetSellerDashboard.jsx';
 
 const PetClassifieds = () => {
   const navigate = useNavigate();
@@ -36,7 +37,9 @@ const PetClassifieds = () => {
   // Form states
   const [title, setTitle] = useState('');
   const [petType, setPetType] = useState('dogs');
-  const [breed, setBreed] = useState('');
+  const [breed, setBreed] = useState(SELLER_PET_BREEDS.dogs[0]);
+  const [customBreed, setCustomBreed] = useState('');
+  const [isCustomBreed, setIsCustomBreed] = useState(false);
   const [age, setAge] = useState('');
   const [price, setPrice] = useState('');
   const [location, setLocation] = useState('');
@@ -45,6 +48,14 @@ const PetClassifieds = () => {
   const [imageFile, setImageFile] = useState(null);
   const [vaccinationFile, setVaccinationFile] = useState(null);
   const [quantity, setQuantity] = useState(1);
+
+  const handleCategoryChange = (newType) => {
+    setPetType(newType);
+    const available = SELLER_PET_BREEDS[newType] || SELLER_PET_BREEDS.dogs;
+    setIsCustomBreed(false);
+    setCustomBreed('');
+    setBreed(available[0] || '');
+  };
 
   const handleFileChange = (e, setter) => {
     const file = e.target.files[0];
@@ -84,7 +95,8 @@ const PetClassifieds = () => {
       return;
     }
 
-    if (!title || !breed || !age || !location || !contactPhone || !description) {
+    const finalBreed = (isCustomBreed ? customBreed : breed)?.trim();
+    if (!title || !finalBreed || !age || !location || !contactPhone || !description) {
       toast.error('Please fill in all required listing details.');
       return;
     }
@@ -92,7 +104,7 @@ const PetClassifieds = () => {
     const payload = {
       title,
       petType,
-      breed,
+      breed: finalBreed,
       age,
       price: price ? parseFloat(price) : 0,
       description,
@@ -496,28 +508,60 @@ const PetClassifieds = () => {
                   <label className="text-gray-600 font-semibold block text-[11px] sm:text-xs">Pet Category *</label>
                   <select
                     value={petType}
-                    onChange={(e) => setPetType(e.target.value)}
-                    className="w-full px-3 py-2.5 border border-beige text-sm bg-white focus:outline-none focus:border-primary"
+                    onChange={(e) => handleCategoryChange(e.target.value)}
+                    className="w-full px-3 py-2.5 border border-beige text-sm bg-white focus:outline-none focus:border-primary font-semibold text-slate-800 cursor-pointer"
                   >
                     <option value="dogs">Dogs</option>
                     <option value="cats">Cats</option>
                     <option value="birds">Birds</option>
+                    <option value="fish">Fish / Aquatic</option>
                     <option value="reptiles">Reptiles</option>
                     <option value="small-pets">Small Pets</option>
                   </select>
                 </div>
                 <div className="space-y-1">
                   <label className="text-gray-600 font-semibold block text-[11px] sm:text-xs">Breed *</label>
+                  <select
+                    value={isCustomBreed ? 'other' : breed}
+                    onChange={(e) => {
+                      if (e.target.value === 'other') {
+                        setIsCustomBreed(true);
+                        setBreed(customBreed || '');
+                      } else {
+                        setIsCustomBreed(false);
+                        setBreed(e.target.value);
+                      }
+                    }}
+                    className="w-full px-3 py-2.5 border border-beige text-sm bg-white focus:outline-none focus:border-primary font-semibold text-slate-800 cursor-pointer"
+                    required
+                  >
+                    {(SELLER_PET_BREEDS[petType] || SELLER_PET_BREEDS.dogs).map((b) => (
+                      <option key={b} value={b}>{b}</option>
+                    ))}
+                    <option value="other">Other / Custom Breed (Type below)</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* If Custom Breed is selected, show custom text input */}
+              {isCustomBreed && (
+                <div className="space-y-1 animate-in fade-in zoom-in-95 duration-150">
+                  <label className="text-gray-600 font-semibold block text-[11px] sm:text-xs">
+                    Enter Custom Breed Name *
+                  </label>
                   <input
                     type="text"
-                    placeholder="e.g. Alaskan Malamute"
-                    value={breed}
-                    onChange={(e) => setBreed(e.target.value)}
-                    className="w-full px-3 py-2.5 border border-beige text-sm focus:outline-none focus:border-primary"
+                    placeholder={`e.g. Rare Crossbreed / Specific ${petType === 'dogs' ? 'Dog' : petType === 'cats' ? 'Cat' : 'Pet'} Breed`}
+                    value={customBreed}
+                    onChange={(e) => {
+                      setCustomBreed(e.target.value);
+                      setBreed(e.target.value);
+                    }}
+                    className="w-full px-3 py-2.5 border border-emerald-400 bg-emerald-50/40 text-sm focus:outline-none focus:border-primary font-medium"
                     required
                   />
                 </div>
-              </div>
+              )}
 
               {/* Age, Price, Location (Responsive 1-col on mobile, 3-col on desktop) */}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">

@@ -400,162 +400,7 @@ const WalletModule = () => {
   );
 };
 
-const ProfileModule = ({ user }) => {
-  
-  const [myProvider, setMyProvider] = useState(null);
-  useEffect(() => {
-    const providers = getStoredWalkingProviders();
-    // Match by name or phone, fallback to a dummy if none found but user is logged in
-    let matched = providers.find(p => p.walkerName === user?.name || p.phone === user?.mobile || p.name === user?.name);
-    if (!matched && user) {
-      matched = {
-        id: 'WLK-NEW',
-        name: user.name || 'My Walking Agency',
-        walkerName: user.name,
-        phone: user.mobile,
-        experience: 'Beginner (0-1 yrs)',
-        rating: 0,
-        reviews: 0,
-        price: 300,
-        area: 'Indiranagar'
-      };
-    }
-    setMyProvider(matched);
-  }, [user]);
-
-
-  const [formData, setFormData] = useState({
-    name: '',
-    experience: 'Beginner (0-1 yrs)',
-    tagline: '',
-    area: '',
-    price: 300,
-    maxDogs: 4
-  });
-
-  useEffect(() => {
-    if (myProvider) {
-      setFormData({
-        name: myProvider.name || '',
-        experience: myProvider.experience || 'Beginner (0-1 yrs)',
-        tagline: myProvider.tagline || '',
-        area: myProvider.area || '',
-        price: myProvider.price || 300,
-        maxDogs: myProvider.maxDogs || 4
-      });
-    }
-  }, [myProvider]);
-
-  const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    if (!myProvider) return;
-    
-    const updatedProvider = {
-      ...myProvider,
-      ...formData
-    };
-    
-    const success = saveWalkingProvider(updatedProvider);
-    if (success) {
-      toast.success('Walker Profile updated globally!');
-    } else {
-      toast.error('Failed to update profile');
-    }
-  };
-
-  if (!myProvider) return <div className="p-10 text-center text-slate-500">Loading profile...</div>;
-
-  return (
-    <div className="space-y-6 animate-in fade-in duration-300">
-      <div className="border-b border-slate-100 pb-4">
-        <h2 className="text-xl font-black text-[#0F2E23]">Walker Profile Registration</h2>
-        <p className="text-sm text-slate-500 font-medium">Update your public profile, rates, and service areas. Changes will reflect on the public Pet Walking page.</p>
-      </div>
-
-      <form className="space-y-8 max-w-4xl" onSubmit={handleSubmit}>
-        
-        <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
-          <h3 className="text-sm font-black text-slate-700 uppercase tracking-widest mb-4 flex items-center gap-2">
-            <User size={16} className="text-emerald-500" /> Basic Details
-          </h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-            <div className="space-y-1">
-              <label className="text-xs font-bold text-slate-600">Agency / Display Name</label>
-              <input type="text" name="name" value={formData.name} onChange={handleChange} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all" />
-            </div>
-            <div className="space-y-1">
-              <label className="text-xs font-bold text-slate-600">Experience Level</label>
-              <select name="experience" value={formData.experience} onChange={handleChange} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all">
-                <option>Beginner (0-1 yrs)</option>
-                <option>Intermediate (1-3 yrs)</option>
-                <option>Expert (3+ yrs)</option>
-                <option>5+ Years Exp</option>
-                <option>6+ Years Exp</option>
-                <option>7+ Years Exp</option>
-                <option>8+ Years Exp</option>
-              </select>
-            </div>
-            <div className="md:col-span-2 space-y-1">
-              <label className="text-xs font-bold text-slate-600">Bio & Experience Description (Tagline)</label>
-              <textarea rows="4" name="tagline" value={formData.tagline} onChange={handleChange} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all resize-none"></textarea>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
-          <h3 className="text-sm font-black text-slate-700 uppercase tracking-widest mb-4 flex items-center gap-2">
-            <MapPin size={16} className="text-blue-500" /> Service Areas & Rates
-          </h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-            <div className="space-y-1 md:col-span-2">
-              <label className="text-xs font-bold text-slate-600">Primary Operating Areas</label>
-              <input type="text" name="area" value={formData.area} onChange={handleChange} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all" />
-            </div>
-            <div className="space-y-1">
-              <label className="text-xs font-bold text-slate-600">Base Rate per Walk (₹)</label>
-              <input type="number" name="price" value={formData.price} onChange={handleChange} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all" />
-            </div>
-            <div className="space-y-1">
-              <label className="text-xs font-bold text-slate-600">Max Dogs per Walk</label>
-              <input type="number" name="maxDogs" value={formData.maxDogs} onChange={handleChange} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all" />
-            </div>
-          </div>
-        </div>
-
-        <div className="flex justify-end gap-3 pt-2">
-          <button type="submit" className="px-6 py-2.5 rounded-xl text-sm font-bold text-white bg-emerald-600 hover:bg-emerald-700 shadow-sm transition-colors flex items-center gap-2">
-            <Check size={16} /> Save Profile globally
-          </button>
-        </div>
-      </form>
-    </div>
-  );
-};
-
-const WalkingProviderContent = ({ activeTab, user }) => {
-  switch (activeTab) {
-    case 'appointments': return <AppointmentsModule user={user} />;
-    case 'routes': return <RoutesModule user={user} />;
-    case 'messages': return <MessagesModule user={user} />;
-    case 'reviews': return <ReviewsModule user={user} />;
-    case 'wallet': return <WalletModule user={user} />;
-    case 'profile': return <ProfileModule user={user} />;
-    default: 
-      return (
-        <div className="flex flex-col items-center justify-center h-full min-h-[400px] text-center">
-          <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center text-slate-400 mb-4">
-            <LayoutDashboard size={24} />
-          </div>
-          <h3 className="text-xl font-bold text-slate-800 mb-2">{activeTab.charAt(0).toUpperCase() + activeTab.slice(1)} Module</h3>
-          <p className="text-slate-500 max-w-sm">This module is currently under development. Check back soon for updates!</p>
-        </div>
-      );
-  }
-};
+import { safeSetItem, safeGetItem } from '../utils/safeStorage.js';
 
 const WalkingProviderDashboard = ({ 
   currentProvider, 
@@ -564,7 +409,7 @@ const WalkingProviderDashboard = ({
 }) => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
-  const storedTab = localStorage.getItem('walkingDashboardTab');
+  const storedTab = safeGetItem('walkingDashboardTab');
   const activeTabParam = searchParams.get('tab') || storedTab || 'appointments';
   const [activeTab, setActiveTab] = useState(activeTabParam);
 
@@ -595,7 +440,7 @@ const WalkingProviderDashboard = ({
   useEffect(() => {
     if (activeTabParam) {
       setActiveTab(activeTabParam);
-      localStorage.setItem('walkingDashboardTab', activeTabParam);
+      safeSetItem('walkingDashboardTab', activeTabParam);
     }
   }, [activeTabParam]);
 
@@ -714,7 +559,7 @@ const WalkingProviderDashboard = ({
                     onClick={() => {
                         setActiveTab(item.id);
                         setSearchParams({ tab: item.id });
-                        localStorage.setItem('walkingDashboardTab', item.id);
+                        safeSetItem('walkingDashboardTab', item.id);
                     }}
                     className={`w-full flex items-center justify-between px-4 py-3 rounded-2xl transition-all duration-300 group ${
                       activeTab === item.id 

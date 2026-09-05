@@ -241,252 +241,7 @@ const MessagesModule = () => {
   );
 };
 
-
-const ReviewsModule = () => {
-  const reviews = [
-    { id: 1, client: 'Rohan K.', pet: 'Luna (Husky)', rating: 5, date: 'Sep 15, 2026', stud: 'Shadow', comment: 'Amazing experience! Shadow is a gorgeous, healthy stud. The breeders were very professional and walked us through the whole process. Highly recommended.' },
-    { id: 2, client: 'Deepa M.', pet: 'Coco (Retriever)', rating: 5, date: 'Aug 22, 2026', stud: 'Maximus', comment: 'Maximus has a wonderful temperament. The facilities here are top-notch and extremely clean. Very satisfied with the service.' },
-    { id: 3, client: 'Karthik S.', pet: 'Ruby (GSD)', rating: 4, date: 'Jul 10, 2026', stud: 'Maximus', comment: 'Good experience overall. The staff was knowledgeable. Docking one star only because scheduling was a bit tight, but the mating session was successful.' },
-    { id: 4, client: 'Nisha R.', pet: 'Bella (Lab)', rating: 5, date: 'Jun 05, 2026', stud: 'Shadow', comment: 'Shadow is a champion indeed! We had a successful litter of 6 healthy puppies. Thank you Elite Breeds Hub!' }
-  ];
-
-  return (
-    <div className="space-y-6 animate-in fade-in duration-300">
-      <div className="border-b border-slate-100 pb-4 flex flex-col md:flex-row md:items-end justify-between gap-4">
-        <div>
-          <h2 className="text-xl font-black text-[#0F2E23]">Customer Reviews</h2>
-          <p className="text-sm text-slate-500 font-medium">See what pet owners are saying about your studs.</p>
-        </div>
-        <div className="flex items-center gap-4 bg-amber-50 px-4 py-2 rounded-xl border border-amber-100">
-          <div className="text-center border-r border-amber-200 pr-4">
-            <div className="text-2xl font-black text-amber-600">4.9</div>
-            <div className="flex text-amber-500">
-              <Star size={10} fill="currentColor" /><Star size={10} fill="currentColor" /><Star size={10} fill="currentColor" /><Star size={10} fill="currentColor" /><Star size={10} fill="currentColor" />
-            </div>
-          </div>
-          <div>
-            <div className="text-xs font-bold text-amber-800 uppercase tracking-wider">Overall Rating</div>
-            <div className="text-[10px] font-bold text-amber-600">Based on 42 reviews</div>
-          </div>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
-        {reviews.map((rev) => (
-          <div key={rev.id} className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow">
-            <div className="flex justify-between items-start mb-4">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 font-bold text-sm">
-                  {rev.client.charAt(0)}
-                </div>
-                <div>
-                  <h4 className="text-sm font-black text-[#0F2E23]">{rev.client}</h4>
-                  <div className="text-[10px] font-bold text-slate-400 mt-0.5">{rev.date}</div>
-                </div>
-              </div>
-              <div className="flex text-amber-400">
-                {[...Array(5)].map((_, i) => (
-                  <Star key={i} size={14} fill={i < rev.rating ? "currentColor" : "none"} className={i < rev.rating ? "" : "text-slate-200"} />
-                ))}
-              </div>
-            </div>
-            
-            <div className="mb-3">
-              <span className="inline-block bg-slate-50 border border-slate-200 text-slate-600 text-[10px] font-bold px-2 py-1 rounded-md">
-                Stud: <span className="text-[#0F2E23]">{rev.stud}</span>
-              </span>
-              <span className="inline-block ml-2 text-[10px] font-bold text-slate-400">
-                Mated with: {rev.pet}
-              </span>
-            </div>
-            
-            <p className="text-sm text-slate-600 leading-relaxed italic">
-              "{rev.comment}"
-            </p>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-};
-
-
-const WalletModule = () => {
-  return (
-    <div className="space-y-6 animate-in fade-in duration-300">
-      <div className="border-b border-slate-100 pb-4">
-        <h2 className="text-xl font-black text-[#0F2E23]">Wallet & Payouts</h2>
-        <p className="text-sm text-slate-500 font-medium">Manage your earnings from completed mating sessions.</p>
-      </div>
-      
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-        <div className="bg-gradient-to-br from-[#0F2E23] to-[#1a4a3b] rounded-2xl p-6 text-white shadow-lg relative overflow-hidden">
-          <div className="absolute -right-4 -top-4 w-32 h-32 bg-white opacity-5 rounded-full blur-2xl"></div>
-          <div className="flex items-center gap-2 text-emerald-300 text-xs font-bold uppercase tracking-wider mb-2">
-            <DollarSign size={14} /> Available Balance
-          </div>
-          <div className="text-4xl font-black mb-4">₹42,500</div>
-          <button className="w-full bg-white text-[#0F2E23] hover:bg-emerald-50 py-2.5 rounded-xl text-sm font-bold transition-colors shadow-sm">
-            Withdraw Funds
-          </button>
-        </div>
-        
-        <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm flex flex-col justify-center">
-          <div className="flex items-center gap-2 text-slate-400 text-xs font-bold uppercase tracking-wider mb-2">
-            <Clock size={14} /> Pending Clearance
-          </div>
-          <div className="text-3xl font-black text-slate-700 mb-1">₹15,000</div>
-          <p className="text-xs text-slate-500 font-medium">Funds will clear within 3-5 business days after session completion.</p>
-        </div>
-      </div>
-      
-      <div>
-        <h3 className="text-sm font-black text-slate-700 uppercase tracking-widest mb-4">Recent Transactions</h3>
-        <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm">
-          <table className="w-full text-left text-sm">
-            <thead className="bg-slate-50 text-slate-500 font-bold text-xs uppercase tracking-wider border-b border-slate-200">
-              <tr>
-                <th className="px-6 py-4">Session ID</th>
-                <th className="px-6 py-4">Stud</th>
-                <th className="px-6 py-4">Date</th>
-                <th className="px-6 py-4">Status</th>
-                <th className="px-6 py-4 text-right">Amount</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              <tr className="hover:bg-slate-50 transition-colors">
-                <td className="px-6 py-4 font-bold text-slate-700">MT-9021</td>
-                <td className="px-6 py-4 font-medium text-slate-600">Maximus</td>
-                <td className="px-6 py-4 text-slate-500">Oct 02, 2026</td>
-                <td className="px-6 py-4"><span className="bg-emerald-100 text-emerald-700 px-2.5 py-1 rounded-md text-[10px] font-black uppercase tracking-wider">Cleared</span></td>
-                <td className="px-6 py-4 text-right font-black text-emerald-600">+₹15,000</td>
-              </tr>
-              <tr className="hover:bg-slate-50 transition-colors">
-                <td className="px-6 py-4 font-bold text-slate-700">MT-8933</td>
-                <td className="px-6 py-4 font-medium text-slate-600">Shadow</td>
-                <td className="px-6 py-4 text-slate-500">Sep 28, 2026</td>
-                <td className="px-6 py-4"><span className="bg-emerald-100 text-emerald-700 px-2.5 py-1 rounded-md text-[10px] font-black uppercase tracking-wider">Cleared</span></td>
-                <td className="px-6 py-4 text-right font-black text-emerald-600">+₹20,000</td>
-              </tr>
-              <tr className="hover:bg-slate-50 transition-colors">
-                <td className="px-6 py-4 font-bold text-slate-700">WD-104</td>
-                <td className="px-6 py-4 font-medium text-slate-600">Bank Transfer</td>
-                <td className="px-6 py-4 text-slate-500">Sep 25, 2026</td>
-                <td className="px-6 py-4"><span className="bg-slate-100 text-slate-600 px-2.5 py-1 rounded-md text-[10px] font-black uppercase tracking-wider">Processed</span></td>
-                <td className="px-6 py-4 text-right font-black text-slate-700">-₹25,000</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-
-const ProfileModule = () => {
-  return (
-    <div className="space-y-6 animate-in fade-in duration-300">
-      <div className="border-b border-slate-100 pb-4">
-        <h2 className="text-xl font-black text-[#0F2E23]">Breeder Profile Management</h2>
-        <p className="text-sm text-slate-500 font-medium">Manage your public profile, contact details, and KCI certifications.</p>
-      </div>
-
-      <form className="space-y-8 max-w-4xl" onSubmit={(e) => { e.preventDefault(); toast.success('Profile updated successfully!'); }}>
-        
-        {/* Basic Information */}
-        <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
-          <h3 className="text-sm font-black text-slate-700 uppercase tracking-widest mb-4 flex items-center gap-2">
-            <Building size={16} className="text-emerald-500" /> Business Information
-          </h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-            <div className="space-y-1">
-              <label className="text-xs font-bold text-slate-600">Business / Kennel Name</label>
-              <input type="text" defaultValue="Elite Breeds Hub" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all" />
-            </div>
-            <div className="space-y-1">
-              <label className="text-xs font-bold text-slate-600">Years of Experience</label>
-              <input type="number" defaultValue="8" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all" />
-            </div>
-            <div className="md:col-span-2 space-y-1">
-              <label className="text-xs font-bold text-slate-600">About the Breeder / Facility</label>
-              <textarea rows="4" defaultValue="Premium ethical breeders specializing in champion-bloodline Golden Retrievers and Siberian Huskies. All our dogs are health-tested and KCI registered." className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all resize-none"></textarea>
-            </div>
-          </div>
-        </div>
-
-        {/* Certifications */}
-        <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
-          <h3 className="text-sm font-black text-slate-700 uppercase tracking-widest mb-4 flex items-center gap-2">
-            <ShieldCheck size={16} className="text-amber-500" /> Verifications & Certifications
-          </h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-            <div className="space-y-1">
-              <label className="text-xs font-bold text-slate-600">KCI Registration Number</label>
-              <input type="text" defaultValue="KCI-9982-2018" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all" />
-            </div>
-            <div className="space-y-1">
-              <label className="text-xs font-bold text-slate-600">Veterinary Partner</label>
-              <input type="text" defaultValue="Dr. Rakesh, Apollo Pet Clinic" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all" />
-            </div>
-          </div>
-        </div>
-
-        {/* Contact Information */}
-        <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
-          <h3 className="text-sm font-black text-slate-700 uppercase tracking-widest mb-4 flex items-center gap-2">
-            <Phone size={16} className="text-blue-500" /> Contact Details
-          </h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-            <div className="space-y-1">
-              <label className="text-xs font-bold text-slate-600">Public Email Address</label>
-              <input type="email" defaultValue="hello@elitebreeds.in" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all" />
-            </div>
-            <div className="space-y-1">
-              <label className="text-xs font-bold text-slate-600">Support Phone Number</label>
-              <input type="text" defaultValue="+91 98765 43210" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all" />
-            </div>
-            <div className="md:col-span-2 space-y-1">
-              <label className="text-xs font-bold text-slate-600">Facility Address</label>
-              <input type="text" defaultValue="123 Breeder Lane, Yelahanka, Bangalore, 560064" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all" />
-            </div>
-          </div>
-        </div>
-
-        <div className="flex justify-end gap-3 pt-2">
-          <button type="button" className="px-6 py-2.5 rounded-xl text-sm font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 transition-colors">
-            Cancel
-          </button>
-          <button type="submit" className="px-6 py-2.5 rounded-xl text-sm font-bold text-white bg-emerald-600 hover:bg-emerald-700 shadow-sm transition-colors flex items-center gap-2">
-            <Check size={16} /> Save Changes
-          </button>
-        </div>
-
-      </form>
-    </div>
-  );
-};
-
-const BreedingProviderContent = ({ activeTab, user }) => {
-  switch (activeTab) {
-    case 'listings': return <ListingsModule user={user} />;
-    case 'matches': return <MatchesModule user={user} />;
-    case 'messages': return <MessagesModule user={user} />;
-    case 'reviews': return <ReviewsModule user={user} />;
-    case 'wallet': return <WalletModule user={user} />;
-    case 'profile': return <ProfileModule user={user} />;
-    default: 
-      return (
-        <div className="flex flex-col items-center justify-center h-full min-h-[400px] text-center">
-          <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center text-slate-400 mb-4">
-            <LayoutDashboard size={24} />
-          </div>
-          <h3 className="text-xl font-bold text-slate-800 mb-2">{activeTab.charAt(0).toUpperCase() + activeTab.slice(1)} Module</h3>
-          <p className="text-slate-500 max-w-sm">This module is currently under development. Check back soon for updates!</p>
-        </div>
-      );
-  }
-};
+import { safeSetItem, safeGetItem } from '../utils/safeStorage.js';
 
 const BreedingProviderDashboard = ({ 
   currentProvider, 
@@ -495,7 +250,7 @@ const BreedingProviderDashboard = ({
 }) => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
-  const storedTab = localStorage.getItem('breedingDashboardTab');
+  const storedTab = safeGetItem('breedingDashboardTab');
   const activeTabParam = searchParams.get('tab') || storedTab || 'appointments';
   const [activeTab, setActiveTab] = useState(activeTabParam);
 
@@ -526,7 +281,7 @@ const BreedingProviderDashboard = ({
   useEffect(() => {
     if (activeTabParam) {
       setActiveTab(activeTabParam);
-      localStorage.setItem('breedingDashboardTab', activeTabParam);
+      safeSetItem('breedingDashboardTab', activeTabParam);
     }
   }, [activeTabParam]);
 
@@ -645,7 +400,7 @@ const BreedingProviderDashboard = ({
                     onClick={() => {
                         setActiveTab(item.id);
                         setSearchParams({ tab: item.id });
-                        localStorage.setItem('breedingDashboardTab', item.id);
+                        safeSetItem('breedingDashboardTab', item.id);
                     }}
                     className={`w-full flex items-center justify-between px-4 py-3 rounded-2xl transition-all duration-300 group ${
                       activeTab === item.id 

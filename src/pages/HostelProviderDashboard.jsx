@@ -22,6 +22,8 @@ import HostelProviderContent from './HostelProviderContent.jsx';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { updateProfile } from '../store/slices/authSlice.js';
 
+import { safeSetItem, safeGetItem } from '../utils/safeStorage.js';
+
 const HostelProviderDashboard = ({ 
   currentProvider, 
   profiles, 
@@ -29,7 +31,7 @@ const HostelProviderDashboard = ({
 }) => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
-  const storedTab = localStorage.getItem('hostelDashboardTab');
+  const storedTab = safeGetItem('hostelDashboardTab');
   const activeTabParam = searchParams.get('tab') || storedTab || 'bookings';
   const [activeTab, setActiveTab] = useState(activeTabParam);
 
@@ -49,14 +51,14 @@ const HostelProviderDashboard = ({
   useEffect(() => {
     if (activeTabParam) {
       setActiveTab(activeTabParam);
-      localStorage.setItem('hostelDashboardTab', activeTabParam);
+      safeSetItem('hostelDashboardTab', activeTabParam);
     }
   }, [activeTabParam]);
 
   const handleTabChange = (tabName) => {
     setActiveTab(tabName);
     setSearchParams({ tab: tabName });
-    localStorage.setItem('hostelDashboardTab', tabName);
+    safeSetItem('hostelDashboardTab', tabName);
   };
 
   const handleFileChange = async (e) => {

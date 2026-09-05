@@ -97,9 +97,12 @@ const PetTraining = () => {
   const [bottomPreferredSlot, setBottomPreferredSlot] = useState('Weekend Morning');
   const [bottomNotes, setBottomNotes] = useState('');
 
-  // Load Providers on Mount
+  // Load Providers on Mount & Realtime Sync
   useEffect(() => {
-    setProviders(getStoredTrainingProviders());
+    const refreshProviders = () => setProviders(getStoredTrainingProviders());
+    refreshProviders();
+    window.addEventListener('training-providers-updated', refreshProviders);
+    return () => window.removeEventListener('training-providers-updated', refreshProviders);
   }, []);
 
   // Sync state & cities
@@ -135,20 +138,24 @@ const PetTraining = () => {
     return providers.filter((p) => {
       // 1. Training Type Filter
       if (selectedType !== 'All') {
-        const matchesType = p.specialties.some((s) => s.toLowerCase().includes(selectedType.toLowerCase())) ||
-          p.tagline.toLowerCase().includes(selectedType.toLowerCase());
+        const specs = Array.isArray(p.specialties) ? p.specialties : [];
+        const tagl = p.tagline || '';
+        const matchesType = specs.some((s) => s.toLowerCase().includes(selectedType.toLowerCase())) ||
+          tagl.toLowerCase().includes(selectedType.toLowerCase());
         if (!matchesType) return false;
       }
 
       // 2. Session Mode Filter
       if (selectedMode !== 'All') {
-        const matchesMode = p.sessionModes.some((m) => m.toLowerCase().includes(selectedMode.toLowerCase()));
+        const modes = Array.isArray(p.sessionModes) ? p.sessionModes : [];
+        const matchesMode = modes.some((m) => m.toLowerCase().includes(selectedMode.toLowerCase()));
         if (!matchesMode) return false;
       }
 
       // 3. Pet Type Filter
       if (selectedPetType !== 'All') {
-        const matchesPet = p.petTypes.some((t) => t.toLowerCase() === selectedPetType.toLowerCase());
+        const pets = Array.isArray(p.petTypes) ? p.petTypes : [];
+        const matchesPet = pets.some((t) => t.toLowerCase() === selectedPetType.toLowerCase());
         if (!matchesPet) return false;
       }
 
@@ -158,7 +165,7 @@ const PetTraining = () => {
       }
 
       // 5. City Filter
-      if (selectedCity !== 'All Cities' && p.city.toLowerCase() !== selectedCity.toLowerCase()) {
+      if (selectedCity !== 'All Cities' && (p.city || '').toLowerCase() !== selectedCity.toLowerCase()) {
         return false;
       }
 
@@ -169,17 +176,23 @@ const PetTraining = () => {
 
       // 7. Badges
       if (verifiedOnly && !p.verified) return false;
-      if (forceFreeOnly && !p.tagline.toLowerCase().includes('force-free') && !p.certifications.some(c => c.toLowerCase().includes('force-free') || c.toLowerCase().includes('fear free'))) return false;
+      if (forceFreeOnly) {
+        const tagl = (p.tagline || '').toLowerCase();
+        const certs = Array.isArray(p.certifications) ? p.certifications : [];
+        const isForceFree = tagl.includes('force-free') || certs.some(c => c.toLowerCase().includes('force-free') || c.toLowerCase().includes('fear free'));
+        if (!isForceFree) return false;
+      }
 
       // 8. Keyword Search
       if (searchKeyword.trim()) {
         const query = searchKeyword.toLowerCase();
+        const specs = Array.isArray(p.specialties) ? p.specialties : [];
         const matches =
-          p.name.toLowerCase().includes(query) ||
-          p.leadTrainer.toLowerCase().includes(query) ||
-          p.area.toLowerCase().includes(query) ||
-          p.city.toLowerCase().includes(query) ||
-          p.specialties.some((s) => s.toLowerCase().includes(query));
+          (p.name || '').toLowerCase().includes(query) ||
+          (p.leadTrainer || '').toLowerCase().includes(query) ||
+          (p.area || '').toLowerCase().includes(query) ||
+          (p.city || '').toLowerCase().includes(query) ||
+          specs.some((s) => s.toLowerCase().includes(query));
         if (!matches) return false;
       }
 
@@ -914,7 +927,7 @@ const PetTraining = () => {
 
                         {/* Specialties Tags */}
                         <div className="flex flex-wrap gap-1.5">
-                          {trainer.specialties.map((spec) => (
+                          {(Array.isArray(trainer.specialties) ? trainer.specialties : []).map((spec) => (
                             <span
                               key={spec}
                               className="bg-purple-50 text-purple-900 border border-purple-100 text-[10px] font-bold px-2 py-0.5 rounded-md"
@@ -930,7 +943,7 @@ const PetTraining = () => {
                             Available Formats:
                           </div>
                           <div className="flex flex-wrap gap-1 text-[11px] font-semibold text-gray-600">
-                            {trainer.sessionModes.map((mode) => (
+                            {(Array.isArray(trainer.sessionModes) ? trainer.sessionModes : ['At-Home 1-on-1']).map((mode) => (
                               <span key={mode} className="bg-stone-100 px-2 py-0.5 rounded text-[10px]">
                                 ✓ {mode}
                               </span>
@@ -939,12 +952,14 @@ const PetTraining = () => {
                         </div>
 
                         {/* Certifications Strip */}
-                        <div className="bg-amber-50/70 border border-amber-100 rounded-xl p-2.5 text-[11px] text-amber-950 flex items-start gap-1.5">
-                          <Award size={14} className="text-amber-600 shrink-0 mt-0.5" />
-                          <span className="font-semibold leading-tight">
-                            {trainer.certifications.join(' • ')}
-                          </span>
-                        </div>
+                        {trainer.certifications && (Array.isArray(trainer.certifications) ? trainer.certifications.length > 0 : trainer.certifications) && (
+                          <div className="bg-amber-50/70 border border-amber-100 rounded-xl p-2.5 text-[11px] text-amber-950 flex items-start gap-1.5">
+                            <Award size={14} className="text-amber-600 shrink-0 mt-0.5" />
+                            <span className="font-semibold leading-tight">
+                              {Array.isArray(trainer.certifications) ? trainer.certifications.join(' • ') : trainer.certifications}
+                            </span>
+                          </div>
+                        )}
 
                       </div>
                     </div>

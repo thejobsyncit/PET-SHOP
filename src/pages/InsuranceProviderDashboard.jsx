@@ -22,6 +22,8 @@ const InsuranceProviderContent = ({ activeTab }) => {
   );
 };
 
+import { safeSetItem, safeGetItem } from '../utils/safeStorage.js';
+
 const InsuranceProviderDashboard = ({ 
   currentProvider, 
   profiles, 
@@ -29,7 +31,7 @@ const InsuranceProviderDashboard = ({
 }) => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
-  const storedTab = localStorage.getItem('insuranceDashboardTab');
+  const storedTab = safeGetItem('insuranceDashboardTab');
   const activeTabParam = searchParams.get('tab') || storedTab || 'appointments';
   const [activeTab, setActiveTab] = useState(activeTabParam);
 
@@ -60,7 +62,7 @@ const InsuranceProviderDashboard = ({
   useEffect(() => {
     if (activeTabParam) {
       setActiveTab(activeTabParam);
-      localStorage.setItem('insuranceDashboardTab', activeTabParam);
+      safeSetItem('insuranceDashboardTab', activeTabParam);
     }
   }, [activeTabParam]);
 
@@ -179,7 +181,7 @@ const InsuranceProviderDashboard = ({
                     onClick={() => {
                         setActiveTab(item.id);
                         setSearchParams({ tab: item.id });
-                        localStorage.setItem('insuranceDashboardTab', item.id);
+                        safeSetItem('insuranceDashboardTab', item.id);
                     }}
                     className={`w-full flex items-center justify-between px-4 py-3 rounded-2xl transition-all duration-300 group ${
                       activeTab === item.id 

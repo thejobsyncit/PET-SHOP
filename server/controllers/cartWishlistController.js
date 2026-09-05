@@ -1,3 +1,4 @@
+import mongoose from 'mongoose';
 import User from '../models/User.js';
 import Product from '../models/Product.js';
 import { isDbConnected, readMockData, writeMockData } from '../utils/mockDb.js';
@@ -13,17 +14,20 @@ export const getCart = async (req, res) => {
   const userId = req.user._id || req.user.id;
 
   try {
-    if (isDbConnected()) {
+    if (isDbConnected() && mongoose.Types.ObjectId.isValid(userId)) {
       const user = await User.findById(userId).populate('cart.product');
-      res.json({ success: true, cart: user.cart });
-    } else {
-      const usersList = readMockData('users');
-      const productsList = readMockData('products');
-      const user = usersList.find(u => u._id.toString() === userId.toString());
-      
-      if (!user) {
-        return res.status(404).json({ success: false, message: 'User not found' });
+      if (user) {
+        return res.json({ success: true, cart: user.cart || [] });
       }
+    }
+    
+    const usersList = readMockData('users');
+    const productsList = readMockData('products');
+    const user = usersList.find(u => u._id && u._id.toString() === userId.toString());
+    
+    if (!user) {
+      return res.json({ success: true, cart: [] });
+    }
 
       // Populate manually
       const populatedCart = (user.cart || []).map(item => {
@@ -35,7 +39,6 @@ export const getCart = async (req, res) => {
       }).filter(item => item.product !== null);
 
       res.json({ success: true, cart: populatedCart });
-    }
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
@@ -243,17 +246,20 @@ export const getWishlist = async (req, res) => {
   const userId = req.user._id || req.user.id;
 
   try {
-    if (isDbConnected()) {
+    if (isDbConnected() && mongoose.Types.ObjectId.isValid(userId)) {
       const user = await User.findById(userId).populate('wishlist');
-      res.json({ success: true, wishlist: user.wishlist });
-    } else {
-      const usersList = readMockData('users');
-      const productsList = readMockData('products');
-      const user = usersList.find(u => u._id.toString() === userId.toString());
-
-      if (!user) {
-        return res.status(404).json({ success: false, message: 'User not found' });
+      if (user) {
+        return res.json({ success: true, wishlist: user.wishlist || [] });
       }
+    }
+
+    const usersList = readMockData('users');
+    const productsList = readMockData('products');
+    const user = usersList.find(u => u._id && u._id.toString() === userId.toString());
+
+    if (!user) {
+      return res.json({ success: true, wishlist: [] });
+    }
 
       // Populate manually
       const populatedWishlist = (user.wishlist || []).map(pId => {
@@ -261,7 +267,6 @@ export const getWishlist = async (req, res) => {
       }).filter(p => p !== undefined && p !== null);
 
       res.json({ success: true, wishlist: populatedWishlist });
-    }
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
