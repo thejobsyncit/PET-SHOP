@@ -60,14 +60,14 @@ const AdoptionShelter = () => {
   const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
 
   // Top Search Filter States
-  const [selectedPetType, setSelectedPetType] = useState('dogs');
+  const [selectedPetType, setSelectedPetType] = useState('all');
   const [selectedState, setSelectedState] = useState('All States');
   const [selectedCity, setSelectedCity] = useState('All Cities');
 
   // Sidebar Filter States
   const [selectedBreedFilter, setSelectedBreedFilter] = useState('All');
   const [genderFilter, setGenderFilter] = useState('Any'); // 'Male' | 'Female' | 'Any'
-  const [qualityFilter, setQualityFilter] = useState('All'); // 'Pet Quality' | 'KCI Registered' | 'Champion Bloodline' | 'All'
+  const [qualityFilter, setQualityFilter] = useState('All');
   const [budgetLimit, setBudgetLimit] = useState(500000); // 0 to 1000000
 
   // UI Expand / Read More State
@@ -82,7 +82,7 @@ const AdoptionShelter = () => {
   const [newPetAge, setNewPetAge] = useState('');
   const [newPetState, setNewPetState] = useState('Karnataka');
   const [newPetCity, setNewPetCity] = useState('Bangalore');
-  const [newPetQuality, setNewPetQuality] = useState('Pet Quality');
+  const [newPetQuality, setNewPetQuality] = useState('Rescue Hero');
   const [newPetPersonality, setNewPetPersonality] = useState('Playful, Friendly, Loving');
   const [newPetGuardianName, setNewPetGuardianName] = useState('');
   const [newPetPhone, setNewPetPhone] = useState('');
@@ -92,7 +92,8 @@ const AdoptionShelter = () => {
   const [newPetBio, setNewPetBio] = useState('');
   const [newPetVaccinated, setNewPetVaccinated] = useState(true);
   const [newPetDewormed, setNewPetDewormed] = useState(true);
-  const [newPetNeutered, setNewPetNeutered] = useState(false);
+  const [newPetIsFree, setNewPetIsFree] = useState(true);
+  const [newPetFee, setNewPetFee] = useState('');
   const fileInputRef = useRef(null);
 
   // Auto-slide effect for Hero Banner (cycles every 3 seconds smoothly)
@@ -103,12 +104,26 @@ const AdoptionShelter = () => {
     return () => clearInterval(timer);
   }, []);
 
-  // Sync to localStorage
+  // Sync to latest adoption pets across tabs and components
   useEffect(() => {
-    try {
-      localStorage.setItem('pawora_adoption_pets', JSON.stringify(petsList));
-    } catch (e) {}
-  }, [petsList]);
+    const refreshPets = () => {
+      const fresh = getStoredAdoptionPets();
+      setPetsList([...fresh]);
+    };
+
+    refreshPets();
+
+    const handleUpdate = () => refreshPets();
+    window.addEventListener('adoption-pets-updated', handleUpdate);
+    window.addEventListener('storage', handleUpdate);
+    window.addEventListener('focus', handleUpdate);
+
+    return () => {
+      window.removeEventListener('adoption-pets-updated', handleUpdate);
+      window.removeEventListener('storage', handleUpdate);
+      window.removeEventListener('focus', handleUpdate);
+    };
+  }, []);
 
   // Autofill user info if logged in
   useEffect(() => {
@@ -171,6 +186,10 @@ const AdoptionShelter = () => {
   // Filtered Pets calculation
   const filteredPets = useMemo(() => {
     return petsList.filter((pet) => {
+      // Exclude adopted/rehomed pets from active listings
+      if (pet.adopted || pet.status === 'Adopted') {
+        return false;
+      }
       // Pet Type filter
       if (selectedPetType !== 'all' && pet.type !== selectedPetType) {
         return false;
@@ -185,7 +204,7 @@ const AdoptionShelter = () => {
       }
       // Popular Breed filter
       if (selectedBreedFilter !== 'All') {
-        const pBreed = pet.breed.toLowerCase();
+        const pBreed = (pet.breed || '').toLowerCase();
         const sBreed = selectedBreedFilter.toLowerCase();
         if (!pBreed.includes(sBreed) && !sBreed.includes(pBreed)) {
           return false;
@@ -205,7 +224,7 @@ const AdoptionShelter = () => {
 
   // Handle Reset Filters
   const handleResetFilters = () => {
-    setSelectedPetType('dogs');
+    setSelectedPetType('all');
     setSelectedState('All States');
     setSelectedCity('All Cities');
     setSelectedBreedFilter('All');
@@ -255,6 +274,8 @@ const AdoptionShelter = () => {
     };
     const pickedImage = newPetImage || defaultSamplePhotos[newPetType] || defaultSamplePhotos.dogs;
 
+    const finalFee = newPetIsFree ? 0 : (parseFloat(newPetFee) || 0);
+
     const createdPet = {
       id: 'adopt_' + Date.now(),
       name: newPetName.trim(),
@@ -275,9 +296,9 @@ const AdoptionShelter = () => {
       ownerPhone: user ? user.mobile : newPetPhone.trim(),
       parentContact: newPetPhone.trim() || (user ? user.mobile : '+91 8306-688-827'),
       parentName: newPetGuardianName.trim() || (user ? user.name : 'Pet Guardian'),
-      fee: 0,
+      fee: finalFee,
+      price: finalFee,
       vaccinated: newPetVaccinated,
-      neutered: newPetNeutered,
       dewormed: newPetDewormed,
       description: newPetBio.trim() || `${newPetName} is an affectionate ${newPetBreed} looking for a loving forever home.`,
       createdAt: new Date().toISOString()
@@ -421,10 +442,12 @@ const AdoptionShelter = () => {
               onChange={(e) => setSelectedPetType(e.target.value)}
               className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs md:text-sm font-semibold text-slate-700 focus:outline-none focus:border-primary focus:ring-2 focus:ring-beige transition"
             >
+              <option value="all">All Pets & Animals</option>
               <option value="dogs">Dogs & Puppies</option>
               <option value="cats">Cats & Kittens</option>
               <option value="birds">Birds & Parrots</option>
-              <option value="all">All Pets</option>
+              <option value="small-pets">Small Pets & Rabbits</option>
+              <option value="reptiles">Reptiles & Turtles</option>
             </select>
           </div>
 
@@ -547,11 +570,11 @@ const AdoptionShelter = () => {
                   </div>
                 </div>
   
-                {/* B. Puppy / Pet Quality */}
+                {/* B. Rescue / Classification */}
                 <div className="space-y-2 border-t border-slate-100 pt-4">
-                  <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wider">Puppy Quality</h4>
+                  <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wider">Classification</h4>
                   <div className="space-y-1.5 text-xs text-slate-600">
-                    {['Pet Quality', 'KCI Registered', 'Champion Bloodline', 'All'].map((q) => (
+                    {['All', 'Rescue Hero', 'Pet Quality', 'Shelter Born', 'Abandoned / Rescued', 'Foster Care'].map((q) => (
                       <label key={q} className="flex items-center gap-2 cursor-pointer hover:text-slate-900">
                         <input
                           type="radio"
@@ -739,7 +762,7 @@ const AdoptionShelter = () => {
                       className="bg-white rounded-2xl border border-beige/90 shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden flex flex-col justify-between group hover:-translate-y-1"
                     >
                       
-                      {/* Card Top: Image with Quality Badge (Clickable to detail page) */}
+                      {/* Card Top: Image with Quality & Pricing Badges (Clickable to detail page) */}
                       <Link to={`/adopt/${pet.id}`} className="relative aspect-[4/3] overflow-hidden bg-sand block">
                         <img
                           src={pet.image}
@@ -751,6 +774,11 @@ const AdoptionShelter = () => {
                         {/* Quality Pill Badge Top Right */}
                         <span className="absolute top-3 right-3 bg-primary/90 backdrop-blur-xs text-white text-[10px] font-bold px-2.5 py-0.5 rounded-md shadow-sm uppercase tracking-wider">
                           {pet.quality}
+                        </span>
+
+                        {/* Pricing / Free Adoption Badge Top Left */}
+                        <span className={`absolute top-3 left-3 ${(pet.fee > 0 || pet.price > 0) ? 'bg-[#0F2E23]/95 text-amber-300 border border-amber-300/30' : 'bg-emerald-600/95 text-white'} backdrop-blur-xs text-[10px] font-black px-2.5 py-0.5 rounded-md shadow-sm uppercase tracking-wider`}>
+                          {(pet.fee > 0 || pet.price > 0) ? `₹${pet.fee || pet.price} Fee` : 'Free Adoption'}
                         </span>
                       </Link>
   
@@ -1029,6 +1057,82 @@ const AdoptionShelter = () => {
                     ))}
                   </select>
                 </div>
+              </div>
+
+              {/* Adoption Fee / Pricing Option */}
+              <div className="bg-slate-50 p-3.5 rounded-2xl border border-slate-200/80 space-y-2.5">
+                <div className="flex items-center justify-between">
+                  <label className="font-bold text-slate-800 block text-xs">
+                    Adoption Fee / Pricing Type *
+                  </label>
+                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                    newPetIsFree ? 'bg-emerald-100 text-emerald-800' : 'bg-purple-100 text-[#7c56dc]'
+                  }`}>
+                    {newPetIsFree ? '100% Free Adoption' : 'Nominal Adoption Fee'}
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2.5">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setNewPetIsFree(true);
+                      setNewPetFee('');
+                    }}
+                    className={`p-2.5 rounded-xl border text-left transition cursor-pointer ${
+                      newPetIsFree
+                        ? 'border-emerald-500 bg-emerald-50/60 ring-1 ring-emerald-500/30'
+                        : 'border-slate-200 bg-white hover:border-slate-300'
+                    }`}
+                  >
+                    <div className="font-bold text-xs text-slate-800 flex items-center justify-between">
+                      <span>Free for Adoption</span>
+                      <span className="text-emerald-700">₹0</span>
+                    </div>
+                    <p className="text-[10px] text-slate-500 mt-0.5">100% free placement</p>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setNewPetIsFree(false);
+                      if (!newPetFee) setNewPetFee('1500');
+                    }}
+                    className={`p-2.5 rounded-xl border text-left transition cursor-pointer ${
+                      !newPetIsFree
+                        ? 'border-[#7c56dc] bg-purple-50/60 ring-1 ring-[#7c56dc]/30'
+                        : 'border-slate-200 bg-white hover:border-slate-300'
+                    }`}
+                  >
+                    <div className="font-bold text-xs text-slate-800 flex items-center justify-between">
+                      <span>Adoption Fee</span>
+                      <span className="text-[#7c56dc]">₹</span>
+                    </div>
+                    <p className="text-[10px] text-slate-500 mt-0.5">Nominal medical fee</p>
+                  </button>
+                </div>
+
+                {!newPetIsFree && (
+                  <div className="pt-1.5 animate-in fade-in duration-150">
+                    <label className="font-bold text-slate-700 block text-[11px] mb-1">
+                      Adoption Fee Amount (₹) *
+                    </label>
+                    <div className="relative">
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-xs">
+                        ₹
+                      </span>
+                      <input
+                        type="number"
+                        min="0"
+                        placeholder="e.g. 1500"
+                        value={newPetFee}
+                        onChange={(e) => setNewPetFee(e.target.value)}
+                        className="w-full pl-7 pr-3 py-2 border border-slate-200 rounded-xl text-xs focus:outline-none focus:border-primary font-medium bg-white"
+                        required={!newPetIsFree}
+                      />
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Personality Tags */}

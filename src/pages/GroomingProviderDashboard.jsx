@@ -11,6 +11,8 @@ import { apiRequest } from '../services/api.js';
 import toast from 'react-hot-toast';
 import GroomingProviderContent from './GroomingProviderContent.jsx';
 
+import { safeSetItem, safeGetItem } from '../utils/safeStorage.js';
+
 const GroomingProviderDashboard = ({ 
   currentProvider, 
   profiles, 
@@ -18,7 +20,7 @@ const GroomingProviderDashboard = ({
 }) => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
-  const storedTab = localStorage.getItem('groomingDashboardTab');
+  const storedTab = safeGetItem('groomingDashboardTab');
   const activeTabParam = searchParams.get('tab') || storedTab || 'appointments';
   const [activeTab, setActiveTab] = useState(activeTabParam);
 
@@ -30,16 +32,27 @@ const GroomingProviderDashboard = ({
 
   useEffect(() => {
     if (user) {
-      setProfileName(user.name || currentProvider?.name || '');
-      setProfileAvatar(user.avatar || user.profilePicture || currentProvider?.avatar || '');
+      if (user.name) setProfileName(user.name);
+      if (user.avatar || user.profilePicture) {
+        setProfileAvatar(user.avatar || user.profilePicture);
+      }
     }
-  }, [user, currentProvider]);
+  }, [user]);
 
   const handleUpdateProfile = async (e) => {
-    e.preventDefault();
-    const result = await dispatch(updateProfile({ name: profileName, avatar: profileAvatar, profilePicture: profileAvatar }));
+    if (e) e.preventDefault();
+    if (!profileName?.trim()) {
+      toast.error('Provider name cannot be empty');
+      return;
+    }
+    const result = await dispatch(updateProfile({ 
+      name: profileName.trim(), 
+      businessName: profileName.trim(),
+      avatar: profileAvatar, 
+      profilePicture: profileAvatar 
+    }));
     if (updateProfile.fulfilled.match(result)) {
-      toast.success('Seller profile updated successfully!');
+      toast.success('Grooming studio profile updated successfully!');
       setIsEditingProfile(false);
     } else {
       toast.error('Failed to update profile');
@@ -156,14 +169,14 @@ const GroomingProviderDashboard = ({
   useEffect(() => {
     if (activeTabParam) {
       setActiveTab(activeTabParam);
-      localStorage.setItem('groomingDashboardTab', activeTabParam);
+      safeSetItem('groomingDashboardTab', activeTabParam);
     }
   }, [activeTabParam]);
 
   const handleTabChange = (tabName) => {
     setActiveTab(tabName);
     setSearchParams({ tab: tabName });
-    localStorage.setItem('groomingDashboardTab', tabName);
+    safeSetItem('groomingDashboardTab', tabName);
   };
 
   const fetchListings = async () => {

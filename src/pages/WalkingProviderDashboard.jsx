@@ -22,6 +22,8 @@ const WalkingProviderContent = ({ activeTab }) => {
   );
 };
 
+import { safeSetItem, safeGetItem } from '../utils/safeStorage.js';
+
 const WalkingProviderDashboard = ({ 
   currentProvider, 
   profiles, 
@@ -29,7 +31,7 @@ const WalkingProviderDashboard = ({
 }) => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
-  const storedTab = localStorage.getItem('walkingDashboardTab');
+  const storedTab = safeGetItem('walkingDashboardTab');
   const activeTabParam = searchParams.get('tab') || storedTab || 'appointments';
   const [activeTab, setActiveTab] = useState(activeTabParam);
 
@@ -60,7 +62,7 @@ const WalkingProviderDashboard = ({
   useEffect(() => {
     if (activeTabParam) {
       setActiveTab(activeTabParam);
-      localStorage.setItem('walkingDashboardTab', activeTabParam);
+      safeSetItem('walkingDashboardTab', activeTabParam);
     }
   }, [activeTabParam]);
 
@@ -179,7 +181,7 @@ const WalkingProviderDashboard = ({
                     onClick={() => {
                         setActiveTab(item.id);
                         setSearchParams({ tab: item.id });
-                        localStorage.setItem('walkingDashboardTab', item.id);
+                        safeSetItem('walkingDashboardTab', item.id);
                     }}
                     className={`w-full flex items-center justify-between px-4 py-3 rounded-2xl transition-all duration-300 group ${
                       activeTab === item.id 

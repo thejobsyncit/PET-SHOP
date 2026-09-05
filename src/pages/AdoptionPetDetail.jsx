@@ -56,23 +56,33 @@ const AdoptionPetDetail = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, [id]);
 
-  // Load target pet with robust ID and string matching
+  // Load target pet with robust ID and string matching & real-time sync
   useEffect(() => {
-    const currentPets = getStoredAdoptionPets();
-    setPets(currentPets);
-    const decodedId = decodeURIComponent(id || '').trim();
-    const found = currentPets.find(
-      (p) =>
-        p.id === id ||
-        String(p.id) === String(id) ||
-        String(p.id) === decodedId ||
-        p._id === id ||
-        String(p.id).toLowerCase() === decodedId.toLowerCase()
-    );
-    if (found) {
-      setPet(found);
-      setSelectedImage(found.image);
-    }
+    const loadPet = () => {
+      const currentPets = getStoredAdoptionPets();
+      setPets(currentPets);
+      const decodedId = decodeURIComponent(id || '').trim();
+      const found = currentPets.find(
+        (p) =>
+          p.id === id ||
+          String(p.id) === String(id) ||
+          String(p.id) === decodedId ||
+          p._id === id ||
+          String(p.id).toLowerCase() === decodedId.toLowerCase()
+      );
+      if (found) {
+        setPet(found);
+        setSelectedImage(found.image);
+      }
+    };
+
+    loadPet();
+    window.addEventListener('adoption-pets-updated', loadPet);
+    window.addEventListener('storage', loadPet);
+    return () => {
+      window.removeEventListener('adoption-pets-updated', loadPet);
+      window.removeEventListener('storage', loadPet);
+    };
   }, [id]);
 
   // Pre-fill user information if authenticated & check for existing application
@@ -289,8 +299,8 @@ const AdoptionPetDetail = () => {
                 
                 {/* Badges Overlay */}
                 <div className="absolute top-4 left-4 flex gap-2 flex-wrap">
-                  <span className="bg-emerald-600/90 backdrop-blur-xs text-white text-[11px] font-bold px-3 py-1 rounded-full shadow-sm">
-                    100% Free Adoption
+                  <span className={`${(pet.fee > 0 || pet.price > 0) ? 'bg-[#0F2E23]/90 text-amber-300' : 'bg-emerald-600/90 text-white'} backdrop-blur-xs text-[11px] font-bold px-3 py-1 rounded-full shadow-sm`}>
+                    {(pet.fee > 0 || pet.price > 0) ? `₹${pet.fee || pet.price} Adoption Fee` : '100% Free Adoption'}
                   </span>
                   <span className="bg-[#7c56dc]/90 backdrop-blur-xs text-white text-[11px] font-bold px-3 py-1 rounded-full shadow-sm">
                     {pet.quality}
@@ -368,7 +378,9 @@ const AdoptionPetDetail = () => {
                 </div>
                 <div className="bg-slate-50 p-3.5 rounded-2xl border border-slate-100">
                   <span className="text-[10px] uppercase font-bold text-slate-400 block mb-1">Adoption Fee</span>
-                  <span className="font-bold text-emerald-600 text-xs sm:text-sm">Free (₹0)</span>
+                  <span className={`font-bold ${(pet.fee > 0 || pet.price > 0) ? 'text-amber-700' : 'text-emerald-600'} text-xs sm:text-sm`}>
+                    {(pet.fee > 0 || pet.price > 0) ? `₹${(pet.fee || pet.price).toLocaleString('en-IN')}` : 'Free (₹0)'}
+                  </span>
                 </div>
               </div>
 

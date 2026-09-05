@@ -6,7 +6,7 @@ import {
   Calendar, Clock, CircleCheck, ChevronRight, X, SlidersHorizontal, 
   RefreshCw, Check, ArrowRight, Heart, Award, Navigation, 
   Compass, ShieldAlert, UserCheck, Truck, Plane, Train, Anchor,
-  Scale, FileText, Send, HelpCircle, Info, ChevronDown, CheckSquare, Square
+  Scale, FileText, Send, HelpCircle, Info, ChevronDown, CheckSquare, Square, Plus
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { 
@@ -97,7 +97,15 @@ const PetTransport = () => {
   const [globalEnqTravelFriendly, setGlobalEnqTravelFriendly] = useState('Yes, Travel Friendly');
   const [globalEnqNote, setGlobalEnqNote] = useState('');
 
-  const providers = getStoredTransportProviders();
+  const [providers, setProviders] = useState(() => getStoredTransportProviders());
+
+  useEffect(() => {
+    const handleProvidersUpdated = () => {
+      setProviders(getStoredTransportProviders());
+    };
+    window.addEventListener('transport-providers-updated', handleProvidersUpdated);
+    return () => window.removeEventListener('transport-providers-updated', handleProvidersUpdated);
+  }, []);
 
   // Scroll to top on mount
   useEffect(() => {
@@ -178,22 +186,68 @@ const PetTransport = () => {
     });
   }, [providers, selectedMode, selectedPetType, selectedState, selectedCity, priceRange, verifiedOnly, iataOnly, searchKeyword, sortBy]);
 
+  // Lowest price memo for comparison highlighting
+  const lowestKmRate = useMemo(() => {
+    if (comparedProviders.length === 0) return null;
+    return Math.min(...comparedProviders.map((p) => p.pricePerKm));
+  }, [comparedProviders]);
+
+  // Unselected providers for quick adding inside the comparison modal
+  const unselectedProviders = useMemo(() => {
+    return providers.filter((p) => !comparedProviders.some((cp) => cp.id === p.id));
+  }, [providers, comparedProviders]);
+
   // Handle Comparison Toggle (Strictly max 3 providers)
   const handleToggleCompare = (provider) => {
     const isAlreadySelected = comparedProviders.some((p) => p.id === provider.id);
     if (isAlreadySelected) {
       setComparedProviders(comparedProviders.filter((p) => p.id !== provider.id));
+      toast(`Removed ${provider.name} from comparison.`, { icon: '🗑️' });
     } else {
       if (comparedProviders.length >= 3) {
-        toast.error('You can compare a maximum of 3 pet transport providers at once.', {
-          icon: '⚖️'
+        toast.error('You can compare a maximum of 3 service providers at once. Remove one to add another.', {
+          icon: '⚖️',
+          duration: 4000
         });
         return;
       }
-      setComparedProviders([...comparedProviders, provider]);
-      toast.success(`Added ${provider.name} to comparison (${comparedProviders.length + 1}/3)`, {
+      const updated = [...comparedProviders, provider];
+      setComparedProviders(updated);
+      toast.success(`Added ${provider.name} to comparison (${updated.length}/3)`, {
         icon: '🚐'
       });
+    }
+  };
+
+  // Quick Compare Top 3 Providers
+  const handleQuickCompareTop3 = () => {
+    const top3 = providers.slice(0, 3);
+    setComparedProviders(top3);
+    setShowCompareModal(true);
+    toast.success('Loaded top 3 recommended providers into comparison matrix!', { icon: '⚖️' });
+  };
+
+  // Add provider by ID from inside comparison modal
+  const handleAddProviderToCompare = (providerId) => {
+    if (!providerId) return;
+    if (comparedProviders.length >= 3) {
+      toast.error('Maximum 3 service providers can be compared.', { icon: '⚖️' });
+      return;
+    }
+    const found = providers.find((p) => p.id === providerId);
+    if (found && !comparedProviders.some((p) => p.id === found.id)) {
+      const updated = [...comparedProviders, found];
+      setComparedProviders(updated);
+      toast.success(`Added ${found.name} (${updated.length}/3)`, { icon: '🚐' });
+    }
+  };
+
+  // Remove individual provider from comparison
+  const handleRemoveFromCompare = (providerId) => {
+    const providerToRemove = comparedProviders.find((p) => p.id === providerId);
+    setComparedProviders(comparedProviders.filter((p) => p.id !== providerId));
+    if (providerToRemove) {
+      toast(`Removed ${providerToRemove.name} from comparison.`, { icon: '🗑️' });
     }
   };
 
@@ -411,6 +465,33 @@ const PetTransport = () => {
             <p className="text-sm md:text-base text-slate-200 font-normal max-w-xl leading-relaxed">
               Stress-free road cabs, Indian Railways 1st AC coupés, and IATA-compliant domestic & international air shipping with 24/7 veterinary oversight.
             </p>
+
+            {/* Quick Action Buttons including Compare */}
+            <div className="flex flex-wrap items-center gap-3 pt-2">
+              <button
+                onClick={() => {
+                  const target = document.getElementById('transport-catalog');
+                  if (target) target.scrollIntoView({ behavior: 'smooth' });
+                }}
+                className="bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-500 hover:to-amber-600 text-slate-950 text-xs md:text-sm font-extrabold px-5 py-3 rounded-xl transition shadow-lg flex items-center gap-2 cursor-pointer hover:shadow-xl active:scale-95"
+              >
+                <Search size={16} />
+                <span>Explore Transporters</span>
+              </button>
+
+              <button
+                onClick={() => setShowCompareModal(true)}
+                className="bg-white/15 hover:bg-white/25 text-white border border-white/30 text-xs md:text-sm font-extrabold px-5 py-3 rounded-xl transition backdrop-blur-md flex items-center gap-2 cursor-pointer shadow-md hover:shadow-lg active:scale-95"
+              >
+                <Scale size={16} className="text-amber-400" />
+                <span>Compare Providers</span>
+                <span className={`text-[10px] font-black px-2 py-0.5 rounded-full ${
+                  comparedProviders.length > 0 ? 'bg-amber-400 text-slate-950' : 'bg-white/20 text-white'
+                }`}>
+                  {comparedProviders.length}/3
+                </span>
+              </button>
+            </div>
           </div>
 
           {/* Right Column: Dog in Travel Crate Relocation Artwork */}
@@ -678,7 +759,7 @@ const PetTransport = () => {
       {/* 4. PROVIDERS CATALOG & LEFT-SIDE FILTERS */}
       <section id="transport-catalog" className="max-w-7xl mx-auto px-4 md:px-8 py-16 space-y-8">
         
-        {/* Section Header with Comparison Reminder */}
+        {/* Section Header with Comparison Action Controls */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-end border-b border-stone-200 pb-6 gap-4">
           <div>
             <span className="text-[11px] font-extrabold uppercase tracking-widest text-[#0F2E23] bg-emerald-100/70 px-3 py-1 rounded-full">
@@ -688,8 +769,42 @@ const PetTransport = () => {
               Compare & Book Pet Transporters ({filteredProviders.length})
             </h2>
             <p className="text-xs text-gray-500 mt-1">
-              Select 2 or 3 providers below to see a detailed side-by-side comparison of rates, safety features, and transit modes.
+              Select up to 3 service providers below to view a detailed side-by-side comparison of per-km rates, base fares, transit modalities, and AC safety standards.
             </p>
+          </div>
+
+          {/* Directory Compare Action Controls */}
+          <div className="flex flex-wrap items-center gap-2.5 shrink-0">
+            <button
+              onClick={() => setShowCompareModal(true)}
+              className="flex items-center gap-2 px-5 py-2.5 rounded-xl font-extrabold text-xs transition shadow-md cursor-pointer border bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-slate-950 border-amber-400 hover:shadow-lg active:scale-95"
+            >
+              <Scale size={16} />
+              <span>Compare Providers</span>
+              <span className="bg-slate-950 text-amber-400 text-[10px] px-2 py-0.5 rounded-full font-black">
+                {comparedProviders.length}/3
+              </span>
+            </button>
+
+            {comparedProviders.length > 0 ? (
+              <button
+                onClick={() => {
+                  setComparedProviders([]);
+                  toast('Comparison list cleared.');
+                }}
+                className="text-xs text-gray-500 hover:text-red-600 font-semibold px-3 py-2 rounded-xl border border-stone-200 hover:border-red-200 bg-stone-50 cursor-pointer transition"
+              >
+                Clear ({comparedProviders.length})
+              </button>
+            ) : (
+              <button
+                onClick={handleQuickCompareTop3}
+                className="text-xs text-[#0F2E23] hover:text-[#13274F] font-semibold px-3 py-2 rounded-xl border border-stone-200 bg-white hover:bg-stone-50 cursor-pointer transition flex items-center gap-1.5 shadow-sm"
+              >
+                <Sparkles size={13} className="text-amber-500" />
+                <span>Quick Compare Top 3</span>
+              </button>
+            )}
           </div>
         </div>
 
@@ -882,15 +997,24 @@ const PetTransport = () => {
             ) : (
               filteredProviders.map((provider) => {
                 const isCompared = comparedProviders.some((p) => p.id === provider.id);
+                const comparedIndex = comparedProviders.findIndex((p) => p.id === provider.id);
                 return (
                   <div
                     key={provider.id}
                     className={`bg-white rounded-2xl border transition-all duration-300 p-6 shadow-sm hover:shadow-md flex flex-col md:flex-row gap-6 relative ${
-                      isCompared ? 'border-2 border-[#D4AF37] bg-amber-50/20' : 'border-stone-200'
+                      isCompared ? 'border-2 border-amber-400 bg-amber-50/20 ring-4 ring-amber-400/10' : 'border-stone-200'
                     }`}
                   >
+                    {/* Active Comparison Slot Floating Tag */}
+                    {isCompared && (
+                      <div className="absolute top-3 right-3 bg-amber-400 text-slate-950 text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full flex items-center gap-1 shadow z-10">
+                        <Scale size={11} />
+                        <span>In Comparison (Slot {comparedIndex + 1}/3)</span>
+                      </div>
+                    )}
+
                     {/* Provider Image & Badges */}
-                    <div className="md:w-56 shrink-0 space-y-3">
+                    <div className="md:w-56 shrink-0">
                       <div className="aspect-[4/3] rounded-xl overflow-hidden relative shadow-sm border border-stone-100">
                         <img
                           src={provider.image}
@@ -910,28 +1034,6 @@ const PetTransport = () => {
                           )}
                         </div>
                       </div>
-
-                      {/* Compare Checkbox Trigger */}
-                      <button
-                        onClick={() => handleToggleCompare(provider)}
-                        className={`w-full py-2 px-3 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition cursor-pointer border ${
-                          isCompared
-                            ? 'bg-[#D4AF37] text-slate-900 border-[#D4AF37]'
-                            : 'bg-stone-50 hover:bg-amber-50 text-gray-700 border-stone-200'
-                        }`}
-                      >
-                        {isCompared ? (
-                          <>
-                            <CheckSquare size={15} className="text-slate-900" />
-                            <span>Added to Compare ({comparedProviders.length}/3)</span>
-                          </>
-                        ) : (
-                          <>
-                            <Square size={15} className="text-gray-400" />
-                            <span>Add to Compare</span>
-                          </>
-                        )}
-                      </button>
                     </div>
 
                     {/* Provider Info & Pricing */}
@@ -996,7 +1098,29 @@ const PetTransport = () => {
                           </div>
                         </div>
 
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap">
+                          {/* Add to Compare Trigger */}
+                          <button
+                            onClick={() => handleToggleCompare(provider)}
+                            className={`text-xs font-bold px-3.5 py-2.5 rounded-xl transition cursor-pointer flex items-center gap-1.5 border shadow-sm ${
+                              isCompared
+                                ? 'bg-gradient-to-r from-amber-400 to-amber-500 text-slate-950 border-amber-500 ring-2 ring-amber-400/30'
+                                : 'bg-white hover:bg-amber-50 hover:border-amber-300 text-slate-700 border-stone-200'
+                            }`}
+                          >
+                            {isCompared ? (
+                              <>
+                                <CheckSquare size={14} className="text-slate-950" />
+                                <span>Compared</span>
+                              </>
+                            ) : (
+                              <>
+                                <Scale size={14} className="text-amber-600" />
+                                <span>Add to Compare</span>
+                              </>
+                            )}
+                          </button>
+
                           <button
                             onClick={() => handleOpenEnquiryModal(provider)}
                             className="bg-stone-100 hover:bg-stone-200 text-slate-800 text-xs font-bold px-4 py-2.5 rounded-xl transition cursor-pointer flex items-center gap-1.5"
@@ -1269,204 +1393,447 @@ const PetTransport = () => {
 
       {/* 8. DEDICATED FLOATING COMPARISON BAR (Shows when 1 to 3 providers selected) */}
       {comparedProviders.length > 0 && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 w-11/12 max-w-3xl bg-[#0F2E23] text-white p-4 rounded-2xl shadow-2xl border border-white/20 backdrop-blur-lg flex flex-wrap items-center justify-between gap-4 animate-in fade-in slide-in-from-bottom-5">
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 w-11/12 max-w-3xl bg-[#0F2E23]/95 text-white p-3.5 md:p-4 rounded-2xl shadow-2xl border border-amber-400/40 backdrop-blur-lg flex flex-wrap items-center justify-between gap-3 animate-in fade-in slide-in-from-bottom-5">
           <div className="flex items-center gap-3">
-            <div className="flex -space-x-3 overflow-hidden">
+            <div className="flex -space-x-2.5 overflow-visible">
               {comparedProviders.map((p) => (
-                <img
-                  key={p.id}
-                  src={p.image}
-                  alt={p.name}
-                  className="inline-block h-10 w-10 rounded-full ring-2 ring-[#D4AF37] object-cover"
-                />
+                <div key={p.id} className="relative group">
+                  <img
+                    src={p.image}
+                    alt={p.name}
+                    className="inline-block h-10 w-10 rounded-full ring-2 ring-amber-400 object-cover shadow"
+                  />
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleRemoveFromCompare(p.id);
+                    }}
+                    title={`Remove ${p.name}`}
+                    className="absolute -top-1 -right-1 bg-red-600 hover:bg-red-700 text-white rounded-full w-4 h-4 flex items-center justify-center text-[10px] shadow cursor-pointer opacity-80 hover:opacity-100 transition-opacity"
+                  >
+                    ×
+                  </button>
+                </div>
+              ))}
+
+              {/* Visual indicators for remaining slots up to 3 */}
+              {Array.from({ length: 3 - comparedProviders.length }).map((_, i) => (
+                <div
+                  key={`empty-slot-${i}`}
+                  className="inline-flex h-10 w-10 rounded-full border-2 border-dashed border-white/40 items-center justify-center text-[10px] font-bold text-white/70 bg-white/5"
+                  title="Available slot (max 3)"
+                >
+                  +{i + 1}
+                </div>
               ))}
             </div>
             <div>
-              <div className="text-xs font-bold text-white">
-                Comparing {comparedProviders.length} of 3 Providers
+              <div className="text-xs font-bold text-white flex items-center gap-1.5">
+                <span>Comparing {comparedProviders.length} of 3 Providers</span>
+                <span className="text-[10px] bg-amber-400/20 text-amber-300 px-2 py-0.5 rounded-full font-bold">
+                  Max 3
+                </span>
               </div>
               <div className="text-[11px] text-gray-300">
                 {comparedProviders.length === 1
-                  ? 'Select 1 or 2 more providers to compare side-by-side.'
-                  : 'Ready to compare rates, safety & fleet!'}
+                  ? 'Add up to 2 more providers to compare side-by-side.'
+                  : comparedProviders.length === 2
+                  ? 'Select 1 more provider or click Compare Now.'
+                  : 'Maximum 3 providers chosen! Ready for full comparison.'}
               </div>
             </div>
           </div>
 
           <div className="flex items-center gap-2">
             <button
-              onClick={() => setComparedProviders([])}
-              className="text-xs font-semibold text-gray-300 hover:text-white px-3 py-1.5 cursor-pointer"
+              onClick={() => {
+                setComparedProviders([]);
+                toast('Comparison cleared.');
+              }}
+              className="text-xs font-semibold text-gray-300 hover:text-white px-3 py-1.5 cursor-pointer transition"
             >
               Clear
             </button>
 
             <button
-              onClick={() => {
-                if (comparedProviders.length < 2) {
-                  toast('Please select at least 2 providers to compare side-by-side.', { icon: 'ℹ️' });
-                }
-                setShowCompareModal(true);
-              }}
-              className="bg-[#D4AF37] hover:bg-amber-400 text-slate-950 text-xs font-extrabold px-5 py-2 rounded-xl transition shadow-md flex items-center gap-1.5 cursor-pointer"
+              onClick={() => setShowCompareModal(true)}
+              className="bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-500 hover:to-amber-600 text-slate-950 text-xs font-extrabold px-5 py-2.5 rounded-xl transition shadow-lg flex items-center gap-2 cursor-pointer hover:shadow-xl active:scale-95"
             >
-              <Scale size={14} />
-              <span>Compare Now</span>
+              <Scale size={15} />
+              <span>Compare Now ({comparedProviders.length}/3)</span>
             </button>
           </div>
         </div>
       )}
 
-      {/* 9. SIDE-BY-SIDE DEDICATED COMPARISON MODAL */}
+      {/* 9. SIDE-BY-SIDE DEDICATED COMPARISON MODAL (MAX 3 PROVIDERS) */}
       {showCompareModal && (
-        <div className="fixed inset-0 z-[100] bg-black/70 backdrop-blur-sm flex flex-col items-center justify-start sm:justify-center p-2 sm:p-4 overflow-y-auto animate-in fade-in duration-150">
-          <div className="bg-white w-full max-w-5xl rounded-3xl shadow-2xl border border-stone-200 overflow-hidden my-auto flex flex-col min-h-0 max-h-[88vh]">
+        <div className="fixed inset-0 z-[100] bg-black/75 backdrop-blur-sm flex flex-col items-center justify-start sm:justify-center p-2 sm:p-4 overflow-y-auto animate-in fade-in duration-150">
+          <div className="bg-white w-full max-w-5xl rounded-3xl shadow-2xl border border-stone-200 overflow-hidden my-auto flex flex-col min-h-0 max-h-[90vh]">
             
             {/* Modal Header */}
-            <div className="bg-[#0F2E23] text-white p-6 flex items-center justify-between">
-              <div className="flex items-center gap-2.5">
-                <Scale size={20} className="text-[#D4AF37]" />
-                <h3 className="text-lg font-serif font-bold">
-                  Side-by-Side Transporter Comparison ({comparedProviders.length} Selected)
-                </h3>
+            <div className="bg-[#0F2E23] text-white p-5 md:p-6 flex items-center justify-between shrink-0 border-b border-white/10">
+              <div className="space-y-1">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-lg bg-amber-400/20 text-amber-400 flex items-center justify-center">
+                    <Scale size={18} />
+                  </div>
+                  <h3 className="text-lg md:text-xl font-serif font-bold">
+                    Pet Transport Provider Comparison
+                  </h3>
+                  <span className="bg-amber-400 text-slate-950 text-[10px] font-black px-2.5 py-0.5 rounded-full uppercase tracking-wider">
+                    {comparedProviders.length} / 3 Selected
+                  </span>
+                </div>
+                <p className="text-xs text-gray-300 pl-10.5">
+                  Side-by-side comparison of pricing, transit modes, climate control, and IATA safety certifications. (Max 3 providers)
+                </p>
               </div>
               <button
                 onClick={() => setShowCompareModal(false)}
-                className="text-white/70 hover:text-white p-1 rounded-full hover:bg-white/10 transition cursor-pointer"
+                className="text-white/70 hover:text-white p-2 rounded-full hover:bg-white/10 transition cursor-pointer"
               >
                 <X size={20} />
               </button>
             </div>
 
-            {/* Comparison Matrix Table */}
-            <div className="p-6 overflow-x-auto max-h-[75vh]">
-              <table className="w-full text-xs text-left border-collapse">
-                <thead>
-                  <tr className="border-b border-stone-200">
-                    <th className="p-3 font-extrabold text-gray-400 uppercase tracking-wider w-1/4">Features / Provider</th>
-                    {comparedProviders.map((p) => (
-                      <th key={p.id} className="p-3 text-center w-1/3">
-                        <div className="w-16 h-16 rounded-xl overflow-hidden mx-auto mb-2 border border-stone-200">
-                          <img src={p.image} alt={p.name} className="w-full h-full object-cover" />
-                        </div>
-                        <div className="font-bold text-slate-900 text-sm">{p.name}</div>
-                        <div className="text-[11px] text-gray-500">{p.city}, {p.state}</div>
-                        <div className="mt-1 inline-flex items-center gap-1 text-[11px] font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-md">
-                          <Star size={11} className="fill-amber-500 text-amber-500" /> {p.rating} ({p.reviews})
+            {/* Modal Content */}
+            {comparedProviders.length === 0 ? (
+              <div className="p-10 text-center space-y-5">
+                <div className="w-16 h-16 bg-amber-50 rounded-full flex items-center justify-center mx-auto text-amber-600 border border-amber-200">
+                  <Scale size={32} />
+                </div>
+                <div className="space-y-1.5">
+                  <h4 className="text-xl font-serif font-bold text-slate-900">
+                    No Transporters Selected for Comparison
+                  </h4>
+                  <p className="text-xs text-gray-500 max-w-md mx-auto leading-relaxed">
+                    You can compare up to 3 pet transport providers at once. Choose from the quick selector below or click to load our top 3 rated providers instantly.
+                  </p>
+                </div>
+
+                <div className="max-w-xs mx-auto space-y-3 pt-2">
+                  <select
+                    defaultValue=""
+                    onChange={(e) => {
+                      if (e.target.value) {
+                        handleAddProviderToCompare(e.target.value);
+                      }
+                    }}
+                    className="w-full bg-stone-50 border border-stone-200 rounded-xl px-3 py-2.5 text-xs font-bold text-slate-800 focus:outline-none focus:border-[#0F2E23] cursor-pointer"
+                  >
+                    <option value="" disabled>+ Choose Transporter to Add (Slot 1 of 3)...</option>
+                    {providers.map((p) => (
+                      <option key={p.id} value={p.id}>
+                        {p.name} — ₹{p.pricePerKm}/km ({p.city})
+                      </option>
+                    ))}
+                  </select>
+
+                  <div className="flex items-center justify-center gap-3">
+                    <button
+                      onClick={handleQuickCompareTop3}
+                      className="w-full bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-slate-950 font-extrabold text-xs py-2.5 px-4 rounded-xl shadow cursor-pointer transition flex items-center justify-center gap-1.5"
+                    >
+                      <Sparkles size={14} />
+                      <span>Compare Top 3 Rated</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="p-4 md:p-6 overflow-x-auto max-h-[75vh] custom-scrollbar">
+                <table className="w-full text-xs text-left border-collapse min-w-[620px]">
+                  <thead>
+                    <tr className="border-b border-stone-200">
+                      <th className="p-3 font-extrabold text-gray-500 uppercase tracking-wider w-1/4 bg-stone-50/70 rounded-l-xl align-top">
+                        <div className="text-[11px] font-bold text-[#0F2E23]">Comparison Matrix</div>
+                        <div className="text-[10px] text-gray-400 font-medium mt-1">
+                          Showing {comparedProviders.length} of 3 providers
                         </div>
                       </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-stone-100">
-                  {/* Pricing */}
-                  <tr>
-                    <td className="p-3 font-bold text-slate-700 bg-stone-50">Rate per KM</td>
-                    {comparedProviders.map((p) => (
-                      <td key={p.id} className="p-3 text-center font-extrabold text-[#0F2E23] text-sm">
-                        ₹{p.pricePerKm} / km
-                      </td>
-                    ))}
-                  </tr>
-                  <tr>
-                    <td className="p-3 font-bold text-slate-700 bg-stone-50">Base Minimum Fare</td>
-                    {comparedProviders.map((p) => (
-                      <td key={p.id} className="p-3 text-center text-gray-700 font-semibold">
-                        ₹{p.basePrice}
-                      </td>
-                    ))}
-                  </tr>
-                  <tr>
-                    <td className="p-3 font-bold text-slate-700 bg-stone-50">Inter-State Starting</td>
-                    {comparedProviders.map((p) => (
-                      <td key={p.id} className="p-3 text-center text-gray-700 font-semibold">
-                        ₹{p.interstateMin}
-                      </td>
-                    ))}
-                  </tr>
-
-                  {/* Modes */}
-                  <tr>
-                    <td className="p-3 font-bold text-slate-700 bg-stone-50">Supported Modes</td>
-                    {comparedProviders.map((p) => (
-                      <td key={p.id} className="p-3 text-center">
-                        <div className="flex flex-wrap justify-center gap-1">
-                          {p.modes.map((m) => (
-                            <span key={m} className="bg-stone-100 text-slate-800 text-[10px] font-bold px-2 py-0.5 rounded">
-                              {m}
+                      {comparedProviders.map((p, idx) => (
+                        <th key={p.id} className="p-3 text-center align-top relative border-l border-stone-100">
+                          {/* Slot Tag & Remove Button */}
+                          <div className="flex items-center justify-between mb-2">
+                            <span className="text-[10px] font-black uppercase text-amber-800 bg-amber-100 px-2 py-0.5 rounded-md">
+                              Slot {idx + 1} of 3
                             </span>
-                          ))}
-                        </div>
-                      </td>
-                    ))}
-                  </tr>
+                            <button
+                              onClick={() => handleRemoveFromCompare(p.id)}
+                              className="text-[10px] text-red-600 hover:text-red-800 bg-red-50 hover:bg-red-100 font-bold px-2 py-0.5 rounded-md transition flex items-center gap-1 cursor-pointer"
+                              title={`Remove ${p.name} from comparison`}
+                            >
+                              <X size={11} />
+                              <span>Remove</span>
+                            </button>
+                          </div>
 
-                  {/* Safety & Amenities */}
-                  <tr>
-                    <td className="p-3 font-bold text-slate-700 bg-stone-50">100% Climate Control (AC)</td>
-                    {comparedProviders.map((p) => (
-                      <td key={p.id} className="p-3 text-center font-bold text-emerald-700">
-                        <CircleCheck size={16} className="inline mr-1" /> Guaranteed
-                      </td>
-                    ))}
-                  </tr>
-                  <tr>
-                    <td className="p-3 font-bold text-slate-700 bg-stone-50">Live GPS & WhatsApp Updates</td>
-                    {comparedProviders.map((p) => (
-                      <td key={p.id} className="p-3 text-center font-bold text-emerald-700">
-                        <CircleCheck size={16} className="inline mr-1" /> Real-time Link
-                      </td>
-                    ))}
-                  </tr>
-                  <tr>
-                    <td className="p-3 font-bold text-slate-700 bg-stone-50">IATA Air Certification</td>
-                    {comparedProviders.map((p) => (
-                      <td key={p.id} className="p-3 text-center font-semibold">
-                        {p.iataCertified ? (
-                          <span className="text-emerald-700 font-bold">✓ Certified</span>
-                        ) : (
-                          <span className="text-gray-400">Road / Rail Focused</span>
-                        )}
-                      </td>
-                    ))}
-                  </tr>
-                  <tr>
-                    <td className="p-3 font-bold text-slate-700 bg-stone-50">Vet Health Check & Paperwork</td>
-                    {comparedProviders.map((p) => (
-                      <td key={p.id} className="p-3 text-center text-gray-700 font-semibold">
-                        Full Assistance Provided
-                      </td>
-                    ))}
-                  </tr>
-                  <tr>
-                    <td className="p-3 font-bold text-slate-700 bg-stone-50">Hydration & Rest Routine</td>
-                    {comparedProviders.map((p) => (
-                      <td key={p.id} className="p-3 text-center text-gray-700">
-                        Every 3 hours + Walk Breaks
-                      </td>
-                    ))}
-                  </tr>
+                          <div className="w-16 h-16 rounded-xl overflow-hidden mx-auto mb-2 border border-stone-200 shadow-sm">
+                            <img src={p.image} alt={p.name} className="w-full h-full object-cover" />
+                          </div>
+                          <div className="font-bold text-slate-900 text-sm leading-snug">{p.name}</div>
+                          <div className="text-[11px] text-gray-500 mt-0.5">{p.city}, {p.state}</div>
+                          <div className="mt-1.5 flex flex-wrap items-center justify-center gap-1">
+                            <span className="inline-flex items-center gap-1 text-[11px] font-bold text-amber-800 bg-amber-50 border border-amber-200/60 px-2 py-0.5 rounded-md">
+                              <Star size={11} className="fill-amber-500 text-amber-500" /> {p.rating} ({p.reviews})
+                            </span>
+                            {p.verified && (
+                              <span className="bg-emerald-50 text-emerald-800 text-[9px] font-bold px-1.5 py-0.5 rounded border border-emerald-200">
+                                Verified
+                              </span>
+                            )}
+                          </div>
+                        </th>
+                      ))}
 
-                  {/* Direct Booking Column Action */}
-                  <tr>
-                    <td className="p-3 font-bold text-slate-700 bg-stone-50">Instant Action</td>
-                    {comparedProviders.map((p) => (
-                      <td key={p.id} className="p-3 text-center">
-                        <button
-                          onClick={() => {
-                            setShowCompareModal(false);
-                            handleOpenBookingModal(p);
-                          }}
-                          className="bg-[#0F2E23] hover:bg-[#164E3D] text-[#D4AF37] text-xs font-bold py-2 px-4 rounded-xl shadow cursor-pointer w-full"
-                        >
-                          Book {p.name.split(' ')[0]}
-                        </button>
-                      </td>
-                    ))}
-                  </tr>
-                </tbody>
-              </table>
-            </div>
+                      {/* Empty slot column if fewer than 3 providers selected */}
+                      {comparedProviders.length < 3 && (
+                        <th className="p-3 text-center align-top bg-stone-50/50 border border-dashed border-stone-300 rounded-r-xl">
+                          <div className="w-12 h-12 rounded-full border-2 border-dashed border-amber-400 bg-amber-50/60 flex items-center justify-center mx-auto mb-2 text-amber-700">
+                            <Plus size={20} />
+                          </div>
+                          <div className="font-extrabold text-slate-800 text-xs">
+                            Slot {comparedProviders.length + 1} of 3
+                          </div>
+                          <p className="text-[10px] text-gray-500 mt-0.5 mb-2">
+                            Add another transporter
+                          </p>
+                          <select
+                            defaultValue=""
+                            onChange={(e) => {
+                              if (e.target.value) {
+                                handleAddProviderToCompare(e.target.value);
+                                e.target.value = '';
+                              }
+                            }}
+                            className="w-full bg-white border border-amber-300 rounded-lg px-2 py-1.5 text-[11px] font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-400 shadow-sm cursor-pointer"
+                          >
+                            <option value="" disabled>+ Choose Transporter...</option>
+                            {unselectedProviders.map((up) => (
+                              <option key={up.id} value={up.id}>
+                                {up.name} (₹{up.pricePerKm}/km)
+                              </option>
+                            ))}
+                          </select>
+                        </th>
+                      )}
+                    </tr>
+                  </thead>
+
+                  <tbody className="divide-y divide-stone-100">
+                    {/* Rate per KM */}
+                    <tr>
+                      <td className="p-3 font-bold text-slate-700 bg-stone-50">Rate per KM</td>
+                      {comparedProviders.map((p) => {
+                        const isLowest = lowestKmRate && p.pricePerKm === lowestKmRate && comparedProviders.length > 1;
+                        return (
+                          <td key={p.id} className="p-3 text-center font-extrabold text-[#0F2E23] text-sm">
+                            <div>₹{p.pricePerKm} / km</div>
+                            {isLowest && (
+                              <span className="inline-block mt-0.5 bg-emerald-100 text-emerald-800 text-[9px] font-black px-2 py-0.5 rounded-full border border-emerald-300">
+                                🏆 Lowest Rate
+                              </span>
+                            )}
+                          </td>
+                        );
+                      })}
+                      {comparedProviders.length < 3 && (
+                        <td className="p-3 text-center text-gray-300 italic text-[11px]">-</td>
+                      )}
+                    </tr>
+
+                    {/* Base Minimum Fare */}
+                    <tr>
+                      <td className="p-3 font-bold text-slate-700 bg-stone-50">Base Minimum Fare</td>
+                      {comparedProviders.map((p) => (
+                        <td key={p.id} className="p-3 text-center text-gray-800 font-semibold">
+                          ₹{p.basePrice}
+                        </td>
+                      ))}
+                      {comparedProviders.length < 3 && (
+                        <td className="p-3 text-center text-gray-300 italic text-[11px]">-</td>
+                      )}
+                    </tr>
+
+                    {/* Inter-State Relocation Starting */}
+                    <tr>
+                      <td className="p-3 font-bold text-slate-700 bg-stone-50">Inter-State Starting</td>
+                      {comparedProviders.map((p) => (
+                        <td key={p.id} className="p-3 text-center text-gray-800 font-semibold">
+                          ₹{p.interstateMin}
+                        </td>
+                      ))}
+                      {comparedProviders.length < 3 && (
+                        <td className="p-3 text-center text-gray-300 italic text-[11px]">-</td>
+                      )}
+                    </tr>
+
+                    {/* Supported Transport Modes */}
+                    <tr>
+                      <td className="p-3 font-bold text-slate-700 bg-stone-50">Supported Modes</td>
+                      {comparedProviders.map((p) => (
+                        <td key={p.id} className="p-3 text-center">
+                          <div className="flex flex-wrap justify-center gap-1">
+                            {p.modes.map((m) => (
+                              <span key={m} className="bg-stone-100 text-slate-800 text-[10px] font-bold px-2 py-0.5 rounded">
+                                {m}
+                              </span>
+                            ))}
+                          </div>
+                        </td>
+                      ))}
+                      {comparedProviders.length < 3 && (
+                        <td className="p-3 text-center text-gray-300 italic text-[11px]">-</td>
+                      )}
+                    </tr>
+
+                    {/* Vehicle Fleet & Types */}
+                    <tr>
+                      <td className="p-3 font-bold text-slate-700 bg-stone-50">Fleet & Vehicle Types</td>
+                      {comparedProviders.map((p) => (
+                        <td key={p.id} className="p-3 text-center text-gray-700 text-[11px]">
+                          {p.vehicleTypes.join(' • ')}
+                        </td>
+                      ))}
+                      {comparedProviders.length < 3 && (
+                        <td className="p-3 text-center text-gray-300 italic text-[11px]">-</td>
+                      )}
+                    </tr>
+
+                    {/* Climate Control AC */}
+                    <tr>
+                      <td className="p-3 font-bold text-slate-700 bg-stone-50">100% Climate Control (AC)</td>
+                      {comparedProviders.map((p) => (
+                        <td key={p.id} className="p-3 text-center font-bold text-emerald-700">
+                          <CircleCheck size={15} className="inline mr-1 text-emerald-600" />
+                          <span>Guaranteed AC</span>
+                        </td>
+                      ))}
+                      {comparedProviders.length < 3 && (
+                        <td className="p-3 text-center text-gray-300 italic text-[11px]">-</td>
+                      )}
+                    </tr>
+
+                    {/* GPS & WhatsApp Updates */}
+                    <tr>
+                      <td className="p-3 font-bold text-slate-700 bg-stone-50">Live GPS & WhatsApp Updates</td>
+                      {comparedProviders.map((p) => (
+                        <td key={p.id} className="p-3 text-center font-bold text-emerald-700">
+                          <CircleCheck size={15} className="inline mr-1 text-emerald-600" />
+                          <span>Real-time Link</span>
+                        </td>
+                      ))}
+                      {comparedProviders.length < 3 && (
+                        <td className="p-3 text-center text-gray-300 italic text-[11px]">-</td>
+                      )}
+                    </tr>
+
+                    {/* IATA Certification */}
+                    <tr>
+                      <td className="p-3 font-bold text-slate-700 bg-stone-50">IATA Air Certification</td>
+                      {comparedProviders.map((p) => (
+                        <td key={p.id} className="p-3 text-center font-semibold">
+                          {p.iataCertified ? (
+                            <span className="text-emerald-700 font-bold bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+                              ✓ IATA Certified
+                            </span>
+                          ) : (
+                            <span className="text-gray-400">Road / Rail Focused</span>
+                          )}
+                        </td>
+                      ))}
+                      {comparedProviders.length < 3 && (
+                        <td className="p-3 text-center text-gray-300 italic text-[11px]">-</td>
+                      )}
+                    </tr>
+
+                    {/* Vet Health Check & Paperwork */}
+                    <tr>
+                      <td className="p-3 font-bold text-slate-700 bg-stone-50">Vet Fitness & Paperwork</td>
+                      {comparedProviders.map((p) => (
+                        <td key={p.id} className="p-3 text-center text-gray-700 font-medium">
+                          Full Assistance Provided
+                        </td>
+                      ))}
+                      {comparedProviders.length < 3 && (
+                        <td className="p-3 text-center text-gray-300 italic text-[11px]">-</td>
+                      )}
+                    </tr>
+
+                    {/* Hydration & Rest Routine */}
+                    <tr>
+                      <td className="p-3 font-bold text-slate-700 bg-stone-50">Hydration & Rest Routine</td>
+                      {comparedProviders.map((p) => (
+                        <td key={p.id} className="p-3 text-center text-gray-700">
+                          Every 3 hrs + Walk Breaks
+                        </td>
+                      ))}
+                      {comparedProviders.length < 3 && (
+                        <td className="p-3 text-center text-gray-300 italic text-[11px]">-</td>
+                      )}
+                    </tr>
+
+                    {/* Corridors & Coverage */}
+                    <tr>
+                      <td className="p-3 font-bold text-slate-700 bg-stone-50">Corridors & Coverage</td>
+                      {comparedProviders.map((p) => (
+                        <td key={p.id} className="p-3 text-center text-gray-600 text-[11px]">
+                          <div className="font-semibold text-slate-800 mb-1">{p.coverage}</div>
+                          <div>{p.corridors.slice(0, 3).join(', ')}</div>
+                        </td>
+                      ))}
+                      {comparedProviders.length < 3 && (
+                        <td className="p-3 text-center text-gray-300 italic text-[11px]">-</td>
+                      )}
+                    </tr>
+
+                    {/* Pet Species Accepted */}
+                    <tr>
+                      <td className="p-3 font-bold text-slate-700 bg-stone-50">Accepted Pets</td>
+                      {comparedProviders.map((p) => (
+                        <td key={p.id} className="p-3 text-center text-gray-700">
+                          {p.petTypes.join(', ')}
+                        </td>
+                      ))}
+                      {comparedProviders.length < 3 && (
+                        <td className="p-3 text-center text-gray-300 italic text-[11px]">-</td>
+                      )}
+                    </tr>
+
+                    {/* Direct Booking Column Action */}
+                    <tr>
+                      <td className="p-3 font-bold text-slate-700 bg-stone-50">Actions</td>
+                      {comparedProviders.map((p) => (
+                        <td key={p.id} className="p-3 text-center space-y-1.5">
+                          <button
+                            onClick={() => {
+                              setShowCompareModal(false);
+                              handleOpenBookingModal(p);
+                            }}
+                            className="bg-[#0F2E23] hover:bg-[#164E3D] text-[#D4AF37] text-xs font-bold py-2 px-3 rounded-xl shadow cursor-pointer w-full transition"
+                          >
+                            Book {p.name.split(' ')[0]}
+                          </button>
+                          <button
+                            onClick={() => {
+                              setShowCompareModal(false);
+                              handleOpenEnquiryModal(p);
+                            }}
+                            className="bg-stone-100 hover:bg-stone-200 text-slate-700 text-[11px] font-semibold py-1.5 px-3 rounded-xl cursor-pointer w-full transition"
+                          >
+                            Enquire
+                          </button>
+                        </td>
+                      ))}
+                      {comparedProviders.length < 3 && (
+                        <td className="p-3 text-center text-gray-300 italic text-[11px]">-</td>
+                      )}
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            )}
 
           </div>
         </div>

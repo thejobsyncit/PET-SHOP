@@ -40,11 +40,31 @@ class ErrorBoundary extends React.Component {
     window.location.href = '/login';
   };
 
+  handleClearStorageAndReload = () => {
+    try {
+      const keysToKeep = ['pawora_token', 'pawora_user'];
+      const preserved = {};
+      keysToKeep.forEach(k => {
+        try { preserved[k] = localStorage.getItem(k); } catch (_) {}
+      });
+      localStorage.clear();
+      Object.entries(preserved).forEach(([k, v]) => {
+        if (v) try { localStorage.setItem(k, v); } catch (_) {}
+      });
+    } catch (_) {}
+    window.location.reload();
+  };
+
   render() {
     if (this.state.hasError) {
       if (this.props.fallback) {
         return this.props.fallback;
       }
+
+      const isQuotaError = 
+        this.state.error?.name === 'QuotaExceededError' || 
+        this.state.error?.message?.toLowerCase().includes('quota') ||
+        this.state.error?.toString().toLowerCase().includes('quota');
 
       return (
         <div className="min-h-[70vh] flex items-center justify-center p-6 bg-[#FAF9F5] font-sans">
@@ -58,7 +78,9 @@ class ErrorBoundary extends React.Component {
                 Oops! Something went wrong
               </h2>
               <p className="text-xs text-slate-500 font-medium leading-relaxed">
-                We encountered an unexpected issue rendering this section. Don't worry, your data is safe.
+                {isQuotaError 
+                  ? 'Your browser local storage quota was exceeded by cached files. Click below to free up space and reload seamlessly.'
+                  : "We encountered an unexpected issue rendering this section. Don't worry, your data is safe."}
               </p>
               {this.state.error && (
                 <div className="text-left bg-rose-50 border border-rose-200 text-rose-800 p-3 rounded-xl text-xs font-mono overflow-auto max-h-32 mt-2">
@@ -69,14 +91,25 @@ class ErrorBoundary extends React.Component {
             </div>
 
             <div className="space-y-2 pt-2">
-              <button
-                type="button"
-                onClick={this.handleReload}
-                className="w-full py-3 bg-[#0F2E23] hover:bg-[#163e30] text-white text-xs font-bold uppercase tracking-wider rounded-xl transition shadow-md shadow-[#0F2E23]/20 flex items-center justify-center gap-2 cursor-pointer active:scale-95"
-              >
-                <RefreshCw size={15} />
-                <span>Reload This Page</span>
-              </button>
+              {isQuotaError ? (
+                <button
+                  type="button"
+                  onClick={this.handleClearStorageAndReload}
+                  className="w-full py-3 bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-black uppercase tracking-wider rounded-xl transition shadow-md flex items-center justify-center gap-2 cursor-pointer active:scale-95"
+                >
+                  <RefreshCw size={15} />
+                  <span>Free Up Storage Cache & Reload</span>
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={this.handleReload}
+                  className="w-full py-3 bg-[#0F2E23] hover:bg-[#163e30] text-white text-xs font-bold uppercase tracking-wider rounded-xl transition shadow-md shadow-[#0F2E23]/20 flex items-center justify-center gap-2 cursor-pointer active:scale-95"
+                >
+                  <RefreshCw size={15} />
+                  <span>Reload This Page</span>
+                </button>
+              )}
 
               <div className="grid grid-cols-2 gap-2">
                 <button

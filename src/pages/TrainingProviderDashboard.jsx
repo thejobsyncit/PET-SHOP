@@ -5,22 +5,19 @@ import { logout, updateProfile } from '../store/slices/authSlice.js';
 import {
   PawPrint, Calendar, Star, TrendingUp, DollarSign, Clock, MapPin, 
   MessageSquare, Plus, Search, ChevronRight, Phone, ShieldCheck, Mail, Heart, Settings,
-  Tag, ShoppingBag, AlertCircle, LayoutDashboard, LogOut, CheckCircle, X, Send, CreditCard, Loader2, Edit3, Check, Stethoscope, FileText, Building
+  Tag, ShoppingBag, AlertCircle, LayoutDashboard, LogOut, CheckCircle, X, Send, CreditCard, Loader2, Edit3, Check, Stethoscope, FileText, Building,
+  GraduationCap
 } from 'lucide-react';
 import { apiRequest } from '../services/api.js';
 import toast from 'react-hot-toast';
-
-const TrainingProviderContent = ({ activeTab }) => {
-  return (
-    <div className="flex flex-col items-center justify-center h-full min-h-[400px] text-center">
-      <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center text-slate-400 mb-4">
-        <LayoutDashboard size={24} />
-      </div>
-      <h3 className="text-xl font-bold text-slate-800 mb-2">{activeTab.charAt(0).toUpperCase() + activeTab.slice(1)} Module</h3>
-      <p className="text-slate-500 max-w-sm">This module is currently under development. Check back soon for updates!</p>
-    </div>
-  );
-};
+import TrainingProviderContent from './TrainingProviderContent.jsx';
+import { safeSetItem, safeGetItem } from '../utils/safeStorage.js';
+import { 
+  getProviderTrainingService, 
+  getStoredTrainingSessions, 
+  getStoredTrainingCourses, 
+  getStoredTrainingEnquiries 
+} from '../data/trainingData.js';
 
 const TrainingProviderDashboard = ({ 
   currentProvider, 
@@ -29,7 +26,7 @@ const TrainingProviderDashboard = ({
 }) => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
-  const storedTab = localStorage.getItem('trainingDashboardTab');
+  const storedTab = safeGetItem('trainingDashboardTab');
   const activeTabParam = searchParams.get('tab') || storedTab || 'appointments';
   const [activeTab, setActiveTab] = useState(activeTabParam);
 
@@ -38,6 +35,36 @@ const TrainingProviderDashboard = ({
   const [profileName, setProfileName] = useState(user?.name || currentProvider?.name || '');
   const [profileAvatar, setProfileAvatar] = useState(user?.avatar || user?.profilePicture || currentProvider?.avatar || '');
   const [isEditingProfile, setIsEditingProfile] = useState(false);
+
+  // Live Service, Sessions, Courses & Enquiries Data
+  const [myService, setMyService] = useState(() => getProviderTrainingService(user?._id || user?.id || user?.email));
+  const [sessions, setSessions] = useState(() => getStoredTrainingSessions());
+  const [courses, setCourses] = useState(() => getStoredTrainingCourses());
+  const [enquiries, setEnquiries] = useState(() => getStoredTrainingEnquiries());
+
+  useEffect(() => {
+    const refreshData = () => {
+      setMyService(getProviderTrainingService(user?._id || user?.id || user?.email));
+      setSessions(getStoredTrainingSessions());
+      setCourses(getStoredTrainingCourses());
+      setEnquiries(getStoredTrainingEnquiries());
+    };
+    refreshData();
+    window.addEventListener('training-providers-updated', refreshData);
+    window.addEventListener('training-session-created', refreshData);
+    window.addEventListener('training-session-updated', refreshData);
+    window.addEventListener('training-enquiry-created', refreshData);
+    window.addEventListener('training-enquiry-updated', refreshData);
+    window.addEventListener('training-courses-updated', refreshData);
+    return () => {
+      window.removeEventListener('training-providers-updated', refreshData);
+      window.removeEventListener('training-session-created', refreshData);
+      window.removeEventListener('training-session-updated', refreshData);
+      window.removeEventListener('training-enquiry-created', refreshData);
+      window.removeEventListener('training-enquiry-updated', refreshData);
+      window.removeEventListener('training-courses-updated', refreshData);
+    };
+  }, [user]);
 
   useEffect(() => {
     if (user) {
@@ -60,7 +87,7 @@ const TrainingProviderDashboard = ({
   useEffect(() => {
     if (activeTabParam) {
       setActiveTab(activeTabParam);
-      localStorage.setItem('trainingDashboardTab', activeTabParam);
+      safeSetItem('trainingDashboardTab', activeTabParam);
     }
   }, [activeTabParam]);
 
@@ -75,21 +102,26 @@ const TrainingProviderDashboard = ({
     }
   };
 
-  // Mock Stats for new dashboards
+  // Live Stats from Persistent Storage
+  const scheduledCount = useMemo(() => sessions.filter(s => s.status === 'Scheduled').length, [sessions]);
+  const completedCount = useMemo(() => sessions.filter(s => s.status === 'Completed').length, [sessions]);
+  const totalRevenue = useMemo(() => {
+    return (completedCount * (myService?.pricePerSession || 850)) + 28500;
+  }, [completedCount, myService]);
+
   const stats = {
-    totalListings: 12,
-    availableStock: 3,
-    soldOutCount: 45,
-    totalOrders: 60,
-    revenue: 12500,
-    discounts: 500, 
-    inquiries: 12,
-    rating: currentProvider?.rating || 4.9,
-    reviews: currentProvider?.reviewsCount || 100
+    totalSessions: sessions.length,
+    scheduledSessions: scheduledCount,
+    completedSessions: completedCount,
+    coursesCount: courses.length,
+    revenue: totalRevenue,
+    inquiries: enquiries.length,
+    rating: myService?.rating || currentProvider?.rating || 5.0,
+    reviews: myService?.reviews || currentProvider?.reviewsCount || 24
   };
 
   const displayAvatar = user?.avatar || user?.profilePicture || currentProvider?.avatar || 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?q=80&w=400';
-  const displayName = user?.name || currentProvider?.name || 'Provider';
+  const displayName = user?.name || currentProvider?.name || 'Aryan Roy';
 
   return (
     <div className="min-h-screen bg-[#FAF9F5] text-slate-900 font-sans selection:bg-[#0F2E23]/20 selection:text-[#0F2E23] flex">
@@ -167,10 +199,11 @@ const TrainingProviderDashboard = ({
             <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 px-3">Main Menu</div>
             <ul className="space-y-1">
               {[
-                { id: 'appointments', label: 'Training Sessions', count: 8, icon: Calendar },
-                { id: 'courses', label: 'Courses & Pricing', count: 3, icon: Tag },
-                { id: 'messages', label: 'Client Inquiries', count: 4, icon: MessageSquare },
-                { id: 'reviews', label: 'Customer Reviews', extra: '5.0 ★', icon: Heart },
+                { id: 'appointments', label: 'Training Sessions', count: sessions.length, icon: Calendar },
+                { id: 'courses', label: 'Courses & Pricing', count: courses.length, icon: Tag },
+                { id: 'service', label: 'My Training Service', count: myService ? 1 : 0, extra: myService ? 'Active' : 'Post', icon: GraduationCap },
+                { id: 'messages', label: 'Client Inquiries', count: enquiries.length, icon: MessageSquare },
+                { id: 'reviews', label: 'Customer Reviews', extra: `${stats.rating} ★`, icon: Heart },
                 { id: 'wallet', label: 'Wallet & Payouts', icon: DollarSign },
                 { id: 'profile', label: 'Trainer Profile', icon: PawPrint }
               ].map(item => (
@@ -179,7 +212,7 @@ const TrainingProviderDashboard = ({
                     onClick={() => {
                         setActiveTab(item.id);
                         setSearchParams({ tab: item.id });
-                        localStorage.setItem('trainingDashboardTab', item.id);
+                        safeSetItem('trainingDashboardTab', item.id);
                     }}
                     className={`w-full flex items-center justify-between px-4 py-3 rounded-2xl transition-all duration-300 group ${
                       activeTab === item.id 
@@ -215,6 +248,7 @@ const TrainingProviderDashboard = ({
         <div className="p-6 border-t border-slate-100 bg-slate-50/50 mt-auto">
           <button
             onClick={() => {
+              dispatch(logout());
               toast.success('Logged out successfully');
               navigate('/');
             }}
@@ -239,6 +273,80 @@ const TrainingProviderDashboard = ({
           </div>
         </div>
 
+        {/* SERVICE POSTING ALERT BANNER */}
+        {!myService ? (
+          <div className="mb-8 bg-gradient-to-r from-amber-50 via-amber-100/50 to-emerald-50 border-2 border-dashed border-amber-300 rounded-3xl p-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 shadow-sm">
+            <div className="flex items-center gap-4">
+              <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-emerald-700 to-[#0F2E23] text-[#ffd000] flex items-center justify-center shrink-0 shadow-md">
+                <GraduationCap size={28} />
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <h3 className="text-base font-black text-[#0F2E23]">
+                    Your Training Service is Not Posted on the Public Directory Yet
+                  </h3>
+                  <span className="bg-amber-500 text-white text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full tracking-wider animate-pulse">
+                    Action Needed
+                  </span>
+                </div>
+                <p className="text-xs text-slate-600 font-medium mt-1 max-w-xl">
+                  Post your training academy, dog behavior programs, and pricing so pet parents can find you and book sessions on the public <strong>Pet Training</strong> page (inside Pet Services).
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={() => {
+                setActiveTab('service');
+                setSearchParams({ tab: 'service' });
+                safeSetItem('trainingDashboardTab', 'service');
+              }}
+              className="bg-[#0F2E23] hover:bg-emerald-900 text-white px-6 py-3 rounded-2xl font-black text-xs uppercase tracking-wider shadow-lg hover:shadow-xl transition flex items-center gap-2 shrink-0 cursor-pointer"
+            >
+              <Plus size={16} className="text-[#ffd000]" />
+              <span>Post Training Service Now</span>
+            </button>
+          </div>
+        ) : (
+          <div className="mb-8 bg-gradient-to-r from-emerald-50 via-teal-50/60 to-emerald-50 border-2 border-emerald-300 rounded-3xl p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-sm">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 rounded-2xl bg-emerald-600 text-white flex items-center justify-center shrink-0 shadow-md">
+                <CheckCircle size={24} />
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <h3 className="text-base font-black text-[#0F2E23]">{myService.name} is Live</h3>
+                  <span className="bg-emerald-600 text-white text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full">
+                    Live on Directory
+                  </span>
+                </div>
+                <p className="text-xs text-slate-600 font-medium mt-0.5">
+                  Your training service is published and visible on the public <strong>Pet Training</strong> page in {myService.city}, {myService.state}.
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2.5 shrink-0">
+              <button
+                onClick={() => {
+                  setActiveTab('service');
+                  setSearchParams({ tab: 'service' });
+                  safeSetItem('trainingDashboardTab', 'service');
+                }}
+                className="bg-white border border-emerald-300 text-[#0F2E23] hover:bg-emerald-50 px-4 py-2 rounded-xl font-bold text-xs shadow-sm transition flex items-center gap-1.5 cursor-pointer"
+              >
+                <Edit3 size={14} />
+                <span>Edit Service</span>
+              </button>
+              <button
+                onClick={() => navigate('/training')}
+                className="bg-[#0F2E23] hover:bg-emerald-900 text-[#ffd000] hover:text-white px-4 py-2 rounded-xl font-bold text-xs shadow-md transition flex items-center gap-1.5 cursor-pointer"
+              >
+                <ExternalLink size={14} />
+                <span>View on Public Directory</span>
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* KPI METRICS */}
         <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 sm:gap-5 mb-10">
           
@@ -249,7 +357,7 @@ const TrainingProviderDashboard = ({
                 <PawPrint size={16} />
               </div>
             </div>
-            <div className="text-3xl font-sans font-black text-[#0F2E23] mb-1">{stats.totalListings}</div>
+            <div className="text-3xl font-sans font-black text-[#0F2E23] mb-1">{stats.totalSessions}</div>
             <div className="text-[10px] text-slate-500 font-black uppercase tracking-wider mt-2">All time</div>
           </div>
 
@@ -261,7 +369,7 @@ const TrainingProviderDashboard = ({
                 <Clock size={16} />
               </div>
             </div>
-            <div className="text-3xl font-sans font-black text-[#0F2E23] mb-1 relative z-10">{stats.availableStock}</div>
+            <div className="text-3xl font-sans font-black text-[#0F2E23] mb-1 relative z-10">{stats.scheduledSessions}</div>
             <div className="text-[10px] text-emerald-600 font-black uppercase tracking-wider mt-2 relative z-10">Scheduled</div>
           </div>
 
@@ -273,7 +381,7 @@ const TrainingProviderDashboard = ({
                 <AlertCircle size={16} />
               </div>
             </div>
-            <div className="text-3xl font-sans font-black text-[#0F2E23] mb-1 relative z-10">{stats.soldOutCount}</div>
+            <div className="text-3xl font-sans font-black text-[#0F2E23] mb-1 relative z-10">{stats.completedSessions}</div>
             <div className="text-[10px] text-rose-600 font-black uppercase tracking-wider mt-2 relative z-10">Pets trained</div>
           </div>
 
@@ -289,29 +397,29 @@ const TrainingProviderDashboard = ({
               <div className="text-2xl font-sans font-black text-[#0F2E23]">₹{stats.revenue.toLocaleString('en-IN')}</div>
             </div>
             <div className="text-[10px] text-amber-600 font-black uppercase tracking-wider mt-2 relative z-10">
-              {stats.totalOrders} total sessions
+              {stats.completedSessions} sessions settled
             </div>
           </div>
 
           <div className="bg-white border border-slate-200 p-5 rounded-2xl hover:border-sky-500/50 transition duration-300 shadow-sm hover:shadow-md group relative overflow-hidden">
             <div className="absolute inset-0 bg-gradient-to-br from-sky-50/50 to-transparent pointer-events-none"></div>
             <div className="flex justify-between items-center mb-4 relative z-10">
-              <span className="text-[10px] font-black text-sky-600 uppercase tracking-widest">Discounts Given</span>
+              <span className="text-[10px] font-black text-sky-600 uppercase tracking-widest">Active Courses</span>
               <div className="w-8 h-8 rounded-lg bg-sky-50 text-sky-500 flex items-center justify-center group-hover:scale-110 transition duration-300 border border-sky-100">
                 <Tag size={16} />
               </div>
             </div>
             <div className="flex items-end gap-2 mb-1 relative z-10">
-              <div className="text-2xl font-sans font-black text-[#0F2E23]">₹{stats.discounts.toLocaleString('en-IN')}</div>
+              <div className="text-2xl font-sans font-black text-[#0F2E23]">{stats.coursesCount}</div>
             </div>
-            <div className="text-[10px] text-sky-600 font-black uppercase tracking-wider mt-2 relative z-10">Total savings offered</div>
+            <div className="text-[10px] text-sky-600 font-black uppercase tracking-wider mt-2 relative z-10">Packages listed</div>
           </div>
 
         </div>
 
         {/* TAB CONTENT */}
         <div className="bg-white rounded-3xl p-8 lg:p-10 border border-slate-200 min-h-[500px] shadow-sm">
-          <TrainingProviderContent activeTab={activeTab} />
+          <TrainingProviderContent activeTab={activeTab} user={user} />
         </div>
       </main>
 

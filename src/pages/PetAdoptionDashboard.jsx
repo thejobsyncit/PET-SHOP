@@ -15,7 +15,9 @@ import { apiRequest } from '../services/api.js';
 import toast from 'react-hot-toast';
 import {
   getStoredAdoptionPets,
+  setStoredAdoptionPets,
   saveAdoptionPet,
+  deleteAdoptionPet,
   getStoredAdoptionApplications,
   saveAdoptionApplication,
   updateAdoptionApplicationStatus,
@@ -69,6 +71,8 @@ const PetAdoptionDashboard = ({
   const [ageGroup, setAgeGroup] = useState('Puppy / Kitten / Young');
   const [petSize, setPetSize] = useState('Medium (10 - 25 kg)');
   const [quality, setQuality] = useState('Rescue Hero');
+  const [isFreeAdoption, setIsFreeAdoption] = useState(true);
+  const [adoptionFee, setAdoptionFee] = useState('');
   const [stateName, setStateName] = useState('Karnataka');
   const [cityName, setCityName] = useState('Bangalore');
   const [personality, setPersonality] = useState('Affectionate, gentle, playful, good with kids');
@@ -438,8 +442,8 @@ const PetAdoptionDashboard = ({
   // Sidebar Menu Items matching exact layout
   const navItems = [
     { id: 'inventory', label: 'My Pet Inventory', icon: PawPrint, count: stats.availableStock },
-    { id: 'applications', label: 'Sales & Orders', icon: DollarSign, count: stats.pendingApps },
-    { id: 'inquiries', label: 'Buyer Leads', icon: MessageSquare, count: inquiries.length },
+    { id: 'applications', label: 'Applications', icon: FileText, count: stats.pendingApps },
+    { id: 'inquiries', label: 'Adopter Inquiries', icon: MessageSquare, count: inquiries.length },
     { id: 'profile', label: 'Profile', icon: Settings },
     { id: 'rehomed', label: 'Forever Homes', icon: Home, count: stats.soldOutCount }
   ];
@@ -501,6 +505,8 @@ const PetAdoptionDashboard = ({
     setAgeGroup('Puppy / Kitten / Young');
     setPetSize('Medium (10 - 25 kg)');
     setQuality('Rescue Hero');
+    setIsFreeAdoption(true);
+    setAdoptionFee('');
     setStateName('Karnataka');
     setCityName('Bangalore');
     setPersonality('Affectionate, gentle, playful, good with kids');
@@ -531,6 +537,9 @@ const PetAdoptionDashboard = ({
     setAgeGroup(pet.ageGroup || 'Puppy / Kitten / Young');
     setPetSize(pet.size || 'Medium (10 - 25 kg)');
     setQuality(pet.quality || 'Rescue Hero');
+    const petFee = Number(pet.fee !== undefined ? pet.fee : (pet.price || 0));
+    setIsFreeAdoption(petFee <= 0);
+    setAdoptionFee(petFee > 0 ? String(petFee) : '');
     setStateName(pet.state || 'Karnataka');
     setCityName(pet.city || 'Bangalore');
     setPersonality(pet.personality || '');
@@ -559,6 +568,8 @@ const PetAdoptionDashboard = ({
       return;
     }
 
+    const finalFee = isFreeAdoption ? 0 : (parseFloat(adoptionFee) || 0);
+
     const fallbackPhotos = {
       dogs: 'https://images.unsplash.com/photo-1543466835-00a7907e9de1?q=80&w=800',
       cats: 'https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?q=80&w=800',
@@ -580,6 +591,8 @@ const PetAdoptionDashboard = ({
             ageGroup: ageGroup,
             size: petSize,
             quality: quality,
+            fee: finalFee,
+            price: finalFee,
             state: stateName,
             city: cityName,
             personality: personality.trim(),
@@ -600,9 +613,7 @@ const PetAdoptionDashboard = ({
         }
         return p;
       });
-      try {
-        localStorage.setItem('pawora_adoption_pets', JSON.stringify(updated));
-      } catch (_e) {}
+      setStoredAdoptionPets(updated);
       refreshAdoptionData();
       toast.success(`✨ "${petName}" listing updated successfully!`);
     } else {
@@ -617,6 +628,8 @@ const PetAdoptionDashboard = ({
         ageGroup: ageGroup,
         size: petSize,
         quality: quality,
+        fee: finalFee,
+        price: finalFee,
         state: stateName,
         city: cityName,
         personality: personality.trim() || 'Friendly, energetic, gentle',
@@ -625,7 +638,6 @@ const PetAdoptionDashboard = ({
         goodWithCats,
         houseTrained,
         description: bio.trim() || `${petName} is a wonderful ${breed} waiting for a loving forever home.`,
-        fee: 0,
         vaccinated: isVaccinated,
         vaccineDetails: vaccineDetails.trim(),
         dewormed: isDewormed,
@@ -645,7 +657,7 @@ const PetAdoptionDashboard = ({
       };
       saveAdoptionPet(newPet);
       refreshAdoptionData();
-      toast.success(`🎉 ${newPet.name} has been published for Free Pet Adoption!`);
+      toast.success(finalFee > 0 ? `🎉 ${newPet.name} has been published for Adoption (₹${finalFee} Adoption Fee)!` : `🎉 ${newPet.name} has been published for Free Pet Adoption!`);
     }
 
     setShowAddPetModal(false);
@@ -654,11 +666,7 @@ const PetAdoptionDashboard = ({
   // Delete Pet Listing
   const handleDeletePet = (petId, petNameStr) => {
     if (window.confirm(`Are you sure you want to remove "${petNameStr}" from your listings?`)) {
-      const current = getStoredAdoptionPets();
-      const updated = current.filter(p => p.id !== petId);
-      try {
-        localStorage.setItem('pawora_adoption_pets', JSON.stringify(updated));
-      } catch (_e) {}
+      deleteAdoptionPet(petId);
       refreshAdoptionData();
       toast.success(`Listing for "${petNameStr}" removed.`);
     }
@@ -679,10 +687,7 @@ const PetAdoptionDashboard = ({
       return p;
     });
 
-    try {
-      localStorage.setItem('pawora_adoption_pets', JSON.stringify(updated));
-    } catch (_e) {}
-
+    setStoredAdoptionPets(updated);
     refreshAdoptionData();
     toast.success('🎊 Congratulations! Pet successfully marked as Adopted & Rehomed to a Forever Home!', {
       duration: 5000,
@@ -870,10 +875,10 @@ const PetAdoptionDashboard = ({
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
           <div>
             <h1 className="text-3xl font-sans font-black text-[#0F2E23] tracking-tight">
-              Seller Dashboard
+              Adoption Dashboard
             </h1>
             <p className="text-sm text-slate-500 font-medium mt-1">
-              Track your pet inventory, sales, and buyer leads in real-time.
+              Track your rescue pet inventory, adoption applications, and adopter inquiries in real-time.
             </p>
           </div>
           
@@ -930,20 +935,20 @@ const PetAdoptionDashboard = ({
             <div className="text-[10px] text-rose-600 font-black uppercase tracking-wider mt-2 relative z-10">COMPLETED LISTINGS</div>
           </div>
 
-          {/* Tile 4: Orders & Revenue / Applications */}
+          {/* Tile 4: Applications */}
           <div className="bg-white border border-slate-200 p-5 rounded-2xl hover:border-[#ffd000]/80 transition duration-300 shadow-sm hover:shadow-md group relative overflow-hidden">
             <div className="absolute inset-0 bg-gradient-to-br from-[#ffd000]/10 to-transparent pointer-events-none"></div>
             <div className="flex justify-between items-center mb-4 relative z-10">
-              <span className="text-[10px] font-black text-amber-600 uppercase tracking-widest">ORDERS & REVENUE</span>
+              <span className="text-[10px] font-black text-amber-600 uppercase tracking-widest">APPLICATIONS</span>
               <div className="w-8 h-8 rounded-lg bg-amber-50 text-amber-500 flex items-center justify-center group-hover:scale-110 transition duration-300 border border-amber-100">
-                <DollarSign size={16} />
+                <FileText size={16} />
               </div>
             </div>
             <div className="flex items-end gap-2 mb-1 relative z-10">
-              <div className="text-2xl font-sans font-black text-[#0F2E23]">₹0</div>
+              <div className="text-3xl font-sans font-black text-[#0F2E23]">{stats.totalOrders}</div>
             </div>
             <div className="text-[10px] text-amber-600 font-black uppercase tracking-wider mt-2 relative z-10">
-              {stats.totalOrders} TOTAL SALES
+              {stats.pendingApps} PENDING REVIEW
             </div>
           </div>
 
@@ -1081,8 +1086,8 @@ const PetAdoptionDashboard = ({
                             </span>
                           </div>
                         ) : (
-                          <div className="absolute top-3 right-3 bg-emerald-500 text-white px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider shadow-xs">
-                            Free Adoption
+                          <div className={`absolute top-3 right-3 ${pet.fee > 0 ? 'bg-[#0F2E23] text-amber-300 border border-amber-300/30' : 'bg-emerald-500 text-white'} px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider shadow-xs`}>
+                            {pet.fee > 0 ? `₹${pet.fee} Adoption Fee` : 'Free Adoption'}
                           </div>
                         )}
                       </div>
@@ -1094,7 +1099,14 @@ const PetAdoptionDashboard = ({
                             <h3 className="font-black text-[#0F2E23] text-lg leading-tight">{pet.name}</h3>
                             <span className="text-[11px] font-black text-slate-400 uppercase tracking-wider">{pet.gender}</span>
                           </div>
-                          <p className="text-xs text-slate-500 font-bold mt-0.5">{pet.breed} • {pet.age}</p>
+                          <div className="flex items-center justify-between mt-1">
+                            <p className="text-xs text-slate-500 font-bold">{pet.breed} • {pet.age}</p>
+                            <span className={`text-xs font-black px-2 py-0.5 rounded-md ${
+                              pet.fee > 0 ? 'bg-amber-50 text-amber-900 border border-amber-200' : 'bg-emerald-50 text-emerald-800 border border-emerald-200'
+                            }`}>
+                              {pet.fee > 0 ? `₹${pet.fee}` : 'Free (₹0)'}
+                            </span>
+                          </div>
                           {pet.microchipId && (
                             <p className="text-[10px] text-slate-400 font-mono mt-0.5">Chip: {pet.microchipId}</p>
                           )}
@@ -1368,14 +1380,14 @@ const PetAdoptionDashboard = ({
             <div className="flex justify-between items-center pb-6 border-b border-slate-100">
               <div>
                 <h2 className="text-xl font-black text-[#0F2E23] flex items-center gap-2">
-                  <MessageSquare size={22} className="text-[#ffd000]" /> Buyer Leads & Adopter Inquiries
+                  <MessageSquare size={22} className="text-[#ffd000]" /> Adopter Inquiries & Live Chat
                 </h2>
                 <p className="text-xs text-slate-500 font-medium mt-0.5">
                   Connect directly with prospective pet parents, answer inquiries, and coordinate 100% free pet adoptions.
                 </p>
               </div>
               <span className="text-xs font-black text-slate-600 bg-slate-100 px-3.5 py-1.5 rounded-full">
-                {inquiries.length} Active Leads
+                {inquiries.length} Active Inquiries
               </span>
             </div>
 
@@ -2194,7 +2206,7 @@ const PetAdoptionDashboard = ({
                     {editingPetId ? 'Edit Pet Listing' : 'Post New Pet Listing'}
                   </h3>
                   <p className="text-xs text-slate-500 font-medium">
-                    100% Free Adoption Listing • Verified Shelter Care
+                    Verified Shelter Care • Free or Nominal Adoption Fee
                   </p>
                 </div>
               </div>
@@ -2297,14 +2309,19 @@ const PetAdoptionDashboard = ({
 
                 <div>
                   <label className="text-[11px] font-black text-slate-700 block mb-1">Breed *</label>
-                  <input
-                    type="text"
+                  <select
                     value={breed}
                     onChange={(e) => setBreed(e.target.value)}
-                    placeholder="e.g. Golden Retriever / Indie"
                     className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:outline-none focus:border-[#0F2E23]"
                     required
-                  />
+                  >
+                    {(CATEGORY_BREEDS[petType] || CATEGORY_BREEDS.dogs || []).map((b) => (
+                      <option key={b} value={b}>{b}</option>
+                    ))}
+                    {breed && !(CATEGORY_BREEDS[petType] || []).includes(breed) && (
+                      <option value={breed}>{breed}</option>
+                    )}
+                  </select>
                 </div>
               </div>
 
@@ -2410,6 +2427,98 @@ const PetAdoptionDashboard = ({
                     <option value="Pet Quality">Pet Quality</option>
                   </select>
                 </div>
+              </div>
+
+              {/* Adoption Pricing & Fee Option */}
+              <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200/90 space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-[11px] font-black text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
+                    <DollarSign size={14} className="text-emerald-700" /> Adoption Fee / Pricing Type *
+                  </span>
+                  <span className={`text-[10px] font-black px-2.5 py-0.5 rounded-full uppercase tracking-wider ${
+                    isFreeAdoption ? 'bg-emerald-100 text-emerald-800' : 'bg-[#0F2E23] text-amber-300'
+                  }`}>
+                    {isFreeAdoption ? '🎁 100% Free Adoption' : '🏷️ Paid Adoption Fee'}
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {/* Option 1: Free for Adoption */}
+                  <div
+                    onClick={() => {
+                      setIsFreeAdoption(true);
+                      setAdoptionFee('');
+                    }}
+                    className={`p-3.5 rounded-xl border-2 cursor-pointer transition flex items-start gap-3 select-none ${
+                      isFreeAdoption
+                        ? 'border-emerald-500 bg-emerald-50/70 shadow-xs ring-1 ring-emerald-500/30'
+                        : 'border-slate-200 bg-white hover:border-slate-300'
+                    }`}
+                  >
+                    <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 mt-0.5 ${
+                      isFreeAdoption ? 'border-emerald-600 bg-emerald-600 text-white' : 'border-slate-300'
+                    }`}>
+                      {isFreeAdoption && <div className="w-2 h-2 rounded-full bg-white"></div>}
+                    </div>
+                    <div>
+                      <h4 className="text-xs font-black text-slate-900 flex items-center gap-1.5">
+                        Free for Adoption <span className="text-emerald-700 font-extrabold">(₹0)</span>
+                      </h4>
+                      <p className="text-[10px] text-slate-500 font-medium mt-0.5">
+                        100% free placement for loving adopters. Zero fee charged to pet parents.
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Option 2: Adoption Fee / Price */}
+                  <div
+                    onClick={() => {
+                      setIsFreeAdoption(false);
+                      if (!adoptionFee) setAdoptionFee('1500');
+                    }}
+                    className={`p-3.5 rounded-xl border-2 cursor-pointer transition flex items-start gap-3 select-none ${
+                      !isFreeAdoption
+                        ? 'border-[#0F2E23] bg-[#0F2E23]/5 shadow-xs ring-1 ring-[#0F2E23]/20'
+                        : 'border-slate-200 bg-white hover:border-slate-300'
+                    }`}
+                  >
+                    <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 mt-0.5 ${
+                      !isFreeAdoption ? 'border-[#0F2E23] bg-[#0F2E23] text-white' : 'border-slate-300'
+                    }`}>
+                      {!isFreeAdoption && <div className="w-2 h-2 rounded-full bg-white"></div>}
+                    </div>
+                    <div>
+                      <h4 className="text-xs font-black text-slate-900 flex items-center gap-1.5">
+                        Set Adoption Fee / Price <span className="text-amber-600 font-extrabold">(₹)</span>
+                      </h4>
+                      <p className="text-[10px] text-slate-500 font-medium mt-0.5">
+                        Nominal fee towards veterinary care, vaccination, deworming, or shelter care.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {!isFreeAdoption && (
+                  <div className="pt-2 animate-in fade-in zoom-in-95 duration-150">
+                    <label className="text-[11px] font-black text-slate-700 block mb-1">
+                      Adoption Fee Amount (₹) *
+                    </label>
+                    <div className="relative">
+                      <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 font-black text-sm">
+                        ₹
+                      </span>
+                      <input
+                        type="number"
+                        min="0"
+                        placeholder="e.g. 1500 / 2500"
+                        value={adoptionFee}
+                        onChange={(e) => setAdoptionFee(e.target.value)}
+                        className="w-full pl-8 pr-4 py-2.5 bg-white border border-slate-300 rounded-xl text-xs font-bold text-slate-800 focus:outline-none focus:border-[#0F2E23] focus:ring-1 focus:ring-[#0F2E23] shadow-xs"
+                        required={!isFreeAdoption}
+                      />
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Behavior & Compatibility Checklist */}
@@ -2568,10 +2677,15 @@ const PetAdoptionDashboard = ({
                 />
               </div>
 
-              {/* Free Adoption Guarantee Note */}
+              {/* Adoption Transparency Note */}
               <div className="bg-[#FAF9F5] p-3 rounded-xl border border-slate-200 text-[11px] text-slate-600 font-semibold flex items-center gap-2">
                 <Award size={16} className="text-amber-500 shrink-0" />
-                <span>All listings on the Adoption Hub are 100% Free Adoption (₹0 fee) for loving families.</span>
+                <span>
+                  {isFreeAdoption 
+                    ? '✨ This listing is configured as 100% Free Adoption (₹0 fee) for verified adopters.'
+                    : `🏷️ This listing has an adoption fee of ₹${adoptionFee || '0'} towards verified medical/foster care.`
+                  }
+                </span>
               </div>
 
               {/* Submit Buttons */}

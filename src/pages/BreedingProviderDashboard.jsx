@@ -22,6 +22,8 @@ const BreedingProviderContent = ({ activeTab }) => {
   );
 };
 
+import { safeSetItem, safeGetItem } from '../utils/safeStorage.js';
+
 const BreedingProviderDashboard = ({ 
   currentProvider, 
   profiles, 
@@ -29,7 +31,7 @@ const BreedingProviderDashboard = ({
 }) => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
-  const storedTab = localStorage.getItem('breedingDashboardTab');
+  const storedTab = safeGetItem('breedingDashboardTab');
   const activeTabParam = searchParams.get('tab') || storedTab || 'appointments';
   const [activeTab, setActiveTab] = useState(activeTabParam);
 
@@ -60,7 +62,7 @@ const BreedingProviderDashboard = ({
   useEffect(() => {
     if (activeTabParam) {
       setActiveTab(activeTabParam);
-      localStorage.setItem('breedingDashboardTab', activeTabParam);
+      safeSetItem('breedingDashboardTab', activeTabParam);
     }
   }, [activeTabParam]);
 
@@ -179,7 +181,7 @@ const BreedingProviderDashboard = ({
                     onClick={() => {
                         setActiveTab(item.id);
                         setSearchParams({ tab: item.id });
-                        localStorage.setItem('breedingDashboardTab', item.id);
+                        safeSetItem('breedingDashboardTab', item.id);
                     }}
                     className={`w-full flex items-center justify-between px-4 py-3 rounded-2xl transition-all duration-300 group ${
                       activeTab === item.id 

@@ -5,22 +5,19 @@ import { logout, updateProfile } from '../store/slices/authSlice.js';
 import {
   PawPrint, Calendar, Star, TrendingUp, DollarSign, Clock, MapPin, 
   MessageSquare, Plus, Search, ChevronRight, Phone, ShieldCheck, Mail, Heart, Settings,
-  Tag, ShoppingBag, AlertCircle, LayoutDashboard, LogOut, CheckCircle, X, Send, CreditCard, Loader2, Edit3, Check, Stethoscope, FileText, Building
+  Tag, ShoppingBag, AlertCircle, LayoutDashboard, LogOut, CheckCircle, X, Send, CreditCard, Loader2, Edit3, Check, Stethoscope, FileText, Building, Truck
 } from 'lucide-react';
 import { apiRequest } from '../services/api.js';
 import toast from 'react-hot-toast';
 
-const TransportProviderContent = ({ activeTab }) => {
-  return (
-    <div className="flex flex-col items-center justify-center h-full min-h-[400px] text-center">
-      <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center text-slate-400 mb-4">
-        <LayoutDashboard size={24} />
-      </div>
-      <h3 className="text-xl font-bold text-slate-800 mb-2">{activeTab.charAt(0).toUpperCase() + activeTab.slice(1)} Module</h3>
-      <p className="text-slate-500 max-w-sm">This module is currently under development. Check back soon for updates!</p>
-    </div>
-  );
-};
+import TransportProviderContent from './TransportProviderContent.jsx';
+import { safeSetItem, safeGetItem } from '../utils/safeStorage.js';
+import { 
+  getProviderTransportService, 
+  getStoredTransportBookings, 
+  getStoredTransportVehicles, 
+  getStoredTransportEnquiries 
+} from '../data/transportData.js';
 
 const TransportProviderDashboard = ({ 
   currentProvider, 
@@ -29,15 +26,49 @@ const TransportProviderDashboard = ({
 }) => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
-  const storedTab = localStorage.getItem('transportDashboardTab');
-  const activeTabParam = searchParams.get('tab') || storedTab || 'appointments';
-  const [activeTab, setActiveTab] = useState(activeTabParam);
-
   const { user } = useSelector(state => state.auth);
   const dispatch = useDispatch();
+
+  const validTabs = ['appointments', 'vehicles', 'service', 'messages', 'reviews', 'wallet', 'profile'];
+  const storedTab = safeGetItem('transportDashboardTab');
+  const rawTab = searchParams.get('tab') || storedTab || 'appointments';
+  const activeTabParam = validTabs.includes(rawTab) ? rawTab : 'appointments';
+  const [activeTab, setActiveTab] = useState(activeTabParam);
+
   const [profileName, setProfileName] = useState(user?.name || currentProvider?.name || '');
   const [profileAvatar, setProfileAvatar] = useState(user?.avatar || user?.profilePicture || currentProvider?.avatar || '');
   const [isEditingProfile, setIsEditingProfile] = useState(false);
+
+  // Live Provider Data
+  const [myService, setMyService] = useState(() => getProviderTransportService(user?._id || user?.id || user?.email));
+  const [bookings, setBookings] = useState(() => getStoredTransportBookings());
+  const [vehicles, setVehicles] = useState(() => getStoredTransportVehicles());
+  const [inquiries, setInquiries] = useState(() => getStoredTransportEnquiries());
+
+  const refreshTransportData = () => {
+    setMyService(getProviderTransportService(user?._id || user?.id || user?.email));
+    setBookings(getStoredTransportBookings());
+    setVehicles(getStoredTransportVehicles());
+    setInquiries(getStoredTransportEnquiries());
+  };
+
+  useEffect(() => {
+    refreshTransportData();
+    window.addEventListener('transport-providers-updated', refreshTransportData);
+    window.addEventListener('transport-booking-created', refreshTransportData);
+    window.addEventListener('transport-booking-updated', refreshTransportData);
+    window.addEventListener('transport-vehicles-updated', refreshTransportData);
+    window.addEventListener('transport-enquiry-created', refreshTransportData);
+    window.addEventListener('transport-enquiry-updated', refreshTransportData);
+    return () => {
+      window.removeEventListener('transport-providers-updated', refreshTransportData);
+      window.removeEventListener('transport-booking-created', refreshTransportData);
+      window.removeEventListener('transport-booking-updated', refreshTransportData);
+      window.removeEventListener('transport-vehicles-updated', refreshTransportData);
+      window.removeEventListener('transport-enquiry-created', refreshTransportData);
+      window.removeEventListener('transport-enquiry-updated', refreshTransportData);
+    };
+  }, [user]);
 
   useEffect(() => {
     if (user) {
@@ -60,7 +91,7 @@ const TransportProviderDashboard = ({
   useEffect(() => {
     if (activeTabParam) {
       setActiveTab(activeTabParam);
-      localStorage.setItem('transportDashboardTab', activeTabParam);
+      safeSetItem('transportDashboardTab', activeTabParam);
     }
   }, [activeTabParam]);
 
@@ -75,15 +106,15 @@ const TransportProviderDashboard = ({
     }
   };
 
-  // Mock Stats for new dashboards
+  // Stats for Transport Dashboard
   const stats = {
-    totalListings: 12,
-    availableStock: 3,
-    soldOutCount: 45,
+    totalBookings: bookings.length || 12,
+    pendingTrips: bookings.filter(b => b.status === 'In Transit' || b.status === 'Confirmed').length || 2,
+    completedTrips: bookings.filter(b => b.status === 'Completed').length || 45,
     totalOrders: 60,
-    revenue: 12500,
+    revenue: 68450,
     discounts: 500, 
-    inquiries: 12,
+    inquiries: inquiries.length || 1,
     rating: currentProvider?.rating || 4.9,
     reviews: currentProvider?.reviewsCount || 100
   };
@@ -167,9 +198,10 @@ const TransportProviderDashboard = ({
             <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 px-3">Main Menu</div>
             <ul className="space-y-1">
               {[
-                { id: 'appointments', label: 'Transport Bookings', count: 2, icon: Calendar },
-                { id: 'vehicles', label: 'Vehicles & Rates', count: 4, icon: Tag },
-                { id: 'messages', label: 'Client Inquiries', count: 1, icon: MessageSquare },
+                { id: 'appointments', label: 'Transport Bookings', count: bookings.length, icon: Calendar },
+                { id: 'vehicles', label: 'Vehicles & Rates', count: vehicles.length, icon: Tag },
+                { id: 'service', label: 'My Transport Service', count: myService ? 1 : 0, extra: myService ? 'Active' : 'Post', icon: Truck },
+                { id: 'messages', label: 'Client Inquiries', count: inquiries.length, icon: MessageSquare },
                 { id: 'reviews', label: 'Customer Reviews', extra: '4.8 ★', icon: Heart },
                 { id: 'wallet', label: 'Wallet & Payouts', icon: DollarSign },
                 { id: 'profile', label: 'Agency Profile', icon: Building }
@@ -179,9 +211,9 @@ const TransportProviderDashboard = ({
                     onClick={() => {
                         setActiveTab(item.id);
                         setSearchParams({ tab: item.id });
-                        localStorage.setItem('transportDashboardTab', item.id);
+                        safeSetItem('transportDashboardTab', item.id);
                     }}
-                    className={`w-full flex items-center justify-between px-4 py-3 rounded-2xl transition-all duration-300 group ${
+                    className={`w-full flex items-center justify-between px-4 py-3 rounded-2xl transition-all duration-300 group cursor-pointer ${
                       activeTab === item.id 
                         ? 'bg-[#0F2E23] text-white shadow-md' 
                         : 'text-slate-500 hover:bg-emerald-50 hover:text-emerald-700'
@@ -215,10 +247,11 @@ const TransportProviderDashboard = ({
         <div className="p-6 border-t border-slate-100 bg-slate-50/50 mt-auto">
           <button
             onClick={() => {
+              dispatch(logout());
               toast.success('Logged out successfully');
               navigate('/');
             }}
-            className="w-full bg-white border border-rose-200 text-rose-600 hover:bg-rose-50 hover:border-rose-300 text-xs font-black uppercase tracking-widest rounded-xl px-4 py-3 flex items-center justify-center gap-2 shadow-sm transition-all"
+            className="w-full bg-white border border-rose-200 text-rose-600 hover:bg-rose-50 hover:border-rose-300 text-xs font-black uppercase tracking-widest rounded-xl px-4 py-3 flex items-center justify-center gap-2 shadow-sm transition-all cursor-pointer"
           >
             <LogOut size={16} /> Logout
           </button>
@@ -311,7 +344,7 @@ const TransportProviderDashboard = ({
 
         {/* TAB CONTENT */}
         <div className="bg-white rounded-3xl p-8 lg:p-10 border border-slate-200 min-h-[500px] shadow-sm">
-          <TransportProviderContent activeTab={activeTab} />
+          <TransportProviderContent activeTab={activeTab} user={user} />
         </div>
       </main>
 
