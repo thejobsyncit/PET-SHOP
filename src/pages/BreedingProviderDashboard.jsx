@@ -241,14 +241,195 @@ const MessagesModule = () => {
   );
 };
 
+const ReviewsModule = ({ user }) => {
+  const reviews = [
+    { id: 1, client: 'Karthik S.', pet: 'Rocky (Bulldog)', rating: 5, date: 'Sep 01, 2026', comment: 'Excellent breeder! Maximus was healthy and well-behaved. The mating process was smooth and successful.' },
+    { id: 2, client: 'Deepa M.', pet: 'Coco (Retriever)', rating: 5, date: 'Aug 28, 2026', comment: 'Highly reliable and professional. They have great facilities and take excellent care of their studs.' },
+    { id: 3, client: 'Rohan K.', pet: 'Simba (Spitz)', rating: 4, date: 'Aug 15, 2026', comment: 'Good service, very knowledgeable about genetics and breed standards. Would recommend.' },
+    { id: 4, client: 'Nisha R.', pet: 'Bella (Lab)', rating: 5, date: 'Jul 22, 2026', comment: 'Best breeding service in Bangalore! Our Bella had a wonderful litter.' }
+  ];
+
+  return (
+    <div className="space-y-6 animate-in fade-in duration-300">
+      <div className="border-b border-slate-100 pb-4 flex flex-col md:flex-row md:items-end justify-between gap-4">
+        <div>
+          <h2 className="text-xl font-black text-[#0F2E23]">Customer Reviews</h2>
+          <p className="text-sm text-slate-500 font-medium">See what pet owners are saying about your breeding services.</p>
+        </div>
+        <div className="flex items-center gap-4 bg-amber-50 px-4 py-2 rounded-xl border border-amber-100">
+          <div className="text-center border-r border-amber-200 pr-4">
+            <div className="text-2xl font-black text-amber-600">4.9</div>
+            <div className="flex text-amber-500">
+              <Star size={10} fill="currentColor" /><Star size={10} fill="currentColor" /><Star size={10} fill="currentColor" /><Star size={10} fill="currentColor" /><Star size={10} fill="currentColor" />
+            </div>
+          </div>
+          <div>
+            <div className="text-xs font-bold text-amber-800 uppercase tracking-wider">Overall Rating</div>
+            <div className="text-[10px] font-bold text-amber-600">Based on 45 reviews</div>
+          </div>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
+        {reviews.map((rev) => (
+          <div key={rev.id} className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow">
+            <div className="flex justify-between items-start mb-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 font-bold text-sm">
+                  {rev.client.charAt(0)}
+                </div>
+                <div>
+                  <h4 className="text-sm font-black text-[#0F2E23]">{rev.client}</h4>
+                  <div className="text-[10px] font-bold text-slate-400 mt-0.5">{rev.date}</div>
+                </div>
+              </div>
+              <div className="flex text-amber-400">
+                {[...Array(5)].map((_, i) => (
+                  <Star key={i} size={14} fill={i < rev.rating ? "currentColor" : "none"} className={i < rev.rating ? "" : "text-slate-200"} />
+                ))}
+              </div>
+            </div>
+            
+            <div className="mb-3">
+              <span className="inline-block bg-slate-50 border border-slate-200 text-slate-600 text-[10px] font-bold px-2 py-1 rounded-md">
+                Mated with: <span className="text-[#0F2E23]">{rev.pet}</span>
+              </span>
+            </div>
+            
+            <p className="text-sm text-slate-600 leading-relaxed italic">
+              "{rev.comment}"
+            </p>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+const WalletModule = () => {
+  return (
+    <div className="space-y-6 animate-in fade-in duration-300">
+      <div className="border-b border-slate-100 pb-4">
+        <h2 className="text-xl font-black text-[#0F2E23]">Wallet & Payouts</h2>
+        <p className="text-sm text-slate-500 font-medium">Track your breeding earnings and payouts.</p>
+      </div>
+      
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+        <div className="bg-gradient-to-br from-[#0F2E23] to-[#1a4a3b] rounded-2xl p-6 text-white shadow-lg relative overflow-hidden">
+          <div className="absolute -right-4 -top-4 w-32 h-32 bg-white opacity-5 rounded-full blur-2xl"></div>
+          <div className="flex items-center gap-2 text-emerald-300 text-xs font-bold uppercase tracking-wider mb-2">
+            <DollarSign size={14} /> Available Balance
+          </div>
+          <div className="text-4xl font-black mb-4">₹12,500</div>
+          <button className="w-full bg-white text-[#0F2E23] hover:bg-emerald-50 py-2.5 rounded-xl text-sm font-bold transition-colors shadow-sm">
+            Withdraw Funds
+          </button>
+        </div>
+        
+        <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm flex flex-col justify-center">
+          <div className="flex items-center gap-2 text-slate-400 text-xs font-bold uppercase tracking-wider mb-2">
+            <Clock size={14} /> Pending Clearance
+          </div>
+          <div className="text-3xl font-black text-slate-700 mb-1">₹8,000</div>
+          <p className="text-xs text-slate-500 font-medium">Funds from recent successful matches will clear on Friday.</p>
+        </div>
+      </div>
+      
+      <div>
+        <h3 className="text-sm font-black text-slate-700 uppercase tracking-widest mb-4">Recent Mating Earnings</h3>
+        <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm">
+          <table className="w-full text-left text-sm">
+            <thead className="bg-slate-50 text-slate-500 font-bold text-xs uppercase tracking-wider border-b border-slate-200">
+              <tr>
+                <th className="px-6 py-4">Match ID</th>
+                <th className="px-6 py-4">Pet Name</th>
+                <th className="px-6 py-4">Date</th>
+                <th className="px-6 py-4">Status</th>
+                <th className="px-6 py-4 text-right">Amount</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100">
+              <tr className="hover:bg-slate-50 transition-colors">
+                <td className="px-6 py-4 font-bold text-slate-700">BR-098</td>
+                <td className="px-6 py-4 font-medium text-slate-600">Buddy (Golden Retriever)</td>
+                <td className="px-6 py-4 text-slate-500">Sep 04, 2026</td>
+                <td className="px-6 py-4"><span className="bg-emerald-100 text-emerald-700 px-2.5 py-1 rounded-md text-[10px] font-black uppercase tracking-wider">Cleared</span></td>
+                <td className="px-6 py-4 text-right font-black text-emerald-600">+₹8,000</td>
+              </tr>
+              <tr className="hover:bg-slate-50 transition-colors">
+                <td className="px-6 py-4 font-bold text-slate-700">BR-097</td>
+                <td className="px-6 py-4 font-medium text-slate-600">Luna (Husky)</td>
+                <td className="px-6 py-4 text-slate-500">Sep 03, 2026</td>
+                <td className="px-6 py-4"><span className="bg-emerald-100 text-emerald-700 px-2.5 py-1 rounded-md text-[10px] font-black uppercase tracking-wider">Cleared</span></td>
+                <td className="px-6 py-4 text-right font-black text-emerald-600">+₹10,000</td>
+              </tr>
+              <tr className="hover:bg-slate-50 transition-colors">
+                <td className="px-6 py-4 font-bold text-slate-700">WD-012</td>
+                <td className="px-6 py-4 font-medium text-slate-600">Bank Transfer</td>
+                <td className="px-6 py-4 text-slate-500">Sep 01, 2026</td>
+                <td className="px-6 py-4"><span className="bg-slate-100 text-slate-600 px-2.5 py-1 rounded-md text-[10px] font-black uppercase tracking-wider">Processed</span></td>
+                <td className="px-6 py-4 text-right font-black text-slate-700">-₹15,000</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const ProfileModule = ({ user }) => {
+  return (
+    <div className="space-y-6 animate-in fade-in duration-300">
+      <div className="border-b border-slate-100 pb-4">
+        <h2 className="text-xl font-black text-[#0F2E23]">Breeder Profile</h2>
+        <p className="text-sm text-slate-500 font-medium">Manage your public breeding provider information.</p>
+      </div>
+      
+      <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
+        <div className="flex flex-col md:flex-row items-start gap-6">
+          <div className="w-24 h-24 rounded-full bg-slate-100 border-4 border-white shadow-lg overflow-hidden shrink-0">
+             <img src={user?.avatar || 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?q=80&w=400'} alt="Profile" className="w-full h-full object-cover" />
+          </div>
+          <div className="flex-1 w-full">
+            <h3 className="text-lg font-black text-[#0F2E23] mb-1">{user?.name || 'Premium Breeder'}</h3>
+            <p className="text-sm text-slate-500 font-medium mb-4">{user?.email || 'breeder@example.com'} • {user?.mobile || '+91 9876543210'}</p>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1 block">Facility Name</label>
+                <input type="text" defaultValue="Elite Breeds Hub" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500" />
+              </div>
+              <div>
+                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1 block">Experience</label>
+                <input type="text" defaultValue="5+ Years" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500" />
+              </div>
+              <div className="md:col-span-2">
+                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1 block">About Facility</label>
+                <textarea rows="3" defaultValue="Premium breeding facility with certified health clearances and genetic testing. We ensure the highest standard of care." className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500"></textarea>
+              </div>
+            </div>
+            
+            <div className="mt-6 flex justify-end">
+              <button className="bg-[#0F2E23] hover:bg-emerald-800 text-white px-6 py-2.5 rounded-xl text-sm font-bold shadow-sm transition-colors">
+                Save Changes
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const BreedingProviderContent = ({ activeTab, user }) => {
   switch (activeTab) {
     case 'listings': return <ListingsModule user={user} />;
     case 'matches': return <MatchesModule user={user} />;
     case 'messages': return <MessagesModule user={user} />;
-    case 'reviews': return <div className="p-8 text-center text-slate-500 font-medium">Customer Reviews coming soon...</div>;
-    case 'wallet': return <div className="p-8 text-center text-slate-500 font-medium">Wallet & Payouts coming soon...</div>;
-    case 'profile': return <div className="p-8 text-center text-slate-500 font-medium">Breeder Profile coming soon...</div>;
+    case 'reviews': return <ReviewsModule user={user} />;
+    case 'wallet': return <WalletModule />;
+    case 'profile': return <ProfileModule user={user} />;
     default: return <ListingsModule user={user} />;
   }
 };
