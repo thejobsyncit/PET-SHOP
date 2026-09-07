@@ -19,6 +19,7 @@ import {
 import { INDIAN_STATES_CITIES } from '../data/adoptionPetsData.js';
 import ServiceAccessLock, { isServicePathLockedForUser } from '../components/ServiceAccessLock.jsx';
 
+import ScrollReveal from '../components/ScrollReveal.jsx';
 const PetTransport = () => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -440,7 +441,7 @@ const PetTransport = () => {
     <div className="bg-[#FAF9F5] min-h-screen text-slate-800 font-sans pb-24">
 
       {/* 1. HERO SECTION & QUICK SEARCH BAR */}
-      <section className="relative bg-gradient-to-br from-[#0B1528] via-[#13274F] to-[#0A1931] text-white pt-28 pb-16 px-4 md:px-8 overflow-hidden">
+      <ScrollReveal variant="fade" className="relative bg-gradient-to-br from-[#0B1528] via-[#13274F] to-[#0A1931] text-white pt-28 pb-16 px-4 md:px-8 overflow-hidden">
         {/* Subtle Decorative Background Glowing Orbs */}
         <div className="absolute -top-24 -right-24 w-96 h-96 bg-amber-400/15 rounded-full blur-3xl pointer-events-none" />
         <div className="absolute bottom-0 left-12 w-96 h-96 bg-sky-500/15 rounded-full blur-3xl pointer-events-none" />
@@ -610,10 +611,10 @@ const PetTransport = () => {
             </div>
           </div>
         </div>
-      </section>
+      </ScrollReveal>
 
       {/* 2. TYPES OF TRANSPORTATION (ROAD, RAIL, SHIP, AIR) */}
-      <section className="bg-white py-16 border-b border-stone-200">
+      <ScrollReveal variant="fade" className="bg-white py-16 border-b border-stone-200">
         <div className="max-w-7xl mx-auto px-4 md:px-8 space-y-12">
           
           <div className="text-center space-y-3 max-w-2xl mx-auto">
@@ -687,10 +688,10 @@ const PetTransport = () => {
           </div>
 
         </div>
-      </section>
+      </ScrollReveal>
 
       {/* 4. HOW WE MOVE YOUR PET (4 STEPS) */}
-      <section className="max-w-7xl mx-auto px-4 md:px-8 py-16 space-y-12">
+      <ScrollReveal variant="fade" className="max-w-7xl mx-auto px-4 md:px-8 py-16 space-y-12">
         <div className="text-center space-y-3 max-w-2xl mx-auto">
           <span className="text-[11px] font-extrabold uppercase tracking-widest text-[#13274F] bg-sky-50 px-3 py-1 rounded-full border border-sky-100">
             Seamless Workflow
@@ -754,10 +755,10 @@ const PetTransport = () => {
             </div>
           ))}
         </div>
-      </section>
+      </ScrollReveal>
 
       {/* 4. PROVIDERS CATALOG & LEFT-SIDE FILTERS */}
-      <section id="transport-catalog" className="max-w-7xl mx-auto px-4 md:px-8 py-16 space-y-8">
+      <ScrollReveal variant="fade" id="transport-catalog" className="max-w-7xl mx-auto px-4 md:px-8 py-16 space-y-8">
         
         {/* Section Header with Comparison Action Controls */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-end border-b border-stone-200 pb-6 gap-4">
@@ -1148,10 +1149,10 @@ const PetTransport = () => {
           </div>
 
         </div>
-      </section>
+      </ScrollReveal>
 
       {/* 7. GLOBAL BOTTOM RELOCATION ENQUIRY FORM ("Hey! Still not found what you are looking for?") */}
-      <section className="max-w-3xl mx-auto px-4 md:px-6 py-8">
+      <ScrollReveal variant="fade" className="max-w-3xl mx-auto px-4 md:px-6 py-8">
         <div className="bg-white rounded-2xl p-5 md:p-7 border border-stone-200 shadow-md space-y-5">
           
           <div className="space-y-1.5 border-b border-stone-100 pb-3.5">
@@ -1389,7 +1390,7 @@ const PetTransport = () => {
           </form>
 
         </div>
-      </section>
+      </ScrollReveal>
 
       {/* 8. DEDICATED FLOATING COMPARISON BAR (Shows when 1 to 3 providers selected) */}
       {comparedProviders.length > 0 && (

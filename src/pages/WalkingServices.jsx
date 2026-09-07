@@ -16,6 +16,7 @@ import {
 import { INDIAN_STATES_CITIES } from '../data/adoptionPetsData.js';
 import ServiceAccessLock, { isServicePathLockedForUser } from '../components/ServiceAccessLock.jsx';
 
+import ScrollReveal from '../components/ScrollReveal.jsx';
 const WalkingServices = () => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -298,7 +299,7 @@ const WalkingServices = () => {
       {/* =========================================================================
           1. HERO BANNER WITH SEARCH BAR (Exact Visual Match to Screenshot 1)
          ========================================================================= */}
-      <section className="relative bg-gradient-to-r from-[#ffc83b] via-[#febc2e] to-[#ffb11b] text-slate-900 pt-8 pb-12 px-4 md:px-8 shadow-sm border-b border-amber-300">
+      <ScrollReveal variant="fade" className="relative bg-gradient-to-r from-[#ffc83b] via-[#febc2e] to-[#ffb11b] text-slate-900 pt-8 pb-12 px-4 md:px-8 shadow-sm border-b border-amber-300">
         <div className="max-w-7xl mx-auto">
           
           {/* Breadcrumb Navigation */}
@@ -424,12 +425,12 @@ const WalkingServices = () => {
           </div>
 
         </div>
-      </section>
+      </ScrollReveal>
 
       {/* =========================================================================
           2. "OUR WALKING OFFERINGS" (Interactive Bar)
          ========================================================================= */}
-      <section className="max-w-7xl mx-auto px-4 md:px-8 pt-8 pb-4 space-y-6">
+      <ScrollReveal variant="fade" className="max-w-7xl mx-auto px-4 md:px-8 pt-8 pb-4 space-y-6">
         <div className="text-center space-y-2">
           <span className="text-[10px] uppercase font-extrabold tracking-widest text-[#7c56dc] bg-purple-50 px-3 py-1 rounded-full border border-purple-200">
             CHOOSE YOUR WALK TYPE
@@ -476,13 +477,13 @@ const WalkingServices = () => {
             );
           })}
         </div>
-      </section>
+      </ScrollReveal>
 
 
       {/* =========================================================================
           3. SERVICE PROVIDERS CATALOG & ADVANCED FILTER SECTION (Screenshot 2 Match)
          ========================================================================= */}
-      <section id="walkers-catalog" className="max-w-7xl mx-auto px-4 md:px-8 pt-4 pb-16 space-y-8 scroll-mt-20">
+      <ScrollReveal variant="fade" id="walkers-catalog" className="max-w-7xl mx-auto px-4 md:px-8 pt-4 pb-16 space-y-8 scroll-mt-20">
         
         {/* Section Title & Quick Stats */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-purple-100 pb-4">
@@ -865,12 +866,12 @@ const WalkingServices = () => {
 
         </div>
 
-      </section>
+      </ScrollReveal>
 
       {/* =========================================================================
           4. "WHY DAILY WALKS ARE ESSENTIAL" (Educational Cards)
          ========================================================================= */}
-      <section className="max-w-7xl mx-auto px-4 md:px-8 py-16">
+      <ScrollReveal variant="fade" className="max-w-7xl mx-auto px-4 md:px-8 py-16">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
           
           {/* Left Column: Heading, Text & Active Dog Photo */}
@@ -946,12 +947,12 @@ const WalkingServices = () => {
           </div>
 
         </div>
-      </section>
+      </ScrollReveal>
 
       {/* =========================================================================
           5. "PAWORA SAFEWALK 3-STEP GUARANTEE"
          ========================================================================= */}
-      <section className="bg-white border-y border-purple-100 py-16 px-4 md:px-8">
+      <ScrollReveal variant="fade" className="bg-white border-y border-purple-100 py-16 px-4 md:px-8">
         <div className="max-w-7xl mx-auto text-center space-y-12">
           
           <div className="max-w-2xl mx-auto space-y-2">
@@ -1007,7 +1008,7 @@ const WalkingServices = () => {
           </div>
 
         </div>
-      </section>
+      </ScrollReveal>
 
 
       {/* =========================================================================

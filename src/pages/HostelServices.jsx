@@ -17,6 +17,7 @@ import {
 import { INDIAN_STATES_CITIES } from '../data/adoptionPetsData.js';
 import ServiceAccessLock, { isServicePathLockedForUser } from '../components/ServiceAccessLock.jsx';
 
+import ScrollReveal from '../components/ScrollReveal.jsx';
 const HostelServices = () => {
   const navigate = useNavigate();
   const { isAuthenticated, user } = useSelector((state) => state.auth);
@@ -277,7 +278,7 @@ const HostelServices = () => {
       {/* =========================================================================
           1. RADIANT HERO BANNER WITH SEARCH FILTER BAR (Screenshot 1 Match)
          ========================================================================= */}
-      <section className="relative bg-gradient-to-r from-[#ffc83b] via-[#febc2e] to-[#ffb11b] text-slate-900 pt-8 pb-12 px-4 md:px-8 shadow-sm border-b border-amber-300">
+      <ScrollReveal variant="fade" className="relative bg-gradient-to-r from-[#ffc83b] via-[#febc2e] to-[#ffb11b] text-slate-900 pt-8 pb-12 px-4 md:px-8 shadow-sm border-b border-amber-300">
         <div className="max-w-7xl mx-auto">
           
           {/* Breadcrumb Navigation */}
@@ -391,13 +392,13 @@ const HostelServices = () => {
           </div>
 
         </div>
-      </section>
+      </ScrollReveal>
 
 
       {/* =========================================================================
           2. "OUR HOSTEL & BOARDING OFFERINGS" (Interactive Service Bar)
          ========================================================================= */}
-      <section className="max-w-7xl mx-auto px-4 md:px-8 pt-8 pb-4 space-y-6">
+      <ScrollReveal variant="fade" className="max-w-7xl mx-auto px-4 md:px-8 pt-8 pb-4 space-y-6">
         <div className="text-center space-y-2">
           <span className="text-[10px] uppercase font-extrabold tracking-widest text-[#7c56dc] bg-purple-50 px-3 py-1 rounded-full border border-purple-200">
             CHOOSE YOUR STAY TYPE
@@ -444,13 +445,13 @@ const HostelServices = () => {
             );
           })}
         </div>
-      </section>
+      </ScrollReveal>
 
 
       {/* =========================================================================
           3. SERVICE PROVIDERS CATALOG & ADVANCED FILTER SECTION (Brought to Top)
          ========================================================================= */}
-      <section id="hostels-catalog" className="max-w-7xl mx-auto px-4 md:px-8 pt-4 pb-16 space-y-8 scroll-mt-20">
+      <ScrollReveal variant="fade" id="hostels-catalog" className="max-w-7xl mx-auto px-4 md:px-8 pt-4 pb-16 space-y-8 scroll-mt-20">
         
         {/* Section Title & Quick Stats */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-purple-100 pb-4">
@@ -891,13 +892,13 @@ const HostelServices = () => {
 
         </div>
 
-      </section>
+      </ScrollReveal>
 
 
       {/* =========================================================================
           3. "RESULTS BRIGHT AS YOUR PET'S EYES" STATS COUNTERS (Moved Below Catalog)
          ========================================================================= */}
-      <section className="max-w-7xl mx-auto px-4 md:px-8 py-16 space-y-8">
+      <ScrollReveal variant="fade" className="max-w-7xl mx-auto px-4 md:px-8 py-16 space-y-8">
         <div className="text-center space-y-2 max-w-2xl mx-auto">
           <h2 className="text-2xl md:text-3xl font-extrabold text-slate-900 font-sans">
             Results Bright As Your <span className="text-[#7c56dc]">Pet's Eyes</span>
@@ -935,13 +936,13 @@ const HostelServices = () => {
           </div>
 
         </div>
-      </section>
+      </ScrollReveal>
 
 
       {/* =========================================================================
           4. "YOUR PET FEELS SAFEST" (Photo Cards Moved Below)
          ========================================================================= */}
-      <section className="bg-white border-y border-purple-100 py-16 px-4 md:px-8">
+      <ScrollReveal variant="fade" className="bg-white border-y border-purple-100 py-16 px-4 md:px-8">
         <div className="max-w-7xl mx-auto space-y-10">
           
           <div className="text-center space-y-2 max-w-2xl mx-auto">
@@ -986,13 +987,13 @@ const HostelServices = () => {
           </div>
 
         </div>
-      </section>
+      </ScrollReveal>
 
 
       {/* =========================================================================
           5. "WHY DO PET PARENTS CHOOSE PAWORA?" (Testimonials)
          ========================================================================= */}
-      <section className="max-w-7xl mx-auto px-4 md:px-8 py-16 space-y-12">
+      <ScrollReveal variant="fade" className="max-w-7xl mx-auto px-4 md:px-8 py-16 space-y-12">
         <div className="text-center space-y-2 max-w-2xl mx-auto">
           <h2 className="text-2xl md:text-3xl font-extrabold text-slate-900 font-sans">
             Why Do Pet Parents Choose <span className="text-[#7c56dc]">Pawora?</span>
@@ -1060,13 +1061,13 @@ const HostelServices = () => {
           </div>
 
         </div>
-      </section>
+      </ScrollReveal>
 
 
       {/* =========================================================================
           6. "OUR QUICK EASY PROCESS" (Process Steps)
          ========================================================================= */}
-      <section className="bg-white border-y border-purple-100 py-16 px-4 md:px-8">
+      <ScrollReveal variant="fade" className="bg-white border-y border-purple-100 py-16 px-4 md:px-8">
         <div className="max-w-7xl mx-auto text-center space-y-12">
           
           <div className="max-w-2xl mx-auto space-y-2">
@@ -1116,7 +1117,7 @@ const HostelServices = () => {
           </div>
 
         </div>
-      </section>
+      </ScrollReveal>
 
 
       {/* =========================================================================

@@ -37,6 +37,7 @@ import {
 import { INDIAN_STATES_CITIES } from '../data/adoptionPetsData.js';
 import ServiceAccessLock, { isServicePathLockedForUser } from '../components/ServiceAccessLock.jsx';
 
+import ScrollReveal from '../components/ScrollReveal.jsx';
 const BreedingDirectory = () => {
   const navigate = useNavigate();
   const { isAuthenticated, user } = useSelector((state) => state.auth);
@@ -430,7 +431,7 @@ const BreedingDirectory = () => {
     <div className="bg-[#FAF9F5] min-h-screen text-slate-800">
       
       {/* ================= 1. CREATIVE & LUXURIOUS HERO SECTION ================= */}
-      <section className="bg-gradient-to-br from-[#F5EEFD] via-[#ECE0FA] to-[#DFCEF5] border-b border-purple-200/80 pt-10 sm:pt-14 pb-12 sm:pb-16 px-4 md:px-8 relative overflow-hidden">
+      <ScrollReveal variant="fade" className="bg-gradient-to-br from-[#F5EEFD] via-[#ECE0FA] to-[#DFCEF5] border-b border-purple-200/80 pt-10 sm:pt-14 pb-12 sm:pb-16 px-4 md:px-8 relative overflow-hidden">
         
         {/* Soft Ambient Glows & Decorative Floating Shapes */}
         <div className="absolute -top-24 -right-24 w-96 h-96 bg-purple-300/30 rounded-full blur-3xl pointer-events-none"></div>
@@ -686,10 +687,10 @@ const BreedingDirectory = () => {
           </div>
 
         </div>
-      </section>
+      </ScrollReveal>
 
       {/* ================= 2. MAIN 2-COLUMN SECTION ================= */}
-      <section id="mating-directory-results" className="max-w-7xl mx-auto px-4 md:px-8 py-10">
+      <ScrollReveal variant="fade" id="mating-directory-results" className="max-w-7xl mx-auto px-4 md:px-8 py-10">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
           
           {/* ================= LEFT SIDEBAR: DEDICATED FILTERS ================= */}
@@ -1165,7 +1166,7 @@ const BreedingDirectory = () => {
 
           </main>
         </div>
-      </section>
+      </ScrollReveal>
 
       {/* ================= 3. KNOW MORE ABOUT [PET] DETAILS MODAL ================= */}
       {showDetailsModal && selectedPetForDetails && (

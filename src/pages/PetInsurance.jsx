@@ -181,6 +181,7 @@ export const SPECIES_COVERAGE_OPTIONS = {
 
 import ServiceAccessLock, { isServicePathLockedForUser } from '../components/ServiceAccessLock.jsx';
 
+import ScrollReveal from '../components/ScrollReveal.jsx';
 const PetInsurance = () => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -664,7 +665,7 @@ const PetInsurance = () => {
   return (
     <div className="min-h-screen bg-[#FDFBF7] text-slate-800 antialiased font-sans">
       {/* 1. HERO SECTION */}
-      <section className="relative bg-gradient-to-br from-[#0B251C] via-[#0F2E23] to-[#164233] text-white pt-10 pb-16 px-4 md:px-8 border-b border-emerald-900/40">
+      <ScrollReveal variant="fade" className="relative bg-gradient-to-br from-[#0B251C] via-[#0F2E23] to-[#164233] text-white pt-10 pb-16 px-4 md:px-8 border-b border-emerald-900/40">
         <div className="max-w-7xl mx-auto">
           {/* Breadcrumbs */}
           <div className="flex items-center gap-2 text-xs uppercase tracking-widest text-emerald-300/80 mb-6">
@@ -854,10 +855,10 @@ const PetInsurance = () => {
             </div>
           </div>
         </div>
-      </section>
+      </ScrollReveal>
 
       {/* 2. MAIN 2-COLUMN SECTION: FILTERS & FEATURES ON LEFT, PROVIDERS ON RIGHT */}
-      <section className="max-w-7xl mx-auto px-4 md:px-8 py-10">
+      <ScrollReveal variant="fade" className="max-w-7xl mx-auto px-4 md:px-8 py-10">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
           
           {/* ================= LEFT SIDEBAR: FILTERS & FEATURES ================= */}
@@ -1325,7 +1326,7 @@ const PetInsurance = () => {
             )}
           </main>
         </div>
-      </section>
+      </ScrollReveal>
 
       {/* 3. REFINED 3-SLOT FLOATING COMPARISON DOCK */}
       {comparedProviders.length > 0 && (
@@ -2114,7 +2115,7 @@ const PetInsurance = () => {
       )}
 
       {/* 7. HOW IT WORKS & CLAIMS PROCESS */}
-      <section className="bg-white border-t border-gray-200 py-14 px-4 md:px-8">
+      <ScrollReveal variant="fade" className="bg-white border-t border-gray-200 py-14 px-4 md:px-8">
         <div className="max-w-7xl mx-auto space-y-10">
           <div className="text-center max-w-2xl mx-auto space-y-2">
             <span className="text-accent text-xs font-bold uppercase tracking-widest">
@@ -2140,10 +2141,10 @@ const PetInsurance = () => {
             ))}
           </div>
         </div>
-      </section>
+      </ScrollReveal>
 
       {/* 8. PET INSURANCE FAQS */}
-      <section className="bg-[#FAF9F5] border-t border-gray-200 py-14 px-4 md:px-8">
+      <ScrollReveal variant="fade" className="bg-[#FAF9F5] border-t border-gray-200 py-14 px-4 md:px-8">
         <div className="max-w-4xl mx-auto space-y-8">
           <div className="text-center space-y-2">
             <span className="text-accent text-xs font-bold uppercase tracking-widest">
@@ -2168,10 +2169,10 @@ const PetInsurance = () => {
             ))}
           </div>
         </div>
-      </section>
+      </ScrollReveal>
 
       {/* 9. WHY DO PET PARENTS CHOOSE PAWORA? (TESTIMONIALS) */}
-      <section className="bg-white border-t border-gray-200 py-16 px-4 md:px-8">
+      <ScrollReveal variant="fade" className="bg-white border-t border-gray-200 py-16 px-4 md:px-8">
         <div className="max-w-7xl mx-auto space-y-10">
           <div className="text-center space-y-2 max-w-2xl mx-auto">
             <h2 className="text-2xl md:text-4xl font-serif font-bold text-slate-900">
@@ -2215,7 +2216,7 @@ const PetInsurance = () => {
             ))}
           </div>
         </div>
-      </section>
+      </ScrollReveal>
     </div>
   );
 };

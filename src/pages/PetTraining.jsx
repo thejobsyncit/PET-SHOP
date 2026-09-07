@@ -647,7 +647,6 @@ const PetTraining = () => {
             </div>
           ))}
         </div>
-        </div>
       </ScrollReveal>
 
       {/* 5. VERIFIED TRAINERS CATALOG WITH LEFT-SIDE SCROLLABLE FILTER */}

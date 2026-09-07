@@ -460,11 +460,10 @@ const PetClassifieds = () => {
                   </div>
                 )}
               </div>
-
+              </div>
               </ScrollReveal>
             ))}
           </div>
-        </ScrollReveal>
       ) : (
         <div className="text-center py-16 sm:py-20 bg-white border border-beige max-w-md mx-auto px-4 text-gray-500 text-xs sm:text-sm">
           No active classified listings found matching the criteria.
