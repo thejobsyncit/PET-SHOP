@@ -115,5 +115,53 @@
     "addresses": [],
     "wishlist": [],
     "cart": []
+  },
+  {
+    "_id": "6a9e4b3ef40cf4b81433fa0b",
+    "name": "Elite Breeds Hub",
+    "businessName": "Elite Breeds Hub",
+    "email": "elitebreed@pawora.com",
+    "role": "SERVICE_PROVIDER",
+    "mobile": "9845556677",
+    "location": "Yelahanka, Bangalore, Karnataka",
+    "serviceCategory": "Pet Mating & Breeding",
+    "govtProofType": "AWBI / NGO Registration Certificate",
+    "govtProofNumber": "",
+    "govtProofDoc": "",
+    "verificationStatus": "Verified",
+    "shelterCapacity": 50,
+    "bio": ""
+  },
+  {
+    "_id": "6a9e4b570700befb082ff192",
+    "name": "Clever Canines",
+    "businessName": "Clever Canines",
+    "email": "clevercanines@pawora.com",
+    "role": "SERVICE_PROVIDER",
+    "mobile": "9845334455",
+    "location": "HSR Layout, Bangalore, Karnataka",
+    "serviceCategory": "Pet Training & Behavior",
+    "govtProofType": "AWBI / NGO Registration Certificate",
+    "govtProofNumber": "",
+    "govtProofDoc": "",
+    "verificationStatus": "Verified",
+    "shelterCapacity": 50,
+    "bio": ""
+  },
+  {
+    "_id": "6a9e4b608743020771a83f49",
+    "name": "Swift Paws Walking",
+    "businessName": "Swift Paws Walking",
+    "email": "swiftpaws@pawora.com",
+    "role": "SERVICE_PROVIDER",
+    "mobile": "9845112233",
+    "location": "Jayanagar, Bangalore, Karnataka",
+    "serviceCategory": "Pet Walking & Fitness",
+    "govtProofType": "AWBI / NGO Registration Certificate",
+    "govtProofNumber": "",
+    "govtProofDoc": "",
+    "verificationStatus": "Verified",
+    "shelterCapacity": 50,
+    "bio": ""
   }
 ]
