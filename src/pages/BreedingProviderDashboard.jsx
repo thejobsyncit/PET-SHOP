@@ -241,6 +241,18 @@ const MessagesModule = () => {
   );
 };
 
+const BreedingProviderContent = ({ activeTab, user }) => {
+  switch (activeTab) {
+    case 'listings': return <ListingsModule user={user} />;
+    case 'matches': return <MatchesModule user={user} />;
+    case 'messages': return <MessagesModule user={user} />;
+    case 'reviews': return <div className="p-8 text-center text-slate-500 font-medium">Customer Reviews coming soon...</div>;
+    case 'wallet': return <div className="p-8 text-center text-slate-500 font-medium">Wallet & Payouts coming soon...</div>;
+    case 'profile': return <div className="p-8 text-center text-slate-500 font-medium">Breeder Profile coming soon...</div>;
+    default: return <ListingsModule user={user} />;
+  }
+};
+
 import { safeSetItem, safeGetItem } from '../utils/safeStorage.js';
 
 const BreedingProviderDashboard = ({ 

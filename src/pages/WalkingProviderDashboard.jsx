@@ -400,6 +400,18 @@ const WalletModule = () => {
   );
 };
 
+const WalkingProviderContent = ({ activeTab, user }) => {
+  switch (activeTab) {
+    case 'appointments': return <AppointmentsModule user={user} />;
+    case 'routes': return <RoutesModule />;
+    case 'messages': return <MessagesModule user={user} />;
+    case 'reviews': return <ReviewsModule user={user} />;
+    case 'wallet': return <WalletModule />;
+    case 'profile': return <div className="p-8 text-center text-slate-500 font-medium">Profile management coming soon...</div>;
+    default: return <AppointmentsModule user={user} />;
+  }
+};
+
 import { safeSetItem, safeGetItem } from '../utils/safeStorage.js';
 
 const WalkingProviderDashboard = ({ 
@@ -691,7 +703,7 @@ const WalkingProviderDashboard = ({
 
         {/* TAB CONTENT */}
         <div className="bg-white rounded-3xl p-8 lg:p-10 border border-slate-200 min-h-[500px] shadow-sm">
-          <WalkingProviderContent activeTab={activeTab} />
+          <WalkingProviderContent activeTab={activeTab} user={user} />
         </div>
       </main>
 
