@@ -10,6 +10,8 @@ import RatingStars from '../components/RatingStars.jsx';
 import ProductCard from '../components/ProductCard.jsx';
 import toast from 'react-hot-toast';
 
+import ScrollReveal from '../components/ScrollReveal.jsx';
+
 const ProductDetails = () => {
   const { slug } = useParams();
   const dispatch = useDispatch();
@@ -143,7 +145,7 @@ const ProductDetails = () => {
     <div className="pb-20 space-y-16">
       
       {/* Breadcrumbs */}
-      <section className="max-w-7xl mx-auto px-4 md:px-8 pt-6">
+      <ScrollReveal variant="fade" className="max-w-7xl mx-auto px-4 md:px-8 pt-6">
         <div className="flex items-center gap-1.5 text-[10px] text-gray-400 font-semibold uppercase tracking-wider">
           <Link to="/" className="hover:text-primary transition">HOME</Link>
           <ChevronRight size={10} />
@@ -153,10 +155,10 @@ const ProductDetails = () => {
           <ChevronRight size={10} />
           <span className="text-primary truncate max-w-xs">{product.name}</span>
         </div>
-      </section>
+      </ScrollReveal>
 
       {/* Main product pane */}
-      <section className="max-w-7xl mx-auto px-4 md:px-8">
+      <ScrollReveal variant="slideUp" className="max-w-7xl mx-auto px-4 md:px-8">
         <div className="flex flex-col lg:flex-row gap-12 bg-white border border-beige p-6 md:p-10 shadow-sm">
           
           {/* LEFT: Image Gallery */}
@@ -324,10 +326,10 @@ const ProductDetails = () => {
 
           </div>
         </div>
-      </section>
+      </ScrollReveal>
 
       {/* Tab details: descriptions, key benefits, ingredients, shipping */}
-      <section className="max-w-7xl mx-auto px-4 md:px-8">
+      <ScrollReveal variant="fade" delay={0.2} className="max-w-7xl mx-auto px-4 md:px-8">
         <div className="bg-white border border-beige shadow-sm">
           {/* Tab buttons bar */}
           <div className="flex border-b border-beige overflow-x-auto">
@@ -400,11 +402,11 @@ const ProductDetails = () => {
             )}
           </div>
         </div>
-      </section>
+      </ScrollReveal>
 
       {/* Frequently bought together */}
       {frequentlyBoughtTogether.length > 0 && (
-        <section className="max-w-7xl mx-auto px-4 md:px-8">
+        <ScrollReveal variant="slideUp" className="max-w-7xl mx-auto px-4 md:px-8">
           <div className="bg-white border border-beige p-6 md:p-8 shadow-sm space-y-6">
             <h3 className="font-serif text-base font-bold text-primary">Frequently Bought Together</h3>
             <div className="flex flex-col lg:flex-row items-center gap-6">
@@ -456,23 +458,23 @@ const ProductDetails = () => {
 
             </div>
           </div>
-        </section>
+        </ScrollReveal>
       )}
 
       {/* Recommendations carousels */}
       {recommendedItems.length > 0 && (
-        <section className="max-w-7xl mx-auto px-4 md:px-8 space-y-6">
+        <ScrollReveal variant="slideUp" className="max-w-7xl mx-auto px-4 md:px-8 space-y-6">
           <h2 className="font-serif text-lg font-bold text-primary">You May Also Like</h2>
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
             {recommendedItems.map((item) => (
               <ProductCard key={item._id} product={item} />
             ))}
           </div>
-        </section>
+        </ScrollReveal>
       )}
 
       {/* Reviews Checklist */}
-      <section className="max-w-7xl mx-auto px-4 md:px-8">
+      <ScrollReveal variant="fade" className="max-w-7xl mx-auto px-4 md:px-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           
           {/* Reviews list column */}
@@ -570,7 +572,7 @@ const ProductDetails = () => {
           </div>
 
         </div>
-      </section>
+      </ScrollReveal>
 
     </div>
   );

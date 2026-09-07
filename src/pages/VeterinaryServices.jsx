@@ -43,6 +43,7 @@ import {
 } from '../data/veterinaryData.js';
 import { INDIAN_STATES_CITIES } from '../data/adoptionPetsData.js';
 import ServiceAccessLock, { isServicePathLockedForUser } from '../components/ServiceAccessLock.jsx';
+import ScrollReveal from '../components/ScrollReveal.jsx';
 
 export default function VeterinaryServices() {
   const navigate = useNavigate();
@@ -333,7 +334,7 @@ export default function VeterinaryServices() {
     <div className="min-h-screen bg-slate-50 text-slate-800 font-sans pb-20">
 
       {/* ================= 1. HERO SEARCH & MODES SECTION (MATCHING SCREENSHOT 1) ================= */}
-      <section className="relative bg-gradient-to-b from-[#0b3b32] via-[#0f4d42] to-[#0b3b32] text-white pt-10 pb-16 px-4 md:px-8 overflow-hidden">
+      <ScrollReveal variant="fade" className="relative bg-gradient-to-b from-[#0b3b32] via-[#0f4d42] to-[#0b3b32] text-white pt-10 pb-16 px-4 md:px-8 overflow-hidden">
         {/* Ambient Glows */}
         <div className="absolute top-0 right-1/4 w-96 h-96 bg-teal-400/10 rounded-full blur-3xl pointer-events-none" />
         <div className="absolute bottom-0 left-1/4 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
@@ -486,10 +487,10 @@ export default function VeterinaryServices() {
           </div>
 
         </div>
-      </section>
+      </ScrollReveal>
 
       {/* ================= 2. MAIN 2-COLUMN SECTION: FILTERS & DOCTORS DIRECTORY ================= */}
-      <section id="vet-directory-results" className="max-w-7xl mx-auto px-4 md:px-8 py-10">
+      <ScrollReveal variant="slideUp" delay={0.1} id="vet-directory-results" className="max-w-7xl mx-auto px-4 md:px-8 py-10">
         
         {/* Results Section Title */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-6 pb-4 border-b border-slate-200">
@@ -935,10 +936,10 @@ export default function VeterinaryServices() {
           </main>
 
         </div>
-      </section>
+      </ScrollReveal>
 
       {/* ================= 5. INTERACTIVE CLINICAL TABS (MATCHING SCREENSHOT 3) ================= */}
-      <section className="max-w-7xl mx-auto px-4 md:px-8 py-14">
+      <ScrollReveal variant="fade" className="max-w-7xl mx-auto px-4 md:px-8 py-14">
         <div className="text-center space-y-2 mb-8">
           <h2 className="text-2xl sm:text-3xl font-serif font-bold text-slate-900">
             Comprehensive Clinical Services for Every Pet
@@ -1012,10 +1013,10 @@ export default function VeterinaryServices() {
           })()}
 
         </div>
-      </section>
+      </ScrollReveal>
 
       {/* ================= 6. REASSURANCE SECTION (MATCHING SCREENSHOTS 2 & 4) ================= */}
-      <section className="max-w-7xl mx-auto px-4 md:px-8 py-10">
+      <ScrollReveal variant="slideUp" delay={0.2} className="max-w-7xl mx-auto px-4 md:px-8 py-10">
         <div className="bg-gradient-to-r from-[#0b3b32] to-[#00838f] text-white rounded-3xl p-6 sm:p-10 shadow-xl grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
           
           <div className="lg:col-span-8 space-y-4">
@@ -1070,7 +1071,7 @@ export default function VeterinaryServices() {
           </div>
 
         </div>
-      </section>
+      </ScrollReveal>
 
       {/* ================= 7. DOCTOR PROFILE DETAILS MODAL ================= */}
       {showDoctorModal && selectedDoctorForDetails && (

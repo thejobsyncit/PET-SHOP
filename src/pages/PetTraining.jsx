@@ -39,6 +39,7 @@ import {
 } from '../data/trainingData.js';
 import { INDIAN_STATES_CITIES } from '../data/adoptionPetsData.js';
 import ServiceAccessLock, { isServicePathLockedForUser } from '../components/ServiceAccessLock.jsx';
+import ScrollReveal from '../components/ScrollReveal.jsx';
 
 const PetTraining = () => {
   const navigate = useNavigate();
@@ -364,7 +365,7 @@ const PetTraining = () => {
     <div className="bg-[#FAF9F5] min-h-screen text-slate-800 font-sans pb-24">
 
       {/* 1. HERO BANNER & QUICK SEARCH */}
-      <section className="relative bg-gradient-to-r from-[#F59E0B] via-[#FBBF24] to-[#F59E0B] text-slate-900 pt-28 pb-16 px-4 md:px-8 overflow-hidden shadow-inner">
+      <ScrollReveal variant="fade" className="relative bg-gradient-to-r from-[#F59E0B] via-[#FBBF24] to-[#F59E0B] text-slate-900 pt-28 pb-16 px-4 md:px-8 overflow-hidden shadow-inner">
         {/* Decorative Ambient Shapes */}
         <div className="absolute -top-24 -right-24 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl pointer-events-none" />
         <div className="absolute bottom-0 left-12 w-80 h-80 bg-white/20 rounded-full blur-3xl pointer-events-none" />
@@ -497,10 +498,10 @@ const PetTraining = () => {
           </div>
 
         </div>
-      </section>
+      </ScrollReveal>
 
       {/* 2. WHAT HAPPENS WHEN YOUR DOG IS WELL-TRAINED? (BENEFITS 2x2) */}
-      <section className="max-w-7xl mx-auto px-4 md:px-8 py-16 space-y-10">
+      <ScrollReveal variant="slideUp" className="max-w-7xl mx-auto px-4 md:px-8 py-16 space-y-10">
         
         <div className="space-y-2">
           <h2 className="text-2xl md:text-4xl font-serif font-bold text-slate-900">
@@ -551,10 +552,10 @@ const PetTraining = () => {
           </div>
 
         </div>
-      </section>
+      </ScrollReveal>
 
       {/* 3. 4 TRAINING MODULES BADGES & 3-STEP PROCESS */}
-      <section className="bg-white py-16 border-y border-stone-200">
+      <ScrollReveal variant="fade" className="bg-white py-16 border-y border-stone-200">
         <div className="max-w-7xl mx-auto px-4 md:px-8 space-y-12">
           
           <div className="text-center space-y-3 max-w-2xl mx-auto">
@@ -601,10 +602,10 @@ const PetTraining = () => {
           </div>
 
         </div>
-      </section>
+      </ScrollReveal>
 
       {/* 4. WHY DO PET PARENTS CHOOSE PAWORA? (TESTIMONIALS) */}
-      <section className="max-w-7xl mx-auto px-4 md:px-8 py-16 space-y-10">
+      <ScrollReveal variant="slideUp" delay={0.2} className="max-w-7xl mx-auto px-4 md:px-8 py-16 space-y-10">
         <div className="text-center space-y-2 max-w-2xl mx-auto">
           <h2 className="text-2xl md:text-4xl font-serif font-bold text-slate-900">
             Why Do Pet Parents Choose Pawora?
@@ -646,10 +647,11 @@ const PetTraining = () => {
             </div>
           ))}
         </div>
-      </section>
+        </div>
+      </ScrollReveal>
 
       {/* 5. VERIFIED TRAINERS CATALOG WITH LEFT-SIDE SCROLLABLE FILTER */}
-      <section id="training-catalog" className="max-w-7xl mx-auto px-4 md:px-8 py-12 space-y-8">
+      <ScrollReveal variant="fade" id="training-catalog" className="max-w-7xl mx-auto px-4 md:px-8 py-12 space-y-8">
         
         {/* Catalog Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-stone-200 pb-6">
@@ -1011,10 +1013,10 @@ const PetTraining = () => {
           </div>
 
         </div>
-      </section>
+      </ScrollReveal>
 
       {/* 6. GLOBAL BOTTOM ENQUIRY FORM */}
-      <section className="max-w-3xl mx-auto px-4 md:px-6 mt-8">
+      <ScrollReveal variant="fade" className="max-w-3xl mx-auto px-4 md:px-6 mt-8">
         <div className="bg-white rounded-3xl border border-stone-200 shadow-xl overflow-hidden">
           
           <div className="bg-gradient-to-r from-purple-700 to-indigo-800 text-white p-5 md:p-6 text-center space-y-1.5">
@@ -1150,7 +1152,7 @@ const PetTraining = () => {
           </form>
 
         </div>
-      </section>
+      </ScrollReveal>
 
       {/* 7. AUTH-PROTECTED BOOKING MODAL */}
       {showBookingModal && selectedProviderForBooking && (
