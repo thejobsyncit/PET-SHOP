@@ -250,7 +250,7 @@ const AccountDashboard = () => {
 
   if (loading || !user) {
     return (
-      <div className="max-w-7xl mx-auto px-4 md:px-8 py-20 flex flex-col items-center justify-center space-y-4">
+      <div className="max-w-7xl mx-auto px-4 md:px-8 py-10 lg:py-20 flex flex-col items-center justify-center space-y-4">
         <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-accent"></div>
         <p className="text-xs text-gray-500 font-bold uppercase tracking-wider">Loading user profile...</p>
       </div>
@@ -381,7 +381,7 @@ const AccountDashboard = () => {
                         {(order.orderItems || []).map((item, idx) => (
                           <div key={idx} className="flex justify-between items-center gap-4">
                             <div className="flex items-center gap-3">
-                              <img src={item.image || 'https://images.unsplash.com/photo-1543466835-00a7907e9de1?q=80&w=800'} alt={item.name} className="w-10 h-10 object-cover bg-gray-100 border border-beige rounded-md" />
+                              <img src={item.image || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=800&auto=format&fit=crop'} alt={item.name} className="w-10 h-10 object-cover bg-gray-100 border border-beige rounded-md" />
                               <div>
                                 <p className="font-semibold text-primary truncate max-w-xs">{item.name}</p>
                                 <p className="text-[10px] text-gray-400">Qty: {item.quantity} • Price: ₹{item.price}</p>
@@ -405,7 +405,7 @@ const AccountDashboard = () => {
                   ))}
                 </div>
               ) : (
-                <div className="p-10 border border-dashed border-[#d4af37]/40 rounded-2xl text-center space-y-3 bg-[#fdfaf2] shadow-sm">
+                <div className="p-4 lg:p-10 border border-dashed border-[#d4af37]/40 rounded-2xl text-center space-y-3 bg-[#fdfaf2] shadow-sm">
                   <div className="w-14 h-14 bg-[#f8efcd] text-[#0F2E23] rounded-full flex items-center justify-center mx-auto border border-[#e6c968]">
                     <ShoppingBag size={24} />
                   </div>
@@ -479,7 +479,7 @@ const AccountDashboard = () => {
                         {/* Pet Thumbnail & Basic Info */}
                         <div className="md:col-span-4 flex items-start gap-3">
                           <img
-                            src={app.petImage || 'https://images.unsplash.com/photo-1543466835-00a7907e9de1?q=80&w=800'}
+                            src={app.petImage || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=800&auto=format&fit=crop'}
                             alt={app.petName}
                             className="w-16 h-16 rounded-xl object-cover border border-purple-100 shrink-0 bg-purple-50"
                           />
@@ -556,7 +556,7 @@ const AccountDashboard = () => {
                   ))}
                 </div>
               ) : (
-                <div className="p-10 border border-dashed border-purple-200 rounded-2xl text-center space-y-3 bg-purple-50/20">
+                <div className="p-4 lg:p-10 border border-dashed border-purple-200 rounded-2xl text-center space-y-3 bg-purple-50/20">
                   <div className="w-14 h-14 bg-purple-100 text-[#7c56dc] rounded-full flex items-center justify-center mx-auto">
                     <Heart size={28} />
                   </div>
@@ -779,7 +779,7 @@ const AccountDashboard = () => {
                   })}
                 </div>
               ) : (
-                <div className="p-10 border border-dashed border-purple-200 rounded-2xl text-center space-y-3 bg-purple-50/20">
+                <div className="p-4 lg:p-10 border border-dashed border-purple-200 rounded-2xl text-center space-y-3 bg-purple-50/20">
                   <div className="w-14 h-14 bg-purple-100 text-[#7c56dc] rounded-full flex items-center justify-center mx-auto">
                     <ShieldCheck size={28} />
                   </div>
@@ -860,7 +860,7 @@ const AccountDashboard = () => {
                   ))}
                 </div>
               ) : (
-                <div className="p-10 border border-dashed border-blue-200 rounded-2xl text-center space-y-3 bg-blue-50/30 shadow-sm">
+                <div className="p-4 lg:p-10 border border-dashed border-blue-200 rounded-2xl text-center space-y-3 bg-blue-50/30 shadow-sm">
                   <div className="w-14 h-14 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mx-auto border border-blue-200">
                     <ClipboardList size={24} />
                   </div>
@@ -984,7 +984,7 @@ const AccountDashboard = () => {
                   ))}
                 </div>
               ) : (
-                <div className="p-10 border border-dashed border-gray-200 rounded-2xl text-center space-y-3 bg-gray-50/50 shadow-sm">
+                <div className="p-4 lg:p-10 border border-dashed border-gray-200 rounded-2xl text-center space-y-3 bg-gray-50/50 shadow-sm">
                   <div className="w-14 h-14 bg-gray-200 text-gray-600 rounded-full flex items-center justify-center mx-auto border border-gray-300">
                     <MapPin size={24} />
                   </div>
@@ -1081,7 +1081,7 @@ const AccountDashboard = () => {
               </div>
 
               {userTransportEnquiries.length === 0 ? (
-                <div className="text-center py-12 space-y-4 border border-beige p-8 rounded-2xl">
+                <div className="text-center py-6 lg:py-12 space-y-4 border border-beige p-8 rounded-2xl">
                   <div className="w-14 h-14 rounded-full bg-emerald-50 text-[#0F2E23] flex items-center justify-center mx-auto text-2xl">
                     🚐
                   </div>

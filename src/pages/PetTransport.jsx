@@ -614,7 +614,7 @@ const PetTransport = () => {
       </ScrollReveal>
 
       {/* 2. TYPES OF TRANSPORTATION (ROAD, RAIL, SHIP, AIR) */}
-      <ScrollReveal variant="fade" className="bg-white py-16 border-b border-stone-200">
+      <ScrollReveal variant="fade" className="bg-white py-8 lg:py-16 border-b border-stone-200">
         <div className="max-w-7xl mx-auto px-4 md:px-8 space-y-12">
           
           <div className="text-center space-y-3 max-w-2xl mx-auto">
@@ -691,7 +691,7 @@ const PetTransport = () => {
       </ScrollReveal>
 
       {/* 4. HOW WE MOVE YOUR PET (4 STEPS) */}
-      <ScrollReveal variant="fade" className="max-w-7xl mx-auto px-4 md:px-8 py-16 space-y-12">
+      <ScrollReveal variant="fade" className="max-w-7xl mx-auto px-4 md:px-8 py-8 lg:py-16 space-y-12">
         <div className="text-center space-y-3 max-w-2xl mx-auto">
           <span className="text-[11px] font-extrabold uppercase tracking-widest text-[#13274F] bg-sky-50 px-3 py-1 rounded-full border border-sky-100">
             Seamless Workflow
@@ -758,7 +758,7 @@ const PetTransport = () => {
       </ScrollReveal>
 
       {/* 4. PROVIDERS CATALOG & LEFT-SIDE FILTERS */}
-      <ScrollReveal variant="fade" id="transport-catalog" className="max-w-7xl mx-auto px-4 md:px-8 py-16 space-y-8">
+      <ScrollReveal variant="fade" id="transport-catalog" className="max-w-7xl mx-auto px-4 md:px-8 py-8 lg:py-16 space-y-8">
         
         {/* Section Header with Comparison Action Controls */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-end border-b border-stone-200 pb-6 gap-4">
@@ -973,7 +973,7 @@ const PetTransport = () => {
           <div className="lg:col-span-9 xl:col-span-9 space-y-6">
             
             {filteredProviders.length === 0 ? (
-              <div className="bg-white rounded-2xl p-12 text-center border border-stone-200 space-y-4">
+              <div className="bg-white rounded-2xl p-4 lg:p-12 text-center border border-stone-200 space-y-4">
                 <div className="w-16 h-16 rounded-full bg-stone-100 mx-auto flex items-center justify-center text-3xl">
                   🚐
                 </div>
@@ -1500,7 +1500,7 @@ const PetTransport = () => {
 
             {/* Modal Content */}
             {comparedProviders.length === 0 ? (
-              <div className="p-10 text-center space-y-5">
+              <div className="p-4 lg:p-10 text-center space-y-5">
                 <div className="w-16 h-16 bg-amber-50 rounded-full flex items-center justify-center mx-auto text-amber-600 border border-amber-200">
                   <Scale size={32} />
                 </div>

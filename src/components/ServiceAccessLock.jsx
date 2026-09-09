@@ -65,8 +65,8 @@ const ServiceAccessLock = ({ serviceName = 'Pet Service', attemptedPath = '' }) 
   const isAdoptionProvider = providerCategory.toLowerCase().includes('adoption');
 
   return (
-    <div className="min-h-[75vh] flex items-center justify-center px-4 py-16 bg-[#FAF9F5]">
-      <div className="max-w-2xl w-full bg-white border border-slate-200 rounded-3xl p-8 sm:p-12 shadow-xl text-center space-y-6 relative overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+    <div className="min-h-[75vh] flex items-center justify-center px-4 py-8 lg:py-16 bg-[#FAF9F5]">
+      <div className="max-w-2xl w-full bg-white border border-slate-200 rounded-3xl p-8 sm:p-4 lg:p-12 shadow-xl text-center space-y-6 relative overflow-hidden animate-in fade-in zoom-in-95 duration-200">
         
         {/* Ambient Top Glow */}
         <div className="absolute top-0 left-0 right-0 h-2 bg-gradient-to-r from-amber-400 via-rose-500 to-amber-400"></div>

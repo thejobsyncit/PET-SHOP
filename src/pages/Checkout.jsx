@@ -3,6 +3,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { CreditCard, Truck, CircleCheck, ChevronRight, ShoppingBag, ClipboardList } from 'lucide-react';
 import { clearCartAPI } from '../store/slices/cartSlice.js';
+import { fetchProducts } from '../store/slices/productSlice.js';
 import { apiRequest } from '../services/api.js';
 import toast from 'react-hot-toast';
 
@@ -50,7 +51,7 @@ const Checkout = () => {
 
   if (items.length === 0 && !confirmedOrder) {
     return (
-      <div className="max-w-7xl mx-auto px-4 md:px-8 py-20 flex flex-col items-center justify-center space-y-4">
+      <div className="max-w-7xl mx-auto px-4 md:px-8 py-10 lg:py-20 flex flex-col items-center justify-center space-y-4">
         <ShoppingBag size={48} className="text-gray-300" />
         <h2 className="font-serif text-lg text-primary">Your cart is empty</h2>
         <button onClick={() => navigate('/shop')} className="btn-premium py-2 text-xs">
@@ -114,39 +115,23 @@ const Checkout = () => {
     };
 
     try {
-      // Simulate Razorpay Gateway Architecture
+      // Allow Guest Checkout to hit the backend API (since backend now supports it)
       if (paymentMethod !== 'Cash on Delivery') {
         toast('Opening Payment Gateway...', { icon: '💳' });
         await new Promise(resolve => setTimeout(resolve, 1500)); // Simulate gateway latency
         orderPayload.transactionId = `PAY-${Date.now()}`;
       }
 
-      const token = localStorage.getItem('pawora_token');
-      let data;
-      if (token) {
-        data = await apiRequest('/orders', {
-          method: 'POST',
-          body: JSON.stringify(orderPayload)
-        });
-      } else {
-        // Fallback for guest checkout simulation
-        toast('Checking out as Guest...', { icon: '👤' });
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        data = {
-          success: true,
-          order: {
-            _id: `GUEST-${Date.now()}`,
-            ...orderPayload,
-            shippingStatus: 'Pending',
-            trackingNumber: `TRK-${Math.floor(100000 + Math.random() * 900000)}`,
-            createdAt: new Date().toISOString()
-          }
-        };
-      }
+      const data = await apiRequest('/orders', {
+        method: 'POST',
+        body: JSON.stringify(orderPayload)
+      });
 
       if (data.success) {
         setConfirmedOrder(data.order);
         dispatch(clearCartAPI());
+        // Sync products stock to reflect purchases immediately
+        dispatch(fetchProducts());
         setStep(4);
         toast.success('Order placed successfully!');
       }

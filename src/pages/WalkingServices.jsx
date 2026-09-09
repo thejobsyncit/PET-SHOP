@@ -408,7 +408,7 @@ const WalkingServices = () => {
             <div className="lg:col-span-4 flex justify-center lg:justify-end">
               <div className="relative w-64 h-64 md:w-72 md:h-72">
                 <img
-                  src="https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?q=80&w=800"
+                  src="https://images.unsplash.com/photo-1552053831-71594a27632d?q=80&w=800&auto=format&fit=crop"
                   alt="Dog On Leash In Sunny Park"
                   className="w-full h-full object-cover rounded-3xl shadow-2xl border-4 border-white/80 filter drop-shadow-xl"
                 />
@@ -845,7 +845,7 @@ const WalkingServices = () => {
                 })}
               </div>
             ) : (
-              <div className="text-center py-16 bg-white rounded-3xl border border-purple-100 p-8 space-y-4">
+              <div className="text-center py-8 lg:py-16 bg-white rounded-3xl border border-purple-100 p-8 space-y-4">
                 <div className="w-16 h-16 bg-purple-50 rounded-full flex items-center justify-center mx-auto text-[#7c56dc]">
                   <Footprints size={28} />
                 </div>
@@ -871,7 +871,7 @@ const WalkingServices = () => {
       {/* =========================================================================
           4. "WHY DAILY WALKS ARE ESSENTIAL" (Educational Cards)
          ========================================================================= */}
-      <ScrollReveal variant="fade" className="max-w-7xl mx-auto px-4 md:px-8 py-16">
+      <ScrollReveal variant="fade" className="max-w-7xl mx-auto px-4 md:px-8 py-8 lg:py-16">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
           
           {/* Left Column: Heading, Text & Active Dog Photo */}
@@ -890,7 +890,7 @@ const WalkingServices = () => {
             {/* Photo */}
             <div className="aspect-[4/3] rounded-3xl overflow-hidden shadow-xl border border-purple-100 bg-slate-100">
               <img
-                src="https://images.unsplash.com/photo-1548199973-03cce0bbc87b?q=80&w=800"
+                src="https://images.unsplash.com/photo-1535930891776-0c2dfb7fda1a?q=80&w=800&auto=format&fit=crop"
                 alt="Two Happy Dogs Walking in Park"
                 className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
               />
@@ -952,7 +952,7 @@ const WalkingServices = () => {
       {/* =========================================================================
           5. "PAWORA SAFEWALK 3-STEP GUARANTEE"
          ========================================================================= */}
-      <ScrollReveal variant="fade" className="bg-white border-y border-purple-100 py-16 px-4 md:px-8">
+      <ScrollReveal variant="fade" className="bg-white border-y border-purple-100 py-8 lg:py-16 px-4 md:px-8">
         <div className="max-w-7xl mx-auto text-center space-y-12">
           
           <div className="max-w-2xl mx-auto space-y-2">

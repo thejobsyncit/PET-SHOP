@@ -49,28 +49,28 @@ export const TRANSPORT_STEPS = [
     title: 'Fill Up the Data',
     desc: 'Tell us about your beloved pet, travel origin, destination, preferred dates, and specific comfort requirements by filling out our quick relocation form.',
     icon: '📋',
-    image: 'https://images.unsplash.com/photo-1587300003388-59208cc962cb?q=80&w=800'
+    image: 'https://images.unsplash.com/photo-1517331156700-3c241d2b4d83?q=80&w=800&auto=format&fit=crop'
   },
   {
     step: 'STEP 02',
     title: 'Prepare the Movement',
     desc: 'Our pet relocation coordinator connects with you to design a customized travel plan, crate sizing, vehicle sanitization, and route timeline.',
     icon: '⏱️',
-    image: 'https://images.unsplash.com/photo-1548199973-03cce0bbc87b?q=80&w=800'
+    image: 'https://images.unsplash.com/photo-1589924691995-400dc9ecc119?q=80&w=800&auto=format&fit=crop'
   },
   {
     step: 'STEP 03',
     title: 'Start the Paperwork',
     desc: 'We handle all necessary vet health certifications, vaccination verifications, fit-to-travel permits, and airline/railway authority clearances.',
     icon: '📑',
-    image: 'https://images.unsplash.com/photo-1628009368231-7bb7cfcb0def?q=80&w=800'
+    image: 'https://images.unsplash.com/photo-1544568100-eba616a6ce76?q=80&w=800&auto=format&fit=crop'
   },
   {
     step: 'STEP 04',
     title: 'Smooth Delivery',
     desc: 'From doorstep pickup in sanitized climate-controlled vehicles to real-time GPS tracking and safe doorstep delivery with happy reunions.',
     icon: '🚚',
-    image: 'https://images.unsplash.com/photo-1534361960057-19889db9621e?q=80&w=800'
+    image: 'https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?q=80&w=800&auto=format&fit=crop'
   }
 ];
 
@@ -100,7 +100,7 @@ export const INITIAL_TRANSPORT_PROVIDERS = [
     amenities: ['100% Climate Controlled AC', 'Live WhatsApp & GPS Tracking', 'Vet Onboard Available', 'IATA Approved Crate Included', 'Doorstep Pickup & Drop', 'Hydration Stops Every 3 Hrs'],
     phone: '+91 8306-944-422',
     whatsapp: '+91 8306-944-422',
-    image: 'https://images.unsplash.com/photo-1544568100-847a948585b9?q=80&w=800',
+    image: 'https://images.unsplash.com/photo-1548199973-03cce0bbc87b?q=80&w=800&auto=format&fit=crop',
     packages: [
       {
         id: 'pkg-trp-101-1',
@@ -150,7 +150,7 @@ export const INITIAL_TRANSPORT_PROVIDERS = [
     amenities: ['100% Climate Controlled AC', 'Live GPS Tracking', 'Attendant Escort', 'Sanitized Bedding & Kennels', 'Doorstep Pickup & Drop'],
     phone: '+91 8306-944-422',
     whatsapp: '+91 8306-944-422',
-    image: 'https://images.unsplash.com/photo-1518717758536-85ae29035b6d?q=80&w=800',
+    image: 'https://images.unsplash.com/photo-1517849845537-4d257902454a?q=80&w=800&auto=format&fit=crop',
     packages: [
       {
         id: 'pkg-trp-102-1',
@@ -200,7 +200,7 @@ export const INITIAL_TRANSPORT_PROVIDERS = [
     amenities: ['IATA Approved Flight Crates Provided', '24/7 Veterinary On-Call', 'Full Customs & Health Cert Paperwork', 'Live Video Calls with Pet Parent', 'Doorstep Delivery'],
     phone: '+91 8306-944-422',
     whatsapp: '+91 8306-944-422',
-    image: 'https://images.unsplash.com/photo-1583337130417-3346a1be7dee?q=80&w=800',
+    image: 'https://images.unsplash.com/photo-1534361960057-19889db9621e?q=80&w=800&auto=format&fit=crop',
     packages: [
       {
         id: 'pkg-trp-103-1',
@@ -250,7 +250,7 @@ export const INITIAL_TRANSPORT_PROVIDERS = [
     amenities: ['Sea-Sickness Monitoring', 'Life Jackets for Dogs', 'Shaded Deck Cabins', 'Live WhatsApp Updates', 'Sanitized Kennels'],
     phone: '+91 8306-944-422',
     whatsapp: '+91 8306-944-422',
-    image: 'https://images.unsplash.com/photo-1548199973-03cce0bbc87b?q=80&w=800',
+    image: 'https://images.unsplash.com/photo-1601758228041-f3b2795255f1?q=80&w=800&auto=format&fit=crop',
     packages: [
       {
         id: 'pkg-trp-104-1',
@@ -293,7 +293,7 @@ export const INITIAL_TRANSPORT_PROVIDERS = [
     amenities: ['100% Climate Controlled', 'Live Location Sharing', 'Trained Handler Companion', 'Sanitized Bedding', 'Scheduled Food/Water'],
     phone: '+91 8306-944-422',
     whatsapp: '+91 8306-944-422',
-    image: 'https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?q=80&w=800',
+    image: 'https://images.unsplash.com/photo-1587300003388-59208cc962cb?q=80&w=800&auto=format&fit=crop',
     packages: [
       {
         id: 'pkg-trp-105-1',
@@ -336,7 +336,7 @@ export const INITIAL_TRANSPORT_PROVIDERS = [
     amenities: ['Vet Check on Departure', 'Climate Controlled', 'Live WhatsApp Updates', 'Free Crate Sanitization', 'Food & Hydration Care'],
     phone: '+91 8306-944-422',
     whatsapp: '+91 8306-944-422',
-    image: 'https://images.unsplash.com/photo-1535294435445-d7249524ef2e?q=80&w=800',
+    image: 'https://images.unsplash.com/photo-1552053831-71594a27632d?q=80&w=800&auto=format&fit=crop',
     packages: [
       {
         id: 'pkg-trp-106-1',
@@ -379,7 +379,7 @@ export const INITIAL_TRANSPORT_PROVIDERS = [
     amenities: ['100% AC Climate Control', 'Live GPS Tracking', 'Attendant Feeding Support', 'IATA Flight Crates', 'Doorstep Pickup & Drop'],
     phone: '+91 8306-944-422',
     whatsapp: '+91 8306-944-422',
-    image: 'https://images.unsplash.com/photo-1541599540903-216a46ca1dc0?q=80&w=800',
+    image: 'https://images.unsplash.com/photo-1535930891776-0c2dfb7fda1a?q=80&w=800&auto=format&fit=crop',
     packages: [
       {
         id: 'pkg-trp-107-1',
@@ -422,7 +422,7 @@ export const INITIAL_TRANSPORT_PROVIDERS = [
     amenities: ['100% Climate Control', 'Live Location Updates', 'Sanitized Crates', 'Food & Hydration Care', 'Emergency Vet Network'],
     phone: '+91 8306-944-422',
     whatsapp: '+91 8306-944-422',
-    image: 'https://images.unsplash.com/photo-1517849845537-4d257902454a?q=80&w=800',
+    image: 'https://images.unsplash.com/photo-1589924691995-400dc9ecc119?q=80&w=800&auto=format&fit=crop',
     packages: [
       {
         id: 'pkg-trp-108-1',
@@ -533,7 +533,7 @@ export const saveOrUpdateTransportService = (serviceData, user) => {
     email: userEmail || serviceData.email || 'safepet@pawora.com',
     providerEmail: userEmail || 'safepet@pawora.com',
     providerUserId: userId,
-    image: serviceData.image || 'https://images.unsplash.com/photo-1541599540903-216a46ca1dc0?q=80&w=800',
+    image: serviceData.image || 'https://images.unsplash.com/photo-1544568100-eba616a6ce76?q=80&w=800&auto=format&fit=crop',
     packages: serviceData.packages || [
       {
         id: 'pkg-default-1',

@@ -130,7 +130,7 @@ const ProductDetails = () => {
 
   if (loading || !product) {
     return (
-      <div className="max-w-7xl mx-auto px-4 md:px-8 py-20 flex flex-col items-center justify-center space-y-4">
+      <div className="max-w-7xl mx-auto px-4 md:px-8 py-10 lg:py-20 flex flex-col items-center justify-center space-y-4">
         <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-accent"></div>
         <p className="text-xs text-gray-500 font-bold uppercase tracking-wider">Curating product details...</p>
       </div>
@@ -159,7 +159,7 @@ const ProductDetails = () => {
 
       {/* Main product pane */}
       <ScrollReveal variant="slideUp" className="max-w-7xl mx-auto px-4 md:px-8">
-        <div className="flex flex-col lg:flex-row gap-12 bg-white border border-beige p-6 md:p-10 shadow-sm">
+        <div className="flex flex-col lg:flex-row gap-12 bg-white border border-beige p-6 md:p-4 lg:p-10 shadow-sm">
           
           {/* LEFT: Image Gallery */}
           <div className="w-full lg:w-1/2 space-y-4">

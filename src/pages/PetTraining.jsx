@@ -501,7 +501,7 @@ const PetTraining = () => {
       </ScrollReveal>
 
       {/* 2. WHAT HAPPENS WHEN YOUR DOG IS WELL-TRAINED? (BENEFITS 2x2) */}
-      <ScrollReveal variant="slideUp" className="max-w-7xl mx-auto px-4 md:px-8 py-16 space-y-10">
+      <ScrollReveal variant="slideUp" className="max-w-7xl mx-auto px-4 md:px-8 py-8 lg:py-16 space-y-10">
         
         <div className="space-y-2">
           <h2 className="text-2xl md:text-4xl font-serif font-bold text-slate-900">
@@ -555,7 +555,7 @@ const PetTraining = () => {
       </ScrollReveal>
 
       {/* 3. 4 TRAINING MODULES BADGES & 3-STEP PROCESS */}
-      <ScrollReveal variant="fade" className="bg-white py-16 border-y border-stone-200">
+      <ScrollReveal variant="fade" className="bg-white py-8 lg:py-16 border-y border-stone-200">
         <div className="max-w-7xl mx-auto px-4 md:px-8 space-y-12">
           
           <div className="text-center space-y-3 max-w-2xl mx-auto">
@@ -605,7 +605,7 @@ const PetTraining = () => {
       </ScrollReveal>
 
       {/* 4. WHY DO PET PARENTS CHOOSE PAWORA? (TESTIMONIALS) */}
-      <ScrollReveal variant="slideUp" delay={0.2} className="max-w-7xl mx-auto px-4 md:px-8 py-16 space-y-10">
+      <ScrollReveal variant="slideUp" delay={0.2} className="max-w-7xl mx-auto px-4 md:px-8 py-8 lg:py-16 space-y-10">
         <div className="text-center space-y-2 max-w-2xl mx-auto">
           <h2 className="text-2xl md:text-4xl font-serif font-bold text-slate-900">
             Why Do Pet Parents Choose Pawora?
@@ -650,7 +650,7 @@ const PetTraining = () => {
       </ScrollReveal>
 
       {/* 5. VERIFIED TRAINERS CATALOG WITH LEFT-SIDE SCROLLABLE FILTER */}
-      <ScrollReveal variant="fade" id="training-catalog" className="max-w-7xl mx-auto px-4 md:px-8 py-12 space-y-8">
+      <ScrollReveal variant="fade" id="training-catalog" className="max-w-7xl mx-auto px-4 md:px-8 py-6 lg:py-12 space-y-8">
         
         {/* Catalog Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-stone-200 pb-6">
@@ -851,7 +851,7 @@ const PetTraining = () => {
           <div className="lg:col-span-9 space-y-6">
             
             {filteredProviders.length === 0 ? (
-              <div className="bg-white rounded-3xl p-12 text-center space-y-4 border border-stone-200 shadow-sm">
+              <div className="bg-white rounded-3xl p-4 lg:p-12 text-center space-y-4 border border-stone-200 shadow-sm">
                 <div className="w-16 h-16 rounded-full bg-amber-100 text-amber-700 flex items-center justify-center mx-auto text-2xl">
                   🔍
                 </div>

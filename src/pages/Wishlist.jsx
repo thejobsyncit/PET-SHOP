@@ -59,7 +59,7 @@ const Wishlist = () => {
           ))}
         </div>
       ) : items.length === 0 ? (
-        <div className="text-center py-20 bg-white border border-beige max-w-xl mx-auto space-y-6 shadow-sm">
+        <div className="text-center py-10 lg:py-20 bg-white border border-beige max-w-xl mx-auto space-y-6 shadow-sm">
           <Heart size={48} className="mx-auto text-gray-300 animate-pulse" />
           <div className="space-y-1">
             <h3 className="font-serif text-base font-bold text-primary">Your wishlist is empty</h3>

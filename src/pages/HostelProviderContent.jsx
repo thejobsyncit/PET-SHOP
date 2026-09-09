@@ -5,7 +5,7 @@ import toast from 'react-hot-toast';
 const HostelProviderContent = ({ activeTab }) => {
   const [profile, setProfile] = useState({
     id: 'my-hostel-profile',
-    avatar: 'https://images.unsplash.com/photo-1548199973-03cce0bbc87b?q=80&w=400',
+    avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?q=80&w=800&auto=format&fit=crop',
     name: 'Happy Paws Pet Resort',
     registration: 'HOSTEL-2023-KA-102',
     certifications: 'Certified Boarding Facility (IBK)',

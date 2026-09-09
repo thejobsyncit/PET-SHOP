@@ -22,31 +22,31 @@ const Home = () => {
     {
       title: 'DOGS',
       desc: 'Nutritious kibble, organic treats, orthopedic beds, and luxury training gear.',
-      img: 'https://images.unsplash.com/photo-1548199973-03cce0bbc87b?q=80&w=800&auto=format&fit=crop',
+      img: 'https://images.unsplash.com/photo-1552053831-71594a27632d?q=80&w=800&auto=format&fit=crop',
       path: '/shop?petType=dogs'
     },
     {
       title: 'BIRDS',
       desc: 'Gourmet seed mixes, natural wood perches, wrought-iron cages, and vitamins.',
-      img: 'https://images.unsplash.com/photo-1452570053594-1b985d6ea890?q=80&w=800&auto=format&fit=crop',
+      img: 'https://images.unsplash.com/photo-1535930891776-0c2dfb7fda1a?q=80&w=800&auto=format&fit=crop',
       path: '/shop?petType=birds'
     },
     {
       title: 'REPTILES',
       desc: 'Glass terrariums, desert UVB bulbs, organic coco substrates, and calcium powders.',
-      img: 'https://images.unsplash.com/photo-1542625331-b72c87806d21?q=80&w=800&auto=format&fit=crop',
+      img: 'https://images.unsplash.com/photo-1589924691995-400dc9ecc119?q=80&w=800&auto=format&fit=crop',
       path: '/shop?petType=reptiles'
     },
     {
       title: 'FISH & AQUATICS',
       desc: 'Rimless low-iron tanks, external power filters, LED light panels, and live plants.',
-      img: 'https://images.unsplash.com/photo-1544551763-46a013bb70d5?q=80&w=800&auto=format&fit=crop',
+      img: 'https://images.unsplash.com/photo-1524704654690-b56c05c78a00?q=80&w=800&auto=format&fit=crop',
       path: '/shop?petType=fish'
     },
     {
       title: 'PHARMACY',
       desc: 'Veterinary prescription support, joint formulas, skin lotions, and digestive drops.',
-      img: 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?q=80&w=800&auto=format&fit=crop',
+      img: 'https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?q=80&w=800&auto=format&fit=crop',
       path: '/pharmacy'
     }
   ];
@@ -113,7 +113,7 @@ const Home = () => {
       {/* 2. D2C TRUST FEATURES */}
       <ScrollReveal variant="slideUp">
         <section className="max-w-7xl mx-auto px-4 md:px-8 mt-[-30px] relative z-20">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 bg-white rounded-2xl p-8 shadow-premium-soft">
+          <div className="grid grid-cols-1 md:grid-cols-1 md:grid-cols-3 gap-8 bg-white rounded-2xl p-8 shadow-premium-soft">
             <div className="flex items-start gap-4">
               <div className="p-3 bg-secondary text-primary shrink-0">
                 <ShieldCheck size={24} />
@@ -154,7 +154,7 @@ const Home = () => {
             <p className="text-xs text-gray-500 leading-relaxed">Explore customized health, diet, and enrichment categories for dogs, birds, reptiles, and aquatics.</p>
           </div>
   
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-1 md:grid-cols-2 lg:grid-cols-1 md:grid-cols-2 md:grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-6">
             {categoriesList.map((cat, idx) => (
               <div 
                 key={cat.title}
@@ -191,7 +191,7 @@ const Home = () => {
 
       {/* 4. SHOP BY PET (DYNAMIC TABS DISCOVERY) */}
       <ScrollReveal variant="slideUp">
-        <section className="bg-sand border-y border-beige py-20">
+        <section className="bg-sand border-y border-beige py-10 lg:py-20">
           <div className="max-w-7xl mx-auto px-4 md:px-8 space-y-10">
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
               <div className="space-y-2">
@@ -219,13 +219,13 @@ const Home = () => {
   
             {/* Dynamic grid container */}
             {loading ? (
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 md:grid-cols-1 md:grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 {[1, 2, 3, 4].map(idx => (
                   <div key={idx} className="bg-white border border-beige h-[380px] animate-pulse"></div>
                 ))}
               </div>
             ) : tabProducts.length > 0 ? (
-              <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-1 md:grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 {tabProducts.map((product) => (
                   <ProductCard key={product._id} product={product} />
                 ))}
@@ -249,13 +249,13 @@ const Home = () => {
           </div>
   
           {loading ? (
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-1 md:grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               {[1, 2, 3, 4].map(idx => (
                 <div key={idx} className="bg-white border border-beige h-[380px] animate-pulse"></div>
               ))}
             </div>
           ) : (
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-1 md:grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               {bestSellers.map((product) => (
                 <ProductCard key={product._id} product={product} />
               ))}
@@ -266,9 +266,9 @@ const Home = () => {
 
       {/* 6. EDITORIAL LIFESTYLE BLOCK */}
       <ScrollReveal variant="fade">
-        <section className="bg-gradient-premium text-sand py-24 px-6 md:px-12 relative overflow-hidden">
+        <section className="bg-gradient-premium text-sand py-24 px-6 md:px-4 lg:px-4 lg:px-12 relative overflow-hidden">
           <div className="absolute top-0 right-0 w-96 h-96 bg-gold/5 blur-[100px] rounded-full pointer-events-none"></div>
-          <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 items-center relative z-10">
+          <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-1 md:grid-cols-2 gap-12 items-center relative z-10">
             <div className="space-y-6">
               <span className="text-xs font-semibold tracking-widest text-accent uppercase">
                 PAWORA BRAND CONCEPT
@@ -292,7 +292,7 @@ const Home = () => {
             {/* Editorial images right */}
             <div className="aspect-[4/3] bg-white/5 border border-white/10 relative overflow-hidden">
               <img 
-                src="https://images.unsplash.com/photo-1666777247416-ee7a95235559?q=80&w=800" 
+                src="https://images.unsplash.com/photo-1517849845537-4d257902454a?q=80&w=800&auto=format&fit=crop" 
                 alt="Premium pet life care" 
                 className="w-full h-full object-cover filter brightness-[0.85]"
               />
@@ -317,27 +317,27 @@ const Home = () => {
             </Link>
           </div>
   
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-1 md:grid-cols-3 gap-8">
             {[
               {
                 title: 'Complete Guide to Creating a Bearded Dragon Habitat',
                 slug: 'bearded-dragon-habitat-guide',
                 summary: 'Everything you need to know about terrarium sizes, UVB lighting, heat, and substrates to keep your bearded dragon healthy.',
-                img: 'https://images.unsplash.com/photo-1542625331-b72c87806d21?q=80&w=800&auto=format&fit=crop',
+                img: 'https://images.unsplash.com/photo-1534361960057-19889db9621e?q=80&w=800&auto=format&fit=crop',
                 tag: 'REPTILES'
               },
               {
                 title: 'Best Nutrition Practices for Dogs: Feed for Longevity',
                 slug: 'best-nutrition-practices-dogs',
                 summary: 'A vet-backed guide on protein ratios, wet vs dry food, feeding schedules, and identifying high-quality kibble ingredients.',
-                img: 'https://images.unsplash.com/photo-1589924691995-400dc9ecc119?q=80&w=600',
+                img: 'https://images.unsplash.com/photo-1601758228041-f3b2795255f1?q=80&w=800&auto=format&fit=crop',
                 tag: 'DOGS'
               },
               {
                 title: 'Beginner’s Guide to Aquarium Care and Water Chemistry',
                 slug: 'beginners-guide-aquarium-care',
                 summary: 'Demystifying the Nitrogen Cycle, testing pH, and maintaining a thriving freshwater fish tank.',
-                img: 'https://images.unsplash.com/photo-1544551763-46a013bb70d5?q=80&w=800&auto=format&fit=crop',
+                img: 'https://images.unsplash.com/photo-1587300003388-59208cc962cb?q=80&w=800&auto=format&fit=crop',
                 tag: 'FISH'
               }
             ].map((blog) => (

@@ -853,7 +853,7 @@ const Login = () => {
   );
 
   return (
-    <div className="min-h-[85vh] flex items-center justify-center py-12 px-4 bg-gradient-to-b from-[#f0f5fa] via-secondary to-[#f8fafc]">
+    <div className="min-h-[85vh] flex items-center justify-center py-6 lg:py-12 px-4 bg-gradient-to-b from-[#f0f5fa] via-secondary to-[#f8fafc]">
       <div className="w-full max-w-lg bg-white border border-slate-200 rounded-2xl shadow-xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
 
         {/* Top Header Branding Banner */}

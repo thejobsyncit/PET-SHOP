@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
-import { Search, Heart, ShoppingBag, Menu, X, ChevronDown, User, LogOut, MessageSquare, PawPrint, Briefcase, Lock, ShieldAlert, Home, Scissors, Footprints, Truck, GraduationCap, Stethoscope } from 'lucide-react';
+import { Search, Heart, ShoppingBag, ShoppingCart, Store, Menu, X, ChevronDown, User, LogOut, MessageSquare, PawPrint, Briefcase, Lock, ShieldAlert, Home, Scissors, Footprints, Truck, GraduationCap, Stethoscope } from 'lucide-react';
 import SearchOverlay from './SearchOverlay.jsx';
 import CartDrawer from './CartDrawer.jsx';
 import { logout } from '../store/slices/authSlice.js';
@@ -167,13 +167,13 @@ const Navbar = () => {
             {/* Left: Brand Logo */}
             <Link
               to="/"
-              className="mr-4 flex items-center font-extrabold tracking-tight text-2xl md:text-3xl"
+              className="mr-2 md:mr-4 flex items-center font-extrabold tracking-tight text-[18px] md:text-3xl whitespace-nowrap"
             >
               {/* J-Animal Logo (True Transparent Background) */}
               <img 
                 src="/logo.png" 
                 alt="Josh Pet Hub Logo" 
-                className="h-10 md:h-12 w-auto object-contain mr-2" 
+                className="h-8 md:h-12 w-auto object-contain mr-1 md:mr-2" 
               />
               
               {/* JOSH PETS HUB (Uniform White) */}
@@ -395,7 +395,7 @@ const Navbar = () => {
             </div>
 
             {/* Right Side Actions: Search, Chat, Wishlist, Cart + Login / Signup Buttons */}
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-2.5 md:space-x-4">
 
               {/* Search Icon */}
               <button
@@ -432,10 +432,10 @@ const Navbar = () => {
                 )}
               </Link>
 
-              {/* Cart Icon */}
+              {/* Cart Icon (Hidden on mobile since it's in bottom nav) */}
               <button
                 onClick={() => setIsCartOpen(true)}
-                className="p-1 text-white hover:text-accent-light transition relative cursor-pointer"
+                className="hidden md:block p-1 text-white hover:text-accent-light transition relative cursor-pointer"
                 title="Open Cart"
               >
                 <ShoppingBag size={18} />
@@ -641,6 +641,51 @@ const Navbar = () => {
           </div>
         </div>
       )}
+
+      {/* MOBILE BOTTOM NAVIGATION BAR (App-like feel) */}
+      <div className="lg:hidden fixed bottom-0 left-0 w-full bg-white border-t border-slate-200 z-50 pb-[env(safe-area-inset-bottom)] shadow-[0_-4px_20px_rgba(0,0,0,0.05)]">
+        <div className="flex justify-around items-center h-16 px-2">
+          <Link to="/" className={`flex flex-col items-center justify-center w-full h-full gap-1 ${isActive('/') ? 'text-primary' : 'text-slate-400'}`}>
+            <Home size={20} className={isActive('/') ? 'fill-primary/20' : ''} />
+            <span className="text-[10px] font-bold">Home</span>
+          </Link>
+          
+          <Link to="/shop" className={`flex flex-col items-center justify-center w-full h-full gap-1 ${isActive('/shop') ? 'text-primary' : 'text-slate-400'}`}>
+            <Store size={20} className={isActive('/shop') ? 'fill-primary/20' : ''} />
+            <span className="text-[10px] font-bold">Shop</span>
+          </Link>
+
+          {/* Center Floating Cart Button */}
+          <button 
+            onClick={() => setIsCartOpen(true)}
+            className="relative flex flex-col items-center justify-center shrink-0 -mt-8 bg-primary text-white w-[60px] h-[60px] rounded-full shadow-[0_8px_25px_rgba(0,0,0,0.15)] border-[5px] border-white active:scale-95 transition-transform z-50"
+          >
+            <ShoppingCart size={22} className="relative z-10" />
+            {cartItems.length > 0 && (
+              <span className="absolute top-0 right-0 bg-accent text-primary text-[10px] font-bold w-4 h-4 flex items-center justify-center rounded-full border border-white z-20">
+                {cartItems.reduce((sum, i) => sum + i.quantity, 0)}
+              </span>
+            )}
+          </button>
+
+          <Link to="/pets" className={`flex flex-col items-center justify-center w-full h-full gap-1 ${isActive('/pets') ? 'text-primary' : 'text-slate-400'}`}>
+            <PawPrint size={20} className={isActive('/pets') ? 'fill-primary/20' : ''} />
+            <span className="text-[10px] font-bold">Pets</span>
+          </Link>
+
+          {isAuthenticated ? (
+            <Link to={user?.role === 'SERVICE_PROVIDER' ? '/provider-dashboard' : '/account'} className={`flex flex-col items-center justify-center w-full h-full gap-1 ${isActive('/account') || isActive('/provider-dashboard') ? 'text-primary' : 'text-slate-400'}`}>
+              <User size={20} className={isActive('/account') || isActive('/provider-dashboard') ? 'fill-primary/20' : ''} />
+              <span className="text-[10px] font-bold">Profile</span>
+            </Link>
+          ) : (
+            <Link to="/login" className="flex flex-col items-center justify-center w-full h-full gap-1 text-slate-400">
+              <User size={20} />
+              <span className="text-[10px] font-bold">Login</span>
+            </Link>
+          )}
+        </div>
+      </div>
 
       {/* Global Overlays */}
       <SearchOverlay isOpen={isSearchOpen} onClose={() => setIsSearchOpen(false)} />

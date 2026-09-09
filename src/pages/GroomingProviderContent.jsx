@@ -5,7 +5,7 @@ import toast from 'react-hot-toast';
 const GroomingProviderContent = ({ activeTab }) => {
   const [profile, setProfile] = useState({
     id: 'my-grooming-profile',
-    avatar: 'https://images.unsplash.com/photo-1516734212186-a967f81ad0d7?q=80&w=400',
+    avatar: 'https://images.unsplash.com/photo-1516734212186-a967f81ad0d7?q=80&w=800&auto=format&fit=crop',
     name: 'Velvet Fur Grooming Studio',
     registration: 'GROOM-2023-KA-99',
     certifications: 'Certified Master Groomer (NDGAA)',

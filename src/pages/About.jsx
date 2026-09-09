@@ -10,7 +10,7 @@ const About = () => {
       <section className="relative h-[40vh] flex items-center justify-center overflow-hidden border-b border-beige">
         <div className="absolute inset-0">
           <img 
-            src="https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?q=80&w=1200" 
+            src="https://images.unsplash.com/photo-1552053831-71594a27632d?q=80&w=800&auto=format&fit=crop" 
             alt="About Pawora Brand" 
             className="w-full h-full object-cover filter brightness-[0.55]"
           />

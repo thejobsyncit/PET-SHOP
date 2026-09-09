@@ -27,11 +27,11 @@ import { INDIAN_STATES_CITIES } from '../data/adoptionPetsData.js';
 
 // Preset vehicle images for easy selection when posting transport service
 const PRESET_TRANSPORT_IMAGES = [
-  { label: 'AC Pet Van & Cruiser', url: 'https://images.unsplash.com/photo-1541599540903-216a46ca1dc0?q=80&w=800' },
-  { label: 'Happy Golden on Journey', url: 'https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?q=80&w=800' },
-  { label: 'Express Road Carrier', url: 'https://images.unsplash.com/photo-1517849845537-4d257902454a?q=80&w=800' },
-  { label: 'Cozy Seat Pet Cab', url: 'https://images.unsplash.com/photo-1548199973-03cce0bbc87b?q=80&w=800' },
-  { label: 'IATA Aviation Crates', url: 'https://images.unsplash.com/photo-1534361960057-19889db9621e?q=80&w=800' }
+  { label: 'AC Pet Van & Cruiser', url: 'https://images.unsplash.com/photo-1548199973-03cce0bbc87b?q=80&w=800&auto=format&fit=crop' },
+  { label: 'Happy Golden on Journey', url: 'https://images.unsplash.com/photo-1517849845537-4d257902454a?q=80&w=800&auto=format&fit=crop' },
+  { label: 'Express Road Carrier', url: 'https://images.unsplash.com/photo-1534361960057-19889db9621e?q=80&w=800&auto=format&fit=crop' },
+  { label: 'Cozy Seat Pet Cab', url: 'https://images.unsplash.com/photo-1601758228041-f3b2795255f1?q=80&w=800&auto=format&fit=crop' },
+  { label: 'IATA Aviation Crates', url: 'https://images.unsplash.com/photo-1587300003388-59208cc962cb?q=80&w=800&auto=format&fit=crop' }
 ];
 
 const TransportProviderContent = ({ activeTab, user }) => {
@@ -866,7 +866,7 @@ const TransportProviderContent = ({ activeTab, user }) => {
         {/* Bookings List */}
         <div className="space-y-4">
           {filteredBookings.length === 0 ? (
-            <div className="bg-slate-50 rounded-2xl p-10 text-center border border-slate-100">
+            <div className="bg-slate-50 rounded-2xl p-4 lg:p-10 text-center border border-slate-100">
               <Truck size={32} className="mx-auto text-slate-300 mb-2" />
               <h4 className="text-sm font-bold text-slate-700">No transport bookings found</h4>
               <p className="text-xs text-slate-400 mt-1">Try switching filters or add a manual booking above.</p>
@@ -1290,7 +1290,7 @@ const TransportProviderContent = ({ activeTab, user }) => {
 
         <div className="space-y-4">
           {inquiries.length === 0 ? (
-            <div className="bg-slate-50 rounded-2xl p-10 text-center border border-slate-100">
+            <div className="bg-slate-50 rounded-2xl p-4 lg:p-10 text-center border border-slate-100">
               <MessageSquare size={32} className="mx-auto text-slate-300 mb-2" />
               <h4 className="text-sm font-bold text-slate-700">No client inquiries at the moment</h4>
               <p className="text-xs text-slate-400 mt-1">Inquiries submitted on the public page will appear here.</p>

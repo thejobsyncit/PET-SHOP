@@ -6,7 +6,7 @@ const MegaMenu = ({ category, onClose }) => {
   const menuData = {
     dogs: {
       title: 'DOG LIFE & CARE',
-      image: 'https://images.unsplash.com/photo-1548199973-03cce0bbc87b?q=80&w=800&auto=format&fit=crop',
+      image: 'https://images.unsplash.com/photo-1534361960057-19889db9621e?q=80&w=800&auto=format&fit=crop',
       groups: [
         {
           name: 'Nutrition & Treats',
@@ -36,7 +36,7 @@ const MegaMenu = ({ category, onClose }) => {
     },
     birds: {
       title: 'AVIAN CARE',
-      image: 'https://images.unsplash.com/photo-1452570053594-1b985d6ea890?q=80&w=800&auto=format&fit=crop',
+      image: 'https://images.unsplash.com/photo-1601758228041-f3b2795255f1?q=80&w=800&auto=format&fit=crop',
       groups: [
         {
           name: 'Avian Diet',
@@ -65,7 +65,7 @@ const MegaMenu = ({ category, onClose }) => {
     },
     reptiles: {
       title: 'HERPETOLOGY & HABITATS',
-      image: 'https://images.unsplash.com/photo-1542625331-b72c87806d21?q=80&w=800&auto=format&fit=crop',
+      image: 'https://images.unsplash.com/photo-1587300003388-59208cc962cb?q=80&w=800&auto=format&fit=crop',
       groups: [
         {
           name: 'Enclosures & Substrate',
@@ -95,7 +95,7 @@ const MegaMenu = ({ category, onClose }) => {
     },
     fish: {
       title: 'AQUATIC ECOSYSTEMS',
-      image: 'https://images.unsplash.com/photo-1544551763-46a013bb70d5?q=80&w=800&auto=format&fit=crop',
+      image: 'https://images.unsplash.com/photo-1552053831-71594a27632d?q=80&w=800&auto=format&fit=crop',
       groups: [
         {
           name: 'Aquariums & Decor',
@@ -123,7 +123,7 @@ const MegaMenu = ({ category, onClose }) => {
     },
     pharmacy: {
       title: 'VETERINARY PHARMACY',
-      image: 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?q=80&w=800&auto=format&fit=crop',
+      image: 'https://images.unsplash.com/photo-1584813470769-d758f2d59ab5?q=80&w=800&auto=format&fit=crop',
       groups: [
         {
           name: 'Everyday Supplements',

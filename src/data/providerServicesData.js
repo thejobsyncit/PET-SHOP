@@ -47,8 +47,8 @@ export const DEMO_PROVIDER_PERSONAS = [
     area: 'MG Road & Central',
     pincode: '560001',
     bio: 'Dedicated small animal physician and orthopedic surgeon passionate about preventative health, nutrition, and compassionate pet care.',
-    avatar: 'https://images.unsplash.com/photo-1622253692010-333f2da6031d?q=80&w=400',
-    coverImage: 'https://images.unsplash.com/photo-1576091160550-2173dba999ef?q=80&w=1200',
+    avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=800&auto=format&fit=crop',
+    coverImage: 'https://images.unsplash.com/photo-1535930891776-0c2dfb7fda1a?q=80&w=800&auto=format&fit=crop',
     isOnline: true,
     acceptingEmergency: true,
     operatingHours: {
@@ -81,8 +81,8 @@ export const DEMO_PROVIDER_PERSONAS = [
     area: 'Koramangala',
     pincode: '560034',
     bio: 'Award-winning pet salon offering stress-free organic hydro-baths, breed-standard haircuts, coat de-matting, and relaxing paw-dicures.',
-    avatar: 'https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?q=80&w=400',
-    coverImage: 'https://images.unsplash.com/photo-1516734212186-a967f81ad0d7?q=80&w=1200',
+    avatar: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?q=80&w=800&auto=format&fit=crop',
+    coverImage: 'https://images.unsplash.com/photo-1589924691995-400dc9ecc119?q=80&w=800&auto=format&fit=crop',
     isOnline: true,
     acceptingEmergency: false,
     operatingHours: {
@@ -115,8 +115,8 @@ export const DEMO_PROVIDER_PERSONAS = [
     area: 'Sarjapur',
     pincode: '560035',
     bio: 'Spacious 2-acre green resort with temperature-controlled private suites, swimming splash pool, 24/7 live CCTV access for parents, and freshly cooked meals.',
-    avatar: 'https://images.unsplash.com/photo-1548199973-03cce0bbc87b?q=80&w=400',
-    coverImage: 'https://images.unsplash.com/photo-1537151608828-ea2b11777ee8?q=80&w=1200',
+    avatar: 'https://images.unsplash.com/photo-1633332755192-727a05c4013d?q=80&w=800&auto=format&fit=crop',
+    coverImage: 'https://images.unsplash.com/photo-1544568100-eba616a6ce76?q=80&w=800&auto=format&fit=crop',
     isOnline: true,
     acceptingEmergency: true,
     operatingHours: {
@@ -149,8 +149,8 @@ export const DEMO_PROVIDER_PERSONAS = [
     area: 'Indiranagar',
     pincode: '560038',
     bio: 'KCI registered ethical pet seller providing dewormed, vaccinated, microchipped purebred puppies, kittens, birds, and small pets with lifetime lineage health certificates.',
-    avatar: 'https://images.unsplash.com/photo-1543466835-00a7907e9de1?q=80&w=400',
-    coverImage: 'https://images.unsplash.com/photo-1587300003388-59208cc962cb?q=80&w=1200',
+    avatar: 'https://images.unsplash.com/photo-1574158622682-e40e69881006?q=80&w=800&auto=format&fit=crop',
+    coverImage: 'https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?q=80&w=800&auto=format&fit=crop',
     isOnline: true,
     acceptingEmergency: false,
     operatingHours: {
@@ -174,7 +174,7 @@ export const DEMO_PROVIDER_PERSONAS = [
     clinicName: 'Hope Animal Rescue & Adoption Sanctuary',
     govtProofType: 'AWBI / Section 8 NGO Certificate',
     govtProofNumber: 'AWBI/KAR/2023/NGO-88942',
-    govtProofDoc: 'https://images.unsplash.com/photo-1589829545856-d10d557cf95f?q=80&w=800',
+    govtProofDoc: 'https://images.unsplash.com/photo-1548199973-03cce0bbc87b?q=80&w=800&auto=format&fit=crop',
     verificationStatus: 'Verified',
     shelterCapacity: 85,
     experience: '11+ Years Rescue & Rehoming',
@@ -189,8 +189,8 @@ export const DEMO_PROVIDER_PERSONAS = [
     area: 'Whitefield',
     pincode: '560066',
     bio: 'Dedicated non-profit rescue sanctuary providing compassionate foster care, medical rehabilitation, and loving forever homes for abandoned, rescued, and stray animals across India.',
-    avatar: 'https://images.unsplash.com/photo-1548767797-d8c844163c4c?q=80&w=400',
-    coverImage: 'https://images.unsplash.com/photo-1548199973-03cce0bbc87b?q=80&w=1200',
+    avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=800&auto=format&fit=crop',
+    coverImage: 'https://images.unsplash.com/photo-1517849845537-4d257902454a?q=80&w=800&auto=format&fit=crop',
     isOnline: true,
     acceptingEmergency: true,
     operatingHours: {
@@ -233,7 +233,7 @@ export const INITIAL_SERVICES = [
       { name: 'Consult + Preventive Deworming', price: 749, duration: '40 mins', desc: 'Standard consult plus high-potency oral deworming treatment' },
       { name: 'Executive Senior Pet Screening', price: 1299, duration: '60 mins', desc: 'Consult, blood pressure, glucose check & arthritis mobility assessment' }
     ],
-    images: ['https://images.unsplash.com/photo-1576091160550-2173dba999ef?q=80&w=800'],
+    images: ['https://images.unsplash.com/photo-1534361960057-19889db9621e?q=80&w=800&auto=format&fit=crop'],
     rating: 4.9,
     reviewsCount: 84,
     status: 'Active',
@@ -263,7 +263,7 @@ export const INITIAL_SERVICES = [
       { name: 'Rabies ARV Only', price: 450, duration: '15 mins', desc: 'Single anti-rabies dose with immunization certificate' },
       { name: 'DHPPIL 7-in-1 Booster Combo', price: 950, duration: '25 mins', desc: 'Complete multi-virus combo vaccine + physical evaluation' }
     ],
-    images: ['https://images.unsplash.com/photo-1594824813573-246434de83fb?q=80&w=800'],
+    images: ['https://images.unsplash.com/photo-1601758228041-f3b2795255f1?q=80&w=800&auto=format&fit=crop'],
     rating: 4.95,
     reviewsCount: 58,
     status: 'Active',
@@ -293,7 +293,7 @@ export const INITIAL_SERVICES = [
       { name: 'Quick 15 Min Consult', price: 399, duration: '15 mins', desc: 'Fast prescription refill or symptom triage' },
       { name: '30 Min Deep Clinical Video Call', price: 699, duration: '30 mins', desc: 'Comprehensive medical review & diet chart' }
     ],
-    images: ['https://images.unsplash.com/photo-1583337130417-3346a1be7dee?q=80&w=800'],
+    images: ['https://images.unsplash.com/photo-1587300003388-59208cc962cb?q=80&w=800&auto=format&fit=crop'],
     rating: 4.8,
     reviewsCount: 42,
     status: 'Active',
@@ -323,7 +323,7 @@ export const INITIAL_SERVICES = [
       { name: 'Basic Foam & Dry', price: 799, duration: '45 mins', desc: 'Shampoo, conditioner & blow dry' },
       { name: 'Full Luxury Pamper Spa', price: 1299, duration: '75 mins', desc: 'Aroma bath + paw massage + sanitary trim + ear flush' }
     ],
-    images: ['https://images.unsplash.com/photo-1516734212186-a967f81ad0d7?q=80&w=800'],
+    images: ['https://images.unsplash.com/photo-1552053831-71594a27632d?q=80&w=800&auto=format&fit=crop'],
     rating: 5.0,
     reviewsCount: 110,
     status: 'Active',
@@ -353,7 +353,7 @@ export const INITIAL_SERVICES = [
       { name: 'Summer Maintenance Clip', price: 1499, duration: '75 mins', desc: 'Cool hygienic trim + warm bath + ear care' },
       { name: 'Show Quality Master Styling', price: 2199, duration: '110 mins', desc: 'Precision hand-scissoring, facial shaping, spa bath & coat fluffing' }
     ],
-    images: ['https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?q=80&w=800'],
+    images: ['https://images.unsplash.com/photo-1535930891776-0c2dfb7fda1a?q=80&w=800&auto=format&fit=crop'],
     rating: 4.9,
     reviewsCount: 96,
     status: 'Active',
@@ -383,7 +383,7 @@ export const INITIAL_SERVICES = [
       { name: 'Standard AC Suite', price: 799, duration: 'Per Night', desc: 'AC room + 3 meals + 4 lawn walks + daily video updates' },
       { name: 'Royal Garden Suite with Splash Pool', price: 1399, duration: 'Per Night', desc: 'Large private garden access, splash pool session, raw chew treats & checkout bath' }
     ],
-    images: ['https://images.unsplash.com/photo-1548199973-03cce0bbc87b?q=80&w=800'],
+    images: ['https://images.unsplash.com/photo-1589924691995-400dc9ecc119?q=80&w=800&auto=format&fit=crop'],
     rating: 4.9,
     reviewsCount: 165,
     status: 'Active',

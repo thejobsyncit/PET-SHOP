@@ -10,7 +10,7 @@
   }
   
   body {
-    @apply bg-sand text-charcoal font-sans antialiased overflow-x-hidden;
+    @apply bg-sand text-charcoal font-sans antialiased overflow-x-hidden pb-20 lg:pb-0;
     letter-spacing: 0.015em;
   }
 
@@ -288,10 +288,204 @@
   animation: macaw-wing-flap-sub 0.48s ease-in-out infinite;
 }
 
+/* Dog moves slowly horizontally inside the search bar from after search icon to before search button */
+@keyframes dog-walk-inside-space {
+  0% {
+    left: 55px;
+  }
+  48% {
+    left: calc(100% - 190px);
+  }
+  52% {
+    left: calc(100% - 190px);
+  }
+  98% {
+    left: 55px;
+  }
+  100% {
+    left: 55px;
+  }
+}
+
+/* Flips ONLY the dog illustration (scaleX) so the text bubble above remains upright */
+@keyframes dog-flip-graphic {
+  0%, 48% {
+    transform: scaleX(1);
+  }
+  50%, 98% {
+    transform: scaleX(-1);
+  }
+  100% {
+    transform: scaleX(1);
+  }
+}
+
+/* Flips the thinking cloud SVG so its thought trail bubbles always point onto the dog's head */
+@keyframes cloud-flip-facing {
+  0%, 48% {
+    transform: scaleX(-1);
+  }
+  50%, 98% {
+    transform: scaleX(1);
+  }
+  100% {
+    transform: scaleX(-1);
+  }
+}
+
+/* Smooth leisurely trotting cycle */
+@keyframes dog-leg-swing-1 {
+  0%, 100% {
+    transform: rotate(-16deg);
+  }
+  50% {
+    transform: rotate(16deg);
+  }
+}
+
+@keyframes dog-leg-swing-2 {
+  0%, 100% {
+    transform: rotate(16deg);
+  }
+  50% {
+    transform: rotate(-16deg);
+  }
+}
+
+@keyframes dog-tail-wag {
+  0%, 100% {
+    transform: rotate(-15deg);
+  }
+  50% {
+    transform: rotate(20deg);
+  }
+}
+
+@keyframes dog-body-bob {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-1.5px);
+  }
+}
+
+@keyframes dog-ear-bob {
+  0%, 100% {
+    transform: rotate(0deg);
+  }
+  50% {
+    transform: rotate(-8deg);
+  }
+}
+
+.animate-dog-walk-space {
+  animation: dog-walk-inside-space 32s ease-in-out infinite;
+}
+
+.animate-dog-flip-graphic {
+  animation: dog-flip-graphic 32s ease-in-out infinite;
+}
+
+.animate-cloud-flip {
+  animation: cloud-flip-facing 32s ease-in-out infinite;
+}
+
+.animate-dog-leg-1 {
+  animation: dog-leg-swing-1 0.85s ease-in-out infinite;
+}
+
+.animate-dog-leg-2 {
+  animation: dog-leg-swing-2 0.85s ease-in-out infinite;
+}
+
+.animate-dog-tail {
+  animation: dog-tail-wag 0.45s ease-in-out infinite;
+}
+
+.animate-dog-body {
+  animation: dog-body-bob 0.85s ease-in-out infinite;
+}
+
+.animate-dog-ear {
+  animation: dog-ear-bob 0.85s ease-in-out infinite;
+}
+
+/* ==========================================================================
+   FLYING MACAW ADOPTION MESSENGER ANIMATIONS (Slower & Elegant Gliding)
+   ========================================================================== */
+@keyframes macaw-swoop-flight {
+  0% {
+    transform: translate(90vw, 78vh) scale(0.6) rotate(-14deg);
+    opacity: 0;
+  }
+  8% {
+    opacity: 1;
+    transform: translate(72vw, 55vh) scale(0.85) rotate(-10deg);
+  }
+  30% {
+    transform: translate(48vw, 32vh) scale(1.05) rotate(3deg);
+  }
+  55% {
+    transform: translate(26vw, 22vh) scale(1.08) rotate(-3deg);
+  }
+  80% {
+    opacity: 1;
+    transform: translate(8vw, 16vh) scale(0.98) rotate(-8deg);
+  }
+  94% {
+    opacity: 0.9;
+    transform: translate(-15vw, 10vh) scale(0.85) rotate(-15deg);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-38vw, 5vh) scale(0.7) rotate(-20deg);
+  }
+}
+
+@keyframes macaw-wing-flap {
+  0%, 100% {
+    transform: rotate(-26deg);
+  }
+  50% {
+    transform: rotate(28deg);
+  }
+}
+
+@keyframes macaw-wing-flap-sub {
+  0%, 100% {
+    transform: rotate(20deg);
+  }
+  50% {
+    transform: rotate(-16deg);
+  }
+}
+
+@keyframes macaw-tail-sway {
+  0%, 100% {
+    transform: rotate(-7deg);
+  }
+  50% {
+    transform: rotate(7deg);
+  }
+}
+
+.animate-macaw-swoop-path {
+  animation: macaw-swoop-flight 8.5s cubic-bezier(0.25, 0.85, 0.45, 1) forwards;
+}
+
+.animate-macaw-wing-flap {
+  animation: macaw-wing-flap 0.48s ease-in-out infinite;
+}
+
+.animate-macaw-wing-flap-bottom {
+  animation: macaw-wing-flap-sub 0.48s ease-in-out infinite;
+}
+
 .animate-macaw-tail {
   animation: macaw-tail-sway 0.95s ease-in-out infinite;
 }
 
 
-
-
+.hide-scrollbar::-webkit-scrollbar { display: none; }
+.hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }

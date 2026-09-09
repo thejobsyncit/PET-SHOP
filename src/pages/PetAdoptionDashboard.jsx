@@ -124,37 +124,37 @@ const PetAdoptionDashboard = ({
   // Document 1: AWBI Certificate
   const [awbiNumber, setAwbiNumber] = useState(savedDocsData?.awbiNumber || 'AWBI/KAR/2023/NGO-88942');
   const [awbiExpiry, setAwbiExpiry] = useState(savedDocsData?.awbiExpiry || '2028-12-31');
-  const [awbiDocUrl, setAwbiDocUrl] = useState(savedDocsData?.awbiDocUrl || 'https://images.unsplash.com/photo-1589829545856-d10d557cf95f?q=80&w=800');
+  const [awbiDocUrl, setAwbiDocUrl] = useState(savedDocsData?.awbiDocUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=800&auto=format&fit=crop');
   const [awbiStatus, setAwbiStatus] = useState(savedDocsData?.awbiStatus || 'Verified');
 
   // Document 2: NGO / Society / Trust Registration
   const [ngoRegType, setNgoRegType] = useState(savedDocsData?.ngoRegType || 'Section 8 Non-Profit Company');
   const [ngoRegNumber, setNgoRegNumber] = useState(savedDocsData?.ngoRegNumber || 'U85300KA2021NPL144210');
-  const [ngoDocUrl, setNgoDocUrl] = useState(savedDocsData?.ngoDocUrl || 'https://images.unsplash.com/photo-1450133064473-71024230f91b?q=80&w=800');
+  const [ngoDocUrl, setNgoDocUrl] = useState(savedDocsData?.ngoDocUrl || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=800&auto=format&fit=crop');
   const [ngoStatus, setNgoStatus] = useState(savedDocsData?.ngoStatus || 'Verified');
 
   // Document 3: Municipal Corporation Shelter License / NOC
   const [municipalBody, setMunicipalBody] = useState(savedDocsData?.municipalBody || 'BBMP Animal Husbandry Dept');
   const [municipalLicenseNo, setMunicipalLicenseNo] = useState(savedDocsData?.municipalLicenseNo || 'BBMP/AH/SHELTER/2024/091');
-  const [municipalDocUrl, setMunicipalDocUrl] = useState(savedDocsData?.municipalDocUrl || 'https://images.unsplash.com/photo-1568602471122-7832951cc4c5?q=80&w=800');
+  const [municipalDocUrl, setMunicipalDocUrl] = useState(savedDocsData?.municipalDocUrl || 'https://images.unsplash.com/photo-1580489944761-15a19d654956?q=80&w=800&auto=format&fit=crop');
   const [municipalStatus, setMunicipalStatus] = useState(savedDocsData?.municipalStatus || 'Verified');
 
   // Document 4: Veterinary Medical Officer MOU / Tie-Up
   const [vetDoctorName, setVetDoctorName] = useState(savedDocsData?.vetDoctorName || 'Dr. Sneha Hegde (B.V.Sc, M.V.Sc)');
   const [vetRegNumber, setVetRegNumber] = useState(savedDocsData?.vetRegNumber || 'KVC-7841/2016');
-  const [vetDocUrl, setVetDocUrl] = useState(savedDocsData?.vetDocUrl || 'https://images.unsplash.com/photo-1628177142898-93e36e4e3a50?q=80&w=800');
+  const [vetDocUrl, setVetDocUrl] = useState(savedDocsData?.vetDocUrl || 'https://images.unsplash.com/photo-1606425134789-5f21272fc4d6?q=80&w=800&auto=format&fit=crop');
   const [vetStatus, setVetStatus] = useState(savedDocsData?.vetStatus || 'Verified');
 
   // Document 5: Founder / Trustee Govt Identity Proof
   const [founderIdType, setFounderIdType] = useState(savedDocsData?.founderIdType || 'Aadhaar Card (UIDAI)');
   const [founderIdNumber, setFounderIdNumber] = useState(savedDocsData?.founderIdNumber || 'XXXX-XXXX-4819');
-  const [founderDocUrl, setFounderDocUrl] = useState(savedDocsData?.founderDocUrl || 'https://images.unsplash.com/photo-1544717302-de2939b7ef71?q=80&w=800');
+  const [founderDocUrl, setFounderDocUrl] = useState(savedDocsData?.founderDocUrl || 'https://images.unsplash.com/photo-1633332755192-727a05c4013d?q=80&w=800&auto=format&fit=crop');
   const [founderStatus, setFounderStatus] = useState(savedDocsData?.founderStatus || 'Verified');
 
   // Document 6: Bank & 80G Tax Exemption Certificate
   const [bankAccountInfo, setBankAccountInfo] = useState(savedDocsData?.bankAccountInfo || 'HDFC Bank - A/C 50100449102844 • IFSC: HDFC0000240');
   const [taxExemption80G, setTaxExemption80G] = useState(savedDocsData?.taxExemption80G || 'CIT(E)/BLR/80G/2022-23/AABCH8821N');
-  const [bankDocUrl, setBankDocUrl] = useState(savedDocsData?.bankDocUrl || 'https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?q=80&w=800');
+  const [bankDocUrl, setBankDocUrl] = useState(savedDocsData?.bankDocUrl || 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=800&auto=format&fit=crop');
   const [bankStatus, setBankStatus] = useState(savedDocsData?.bankStatus || 'Verified');
 
   // Sync tab with URL
@@ -571,9 +571,9 @@ const PetAdoptionDashboard = ({
     const finalFee = isFreeAdoption ? 0 : (parseFloat(adoptionFee) || 0);
 
     const fallbackPhotos = {
-      dogs: 'https://images.unsplash.com/photo-1543466835-00a7907e9de1?q=80&w=800',
-      cats: 'https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?q=80&w=800',
-      birds: 'https://images.unsplash.com/photo-1552728089-57bdde30beb3?q=80&w=800'
+      dogs: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?q=80&w=800&auto=format&fit=crop',
+      cats: 'https://images.unsplash.com/photo-1519052537078-e6302a4968d4?q=80&w=800&auto=format&fit=crop',
+      birds: 'https://images.unsplash.com/photo-1602058376483-e8eeeb63b320?q=80&w=800&auto=format&fit=crop'
     };
 
     if (editingPetId) {
@@ -771,7 +771,7 @@ const PetAdoptionDashboard = ({
     navigate('/');
   };
 
-  const displayAvatar = user?.avatar || user?.profilePicture || currentProvider?.avatar || 'https://images.unsplash.com/photo-1543466835-00a7907e9de1?q=80&w=400';
+  const displayAvatar = user?.avatar || user?.profilePicture || currentProvider?.avatar || 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?q=80&w=800&auto=format&fit=crop';
   const displayName = shelterLegalName || user?.name || currentProvider?.name || 'Hope Animal Welfare Foundation & Sanctuary';
 
   // Count uploaded documents
@@ -785,7 +785,7 @@ const PetAdoptionDashboard = ({
         LEFT SIDEBAR: EXACT MATCH OF THE DESIRED CLEAN LAYOUT
         ========================================================
       */}
-      <aside className="w-full md:w-64 lg:w-72 shrink-0 bg-white border-r border-slate-200 sticky top-0 md:top-[104px] md:h-[calc(100vh-104px)] flex flex-col justify-between overflow-y-auto z-20 shadow-sm">
+      <aside className="w-full md:w-64 lg:w-72 shrink-0 bg-white border-r border-slate-200 relative lg:sticky lg:top-0 md:top-[104px] md:h-[calc(100vh-104px)] flex flex-col justify-between overflow-y-auto z-20 shadow-sm">
         
         <div className="p-6 pt-8 space-y-6">
           
@@ -1042,7 +1042,7 @@ const PetAdoptionDashboard = ({
 
             {/* Listings Grid */}
             {filteredPets.length === 0 ? (
-              <div className="bg-slate-50 border border-dashed border-slate-200 rounded-2xl p-12 text-center flex flex-col items-center justify-center space-y-3">
+              <div className="bg-slate-50 border border-dashed border-slate-200 rounded-2xl p-4 lg:p-12 text-center flex flex-col items-center justify-center space-y-3">
                 <div className="w-14 h-14 rounded-full bg-white flex items-center justify-center text-slate-300 shadow-xs border border-slate-100">
                   <PawPrint size={24} className="text-slate-400" />
                 </div>
@@ -1070,7 +1070,7 @@ const PetAdoptionDashboard = ({
                       {/* Pet Image with Badges */}
                       <div className="relative h-52 overflow-hidden bg-slate-100">
                         <img 
-                          src={pet.image || 'https://images.unsplash.com/photo-1543466835-00a7907e9de1?q=80&w=800'} 
+                          src={pet.image || 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=800&auto=format&fit=crop'} 
                           alt={pet.name}
                           className={`w-full h-full object-cover group-hover:scale-105 transition duration-500 ${isAdopted ? 'grayscale opacity-75' : ''}`}
                         />
@@ -1221,7 +1221,7 @@ const PetAdoptionDashboard = ({
             </div>
 
             {filteredApplications.length === 0 ? (
-              <div className="bg-slate-50 border border-dashed border-slate-200 rounded-2xl p-12 text-center space-y-2">
+              <div className="bg-slate-50 border border-dashed border-slate-200 rounded-2xl p-4 lg:p-12 text-center space-y-2">
                 <div className="w-12 h-12 rounded-full bg-white flex items-center justify-center text-slate-300 mx-auto border border-slate-100">
                   <FileText size={22} />
                 </div>
@@ -1251,7 +1251,7 @@ const PetAdoptionDashboard = ({
                       {/* Pet Thumbnail & Tag */}
                       <div className="flex sm:flex-col items-center sm:items-start gap-3 sm:w-44 shrink-0">
                         <img 
-                          src={app.petImage || 'https://images.unsplash.com/photo-1543466835-00a7907e9de1?q=80&w=300'} 
+                          src={app.petImage || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=800&auto=format&fit=crop'} 
                           alt={app.petName} 
                           className="w-20 h-20 sm:w-full sm:h-28 rounded-xl object-cover border border-slate-200 shadow-xs"
                         />
@@ -2152,7 +2152,7 @@ const PetAdoptionDashboard = ({
             </div>
 
             {soldPets.length === 0 ? (
-              <div className="bg-slate-50 border border-dashed border-slate-200 rounded-2xl p-12 text-center space-y-2">
+              <div className="bg-slate-50 border border-dashed border-slate-200 rounded-2xl p-4 lg:p-12 text-center space-y-2">
                 <div className="w-12 h-12 rounded-full bg-white flex items-center justify-center text-slate-300 mx-auto border border-slate-100">
                   <Home size={22} className="text-pink-400" />
                 </div>

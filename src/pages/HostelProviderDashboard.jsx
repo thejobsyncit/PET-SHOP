@@ -124,14 +124,14 @@ const HostelProviderDashboard = ({
         SIDEBAR NAVIGATION
         ========================================================
       */}
-      <aside className="fixed top-[73px] left-0 w-64 h-[calc(100vh-73px)] bg-white border-r border-slate-200 shadow-sm hidden lg:flex flex-col z-10">
+      <aside className="fixed top-[73px] left-0 w-full lg:w-64 h-[calc(100vh-73px)] bg-white border-r border-slate-200 shadow-sm hidden lg:flex flex-col z-10">
         
         {/* Profile Summary */}
         <div className="p-6 border-b border-slate-100 flex flex-col items-center text-center">
           <div className="relative group cursor-pointer mb-4">
             <div className={`w-24 h-24 rounded-full border-4 border-white shadow-md overflow-hidden ${isUploading ? 'opacity-50' : ''}`}>
               <img 
-                src={user?.avatar || "https://images.unsplash.com/photo-1516734212186-a967f81ad0d7?q=80&w=400"} 
+                src={user?.avatar || "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?q=80&w=800&auto=format&fit=crop"} 
                 alt="Profile" 
                 className="w-full h-full object-cover"
               />
@@ -306,7 +306,7 @@ const HostelProviderDashboard = ({
           TAB CONTENT AREA
           ========================================================
         */}
-        <div className="bg-white rounded-3xl p-8 lg:p-10 border border-slate-200 min-h-[500px] shadow-sm">
+        <div className="bg-white rounded-3xl p-8 lg:p-4 lg:p-10 border border-slate-200 min-h-[500px] shadow-sm">
           <HostelProviderContent activeTab={activeTab} />
         </div>
       </main>

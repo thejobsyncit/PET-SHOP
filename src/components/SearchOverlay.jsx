@@ -210,7 +210,7 @@ const SearchOverlay = ({ isOpen, onClose }) => {
             </div>
 
             {loading ? (
-              <div className="flex flex-col items-center justify-center py-16 space-y-4">
+              <div className="flex flex-col items-center justify-center py-8 lg:py-16 space-y-4">
                 <div className="relative">
                   <div className="w-12 h-12 rounded-full border-2 border-[#ffd000]/30 border-t-[#ffd000] animate-spin" />
                   <span className="absolute inset-0 flex items-center justify-center text-sm">🐾</span>

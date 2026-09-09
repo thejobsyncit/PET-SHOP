@@ -465,7 +465,7 @@ const PetSellerDashboard = ({
         currency: orderResponse.currency,
         name: 'Pawora Pet Shop',
         description: 'Listing Fee for ' + title,
-        image: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?q=80&w=400',
+        image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=800&auto=format&fit=crop',
         order_id: orderResponse.orderId,
         handler: async function (response) {
           try {
@@ -612,18 +612,18 @@ const PetSellerDashboard = ({
   ];
 
   // Fix Profile Avatar - Use actual user's avatar if they are logged in, otherwise fallback
-  const displayAvatar = user?.avatar || user?.profilePicture || profileAvatar || currentProvider?.avatar || 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?q=80&w=400';
+  const displayAvatar = user?.avatar || user?.profilePicture || profileAvatar || currentProvider?.avatar || 'https://images.unsplash.com/photo-1580489944761-15a19d654956?q=80&w=800&auto=format&fit=crop';
   const displayName = user?.name || profileName || currentProvider?.name || 'Pet Seller';
 
   return (
-    <div className="min-h-screen bg-[#FAF9F5] text-slate-900 font-sans selection:bg-[#0F2E23]/20 selection:text-[#0F2E23] flex">
+    <div className="min-h-screen bg-[#FAF9F5] text-slate-900 font-sans selection:bg-[#0F2E23]/20 selection:text-[#0F2E23] flex flex-col lg:flex-row">
       
       {/* 
         ========================================================
         LEFT SIDEBAR: NAVIGATION & PROFILE
         ========================================================
       */}
-      <aside className="w-72 shrink-0 bg-white border-r border-slate-200 sticky top-[104px] h-[calc(100vh-104px)] flex flex-col justify-between overflow-y-auto z-10 shadow-[4px_0_24px_rgba(0,0,0,0.02)]">
+      <aside className="w-full lg:w-72 shrink-0 bg-white border-r border-slate-200 relative lg:sticky top-[104px] h-[calc(100vh-104px)] flex flex-col justify-between overflow-y-auto z-10 shadow-[4px_0_24px_rgba(0,0,0,0.02)]">
         <div className="p-6 pt-12 space-y-8">
           
           {/* Profile Widget */}
@@ -818,7 +818,7 @@ const PetSellerDashboard = ({
           TAB CONTENT
           ========================================================
         */}
-        <div className="bg-white rounded-3xl p-8 lg:p-10 border border-slate-200 min-h-[500px] shadow-sm">
+        <div className="bg-white rounded-3xl p-8 lg:p-4 lg:p-10 border border-slate-200 min-h-[500px] shadow-sm">
             
             {activeTab === 'inventory' && (
               <div className="space-y-8 animate-in fade-in zoom-in-95 duration-300">
@@ -839,9 +839,9 @@ const PetSellerDashboard = ({
                 </div>
 
               {loading ? (
-                <div className="text-center py-20 text-slate-400 text-sm font-medium animate-pulse">Loading your pet inventory...</div>
+                <div className="text-center py-10 lg:py-20 text-slate-400 text-sm font-medium animate-pulse">Loading your pet inventory...</div>
               ) : myPets.length === 0 ? (
-                <div className="bg-slate-50 border border-dashed border-slate-200 rounded-2xl p-12 text-center flex flex-col items-center justify-center space-y-4">
+                <div className="bg-slate-50 border border-dashed border-slate-200 rounded-2xl p-4 lg:p-12 text-center flex flex-col items-center justify-center space-y-4">
                   <div className="w-16 h-16 rounded-full bg-white flex items-center justify-center text-slate-300 shadow-sm border border-slate-100">
                     <PawPrint size={24} />
                   </div>
@@ -862,7 +862,7 @@ const PetSellerDashboard = ({
                       <div key={pet._id} className={`group bg-white border ${isSold ? 'border-rose-200' : 'border-slate-200'} rounded-2xl overflow-hidden hover:border-[#0F2E23]/30 transition duration-300 flex flex-col shadow-sm hover:shadow-lg ${isSold ? 'opacity-80' : ''}`}>
                         <div className="relative h-64 overflow-hidden bg-slate-100">
                           <img 
-                            src={pet.images?.[0] || 'https://images.unsplash.com/photo-1543466835-00a7907e9de1?q=80&w=800'} 
+                            src={pet.images?.[0] || 'https://images.unsplash.com/photo-1633332755192-727a05c4013d?q=80&w=800&auto=format&fit=crop'} 
                             alt={pet.title}
                             className={`w-full h-full object-cover group-hover:scale-105 transition duration-700 ${isSold ? 'grayscale opacity-80' : ''}`}
                           />
@@ -951,7 +951,7 @@ const PetSellerDashboard = ({
                 <DollarSign size={22} className="text-[#ffd000]" /> Sales & Orders History
               </h2>
               {petsWithSales.length === 0 ? (
-                 <div className="bg-slate-50 border border-dashed border-slate-200 rounded-2xl p-12 text-center text-slate-500 text-sm font-medium">
+                 <div className="bg-slate-50 border border-dashed border-slate-200 rounded-2xl p-4 lg:p-12 text-center text-slate-500 text-sm font-medium">
                    No sales history recorded yet. When a pet is marked as sold, it will appear here.
                  </div>
               ) : (
@@ -969,7 +969,7 @@ const PetSellerDashboard = ({
                       {petsWithSales.map(pet => (
                         <tr key={pet._id} className="hover:bg-slate-50/80 transition">
                           <td className="px-6 py-4 flex items-center gap-4">
-                            <img src={pet.images?.[0] || 'https://images.unsplash.com/photo-1543466835-00a7907e9de1?q=80&w=800'} alt={pet.title} className={`w-14 h-14 rounded-xl object-cover border border-slate-200 ${pet.status === 'Sold Out' || pet.quantity === 0 ? 'grayscale' : ''}`} />
+                            <img src={pet.images?.[0] || 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=800&auto=format&fit=crop'} alt={pet.title} className={`w-14 h-14 rounded-xl object-cover border border-slate-200 ${pet.status === 'Sold Out' || pet.quantity === 0 ? 'grayscale' : ''}`} />
                             <div>
                               <div className="font-black text-[#0F2E23] line-clamp-1">
                                 {pet.title} {pet.soldCount > 0 && <span className="text-[10px] bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded ml-1">x{pet.soldCount}</span>}
@@ -1116,7 +1116,7 @@ const PetSellerDashboard = ({
                   <div className="flex flex-col md:flex-row gap-6 items-start">
                     <div className="shrink-0 flex flex-col items-center gap-3">
                       <img 
-                        src={profileAvatar || 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?q=80&w=400'} 
+                        src={profileAvatar || 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?q=80&w=800&auto=format&fit=crop'} 
                         alt="Profile" 
                         className="w-24 h-24 rounded-full object-cover border-4 border-slate-100 shadow-sm"
                       />

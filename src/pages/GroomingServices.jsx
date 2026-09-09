@@ -336,7 +336,7 @@ const GroomingServices = () => {
             <div className="lg:col-span-4 flex justify-center lg:justify-end">
               <div className="relative w-64 h-64 md:w-72 md:h-72">
                 <img
-                  src="https://images.unsplash.com/photo-1548199973-03cce0bbc87b?q=80&w=800"
+                  src="https://images.unsplash.com/photo-1516734212186-a967f81ad0d7?q=80&w=800&auto=format&fit=crop"
                   alt="Groomed Happy Dog"
                   className="w-full h-full object-cover rounded-3xl shadow-2xl border-4 border-white/80 filter drop-shadow-xl"
                 />
@@ -360,7 +360,7 @@ const GroomingServices = () => {
           2. "WHY IS PET GROOMING IMPORTANT?" (Screenshot 2 Match)
          ========================================================================= */}
       <ScrollReveal variant="fade">
-        <section className="max-w-7xl mx-auto px-4 md:px-8 py-16">
+        <section className="max-w-7xl mx-auto px-4 md:px-8 py-8 lg:py-16">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
           
           {/* Left Column: Heading, Text & Bath Photo */}
@@ -379,7 +379,7 @@ const GroomingServices = () => {
             {/* Bath Photo */}
             <div className="aspect-[4/3] rounded-3xl overflow-hidden shadow-xl border border-beige bg-slate-100">
               <img
-                src="https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?q=80&w=800"
+                src="https://images.unsplash.com/photo-1516734212186-a967f81ad0d7?q=80&w=800&auto=format&fit=crop"
                 alt="Dog Getting Gentle Bath"
                 className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
               />
@@ -444,7 +444,7 @@ const GroomingServices = () => {
           3. "GROOMING STARTS WITH CARE" (Screenshot 3 Match)
          ========================================================================= */}
       <ScrollReveal variant="slideUp">
-        <section className="bg-white border-y border-beige py-16 px-4 md:px-8">
+        <section className="bg-white border-y border-beige py-8 lg:py-16 px-4 md:px-8">
         <div className="max-w-7xl mx-auto text-center space-y-12">
           
           <div className="max-w-2xl mx-auto space-y-2">
@@ -502,7 +502,7 @@ const GroomingServices = () => {
           4. "OUR GROOMING OFFERINGS" (Screenshot 4 Match)
          ========================================================================= */}
       <ScrollReveal variant="fade">
-        <section className="max-w-7xl mx-auto px-4 md:px-8 py-16 space-y-8">
+        <section className="max-w-7xl mx-auto px-4 md:px-8 py-8 lg:py-16 space-y-8">
         <div className="text-center space-y-2">
           <span className="text-[10px] uppercase font-extrabold tracking-widest text-primary bg-sand px-3 py-1 rounded-full border border-beige">
             CHOOSE YOUR SERVICE
@@ -908,7 +908,7 @@ const GroomingServices = () => {
                 })}
               </div>
             ) : (
-              <div className="text-center py-16 bg-white rounded-3xl border border-beige p-8 space-y-4">
+              <div className="text-center py-8 lg:py-16 bg-white rounded-3xl border border-beige p-8 space-y-4">
                 <div className="w-16 h-16 bg-sand rounded-full flex items-center justify-center mx-auto text-primary">
                   <Scissors size={28} />
                 </div>

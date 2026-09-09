@@ -26,7 +26,7 @@ const HERO_SLIDES = [
     category: 'dogs',
     title: 'Dogs For Adoption',
     sub: 'Faithful companions waiting to shower your home with wagging tails and endless love',
-    image: 'https://images.unsplash.com/photo-1543466835-00a7907e9de1?q=80&w=1200',
+    image: 'https://images.unsplash.com/photo-1535930891776-0c2dfb7fda1a?q=80&w=800&auto=format&fit=crop',
     badge: '580+ Rescues Active'
   },
   {
@@ -35,7 +35,7 @@ const HERO_SLIDES = [
     category: 'cats',
     title: 'Cats For Adoption',
     sub: 'Serene, playful and affectionate feline friends seeking warmth and cozy lap naps',
-    image: 'https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?q=80&w=1200',
+    image: 'https://images.unsplash.com/photo-1589924691995-400dc9ecc119?q=80&w=800&auto=format&fit=crop',
     badge: '180+ Kittens Looking for Homes'
   },
   {
@@ -44,7 +44,7 @@ const HERO_SLIDES = [
     category: 'birds',
     title: 'Macaws & Birds For Adoption',
     sub: 'Charming, singing, and colorful feathery Macaws looking for loving caretakers',
-    image: 'https://images.unsplash.com/photo-1480044965905-02098d419e96?q=80&w=1200',
+    image: 'https://images.unsplash.com/photo-1544568100-eba616a6ce76?q=80&w=800&auto=format&fit=crop',
     badge: '45+ Tamed Birds Available'
   }
 ];
@@ -268,9 +268,9 @@ const AdoptionShelter = () => {
     }
 
     const defaultSamplePhotos = {
-      dogs: 'https://images.unsplash.com/photo-1543466835-00a7907e9de1?q=80&w=800',
-      cats: 'https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?q=80&w=800',
-      birds: 'https://images.unsplash.com/photo-1550853024-fae8dd4be47f?q=80&w=800'
+      dogs: 'https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?q=80&w=800&auto=format&fit=crop',
+      cats: 'https://images.unsplash.com/photo-1573865526739-10659fec78a5?q=80&w=800&auto=format&fit=crop',
+      birds: 'https://images.unsplash.com/photo-1452570053594-1b985d6ea890?q=80&w=800&auto=format&fit=crop'
     };
     const pickedImage = newPetImage || defaultSamplePhotos[newPetType] || defaultSamplePhotos.dogs;
 
@@ -333,36 +333,40 @@ const AdoptionShelter = () => {
           1. HERO BANNER WITH AUTO-SCROLLING ROTATOR (Dogs, Cats, Birds)
          ========================================================================= */}
       <section
-        className="relative overflow-hidden bg-gradient-premium pt-10 pb-16 md:pt-14 md:pb-20 border-b border-beige/70"
+        className="relative overflow-hidden bg-gradient-premium pt-12 pb-24 md:pt-16 md:pb-28 border-b border-[#2E5947]"
       >
-        <div className="max-w-7xl mx-auto px-4 md:px-8">
+        {/* Decorative ambient blobs */}
+        <div className="absolute top-0 left-1/4 w-96 h-96 bg-emerald-500/10 rounded-full blur-[100px] pointer-events-none"></div>
+        <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-gold/10 rounded-full blur-[100px] pointer-events-none"></div>
+
+        <div className="max-w-7xl mx-auto px-4 md:px-8 relative z-10">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
             
             {/* Left Column: Heading & Subtitle */}
-            <div className="lg:col-span-7 space-y-4 text-left">
+            <div className="lg:col-span-7 space-y-5 text-left">
               
-              <div className="inline-flex items-center gap-2 bg-white/90 border border-beige px-3.5 py-1 rounded-full shadow-xs">
-                <span className="text-primary font-bold text-xs tracking-wider uppercase">🐾 PET ADOPTION IN INDIA</span>
-                <span className="text-[10px] bg-beige text-gold-dark font-bold px-2 py-0.5 rounded-full">100% Free Rehoming</span>
+              <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm border border-white/20 px-4 py-1.5 rounded-full shadow-lg">
+                <span className="text-white font-bold text-xs tracking-widest uppercase">🐾 PET ADOPTION IN INDIA</span>
+                <span className="text-[10px] bg-gold text-charcoal font-bold px-2 py-0.5 rounded-full">100% Free Rehoming</span>
               </div>
 
-              <h1 className="font-serif text-3xl sm:text-4xl md:text-5xl lg:text-[46px] font-extrabold text-slate-900 leading-tight">
+              <h1 className="font-serif text-4xl sm:text-5xl md:text-6xl lg:text-[56px] font-extrabold text-white leading-tight drop-shadow-md">
                 Their second innings <br className="hidden sm:block" />
-                starts with <span className="text-primary">you</span>
+                starts with <span className="text-gold">you</span>
               </h1>
 
-              <p className="text-sm md:text-base text-slate-600 font-medium max-w-xl leading-relaxed min-h-[44px]">
+              <p className="text-sm md:text-lg text-white/80 font-medium max-w-xl leading-relaxed min-h-[56px]">
                 {activeSlide.sub}
               </p>
 
               {/* Trust Badges */}
-              <div className="pt-2 flex flex-wrap items-center gap-4 text-xs font-semibold text-slate-700">
-                <div className="flex items-center gap-1.5 bg-white/70 backdrop-blur-xs px-3 py-1.5 rounded-lg border border-purple-150">
-                  <ShieldCheck size={16} className="text-primary" />
+              <div className="pt-4 flex flex-wrap items-center gap-4 text-xs font-semibold text-white/90">
+                <div className="flex items-center gap-2 bg-white/5 backdrop-blur-md px-4 py-2 rounded-xl border border-white/10 shadow-inner">
+                  <ShieldCheck size={18} className="text-gold" />
                   <span>Vaccination Verified</span>
                 </div>
-                <div className="flex items-center gap-1.5 bg-white/70 backdrop-blur-xs px-3 py-1.5 rounded-lg border border-purple-150">
-                  <CircleCheck size={16} className="text-emerald-600" />
+                <div className="flex items-center gap-2 bg-white/5 backdrop-blur-md px-4 py-2 rounded-xl border border-white/10 shadow-inner">
+                  <CircleCheck size={18} className="text-emerald-400" />
                   <span>Certified Animal Shelters</span>
                 </div>
               </div>
@@ -385,7 +389,7 @@ const AdoptionShelter = () => {
                         src={slide.image}
                         alt={slide.title}
                         onError={(e) => {
-                          e.currentTarget.src = 'https://images.unsplash.com/photo-1480044965905-02098d419e96?q=80&w=1200';
+                          e.currentTarget.src = 'https://images.unsplash.com/photo-1548199973-03cce0bbc87b?q=80&w=800&auto=format&fit=crop';
                         }}
                         className="w-full h-full object-cover object-center"
                       />
@@ -431,8 +435,8 @@ const AdoptionShelter = () => {
       {/* =========================================================================
           2. TOP SEARCH FILTER BAR
          ========================================================================= */}
-      <div className="max-w-7xl mx-auto px-4 md:px-8 -mt-7 relative z-30">
-        <div className="bg-white p-3 md:p-4 rounded-2xl border border-beige/90 shadow-xl grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 items-center">
+      <div className="max-w-7xl mx-auto px-4 md:px-8 -mt-16 md:-mt-20 relative z-30">
+        <div className="bg-white p-4 md:p-6 rounded-[24px] border border-beige/90 shadow-[0_10px_40px_-10px_rgba(0,0,0,0.15)] grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 items-center">
           
           {/* 1. Pet Type Selector */}
           <div>
@@ -484,7 +488,7 @@ const AdoptionShelter = () => {
             <button
               type="button"
               onClick={() => toast.success(`Showing results for ${selectedPetType} in ${selectedCity}, ${selectedState}`)}
-              className="w-full py-2.5 bg-primary hover:bg-accent text-white font-bold text-xs md:text-sm rounded-xl shadow-lg shadow-gold/25 active:scale-95 transition cursor-pointer flex items-center justify-center gap-2"
+              className="w-full py-3 bg-gradient-premium hover:shadow-premium-hover hover:-translate-y-0.5 text-white font-bold text-sm rounded-[16px] shadow-lg active:scale-95 transition-all duration-300 cursor-pointer flex items-center justify-center gap-2"
             >
               <Search size={16} />
               <span>Search Pets</span>
@@ -864,7 +868,7 @@ const AdoptionShelter = () => {
                   ))}
                 </div>
               ) : (
-                <div className="bg-white rounded-2xl border border-beige p-12 text-center space-y-3">
+                <div className="bg-white rounded-2xl border border-beige p-4 lg:p-12 text-center space-y-3">
                   <div className="w-12 h-12 mx-auto rounded-full bg-sand flex items-center justify-center text-primary">
                     <Search size={24} />
                   </div>

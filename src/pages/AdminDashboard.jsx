@@ -246,7 +246,7 @@ const AdminDashboard = () => {
     setProdRequiresPrescription(false);
     setProdIsFeatured(false);
     setProdIsBestSeller(false);
-    setProdImage('https://images.unsplash.com/photo-1589924691995-400dc9ecc119?q=80&w=800');
+    setProdImage('https://images.unsplash.com/photo-1580489944761-15a19d654956?q=80&w=800&auto=format&fit=crop');
     setShowProductModal(true);
   };
 
@@ -539,7 +539,7 @@ const AdminDashboard = () => {
     <div className="min-h-screen bg-[#F4F6F4] flex">
 
       {/* 1. LEFT SIDEBAR PANEL (Width 250px) */}
-      <aside className="w-64 bg-[#1D3B2E] text-white flex flex-col justify-between p-6 shrink-0 border-r border-[#2E5947]">
+      <aside className="w-full lg:w-64 bg-[#1D3B2E] text-white flex flex-col justify-between p-6 shrink-0 border-r border-[#2E5947]">
         <div className="space-y-8">
 
           {/* Logo Heading */}
@@ -632,7 +632,7 @@ const AdminDashboard = () => {
         </div>
 
         {loading || (activeSection === 'overview' && !stats) ? (
-          <div className="text-center py-20">
+          <div className="text-center py-10 lg:py-20">
             <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-[#7CA085] mx-auto mb-4"></div>
             <p className="text-xs text-gray-500 font-bold uppercase tracking-wider">
               {loading ? 'Compiling metrics logs...' : 'Waiting for statistics data...'}

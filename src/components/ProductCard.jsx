@@ -271,8 +271,9 @@ const ProductCard = ({ product }) => {
                     {quantity}
                   </span>
                   <button 
-                    onClick={() => setQuantity(q => q + 1)}
-                    className="px-3 py-2 text-gray-500 hover:bg-gray-100 cursor-pointer"
+                    onClick={() => setQuantity(q => Math.min(product.stock, q + 1))}
+                    disabled={quantity >= product.stock}
+                    className={`px-3 py-2 ${quantity >= product.stock ? 'text-gray-300 cursor-not-allowed' : 'text-gray-500 hover:bg-gray-100 cursor-pointer'}`}
                   >
                     <Plus size={14} />
                   </button>

@@ -222,7 +222,7 @@ const ChatConsole = () => {
                     );
                   })
                 ) : (
-                  <p className="text-xs text-gray-400 text-center italic py-20">Send a greeting message to initiate contact.</p>
+                  <p className="text-xs text-gray-400 text-center italic py-10 lg:py-20">Send a greeting message to initiate contact.</p>
                 )}
                 <div ref={messagesEndRef} />
               </div>

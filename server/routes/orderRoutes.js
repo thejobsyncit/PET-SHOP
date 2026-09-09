@@ -10,19 +10,17 @@ import { protect, admin } from '../middleware/auth.js';
 
 const router = express.Router();
 
-router.use(protect);
-
 router.route('/')
   .post(createOrder)
-  .get(admin, getAllOrders);
+  .get(protect, admin, getAllOrders);
 
 router.route('/myorders')
-  .get(getMyOrders);
+  .get(protect, getMyOrders);
 
 router.route('/:id')
-  .get(getOrderById);
+  .get(protect, getOrderById);
 
 router.route('/:id/status')
-  .put(admin, updateOrderStatus);
+  .put(protect, admin, updateOrderStatus);
 
 export default router;

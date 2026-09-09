@@ -28,11 +28,11 @@ import { INDIAN_STATES_CITIES } from '../data/adoptionPetsData.js';
 
 // Preset high-quality images for easy selection when posting training service
 const PRESET_TRAINING_IMAGES = [
-  { label: 'Puppy Kindergarten & Socialization', url: 'https://images.unsplash.com/photo-1601758228041-f3b2795255f1?q=80&w=800' },
-  { label: 'Golden Retriever Obedience', url: 'https://images.unsplash.com/photo-1587300003388-59208cc962cb?q=80&w=800' },
-  { label: 'Working Dog Agility & Protection', url: 'https://images.unsplash.com/photo-1548199973-03cce0bbc87b?q=80&w=800' },
-  { label: 'Coastal Pack & Fun Outdoor Manners', url: 'https://images.unsplash.com/photo-1534361960057-19889db9621e?q=80&w=800' },
-  { label: 'Positive Clicker & Home Manners', url: 'https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?q=80&w=800' }
+  { label: 'Puppy Kindergarten & Socialization', url: 'https://images.unsplash.com/photo-1552053831-71594a27632d?q=80&w=800&auto=format&fit=crop' },
+  { label: 'Golden Retriever Obedience', url: 'https://images.unsplash.com/photo-1535930891776-0c2dfb7fda1a?q=80&w=800&auto=format&fit=crop' },
+  { label: 'Working Dog Agility & Protection', url: 'https://images.unsplash.com/photo-1589924691995-400dc9ecc119?q=80&w=800&auto=format&fit=crop' },
+  { label: 'Coastal Pack & Fun Outdoor Manners', url: 'https://images.unsplash.com/photo-1544568100-eba616a6ce76?q=80&w=800&auto=format&fit=crop' },
+  { label: 'Positive Clicker & Home Manners', url: 'https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?q=80&w=800&auto=format&fit=crop' }
 ];
 
 const AVAILABLE_SPECIALTIES = [
@@ -1220,7 +1220,7 @@ const TrainingProviderContent = ({ activeTab, user }) => {
 
           {/* Session Cards List */}
           {filteredSessions.length === 0 ? (
-            <div className="text-center py-12 bg-slate-50 rounded-2xl border border-dashed border-slate-200">
+            <div className="text-center py-6 lg:py-12 bg-slate-50 rounded-2xl border border-dashed border-slate-200">
               <Calendar size={36} className="mx-auto text-slate-300 mb-2" />
               <h4 className="text-sm font-bold text-slate-700">No training sessions found</h4>
               <p className="text-xs text-slate-400 mt-0.5">Try changing your filters or schedule a new training session.</p>
@@ -1701,7 +1701,7 @@ const TrainingProviderContent = ({ activeTab, user }) => {
           </div>
 
           {filteredEnquiries.length === 0 ? (
-            <div className="text-center py-12 bg-slate-50 rounded-2xl border border-dashed border-slate-200">
+            <div className="text-center py-6 lg:py-12 bg-slate-50 rounded-2xl border border-dashed border-slate-200">
               <MessageSquare size={36} className="mx-auto text-slate-300 mb-2" />
               <h4 className="text-sm font-bold text-slate-700">No client inquiries at the moment</h4>
               <p className="text-xs text-slate-400 mt-0.5">When pet parents submit an inquiry on your service page, they appear right here.</p>

@@ -92,7 +92,7 @@ const PharmacyLanding = () => {
       <section className="relative h-[40vh] flex items-center justify-center overflow-hidden border-b border-beige">
         <div className="absolute inset-0">
           <img 
-            src="https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?q=80&w=1200&auto=format&fit=crop" 
+            src="https://images.unsplash.com/photo-1534361960057-19889db9621e?q=80&w=800&auto=format&fit=crop" 
             alt="Pawora Veterinary Pharmacy" 
             className="w-full h-full object-cover filter brightness-[0.6]"
           />

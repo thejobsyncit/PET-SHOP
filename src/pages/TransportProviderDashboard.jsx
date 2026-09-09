@@ -119,14 +119,14 @@ const TransportProviderDashboard = ({
     reviews: currentProvider?.reviewsCount || 100
   };
 
-  const displayAvatar = user?.avatar || user?.profilePicture || currentProvider?.avatar || 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?q=80&w=400';
+  const displayAvatar = user?.avatar || user?.profilePicture || currentProvider?.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=800&auto=format&fit=crop';
   const displayName = user?.name || currentProvider?.name || 'Provider';
 
   return (
-    <div className="min-h-screen bg-[#FAF9F5] text-slate-900 font-sans selection:bg-[#0F2E23]/20 selection:text-[#0F2E23] flex">
+    <div className="min-h-screen bg-[#FAF9F5] text-slate-900 font-sans selection:bg-[#0F2E23]/20 selection:text-[#0F2E23] flex flex-col lg:flex-row">
       
       {/* LEFT SIDEBAR */}
-      <aside className="w-72 shrink-0 bg-white border-r border-slate-200 sticky top-[104px] h-[calc(100vh-104px)] flex flex-col justify-between overflow-y-auto z-10 shadow-[4px_0_24px_rgba(0,0,0,0.02)]">
+      <aside className="w-full lg:w-72 shrink-0 bg-white border-r border-slate-200 relative lg:sticky top-[104px] h-[calc(100vh-104px)] flex flex-col justify-between overflow-y-auto z-10 shadow-[4px_0_24px_rgba(0,0,0,0.02)]">
         <div className="p-6 pt-12 space-y-8">
           
           <div className="flex flex-col items-center text-center space-y-4">
@@ -343,7 +343,7 @@ const TransportProviderDashboard = ({
         </div>
 
         {/* TAB CONTENT */}
-        <div className="bg-white rounded-3xl p-8 lg:p-10 border border-slate-200 min-h-[500px] shadow-sm">
+        <div className="bg-white rounded-3xl p-8 lg:p-4 lg:p-10 border border-slate-200 min-h-[500px] shadow-sm">
           <TransportProviderContent activeTab={activeTab} user={user} />
         </div>
       </main>

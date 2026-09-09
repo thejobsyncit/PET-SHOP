@@ -30,7 +30,7 @@ export const INITIAL_HOSTEL_PROVIDERS = [
     stayType: 'AC Suite & Private Garden',
     pricePerNight: 999,
     discountPrice: 799,
-    image: 'https://images.unsplash.com/photo-1548199973-03cce0bbc87b?q=80&w=800',
+    image: 'https://images.unsplash.com/photo-1589924691995-400dc9ecc119?q=80&w=800&auto=format&fit=crop',
     phone: '8306688827',
     amenities: ['AC Suites', '24/7 CCTV Live Stream', 'Outdoor Lawn & Play Area', 'Vet On Call', 'Daily Video Updates', 'Customized Meals', 'Pet Pool / Splash Zone'],
     packages: [
@@ -54,7 +54,7 @@ export const INITIAL_HOSTEL_PROVIDERS = [
     stayType: 'Cage-Free Home Boarding',
     pricePerNight: 750,
     discountPrice: 599,
-    image: 'https://images.unsplash.com/photo-1537151608828-ea2b11777ee8?q=80&w=800',
+    image: 'https://images.unsplash.com/photo-1544568100-eba616a6ce76?q=80&w=800&auto=format&fit=crop',
     phone: '8306688827',
     amenities: ['AC Suites', 'Outdoor Lawn & Play Area', 'Daily Video Updates', 'Customized Meals', 'Vet On Call'],
     packages: [
@@ -78,7 +78,7 @@ export const INITIAL_HOSTEL_PROVIDERS = [
     stayType: 'Farmhouse Resort with Agility Ground',
     pricePerNight: 1200,
     discountPrice: 999,
-    image: 'https://images.unsplash.com/photo-1541599540903-216a46ca1dc0?q=80&w=800',
+    image: 'https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?q=80&w=800&auto=format&fit=crop',
     phone: '8306688827',
     amenities: ['AC Suites', '24/7 CCTV Live Stream', 'Outdoor Lawn & Play Area', 'Vet On Call', 'Pet Pool / Splash Zone', 'Customized Meals'],
     packages: [
@@ -102,7 +102,7 @@ export const INITIAL_HOSTEL_PROVIDERS = [
     stayType: 'Vet-Supervised Boarding',
     pricePerNight: 650,
     discountPrice: 499,
-    image: 'https://images.unsplash.com/photo-1535294435445-d7249524ef2e?q=80&w=800',
+    image: 'https://images.unsplash.com/photo-1548199973-03cce0bbc87b?q=80&w=800&auto=format&fit=crop',
     phone: '8306688827',
     amenities: ['AC Suites', 'Vet On Call', 'Daily Video Updates', 'Customized Meals'],
     packages: [
@@ -126,7 +126,7 @@ export const INITIAL_HOSTEL_PROVIDERS = [
     stayType: 'Beachside Eco Cottages',
     pricePerNight: 1100,
     discountPrice: 899,
-    image: 'https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?q=80&w=800',
+    image: 'https://images.unsplash.com/photo-1517849845537-4d257902454a?q=80&w=800&auto=format&fit=crop',
     phone: '8306688827',
     amenities: ['AC Suites', 'Outdoor Lawn & Play Area', '24/7 CCTV Live Stream', 'Daily Video Updates', 'Customized Meals'],
     packages: [
@@ -150,7 +150,7 @@ export const INITIAL_HOSTEL_PROVIDERS = [
     stayType: 'Homely Boarding',
     pricePerNight: 450,
     discountPrice: 380,
-    image: 'https://images.unsplash.com/photo-1548199973-03cce0bbc87b?q=80&w=800',
+    image: 'https://images.unsplash.com/photo-1534361960057-19889db9621e?q=80&w=800&auto=format&fit=crop',
     phone: '8306688827',
     amenities: ['Daily Video Updates', 'Customized Meals', 'Vet On Call'],
     packages: [

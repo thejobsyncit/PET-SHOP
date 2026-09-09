@@ -123,7 +123,7 @@ export const TRAINING_TESTIMONIALS = [
     name: 'Aditya & Priya Sharma',
     dog: 'Rocky (Golden Retriever)',
     city: 'Mumbai',
-    avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=400',
+    avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?q=80&w=800&auto=format&fit=crop',
     quote: 'Our team ensures that your pet is in safe and secure hands. Rocky used to pull intensely on the leash; after 6 sessions he walks right by our side!',
     rating: 5
   },
@@ -132,7 +132,7 @@ export const TRAINING_TESTIMONIALS = [
     name: 'Kabir & Sneha Sen',
     dog: 'Milo (Beagle)',
     city: 'Bangalore',
-    avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=400',
+    avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?q=80&w=800&auto=format&fit=crop',
     quote: 'Our team comprises professional trainers with hands-on positive reinforcement skills. Milo stopped his separation barking within 2 weeks.',
     rating: 5
   },
@@ -141,7 +141,7 @@ export const TRAINING_TESTIMONIALS = [
     name: 'Rohit & Natasha Verma',
     dog: 'Bella (German Shepherd)',
     city: 'Delhi NCR',
-    avatar: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?q=80&w=400',
+    avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=800&auto=format&fit=crop',
     quote: 'We believe in humane, force-free science. Bella learned perfect recall, agility jumps, and stays calm around strangers. Highly recommend Pawora trainers!',
     rating: 5
   }
@@ -168,7 +168,7 @@ export const INITIAL_TRAINING_PROVIDERS = [
     packageStarting: 5499,
     phone: '+91 8306-944-422',
     whatsapp: '+91 8306-944-422',
-    image: 'https://images.unsplash.com/photo-1601758228041-f3b2795255f1?q=80&w=800',
+    image: 'https://images.unsplash.com/photo-1544568100-eba616a6ce76?q=80&w=800&auto=format&fit=crop',
     certifications: ['CCPDT-KA Certified', 'Fear Free Certified Professional', 'KCI Obedience Judge'],
     packages: [
       {
@@ -214,7 +214,7 @@ export const INITIAL_TRAINING_PROVIDERS = [
     packageStarting: 4999,
     phone: '+91 8306-944-422',
     whatsapp: '+91 8306-944-422',
-    image: 'https://images.unsplash.com/photo-1587300003388-59208cc962cb?q=80&w=800',
+    image: 'https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?q=80&w=800&auto=format&fit=crop',
     certifications: ['Karen Pryor Academy (KPA CTP)', 'Pet First Aid & CPR Certified'],
     packages: [
       {
@@ -253,7 +253,7 @@ export const INITIAL_TRAINING_PROVIDERS = [
     packageStarting: 8999,
     phone: '+91 8306-944-422',
     whatsapp: '+91 8306-944-422',
-    image: 'https://images.unsplash.com/photo-1548199973-03cce0bbc87b?q=80&w=800',
+    image: 'https://images.unsplash.com/photo-1548199973-03cce0bbc87b?q=80&w=800&auto=format&fit=crop',
     certifications: ['Certified Protection Dog Decoy', 'IPDTA Master Trainer'],
     packages: [
       {
@@ -292,7 +292,7 @@ export const INITIAL_TRAINING_PROVIDERS = [
     packageStarting: 5499,
     phone: '+91 8306-944-422',
     whatsapp: '+91 8306-944-422',
-    image: 'https://images.unsplash.com/photo-1534361960057-19889db9621e?q=80&w=800',
+    image: 'https://images.unsplash.com/photo-1517849845537-4d257902454a?q=80&w=800&auto=format&fit=crop',
     certifications: ['IAABC Member', 'Positive Dog Trainers Union'],
     packages: [
       {
@@ -324,7 +324,7 @@ export const INITIAL_TRAINING_PROVIDERS = [
     packageStarting: 5999,
     phone: '+91 8306-944-422',
     whatsapp: '+91 8306-944-422',
-    image: 'https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?q=80&w=800',
+    image: 'https://images.unsplash.com/photo-1534361960057-19889db9621e?q=80&w=800&auto=format&fit=crop',
     certifications: ['KCI Ring Handler Certification', 'Force-Free Trainer Award 2024'],
     packages: [
       {
@@ -363,7 +363,7 @@ export const INITIAL_TRAINING_PROVIDERS = [
     packageStarting: 5799,
     phone: '+91 8306-944-422',
     whatsapp: '+91 8306-944-422',
-    image: 'https://images.unsplash.com/photo-1541599540903-216a46ca1dc0?q=80&w=800',
+    image: 'https://images.unsplash.com/photo-1601758228041-f3b2795255f1?q=80&w=800&auto=format&fit=crop',
     certifications: ['Certified Canine Fitness Trainer (CCFT)', 'First Aid Certified'],
     packages: [
       {
@@ -395,7 +395,7 @@ export const INITIAL_TRAINING_PROVIDERS = [
     packageStarting: 5299,
     phone: '+91 8306-944-422',
     whatsapp: '+91 8306-944-422',
-    image: 'https://images.unsplash.com/photo-1535294435445-d7249524ef2e?q=80&w=800',
+    image: 'https://images.unsplash.com/photo-1587300003388-59208cc962cb?q=80&w=800&auto=format&fit=crop',
     certifications: ['Certified Applied Animal Behaviorist', 'Force-Free Guild Member'],
     packages: [
       {
@@ -427,7 +427,7 @@ export const INITIAL_TRAINING_PROVIDERS = [
     packageStarting: 4999,
     phone: '+91 8306-944-422',
     whatsapp: '+91 8306-944-422',
-    image: 'https://images.unsplash.com/photo-1517849845537-4d257902454a?q=80&w=800',
+    image: 'https://images.unsplash.com/photo-1552053831-71594a27632d?q=80&w=800&auto=format&fit=crop',
     certifications: ['Professional Dog Trainers Association of India', 'K9 Handler Level 2'],
     packages: [
       {
@@ -526,7 +526,7 @@ export const saveOrUpdateTrainingService = (serviceData, user) => {
     email: userEmail || serviceData.email || 'clevercanines@pawora.com',
     providerEmail: userEmail || 'clevercanines@pawora.com',
     providerUserId: userId,
-    image: serviceData.image || 'https://images.unsplash.com/photo-1601758228041-f3b2795255f1?q=80&w=800',
+    image: serviceData.image || 'https://images.unsplash.com/photo-1535930891776-0c2dfb7fda1a?q=80&w=800&auto=format&fit=crop',
     certifications: Array.isArray(serviceData.certifications) 
       ? serviceData.certifications 
       : (serviceData.certifications ? serviceData.certifications.split(',').map(c => c.trim()).filter(Boolean) : ['CCPDT-KA Certified', 'Fear Free Certified Professional']),

@@ -465,7 +465,7 @@ const PetClassifieds = () => {
             ))}
           </div>
       ) : (
-        <div className="text-center py-16 sm:py-20 bg-white border border-beige max-w-md mx-auto px-4 text-gray-500 text-xs sm:text-sm">
+        <div className="text-center py-8 lg:py-16 sm:py-10 lg:py-20 bg-white border border-beige max-w-md mx-auto px-4 text-gray-500 text-xs sm:text-sm">
           No active classified listings found matching the criteria.
         </div>
       )}
@@ -702,7 +702,7 @@ const PetClassifieds = () => {
             <div className="p-6">
               
               {paymentStep === 'processing' && (
-                <div className="py-16 flex flex-col items-center justify-center space-y-5 animate-in fade-in zoom-in-95 duration-300">
+                <div className="py-8 lg:py-16 flex flex-col items-center justify-center space-y-5 animate-in fade-in zoom-in-95 duration-300">
                    <div className="relative">
                      <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-primary"></div>
                      <div className="absolute inset-0 flex items-center justify-center text-accent">
@@ -720,7 +720,7 @@ const PetClassifieds = () => {
               )}
 
               {paymentStep === 'success' && (
-                <div className="py-16 flex flex-col items-center justify-center space-y-4 animate-in fade-in zoom-in-95 duration-300">
+                <div className="py-8 lg:py-16 flex flex-col items-center justify-center space-y-4 animate-in fade-in zoom-in-95 duration-300">
                    <div className="w-20 h-20 bg-green-100 text-green-600 rounded-full flex items-center justify-center shadow-inner">
                      <Check size={40} className="animate-[bounce_0.5s_ease-in-out_1]" />
                    </div>

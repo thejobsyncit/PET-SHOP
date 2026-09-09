@@ -765,7 +765,7 @@ export default function VeterinaryServices() {
           <main className="lg:col-span-8">
             
             {filteredDoctors.length === 0 ? (
-              <div className="bg-white border border-slate-200 rounded-3xl p-12 text-center space-y-4 shadow-sm">
+              <div className="bg-white border border-slate-200 rounded-3xl p-4 lg:p-12 text-center space-y-4 shadow-sm">
                 <div className="w-16 h-16 rounded-full bg-teal-50 border border-teal-200 text-[#00838f] flex items-center justify-center mx-auto text-2xl">
                   🩺
                 </div>
@@ -1017,7 +1017,7 @@ export default function VeterinaryServices() {
 
       {/* ================= 6. REASSURANCE SECTION (MATCHING SCREENSHOTS 2 & 4) ================= */}
       <ScrollReveal variant="slideUp" delay={0.2} className="max-w-7xl mx-auto px-4 md:px-8 py-10">
-        <div className="bg-gradient-to-r from-[#0b3b32] to-[#00838f] text-white rounded-3xl p-6 sm:p-10 shadow-xl grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+        <div className="bg-gradient-to-r from-[#0b3b32] to-[#00838f] text-white rounded-3xl p-6 sm:p-4 lg:p-10 shadow-xl grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
           
           <div className="lg:col-span-8 space-y-4">
             <span className="text-xs font-bold uppercase tracking-widest text-teal-300 bg-teal-900/60 px-3 py-1 rounded-full border border-teal-400/30 inline-block">

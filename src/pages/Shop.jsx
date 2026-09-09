@@ -179,8 +179,8 @@ const Shop = () => {
         { name: 'Treats', img: 'https://images.unsplash.com/photo-1583337130417-3346a1be7dee?w=300&auto=format&fit=crop' },
         { name: 'Dog Beds & Cotes', img: 'https://images.unsplash.com/photo-1576201836106-db1758fd1c97?w=300&auto=format&fit=crop' },
         { name: 'Collars & Leashes', img: 'https://images.unsplash.com/photo-1535930891776-0c2dfb7fda1a?w=300&auto=format&fit=crop' },
-        { name: 'Supplements', img: 'https://images.unsplash.com/photo-1601758124510-52d02ddb7cbd?w=300&auto=format&fit=crop' },
-        { name: 'Other Accessories', img: 'https://images.unsplash.com/photo-1527526029430-319f10814151?w=300&auto=format&fit=crop' }
+        { name: 'Supplements', img: '/images/birds/bird-supplements.jpg' },
+        { name: 'Other Accessories', img: 'https://images.unsplash.com/photo-1452570053594-1b985d6ea890?q=80&w=800&auto=format&fit=crop' }
       ],
       faqs: [
         { q: 'How do I choose the correct food type for my puppy?', a: 'Puppies require highly digestible proteins and specialized fat ratios for rapid bone growth. Look for specialized labels like Himalaya Healthy Pet Food for Puppies.' },
@@ -194,9 +194,9 @@ const Shop = () => {
       subcategories: [
         { name: 'Cat Food', img: 'https://images.unsplash.com/photo-1513360371669-4adf3dd7dff8?w=300&auto=format&fit=crop' },
         { name: 'Treats', img: 'https://images.unsplash.com/photo-1533743983669-94fa5c4338ec?w=300&auto=format&fit=crop' },
-        { name: 'Supplements', img: 'https://images.unsplash.com/photo-1574158622682-e40e69881006?w=300&auto=format&fit=crop' },
+        { name: 'Supplements', img: '/images/birds/bird-supplements.jpg' },
         { name: 'Beds & Scratchers', img: 'https://images.unsplash.com/photo-1517331156700-3c241d2b4d83?w=300&auto=format&fit=crop' },
-        { name: 'Other Accessories', img: 'https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=300&auto=format&fit=crop' }
+        { name: 'Other Accessories', img: 'https://images.unsplash.com/photo-1452570053594-1b985d6ea890?q=80&w=800&auto=format&fit=crop' }
       ],
       faqs: [
         { q: 'Why is wet food essential for cats?', a: 'Cats have a low thirst drive. Wet food provides vital hydration to prevent urinary tract infections and kidney issues.' },
@@ -208,12 +208,12 @@ const Shop = () => {
       desc: 'Premium seed blends, trace mineral blocks, Java wood perches, cage systems, and multivitamin drops formulated to maintain optimal plumage, beak size, and bird vitality.',
       hero: 'https://images.unsplash.com/photo-1452570053594-1b985d6ea890?q=80&w=1200&auto=format&fit=crop',
       subcategories: [
-        { name: 'Bird Food', img: 'https://images.unsplash.com/photo-1555685812-4b943f1cb0eb?w=300&auto=format&fit=crop' },
-        { name: 'Cages & Habitat', img: 'https://images.unsplash.com/photo-1522849508890-ce0f90768b20?w=300&auto=format&fit=crop' },
-        { name: 'Perches', img: 'https://images.unsplash.com/photo-1452570053594-1b985d6ea890?w=300&auto=format&fit=crop' },
-        { name: 'Toys', img: 'https://images.unsplash.com/photo-1602058376483-e8eeeb63b320?w=300&auto=format&fit=crop' },
-        { name: 'Supplements', img: 'https://images.unsplash.com/photo-1533591380302-3c1a3556d4ea?w=300&auto=format&fit=crop' },
-        { name: 'Other Accessories', img: 'https://images.unsplash.com/photo-1517789123015-77983ffef1c9?w=300&auto=format&fit=crop' }
+        { name: 'Bird Food', img: '/images/birds/bird-food.jpg' },
+        { name: 'Cages & Habitat', img: '/images/birds/bird-cage.jpg' },
+        { name: 'Perches', img: '/images/birds/bird-perch.jpg' },
+        { name: 'Toys', img: '/images/birds/bird-toys.jpg' },
+        { name: 'Supplements', img: '/images/birds/bird-supplements.jpg' },
+        { name: 'Other Accessories', img: 'https://images.unsplash.com/photo-1452570053594-1b985d6ea890?q=80&w=800&auto=format&fit=crop' }
       ],
       faqs: [
         { q: 'Why are natural wood perches better than plastic dowels?', a: 'Uniform plastic or smooth wood perches cause pressure sores and nail overgrowth. Natural java perches have varying diameters which exercise foot muscles and trim nails naturally.' },
@@ -225,12 +225,12 @@ const Shop = () => {
       desc: 'Specialized lockable glass terrariums, linear desert UVB bulbs, heating lamps, mold-resistant substrates, and pure calcium powders for chameleons, bearded dragons, and snakes.',
       hero: 'https://images.unsplash.com/photo-1542625331-b72c87806d21?q=80&w=1200&auto=format&fit=crop',
       subcategories: [
-        { name: 'Reptile Food', img: 'https://images.unsplash.com/photo-1589924691995-400dc9ecc119?w=300&auto=format&fit=crop' },
-        { name: 'Terrariums', img: 'https://images.unsplash.com/photo-1522069169874-c58ec4b76be5?w=300&auto=format&fit=crop' },
-        { name: 'Heating & Lighting', img: 'https://images.unsplash.com/photo-1472645977521-95bbf4f0a748?w=300&auto=format&fit=crop' },
-        { name: 'Calcium & Supplements', img: 'https://images.unsplash.com/photo-1627398225058-20d3de3ef908?w=300&auto=format&fit=crop' },
-        { name: 'Décor', img: 'https://images.unsplash.com/photo-1580226955007-88eb7c71d3d6?w=300&auto=format&fit=crop' },
-        { name: 'Other Accessories', img: 'https://images.unsplash.com/photo-1522069169874-c58ec4b76be5?w=300&auto=format&fit=crop' }
+        { name: 'Reptile Food', img: '/images/reptiles/reptile-food.jpg' },
+        { name: 'Terrariums', img: '/images/reptiles/reptile-terrarium.jpg' },
+        { name: 'Heating & Lighting', img: '/images/reptiles/reptile-heating.jpg' },
+        { name: 'Calcium & Supplements', img: '/images/reptiles/reptile-supplements.jpg' },
+        { name: 'Décor', img: '/images/reptiles/reptile-decor.jpg' },
+        { name: 'Other Accessories', img: 'https://images.unsplash.com/photo-1542625331-b72c87806d21?q=80&w=800&auto=format&fit=crop' }
       ],
       faqs: [
         { q: 'Why is UVB lighting mandatory for bearded dragons?', a: 'Bearded dragons are desert species that require high UVB output to synthesize vitamin D3. Without it, they cannot metabolize dietary calcium, leading to fatal Metabolic Bone Disease.' },
@@ -242,12 +242,12 @@ const Shop = () => {
       desc: 'Premium rimless glass aquariums, multi-stage filtration kits, full spectrum plant LEDs, dechlorinating stress coat conditioners, and biological starter aids.',
       hero: 'https://images.unsplash.com/photo-1544551763-46a013bb70d5?q=80&w=1200&auto=format&fit=crop',
       subcategories: [
-        { name: 'Aquariums & Tanks', img: 'https://images.unsplash.com/photo-1522069169874-c58ec4b76be5?w=300&auto=format&fit=crop' },
-        { name: 'Water Care & Filtration', img: 'https://images.unsplash.com/photo-1535591273668-578e3111ea3c?w=300&auto=format&fit=crop' },
-        { name: 'Fish Food', img: 'https://images.unsplash.com/photo-1524704654690-b56c05c78a00?w=300&auto=format&fit=crop' },
-        { name: 'Aquarium Lighting', img: 'https://images.unsplash.com/photo-1582967788606-a171c1080cb0?w=300&auto=format&fit=crop' },
-        { name: 'Plants & Décor', img: 'https://images.unsplash.com/photo-1580226955007-88eb7c71d3d6?w=300&auto=format&fit=crop' },
-        { name: 'Other Accessories', img: 'https://images.unsplash.com/photo-1524704654690-b56c05c78a00?w=300&auto=format&fit=crop' }
+        { name: 'Aquariums & Tanks', img: '/images/fish/fish-tank.jpg' },
+        { name: 'Water Care & Filtration', img: '/images/fish/fish-filter.jpg' },
+        { name: 'Fish Food', img: '/images/fish/fish-food.jpg' },
+        { name: 'Aquarium Lighting', img: 'https://images.unsplash.com/photo-1535591273668-578e31182c4f?q=80&w=800&auto=format&fit=crop' },
+        { name: 'Plants & Décor', img: 'https://images.unsplash.com/photo-1501854140801-50d01698950b?q=80&w=800&auto=format&fit=crop' },
+        { name: 'Other Accessories', img: 'https://images.unsplash.com/photo-1522069169874-c58ec4b76be5?q=80&w=800&auto=format&fit=crop' }
       ],
       faqs: [
         { q: 'What is the Nitrogen Cycle in aquaria?', a: 'It is the biological process where beneficial filter bacteria convert highly toxic fish waste (Ammonia) into toxic Nitrites, and then into harmless Nitrates, which you remove with weekly 25% water changes.' },
@@ -259,12 +259,12 @@ const Shop = () => {
       desc: 'Authorized pharmacy department providing vitamins, joint care chondroitin capsules, digestion syrups, wound antiseptic kits, and strict prescription verification medications.',
       hero: 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?q=80&w=1200&auto=format&fit=crop',
       subcategories: [
-        { name: 'Vitamins & Supplements', img: 'https://images.unsplash.com/photo-1627398225058-20d3de3ef908?w=300&auto=format&fit=crop' },
-        { name: 'First Aid & Healthcare', img: 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=300&auto=format&fit=crop' },
-        { name: 'Skin Care', img: 'https://images.unsplash.com/photo-1584036109968-36e78dbf1454?w=300&auto=format&fit=crop' },
-        { name: 'Joint Care', img: 'https://images.unsplash.com/photo-1555685812-4b943f1cb0eb?w=300&auto=format&fit=crop' },
-        { name: 'Digestive Care', img: 'https://images.unsplash.com/photo-1544568100-847a948585b9?w=300&auto=format&fit=crop' },
-        { name: 'Other Accessories', img: 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=300&auto=format&fit=crop' }
+        { name: 'Vitamins & Supplements', img: '/images/pharmacy/pharmacy-vitamins.jpg' },
+        { name: 'First Aid & Healthcare', img: '/images/pharmacy/pharmacy-firstaid.jpg' },
+        { name: 'Skin Care', img: '/images/pharmacy/pharmacy-skincare.jpg' },
+        { name: 'Joint Care', img: '/images/pharmacy/pharmacy-jointcare.jpg' },
+        { name: 'Digestive Care', img: '/images/pharmacy/pharmacy-digestive.jpg' },
+        { name: 'Other Accessories', img: '/images/pharmacy/pharmacy-accessories.jpg' }
       ],
       faqs: [
         { q: 'How do I purchase prescription items (marked with Rx)?', a: 'Add the items to your cart, upload your veterinary prescription on the checkout/pharmacy page, and our licensed pharmacist will verify the upload within 2 hours to confirm shipping.' },
@@ -499,7 +499,7 @@ const Shop = () => {
       {/* 3. Price Filter */}
       <div className="space-y-2 pt-4 border-t border-beige">
         <h4 className="text-xs uppercase tracking-widest text-primary font-bold">PRICE RANGE</h4>
-        <div className="grid grid-cols-2 gap-2">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
           <input
             type="number"
             placeholder="Min ₹"
@@ -727,13 +727,13 @@ const Shop = () => {
   
               {/* Products grid container */}
               {loading ? (
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 md:grid-cols-2 md:grid-cols-3 gap-6">
                   {[1, 2, 3, 4, 5, 6].map(idx => (
                     <div key={idx} className="bg-white border border-gray-100 h-[400px] animate-pulse rounded-2xl"></div>
                   ))}
                 </div>
               ) : products.length > 0 ? (
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 md:grid-cols-2 md:grid-cols-3 gap-6">
                   {products.map((product) => (
                     <ProductCard key={product._id} product={product} />
                   ))}

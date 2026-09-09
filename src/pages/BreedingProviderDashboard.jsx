@@ -389,7 +389,7 @@ const ProfileModule = ({ user }) => {
       <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
         <div className="flex flex-col md:flex-row items-start gap-6">
           <div className="w-24 h-24 rounded-full bg-slate-100 border-4 border-white shadow-lg overflow-hidden shrink-0">
-             <img src={user?.avatar || 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?q=80&w=400'} alt="Profile" className="w-full h-full object-cover" />
+             <img src={user?.avatar || 'https://images.unsplash.com/photo-1633332755192-727a05c4013d?q=80&w=800&auto=format&fit=crop'} alt="Profile" className="w-full h-full object-cover" />
           </div>
           <div className="flex-1 w-full">
             <h3 className="text-lg font-black text-[#0F2E23] mb-1">{user?.name || 'Premium Breeder'}</h3>
@@ -502,14 +502,14 @@ const BreedingProviderDashboard = ({
     reviews: currentProvider?.reviewsCount || 100
   };
 
-  const displayAvatar = user?.avatar || user?.profilePicture || currentProvider?.avatar || 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?q=80&w=400';
+  const displayAvatar = user?.avatar || user?.profilePicture || currentProvider?.avatar || 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=800&auto=format&fit=crop';
   const displayName = user?.name || currentProvider?.name || 'Provider';
 
   return (
-    <div className="min-h-screen bg-[#FAF9F5] text-slate-900 font-sans selection:bg-[#0F2E23]/20 selection:text-[#0F2E23] flex">
+    <div className="min-h-screen bg-[#FAF9F5] text-slate-900 font-sans selection:bg-[#0F2E23]/20 selection:text-[#0F2E23] flex flex-col lg:flex-row">
       
       {/* LEFT SIDEBAR */}
-      <aside className="w-72 shrink-0 bg-white border-r border-slate-200 sticky top-[104px] h-[calc(100vh-104px)] flex flex-col justify-between overflow-y-auto z-10 shadow-[4px_0_24px_rgba(0,0,0,0.02)]">
+      <aside className="w-full lg:w-72 shrink-0 bg-white border-r border-slate-200 relative lg:sticky top-[104px] h-[calc(100vh-104px)] flex flex-col justify-between overflow-y-auto z-10 shadow-[4px_0_24px_rgba(0,0,0,0.02)]">
         <div className="p-6 pt-12 space-y-8">
           
           <div className="flex flex-col items-center text-center space-y-4">
@@ -724,7 +724,7 @@ const BreedingProviderDashboard = ({
         </div>
 
         {/* TAB CONTENT */}
-        <div className="bg-white rounded-3xl p-8 lg:p-10 border border-slate-200 min-h-[500px] shadow-sm">
+        <div className="bg-white rounded-3xl p-8 lg:p-4 lg:p-10 border border-slate-200 min-h-[500px] shadow-sm">
           <BreedingProviderContent activeTab={activeTab} user={user} />
         </div>
       </main>

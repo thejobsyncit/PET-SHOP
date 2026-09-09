@@ -22,7 +22,7 @@ const SERVICES = [
     hover: 'hover:border-pink-400',
     shadow: 'hover:shadow-pink-900/10',
     desc: 'Professional spa, styling, and hygiene care for your pets.',
-    image: 'https://images.unsplash.com/photo-1516734212186-a967f81ad0d7?q=80&w=800'
+    image: 'https://images.unsplash.com/photo-1601758228041-f3b2795255f1?q=80&w=800&auto=format&fit=crop'
   },
   {
     id: 'hostel',
@@ -34,7 +34,7 @@ const SERVICES = [
     hover: 'hover:border-blue-400',
     shadow: 'hover:shadow-blue-900/10',
     desc: 'Safe, comfortable boarding and daycare when you are away.',
-    image: 'https://images.unsplash.com/photo-1548199973-03cce0bbc87b?q=80&w=800'
+    image: 'https://images.unsplash.com/photo-1587300003388-59208cc962cb?q=80&w=800&auto=format&fit=crop'
   },
   {
     id: 'walking',
@@ -46,7 +46,7 @@ const SERVICES = [
     hover: 'hover:border-amber-400',
     shadow: 'hover:shadow-amber-900/10',
     desc: 'Daily walks to boost your dogs health, behavior, and happiness.',
-    image: 'https://images.unsplash.com/photo-1552053831-71594a27632d?q=80&w=800'
+    image: 'https://images.unsplash.com/photo-1552053831-71594a27632d?q=80&w=800&auto=format&fit=crop'
   },
   {
     id: 'transport',
@@ -58,7 +58,7 @@ const SERVICES = [
     hover: 'hover:border-emerald-400',
     shadow: 'hover:shadow-emerald-900/10',
     desc: 'Reliable and AC cabs for local vet visits or intercity relocation.',
-    image: 'https://images.unsplash.com/photo-1544568100-847a948585b9?q=80&w=800'
+    image: 'https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?q=80&w=800&auto=format&fit=crop'
   },
   {
     id: 'training',
@@ -70,7 +70,7 @@ const SERVICES = [
     hover: 'hover:border-indigo-400',
     shadow: 'hover:shadow-indigo-900/10',
     desc: 'Expert behavioral training and obedience classes.',
-    image: 'https://images.unsplash.com/photo-1534361960057-19889db9621e?q=80&w=800'
+    image: 'https://images.unsplash.com/photo-1535930891776-0c2dfb7fda1a?q=80&w=800&auto=format&fit=crop'
   },
   {
     id: 'insurance',
@@ -82,7 +82,7 @@ const SERVICES = [
     hover: 'hover:border-red-400',
     shadow: 'hover:shadow-red-900/10',
     desc: 'Comprehensive health coverage and emergency medical plans.',
-    image: 'https://images.unsplash.com/photo-1583337130417-3346a1be7dee?q=80&w=800'
+    image: 'https://images.unsplash.com/photo-1589924691995-400dc9ecc119?q=80&w=800&auto=format&fit=crop'
   },
   {
     id: 'vet',
@@ -94,15 +94,15 @@ const SERVICES = [
     hover: 'hover:border-teal-400',
     shadow: 'hover:shadow-teal-900/10',
     desc: 'Online consultations and clinic bookings with top veterinarians.',
-    image: 'https://images.unsplash.com/photo-1576091160550-2173dba999ef?q=80&w=800'
+    image: 'https://images.unsplash.com/photo-1629909613654-20e3650275cc?q=80&w=800&auto=format&fit=crop'
   }
 ];
 
 const TOP_PROVIDERS = [
-  { id: 1, name: 'Dr. Ramesh Kumar', category: 'Veterinary', rating: 4.9, reviews: 120, location: 'Bangalore', image: 'https://images.unsplash.com/photo-1576091160550-2173dba999ef?q=80&w=800' },
-  { id: 2, name: 'Velvet Fur Spa', category: 'Grooming', rating: 5.0, reviews: 75, location: 'Bangalore', image: 'https://images.unsplash.com/photo-1516734212186-a967f81ad0d7?q=80&w=800' },
-  { id: 3, name: 'Pawsome Walkers', category: 'Dog Walking', rating: 4.8, reviews: 115, location: 'Bangalore', image: 'https://images.unsplash.com/photo-1552053831-71594a27632d?q=80&w=800' },
-  { id: 4, name: 'Happy Paws Resort', category: 'Hostel', rating: 4.9, reviews: 145, location: 'Bangalore', image: 'https://images.unsplash.com/photo-1548199973-03cce0bbc87b?q=80&w=800' }
+  { id: 1, name: 'Dr. Ramesh Kumar', category: 'Veterinary', rating: 4.9, reviews: 120, location: 'Bangalore', image: 'https://images.unsplash.com/photo-1583337130417-3346a1be7dee?q=80&w=800&auto=format&fit=crop' },
+  { id: 2, name: 'Velvet Fur Spa', category: 'Grooming', rating: 5.0, reviews: 75, location: 'Bangalore', image: 'https://images.unsplash.com/photo-1544568100-eba616a6ce76?q=80&w=800&auto=format&fit=crop' },
+  { id: 3, name: 'Pawsome Walkers', category: 'Dog Walking', rating: 4.8, reviews: 115, location: 'Bangalore', image: 'https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?q=80&w=800&auto=format&fit=crop' },
+  { id: 4, name: 'Happy Paws Resort', category: 'Hostel', rating: 4.9, reviews: 145, location: 'Bangalore', image: 'https://images.unsplash.com/photo-1548199973-03cce0bbc87b?q=80&w=800&auto=format&fit=crop' }
 ];
 
 import ServiceAccessLock, { isServicePathLockedForUser } from '../components/ServiceAccessLock.jsx';
@@ -230,7 +230,7 @@ const ServiceBooking = () => {
                 <div className="absolute inset-0 bg-gradient-to-tr from-[#fde047]/20 to-transparent rounded-full blur-3xl transform scale-110"></div>
                 
                 <img
-                  src="https://images.unsplash.com/photo-1576201836106-db1758fd1c97?q=80&w=800"
+                  src="https://images.unsplash.com/photo-1517849845537-4d257902454a?q=80&w=800&auto=format&fit=crop"
                   alt="Happy Dog with Professional"
                   className="relative w-full h-full object-cover rounded-[2rem] shadow-2xl border border-white/20 ring-4 ring-white/5 z-10"
                 />
@@ -270,7 +270,7 @@ const ServiceBooking = () => {
       </ScrollReveal>
 
       {/* 2. SERVICES GRID */}
-      <section id="services-grid" className="max-w-7xl mx-auto px-4 md:px-8 py-16 -mt-8 relative z-10 scroll-mt-20">
+      <section id="services-grid" className="max-w-7xl mx-auto px-4 md:px-8 py-8 lg:py-16 -mt-8 relative z-10 scroll-mt-20">
         <ScrollReveal variant="slideUp" delay={0.1}>
           <div className="text-center space-y-4 mb-14">
             <span className="text-[10px] md:text-xs uppercase font-black tracking-widest text-[#1c4b3a] bg-[#1c4b3a]/10 px-4 py-1.5 rounded-full border border-[#1c4b3a]/20 shadow-sm">
@@ -334,7 +334,7 @@ const ServiceBooking = () => {
       </section>
 
       {/* 3. FEATURED PROVIDERS */}
-      <section className="bg-white py-20 border-y border-slate-100">
+      <section className="bg-white py-10 lg:py-20 border-y border-slate-100">
         <ScrollReveal variant="slideUp" delay={0.2} className="max-w-7xl mx-auto px-4 md:px-8">
           <div className="flex flex-col md:flex-row justify-between items-center gap-4 mb-12">
             <div className="space-y-3 text-center md:text-left">
@@ -392,7 +392,7 @@ const ServiceBooking = () => {
       </section>
 
       {/* 4. WHY CHOOSE US */}
-      <section className="max-w-7xl mx-auto px-4 md:px-8 py-20 relative">
+      <section className="max-w-7xl mx-auto px-4 md:px-8 py-10 lg:py-20 relative">
         <ScrollReveal variant="slideUp">
           <div className="text-center space-y-4 mb-14">
             <span className="text-[10px] md:text-xs uppercase font-black tracking-widest text-[#1c4b3a] bg-[#1c4b3a]/10 px-4 py-1.5 rounded-full border border-[#1c4b3a]/20 shadow-sm">
@@ -428,7 +428,7 @@ const ServiceBooking = () => {
               }
             ].map((feature, idx) => (
               <ScrollReveal key={idx} variant="zoomIn" delay={0.2 + (idx * 0.1)}>
-                <div className="group bg-white p-8 md:p-10 rounded-[2rem] border border-slate-100 text-center space-y-5 shadow-lg hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 h-full flex flex-col">
+                <div className="group bg-white p-8 md:p-4 lg:p-10 rounded-[2rem] border border-slate-100 text-center space-y-5 shadow-lg hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 h-full flex flex-col">
                   <div className={`w-20 h-20 mx-auto ${feature.bg} rounded-2xl flex items-center justify-center border ${feature.border} group-hover:scale-110 group-hover:rotate-3 transition-transform duration-500 shadow-inner`}>
                     {feature.icon}
                   </div>
@@ -457,7 +457,7 @@ const ServiceBooking = () => {
             </div>
             <button 
               onClick={() => !isAuthenticated && window.dispatchEvent(new CustomEvent('open-register-modal', { detail: { tab: 'user' } }))}
-              className="relative z-10 shrink-0 bg-[#0f2e23] hover:bg-black text-white font-black py-4 px-10 rounded-[1.25rem] shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 active:scale-95 text-lg flex items-center gap-2 border border-[#1c4b3a]"
+              className="relative z-10 shrink-0 bg-[#0f2e23] hover:bg-black text-white font-black py-4 px-4 lg:px-10 rounded-[1.25rem] shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 active:scale-95 text-lg flex items-center gap-2 border border-[#1c4b3a]"
             >
               {isAuthenticated ? 'Explore Services' : 'Sign Up Now'}
               <Sparkles size={20} className="text-[#fde047]" />

@@ -17,7 +17,8 @@ export const createOrder = async (req, res) => {
     transactionId
   } = req.body;
 
-  const userId = req.user._id || req.user.id;
+  // Fallback for guest users without req.user
+  const userId = req.user ? (req.user._id || req.user.id) : new mongoose.Types.ObjectId().toString();
 
   if (!orderItems || orderItems.length === 0) {
     return res.status(400).json({ success: false, message: 'No order items provided' });

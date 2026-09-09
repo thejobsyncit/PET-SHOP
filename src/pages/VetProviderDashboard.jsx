@@ -369,7 +369,7 @@ const VetProviderDashboard = ({
         currency: orderResponse.currency,
         name: 'Pawora Pet Shop',
         description: 'Listing Fee for ' + title,
-        image: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?q=80&w=400',
+        image: 'https://images.unsplash.com/photo-1606425134789-5f21272fc4d6?q=80&w=800&auto=format&fit=crop',
         order_id: orderResponse.orderId,
         handler: async function (response) {
           try {
@@ -511,18 +511,18 @@ const VetProviderDashboard = ({
   };
 
   // Fix Profile Avatar - Use actual user's avatar if they are logged in, otherwise fallback
-  const displayAvatar = user?.avatar || user?.profilePicture || currentProvider?.avatar || 'https://images.unsplash.com/photo-1622253692010-333f2da6031d?auto=format&fit=crop&w=600&q=80';
+  const displayAvatar = user?.avatar || user?.profilePicture || currentProvider?.avatar || 'https://images.unsplash.com/photo-1629909613654-20e3650275cc?q=80&w=800&auto=format&fit=crop';
   const displayName = user?.name || currentProvider?.name || 'Dr. Ramesh Kumar';
 
   return (
-    <div className="min-h-screen bg-[#FAF9F5] text-slate-900 font-sans selection:bg-[#0F2E23]/20 selection:text-[#0F2E23] flex">
+    <div className="min-h-screen bg-[#FAF9F5] text-slate-900 font-sans selection:bg-[#0F2E23]/20 selection:text-[#0F2E23] flex flex-col lg:flex-row">
       
       {/* 
         ========================================================
         LEFT SIDEBAR: NAVIGATION & PROFILE
         ========================================================
       */}
-      <aside className="w-72 shrink-0 bg-white border-r border-slate-200 sticky top-[104px] h-[calc(100vh-104px)] flex flex-col justify-between overflow-y-auto z-10 shadow-[4px_0_24px_rgba(0,0,0,0.02)]">
+      <aside className="w-full lg:w-72 shrink-0 bg-white border-r border-slate-200 relative lg:sticky top-[104px] h-[calc(100vh-104px)] flex flex-col justify-between overflow-y-auto z-10 shadow-[4px_0_24px_rgba(0,0,0,0.02)]">
         <div className="p-6 pt-12 space-y-8">
           
           {/* Profile Widget */}
@@ -754,7 +754,7 @@ const VetProviderDashboard = ({
           TAB CONTENT
           ========================================================
         */}
-        <div className="bg-white rounded-3xl p-8 lg:p-10 border border-slate-200 min-h-[500px] shadow-sm">
+        <div className="bg-white rounded-3xl p-8 lg:p-4 lg:p-10 border border-slate-200 min-h-[500px] shadow-sm">
           <VetProviderContent activeTab={activeTab} />
         </div>
       </main>

@@ -395,8 +395,8 @@ const BreedingDirectory = () => {
       dewormed: true,
       geneticTested: true,
       image: newImageUrl || (newPetCategory === 'Cats' 
-        ? 'https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?auto=format&fit=crop&w=800&q=80'
-        : 'https://images.unsplash.com/photo-1543466835-00a7907e9de1?auto=format&fit=crop&w=800&q=80'),
+        ? 'https://images.unsplash.com/photo-1495360010541-f48722b34f7d?q=80&w=800&auto=format&fit=crop'
+        : 'https://images.unsplash.com/photo-1517849845537-4d257902454a?q=80&w=800&auto=format&fit=crop'),
       description: newDescription || `${newPetName} is a healthy, active ${newBreed} ready for mating. Up to date on all vaccinations and deworming.`,
       sire: newSire || 'Registered Pedigree Sire',
       dam: newDam || 'Registered Pedigree Dam',
@@ -503,7 +503,7 @@ const BreedingDirectory = () => {
                 {/* Main Glassmorphic Photo Container */}
                 <div className="relative rounded-3xl overflow-hidden shadow-2xl border-4 border-white/90 bg-white aspect-[4/3]">
                   <img
-                    src="https://images.unsplash.com/photo-1548199973-03cce0bbc87b?auto=format&fit=crop&w=800&q=80"
+                    src="https://images.unsplash.com/photo-1534361960057-19889db9621e?q=80&w=800&auto=format&fit=crop"
                     alt="Paws Matched in Heaven"
                     className="w-full h-full object-cover"
                   />
@@ -524,12 +524,12 @@ const BreedingDirectory = () => {
                     <div className="flex items-center gap-2">
                       <div className="flex -space-x-3">
                         <img
-                          src="https://images.unsplash.com/photo-1552053831-71594a27632d?auto=format&fit=crop&w=120&q=80"
+                          src="https://images.unsplash.com/photo-1601758228041-f3b2795255f1?q=80&w=800&auto=format&fit=crop"
                           alt="Thor"
                           className="w-9 h-9 rounded-full object-cover border-2 border-white shadow-sm"
                         />
                         <img
-                          src="https://images.unsplash.com/photo-1591769225440-811ad7d6eab2?auto=format&fit=crop&w=120&q=80"
+                          src="https://images.unsplash.com/photo-1587300003388-59208cc962cb?q=80&w=800&auto=format&fit=crop"
                           alt="Zara"
                           className="w-9 h-9 rounded-full object-cover border-2 border-white shadow-sm"
                         />
@@ -1016,7 +1016,7 @@ const BreedingDirectory = () => {
 
             {/* Empty State */}
             {filteredPets.length === 0 ? (
-              <div className="bg-white border border-slate-200 rounded-3xl p-12 text-center space-y-4">
+              <div className="bg-white border border-slate-200 rounded-3xl p-4 lg:p-12 text-center space-y-4">
                 <div className="w-16 h-16 bg-purple-50 border border-purple-200 rounded-full flex items-center justify-center mx-auto text-[#6D28D9]">
                   <Heart size={28} />
                 </div>

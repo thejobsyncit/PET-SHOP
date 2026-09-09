@@ -149,7 +149,7 @@ const Contact = () => {
           {/* MESSAGE FORM (Right 7 Columns) */}
           <div className="lg:col-span-7">
             <ScrollReveal variant="slideLeft" delay={0.3}>
-              <div className="bg-white rounded-[2.5rem] border border-slate-100 p-8 md:p-10 shadow-2xl space-y-8">
+              <div className="bg-white rounded-[2.5rem] border border-slate-100 p-8 md:p-4 lg:p-10 shadow-2xl space-y-8">
                 <div>
                   <h2 className="font-sans text-3xl font-black text-slate-900 tracking-tight">
                     Send a Secure Message

@@ -146,7 +146,7 @@ const BlogHub = () => {
           </div>
         ) : (
           <ScrollReveal variant="fade">
-            <div className="text-center py-20 bg-white border border-slate-200 rounded-[2rem] max-w-md mx-auto shadow-sm">
+            <div className="text-center py-10 lg:py-20 bg-white border border-slate-200 rounded-[2rem] max-w-md mx-auto shadow-sm">
               <BookOpen size={48} className="mx-auto text-slate-300 mb-4" />
               <p className="text-slate-500 font-bold">No articles found.</p>
               <p className="text-xs text-slate-400 mt-2">Check back later for expert publications.</p>

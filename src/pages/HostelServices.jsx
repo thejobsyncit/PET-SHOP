@@ -375,7 +375,7 @@ const HostelServices = () => {
             <div className="lg:col-span-4 flex justify-center lg:justify-end">
               <div className="relative w-64 h-64 md:w-72 md:h-72">
                 <img
-                  src="https://images.unsplash.com/photo-1548199973-03cce0bbc87b?q=80&w=800"
+                  src="https://images.unsplash.com/photo-1552053831-71594a27632d?q=80&w=800&auto=format&fit=crop"
                   alt="Cozy Pet in Wicker Chair"
                   className="w-full h-full object-cover rounded-3xl shadow-2xl border-4 border-white/80 filter drop-shadow-xl"
                 />
@@ -871,7 +871,7 @@ const HostelServices = () => {
                 })}
               </div>
             ) : (
-              <div className="text-center py-16 bg-white rounded-3xl border border-purple-100 p-8 space-y-4">
+              <div className="text-center py-8 lg:py-16 bg-white rounded-3xl border border-purple-100 p-8 space-y-4">
                 <div className="w-16 h-16 bg-purple-50 rounded-full flex items-center justify-center mx-auto text-[#7c56dc]">
                   <Home size={28} />
                 </div>
@@ -898,7 +898,7 @@ const HostelServices = () => {
       {/* =========================================================================
           3. "RESULTS BRIGHT AS YOUR PET'S EYES" STATS COUNTERS (Moved Below Catalog)
          ========================================================================= */}
-      <ScrollReveal variant="fade" className="max-w-7xl mx-auto px-4 md:px-8 py-16 space-y-8">
+      <ScrollReveal variant="fade" className="max-w-7xl mx-auto px-4 md:px-8 py-8 lg:py-16 space-y-8">
         <div className="text-center space-y-2 max-w-2xl mx-auto">
           <h2 className="text-2xl md:text-3xl font-extrabold text-slate-900 font-sans">
             Results Bright As Your <span className="text-[#7c56dc]">Pet's Eyes</span>
@@ -942,7 +942,7 @@ const HostelServices = () => {
       {/* =========================================================================
           4. "YOUR PET FEELS SAFEST" (Photo Cards Moved Below)
          ========================================================================= */}
-      <ScrollReveal variant="fade" className="bg-white border-y border-purple-100 py-16 px-4 md:px-8">
+      <ScrollReveal variant="fade" className="bg-white border-y border-purple-100 py-8 lg:py-16 px-4 md:px-8">
         <div className="max-w-7xl mx-auto space-y-10">
           
           <div className="text-center space-y-2 max-w-2xl mx-auto">
@@ -960,7 +960,7 @@ const HostelServices = () => {
             {/* Photo 1 */}
             <div className="aspect-[4/3] rounded-3xl overflow-hidden shadow-lg border border-purple-100 bg-slate-100 group">
               <img
-                src="https://images.unsplash.com/photo-1548199973-03cce0bbc87b?q=80&w=600"
+                src="https://images.unsplash.com/photo-1535930891776-0c2dfb7fda1a?q=80&w=800&auto=format&fit=crop"
                 alt="Social Communal Play Zone"
                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
               />
@@ -969,7 +969,7 @@ const HostelServices = () => {
             {/* Photo 2 */}
             <div className="aspect-[4/3] rounded-3xl overflow-hidden shadow-lg border border-purple-100 bg-slate-100 group">
               <img
-                src="https://images.unsplash.com/photo-1537151608828-ea2b11777ee8?q=80&w=600"
+                src="https://images.unsplash.com/photo-1589924691995-400dc9ecc119?q=80&w=800&auto=format&fit=crop"
                 alt="Puppy Sleeping in Blue Bed"
                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
               />
@@ -978,7 +978,7 @@ const HostelServices = () => {
             {/* Photo 3 */}
             <div className="aspect-[4/3] rounded-3xl overflow-hidden shadow-lg border border-purple-100 bg-slate-100 group">
               <img
-                src="https://images.unsplash.com/photo-1541599540903-216a46ca1dc0?q=80&w=600"
+                src="https://images.unsplash.com/photo-1544568100-eba616a6ce76?q=80&w=800&auto=format&fit=crop"
                 alt="Loving Caretaker Outdoors"
                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
               />
@@ -993,7 +993,7 @@ const HostelServices = () => {
       {/* =========================================================================
           5. "WHY DO PET PARENTS CHOOSE PAWORA?" (Testimonials)
          ========================================================================= */}
-      <ScrollReveal variant="fade" className="max-w-7xl mx-auto px-4 md:px-8 py-16 space-y-12">
+      <ScrollReveal variant="fade" className="max-w-7xl mx-auto px-4 md:px-8 py-8 lg:py-16 space-y-12">
         <div className="text-center space-y-2 max-w-2xl mx-auto">
           <h2 className="text-2xl md:text-3xl font-extrabold text-slate-900 font-sans">
             Why Do Pet Parents Choose <span className="text-[#7c56dc]">Pawora?</span>
@@ -1011,7 +1011,7 @@ const HostelServices = () => {
             <div className="relative w-28 h-28">
               <div className="absolute inset-0 bg-[#fec338]/30 rounded-full transform -rotate-6"></div>
               <img
-                src="https://images.unsplash.com/photo-1548199973-03cce0bbc87b?q=80&w=400"
+                src="https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?q=80&w=800&auto=format&fit=crop"
                 alt="Safe & Secure Team"
                 className="relative w-full h-full object-cover rounded-full border-2 border-white shadow-md"
               />
@@ -1029,7 +1029,7 @@ const HostelServices = () => {
             <div className="relative w-28 h-28">
               <div className="absolute inset-0 bg-[#ff85a1]/30 rounded-full transform rotate-6"></div>
               <img
-                src="https://images.unsplash.com/photo-1537151608828-ea2b11777ee8?q=80&w=400"
+                src="https://images.unsplash.com/photo-1548199973-03cce0bbc87b?q=80&w=800&auto=format&fit=crop"
                 alt="Background Checked Partners"
                 className="relative w-full h-full object-cover rounded-full border-2 border-white shadow-md"
               />
@@ -1047,7 +1047,7 @@ const HostelServices = () => {
             <div className="relative w-28 h-28">
               <div className="absolute inset-0 bg-[#8a68e8]/30 rounded-full transform -rotate-6"></div>
               <img
-                src="https://images.unsplash.com/photo-1541599540903-216a46ca1dc0?q=80&w=400"
+                src="https://images.unsplash.com/photo-1517849845537-4d257902454a?q=80&w=800&auto=format&fit=crop"
                 alt="Real Time Video Updates"
                 className="relative w-full h-full object-cover rounded-full border-2 border-white shadow-md"
               />
@@ -1067,7 +1067,7 @@ const HostelServices = () => {
       {/* =========================================================================
           6. "OUR QUICK EASY PROCESS" (Process Steps)
          ========================================================================= */}
-      <ScrollReveal variant="fade" className="bg-white border-y border-purple-100 py-16 px-4 md:px-8">
+      <ScrollReveal variant="fade" className="bg-white border-y border-purple-100 py-8 lg:py-16 px-4 md:px-8">
         <div className="max-w-7xl mx-auto text-center space-y-12">
           
           <div className="max-w-2xl mx-auto space-y-2">

@@ -1144,7 +1144,7 @@ const PetInsurance = () => {
 
             {/* Provider Cards List */}
             {filteredProviders.length === 0 ? (
-              <div className="bg-white border border-gray-200 p-12 text-center space-y-4">
+              <div className="bg-white border border-gray-200 p-4 lg:p-12 text-center space-y-4">
                 <div className="w-14 h-14 bg-amber-50 border border-amber-200 rounded-full flex items-center justify-center mx-auto text-amber-600">
                   <ShieldAlert size={28} />
                 </div>
@@ -2172,7 +2172,7 @@ const PetInsurance = () => {
       </ScrollReveal>
 
       {/* 9. WHY DO PET PARENTS CHOOSE PAWORA? (TESTIMONIALS) */}
-      <ScrollReveal variant="fade" className="bg-white border-t border-gray-200 py-16 px-4 md:px-8">
+      <ScrollReveal variant="fade" className="bg-white border-t border-gray-200 py-8 lg:py-16 px-4 md:px-8">
         <div className="max-w-7xl mx-auto space-y-10">
           <div className="text-center space-y-2 max-w-2xl mx-auto">
             <h2 className="text-2xl md:text-4xl font-serif font-bold text-slate-900">

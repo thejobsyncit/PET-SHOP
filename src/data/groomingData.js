@@ -28,7 +28,7 @@ export const INITIAL_GROOMING_PROVIDERS = [
     serviceMode: 'Salon Studio & Home Visit',
     price: 999,
     discountPrice: 799,
-    image: 'https://images.unsplash.com/photo-1516734212186-a967f81ad0d7?q=80&w=800',
+    image: 'https://images.unsplash.com/photo-1516734212186-a967f81ad0d7?q=80&w=800&auto=format&fit=crop',
     phone: '8306688827',
     offerings: ['Spa Bath', 'Full Grooming', 'Nail Clipping', 'Hair Cuts', 'Knot/Mats Removal', 'Anti-Tick Treatment'],
     packages: [
@@ -53,7 +53,7 @@ export const INITIAL_GROOMING_PROVIDERS = [
     serviceMode: 'Doorstep Van',
     price: 1200,
     discountPrice: 999,
-    image: 'https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?q=80&w=800',
+    image: 'https://images.unsplash.com/photo-1516734212186-a967f81ad0d7?q=80&w=800&auto=format&fit=crop',
     phone: '8306688827',
     offerings: ['Spa Bath', 'Full Grooming', 'Nail Clipping', 'Hair Cuts', 'Anti-Tick Treatment'],
     packages: [
@@ -77,7 +77,7 @@ export const INITIAL_GROOMING_PROVIDERS = [
     serviceMode: 'Salon Studio',
     price: 599,
     discountPrice: 499,
-    image: 'https://images.unsplash.com/photo-1535294435445-d7249524ef2e?q=80&w=800',
+    image: 'https://images.unsplash.com/photo-1516734212186-a967f81ad0d7?q=80&w=800&auto=format&fit=crop',
     phone: '8306688827',
     offerings: ['Spa Bath', 'Nail Clipping', 'Hair Cuts', 'Medical Bath', 'Knot/Mats Removal'],
     packages: [
@@ -101,7 +101,7 @@ export const INITIAL_GROOMING_PROVIDERS = [
     serviceMode: 'Home Visit',
     price: 850,
     discountPrice: 699,
-    image: 'https://images.unsplash.com/photo-1541599540903-216a46ca1dc0?q=80&w=800',
+    image: 'https://images.unsplash.com/photo-1516734212186-a967f81ad0d7?q=80&w=800&auto=format&fit=crop',
     phone: '8306688827',
     offerings: ['Spa Bath', 'Full Grooming', 'Nail Clipping', 'Medical Bath', 'Anti-Tick Treatment'],
     packages: [
@@ -125,7 +125,7 @@ export const INITIAL_GROOMING_PROVIDERS = [
     serviceMode: 'Salon Studio & Home Visit',
     price: 1500,
     discountPrice: 1299,
-    image: 'https://images.unsplash.com/photo-1596492784531-6e6eb5ea9993?q=80&w=800',
+    image: 'https://images.unsplash.com/photo-1516734212186-a967f81ad0d7?q=80&w=800&auto=format&fit=crop',
     phone: '8306688827',
     offerings: ['Spa Bath', 'Full Grooming', 'Nail Clipping', 'Hair Cuts', 'Knot/Mats Removal', 'Anti-Tick Treatment', 'Medical Bath'],
     packages: [
@@ -149,7 +149,7 @@ export const INITIAL_GROOMING_PROVIDERS = [
     serviceMode: 'Home Visit',
     price: 450,
     discountPrice: 399,
-    image: 'https://images.unsplash.com/photo-1548199973-03cce0bbc87b?q=80&w=800',
+    image: 'https://images.unsplash.com/photo-1516734212186-a967f81ad0d7?q=80&w=800&auto=format&fit=crop',
     phone: '8306688827',
     offerings: ['Spa Bath', 'Nail Clipping', 'Medical Bath', 'Anti-Tick Treatment'],
     packages: [

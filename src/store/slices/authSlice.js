@@ -150,7 +150,7 @@ export const login = createAsyncThunk('auth/login', async (credentials, thunkAPI
           serviceCategory: 'Pet Adoption',
           govtProofType: 'AWBI / Section 8 NGO Certificate',
           govtProofNumber: 'AWBI/KAR/2023/NGO-88942',
-          govtProofDoc: 'https://images.unsplash.com/photo-1589829545856-d10d557cf95f?q=80&w=800',
+          govtProofDoc: 'https://images.unsplash.com/photo-1589924691995-400dc9ecc119?q=80&w=800&auto=format&fit=crop',
           verificationStatus: 'Verified',
           shelterCapacity: 85,
           bio: 'Dedicated non-profit rescue sanctuary providing compassionate foster care, medical rehabilitation, and loving forever homes.',
