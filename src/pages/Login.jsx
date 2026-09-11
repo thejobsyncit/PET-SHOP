@@ -5,7 +5,7 @@ import {
   Lock, Mail, User, ShieldCheck, Sparkles, ArrowRight,
   Briefcase, Phone, Eye, EyeOff, Search, MapPin, AlertCircle,
   CircleCheck, RotateCcw, Edit3, Smartphone, KeyRound,
-  ChevronDown, MessageSquare, Check, HelpCircle, PawPrint
+  ChevronDown, MessageSquare, Check, HelpCircle, PawPrint, Upload
 } from 'lucide-react';
 import { login, register, setAuthenticatedUser, clearAuthError, logout } from '../store/slices/authSlice.js';
 import toast from 'react-hot-toast';
@@ -100,6 +100,76 @@ const providerServiceCategories = [
   'Consult a Vet'
 ];
 
+const DEFAULT_PROOF_TYPES = [
+  'Trade License / GSTIN',
+  'MSME / Udyam Registration Certificate',
+  'Shop & Establishment Act License',
+  'Founder Govt Identity Proof (PAN/Aadhaar)'
+];
+
+const PROVIDER_PROOF_TYPES_MAP = {
+  'Pet Adoption': [
+    'AWBI / Section 8 NGO Reg',
+    'Society Registration / Trust Deed',
+    'Municipal Shelter License',
+    'Trade License / GSTIN',
+    'Founder Govt ID (PAN/Aadhaar)'
+  ],
+  'Consult a Vet': [
+    'Veterinary Council of India (VCI) Reg',
+    'State Veterinary Council License',
+    'Clinic / Hospital Establishment License',
+    'Trade License / GSTIN'
+  ],
+  'Pet Transport & Relocation': [
+    'Commercial Vehicle Transport Permit',
+    'AWBI Pet Transit Compliance Certificate',
+    'Trade License / GSTIN',
+    'Driver Commercial License & ID'
+  ],
+  'Pet Hostel / Boarding': [
+    'Municipal Pet Boarding Facility License',
+    'AWBI Facility Inspection Certificate',
+    'Trade License / Shop & Establishment',
+    'GSTIN / Business Registration'
+  ],
+  'Pet Training & Behavior': [
+    'KCI / Recognized Certified Trainer Certificate',
+    'Police/Military K9 Handler Credentials',
+    'Trade License / MSME Udyam Reg',
+    'Govt ID Proof (PAN/Aadhaar)'
+  ],
+  'Pet Grooming Spa': [
+    'Professional Grooming Certification/Diploma',
+    'Shop & Establishment Act Registration',
+    'Trade License / GSTIN',
+    'MSME / Udyam Certificate'
+  ],
+  'Pet Walking & Fitness': [
+    'Professional Pet Handler / Walker Cert',
+    'Govt ID Proof (PAN/Aadhaar / Voter ID)',
+    'Police Clearance Certificate',
+    'Trade License / MSME Reg'
+  ],
+  'Pet Mating & Breeding': [
+    'AWBI Mandatory Breeder Registration',
+    'State Animal Welfare Board Certificate',
+    'Kennel Club of India (KCI) Kennel Reg',
+    'Trade License / GSTIN'
+  ],
+  'Pet Insurance': [
+    'IRDAI Insurance Corporate Agency / Broker License',
+    'IRDAI Individual Agent POSP License',
+    'GSTIN & Certificate of Incorporation'
+  ],
+  'Pet Seller': [
+    'AWBI Pet Shop Registration Certificate',
+    'State Animal Welfare Board License',
+    'Trade License / Shop & Establishment',
+    'GSTIN / MSME Udyam Certificate'
+  ]
+};
+
 // Reusable Country Code Extension Dropdown Selector
 const CountryCodePicker = ({ value, onChange, id = 'country-picker' }) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -139,7 +209,7 @@ const CountryCodePicker = ({ value, onChange, id = 'country-picker' }) => {
       </button>
 
       {isOpen && (
-        <div className="absolute left-0 top-full mt-1.5 w-64 bg-white border border-slate-200 rounded-xl shadow-2xl z-50 overflow-hidden animate-in fade-in zoom-in-95">
+        <div className="absolute left-0 top-full mt-1.5 w-64 max-w-[calc(100vw-2.5rem)] bg-white border border-slate-200 rounded-xl shadow-2xl z-50 overflow-hidden animate-in fade-in zoom-in-95">
           <div className="p-2 border-b border-slate-100 bg-slate-50">
             <div className="relative">
               <input
@@ -314,7 +384,7 @@ const Login = () => {
 
   // Service Provider Registration States
   const [providerBusinessName, setProviderBusinessName] = useState('');
-  const [providerGovtProofType, setProviderGovtProofType] = useState('AWBI / Section 8 NGO Certificate');
+  const [providerGovtProofType, setProviderGovtProofType] = useState('AWBI Pet Shop Registration Certificate');
   const [providerGovtProofNumber, setProviderGovtProofNumber] = useState('');
   const [providerGovtProofDoc, setProviderGovtProofDoc] = useState('');
   const [providerCountryCode, setProviderCountryCode] = useState('+91');
@@ -853,33 +923,33 @@ const Login = () => {
   );
 
   return (
-    <div className="min-h-[85vh] flex items-center justify-center py-6 lg:py-12 px-4 bg-gradient-to-b from-[#f0f5fa] via-secondary to-[#f8fafc]">
+    <div className="min-h-[85vh] flex items-center justify-center py-6 sm:py-10 px-2.5 sm:px-4 bg-gradient-to-b from-[#f0f5fa] via-secondary to-[#f8fafc]">
       <div className="w-full max-w-lg bg-white border border-slate-200 rounded-2xl shadow-xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
 
         {/* Top Header Branding Banner */}
-        <div className="bg-[#0F2E23] px-6 py-6 text-center text-white relative">
-          <div className="flex items-center justify-center gap-2 mb-2">
+        <div className="bg-[#0F2E23] px-4 sm:px-6 py-5 sm:py-6 text-center text-white relative">
+          <div className="flex items-center justify-center gap-1.5 sm:gap-2 mb-1.5 sm:mb-2">
             <img 
               src="/logo.png" 
               alt="JOSH PETS HUB Logo" 
-              className="h-10 w-auto object-contain" 
+              className="h-8 sm:h-10 w-auto object-contain" 
             />
-            <span className="text-white drop-shadow-sm flex items-center font-black tracking-tight text-2xl">
+            <span className="text-white drop-shadow-sm flex items-center font-black tracking-tight text-xl sm:text-2xl">
               J
-              <div className="relative mx-0.5 flex items-center justify-center bg-white rounded-full w-5 h-5 shadow-xs">
-                <PawPrint size={13} className="text-orange-500 fill-orange-500" />
+              <div className="relative mx-0.5 flex items-center justify-center bg-white rounded-full w-4.5 h-4.5 sm:w-5 sm:h-5 shadow-xs">
+                <PawPrint size={12} className="text-orange-500 fill-orange-500" />
               </div>
               SH 
-              <span className="ml-1.5 text-white">PETS</span> 
-              <span className="ml-1.5 text-white">HUB</span>
+              <span className="ml-1 sm:ml-1.5 text-white">PETS</span> 
+              <span className="ml-1 sm:ml-1.5 text-white">HUB</span>
             </span>
           </div>
-          <p className="text-xs text-emerald-200 mt-0.5 font-medium">
+          <p className="text-[11px] sm:text-xs text-emerald-200 mt-0.5 font-medium">
             Your Trusted Multi-Service Pet Platform
           </p>
         </div>
 
-        <div className="p-6 md:p-8 space-y-6">
+        <div className="p-3.5 sm:p-6 md:p-8 space-y-4 sm:space-y-6">
           {/* =========================================================================
               OTP VERIFICATION VIEW (Triggered after Register is clicked)
              ========================================================================= */}
@@ -957,7 +1027,7 @@ const Login = () => {
 
               {/* 6 Digit OTP Inputs */}
               <form onSubmit={handleVerifyOtp} className="space-y-5">
-                <div className="flex justify-center items-center gap-2 sm:gap-3">
+                <div className="flex justify-center items-center gap-1.5 sm:gap-2.5">
                   {otpDigits.map((digit, idx) => (
                     <input
                       key={idx}
@@ -970,7 +1040,7 @@ const Login = () => {
                       onChange={(e) => handleOtpChange(idx, e.target.value)}
                       onKeyDown={(e) => handleOtpKeyDown(idx, e)}
                       onPaste={handleOtpPaste}
-                      className={`w-11 h-12 sm:w-12 sm:h-14 text-center text-lg sm:text-xl font-bold font-mono border-2 rounded-xl focus:outline-none transition ${
+                      className={`w-9 h-11 sm:w-11 sm:h-12 md:w-12 md:h-14 text-center text-base sm:text-lg md:text-xl font-bold font-mono border-2 rounded-xl focus:outline-none transition ${
                         digit
                           ? 'border-[#15559c] bg-blue-50/30 text-[#15559c] shadow-sm'
                           : 'border-slate-200 bg-slate-50/50 text-slate-800 focus:border-[#15559c] focus:ring-2 focus:ring-blue-100'
@@ -1527,7 +1597,7 @@ const Login = () => {
                   </div>
 
                   {/* State & Searchable City Grid */}
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                     <div>
                       <select
                         value={userState}
@@ -1611,35 +1681,6 @@ const Login = () => {
                       className="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-xs md:text-sm focus:outline-none focus:border-[#15559c] focus:ring-2 focus:ring-blue-100 transition bg-slate-50/50 hover:bg-white font-medium"
                       required
                     />
-                  </div>
-
-                  {/* Government Proof Type & Registration Number Grid */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 bg-emerald-50/50 p-2.5 rounded-xl border border-emerald-200/60">
-                    <div>
-                      <label className="text-[10px] font-bold text-emerald-900 block mb-0.5">Govt Proof / Registration Type *</label>
-                      <select
-                        value={providerGovtProofType}
-                        onChange={(e) => setProviderGovtProofType(e.target.value)}
-                        className="w-full px-2.5 py-1.5 bg-white border border-emerald-200 rounded-lg text-[11px] font-semibold text-slate-800 focus:outline-none"
-                      >
-                        <option value="AWBI / Section 8 NGO Certificate">AWBI / Section 8 NGO Reg</option>
-                        <option value="Society Registration / Trust Deed">Society / Trust Deed</option>
-                        <option value="Municipal Shelter License">Municipal Shelter License</option>
-                        <option value="Trade License / GSTIN">Trade License / GSTIN</option>
-                        <option value="Founder Govt Identity Proof (PAN/Aadhaar)">Founder Govt ID (PAN/Aadhaar)</option>
-                      </select>
-                    </div>
-                    <div>
-                      <label className="text-[10px] font-bold text-emerald-900 block mb-0.5">Govt Registration / Proof No *</label>
-                      <input
-                        type="text"
-                        placeholder="e.g. AWBI/KAR/2023/8892"
-                        value={providerGovtProofNumber}
-                        onChange={(e) => setProviderGovtProofNumber(e.target.value)}
-                        className="w-full px-2.5 py-1.5 bg-white border border-emerald-200 rounded-lg text-[11px] font-semibold text-slate-800 focus:outline-none placeholder-slate-400"
-                        required
-                      />
-                    </div>
                   </div>
 
                   {/* Mobile No with Country Code Selector & Strict Numbers Validation */}
@@ -1796,7 +1837,7 @@ const Login = () => {
                   </div>
 
                   {/* State & Searchable City Grid */}
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                     <div>
                       <select
                         value={providerState}
@@ -1856,13 +1897,103 @@ const Login = () => {
                     <label className="text-[11px] font-bold text-[#0f3d6b] mb-1 block pl-1">Select Provided Service Category *</label>
                     <select
                       value={providerCategory}
-                      onChange={(e) => setProviderCategory(e.target.value)}
+                      onChange={(e) => {
+                        const newCat = e.target.value;
+                        setProviderCategory(newCat);
+                        const proofOpts = PROVIDER_PROOF_TYPES_MAP[newCat] || DEFAULT_PROOF_TYPES;
+                        if (proofOpts.length > 0) {
+                          setProviderGovtProofType(proofOpts[0]);
+                        }
+                      }}
                       className="w-full px-4 py-2.5 border border-blue-300 rounded-xl text-xs md:text-sm bg-blue-50/30 hover:bg-white focus:outline-none focus:border-[#15559c] focus:ring-2 focus:ring-blue-100 transition font-semibold text-slate-800 shadow-sm"
                     >
                       {providerServiceCategories.map((cat) => (
                         <option key={cat} value={cat}>{cat}</option>
                       ))}
                     </select>
+                  </div>
+
+                  {/* Government Proof Type, Registration Number & Document Upload Section */}
+                  <div className="space-y-2.5 bg-emerald-50/60 p-3 rounded-xl border border-emerald-200/70">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                      <div>
+                        <label className="text-[10px] font-bold text-emerald-900 block mb-0.5">Govt Proof / Registration Type *</label>
+                        <select
+                          value={providerGovtProofType}
+                          onChange={(e) => setProviderGovtProofType(e.target.value)}
+                          className="w-full px-2.5 py-1.5 bg-white border border-emerald-200 rounded-lg text-[11px] font-semibold text-slate-800 focus:outline-none"
+                        >
+                          {(PROVIDER_PROOF_TYPES_MAP[providerCategory] || DEFAULT_PROOF_TYPES).map((pt) => (
+                            <option key={pt} value={pt}>{pt}</option>
+                          ))}
+                        </select>
+                      </div>
+                      <div>
+                        <label className="text-[10px] font-bold text-emerald-900 block mb-0.5">Govt Registration / Proof No *</label>
+                        <input
+                          type="text"
+                          placeholder={
+                            providerCategory === 'Pet Adoption' ? 'e.g. AWBI/KAR/2023/8892' :
+                            providerCategory === 'Consult a Vet' ? 'e.g. VCI-REG-84920' :
+                            providerCategory === 'Pet Transport & Relocation' ? 'e.g. TRP-PERMIT-4921' :
+                            'e.g. REG/LIC/2024/9912'
+                          }
+                          value={providerGovtProofNumber}
+                          onChange={(e) => setProviderGovtProofNumber(e.target.value)}
+                          className="w-full px-2.5 py-1.5 bg-white border border-emerald-200 rounded-lg text-[11px] font-semibold text-slate-800 focus:outline-none placeholder-slate-400"
+                          required
+                        />
+                      </div>
+                    </div>
+
+                    {/* Proof Document File Upload */}
+                    <div className="pt-1.5 border-t border-emerald-200/60">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                        <div>
+                          <label className="text-[10px] font-bold text-emerald-900 block">Proof Document / Certificate Upload</label>
+                          <p className="text-[9.5px] text-emerald-700">Upload Certificate, License or ID (PDF, JPG, PNG - Max 5MB)</p>
+                        </div>
+                        <label className="cursor-pointer inline-flex items-center justify-center gap-1.5 px-3 py-2 bg-white border border-emerald-300 hover:border-emerald-600 rounded-lg text-[11px] font-bold text-emerald-800 transition shadow-xs w-full sm:w-auto shrink-0 active:scale-95">
+                          <Upload size={13} className="text-emerald-700" />
+                          <span>{providerGovtProofDoc ? 'Change File' : 'Upload Proof File'}</span>
+                          <input
+                            type="file"
+                            accept="image/*,.pdf"
+                            className="hidden"
+                            onChange={(e) => {
+                              const file = e.target.files[0];
+                              if (file) {
+                                if (file.size > 5 * 1024 * 1024) {
+                                  toast.error('File size exceeds 5MB limit');
+                                  return;
+                                }
+                                const reader = new FileReader();
+                                reader.onloadend = () => {
+                                  setProviderGovtProofDoc(reader.result);
+                                  toast.success(`Proof file "${file.name}" uploaded successfully!`);
+                                };
+                                reader.readAsDataURL(file);
+                              }
+                            }}
+                          />
+                        </label>
+                      </div>
+                      {providerGovtProofDoc && (
+                        <div className="mt-1.5 flex items-center justify-between gap-1.5 text-[10.5px] font-semibold text-emerald-800 bg-emerald-100/70 px-2 py-1 rounded-md">
+                          <span className="flex items-center gap-1.5 truncate">
+                            <Check size={12} className="text-emerald-700 shrink-0" />
+                            <span className="truncate">Certificate document attached and ready for verification</span>
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => setProviderGovtProofDoc('')}
+                            className="text-[10px] text-red-600 hover:underline font-bold shrink-0 ml-2"
+                          >
+                            Remove
+                          </button>
+                        </div>
+                      )}
+                    </div>
                   </div>
 
                   {/* Register as Provider Button */}

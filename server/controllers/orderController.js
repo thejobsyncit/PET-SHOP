@@ -17,8 +17,10 @@ export const createOrder = async (req, res) => {
     transactionId
   } = req.body;
 
-  // Fallback for guest users without req.user
-  const userId = req.user ? (req.user._id || req.user.id) : new mongoose.Types.ObjectId().toString();
+  const userId = req.user ? (req.user._id || req.user.id) : null;
+  if (!userId) {
+    return res.status(401).json({ success: false, message: 'Authentication required to place an order' });
+  }
 
   if (!orderItems || orderItems.length === 0) {
     return res.status(400).json({ success: false, message: 'No order items provided' });
@@ -26,29 +28,56 @@ export const createOrder = async (req, res) => {
 
   try {
     if (isDbConnected()) {
-      // 1. Check stock & validate
+      // 1. Verify products & calculate verified subtotal server-side
+      let calculatedSubtotal = 0;
+      const verifiedItems = [];
+
       for (const item of orderItems) {
         const product = await Product.findById(item.product);
         if (!product) {
-          return res.status(404).json({ success: false, message: `Product ${item.name} not found` });
+          return res.status(404).json({ success: false, message: `Product ${item.name || item.product} not found` });
         }
         if (product.stock < item.quantity) {
-          return res.status(400).json({ success: false, message: `Insufficient stock for product: ${item.name}` });
+          return res.status(400).json({ success: false, message: `Insufficient stock for product: ${product.name}` });
         }
+
+        const unitPrice = (product.discountPrice !== undefined && product.discountPrice !== null && product.discountPrice > 0)
+          ? product.discountPrice 
+          : product.price;
+
+        calculatedSubtotal += unitPrice * item.quantity;
+        verifiedItems.push({
+          product: product._id,
+          name: product.name,
+          image: product.images && product.images[0] ? product.images[0] : item.image,
+          price: unitPrice,
+          quantity: item.quantity
+        });
       }
 
-      // 2. Create Order
+      const shippingCost = calculatedSubtotal > 499 ? 0 : 49;
+      const discount = (pricing && typeof pricing.discount === 'number' && pricing.discount >= 0) ? Math.min(pricing.discount, calculatedSubtotal) : 0;
+      const totalAmount = Math.max(0, calculatedSubtotal + shippingCost - discount);
+
+      const serverPricing = {
+        subtotal: calculatedSubtotal,
+        shipping: shippingCost,
+        discount: discount,
+        total: totalAmount
+      };
+
+      // 2. Create Order (Status is Pending until confirmed by payment gateway)
       const newOrder = new Order({
         user: userId,
-        orderItems,
+        orderItems: verifiedItems,
         shippingAddress,
         paymentMethod,
         paymentDetails: {
-          status: paymentMethod === 'Cash on Delivery' ? 'Pending' : 'Completed',
+          status: 'Pending',
           transactionId: transactionId || `TXN-${Date.now()}`,
-          paidAt: paymentMethod === 'Cash on Delivery' ? undefined : new Date()
+          paidAt: undefined
         },
-        pricing,
+        pricing: serverPricing,
         prescriptionId: prescriptionId || undefined,
         trackingNumber: `TRK-${Math.floor(100000 + Math.random() * 900000)}`
       });
@@ -56,7 +85,7 @@ export const createOrder = async (req, res) => {
       const savedOrder = await newOrder.save();
 
       // 3. Update stock and clear cart
-      for (const item of orderItems) {
+      for (const item of verifiedItems) {
         await Product.findByIdAndUpdate(item.product, {
           $inc: { stock: -item.quantity }
         });
@@ -67,36 +96,61 @@ export const createOrder = async (req, res) => {
       res.status(201).json({ success: true, order: savedOrder });
 
     } else {
-      // 2. Mock JSON Implementation
+      // 2. Mock JSON Implementation with server-side price recalculation
       const productsList = readMockData('products');
       const usersList = readMockData('users');
       const ordersList = readMockData('orders');
 
-      // Check stock
+      let calculatedSubtotal = 0;
+      const verifiedItems = [];
+
       for (const item of orderItems) {
         const product = productsList.find(p => p._id.toString() === item.product.toString());
         if (!product) {
-          return res.status(404).json({ success: false, message: `Product ${item.name} not found` });
+          return res.status(404).json({ success: false, message: `Product ${item.name || item.product} not found` });
         }
         if (product.stock < item.quantity) {
-          return res.status(400).json({ success: false, message: `Insufficient stock for product: ${item.name}` });
+          return res.status(400).json({ success: false, message: `Insufficient stock for product: ${product.name}` });
         }
+
+        const unitPrice = (product.discountPrice !== undefined && product.discountPrice !== null && product.discountPrice > 0)
+          ? product.discountPrice 
+          : product.price;
+
+        calculatedSubtotal += unitPrice * item.quantity;
+        verifiedItems.push({
+          product: product._id.toString(),
+          name: product.name,
+          image: product.images && product.images[0] ? product.images[0] : item.image,
+          price: unitPrice,
+          quantity: item.quantity
+        });
       }
 
-      // Create Order object
+      const shippingCost = calculatedSubtotal > 499 ? 0 : 49;
+      const discount = (pricing && typeof pricing.discount === 'number' && pricing.discount >= 0) ? Math.min(pricing.discount, calculatedSubtotal) : 0;
+      const totalAmount = Math.max(0, calculatedSubtotal + shippingCost - discount);
+
+      const serverPricing = {
+        subtotal: calculatedSubtotal,
+        shipping: shippingCost,
+        discount: discount,
+        total: totalAmount
+      };
+
       const newOrder = {
         _id: new mongoose.Types.ObjectId().toString(),
         user: userId.toString(),
-        orderItems,
+        orderItems: verifiedItems,
         shippingAddress,
         paymentMethod,
         paymentDetails: {
-          status: paymentMethod === 'Cash on Delivery' ? 'Pending' : 'Completed',
+          status: 'Pending',
           transactionId: transactionId || `TXN-${Date.now()}`,
-          paidAt: paymentMethod === 'Cash on Delivery' ? undefined : new Date().toISOString()
+          paidAt: undefined
         },
         shippingStatus: 'Pending',
-        pricing,
+        pricing: serverPricing,
         prescriptionId: prescriptionId || undefined,
         trackingNumber: `TRK-${Math.floor(100000 + Math.random() * 900000)}`,
         createdAt: new Date().toISOString()
@@ -106,7 +160,7 @@ export const createOrder = async (req, res) => {
       writeMockData('orders', ordersList);
 
       // Decrement stock
-      for (const item of orderItems) {
+      for (const item of verifiedItems) {
         const idx = productsList.findIndex(p => p._id.toString() === item.product.toString());
         if (idx !== -1) {
           productsList[idx].stock -= item.quantity;
@@ -135,11 +189,25 @@ export const getOrderById = async (req, res) => {
   const { id } = req.params;
 
   try {
+    const requesterId = (req.user._id || req.user.id).toString();
+    const isAdmin = req.user && (req.user.role === 'ADMIN' || req.user.role === 'SUPERADMIN');
+
     if (isDbConnected()) {
+      if (!mongoose.Types.ObjectId.isValid(id)) {
+        return res.status(404).json({ success: false, message: 'Order not found' });
+      }
+
       const order = await Order.findById(id).populate('user', 'name email').populate('orderItems.product');
       if (!order) {
         return res.status(404).json({ success: false, message: 'Order not found' });
       }
+
+      // Authorization Check (IDOR prevention)
+      const orderOwnerId = order.user && (order.user._id ? order.user._id.toString() : order.user.toString());
+      if (orderOwnerId !== requesterId && !isAdmin) {
+        return res.status(403).json({ success: false, message: 'Access denied: You are not authorized to view this order' });
+      }
+
       res.json({ success: true, order });
     } else {
       const ordersList = readMockData('orders');
@@ -148,6 +216,12 @@ export const getOrderById = async (req, res) => {
 
       if (!order) {
         return res.status(404).json({ success: false, message: 'Order not found' });
+      }
+
+      // Authorization Check (IDOR prevention)
+      const orderOwnerId = order.user ? order.user.toString() : '';
+      if (orderOwnerId !== requesterId && !isAdmin) {
+        return res.status(403).json({ success: false, message: 'Access denied: You are not authorized to view this order' });
       }
 
       // Populate user info manually

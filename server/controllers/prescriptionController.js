@@ -113,11 +113,20 @@ export const getPrescriptionById = async (req, res) => {
   const { id } = req.params;
 
   try {
+    const requesterId = (req.user._id || req.user.id).toString();
+    const isAdmin = req.user && (req.user.role === 'ADMIN' || req.user.role === 'SUPERADMIN');
+
     if (isDbConnected()) {
       const prescription = await Prescription.findById(id).populate('user', 'name email');
       if (!prescription) {
         return res.status(404).json({ success: false, message: 'Prescription not found' });
       }
+
+      const ownerId = prescription.user && (prescription.user._id ? prescription.user._id.toString() : prescription.user.toString());
+      if (ownerId !== requesterId && !isAdmin) {
+        return res.status(403).json({ success: false, message: 'Access denied: You are not authorized to view this prescription' });
+      }
+
       res.json({ success: true, prescription });
     } else {
       const prescriptionsList = readMockData('prescriptions');
@@ -126,6 +135,11 @@ export const getPrescriptionById = async (req, res) => {
 
       if (!prescription) {
         return res.status(404).json({ success: false, message: 'Prescription not found' });
+      }
+
+      const ownerId = prescription.user ? prescription.user.toString() : '';
+      if (ownerId !== requesterId && !isAdmin) {
+        return res.status(403).json({ success: false, message: 'Access denied: You are not authorized to view this prescription' });
       }
 
       const userObj = usersList.find(u => u._id.toString() === prescription.user.toString());

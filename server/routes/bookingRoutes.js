@@ -45,23 +45,23 @@ router.get('/provider', protect, async (req, res) => {
     let bookings = [];
 
     if (isDbConnected()) {
-      // Find bookings where provider matches user id OR providerName matches user name
-      bookings = await Booking.find({
+      // Find bookings strictly belonging to this service provider
+      const query = {
         $or: [
           { provider: req.user._id },
-          { providerName: new RegExp(userName.split(' ')[0], 'i') },
-          { providerName: { $exists: true } } // Fallback for testing
+          ...(userName ? [{ providerName: new RegExp('^' + userName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i') }] : [])
         ]
-      }).populate('user', 'name email mobile location').sort({ createdAt: -1 });
+      };
+      bookings = await Booking.find(query).populate('user', 'name email mobile location').sort({ createdAt: -1 });
     } else {
       const allBookings = readMockData('bookings');
       bookings = allBookings.filter(b => {
         const pId = b.provider?._id || b.provider;
-        if (pId && pId === userId) return true;
-        if (b.providerName && userName && b.providerName.toLowerCase().includes(userName.toLowerCase().split(' ')[0])) {
+        if (pId && pId.toString() === userId) return true;
+        if (b.providerName && userName && b.providerName.toLowerCase().trim() === userName.toLowerCase().trim()) {
           return true;
         }
-        return true; // allow viewing in demo/mock mode
+        return false;
       });
     }
 

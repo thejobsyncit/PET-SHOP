@@ -1,13 +1,24 @@
 import jwt from 'jsonwebtoken';
-import bcrypt from 'bcrypt';
+import bcrypt from 'bcryptjs';
 import mongoose from 'mongoose';
 import User from '../models/User.js';
 import { isDbConnected, readMockData, writeMockData } from '../utils/mockDb.js';
 
 // Helper to generate JWT Token
 const generateToken = (id) => {
-  return jwt.sign({ id }, process.env.JWT_SECRET || 'pawora_super_secret_jwt_key_123', {
+  const jwtSecret = process.env.JWT_SECRET || 'pawora_prod_secure_jwt_secret_99f38e789a24c7f0b12da459e81b67f132e';
+  return jwt.sign({ id }, jwtSecret, {
     expiresIn: '30d',
+  });
+};
+
+// Helper to attach secure httpOnly cookie
+export const setAuthCookie = (res, token) => {
+  res.cookie('pawora_token', token, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax',
+    maxAge: 30 * 24 * 60 * 60 * 1000 // 30 days
   });
 };
 
@@ -36,32 +47,48 @@ export const registerUser = async (req, res) => {
     return res.status(400).json({ success: false, message: 'Please provide name, email, and password' });
   }
 
+  // Enforce strong password complexity policy
+  const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
+  if (!passwordRegex.test(password)) {
+    return res.status(400).json({
+      success: false,
+      message: 'Password must be at least 8 characters long and contain at least one uppercase letter, one lowercase letter, and one number'
+    });
+  }
+
+  // Security: Restrict public registration roles to CUSTOMER or SERVICE_PROVIDER only (prevent ADMIN escalation)
+  const allowedRoles = ['CUSTOMER', 'SERVICE_PROVIDER'];
+  const safeRole = allowedRoles.includes(role) ? role : 'CUSTOMER';
+  const safeVerification = safeRole === 'SERVICE_PROVIDER' ? 'Pending' : 'Verified';
+
   try {
     if (isDbConnected()) {
-      const userExists = await User.findOne({ email });
+      const userExists = await User.findOne({ email: email.toLowerCase() });
       if (userExists) {
         return res.status(400).json({ success: false, message: 'User already exists with this email' });
       }
 
       const user = await User.create({
-        name,
-        email,
+        name: name.trim(),
+        email: email.toLowerCase().trim(),
         password,
-        mobile,
-        role,
-        location,
-        serviceCategory,
+        mobile: mobile ? mobile.trim() : '',
+        role: safeRole,
+        location: location || '',
+        serviceCategory: serviceCategory || '',
         businessName: businessName || name,
         govtProofType: govtProofType || 'AWBI / NGO Registration Certificate',
         govtProofNumber: govtProofNumber || '',
         govtProofDoc: govtProofDoc || '',
-        verificationStatus: verificationStatus || 'Verified',
+        verificationStatus: safeVerification,
         shelterCapacity: shelterCapacity || 50,
         bio: bio || ''
       });
+      const token = generateToken(user._id);
+      setAuthCookie(res, token);
       res.status(201).json({
         success: true,
-        token: generateToken(user._id),
+        token,
         user: { 
           id: user._id, 
           name: user.name, 
@@ -91,10 +118,10 @@ export const registerUser = async (req, res) => {
 
       const newUser = {
         _id: new mongoose.Types.ObjectId().toString(),
-        name,
-        email: email.toLowerCase(),
+        name: name.trim(),
+        email: email.toLowerCase().trim(),
         password: hashedPassword,
-        role: role || 'CUSTOMER',
+        role: safeRole,
         mobile: mobile || '',
         location: location || '',
         serviceCategory: serviceCategory || '',
@@ -102,7 +129,7 @@ export const registerUser = async (req, res) => {
         govtProofType: govtProofType || 'AWBI / NGO Registration Certificate',
         govtProofNumber: govtProofNumber || '',
         govtProofDoc: govtProofDoc || '',
-        verificationStatus: verificationStatus || 'Verified',
+        verificationStatus: safeVerification,
         shelterCapacity: shelterCapacity || 50,
         bio: bio || '',
         addresses: [],
@@ -115,9 +142,11 @@ export const registerUser = async (req, res) => {
       usersList.push(newUser);
       writeMockData('users', usersList);
 
+      const token = generateToken(newUser._id);
+      setAuthCookie(res, token);
       res.status(201).json({
         success: true,
-        token: generateToken(newUser._id),
+        token,
         user: { 
           id: newUser._id, 
           name: newUser.name, 
@@ -265,10 +294,11 @@ export const DEMO_ACCOUNTS = [
 // @access  Public
 export const loginUser = async (req, res) => {
   const { email, mobile, password, identifier } = req.body;
-  const loginKey = (email || identifier || mobile || '').trim();
+  const rawKey = (typeof email === 'string' ? email : typeof identifier === 'string' ? identifier : typeof mobile === 'string' ? mobile : '');
+  const loginKey = rawKey.trim();
   const cleanMobile = loginKey.replace(/\D/g, '');
 
-  if (!loginKey || !password) {
+  if (!loginKey || typeof password !== 'string' || !password.trim()) {
     return res.status(400).json({ success: false, message: 'Please provide email/mobile and password' });
   }
 
@@ -283,11 +313,7 @@ export const loginUser = async (req, res) => {
       if (!pwd) return false;
       return (
         demoAcc.password === pwd ||
-        demoAcc.password.toLowerCase() === pwd.toLowerCase() ||
-        pwd === 'Pass@1234' ||
-        pwd === 'pass@1234' ||
-        pwd === '123456' ||
-        pwd.length >= 6
+        pwd === 'Pass@1234'
       );
     };
 
@@ -318,9 +344,11 @@ export const loginUser = async (req, res) => {
         }
         
         const userId = user ? user._id : new mongoose.Types.ObjectId();
+        const token = generateToken(userId);
+        setAuthCookie(res, token);
         return res.json({
           success: true,
-          token: generateToken(userId),
+          token,
           user: { 
             id: userId,
             _id: userId,
@@ -400,9 +428,11 @@ export const loginUser = async (req, res) => {
         ]
       });
       if (user && (await user.comparePassword(password))) {
+        const token = generateToken(user._id);
+        setAuthCookie(res, token);
         res.json({
           success: true,
-          token: generateToken(user._id),
+          token,
           user: { 
             id: user._id, 
             _id: user._id,
@@ -435,9 +465,11 @@ export const loginUser = async (req, res) => {
       );
       
       if (user && (await bcrypt.compare(password, user.password))) {
+        const token = generateToken(user._id);
+        setAuthCookie(res, token);
         res.json({
           success: true,
-          token: generateToken(user._id),
+          token,
           user: { 
             id: user._id, 
             _id: user._id,
@@ -629,4 +661,17 @@ export const removeAddress = async (req, res) => {
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
+};
+
+// @desc    Logout user and clear auth cookie
+// @route   POST /api/auth/logout
+// @access  Public
+export const logoutUser = async (req, res) => {
+  res.cookie('pawora_token', '', {
+    httpOnly: true,
+    expires: new Date(0),
+    sameSite: 'lax',
+    secure: process.env.NODE_ENV === 'production'
+  });
+  res.json({ success: true, message: 'Logged out successfully' });
 };

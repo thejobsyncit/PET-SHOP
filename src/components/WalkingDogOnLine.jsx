@@ -52,16 +52,16 @@ const WalkingDogOnLine = ({ isSearching, className = '' }) => {
           title="Click to pet! 🐾"
         >
           {/* =========================================================================
-              INDIA PET HUB BRAND BADGE: Royal Navy Blue background & Gold text
+              WHITE & GOLD BRAND BADGE: Crisp Gold Accent Badge
              ========================================================================= */}
-          <div className="absolute -top-7 whitespace-nowrap px-3 py-0.5 rounded-full bg-[#0c2744] border border-[#ffd000]/40 text-[9.5px] font-bold text-[#ffd000] shadow-lg flex items-center gap-1.5 transition-transform duration-200 group-hover:scale-105 pointer-events-none z-30">
+          <div className="absolute -top-7 whitespace-nowrap px-3 py-0.5 rounded-full bg-[#1C1917] border border-[#D4AF37] text-[10px] font-bold text-[#FDE047] shadow-lg flex items-center gap-1.5 transition-transform duration-200 group-hover:scale-105 pointer-events-none z-30">
             {barks ? (
-              <span className="text-pink-300 font-bold flex items-center gap-1 animate-bounce">
-                <Heart size={9} className="fill-pink-400 text-pink-400" /> Woof Woof!
+              <span className="text-rose-300 font-bold flex items-center gap-1 animate-bounce">
+                <Heart size={9} className="fill-rose-400 text-rose-400" /> Woof Woof!
               </span>
             ) : (
               <span className="flex items-center gap-1">
-                <Sparkles size={8.5} className="text-[#ffd000] animate-pulse shrink-0" />
+                <Sparkles size={8.5} className="text-[#FDE047] animate-pulse shrink-0" />
                 {dogPhrases[phraseIndex]}
               </span>
             )}

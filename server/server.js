@@ -3,6 +3,8 @@ import dotenv from 'dotenv';
 import cors from 'cors';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
+import mongoSanitize from 'express-mongo-sanitize';
+import cookieParser from 'cookie-parser';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import fs from 'fs';
@@ -38,6 +40,15 @@ const __dirname = path.dirname(__filename);
 // Load env vars
 dotenv.config();
 
+// Production Secrets Gatekeeper: Fail fast if critical secrets are missing in production
+if (process.env.NODE_ENV === 'production') {
+  const secret = process.env.JWT_SECRET || '';
+  if (!secret || secret.length < 32 || secret.includes('pawora_super_secret') || secret.includes('123')) {
+    console.error('FATAL SECURITY ERROR: A secure, random JWT_SECRET (>= 32 chars) must be provided in production.');
+    process.exit(1);
+  }
+}
+
 // Connect to database
 connectDB();
 
@@ -51,15 +62,16 @@ app.use(helmet({
 // CORS setup
 const allowedOrigins = [
   process.env.CLIENT_URL,
+  process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null,
   'http://localhost:5173',
   'http://localhost:5174',
   'http://localhost:5175'
-];
+].filter(Boolean);
 
 const corsOptions = {
   origin: function (origin, callback) {
     if (!origin) return callback(null, true);
-    if (allowedOrigins.includes(origin) || origin.startsWith('http://localhost:') || origin.endsWith('.vercel.app')) {
+    if (allowedOrigins.includes(origin) || /^http:\/\/localhost:\d+$/.test(origin)) {
       return callback(null, true);
     }
     return callback(new Error('CORS not allowed'), false);
@@ -69,9 +81,18 @@ const corsOptions = {
 };
 app.use(cors(corsOptions));
 
-// Body parsers
+// Body & cookie parsers
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+app.use(cookieParser());
+
+// Sanitize incoming data to defend against NoSQL injection
+app.use((req, res, next) => {
+  if (req.body) mongoSanitize.sanitize(req.body);
+  if (req.query) mongoSanitize.sanitize(req.query);
+  if (req.params) mongoSanitize.sanitize(req.params);
+  next();
+});
 
 // Rate limiting
 const apiLimiter = rateLimit({
@@ -83,6 +104,17 @@ const apiLimiter = rateLimit({
 });
 app.use('/api', apiLimiter);
 
+// Dedicated authentication rate limiter (brute-force defense)
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 30, // 30 attempts per 15 minutes
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { success: false, message: 'Too many authentication attempts from this IP, please try again in 15 minutes.' }
+});
+app.use('/api/auth/login', authLimiter);
+app.use('/api/auth/register', authLimiter);
+
 // Ensure uploads folder exists
 const uploadsDir = process.env.VERCEL ? '/tmp/uploads' : path.join(__dirname, 'uploads');
 try {
@@ -93,8 +125,11 @@ try {
   console.warn('Warning: Could not create uploads directory:', err.message);
 }
 
-// Serve uploaded prescription/product files statically
-app.use('/uploads', express.static(uploadsDir));
+// Serve uploaded prescription/product files statically with nosniff security header
+app.use('/uploads', (req, res, next) => {
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  next();
+}, express.static(uploadsDir));
 
 // Mount Routes
 app.use('/api/auth', authRoutes);
@@ -137,4 +172,4 @@ process.on('unhandledRejection', (err) => {
 });
 
 export default app;
-// restart trigger
+// reload trigger 2

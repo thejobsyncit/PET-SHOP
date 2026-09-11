@@ -7,14 +7,14 @@ import {
   verifyPrescription
 } from '../controllers/prescriptionController.js';
 import { protect, admin } from '../middleware/auth.js';
-import upload from '../middleware/upload.js';
+import upload, { verifyMagicBytes } from '../middleware/upload.js';
 
 const router = express.Router();
 
 router.use(protect);
 
 router.route('/')
-  .post(upload.single('file'), uploadPrescription)
+  .post(upload.single('file'), verifyMagicBytes, uploadPrescription)
   .get(admin, getAllPrescriptions);
 
 router.route('/my')

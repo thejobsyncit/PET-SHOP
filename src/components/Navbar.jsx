@@ -154,7 +154,7 @@ const Navbar = () => {
           className={`w-full bg-primary text-white transition-all duration-300 ${isScrolled ? 'py-3 shadow-lg' : 'py-4'
             }`}
         >
-          <div className="max-w-7xl mx-auto px-4 md:px-8 flex justify-between items-center">
+          <div className="max-w-7xl mx-auto px-2.5 sm:px-4 md:px-8 flex justify-between items-center gap-1.5 sm:gap-4">
 
             {/* Hamburger Trigger for Mobile */}
             <button
@@ -167,24 +167,24 @@ const Navbar = () => {
             {/* Left: Brand Logo */}
             <Link
               to="/"
-              className="mr-2 md:mr-4 flex items-center font-extrabold tracking-tight text-[18px] md:text-3xl whitespace-nowrap"
+              className="mr-1 sm:mr-4 flex items-center font-extrabold tracking-tight shrink-0"
             >
               {/* J-Animal Logo (True Transparent Background) */}
               <img 
                 src="/logo.png" 
                 alt="Josh Pet Hub Logo" 
-                className="h-8 md:h-12 w-auto object-contain mr-1 md:mr-2" 
+                className="h-8 sm:h-10 md:h-12 w-auto object-contain mr-1 sm:mr-2 shrink-0" 
               />
               
               {/* JOSH PETS HUB (Uniform White) */}
-              <span className="text-white drop-shadow-sm flex items-center font-black tracking-tight">
+              <span className="text-white drop-shadow-sm flex items-center font-black tracking-tight text-lg sm:text-2xl md:text-3xl">
                 J
-                <div className="relative mx-0.5 flex items-center justify-center bg-white rounded-full w-5 h-5 md:w-6 md:h-6 shadow-sm">
-                  <PawPrint size={14} className="text-orange-500 fill-orange-500" />
+                <div className="relative mx-0.5 flex items-center justify-center bg-white rounded-full w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 shadow-sm shrink-0">
+                  <PawPrint size={10} className="text-orange-500 fill-orange-500 sm:w-3.5 sm:h-3.5" />
                 </div>
                 SH 
-                <span className="ml-1.5 md:ml-2">PETS</span> 
-                <span className="ml-1.5 md:ml-2">HUB</span>
+                <span className="ml-1 sm:ml-1.5 md:ml-2">PETS</span> 
+                <span className="ml-1 sm:ml-1.5 md:ml-2">HUB</span>
               </span>
             </Link>
 
@@ -395,7 +395,7 @@ const Navbar = () => {
             </div>
 
             {/* Right Side Actions: Search, Chat, Wishlist, Cart + Login / Signup Buttons */}
-            <div className="flex items-center space-x-2.5 md:space-x-4">
+            <div className="flex items-center space-x-2 sm:space-x-3.5 md:space-x-4 shrink-0">
 
               {/* Search Icon */}
               <button

@@ -14,12 +14,12 @@ router.get('/', async (req, res) => {
     if (isDbConnected()) {
       const query = {};
       if (petType) query.petType = petType;
-      adoptions = await Adoption.find(query);
+      // Strip sensitive customer inquiries and phone numbers from public feed
+      adoptions = await Adoption.find(query).select('-inquiries');
     } else {
-      adoptions = readMockData('adoptions');
-      if (petType) {
-        adoptions = adoptions.filter(a => a.petType === petType);
-      }
+      const rawList = readMockData('adoptions');
+      const filtered = petType ? rawList.filter(a => a.petType === petType) : rawList;
+      adoptions = filtered.map(({ inquiries, ...rest }) => rest);
     }
 
     res.json({ success: true, adoptions });

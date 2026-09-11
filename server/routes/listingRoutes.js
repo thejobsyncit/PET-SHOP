@@ -71,6 +71,10 @@ router.post('/', protect, async (req, res) => {
     const { title, petType, breed, age, price, description, images, location, contactPhone, quantity, vaccinationCertificate, paymentStatus, paymentAmount } = req.body;
     let newListing;
 
+    const isAdmin = req.user && (req.user.role === 'ADMIN' || req.user.role === 'SUPERADMIN');
+    const safePaymentStatus = isAdmin && paymentStatus ? paymentStatus : 'pending';
+    const safeIsVerified = isAdmin && (paymentStatus === 'paid' || req.body.isVerified === true);
+
     if (isDbConnected()) {
       newListing = await Listing.create({
         user: req.user._id,
@@ -78,16 +82,16 @@ router.post('/', protect, async (req, res) => {
         petType,
         breed,
         age,
-        price,
+        price: parseFloat(price) || 0,
         description,
         images,
         location,
         vaccinationCertificate: vaccinationCertificate || null,
         contactPhone,
         quantity: parseInt(quantity) || 1,
-        paymentStatus: paymentStatus || 'pending',
-        paymentAmount: paymentAmount || 200,
-        isVerified: paymentStatus === 'paid'
+        paymentStatus: safePaymentStatus,
+        paymentAmount: 200,
+        isVerified: safeIsVerified
       });
     } else {
       const listings = readMockData('listings');
@@ -104,12 +108,12 @@ router.post('/', protect, async (req, res) => {
         location,
         vaccinationCertificate: vaccinationCertificate || null,
         contactPhone,
-        isVerified: paymentStatus === 'paid',
+        isVerified: safeIsVerified,
         quantity: parseInt(quantity) || 1,
         soldCount: 0,
         status: 'Available',
-        paymentStatus: paymentStatus || 'pending',
-        paymentAmount: paymentAmount || 200,
+        paymentStatus: safePaymentStatus,
+        paymentAmount: 200,
         soldOutAt: null,
         createdAt: new Date().toISOString()
       };

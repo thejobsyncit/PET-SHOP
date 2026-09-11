@@ -1,8 +1,9 @@
 import Razorpay from 'razorpay';
 import crypto from 'crypto';
+import Order from '../models/Order.js';
+import { isDbConnected, readMockData, writeMockData } from '../utils/mockDb.js';
 
 // Initialize Razorpay
-// Note: We use try-catch or conditional to avoid crashing if keys are missing initially
 let razorpay;
 try {
   if (process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_SECRET) {
@@ -26,8 +27,12 @@ export const createOrder = async (req, res) => {
       return res.status(500).json({ success: false, message: 'Razorpay keys not configured' });
     }
 
+    if (!amount || typeof amount !== 'number' || amount <= 0) {
+      return res.status(400).json({ success: false, message: 'Invalid payment amount specified' });
+    }
+
     const options = {
-      amount: amount * 100, // amount in smallest currency unit (paise)
+      amount: Math.round(amount * 100), // amount in smallest currency unit (paise)
       currency,
       receipt,
     };
@@ -55,23 +60,56 @@ export const createOrder = async (req, res) => {
 // @access  Private
 export const verifyPayment = async (req, res) => {
   try {
-    const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = req.body;
+    const { razorpay_order_id, razorpay_payment_id, razorpay_signature, orderId } = req.body;
 
     if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
       return res.status(400).json({ success: false, message: 'Payment details missing' });
     }
 
-    // Creating our own signature with order id and payment id
+    if (!process.env.RAZORPAY_KEY_SECRET) {
+      return res.status(500).json({ success: false, message: 'Payment secret not configured on server' });
+    }
+
+    // Creating expected HMAC digest
     const body = razorpay_order_id + '|' + razorpay_payment_id;
     const expectedSignature = crypto
       .createHmac('sha256', process.env.RAZORPAY_KEY_SECRET)
       .update(body.toString())
       .digest('hex');
 
-    const isAuthentic = expectedSignature === razorpay_signature;
+    // Timing-safe comparison to prevent side-channel timing attacks
+    let isAuthentic = false;
+    try {
+      const expectedBuf = Buffer.from(expectedSignature, 'utf-8');
+      const signatureBuf = Buffer.from(razorpay_signature, 'utf-8');
+      isAuthentic = expectedBuf.length === signatureBuf.length && crypto.timingSafeEqual(expectedBuf, signatureBuf);
+    } catch (_) {
+      isAuthentic = false;
+    }
 
     if (isAuthentic) {
-      // Payment verified successfully
+      // If an associated internal orderId is provided, confirm its payment
+      if (orderId) {
+        if (isDbConnected()) {
+          await Order.findByIdAndUpdate(orderId, {
+            'paymentDetails.status': 'Completed',
+            'paymentDetails.transactionId': razorpay_payment_id,
+            'paymentDetails.paidAt': new Date()
+          });
+        } else {
+          const ordersList = readMockData('orders');
+          const idx = ordersList.findIndex(o => o._id.toString() === orderId.toString());
+          if (idx !== -1) {
+            ordersList[idx].paymentDetails = {
+              status: 'Completed',
+              transactionId: razorpay_payment_id,
+              paidAt: new Date().toISOString()
+            };
+            writeMockData('orders', ordersList);
+          }
+        }
+      }
+
       res.status(200).json({
         success: true,
         message: 'Payment verified successfully',

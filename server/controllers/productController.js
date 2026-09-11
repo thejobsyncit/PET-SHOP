@@ -38,7 +38,7 @@ export const getProducts = async (req, res) => {
       
       if (brand) {
         const brandsList = brand.split(',');
-        query.brand = { $in: brandsList.map(b => new RegExp('^' + b + '$', 'i')) };
+        query.brand = { $in: brandsList.map(b => new RegExp('^' + b.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '$', 'i')) };
       }
 
       if (requiresPrescription !== undefined) {
@@ -77,13 +77,16 @@ export const getProducts = async (req, res) => {
         });
       }
 
-      // Full-text search
+      // Full-text search with ReDoS protection
       if (search) {
-        query.$or = [
-          { name: { $regex: search, $options: 'i' } },
-          { brand: { $regex: search, $options: 'i' } },
-          { description: { $regex: search, $options: 'i' } }
-        ];
+        const sanitizedSearch = String(search).trim().slice(0, 100).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        if (sanitizedSearch) {
+          query.$or = [
+            { name: { $regex: sanitizedSearch, $options: 'i' } },
+            { brand: { $regex: sanitizedSearch, $options: 'i' } },
+            { description: { $regex: sanitizedSearch, $options: 'i' } }
+          ];
+        }
       }
 
       // Build Sorting

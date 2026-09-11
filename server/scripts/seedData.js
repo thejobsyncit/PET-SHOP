@@ -1,4 +1,4 @@
-import bcrypt from 'bcrypt';
+import bcrypt from 'bcryptjs';
 
 // Helper to hash passwords for seeding
 const hashPassword = (password) => {

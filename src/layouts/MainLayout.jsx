@@ -24,7 +24,7 @@ const MainLayout = () => {
   }, [dispatch]);
 
   return (
-    <div className="min-h-screen flex flex-col bg-secondary">
+    <div className="min-h-screen flex flex-col bg-secondary overflow-x-hidden">
       {/* Premium Sticky Header */}
       <Navbar />
 

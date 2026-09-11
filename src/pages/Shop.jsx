@@ -179,8 +179,8 @@ const Shop = () => {
         { name: 'Treats', img: 'https://images.unsplash.com/photo-1583337130417-3346a1be7dee?w=300&auto=format&fit=crop' },
         { name: 'Dog Beds & Cotes', img: 'https://images.unsplash.com/photo-1576201836106-db1758fd1c97?w=300&auto=format&fit=crop' },
         { name: 'Collars & Leashes', img: 'https://images.unsplash.com/photo-1535930891776-0c2dfb7fda1a?w=300&auto=format&fit=crop' },
-        { name: 'Supplements', img: '/images/birds/bird-supplements.jpg' },
-        { name: 'Other Accessories', img: 'https://images.unsplash.com/photo-1452570053594-1b985d6ea890?q=80&w=800&auto=format&fit=crop' }
+        { name: 'Supplements', img: 'https://images.unsplash.com/photo-1583512603805-3cc6b41f3edb?w=400&auto=format&fit=crop' },
+        { name: 'Other Accessories', img: 'https://images.unsplash.com/photo-1541599540903-216a46ca1dc0?w=400&auto=format&fit=crop' }
       ],
       faqs: [
         { q: 'How do I choose the correct food type for my puppy?', a: 'Puppies require highly digestible proteins and specialized fat ratios for rapid bone growth. Look for specialized labels like Himalaya Healthy Pet Food for Puppies.' },
@@ -194,9 +194,9 @@ const Shop = () => {
       subcategories: [
         { name: 'Cat Food', img: 'https://images.unsplash.com/photo-1513360371669-4adf3dd7dff8?w=300&auto=format&fit=crop' },
         { name: 'Treats', img: 'https://images.unsplash.com/photo-1533743983669-94fa5c4338ec?w=300&auto=format&fit=crop' },
-        { name: 'Supplements', img: '/images/birds/bird-supplements.jpg' },
+        { name: 'Supplements', img: 'https://images.unsplash.com/photo-1574158622682-e40e69881006?w=400&auto=format&fit=crop' },
         { name: 'Beds & Scratchers', img: 'https://images.unsplash.com/photo-1517331156700-3c241d2b4d83?w=300&auto=format&fit=crop' },
-        { name: 'Other Accessories', img: 'https://images.unsplash.com/photo-1452570053594-1b985d6ea890?q=80&w=800&auto=format&fit=crop' }
+        { name: 'Other Accessories', img: 'https://images.unsplash.com/photo-1545249390-6bdfa286032f?w=400&auto=format&fit=crop' }
       ],
       faqs: [
         { q: 'Why is wet food essential for cats?', a: 'Cats have a low thirst drive. Wet food provides vital hydration to prevent urinary tract infections and kidney issues.' },

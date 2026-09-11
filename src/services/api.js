@@ -5,9 +5,15 @@ import { store } from '../store/index.js';
 const getHeaders = () => {
   let token = localStorage.getItem('pawora_token');
   
+  // Clean up legacy simulated tokens
+  if (token && token.startsWith('token_')) {
+    localStorage.removeItem('pawora_token');
+    token = null;
+  }
+
   if (!token && store) {
     const state = store.getState();
-    if (state && state.auth && state.auth.token) {
+    if (state?.auth?.token && !state.auth.token.startsWith('token_')) {
       token = state.auth.token;
     }
   }
@@ -18,16 +24,6 @@ const getHeaders = () => {
   
   if (token) {
     headers['Authorization'] = `Bearer ${token}`;
-  } else {
-    console.error("API getHeaders: Token is completely missing from both localStorage and Redux store!");
-  }
-
-  // Pass user ID for backend mock auth simulation
-  if (store) {
-    const state = store.getState();
-    if (state?.auth?.user?._id) {
-      headers['x-mock-user-id'] = state.auth.user._id;
-    }
   }
 
   return headers;
@@ -38,6 +34,7 @@ export const apiRequest = async (endpoint, options = {}) => {
   const headers = getHeaders();
   
   const config = {
+    credentials: 'include',
     ...options,
     headers: {
       ...headers,
@@ -50,12 +47,16 @@ export const apiRequest = async (endpoint, options = {}) => {
     const data = await response.json();
     
     if (!response.ok) {
+      if (response.status === 401) {
+        // Clear invalid or expired session tokens
+        localStorage.removeItem('pawora_token');
+      }
       throw new Error(data.message || 'Something went wrong');
     }
     
     return data;
   } catch (error) {
-    console.error(`API Request Error [${endpoint}]:`, error.message, "Headers sent:", headers);
+    console.error(`API Request Error [${endpoint}]:`, error.message);
     throw error;
   }
 };

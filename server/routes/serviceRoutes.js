@@ -218,7 +218,18 @@ router.put('/:id', protect, async (req, res) => {
         return res.status(403).json({ success: false, message: 'Not authorized to edit this service' });
       }
 
-      Object.assign(service, req.body);
+      const allowedUpdates = [
+        'title', 'description', 'price', 'discountPrice', 'priceUnit',
+        'duration', 'petTypes', 'serviceMode', 'location', 'state',
+        'city', 'area', 'contactPhone', 'contactWhatsapp', 'highlights',
+        'packages', 'images'
+      ];
+
+      allowedUpdates.forEach(field => {
+        if (req.body[field] !== undefined) {
+          service[field] = req.body[field];
+        }
+      });
       await service.save();
       res.json({ success: true, service });
     } else {
@@ -231,7 +242,18 @@ router.put('/:id', protect, async (req, res) => {
         return res.status(403).json({ success: false, message: 'Not authorized to edit this service' });
       }
 
-      services[idx] = { ...services[idx], ...req.body, updatedAt: new Date().toISOString() };
+      const allowedUpdates = [
+        'title', 'description', 'price', 'discountPrice', 'priceUnit',
+        'duration', 'petTypes', 'serviceMode', 'location', 'state',
+        'city', 'area', 'contactPhone', 'contactWhatsapp', 'highlights',
+        'packages', 'images'
+      ];
+      allowedUpdates.forEach(field => {
+        if (req.body[field] !== undefined) {
+          services[idx][field] = req.body[field];
+        }
+      });
+      services[idx].updatedAt = new Date().toISOString();
       writeMockData('services', services);
       res.json({ success: true, service: services[idx] });
     }
