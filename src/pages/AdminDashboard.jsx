@@ -454,7 +454,7 @@ const AdminDashboard = () => {
   // CONDITIONAL RENDER: IF NOT ADMIN, RENDER THE ADMIN SIGN IN PANEL INSTEAD OF REDIRECTING
   if (!isAuthenticated || (user && user.role !== 'ADMIN')) {
     return (
-      <div className="min-h-screen bg-[#F4F6F4] flex flex-col justify-center items-center p-6">
+      <div className="min-h-auto lg:h-screen bg-[#F4F6F4] flex flex-col justify-center items-center p-6">
         <div className="w-full max-w-md bg-white border border-[#E3EBE5] p-8 shadow-md space-y-6">
           <div className="text-center space-y-1">
             <span className="text-[9px] uppercase tracking-widest text-[#7CA085] font-bold">JOSH PETS HUB</span>
@@ -536,7 +536,7 @@ const AdminDashboard = () => {
 
   // RENDER DYNAMIC EXECUTIVE CONSOLE FOR LOGGED-IN ADMINS WITH VERTICAL SIDEBAR
   return (
-    <div className="min-h-screen bg-[#F4F6F4] flex">
+    <div className="min-h-auto lg:h-screen bg-[#F4F6F4] flex">
 
       {/* 1. LEFT SIDEBAR PANEL (Width 250px) */}
       <aside className="w-full lg:w-64 bg-[#1D3B2E] text-white flex flex-col justify-between p-6 shrink-0 border-r border-[#2E5947]">
@@ -596,7 +596,7 @@ const AdminDashboard = () => {
       </aside>
 
       {/* 2. RIGHT VIEW MAIN CONSOLE */}
-      <main className="flex-grow p-8 overflow-y-auto max-h-screen">
+      <main className="flex-grow p-8 overflow-y-auto max-h-auto lg:h-screen">
 
         {/* Top bar Header */}
         <div className="flex justify-between items-center border-b border-[#E3EBE5] pb-6 mb-8">

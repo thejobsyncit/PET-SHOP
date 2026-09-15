@@ -778,14 +778,14 @@ const PetAdoptionDashboard = ({
   const uploadedDocsCount = [awbiDocUrl, ngoDocUrl, municipalDocUrl, vetDocUrl, founderDocUrl, bankDocUrl].filter(Boolean).length;
 
   return (
-    <div className="min-h-screen bg-[#FAF9F5] text-slate-900 font-sans selection:bg-[#0F2E23]/20 selection:text-[#0F2E23] flex flex-col md:flex-row">
+    <div className="min-h-auto lg:h-screen bg-[#FAF9F5] text-slate-900 font-sans selection:bg-[#0F2E23]/20 selection:text-[#0F2E23] flex flex-col md:flex-row">
       
       {/* 
         ========================================================
         LEFT SIDEBAR: EXACT MATCH OF THE DESIRED CLEAN LAYOUT
         ========================================================
       */}
-      <aside className="w-full md:w-64 lg:w-72 shrink-0 bg-white border-r border-slate-200 relative lg:sticky lg:top-0 md:top-[104px] md:h-[calc(100vh-104px)] flex flex-col justify-between overflow-y-auto z-20 shadow-sm">
+      <aside className="w-full md:w-64 lg:w-72 shrink-0 bg-white border-r border-slate-200 relative lg:sticky lg:top-0 md:top-[104px] md:h-auto lg:h-[calc(100vh-104px)] flex flex-col justify-between overflow-y-auto z-20 shadow-sm">
         
         <div className="p-6 pt-8 space-y-6">
           
@@ -869,7 +869,7 @@ const PetAdoptionDashboard = ({
         RIGHT MAIN CONTENT
         ========================================================
       */}
-      <main className="flex-1 px-4 sm:px-6 lg:px-8 pt-8 md:pt-12 pb-16 overflow-x-hidden">
+      <main className="flex-1 min-w-0 px-4 sm:px-6 lg:px-8 pt-8 md:pt-12 pb-16 overflow-x-hidden">
         
         {/* Header Area */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">

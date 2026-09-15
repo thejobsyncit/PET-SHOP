@@ -92,6 +92,7 @@ const AdoptionShelter = () => {
   const [newPetBio, setNewPetBio] = useState('');
   const [newPetVaccinated, setNewPetVaccinated] = useState(true);
   const [newPetDewormed, setNewPetDewormed] = useState(true);
+  const [newPetNeutered, setNewPetNeutered] = useState(true);
   const [newPetIsFree, setNewPetIsFree] = useState(true);
   const [newPetFee, setNewPetFee] = useState('');
   const fileInputRef = useRef(null);

@@ -59,7 +59,7 @@ const Home = () => {
     <div className="space-y-20 pb-20">
       
       {/* 1. HERO SECTION */}
-      <section className="relative h-[85vh] flex items-center justify-center overflow-hidden">
+      <section className="relative min-h-[50vh] py-24 md:py-32 flex items-center justify-center overflow-hidden">
         {/* Cinematic Backdrop Image */}
         <div className="absolute inset-0 z-0 bg-[#0F2E23]">
           {/* Base Image */}
@@ -83,26 +83,27 @@ const Home = () => {
         </div>
 
         {/* Hero Copy overlay */}
-        <ScrollReveal variant="blurIn" className="relative z-10 max-w-4xl mx-auto px-6 text-center text-white space-y-6">
-          <span className="text-xs font-semibold tracking-widest text-gold uppercase flex items-center justify-center gap-1.5 animate-pulse drop-shadow-md">
-            <Sparkles size={14} className="text-gold" /> Pawora Premium Living
+        <ScrollReveal variant="blurIn" className="relative z-10 max-w-4xl mx-auto px-6 text-center text-white space-y-8">
+          <span className="text-xs font-semibold tracking-[0.3em] text-gold uppercase flex items-center justify-center gap-2 animate-pulse drop-shadow-md">
+            <Sparkles size={16} className="text-gold" /> Pawora Premium Living
           </span>
-          <h1 className="font-serif text-5xl md:text-7xl text-white leading-tight drop-shadow-lg">
-            Better Care For Every <br />Kind Of Companion.
+          <h1 className="font-serif text-5xl md:text-7xl lg:text-[5rem] text-white leading-[1.1] drop-shadow-2xl">
+            Better Care For Every <br />
+            <span className="text-gradient-gold">Kind Of Companion.</span>
           </h1>
-          <p className="text-sm md:text-base text-gray-200 max-w-2xl mx-auto leading-relaxed font-light drop-shadow-md">
+          <p className="text-sm md:text-lg text-gray-200/90 max-w-2xl mx-auto leading-relaxed font-light drop-shadow-lg tracking-wide">
             Thoughtfully chosen premium foods, medical-grade healthcare supplements, veterinary products, and elegant habitat accessories for the pets you love.
           </p>
-          <div className="flex flex-wrap justify-center gap-4 pt-6">
+          <div className="flex flex-col sm:flex-row justify-center gap-5 pt-8">
             <button 
               onClick={() => navigate('/shop')}
-              className="btn-premium"
+              className="px-10 py-4 bg-gradient-gold text-primary font-bold text-sm tracking-widest hover:scale-105 transition-all duration-300 uppercase cursor-pointer rounded-full shadow-[0_0_30px_rgba(212,175,55,0.4)]"
             >
               SHOP COLLECTION
             </button>
             <button 
               onClick={() => navigate('/pet-care')}
-              className="px-8 py-3.5 bg-black/20 backdrop-blur-md border border-white text-white font-medium text-sm tracking-widest hover:bg-white hover:text-primary transition duration-300 uppercase cursor-pointer rounded-sm"
+              className="px-10 py-4 bg-white/10 backdrop-blur-md border border-white/30 text-white font-medium text-sm tracking-widest hover:bg-white hover:text-primary transition-all duration-300 uppercase cursor-pointer rounded-full shadow-lg"
             >
               EXPLORE PET CARE
             </button>
@@ -112,33 +113,33 @@ const Home = () => {
 
       {/* 2. D2C TRUST FEATURES */}
       <ScrollReveal variant="slideUp">
-        <section className="max-w-7xl mx-auto px-4 md:px-8 mt-[-30px] relative z-20">
-          <div className="grid grid-cols-1 md:grid-cols-1 md:grid-cols-3 gap-8 bg-white rounded-2xl p-8 shadow-premium-soft">
-            <div className="flex items-start gap-4">
-              <div className="p-3 bg-secondary text-primary shrink-0">
-                <ShieldCheck size={24} />
+        <section className="max-w-7xl mx-auto px-4 md:px-8 mt-[-40px] relative z-20">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 bg-white/95 backdrop-blur-xl rounded-3xl p-8 lg:p-10 shadow-premium-hover border border-white/50">
+            <div className="flex items-start gap-5 p-4 hover:bg-sand rounded-2xl transition-colors duration-300">
+              <div className="p-4 bg-gradient-premium rounded-full text-gold shrink-0 shadow-lg">
+                <ShieldCheck size={28} />
               </div>
               <div>
-                <h3 className="font-serif text-base font-bold text-primary mb-1">Veterinary Credibility</h3>
-                <p className="text-xs text-gray-500 leading-relaxed">Every medical product, food formula, and habitat item undergoes expert quality review for your safety.</p>
+                <h3 className="font-serif text-lg font-bold text-primary mb-2">Veterinary Credibility</h3>
+                <p className="text-sm text-gray-500/90 leading-relaxed">Every medical product, food formula, and habitat item undergoes expert quality review for your safety.</p>
               </div>
             </div>
-            <div className="flex items-start gap-4">
-              <div className="p-3 bg-secondary text-primary shrink-0">
-                <HeartPulse size={24} />
+            <div className="flex items-start gap-5 p-4 hover:bg-sand rounded-2xl transition-colors duration-300">
+              <div className="p-4 bg-gradient-premium rounded-full text-gold shrink-0 shadow-lg">
+                <HeartPulse size={28} />
               </div>
               <div>
-                <h3 className="font-serif text-base font-bold text-primary mb-1">Health First Architecture</h3>
-                <p className="text-xs text-gray-500 leading-relaxed">Dedicated prescription workflow handles sensitive veterinary needs with strict legal care.</p>
+                <h3 className="font-serif text-lg font-bold text-primary mb-2">Health First Architecture</h3>
+                <p className="text-sm text-gray-500/90 leading-relaxed">Dedicated prescription workflow handles sensitive veterinary needs with strict legal care.</p>
               </div>
             </div>
-            <div className="flex items-start gap-4">
-              <div className="p-3 bg-secondary text-primary shrink-0">
-                <Award size={24} />
+            <div className="flex items-start gap-5 p-4 hover:bg-sand rounded-2xl transition-colors duration-300">
+              <div className="p-4 bg-gradient-premium rounded-full text-gold shrink-0 shadow-lg">
+                <Award size={28} />
               </div>
               <div>
-                <h3 className="font-serif text-base font-bold text-primary mb-1">Premium Quality Promise</h3>
-                <p className="text-xs text-gray-500 leading-relaxed">Free shipping above ₹999 across India. Hassle-free packaging ensuring fresh, stable feed delivery.</p>
+                <h3 className="font-serif text-lg font-bold text-primary mb-2">Premium Quality Promise</h3>
+                <p className="text-sm text-gray-500/90 leading-relaxed">Free shipping above ₹999 across India. Hassle-free packaging ensuring fresh, stable feed delivery.</p>
               </div>
             </div>
           </div>

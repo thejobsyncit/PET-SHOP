@@ -114,6 +114,22 @@ const serviceSchema = new mongoose.Schema({
   isVerified: {
     type: Boolean,
     default: true
+  },
+  acceptingWalkIns: {
+    type: Boolean,
+    default: true
+  },
+  schedule: {
+    type: Object,
+    default: {
+      Monday: { isOpen: true, start: '10:00', end: '20:00' },
+      Tuesday: { isOpen: true, start: '10:00', end: '20:00' },
+      Wednesday: { isOpen: true, start: '10:00', end: '20:00' },
+      Thursday: { isOpen: true, start: '10:00', end: '20:00' },
+      Friday: { isOpen: true, start: '10:00', end: '20:00' },
+      Saturday: { isOpen: true, start: '09:00', end: '21:00' },
+      Sunday: { isOpen: false, start: '10:00', end: '18:00' },
+    }
   }
 }, { timestamps: true });
 

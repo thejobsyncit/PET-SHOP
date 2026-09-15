@@ -118,7 +118,7 @@ const HostelProviderDashboard = ({
   };
 
   return (
-    <div className="min-h-screen bg-[#F8F9FA]">
+    <div className="min-h-auto lg:h-screen bg-[#F8F9FA]">
       {/* 
         ========================================================
         SIDEBAR NAVIGATION

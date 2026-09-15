@@ -17,7 +17,7 @@
       "breed": "safdasdf"
     },
     "fee": 799,
-    "status": "Pending",
+    "status": "Confirmed",
     "paymentStatus": "Unpaid",
     "createdAt": "2026-08-31T07:04:54.748Z"
   },
@@ -34,7 +34,7 @@
       "type": "dog",
       "breed": "German Shepherd"
     },
-    "status": "Pending",
+    "status": "Confirmed",
     "fee": 600,
     "paymentStatus": "Unpaid",
     "createdAt": "2026-08-27T10:59:20.779Z"

@@ -1,7 +1,5 @@
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
-import { store } from '../store/index.js';
-
 const getHeaders = () => {
   let token = localStorage.getItem('pawora_token');
   
@@ -9,13 +7,6 @@ const getHeaders = () => {
   if (token && token.startsWith('token_')) {
     localStorage.removeItem('pawora_token');
     token = null;
-  }
-
-  if (!token && store) {
-    const state = store.getState();
-    if (state?.auth?.token && !state.auth.token.startsWith('token_')) {
-      token = state.auth.token;
-    }
   }
 
   const headers = {

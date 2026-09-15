@@ -1,26 +1,35 @@
 import React, { useState, useEffect } from 'react';
 import { Calendar, Star, MessageSquare, Clock, CreditCard, Building, Check, Video, Paperclip, CheckCircle2, FileText, PawPrint, Save, Clock3, User, Plus, Download, Edit3, HeartPulse, StarHalf, Home, Image as ImageIcon, Scissors, Sparkles, Upload, Store } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { useSelector, useDispatch } from 'react-redux';
+import { apiRequest } from '../services/api.js';
+import { updateProfile } from '../store/slices/authSlice.js';
 
 const GroomingProviderContent = ({ activeTab }) => {
+  const { user } = useSelector(state => state.auth);
+  const dispatch = useDispatch();
+
+  const [loading, setLoading] = useState(true);
+  const [serviceId, setServiceId] = useState(null);
+
   const [profile, setProfile] = useState({
-    id: 'my-grooming-profile',
-    avatar: 'https://images.unsplash.com/photo-1516734212186-a967f81ad0d7?q=80&w=800&auto=format&fit=crop',
-    name: 'Velvet Fur Grooming Studio',
-    registration: 'GROOM-2023-KA-99',
+    id: user?._id || 'my-grooming-profile',
+    avatar: user?.avatar || user?.profilePicture || 'https://images.unsplash.com/photo-1516734212186-a967f81ad0d7?q=80&w=800&auto=format&fit=crop',
+    name: user?.name || 'Velvet Fur Grooming Studio',
+    registration: user?.govtProofNumber || 'GROOM-2023-KA-99',
     certifications: 'Certified Master Groomer (NDGAA)',
-    studioName: 'Velvet Fur Premium Spa',
-    address: 'Indiranagar, Bangalore, Karnataka',
+    studioName: user?.businessName || user?.name || 'Velvet Fur Premium Spa',
+    address: user?.location || 'Indiranagar, Bangalore, Karnataka',
     city: 'Bangalore',
     state: 'Karnataka',
     experienceDisplay: '5+ Years Exp.',
     experienceYears: 5,
     rating: 4.8,
     reviewsCount: 156,
-    phone: '+91 98765 43210',
+    phone: user?.mobile || '+91 98765 43210',
     isVerified: true,
     openTodayTiming: '10:00 AM - 08:00 PM',
-    bio: 'Premium pet spa offering stress-free grooming and medicated baths.',
+    bio: user?.bio || 'Premium pet spa offering stress-free grooming and medicated baths.',
     facilities: ['Air Conditioned', 'CCTV Monitored', 'Medicated Baths'],
   });
 
@@ -73,6 +82,110 @@ const GroomingProviderContent = ({ activeTab }) => {
     setProfile(prev => ({ ...prev, [name]: value }));
   };
 
+  const [appointments, setAppointments] = useState([]);
+  
+  useEffect(() => {
+    fetchData();
+  }, [user]);
+
+  const fetchData = async () => {
+    setLoading(true);
+    try {
+      // Fetch bookings
+      const bookRes = await apiRequest('/bookings/provider');
+      if (bookRes.success) setAppointments(bookRes.bookings);
+
+      // Fetch provider service
+      const servRes = await apiRequest('/services/provider');
+      if (servRes.success && servRes.services && servRes.services.length > 0) {
+        // Find a grooming service, or just take the first one
+        const srv = servRes.services.find(s => s.category === 'Grooming') || servRes.services[0];
+        setServiceId(srv._id);
+        
+        if (srv.schedule) {
+           setSchedule({
+             acceptingWalkIns: srv.acceptingWalkIns !== false,
+             days: srv.schedule
+           });
+        }
+        
+        if (srv.packages && srv.packages.length > 0) {
+           const newPkgState = { 
+             fullGroom: { active: false, fee: 1500 },
+             bathBrush: { active: false, fee: 800 },
+             nailClip: { active: false, fee: 300 }
+           };
+           srv.packages.forEach(p => {
+              if (p.name === 'Full Grooming') newPkgState.fullGroom = { active: true, fee: p.price };
+              if (p.name === 'Bath & Brush') newPkgState.bathBrush = { active: true, fee: p.price };
+              if (p.name === 'Nail Clipping') newPkgState.nailClip = { active: true, fee: p.price };
+           });
+           setPackagesState(newPkgState);
+        }
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const saveProfile = async () => {
+    const result = await dispatch(updateProfile({
+      name: profile.name,
+      businessName: profile.studioName,
+      location: profile.address,
+      mobile: profile.phone,
+      bio: profile.bio,
+      govtProofNumber: profile.registration
+    }));
+    if (updateProfile.fulfilled.match(result)) {
+      toast.success('Profile updated successfully!');
+    } else {
+      toast.error('Failed to update profile');
+    }
+  };
+
+  const savePackages = async () => {
+     try {
+       const pkgs = [];
+       if (packagesState.fullGroom.active) pkgs.push({ name: 'Full Grooming', price: packagesState.fullGroom.fee });
+       if (packagesState.bathBrush.active) pkgs.push({ name: 'Bath & Brush', price: packagesState.bathBrush.fee });
+       if (packagesState.nailClip.active) pkgs.push({ name: 'Nail Clipping', price: packagesState.nailClip.fee });
+
+       if (serviceId) {
+         await apiRequest(`/services/${serviceId}`, {
+           method: 'PUT',
+           body: JSON.stringify({ packages: pkgs })
+         });
+         toast.success('Packages & Pricing updated successfully!');
+       } else {
+         toast.error('No service profile found. Please contact support.');
+       }
+     } catch (err) {
+       toast.error('Failed to save packages');
+     }
+  };
+
+  const saveSchedule = async () => {
+     try {
+       if (serviceId) {
+         await apiRequest(`/services/${serviceId}`, {
+           method: 'PUT',
+           body: JSON.stringify({ 
+             schedule: schedule.days,
+             acceptingWalkIns: schedule.acceptingWalkIns 
+           })
+         });
+         toast.success('Schedule saved successfully!');
+       } else {
+         toast.error('No service profile found. Please contact support.');
+       }
+     } catch (err) {
+       toast.error('Failed to save schedule');
+     }
+  };
+
   return (
     <div className="w-full">
       {/* PROFILE TAB */}
@@ -84,7 +197,7 @@ const GroomingProviderContent = ({ activeTab }) => {
               <p className="text-sm text-slate-500 font-medium mt-1">Manage your professional details and studio amenities.</p>
             </div>
             <button 
-              onClick={() => toast.success('Profile updated successfully!')}
+              onClick={saveProfile}
               className="px-6 py-2.5 bg-[#0F2E23] hover:bg-[#163e30] text-white rounded-xl text-xs font-black uppercase tracking-widest shadow-md flex items-center gap-2 transition">
               <Save size={16} /> Save & Publish
             </button>
@@ -154,35 +267,43 @@ const GroomingProviderContent = ({ activeTab }) => {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="bg-white border-l-4 border-l-amber-500 border-y border-r border-slate-200 rounded-r-2xl p-5 shadow-sm hover:shadow-md transition">
-              <div className="flex justify-between items-start mb-3">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center font-bold text-amber-700">M</div>
-                  <div>
-                    <h3 className="font-bold text-slate-800 text-sm">Max (Golden Retriever)</h3>
-                    <p className="text-[10px] text-slate-500 uppercase tracking-widest">Today, 11:00 AM • Full Groom</p>
+            {appointments.length === 0 ? (
+              <div className="col-span-full py-8 text-center text-slate-500 font-medium bg-slate-50 rounded-2xl border border-slate-100">
+                No appointments found for today.
+              </div>
+            ) : (
+              appointments.map((apt, idx) => {
+                const isPending = apt.status === 'Pending' || apt.status === 'Confirmed';
+                const dateObj = new Date(apt.date || apt.createdAt);
+                
+                return (
+                  <div key={apt._id || idx} className={`bg-white border-l-4 ${isPending ? 'border-l-amber-500' : 'border-l-emerald-500 opacity-70'} border-y border-r border-slate-200 rounded-r-2xl p-5 shadow-sm hover:shadow-md transition`}>
+                    <div className="flex justify-between items-start mb-3">
+                      <div className="flex items-center gap-3">
+                        <div className={`w-10 h-10 rounded-full ${isPending ? 'bg-amber-100 text-amber-700' : 'bg-emerald-100 text-emerald-700'} flex items-center justify-center font-bold`}>
+                          {apt.petDetails?.name ? apt.petDetails.name.charAt(0).toUpperCase() : 'P'}
+                        </div>
+                        <div>
+                          <h3 className="font-bold text-slate-800 text-sm">{apt.petDetails?.name || 'Pet'} ({apt.petDetails?.breed || 'Unknown'})</h3>
+                          <p className="text-[10px] text-slate-500 uppercase tracking-widest">{dateObj.toLocaleDateString()} • {apt.serviceType || 'Grooming'}</p>
+                        </div>
+                      </div>
+                      {isPending ? (
+                        <span className="bg-amber-50 text-amber-600 text-[9px] font-black uppercase tracking-widest px-2 py-1 rounded-full">{apt.timeSlot || 'Scheduled'}</span>
+                      ) : (
+                        <span className="bg-emerald-50 text-emerald-600 text-[9px] font-black uppercase tracking-widest px-2 py-1 rounded-full flex items-center gap-1"><CheckCircle2 size={10} /> {apt.status}</span>
+                      )}
+                    </div>
+                    {isPending && (
+                      <div className="flex gap-2 mt-4">
+                        <button onClick={() => toast.success('Session started')} className="flex-1 bg-[#0F2E23] text-white text-[10px] font-black uppercase tracking-widest py-2 rounded-lg hover:bg-[#163e30] transition">Start Session</button>
+                        <button onClick={() => toast.success('Reschedule request sent')} className="flex-1 bg-slate-100 text-slate-600 text-[10px] font-black uppercase tracking-widest py-2 rounded-lg hover:bg-slate-200 transition">Reschedule</button>
+                      </div>
+                    )}
                   </div>
-                </div>
-                <span className="bg-amber-50 text-amber-600 text-[9px] font-black uppercase tracking-widest px-2 py-1 rounded-full">In 15 Mins</span>
-              </div>
-              <div className="flex gap-2 mt-4">
-                <button className="flex-1 bg-[#0F2E23] text-white text-[10px] font-black uppercase tracking-widest py-2 rounded-lg hover:bg-[#163e30] transition">Start Session</button>
-                <button className="flex-1 bg-slate-100 text-slate-600 text-[10px] font-black uppercase tracking-widest py-2 rounded-lg hover:bg-slate-200 transition">Reschedule</button>
-              </div>
-            </div>
-            
-            <div className="bg-white border-l-4 border-l-emerald-500 border-y border-r border-slate-200 rounded-r-2xl p-5 shadow-sm hover:shadow-md transition opacity-70">
-              <div className="flex justify-between items-start mb-3">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center font-bold text-emerald-700">B</div>
-                  <div>
-                    <h3 className="font-bold text-slate-800 text-sm">Bella (Persian Cat)</h3>
-                    <p className="text-[10px] text-slate-500 uppercase tracking-widest">Today, 09:30 AM • Bath & Brush</p>
-                  </div>
-                </div>
-                <span className="bg-emerald-50 text-emerald-600 text-[9px] font-black uppercase tracking-widest px-2 py-1 rounded-full flex items-center gap-1"><CheckCircle2 size={10} /> Completed</span>
-              </div>
-            </div>
+                );
+              })
+            )}
           </div>
         </div>
       )}
@@ -196,7 +317,7 @@ const GroomingProviderContent = ({ activeTab }) => {
               <p className="text-sm text-slate-500 font-medium mt-1">Manage your offered services and base pricing.</p>
             </div>
             <button 
-              onClick={() => toast.success('Packages & Pricing updated successfully!')}
+              onClick={savePackages}
               className="px-6 py-2.5 bg-[#0F2E23] hover:bg-[#163e30] text-white rounded-xl text-xs font-black uppercase tracking-widest shadow-md flex items-center gap-2 transition">
               <Save size={16} /> Save Changes
             </button>
@@ -320,7 +441,7 @@ const GroomingProviderContent = ({ activeTab }) => {
               <h2 className="text-xl font-black text-[#0F2E23]">Studio Hours & Availability</h2>
               <p className="text-sm text-slate-500 font-medium mt-1">Set your weekly schedule and walk-in availability.</p>
             </div>
-            <button onClick={() => toast.success('Schedule saved successfully!')} className="px-6 py-2.5 bg-[#0F2E23] hover:bg-[#163e30] text-white rounded-xl text-xs font-black uppercase tracking-widest shadow-md flex items-center gap-2 transition">
+            <button onClick={saveSchedule} className="px-6 py-2.5 bg-[#0F2E23] hover:bg-[#163e30] text-white rounded-xl text-xs font-black uppercase tracking-widest shadow-md flex items-center gap-2 transition">
               <Save size={16} /> Save Schedule
             </button>
           </div>

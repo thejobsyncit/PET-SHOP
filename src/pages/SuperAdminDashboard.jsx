@@ -450,7 +450,7 @@ const SuperAdminDashboard = () => {
   // CONDITIONAL RENDER: IF NOT ADMIN, RENDER THE ADMIN SIGN IN PANEL INSTEAD OF REDIRECTING
   if (!isAuthenticated || (user && user.role !== 'SUPERADMIN')) {
     return (
-      <div className="min-h-screen bg-[#F4F6F4] flex flex-col justify-center items-center p-6">
+      <div className="min-h-auto lg:h-screen bg-[#F4F6F4] flex flex-col justify-center items-center p-6">
         <div className="w-full max-w-md bg-white border border-[#E3EBE5] p-8 shadow-md space-y-6">
           <div className="text-center space-y-1">
             <span className="text-[9px] uppercase tracking-widest text-[#7CA085] font-bold">JOSH PETS HUB</span>
@@ -517,7 +517,7 @@ const SuperAdminDashboard = () => {
 
   // RENDER DYNAMIC EXECUTIVE CONSOLE FOR LOGGED-IN ADMINS WITH VERTICAL SIDEBAR
   return (
-    <div className="min-h-screen bg-[#F4F6F4] flex">
+    <div className="min-h-auto lg:h-screen bg-[#F4F6F4] flex">
 
       {/* 1. LEFT SIDEBAR PANEL (Width 250px) */}
       <aside className="w-full lg:w-64 bg-gradient-to-b from-[#1D3B2E] to-[#0F2E23] text-white flex flex-col justify-between p-6 shrink-0 border-r border-white/5 shadow-2xl relative z-20">
@@ -577,7 +577,7 @@ const SuperAdminDashboard = () => {
       </aside>
 
       {/* 2. RIGHT VIEW MAIN CONSOLE */}
-      <main className="flex-grow p-8 overflow-y-auto max-h-screen">
+      <main className="flex-grow p-8 overflow-y-auto max-h-auto lg:h-screen">
 
         {/* Top bar Header */}
         <div className="sticky top-0 z-30 bg-[#F4F6F4]/90 backdrop-blur-md flex justify-between items-center border-b border-[#E3EBE5] pb-4 pt-4 mb-8 -mx-8 px-8 -mt-8 shadow-sm">
@@ -596,20 +596,26 @@ const SuperAdminDashboard = () => {
             </h2>
           </div>
 
-          <button
-            onClick={() => { 
-              loadStats(); 
-              loadAdminMarketplaceData(); 
-              loadUsers(); 
-              loadEnquiries(); 
-              loadProducts(); 
-              loadOrders(); 
-              loadPrescriptions(); 
-            }}
-            className="btn-secondary-premium !py-2 !px-4 !text-[10px] gap-2"
-          >
-            <RefreshCw size={14} /> REFRESH STATS
-          </button>
+          <div className="flex items-center gap-4">
+            <div className="text-[10px] text-gray-500 font-mono bg-white px-3 py-1.5 border border-[#E3EBE5] rounded-md flex items-center gap-2">
+              <span className="font-bold text-primary">Supabase URL:</span>
+              {import.meta.env.VITE_SUPABASE_URL || 'Not Configured'}
+            </div>
+            <button
+              onClick={() => { 
+                loadStats(); 
+                loadAdminMarketplaceData(); 
+                loadUsers(); 
+                loadEnquiries(); 
+                loadProducts(); 
+                loadOrders(); 
+                loadPrescriptions(); 
+              }}
+              className="btn-secondary-premium !py-2 !px-4 !text-[10px] gap-2 flex items-center"
+            >
+              <RefreshCw size={14} /> REFRESH STATS
+            </button>
+          </div>
         </div>
 
         {loading || (activeSection === 'overview' && !stats) ? (

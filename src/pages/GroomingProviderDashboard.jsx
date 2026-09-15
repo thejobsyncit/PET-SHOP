@@ -59,7 +59,7 @@ const GroomingProviderDashboard = ({
     }
   };
 
-  const [allListings, setAllListings] = useState([]);
+  const [allBookings, setAllBookings] = useState([]);
   const [loading, setLoading] = useState(true);
 
   const [inquiries, setInquiries] = useState([]);
@@ -179,29 +179,17 @@ const GroomingProviderDashboard = ({
     safeSetItem('groomingDashboardTab', tabName);
   };
 
-  const fetchListings = async () => {
+  const fetchBookings = async () => {
     setLoading(true);
     try {
-      const data = await apiRequest('/listings/my');
+      const data = await apiRequest('/bookings/provider');
       if (data.success) {
-        setAllListings(data.listings);
+        setAllBookings(data.bookings);
       }
     } catch (err) {
-      console.error("Error fetching listings:", err);
+      console.error("Error fetching bookings:", err);
     } finally {
       setLoading(false);
-    }
-  };
-
-  const handleSellOne = async (id) => {
-    try {
-      const data = await apiRequest(`/listings/${id}/sell`, { method: 'PUT' });
-      if (data.success) {
-        toast.success('Successfully marked 1 pet as sold!');
-        fetchListings();
-      }
-    } catch (err) {
-      toast.error(err.message || 'Failed to mark as sold.');
     }
   };
 
@@ -238,7 +226,7 @@ const GroomingProviderDashboard = ({
   };
 
   useEffect(() => {
-    fetchListings();
+    fetchBookings();
   }, [currentProvider?.id]);
 
   useEffect(() => {
@@ -444,38 +432,30 @@ const GroomingProviderDashboard = ({
     }
   };
 
-  const myPets = useMemo(() => {
-    if (!searchQuery.trim()) return allListings;
+  const myBookings = useMemo(() => {
+    if (!searchQuery.trim()) return allBookings;
     const query = searchQuery.toLowerCase().trim();
-    return allListings.filter(pet => {
+    return allBookings.filter(b => {
       return (
-        pet.title?.toLowerCase().includes(query) ||
-        pet.breed?.toLowerCase().includes(query) ||
-        pet.petType?.toLowerCase().includes(query)
+        b.petDetails?.name?.toLowerCase().includes(query) ||
+        b.user?.name?.toLowerCase().includes(query) ||
+        b.serviceType?.toLowerCase().includes(query)
       );
     });
-  }, [allListings, currentProvider, searchQuery]);
+  }, [allBookings, searchQuery]);
 
-  const activePets = myPets.filter(p => p.status !== 'Sold Out' && p.quantity > 0);
-  const soldOutPets = myPets.filter(p => p.status === 'Sold Out' || p.quantity === 0);
-  const petsWithSales = myPets.filter(p => p.soldCount > 0 || p.status === 'Sold Out' || p.quantity === 0);
+  const activeBookings = myBookings.filter(p => p.status === 'Pending' || p.status === 'Confirmed');
+  const completedBookings = myBookings.filter(p => p.status === 'Completed');
   
-  const totalDiscountGiven = myPets.reduce((acc, curr) => {
-    if (curr.originalPrice && curr.price && curr.originalPrice > curr.price) {
-      return acc + (curr.originalPrice - curr.price);
-    }
-    return acc;
-  }, 0);
-
   // Safe Stats Calculation
   const stats = {
-    totalListings: myPets.length,
-    availableStock: activePets.reduce((acc, curr) => acc + (curr.quantity || 1), 0),
-    soldOutCount: soldOutPets.length,
-    totalOrders: petsWithSales.reduce((acc, curr) => acc + (curr.soldCount || 1), 0),
-    revenue: petsWithSales.reduce((acc, curr) => acc + ((curr.soldCount || 1) * (curr.price || 0)), 0),
-    discounts: totalDiscountGiven || 1500, 
-    inquiries: 12,
+    totalListings: myBookings.length,
+    availableStock: activeBookings.length,
+    soldOutCount: completedBookings.length,
+    totalOrders: myBookings.length,
+    revenue: completedBookings.reduce((acc, curr) => acc + (curr.fee || 0), 0),
+    discounts: 1500, // Placeholder
+    inquiries: inquiries.length || 0,
     rating: currentProvider?.rating || 4.9,
     reviews: currentProvider?.reviewsCount || 100
   };
@@ -485,15 +465,15 @@ const GroomingProviderDashboard = ({
   const displayName = user?.name || currentProvider?.name || 'Pet Seller';
 
   return (
-    <div className="min-h-screen bg-[#FAF9F5] text-slate-900 font-sans selection:bg-[#0F2E23]/20 selection:text-[#0F2E23] flex flex-col lg:flex-row">
+    <div className="min-h-auto lg:h-screen bg-[#FAF9F5] text-slate-900 font-sans selection:bg-[#0F2E23]/20 selection:text-[#0F2E23] flex flex-col lg:flex-row">
       
       {/* 
         ========================================================
         LEFT SIDEBAR: NAVIGATION & PROFILE
         ========================================================
       */}
-      <aside className="w-full lg:w-72 shrink-0 bg-white border-r border-slate-200 relative lg:sticky top-[104px] h-[calc(100vh-104px)] flex flex-col justify-between overflow-y-auto z-10 shadow-[4px_0_24px_rgba(0,0,0,0.02)]">
-        <div className="p-6 pt-12 space-y-8">
+      <aside className="w-full lg:w-72 shrink-0 bg-white border-r border-slate-200 relative lg:sticky top-0 lg:top-[104px] h-auto lg:h-[calc(100vh-104px)] flex flex-col justify-between overflow-y-auto z-10 shadow-[4px_0_24px_rgba(0,0,0,0.02)]">
+        <div className="p-6 pt-6 lg:pt-12 space-y-8">
           
           {/* Profile Widget */}
           <div className="flex flex-col items-center text-center space-y-4">
@@ -630,7 +610,7 @@ const GroomingProviderDashboard = ({
         RIGHT MAIN CONTENT
         ========================================================
       */}
-      <main className="flex-1 px-6 lg:px-8 pt-12 pb-10 overflow-x-hidden">
+      <main className="flex-1 min-w-0 px-6 lg:px-8 pt-12 pb-10 overflow-x-hidden">
         
         {/* Header Area */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">

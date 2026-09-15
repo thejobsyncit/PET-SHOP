@@ -506,11 +506,11 @@ const BreedingProviderDashboard = ({
   const displayName = user?.name || currentProvider?.name || 'Provider';
 
   return (
-    <div className="min-h-screen bg-[#FAF9F5] text-slate-900 font-sans selection:bg-[#0F2E23]/20 selection:text-[#0F2E23] flex flex-col lg:flex-row">
+    <div className="min-h-auto lg:h-screen bg-[#FAF9F5] text-slate-900 font-sans selection:bg-[#0F2E23]/20 selection:text-[#0F2E23] flex flex-col lg:flex-row">
       
       {/* LEFT SIDEBAR */}
-      <aside className="w-full lg:w-72 shrink-0 bg-white border-r border-slate-200 relative lg:sticky top-[104px] h-[calc(100vh-104px)] flex flex-col justify-between overflow-y-auto z-10 shadow-[4px_0_24px_rgba(0,0,0,0.02)]">
-        <div className="p-6 pt-12 space-y-8">
+      <aside className="w-full lg:w-72 shrink-0 bg-white border-r border-slate-200 relative lg:sticky top-0 lg:top-[104px] h-auto lg:h-[calc(100vh-104px)] flex flex-col justify-between overflow-y-auto z-10 shadow-[4px_0_24px_rgba(0,0,0,0.02)]">
+        <div className="p-6 pt-6 lg:pt-12 space-y-8">
           
           <div className="flex flex-col items-center text-center space-y-4">
             <div className="relative group cursor-pointer">
@@ -640,7 +640,7 @@ const BreedingProviderDashboard = ({
       </aside>
 
       {/* RIGHT MAIN CONTENT */}
-      <main className="flex-1 px-6 lg:px-8 pt-12 pb-10 overflow-x-hidden">
+      <main className="flex-1 min-w-0 px-6 lg:px-8 pt-12 pb-10 overflow-x-hidden">
         
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
           <div>

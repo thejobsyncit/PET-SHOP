@@ -912,7 +912,7 @@ const VetProviderContent = ({ activeTab }) => {
                     )}
                   </div>
 
-                  <div className="flex md:flex-col gap-2 shrink-0 justify-end md:w-40">
+                  <div className="flex flex-col sm:flex-row md:flex-col gap-2 shrink-0 justify-end md:w-40">
                     {app.status !== 'Completed' ? (
                       <>
                         <button 
@@ -1144,9 +1144,9 @@ const VetProviderContent = ({ activeTab }) => {
           TAB 5: TELE-CONSULT MESSAGES
           ========================================================= */}
       {activeTab === 'messages' && (
-        <div className="flex h-[620px] -m-8 sm:-m-10 border border-slate-200 overflow-hidden rounded-2xl animate-in fade-in zoom-in-95 duration-300">
+        <div className="flex flex-col md:flex-row h-auto md:h-[620px] -m-4 sm:-m-10 border border-slate-200 overflow-hidden rounded-2xl animate-in fade-in zoom-in-95 duration-300">
           {/* Left Pane - Chat List */}
-          <div className="w-1/3 border-r border-slate-200 bg-white flex flex-col shrink-0">
+          <div className="w-full md:w-1/3 border-r border-slate-200 bg-white flex flex-col shrink-0 h-[300px] md:h-auto">
             <div className="p-4 border-b border-slate-100 flex items-center justify-between">
               <h3 className="text-xs font-black text-[#0F2E23] uppercase tracking-widest">Patient Consultations</h3>
               <span className="text-[10px] font-black bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full">
@@ -1180,7 +1180,7 @@ const VetProviderContent = ({ activeTab }) => {
           </div>
 
           {/* Right Pane - Active Conversation */}
-          <div className="flex-1 bg-slate-50 flex flex-col relative min-w-0">
+          <div className="flex-1 bg-slate-50 flex flex-col relative min-w-0 h-[400px] md:h-auto border-t md:border-t-0 border-slate-200">
             {activeChat ? (
               <>
                 {/* Header */}

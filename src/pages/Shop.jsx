@@ -587,7 +587,7 @@ const Shop = () => {
 
 
       {/* 3. CATALOG & FILTERS GRID */}
-      <ScrollReveal variant="fade">
+      <div className="animate-in fade-in duration-700">
         <section className="max-w-7xl mx-auto px-4 md:px-8">
           
           {/* Mobile Filter Toggle Button */}
@@ -776,11 +776,11 @@ const Shop = () => {
   
           </div>
         </section>
-      </ScrollReveal>
+      </div>
 
       {/* 4. EDUCATIONAL FAQ ACCORDION SECTION */}
       {currentMeta.faqs && currentMeta.faqs.length > 0 && (
-        <ScrollReveal variant="slideUp">
+        <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
           <section className="max-w-4xl mx-auto px-6 space-y-6 pt-10">
             <div className="text-center space-y-2">
               <span className="text-[10px] uppercase tracking-widest text-accent font-bold">LEARNING & CARE</span>
@@ -805,7 +805,7 @@ const Shop = () => {
               ))}
             </div>
           </section>
-        </ScrollReveal>
+        </div>
       )}
 
     </div>

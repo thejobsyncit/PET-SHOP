@@ -5,7 +5,7 @@ import {
   User, MapPin, ClipboardList, ShoppingBag, Plus, Trash2, CircleCheck,
   ShieldAlert, Clock, LogOut, Heart, ShieldCheck, MessageSquare, Phone,
   ExternalLink, Check, AlertCircle, ArrowRight, Sparkles, Filter, ChevronRight,
-  Truck
+  Truck, Calendar
 } from 'lucide-react';
 import { 
   fetchProfile, 
@@ -42,6 +42,7 @@ const AccountDashboard = () => {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [avatar, setAvatar] = useState('');
 
   // Form Address State
   const [addrName, setAddrName] = useState('');
@@ -55,6 +56,7 @@ const AccountDashboard = () => {
   // History logs states
   const [orders, setOrders] = useState([]);
   const [prescriptions, setPrescriptions] = useState([]);
+  const [bookings, setBookings] = useState([]);
   const [historyLoading, setHistoryLoading] = useState(false);
 
   // Adoption applications & listed pets states
@@ -94,6 +96,7 @@ const AccountDashboard = () => {
     if (user) {
       setName(user.name || '');
       setEmail(user.email || '');
+      setAvatar(user.avatar || user.profilePicture || '');
       loadAdoptionData();
       loadTransportData();
     }
@@ -129,6 +132,10 @@ const AccountDashboard = () => {
       if (prescData.success) {
         setPrescriptions(prescData.prescriptions);
       }
+      const bookingsData = await apiRequest('/bookings/my');
+      if (bookingsData.success) {
+        setBookings(bookingsData.bookings);
+      }
     } catch (err) {
       console.error(err);
     } finally {
@@ -159,7 +166,7 @@ const AccountDashboard = () => {
 
   const handleUpdateProfile = async (e) => {
     e.preventDefault();
-    const result = await dispatch(updateProfile({ name, email, password }));
+    const result = await dispatch(updateProfile({ name, email, password, avatar }));
     if (updateProfile.fulfilled.match(result)) {
       toast.success('Profile details updated successfully!');
       setPassword('');
@@ -298,6 +305,7 @@ const AccountDashboard = () => {
         {/* Navigation Sidebar (Left 3 Columns) */}
         <aside className="lg:col-span-3 bg-white border border-beige p-6 space-y-2 shadow-sm rounded-xl">
           {[
+            { id: 'bookings', label: 'Service Bookings', icon: <Calendar size={16} /> },
             { id: 'orders', label: 'Order History', icon: <ShoppingBag size={16} /> },
             { 
               id: 'transport-enquiries', 
@@ -338,6 +346,86 @@ const AccountDashboard = () => {
         {/* Dynamic Display Panel (Right 9 Columns) */}
         <div className="lg:col-span-9 bg-white border border-beige p-6 md:p-8 shadow-sm rounded-xl">
           
+          {/* =========================================================================
+              TAB: SERVICE BOOKINGS
+             ========================================================================= */}
+          {activeTab === 'bookings' && (
+            <div className="space-y-6">
+              <h2 className="font-serif text-lg font-bold text-primary border-b border-beige pb-2">
+                Service Bookings
+              </h2>
+              
+              {historyLoading ? (
+                <p className="text-xs text-gray-400">Loading bookings...</p>
+              ) : bookings.length > 0 ? (
+                <div className="space-y-4">
+                  {bookings.map((booking) => (
+                    <div key={booking._id} className="border border-beige p-5 text-xs space-y-4 rounded-xl">
+                      <div className="flex flex-wrap justify-between items-center bg-secondary p-3 border-b border-beige gap-2 rounded-lg">
+                        <div>
+                          <p className="text-gray-400 font-medium">BOOKING ID</p>
+                          <p className="font-bold text-primary">{booking._id}</p>
+                        </div>
+                        <div>
+                          <p className="text-gray-400 font-medium">SERVICE</p>
+                          <p className="font-semibold text-primary">{booking.serviceType}</p>
+                        </div>
+                        <div>
+                          <p className="text-gray-400 font-medium">DATE & TIME</p>
+                          <p className="font-semibold text-primary">{new Date(booking.date).toLocaleDateString()} at {booking.timeSlot}</p>
+                        </div>
+                        <div>
+                          <p className="text-gray-400 font-medium">STATUS</p>
+                          <span className={`font-bold uppercase ${
+                            booking.status === 'Completed' ? 'text-green-600' :
+                            booking.status === 'Cancelled' ? 'text-red-500' : 'text-accent'
+                          }`}>{booking.status}</span>
+                        </div>
+                      </div>
+
+                      <div className="flex justify-between items-center gap-4">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 bg-[#f8efcd] text-[#0F2E23] rounded-full flex items-center justify-center border border-[#e6c968]">
+                            <Calendar size={18} />
+                          </div>
+                          <div>
+                            <p className="font-semibold text-primary truncate max-w-xs">{booking.providerName}</p>
+                            <p className="text-[10px] text-gray-400">Location: {booking.location}</p>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <span className="font-bold text-primary block">₹{booking.fee}</span>
+                          <span className={`text-[10px] uppercase font-bold ${booking.paymentStatus === 'Paid' ? 'text-green-600' : 'text-amber-500'}`}>
+                            {booking.paymentStatus}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="p-4 lg:p-10 border border-dashed border-[#d4af37]/40 rounded-2xl text-center space-y-3 bg-[#fdfaf2] shadow-sm">
+                  <div className="w-14 h-14 bg-[#f8efcd] text-[#0F2E23] rounded-full flex items-center justify-center mx-auto border border-[#e6c968]">
+                    <Calendar size={24} />
+                  </div>
+                  <h3 className="font-serif text-lg font-bold text-[#0F2E23]">No Bookings Yet</h3>
+                  <p className="text-xs text-gray-500 max-w-md mx-auto leading-relaxed">
+                    You haven't scheduled any premium services yet. Treat your pet to grooming, walking, or veterinary care!
+                  </p>
+                  <div className="pt-3">
+                    <Link
+                      to="/premium-services"
+                      className="px-5 py-2.5 bg-[#0F2E23] text-[#d4af37] hover:text-white hover:bg-[#163f30] rounded-xl text-xs font-bold shadow transition inline-flex items-center gap-1.5"
+                    >
+                      <Sparkles size={14} />
+                      <span>Explore Services</span>
+                    </Link>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
           {/* =========================================================================
               TAB 1: ORDER HISTORY
              ========================================================================= */}
@@ -1015,7 +1103,38 @@ const AccountDashboard = () => {
                 Profile Details
               </h2>
               
-              <form onSubmit={handleUpdateProfile} className="space-y-4 max-w-md">
+              <form onSubmit={handleUpdateProfile} className="space-y-6 max-w-md">
+                
+                {/* Avatar Upload */}
+                <div className="flex items-center gap-4 border border-beige bg-white p-4 rounded-xl">
+                  <div className="w-16 h-16 rounded-full border-2 border-beige bg-sand flex items-center justify-center overflow-hidden shrink-0 relative group">
+                    {avatar ? (
+                      <img src={avatar} alt="Profile" className="w-full h-full object-cover" />
+                    ) : (
+                      <User size={28} className="text-gray-400" />
+                    )}
+                    <label className="absolute inset-0 bg-black/50 text-white flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition cursor-pointer text-[9px] font-bold tracking-wider">
+                      <span>CHANGE</span>
+                      <input 
+                        type="file" 
+                        accept="image/*"
+                        className="hidden" 
+                        onChange={(e) => {
+                          const file = e.target.files[0];
+                          if (file) {
+                            const reader = new FileReader();
+                            reader.onloadend = () => setAvatar(reader.result);
+                            reader.readAsDataURL(file);
+                          }
+                        }}
+                      />
+                    </label>
+                  </div>
+                  <div>
+                    <p className="text-sm font-bold text-primary font-serif">Profile Picture</p>
+                    <p className="text-[10px] text-gray-500 uppercase tracking-wider mt-0.5">JPG, GIF or PNG. Max size of 2MB.</p>
+                  </div>
+                </div>
                 <div className="space-y-1">
                   <label className="text-xs text-gray-500 font-semibold block">Full Name</label>
                   <input
