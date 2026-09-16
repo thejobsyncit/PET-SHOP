@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
-import { Search, Heart, ShoppingBag, ShoppingCart, Store, Menu, X, ChevronDown, User, LogOut, MessageSquare, PawPrint, Briefcase, Lock, ShieldAlert, Home, Scissors, Footprints, Truck, GraduationCap, Stethoscope, Phone, Info, Sparkles } from 'lucide-react';
+import { Search, Heart, ShoppingBag, ShoppingCart, Store, Menu, X, ChevronDown, User, LogOut, MessageSquare, PawPrint, Briefcase, Lock, ShieldAlert, Home, Scissors, Footprints, Truck, GraduationCap, Stethoscope } from 'lucide-react';
 import SearchOverlay from './SearchOverlay.jsx';
 import CartDrawer from './CartDrawer.jsx';
 import { logout } from '../store/slices/authSlice.js';
@@ -19,6 +19,7 @@ const Navbar = () => {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [mobileExpanded, setMobileExpanded] = useState('');
 
   const petsDropdownRef = useRef(null);
   const servicesDropdownRef = useRef(null);
@@ -496,88 +497,107 @@ const Navbar = () => {
         </nav>
       </header>
 
-      {/* MOBILE COLLAPSIBLE DRAWER (Premium White UI) */}
+      {/* MOBILE COLLAPSIBLE DRAWER */}
       {isMobileMenuOpen && (
-        <div className="fixed inset-0 z-50 flex lg:hidden">
-          <div onClick={() => setIsMobileMenuOpen(false)} className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm animate-in fade-in duration-300"></div>
+        <div className="fixed inset-0 z-50 flex">
+          <div onClick={() => setIsMobileMenuOpen(false)} className="fixed inset-0 bg-primary/40 backdrop-blur-sm"></div>
 
-          <div className="relative w-full max-w-[280px] bg-white text-slate-800 shadow-2xl flex flex-col justify-between overflow-y-auto animate-in slide-in-from-left duration-300 border-r border-slate-100 h-full custom-scrollbar pb-20">
+          <div className="relative w-[85%] max-w-sm bg-primary text-white shadow-2xl flex flex-col justify-between p-6 overflow-y-auto">
             <div>
-              {/* Header */}
-              <div className="flex justify-between items-center p-5 border-b border-slate-100 bg-white/95 backdrop-blur-md sticky top-0 z-10 shadow-sm">
-                <div className="flex items-center font-black tracking-tight text-xl text-primary">
-                  <img src="/logo.png" alt="Josh Pet Hub Logo" className="h-8 w-auto object-contain mr-1.5 drop-shadow-sm" />
-                  <span className="flex items-center drop-shadow-sm">
+              <div className="flex justify-between items-center mb-8 border-b border-white/10 pb-4">
+                <div className="flex items-center font-extrabold tracking-tight text-xl">
+                  {/* J-Animal Logo */}
+                  <img 
+                    src="/logo.png" 
+                    alt="Josh Pet Hub Logo" 
+                    className="h-8 w-auto object-contain mr-1.5" 
+                  />
+                  <span className="text-white drop-shadow-sm flex items-center font-black tracking-tight">
                     J
-                    <div className="relative mx-0.5 flex items-center justify-center bg-accent rounded-full w-4 h-4 shadow-sm">
-                      <PawPrint size={10} className="text-white fill-white" />
+                    <div className="relative mx-0.5 flex items-center justify-center bg-white rounded-full w-4 h-4 shadow-sm">
+                      <PawPrint size={10} className="text-orange-500 fill-orange-500" />
                     </div>
-                    SH <span className="ml-1 text-slate-800">PETS</span>
+                    SH 
+                    <span className="ml-1">PETS</span>
                   </span>
                 </div>
-                <button onClick={() => setIsMobileMenuOpen(false)} className="p-1.5 bg-slate-50 hover:bg-slate-100 text-slate-400 rounded-full transition-colors cursor-pointer border border-slate-100">
-                  <X size={20} />
+                <button onClick={() => setIsMobileMenuOpen(false)} className="p-1 text-white cursor-pointer hover:bg-white/10 rounded-full transition">
+                  <X size={24} />
                 </button>
               </div>
 
-              {/* Links List */}
-              <div className="p-4 space-y-1">
-                <Link to="/" onClick={() => setIsMobileMenuOpen(false)} className="group flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-50 text-slate-600 hover:text-primary font-bold text-sm transition-all cursor-pointer">
-                  <Home size={18} className="text-slate-400 group-hover:text-primary transition-colors" />
-                  Home
-                </Link>
+              {/* Mobile links list */}
+              <div className="space-y-1 text-xs font-semibold uppercase tracking-wider">
+                <Link to="/" onClick={() => setIsMobileMenuOpen(false)} className="block py-3 hover:text-accent-light border-b border-white/5">Home</Link>
 
-                {/* Pets Department */}
-                <div className="pt-2 pb-1">
-                  <div className="px-4 py-2 text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center justify-between">
-                    <span>Pets Classifieds</span>
-                    {isNonSellerProvider && (
-                      <span className="text-[8px] bg-amber-50 border border-amber-100 text-amber-600 px-1.5 py-0.5 rounded font-black flex items-center gap-1 shadow-sm">
-                        <Lock size={8} /> LOCKED
-                      </span>
+                {/* Pets department accordion on mobile */}
+                <div className="border-b border-white/5">
+                  <button
+                    onClick={() => setMobileExpanded(mobileExpanded === 'pets' ? '' : 'pets')}
+                    className="w-full py-3 flex items-center justify-between hover:text-accent-light cursor-pointer bg-transparent border-0 text-white font-semibold uppercase tracking-wider text-xs"
+                  >
+                    <div className="flex items-center gap-2">
+                      <span>Pets Classifieds</span>
+                      {isNonSellerProvider && (
+                        <span className="text-[9px] bg-amber-400/20 text-amber-300 px-1.5 py-0.5 rounded font-semibold flex items-center gap-1 normal-case">
+                          <Lock size={10} /> Sellers Only
+                        </span>
+                      )}
+                    </div>
+                    <ChevronDown size={16} className={`transition-transform duration-300 ${mobileExpanded === 'pets' ? 'rotate-180' : ''}`} />
+                  </button>
+                  <div className={`space-y-1 overflow-hidden transition-all duration-300 ${mobileExpanded === 'pets' ? 'max-h-96 pb-3' : 'max-h-0'}`}>
+                    {!isNonSellerProvider ? (
+                      <>
+                        <button onClick={(e) => handlePetsNavigation(e, '/pets')} className="w-full text-left flex items-center gap-2.5 py-2 pl-4 hover:text-accent-light text-[11px] normal-case cursor-pointer bg-transparent border-0 text-gray-300">
+                          <span className="text-sm">🌟</span> All Pets
+                        </button>
+                        {petsList.map(pet => (
+                          <button
+                            key={pet.label}
+                            onClick={(e) => handlePetsNavigation(e, pet.path)}
+                            className="w-full text-left flex items-center gap-2.5 py-2 pl-4 hover:text-accent-light text-[11px] normal-case cursor-pointer bg-transparent border-0 text-gray-300"
+                          >
+                            <span className="text-sm">{pet.icon}</span> {pet.label}
+                          </button>
+                        ))}
+                      </>
+                    ) : (
+                      <div className="p-3 bg-white/5 rounded-lg mb-2 mx-2 text-[10px] text-gray-300 leading-relaxed normal-case">
+                        This section is restricted to registered Pet Sellers. Access your provider dashboard instead.
+                      </div>
                     )}
                   </div>
-                  {!isNonSellerProvider && (
-                    <div className="space-y-1 mt-1">
-                      {petsList.map(pet => (
-                        <button
-                          key={pet.label}
-                          onClick={(e) => { handlePetsNavigation(e, pet.path); setIsMobileMenuOpen(false); }}
-                          className="group w-full flex items-center gap-3 px-4 py-2.5 rounded-xl hover:bg-slate-50 text-slate-600 hover:text-primary font-bold text-[13px] transition-all text-left cursor-pointer border-0 bg-transparent"
-                        >
-                          <div className="w-6 h-6 rounded-md bg-white border border-slate-100 flex items-center justify-center text-slate-400 group-hover:bg-primary/5 group-hover:border-primary/20 group-hover:text-primary transition-all shadow-sm">
-                            {pet.icon || <Sparkles size={12}/>}
-                          </div>
-                          {pet.label}
-                        </button>
-                      ))}
-                    </div>
-                  )}
                 </div>
 
-                {/* Pet Services */}
-                <div className="pt-2 pb-1 border-t border-slate-100 mt-2">
-                  <div className="px-4 py-2 text-[10px] font-black text-slate-400 uppercase tracking-widest">
-                    Premium Services
-                  </div>
-                  <div className="space-y-1 mt-1">
+                {/* Pet Services accordion on mobile */}
+                <div className="border-b border-white/5">
+                  <button
+                    onClick={() => setMobileExpanded(mobileExpanded === 'services' ? '' : 'services')}
+                    className="w-full py-3 flex items-center justify-between hover:text-accent-light cursor-pointer bg-transparent border-0 text-white font-semibold uppercase tracking-wider text-xs"
+                  >
+                    <span>Pet Services</span>
+                    <ChevronDown size={16} className={`transition-transform duration-300 ${mobileExpanded === 'services' ? 'rotate-180' : ''}`} />
+                  </button>
+                  <div className={`space-y-1 overflow-hidden transition-all duration-300 ${mobileExpanded === 'services' ? 'max-h-[500px] pb-3' : 'max-h-0'}`}>
+                    <button onClick={(e) => handleServicesNavigation(e, '/services')} className="w-full text-left flex items-center gap-2.5 py-2 pl-4 hover:text-accent-light text-[11px] normal-case cursor-pointer bg-transparent border-0 text-gray-300">
+                      <div className="text-accent-light"><Briefcase size={14} /></div> All Services
+                    </button>
                     {servicesList.map(service => {
                       const isLocked = isServicePathLockedForUser(user, service.path);
                       return (
                         <button
                           key={service.label}
-                          onClick={(e) => { handleServicesNavigation(e, service.path); setIsMobileMenuOpen(false); }}
-                          className={`group w-full flex items-center justify-between px-4 py-2.5 rounded-xl transition-all text-left cursor-pointer border-0 bg-transparent ${isLocked ? 'hover:bg-amber-50 opacity-60' : 'hover:bg-slate-50'}`}
+                          onClick={(e) => handleServicesNavigation(e, service.path)}
+                          className={`w-full text-left flex items-center justify-between py-2 pl-4 text-[11px] normal-case cursor-pointer bg-transparent border-0 ${isLocked ? 'text-gray-500 hover:text-amber-300' : 'text-gray-300 hover:text-accent-light'}`}
                         >
-                          <div className="flex items-center gap-3">
-                             <div className={`w-6 h-6 rounded-md bg-white border border-slate-100 flex items-center justify-center transition-all shadow-sm ${isLocked ? 'text-slate-300' : 'text-slate-400 group-hover:bg-primary/5 group-hover:border-primary/20 group-hover:text-primary'}`}>
-                               {service.icon}
-                             </div>
-                             <span className={`font-bold text-[13px] ${isLocked ? 'text-slate-400' : 'text-slate-600 group-hover:text-primary'}`}>{service.label}</span>
+                          <div className="flex items-center gap-2.5">
+                            <div className="opacity-80">{service.icon}</div> 
+                            <span>{service.label}</span>
                           </div>
                           {isLocked && (
-                            <span className="text-[8px] bg-amber-50 border border-amber-100 text-amber-600 px-1.5 py-0.5 rounded flex items-center gap-1 font-black shadow-sm">
-                              <Lock size={8} /> LOCKED
+                            <span className="text-[9px] bg-amber-400/10 text-amber-500 px-1.5 py-0.5 rounded font-semibold flex items-center gap-1 mr-2">
+                              <Lock size={10} />
                             </span>
                           )}
                         </button>
@@ -586,82 +606,61 @@ const Navbar = () => {
                   </div>
                 </div>
 
-                <div className="border-t border-slate-100 mt-2 pt-2 space-y-1">
-                  <Link to="/shop" onClick={() => setIsMobileMenuOpen(false)} className="group flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-50 text-slate-600 hover:text-primary font-bold text-sm transition-all cursor-pointer">
-                    <ShoppingBag size={18} className="text-slate-400 group-hover:text-primary transition-colors" />
-                    Shop
-                  </Link>
-                  <Link to="/pet-care" onClick={() => setIsMobileMenuOpen(false)} className="group flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-50 text-slate-600 hover:text-primary font-bold text-sm transition-all cursor-pointer">
-                    <Info size={18} className="text-slate-400 group-hover:text-primary transition-colors" />
-                    Blog
-                  </Link>
-                  <Link to="/contact" onClick={() => setIsMobileMenuOpen(false)} className="group flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-50 text-slate-600 hover:text-primary font-bold text-sm transition-all cursor-pointer">
-                    <Phone size={18} className="text-slate-400 group-hover:text-primary transition-colors" />
-                    Contact Us
-                  </Link>
-                  {isAuthenticated && (
-                    <Link to="/chat" onClick={() => setIsMobileMenuOpen(false)} className="group flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-50 text-slate-600 hover:text-primary font-bold text-sm transition-all cursor-pointer">
-                      <MessageSquare size={18} className="text-slate-400 group-hover:text-primary transition-colors" />
-                      Direct Messages
-                    </Link>
-                  )}
-                </div>
+                <Link to="/shop" onClick={() => setIsMobileMenuOpen(false)} className="block py-3 hover:text-accent-light border-b border-white/5">Shop</Link>
+                <Link to="/pet-care" onClick={() => setIsMobileMenuOpen(false)} className="block py-3 hover:text-accent-light border-b border-white/5">Blog</Link>
+                <Link to="/contact" onClick={() => setIsMobileMenuOpen(false)} className="block py-3 hover:text-accent-light border-b border-white/5">Contact Us</Link>
 
+                {isAuthenticated && (
+                  <Link to="/chat" onClick={() => setIsMobileMenuOpen(false)} className="block py-2 hover:text-accent-light border-b border-white/5">Direct Messages</Link>
+                )}
               </div>
             </div>
 
             {/* Mobile Footer Auth */}
-            <div className="p-5 bg-slate-50 border-t border-slate-200 mt-auto">
+            <div className="pt-6 border-t border-white/10">
               {isAuthenticated ? (
-                <div className="space-y-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-white border border-primary/20 text-primary flex items-center justify-center font-black shadow-sm">
-                      {user?.name?.charAt(0)?.toUpperCase() || <User size={20}/>}
-                    </div>
-                    <div>
-                      <p className="text-sm font-black text-slate-800">{user?.name}</p>
-                      <p className="text-[10px] text-slate-500 font-bold tracking-widest uppercase">{user?.role === 'SERVICE_PROVIDER' ? 'Provider' : 'Pet Parent'}</p>
-                    </div>
-                  </div>
-                  
-                  <div className="flex gap-2">
+                <div className="space-y-3">
+                  <p className="text-xs font-bold text-accent-light flex items-center gap-1.5"><User size={14} /> {user?.name}</p>
+                  {user?.role === 'SERVICE_PROVIDER' ? (
                     <Link
-                      to={user?.role === 'SERVICE_PROVIDER' ? "/provider-dashboard" : "/account"}
+                      to="/provider-dashboard"
                       onClick={() => setIsMobileMenuOpen(false)}
-                      className="flex-1 py-2.5 bg-white border border-slate-200 hover:border-primary text-slate-700 hover:text-primary text-[10px] font-black text-center uppercase tracking-widest rounded-xl transition-all cursor-pointer shadow-sm hover:shadow"
+                      className="block text-xs font-bold text-white hover:text-accent-light"
                     >
-                      Dashboard
+                      MY DASHBOARD
                     </Link>
-                    <button
-                      onClick={() => { handleLogout(); setIsMobileMenuOpen(false); }}
-                      className="flex-1 py-2.5 bg-rose-50 border border-rose-100 hover:bg-rose-100 text-rose-600 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all flex items-center justify-center gap-1 cursor-pointer shadow-sm hover:shadow"
+                  ) : (
+                    <Link
+                      to="/account"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                      className="block text-xs font-bold text-white hover:text-accent-light"
                     >
-                      <LogOut size={12} className="stroke-[3px]"/> Logout
-                    </button>
-                  </div>
+                      MY PROFILE
+                    </Link>
+                  )}
+                  <button
+                    onClick={handleLogout}
+                    className="w-full py-2.5 bg-accent text-white text-xs font-bold uppercase tracking-widest rounded-none cursor-pointer"
+                  >
+                    LOGOUT
+                  </button>
                 </div>
               ) : (
-                <div className="space-y-3">
-                  <div className="flex items-center justify-center gap-2 mb-2">
-                    <PawPrint size={14} className="text-primary" />
-                    <p className="text-xs text-slate-500 font-bold">Join our community!</p>
-                  </div>
-                  <div className="flex gap-2">
-                    <Link
-                      to="/login"
-                      onClick={() => setIsMobileMenuOpen(false)}
-                      className="flex-1 py-3 bg-primary text-white shadow-md shadow-primary/20 hover:shadow-lg hover:shadow-primary/30 text-[10px] font-black text-center uppercase tracking-widest rounded-xl hover:bg-primary-dark transition-all cursor-pointer"
-                    >
-                      Log In
-                    </Link>
-                    <Link
-                      to="/signup"
-                      onClick={() => setIsMobileMenuOpen(false)}
-                      className="flex-1 py-3 bg-white border border-slate-200 text-slate-700 shadow-sm hover:shadow text-[10px] font-black text-center uppercase tracking-widest rounded-xl hover:border-primary hover:text-primary transition-all cursor-pointer"
-                    >
-                      Sign Up
-                    </Link>
-                  </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <Link
+                    to="/login"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="py-2.5 bg-accent text-white text-xs font-bold text-center uppercase tracking-widest rounded-none"
+                  >
+                    LOG IN
+                  </Link>
+                  <Link
+                    to="/signup"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="py-2.5 border border-white/40 text-white text-xs font-bold text-center uppercase tracking-widest rounded-none"
+                  >
+                    SIGN UP
+                  </Link>
                 </div>
               )}
             </div>

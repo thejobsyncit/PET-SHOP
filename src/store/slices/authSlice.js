@@ -220,15 +220,21 @@ export const login = createAsyncThunk('auth/login', async (credentials, thunkAPI
           _id: 'admin-demo-01',
           name: 'Admin User',
           email: 'admin@pawora.com',
+          mobile: '9888888888',
           password: 'Admin@123',
           role: 'ADMIN',
+          serviceCategory: '',
+          location: 'Bangalore, Karnataka'
         },
         {
           _id: 'superadmin-demo-01',
-          name: 'Super Admin User',
+          name: 'Super Admin',
           email: 'superadmin@pawora.com',
+          mobile: '9999999999',
           password: 'SuperAdmin@123',
           role: 'SUPERADMIN',
+          serviceCategory: '',
+          location: 'Bangalore, Karnataka'
         }
       ];
 

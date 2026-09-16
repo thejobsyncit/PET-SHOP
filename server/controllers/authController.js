@@ -286,6 +286,16 @@ export const DEMO_ACCOUNTS = [
     role: 'CUSTOMER',
     serviceCategory: '',
     location: 'Bangalore, Karnataka'
+  },
+  {
+    name: 'Super Admin',
+    businessName: 'JOSH PETS HUB',
+    email: 'superadmin@pawora.com',
+    mobile: '9999999999',
+    password: 'SuperAdmin@123',
+    role: 'SUPERADMIN',
+    serviceCategory: '',
+    location: 'Bangalore, Karnataka'
   }
 ];
 

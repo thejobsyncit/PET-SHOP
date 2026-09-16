@@ -7,7 +7,7 @@ import {
 } from 'recharts';
 import {
   TrendingUp, ShoppingBag, Users, Layers, AlertTriangle, Clock,
-  Plus, Edit, Trash, Check, X, FileText, CheckCircle, RefreshCw, ChevronRight, MessageSquare, Heart, Lock, Mail, ShieldAlert, Award, ShieldCheck
+  Plus, Edit, Trash, Check, X, FileText, CheckCircle, RefreshCw, ChevronRight, MessageSquare, Heart, Lock, Mail, ShieldAlert, Award, ShieldCheck, Menu
 } from 'lucide-react';
 import { apiRequest } from '../services/api.js';
 import { login, logout } from '../store/slices/authSlice.js';
@@ -21,6 +21,7 @@ const SuperAdminDashboard = () => {
 
   // Tab control
   const [activeSection, setActiveSection] = useState('overview');
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   // Admin login states
   const [adminEmail, setAdminEmail] = useState('');
@@ -517,14 +518,14 @@ const SuperAdminDashboard = () => {
 
   // RENDER DYNAMIC EXECUTIVE CONSOLE FOR LOGGED-IN ADMINS WITH VERTICAL SIDEBAR
   return (
-    <div className="min-h-auto lg:h-screen bg-[#F4F6F4] flex">
+    <div className="min-h-screen bg-[#F4F6F4] flex flex-col lg:flex-row">
 
       {/* 1. LEFT SIDEBAR PANEL (Width 250px) */}
-      <aside className="w-full lg:w-64 bg-gradient-to-b from-[#1D3B2E] to-[#0F2E23] text-white flex flex-col justify-between p-6 shrink-0 border-r border-white/5 shadow-2xl relative z-20">
-        <div className="space-y-8">
-
-          {/* Logo Heading */}
-          <div className="border-b border-[#2E5947] pb-4 flex items-center gap-2">
+      <aside className="w-full lg:w-64 bg-gradient-to-b from-[#1D3B2E] to-[#0F2E23] text-white flex flex-col shrink-0 border-r border-white/5 shadow-2xl relative z-40">
+        
+        {/* Logo & Mobile Toggle */}
+        <div className="p-4 lg:p-6 border-b border-[#2E5947]/50 flex justify-between items-center">
+          <div className="flex items-center gap-2">
             <img src="/logo.png" alt="JOSH PETS HUB" className="h-8 w-auto object-contain" />
             <div>
               <span className="text-[9px] uppercase tracking-widest text-[#7CA085] font-bold block">CONTROL PANEL</span>
@@ -533,8 +534,20 @@ const SuperAdminDashboard = () => {
               </h1>
             </div>
           </div>
-          {/* Tab Selection Lists */}
-          <nav className="space-y-1">
+          <button 
+            className="lg:hidden p-2 text-white hover:bg-white/10 rounded-md cursor-pointer"
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+          >
+            {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+          </button>
+        </div>
+
+        {/* Expandable Content */}
+        <div className={`flex flex-col flex-grow justify-between p-4 lg:p-6 pt-4 lg:pt-8 transition-all duration-300 ${isMobileMenuOpen ? 'flex' : 'hidden lg:flex'}`}>
+          <div className="space-y-8">
+
+            {/* Tab Selection Lists */}
+            <nav className="space-y-1">
             {[
               { id: 'overview', label: 'Stats Overview', icon: <TrendingUp size={15} /> },
               { id: 'products', label: 'Manage Products', icon: <Layers size={15} /> },
@@ -548,7 +561,10 @@ const SuperAdminDashboard = () => {
             ].map((tab) => (
               <button
                 key={tab.id}
-                onClick={() => setActiveSection(tab.id)}
+                onClick={() => {
+                  setActiveSection(tab.id);
+                  setIsMobileMenuOpen(false);
+                }}
                 className={`w-full flex items-center gap-3 px-4 py-3 text-xs font-bold uppercase tracking-wider rounded-r-md rounded-l-none transition-all duration-300 cursor-pointer ${activeSection === tab.id
                     ? 'bg-white/10 backdrop-blur-md text-white border-l-4 border-accent shadow-sm'
                     : 'text-[#C2D3C6] hover:bg-white/5 hover:text-[#FAFBF9] border-l-4 border-transparent'
@@ -562,7 +578,7 @@ const SuperAdminDashboard = () => {
         </div>
 
         {/* Footer profile & Logout */}
-        <div className="border-t border-[#2E5947] pt-4 text-xs space-y-3">
+        <div className="border-t border-[#2E5947] pt-4 mt-8 text-xs space-y-3">
           <div>
             <p className="font-bold text-[#FAFBF9] truncate">{user?.name || 'Administrator'}</p>
             <p className="text-[10px] text-[#A1C0AA] truncate">{user?.email}</p>
@@ -574,13 +590,14 @@ const SuperAdminDashboard = () => {
             LOGOUT
           </button>
         </div>
+        </div>
       </aside>
 
       {/* 2. RIGHT VIEW MAIN CONSOLE */}
-      <main className="flex-grow p-8 overflow-y-auto max-h-auto lg:h-screen">
+      <main className="flex-grow p-4 lg:p-8 overflow-y-auto lg:max-h-screen">
 
         {/* Top bar Header */}
-        <div className="sticky top-0 z-30 bg-[#F4F6F4]/90 backdrop-blur-md flex justify-between items-center border-b border-[#E3EBE5] pb-4 pt-4 mb-8 -mx-8 px-8 -mt-8 shadow-sm">
+        <div className="sticky top-0 z-30 bg-[#F4F6F4]/90 backdrop-blur-md flex flex-col md:flex-row justify-between items-start md:items-center border-b border-[#E3EBE5] pb-4 pt-4 mb-8 -mx-4 lg:-mx-8 px-4 lg:px-8 -mt-4 lg:-mt-8 shadow-sm gap-4">
           <div>
             <span className="text-[10px] uppercase tracking-widest text-[#7CA085] font-bold block">ADMINISTRATION PORTAL</span>
             <h2 className="font-serif text-3xl text-primary font-bold mt-1">

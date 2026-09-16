@@ -59,7 +59,7 @@ const Home = () => {
     <div className="space-y-20 pb-20">
       
       {/* 1. HERO SECTION */}
-      <section className="relative min-h-[50vh] py-24 md:py-32 flex items-center justify-center overflow-hidden">
+      <section className="relative min-h-[85vh] md:h-[85vh] py-20 md:py-0 flex items-center justify-center overflow-hidden">
         {/* Cinematic Backdrop Image */}
         <div className="absolute inset-0 z-0 bg-[#0F2E23]">
           {/* Base Image */}
@@ -87,23 +87,22 @@ const Home = () => {
           <span className="text-xs font-semibold tracking-[0.3em] text-gold uppercase flex items-center justify-center gap-2 animate-pulse drop-shadow-md">
             <Sparkles size={16} className="text-gold" /> Pawora Premium Living
           </span>
-          <h1 className="font-serif text-5xl md:text-7xl lg:text-[5rem] text-white leading-[1.1] drop-shadow-2xl">
-            Better Care For Every <br />
-            <span className="text-gradient-gold">Kind Of Companion.</span>
+          <h1 className="font-serif text-4xl md:text-6xl lg:text-7xl text-white leading-tight drop-shadow-lg">
+            Better Care For Every <br className="hidden md:block" />Kind Of Companion.
           </h1>
           <p className="text-sm md:text-lg text-gray-200/90 max-w-2xl mx-auto leading-relaxed font-light drop-shadow-lg tracking-wide">
             Thoughtfully chosen premium foods, medical-grade healthcare supplements, veterinary products, and elegant habitat accessories for the pets you love.
           </p>
-          <div className="flex flex-col sm:flex-row justify-center gap-5 pt-8">
+          <div className="flex flex-col sm:flex-row justify-center items-center gap-3 md:gap-4 pt-4 md:pt-6 w-full max-w-sm mx-auto sm:max-w-none">
             <button 
-              onClick={() => navigate('/shop')}
-              className="px-10 py-4 bg-gradient-gold text-primary font-bold text-sm tracking-widest hover:scale-105 transition-all duration-300 uppercase cursor-pointer rounded-full shadow-[0_0_30px_rgba(212,175,55,0.4)]"
+               onClick={() => navigate('/shop')}
+              className="w-full sm:w-auto btn-premium"
             >
               SHOP COLLECTION
             </button>
             <button 
               onClick={() => navigate('/pet-care')}
-              className="px-10 py-4 bg-white/10 backdrop-blur-md border border-white/30 text-white font-medium text-sm tracking-widest hover:bg-white hover:text-primary transition-all duration-300 uppercase cursor-pointer rounded-full shadow-lg"
+              className="w-full sm:w-auto px-8 py-3.5 bg-black/40 md:bg-black/20 backdrop-blur-md border border-white text-white font-medium text-xs md:text-sm tracking-widest hover:bg-white hover:text-primary transition duration-300 uppercase cursor-pointer rounded-sm"
             >
               EXPLORE PET CARE
             </button>

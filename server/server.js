@@ -11,6 +11,7 @@ import fs from 'fs';
 
 // Configuration
 import connectDB from './config/db.js';
+import { supabase } from './config/supabase.js';
 import errorHandler from './middleware/errorHandler.js';
 
 // Route Imports
