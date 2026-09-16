@@ -7,11 +7,11 @@ import {
   Sparkles, AlertCircle, ArrowRight, Lock
 } from 'lucide-react';
 import toast from 'react-hot-toast';
-import { 
-  getStoredAdoptionPets, 
-  saveAdoptionApplication, 
+import {
+  getStoredAdoptionPets,
+  saveAdoptionApplication,
   getUserAdoptionApplications,
-  saveAdoptionInquiry 
+  saveAdoptionInquiry
 } from '../data/adoptionPetsData';
 import FlyingMacawMessenger from '../components/FlyingMacawMessenger.jsx';
 
@@ -174,12 +174,12 @@ const AdoptionPetDetail = () => {
         duration: 5000,
         icon: '🔒'
       });
-      window.dispatchEvent(new CustomEvent('open-register-modal', { 
-        detail: { 
-          tab: 'user', 
-          hideProviderTab: true, 
-          source: 'adoption' 
-        } 
+      window.dispatchEvent(new CustomEvent('open-register-modal', {
+        detail: {
+          tab: 'user',
+          hideProviderTab: true,
+          source: 'adoption'
+        }
       }));
       return;
     }
@@ -294,7 +294,7 @@ const AdoptionPetDetail = () => {
 
   return (
     <div className="min-h-screen bg-[#faf8fc] text-slate-800 pb-24 relative overflow-x-hidden">
-      
+
       {/* Animated Flying Macaw Delivery Messenger */}
       {showFlyingMacaw && (
         <FlyingMacawMessenger
@@ -302,7 +302,7 @@ const AdoptionPetDetail = () => {
           onComplete={() => setShowFlyingMacaw(false)}
         />
       )}
-      
+
       {/* Top Breadcrumb Navigation */}
       <div className="bg-white border-b border-purple-100 py-3 px-4 md:px-8">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
@@ -327,15 +327,15 @@ const AdoptionPetDetail = () => {
       {/* Main Content Layout */}
       <div className="max-w-7xl mx-auto px-4 md:px-8 mt-6">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-          
+
           {/* =========================================================================
               LEFT COLUMN: Pet Gallery, Bio, Medical Details (7 cols)
              ========================================================================= */}
           <div className="lg:col-span-7 space-y-6">
-            
+
             {/* 1. Main Gallery Card */}
             <div className="bg-white rounded-3xl border border-purple-100 shadow-sm overflow-hidden p-4 space-y-4">
-              
+
               {/* Big High-Res Main Image */}
               <div className="relative aspect-[16/10] rounded-2xl overflow-hidden bg-purple-50">
                 <img
@@ -343,7 +343,7 @@ const AdoptionPetDetail = () => {
                   alt={pet.name}
                   className="w-full h-full object-cover"
                 />
-                
+
                 {/* Badges Overlay */}
                 <div className="absolute top-4 left-4 flex gap-2 flex-wrap">
                   <span className={`${(pet.fee > 0 || pet.price > 0) ? 'bg-[#0F2E23]/90 text-amber-300' : 'bg-emerald-600/90 text-white'} backdrop-blur-xs text-[11px] font-bold px-3 py-1 rounded-full shadow-sm`}>
@@ -378,9 +378,8 @@ const AdoptionPetDetail = () => {
                       key={idx}
                       type="button"
                       onClick={() => setSelectedImage(imgUrl)}
-                      className={`w-20 h-16 rounded-xl overflow-hidden border-2 transition shrink-0 cursor-pointer ${
-                        selectedImage === imgUrl ? 'border-[#7c56dc] ring-2 ring-purple-200' : 'border-transparent opacity-70 hover:opacity-100'
-                      }`}
+                      className={`w-20 h-16 rounded-xl overflow-hidden border-2 transition shrink-0 cursor-pointer ${selectedImage === imgUrl ? 'border-[#7c56dc] ring-2 ring-purple-200' : 'border-transparent opacity-70 hover:opacity-100'
+                        }`}
                     >
                       <img src={imgUrl} alt={`Thumbnail ${idx}`} className="w-full h-full object-cover" />
                     </button>
@@ -392,7 +391,7 @@ const AdoptionPetDetail = () => {
 
             {/* 2. Key Attributes Grid Card */}
             <div className="bg-white rounded-3xl border border-purple-100 shadow-sm p-6 space-y-6">
-              
+
               <div className="flex flex-col sm:flex-row sm:items-baseline justify-between border-b border-slate-100 pb-4 gap-2">
                 <div>
                   <h1 className="font-serif text-3xl font-extrabold text-slate-900">
@@ -488,10 +487,10 @@ const AdoptionPetDetail = () => {
               RIGHT COLUMN: Sticky Adoption Application Card (5 cols)
              ========================================================================= */}
           <div className="lg:col-span-5 space-y-6">
-            
+
             {/* Guardian & Direct Contact Card */}
             <div className="bg-white rounded-3xl border border-purple-100 shadow-md p-6 space-y-5 sticky top-24">
-              
+
               <div className="flex items-center justify-between border-b border-slate-100 pb-3">
                 <div className="flex items-center gap-3">
                   <div className="w-12 h-12 rounded-full bg-purple-100 flex items-center justify-center text-[#7c56dc] font-bold text-base">
@@ -591,7 +590,7 @@ const AdoptionPetDetail = () => {
                         The guardian will reach out on your contact number to review your profile and schedule a meet & greet.
                       </p>
                     </div>
-                    
+
                     <div className="pt-2 flex flex-col gap-2">
                       <Link
                         to="/account?tab=my-applications"
@@ -613,7 +612,7 @@ const AdoptionPetDetail = () => {
                 ) : (
                   /* CASE 3: Active Application Form */
                   <form onSubmit={handleApplicationSubmit} className="space-y-3 text-xs">
-                    
+
                     {/* Non-logged in helper prompt */}
                     {!isAuthenticated && (
                       <div className="p-3 bg-blue-50/80 border border-blue-200 rounded-xl text-[11px] text-[#15559c] flex items-start gap-2">

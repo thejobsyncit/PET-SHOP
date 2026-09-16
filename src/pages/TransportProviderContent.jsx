@@ -953,70 +953,82 @@ const TransportProviderContent = ({ activeTab, user }) => {
 
         {/* Modal: Trip Details */}
         {selectedBookingForDetails && (
-          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-3 sm:p-4">
-            <div className="bg-white rounded-2xl sm:rounded-3xl p-5 sm:p-8 max-w-lg w-full space-y-4 sm:space-y-5 border border-slate-200 shadow-2xl max-h-[90vh] overflow-y-auto">
-              <div className="flex justify-between items-center border-b pb-3">
+          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-3 sm:p-4 animate-in fade-in duration-200">
+            <div className="bg-white rounded-2xl sm:rounded-3xl max-w-lg w-full border border-slate-200 shadow-2xl max-h-[90vh] flex flex-col overflow-hidden">
+              <div className="flex justify-between items-center px-6 sm:px-8 py-5 border-b border-slate-100 shrink-0 bg-white z-10">
                 <h3 className="font-sans font-black text-base sm:text-lg text-[#0F2E23]">
                   Trip Sheet: {selectedBookingForDetails.id}
                 </h3>
-                <button onClick={() => setSelectedBookingForDetails(null)} className="p-1 text-slate-400 hover:text-slate-700">
+                <button 
+                  type="button"
+                  onClick={() => setSelectedBookingForDetails(null)} 
+                  className="p-1.5 text-slate-400 hover:text-slate-700 rounded-full hover:bg-slate-100 transition cursor-pointer"
+                >
                   <X size={18} />
                 </button>
               </div>
 
-              <div className="space-y-2.5 text-xs">
-                <div className="flex justify-between">
-                  <span className="text-slate-400">Pet Name & Breed:</span>
-                  <span className="font-bold text-slate-900 text-right">{selectedBookingForDetails.petName} ({selectedBookingForDetails.petBreed})</span>
+              <div className="overflow-y-auto px-6 sm:px-8 py-6 flex-1 custom-scrollbar space-y-4 text-xs">
+                <div className="space-y-2.5 text-xs">
+                  <div className="flex justify-between">
+                    <span className="text-slate-400">Pet Name & Breed:</span>
+                    <span className="font-bold text-slate-900 text-right">{selectedBookingForDetails.petName} ({selectedBookingForDetails.petBreed})</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-400">Customer:</span>
+                    <span className="font-bold text-slate-900 text-right">{selectedBookingForDetails.customerName} ({selectedBookingForDetails.customerPhone})</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-400">Route:</span>
+                    <span className="font-bold text-slate-900 text-right">{selectedBookingForDetails.originCity} ➔ {selectedBookingForDetails.destCity}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-400">Travel Date:</span>
+                    <span className="font-bold text-slate-900 text-right">{selectedBookingForDetails.travelDate}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-400">Pickup Address:</span>
+                    <span className="font-bold text-slate-900 text-right">{selectedBookingForDetails.pickupAddress || 'Customer Doorstep'}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-400">Destination Address:</span>
+                    <span className="font-bold text-slate-900 text-right">{selectedBookingForDetails.dropAddress || 'Destination Doorstep'}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-400">Assigned Driver:</span>
+                    <span className="font-bold text-slate-900 text-right">{selectedBookingForDetails.driverName || 'Ramesh Gowda'}</span>
+                  </div>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-slate-400">Customer:</span>
-                  <span className="font-bold text-slate-900 text-right">{selectedBookingForDetails.customerName} ({selectedBookingForDetails.customerPhone})</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-slate-400">Route:</span>
-                  <span className="font-bold text-slate-900 text-right">{selectedBookingForDetails.originCity} ➔ {selectedBookingForDetails.destCity}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-slate-400">Travel Date:</span>
-                  <span className="font-bold text-slate-900 text-right">{selectedBookingForDetails.travelDate}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-slate-400">Pickup Address:</span>
-                  <span className="font-bold text-slate-900 text-right">{selectedBookingForDetails.pickupAddress || 'Customer Doorstep'}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-slate-400">Destination Address:</span>
-                  <span className="font-bold text-slate-900 text-right">{selectedBookingForDetails.dropAddress || 'Destination Doorstep'}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-slate-400">Assigned Driver:</span>
-                  <span className="font-bold text-slate-900 text-right">{selectedBookingForDetails.driverName || 'Ramesh Gowda'}</span>
-                </div>
-              </div>
 
-              <button
-                onClick={() => setSelectedBookingForDetails(null)}
-                className="w-full bg-[#0F2E23] text-white text-xs font-black py-3 rounded-xl uppercase tracking-wider cursor-pointer"
-              >
-                Close Trip Sheet
-              </button>
+                <button
+                  type="button"
+                  onClick={() => setSelectedBookingForDetails(null)}
+                  className="w-full bg-[#0F2E23] hover:bg-[#163e30] text-white text-xs font-black py-3 rounded-xl uppercase tracking-wider transition cursor-pointer"
+                >
+                  Close Trip Sheet
+                </button>
+              </div>
             </div>
           </div>
         )}
 
         {/* Modal: New Manual Booking */}
         {showNewBookingModal && (
-          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-3 sm:p-4">
-            <div className="bg-white rounded-2xl sm:rounded-3xl p-5 sm:p-8 max-w-lg w-full space-y-4 border border-slate-200 shadow-2xl max-h-[90vh] overflow-y-auto">
-              <div className="flex justify-between items-center border-b pb-3">
+          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-3 sm:p-4 animate-in fade-in duration-200">
+            <div className="bg-white rounded-2xl sm:rounded-3xl max-w-lg w-full border border-slate-200 shadow-2xl max-h-[90vh] flex flex-col overflow-hidden">
+              <div className="flex justify-between items-center px-6 sm:px-8 py-5 border-b border-slate-100 shrink-0 bg-white z-10">
                 <h3 className="font-sans font-black text-base sm:text-lg text-[#0F2E23]">Add Manual Transport Booking</h3>
-                <button onClick={() => setShowNewBookingModal(false)} className="p-1 text-slate-400 hover:text-slate-700">
+                <button 
+                  type="button"
+                  onClick={() => setShowNewBookingModal(false)} 
+                  className="p-1.5 text-slate-400 hover:text-slate-700 rounded-full hover:bg-slate-100 transition cursor-pointer"
+                >
                   <X size={18} />
                 </button>
               </div>
 
-              <form onSubmit={handleCreateManualBooking} className="space-y-4 text-xs">
+              <div className="overflow-y-auto px-6 sm:px-8 py-6 flex-1 custom-scrollbar">
+                <form onSubmit={handleCreateManualBooking} className="space-y-4 text-xs">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
                     <label className="font-bold text-slate-700">Pet Name *</label>
@@ -1112,6 +1124,7 @@ const TransportProviderContent = ({ activeTab, user }) => {
                   Save Booking
                 </button>
               </form>
+              </div>
             </div>
           </div>
         )}
@@ -1204,16 +1217,21 @@ const TransportProviderContent = ({ activeTab, user }) => {
 
         {/* Modal: Add Vehicle */}
         {showAddVehicleModal && (
-          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-3 sm:p-4">
-            <div className="bg-white rounded-2xl sm:rounded-3xl p-5 sm:p-8 max-w-md w-full space-y-4 border border-slate-200 shadow-2xl max-h-[90vh] overflow-y-auto">
-              <div className="flex justify-between items-center border-b pb-3">
+          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-3 sm:p-4 animate-in fade-in duration-200">
+            <div className="bg-white rounded-2xl sm:rounded-3xl max-w-md w-full border border-slate-200 shadow-2xl max-h-[90vh] flex flex-col overflow-hidden">
+              <div className="flex justify-between items-center px-6 sm:px-8 py-5 border-b border-slate-100 shrink-0 bg-white z-10">
                 <h3 className="font-sans font-black text-base sm:text-lg text-[#0F2E23]">Add Vehicle to Fleet</h3>
-                <button onClick={() => setShowAddVehicleModal(false)} className="p-1 text-slate-400 hover:text-slate-700">
+                <button 
+                  type="button"
+                  onClick={() => setShowAddVehicleModal(false)} 
+                  className="p-1.5 text-slate-400 hover:text-slate-700 rounded-full hover:bg-slate-100 transition cursor-pointer"
+                >
                   <X size={18} />
                 </button>
               </div>
 
-              <form onSubmit={handleAddVehicle} className="space-y-4 text-xs">
+              <div className="overflow-y-auto px-6 sm:px-8 py-6 flex-1 custom-scrollbar">
+                <form onSubmit={handleAddVehicle} className="space-y-4 text-xs">
                 <div>
                   <label className="font-bold text-slate-700">Vehicle Model & Name *</label>
                   <input
@@ -1268,6 +1286,7 @@ const TransportProviderContent = ({ activeTab, user }) => {
                   Save Vehicle
                 </button>
               </form>
+              </div>
             </div>
           </div>
         )}
@@ -1379,18 +1398,23 @@ const TransportProviderContent = ({ activeTab, user }) => {
 
         {/* Modal: Send Quote */}
         {selectedInquiryForQuote && (
-          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-3 sm:p-4">
-            <div className="bg-white rounded-2xl sm:rounded-3xl p-5 sm:p-8 max-w-md w-full space-y-4 border border-slate-200 shadow-2xl max-h-[90vh] overflow-y-auto">
-              <div className="flex justify-between items-center border-b pb-3">
+          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-3 sm:p-4 animate-in fade-in duration-200">
+            <div className="bg-white rounded-2xl sm:rounded-3xl max-w-md w-full border border-slate-200 shadow-2xl max-h-[90vh] flex flex-col overflow-hidden">
+              <div className="flex justify-between items-center px-6 sm:px-8 py-5 border-b border-slate-100 shrink-0 bg-white z-10">
                 <h3 className="font-sans font-black text-base sm:text-lg text-[#0F2E23]">
                   Send Relocation Quote
                 </h3>
-                <button onClick={() => setSelectedInquiryForQuote(null)} className="p-1 text-slate-400 hover:text-slate-700">
+                <button 
+                  type="button"
+                  onClick={() => setSelectedInquiryForQuote(null)} 
+                  className="p-1.5 text-slate-400 hover:text-slate-700 rounded-full hover:bg-slate-100 transition cursor-pointer"
+                >
                   <X size={18} />
                 </button>
               </div>
 
-              <form onSubmit={handleSendQuote} className="space-y-4 text-xs">
+              <div className="overflow-y-auto px-6 sm:px-8 py-6 flex-1 custom-scrollbar">
+                <form onSubmit={handleSendQuote} className="space-y-4 text-xs">
                 <div>
                   <span className="text-slate-400">Route:</span>
                   <div className="font-bold text-slate-900 text-sm">
@@ -1429,6 +1453,7 @@ const TransportProviderContent = ({ activeTab, user }) => {
                   Send Official Quote
                 </button>
               </form>
+              </div>
             </div>
           </div>
         )}
@@ -1591,16 +1616,21 @@ const TransportProviderContent = ({ activeTab, user }) => {
 
         {/* Modal: Request Payout */}
         {showPayoutModal && (
-          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-3 sm:p-4">
-            <div className="bg-white rounded-2xl sm:rounded-3xl p-5 sm:p-8 max-w-md w-full space-y-4 border border-slate-200 shadow-2xl max-h-[90vh] overflow-y-auto">
-              <div className="flex justify-between items-center border-b pb-3">
+          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-3 sm:p-4 animate-in fade-in duration-200">
+            <div className="bg-white rounded-2xl sm:rounded-3xl max-w-md w-full border border-slate-200 shadow-2xl max-h-[90vh] flex flex-col overflow-hidden">
+              <div className="flex justify-between items-center px-6 sm:px-8 py-5 border-b border-slate-100 shrink-0 bg-white z-10">
                 <h3 className="font-sans font-black text-base sm:text-lg text-[#0F2E23]">Transfer Payout to Bank</h3>
-                <button onClick={() => setShowPayoutModal(false)} className="p-1 text-slate-400 hover:text-slate-700">
+                <button 
+                  type="button"
+                  onClick={() => setShowPayoutModal(false)} 
+                  className="p-1.5 text-slate-400 hover:text-slate-700 rounded-full hover:bg-slate-100 transition cursor-pointer"
+                >
                   <X size={18} />
                 </button>
               </div>
 
-              <form onSubmit={handleRequestPayout} className="space-y-4 text-xs">
+              <div className="overflow-y-auto px-6 sm:px-8 py-6 flex-1 custom-scrollbar">
+                <form onSubmit={handleRequestPayout} className="space-y-4 text-xs">
                 <div>
                   <label className="font-bold text-slate-700">Bank Name *</label>
                   <input
@@ -1654,6 +1684,7 @@ const TransportProviderContent = ({ activeTab, user }) => {
                   Confirm Payout Transfer
                 </button>
               </form>
+              </div>
             </div>
           </div>
         )}

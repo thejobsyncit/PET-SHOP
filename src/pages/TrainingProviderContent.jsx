@@ -1313,21 +1313,26 @@ const TrainingProviderContent = ({ activeTab, user }) => {
 
           {/* Schedule Session Modal */}
           {showSessionModal && (
-            <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-              <div className="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-8 space-y-6 shadow-2xl relative max-h-[90vh] overflow-y-auto">
-                <div className="flex justify-between items-center border-b border-slate-100 pb-3">
+            <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-3 sm:p-4 animate-in fade-in duration-200">
+              <div className="bg-white border border-slate-200 rounded-3xl max-w-lg w-full max-h-[90vh] shadow-2xl flex flex-col overflow-hidden">
+                <div className="flex justify-between items-center px-6 sm:px-8 py-5 border-b border-slate-100 shrink-0 bg-white z-10">
                   <div className="flex items-center gap-2">
                     <span className="p-1.5 bg-emerald-100 text-emerald-800 rounded-lg">
                       <Calendar size={18} />
                     </span>
                     <h3 className="text-lg font-black text-[#0F2E23]">Schedule Training Session</h3>
                   </div>
-                  <button onClick={() => setShowSessionModal(false)} className="text-slate-400 hover:text-slate-600">
+                  <button 
+                    type="button"
+                    onClick={() => setShowSessionModal(false)} 
+                    className="p-1.5 text-slate-400 hover:text-slate-600 rounded-full hover:bg-slate-100 transition cursor-pointer"
+                  >
                     <X size={20} />
                   </button>
                 </div>
 
-                <form onSubmit={handleCreateSession} className="space-y-4">
+                <div className="overflow-y-auto px-6 sm:px-8 py-6 flex-1 custom-scrollbar">
+                  <form onSubmit={handleCreateSession} className="space-y-4">
                   <div className="grid grid-cols-2 gap-3">
                     <div>
                       <label className="text-xs font-bold text-slate-700 block mb-1">Pet Name *</label>
@@ -1467,7 +1472,8 @@ const TrainingProviderContent = ({ activeTab, user }) => {
                 </form>
               </div>
             </div>
-          )}
+          </div>
+        )}
 
         </div>
       )}

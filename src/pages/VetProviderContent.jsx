@@ -1655,19 +1655,24 @@ const VetProviderContent = ({ activeTab }) => {
           MODAL 2: WALK-IN APPOINTMENT MODAL
           ========================================================= */}
       {showAddAppModal && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-8 shadow-2xl space-y-5 animate-in fade-in zoom-in-95 duration-200 max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 animate-in fade-in duration-200">
+          <div className="bg-white border border-slate-200 rounded-3xl max-w-lg w-full max-h-[90vh] shadow-2xl flex flex-col overflow-hidden">
+            <div className="flex items-center justify-between px-6 sm:px-8 py-5 border-b border-slate-100 shrink-0 bg-white z-10">
               <div>
                 <h3 className="text-lg font-black text-[#0F2E23]">Book In-Clinic Walk-In Patient</h3>
                 <p className="text-xs text-slate-500 font-medium">Add patient directly into today's queue.</p>
               </div>
-              <button onClick={() => setShowAddAppModal(false)} className="text-slate-400 hover:text-slate-700 p-1 rounded-lg">
+              <button 
+                type="button"
+                onClick={() => setShowAddAppModal(false)} 
+                className="text-slate-400 hover:text-slate-700 p-1.5 rounded-full hover:bg-slate-100 transition cursor-pointer"
+              >
                 <X size={18} />
               </button>
             </div>
 
-            <form onSubmit={handleCreateWalkInAppointment} className="space-y-4">
+            <div className="overflow-y-auto px-6 sm:px-8 py-6 flex-1 custom-scrollbar">
+              <form onSubmit={handleCreateWalkInAppointment} className="space-y-4">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="text-xs font-black text-slate-700 uppercase tracking-wider block mb-1">Pet Name *</label>
@@ -1796,6 +1801,7 @@ const VetProviderContent = ({ activeTab }) => {
               </div>
             </form>
           </div>
+          </div>
         </div>
       )}
 
@@ -1854,21 +1860,26 @@ const VetProviderContent = ({ activeTab }) => {
           MODAL 4: NEW DIGITAL PRESCRIPTION MODAL
           ========================================================= */}
       {showNewRxModal && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl max-w-2xl w-full p-6 sm:p-8 shadow-2xl space-y-5 animate-in fade-in zoom-in-95 duration-200 max-h-[92vh] overflow-y-auto">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 animate-in fade-in duration-200">
+          <div className="bg-white border border-slate-200 rounded-3xl max-w-2xl w-full max-h-[92vh] shadow-2xl flex flex-col overflow-hidden">
+            <div className="flex items-center justify-between px-6 sm:px-8 py-5 border-b border-slate-100 shrink-0 bg-white z-10">
               <div>
                 <h3 className="text-xl font-black text-[#0F2E23] flex items-center gap-2">
                   <FileText className="text-emerald-600" size={22} /> Generate Digital E-Prescription
                 </h3>
                 <p className="text-xs text-slate-500 font-medium">Create and issue verifiable clinical prescriptions with Rx batch ID.</p>
               </div>
-              <button onClick={() => setShowNewRxModal(false)} className="text-slate-400 hover:text-slate-700 p-1 rounded-lg">
+              <button 
+                type="button"
+                onClick={() => setShowNewRxModal(false)} 
+                className="text-slate-400 hover:text-slate-700 p-1.5 rounded-full hover:bg-slate-100 transition cursor-pointer"
+              >
                 <X size={20} />
               </button>
             </div>
 
-            <form onSubmit={handleSavePrescription} className="space-y-5">
+            <div className="overflow-y-auto px-6 sm:px-8 py-6 flex-1 custom-scrollbar">
+              <form onSubmit={handleSavePrescription} className="space-y-5">
               {/* Patient and Owner Info */}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 bg-slate-50 p-4 rounded-2xl border border-slate-200">
                 <div>
@@ -2050,6 +2061,7 @@ const VetProviderContent = ({ activeTab }) => {
               </div>
             </form>
           </div>
+          </div>
         </div>
       )}
 
@@ -2057,25 +2069,32 @@ const VetProviderContent = ({ activeTab }) => {
           MODAL 5: PDF RX VIEWER / PRINTABLE MODAL
           ========================================================= */}
       {selectedRxForPdf && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl max-w-2xl w-full p-8 shadow-2xl space-y-6 animate-in fade-in zoom-in-95 duration-200 max-h-[92vh] overflow-y-auto">
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 animate-in fade-in duration-200">
+          <div className="bg-white border border-slate-200 rounded-3xl max-w-2xl w-full max-h-[92vh] shadow-2xl flex flex-col overflow-hidden">
             {/* Header Actions */}
-            <div className="flex items-center justify-between border-b border-slate-100 pb-4 print:hidden">
+            <div className="flex items-center justify-between px-6 sm:px-8 py-5 border-b border-slate-100 shrink-0 bg-white z-10 print:hidden">
               <div className="flex items-center gap-2">
                 <FileText className="text-emerald-700" size={22} />
                 <span className="text-sm font-black text-[#0F2E23]">Electronic Medical Prescription ({selectedRxForPdf.id})</span>
               </div>
               <div className="flex items-center gap-2">
                 <button 
+                  type="button"
                   onClick={() => window.print()}
                   className="px-4 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-black uppercase tracking-widest flex items-center gap-1.5 transition cursor-pointer shadow-sm">
                   <Printer size={14} /> Print / Save PDF
                 </button>
-                <button onClick={() => setSelectedRxForPdf(null)} className="text-slate-400 hover:text-slate-700 p-1 rounded-lg">
+                <button 
+                  type="button"
+                  onClick={() => setSelectedRxForPdf(null)} 
+                  className="text-slate-400 hover:text-slate-700 p-1.5 rounded-full hover:bg-slate-100 transition cursor-pointer"
+                >
                   <X size={20} />
                 </button>
               </div>
             </div>
+
+            <div className="overflow-y-auto px-6 sm:px-8 py-6 flex-1 custom-scrollbar space-y-6">
 
             {/* Printable Prescription Layout */}
             <div className="border border-slate-200 rounded-2xl p-6 space-y-6 bg-white shadow-xs">
@@ -2180,6 +2199,7 @@ const VetProviderContent = ({ activeTab }) => {
                 </div>
               </div>
             </div>
+          </div>
           </div>
         </div>
       )}
