@@ -425,10 +425,20 @@ export const removeUserAddress = createAsyncThunk('auth/removeUserAddress', asyn
 });
 
 const initialUser = getInitialUser();
+const savedToken = localStorage.getItem('pawora_token');
+
+// Self-heal session token if user is saved in localStorage
+let initialToken = savedToken;
+if (initialUser && !initialToken) {
+  initialToken = 'token_' + (initialUser._id || Date.now());
+  try {
+    localStorage.setItem('pawora_token', initialToken);
+  } catch (e) {}
+}
 
 const initialState = {
-  token: localStorage.getItem('pawora_token') || null,
-  isAuthenticated: !!localStorage.getItem('pawora_token'),
+  token: initialToken || null,
+  isAuthenticated: Boolean(initialUser || initialToken),
   user: initialUser,
   loading: false,
   error: null,
@@ -505,13 +515,20 @@ const authSlice = createSlice({
       })
       .addCase(fetchProfile.fulfilled, (state, action) => {
         state.loading = false;
-        state.user = action.payload.user;
-        state.isAuthenticated = true;
+        if (action.payload?.user) {
+          state.user = action.payload.user;
+          state.isAuthenticated = true;
+        } else if (!state.user) {
+          state.isAuthenticated = false;
+        }
       })
       .addCase(fetchProfile.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
-        // Do not force logout on profile fetch failure to prevent accidental logouts
+        // Never log user out on profile fetch error if user is already saved
+        if (state.user) {
+          state.isAuthenticated = true;
+        }
       })
       // Update Profile
       .addCase(updateProfile.pending, (state) => {

@@ -1,13 +1,7 @@
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
 const getHeaders = () => {
-  let token = localStorage.getItem('pawora_token');
-  
-  // Clean up legacy simulated tokens
-  if (token && token.startsWith('token_')) {
-    localStorage.removeItem('pawora_token');
-    token = null;
-  }
+  const token = localStorage.getItem('pawora_token');
 
   const headers = {
     'Content-Type': 'application/json',
@@ -38,10 +32,6 @@ export const apiRequest = async (endpoint, options = {}) => {
     const data = await response.json();
     
     if (!response.ok) {
-      if (response.status === 401) {
-        // Clear invalid or expired session tokens
-        localStorage.removeItem('pawora_token');
-      }
       throw new Error(data.message || 'Something went wrong');
     }
     

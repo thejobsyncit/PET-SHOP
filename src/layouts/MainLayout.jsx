@@ -13,9 +13,10 @@ const MainLayout = () => {
   const dispatch = useDispatch();
 
   useEffect(() => {
-    // Check local token and trigger profile load
+    // Check local token or saved user session and trigger profile load
     const token = localStorage.getItem('pawora_token');
-    if (token) {
+    const user = localStorage.getItem('pawora_user');
+    if (token || user) {
       dispatch(fetchProfile());
     }
     // Fetch cart and wishlist (synchronizes guest or user state)
