@@ -15,7 +15,9 @@ import {
   getStoredAdoptionPets,
   saveAdoptionPet,
   compressImageFile,
-  getGuardianListedPets
+  getGuardianListedPets,
+  getUserActiveFreePet,
+  recordUserFreeAdoption
 } from '../data/adoptionPetsData';
 import ScrollReveal from '../components/ScrollReveal.jsx';
 
@@ -79,14 +81,15 @@ const AdoptionShelter = () => {
   const [showLimitReachedModal, setShowLimitReachedModal] = useState(false);
 
   // Active free adoption pets listed by the current logged-in user (Max 1 allowed)
-  const userListedPets = useMemo(() => {
-    if (!user) return [];
+  const activeUserPet = useMemo(() => {
+    if (!user) return null;
+    const directPet = getUserActiveFreePet(user);
+    if (directPet) return directPet;
     const guardianPets = getGuardianListedPets(user) || [];
-    return guardianPets.filter((p) => !p.adopted && p.status !== 'Adopted');
+    return guardianPets.find((p) => !p.adopted && p.status !== 'Adopted') || null;
   }, [user, petsList]);
 
-  const hasReachedListingLimit = Boolean(user && userListedPets.length >= 1);
-  const activeUserPet = userListedPets[0] || null;
+  const hasReachedListingLimit = Boolean(user && activeUserPet);
   const [newPetName, setNewPetName] = useState('');
   const [newPetType, setNewPetType] = useState('dogs');
   const [newPetBreed, setNewPetBreed] = useState('Labrador Retriever');
@@ -273,10 +276,10 @@ const AdoptionShelter = () => {
     }
 
     // Check if user already has an active free adoption pet listed
-    const freshGuardianPets = (getGuardianListedPets(user) || []).filter(
-      (p) => !p.adopted && p.status !== 'Adopted'
-    );
-    if (freshGuardianPets.length >= 1) {
+    const existingPet = getUserActiveFreePet(user) || 
+      (getGuardianListedPets(user) || []).find((p) => !p.adopted && p.status !== 'Adopted');
+
+    if (existingPet) {
       setShowLimitReachedModal(true);
       toast.error('Posting limit reached: You can only list 1 pet for free adoption at a time.', {
         duration: 5000,
@@ -315,11 +318,11 @@ const AdoptionShelter = () => {
       return;
     }
 
-    // Guard: Prevent more than 1 free adoption pet per user
-    const freshGuardianPets = (getGuardianListedPets(user) || []).filter(
-      (p) => !p.adopted && p.status !== 'Adopted'
-    );
-    if (freshGuardianPets.length >= 1) {
+    // Guard: Strictly prevent more than 1 free adoption pet per user
+    const existingPet = getUserActiveFreePet(user) || 
+      (getGuardianListedPets(user) || []).find((p) => !p.adopted && p.status !== 'Adopted');
+
+    if (existingPet) {
       setShowAddPetModal(false);
       setShowLimitReachedModal(true);
       toast.error('Posting limit reached: You can only list 1 pet for free adoption at a time.', {
@@ -379,9 +382,10 @@ const AdoptionShelter = () => {
       createdAt: new Date().toISOString()
     };
 
-    // Save permanently in shared storage & memory cache
+    // Save permanently in shared storage, custom pets & dedicated registry
     const updated = saveAdoptionPet(createdPet);
-    setPetsList(updated);
+    recordUserFreeAdoption(user, createdPet);
+    setPetsList(getStoredAdoptionPets());
 
     toast.success(`🎉 "${newPetName}" has been listed for adoption successfully!`, {
       duration: 6000,
@@ -620,23 +624,10 @@ const AdoptionShelter = () => {
                 <button
                   type="button"
                   onClick={handleOpenAddPet}
-                  className={`w-full py-2.5 px-3 rounded-xl font-bold text-xs shadow-md transition cursor-pointer flex items-center justify-center gap-1.5 ${
-                    hasReachedListingLimit
-                      ? 'bg-amber-600 hover:bg-amber-700 text-white shadow-amber-600/20'
-                      : 'bg-primary hover:bg-accent text-white shadow-gold/20 active:scale-95'
-                  }`}
+                  className="w-full py-2.5 px-3 bg-primary hover:bg-accent text-white rounded-xl font-bold text-xs shadow-md shadow-gold/20 active:scale-95 transition cursor-pointer flex items-center justify-center gap-1.5"
                 >
-                  {hasReachedListingLimit ? (
-                    <>
-                      <AlertTriangle size={15} />
-                      <span>Listing Limit Reached (1/1)</span>
-                    </>
-                  ) : (
-                    <>
-                      <Plus size={15} />
-                      <span>{isAuthenticated ? 'List Pet For Adoption' : 'Login to Post Pet'}</span>
-                    </>
-                  )}
+                  <Plus size={15} />
+                  <span>{isAuthenticated ? 'List Pet For Adoption' : 'Login to Post Pet'}</span>
                 </button>
               </div>
   
@@ -813,19 +804,10 @@ const AdoptionShelter = () => {
                     <button
                       type="button"
                       onClick={handleOpenAddPet}
-                      className={`sm:hidden px-3 py-1 text-white text-xs font-bold rounded-lg flex items-center gap-1 cursor-pointer ${
-                        hasReachedListingLimit ? 'bg-amber-600 hover:bg-amber-700' : 'bg-primary'
-                      }`}
+                      className="sm:hidden px-3 py-1 bg-primary text-white text-xs font-bold rounded-lg flex items-center gap-1 cursor-pointer hover:bg-accent active:scale-95 transition"
                     >
-                      {hasReachedListingLimit ? (
-                        <>
-                          <AlertTriangle size={13} /> Limit (1/1)
-                        </>
-                      ) : (
-                        <>
-                          <Plus size={13} /> Add Pet
-                        </>
-                      )}
+                      <Plus size={13} />
+                      <span>Add Pet</span>
                     </button>
                   </div>
                 </div>

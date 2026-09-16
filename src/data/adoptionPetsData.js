@@ -410,27 +410,193 @@ export const DEFAULT_ADOPTION_PETS = [
 // Global in-memory cache to guarantee instant cross-page synchronization in SPA
 let memoryPetsCache = null;
 
-export const getStoredAdoptionPets = () => {
+// Dedicated registry key for free adoption limit tracking (safe from quota exhaustion)
+const FREE_ADOPTION_REGISTRY_KEY = 'pawora_free_adoption_registry';
+const CUSTOM_PETS_KEY = 'pawora_custom_adoption_pets';
+
+export const getCustomAdoptionPets = () => {
   try {
-    const saved = localStorage.getItem('pawora_adoption_pets') || sessionStorage.getItem('pawora_adoption_pets');
-    if (saved) {
-      const parsed = JSON.parse(saved);
-      if (Array.isArray(parsed) && parsed.length > 0) {
-        memoryPetsCache = parsed;
-        return parsed;
-      }
+    const raw = localStorage.getItem(CUSTOM_PETS_KEY) || sessionStorage.getItem(CUSTOM_PETS_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed)) return parsed;
+    }
+  } catch (e) {}
+  return [];
+};
+
+export const saveCustomAdoptionPet = (newPet) => {
+  try {
+    const current = getCustomAdoptionPets();
+    const idx = current.findIndex((p) => p.id === newPet.id);
+    let updated;
+    if (idx >= 0) {
+      updated = current.map((p) => (p.id === newPet.id ? { ...p, ...newPet } : p));
+    } else {
+      updated = [newPet, ...current];
+    }
+    try {
+      localStorage.setItem(CUSTOM_PETS_KEY, JSON.stringify(updated));
+    } catch (e) {
+      sessionStorage.setItem(CUSTOM_PETS_KEY, JSON.stringify(updated));
+    }
+    return updated;
+  } catch (e) {
+    console.warn('saveCustomAdoptionPet error:', e);
+    return [];
+  }
+};
+
+export const getFreeAdoptionRegistry = () => {
+  try {
+    const raw = localStorage.getItem(FREE_ADOPTION_REGISTRY_KEY) || sessionStorage.getItem(FREE_ADOPTION_REGISTRY_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed)) return parsed;
+    }
+  } catch (e) {}
+  return [];
+};
+
+export const recordUserFreeAdoption = (user, pet) => {
+  if (!user || !pet) return;
+  try {
+    const registry = getFreeAdoptionRegistry();
+    const userId = String(user._id || user.id || '').trim();
+    const userEmail = String(user.email || '').toLowerCase().trim();
+    const userPhone = String(user.mobile || user.phone || '').replace(/\D/g, '');
+
+    const record = {
+      petId: pet.id,
+      petName: pet.name,
+      petBreed: pet.breed,
+      petImage: pet.image,
+      petCity: pet.city || pet.state || 'India',
+      createdAt: pet.createdAt || new Date().toISOString(),
+      userId,
+      userEmail,
+      userPhone,
+      adopted: Boolean(pet.adopted || pet.status === 'Adopted')
+    };
+
+    // Filter out previous record if any
+    const filtered = registry.filter((r) => {
+      if (!r) return false;
+      const rId = String(r.userId || '');
+      const rEmail = String(r.userEmail || '').toLowerCase();
+      const rPhone = String(r.userPhone || '').replace(/\D/g, '');
+
+      const idMatch = userId && rId && rId === userId;
+      const emailMatch = userEmail && rEmail && rEmail === userEmail;
+      const phoneMatch = userPhone.length >= 10 && rPhone && (
+        rPhone === userPhone || rPhone.endsWith(userPhone) || userPhone.endsWith(rPhone)
+      );
+
+      return !(idMatch || emailMatch || phoneMatch);
+    });
+
+    filtered.push(record);
+    try {
+      localStorage.setItem(FREE_ADOPTION_REGISTRY_KEY, JSON.stringify(filtered));
+    } catch (e) {
+      sessionStorage.setItem(FREE_ADOPTION_REGISTRY_KEY, JSON.stringify(filtered));
     }
   } catch (e) {
-    console.warn('Storage read warning:', e);
+    console.warn('recordUserFreeAdoption error:', e);
   }
-  if (memoryPetsCache && Array.isArray(memoryPetsCache) && memoryPetsCache.length > 0) {
-    return memoryPetsCache;
+};
+
+// Check if user currently has an active free adoption pet listed
+export const getUserActiveFreePet = (user) => {
+  if (!user) return null;
+
+  const userId = String(user._id || user.id || '').trim();
+  const userEmail = String(user.email || '').toLowerCase().trim();
+  const userPhone = String(user.mobile || user.phone || '').replace(/\D/g, '');
+
+  // 1. Check registry first (100% reliable)
+  const registry = getFreeAdoptionRegistry();
+  const regMatch = registry.find((r) => {
+    if (!r || r.adopted) return false;
+    const rId = String(r.userId || '');
+    const rEmail = String(r.userEmail || '').toLowerCase();
+    const rPhone = String(r.userPhone || '').replace(/\D/g, '');
+
+    const idMatch = userId && rId && rId === userId;
+    const emailMatch = userEmail && rEmail && rEmail === userEmail;
+    const phoneMatch = userPhone.length >= 10 && rPhone && (
+      rPhone === userPhone || rPhone.endsWith(userPhone) || userPhone.endsWith(rPhone)
+    );
+
+    return idMatch || emailMatch || phoneMatch;
+  });
+
+  if (regMatch) {
+    const allPets = getStoredAdoptionPets();
+    const found = allPets.find((p) => p && String(p.id) === String(regMatch.petId));
+    if (found && !found.adopted && found.status !== 'Adopted') {
+      return found;
+    }
+    return {
+      id: regMatch.petId,
+      name: regMatch.petName,
+      breed: regMatch.petBreed,
+      image: regMatch.petImage,
+      city: regMatch.petCity,
+      createdAt: regMatch.createdAt
+    };
   }
-  memoryPetsCache = DEFAULT_ADOPTION_PETS;
+
+  // 2. Check all adoption pets list
+  const allPets = getStoredAdoptionPets();
+  const petMatch = allPets.find((pet) => {
+    if (!pet || pet.adopted || pet.status === 'Adopted') return false;
+
+    const petOwnerId = String(pet.ownerId || '');
+    const petOwnerEmail = String(pet.ownerEmail || '').toLowerCase().trim();
+    const petOwnerPhone = String(pet.ownerPhone || pet.parentContact || '').replace(/\D/g, '');
+
+    const idMatch = userId && petOwnerId && petOwnerId === userId;
+    const emailMatch = userEmail && petOwnerEmail && petOwnerEmail === userEmail;
+    const phoneMatch = userPhone.length >= 10 && petOwnerPhone && (
+      petOwnerPhone === userPhone ||
+      petOwnerPhone.endsWith(userPhone) ||
+      userPhone.endsWith(petOwnerPhone)
+    );
+
+    return idMatch || emailMatch || phoneMatch;
+  });
+
+  return petMatch || null;
+};
+
+export const hasUserReachedFreeAdoptionLimit = (user) => {
+  return Boolean(getUserActiveFreePet(user));
+};
+
+export const getStoredAdoptionPets = () => {
   try {
-    localStorage.setItem('pawora_adoption_pets', JSON.stringify(DEFAULT_ADOPTION_PETS));
-  } catch (e) {}
-  return DEFAULT_ADOPTION_PETS;
+    const customPets = getCustomAdoptionPets();
+    let baseList = DEFAULT_ADOPTION_PETS;
+    const saved = localStorage.getItem('pawora_adoption_pets');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          baseList = parsed;
+        }
+      } catch (e) {}
+    }
+
+    const customIds = new Set(customPets.map((p) => p.id));
+    const filteredBase = baseList.filter((p) => !customIds.has(p.id));
+    const combined = [...customPets, ...filteredBase];
+    memoryPetsCache = combined;
+    return combined;
+  } catch (e) {
+    console.warn('Storage read warning:', e);
+    return memoryPetsCache || DEFAULT_ADOPTION_PETS;
+  }
 };
 
 export const setStoredAdoptionPets = (petsList) => {
@@ -438,7 +604,6 @@ export const setStoredAdoptionPets = (petsList) => {
   try {
     localStorage.setItem('pawora_adoption_pets', JSON.stringify(petsList));
   } catch (e) {
-    console.warn('LocalStorage quota warning, falling back to sessionStorage & memory cache', e);
     try {
       sessionStorage.setItem('pawora_adoption_pets', JSON.stringify(petsList));
     } catch (se) {}
@@ -450,6 +615,20 @@ export const setStoredAdoptionPets = (petsList) => {
 };
 
 export const saveAdoptionPet = (newPet) => {
+  saveCustomAdoptionPet(newPet);
+
+  if (newPet.ownerId || newPet.ownerEmail || newPet.ownerPhone) {
+    recordUserFreeAdoption(
+      {
+        _id: newPet.ownerId,
+        id: newPet.ownerId,
+        email: newPet.ownerEmail,
+        mobile: newPet.ownerPhone
+      },
+      newPet
+    );
+  }
+
   const current = getStoredAdoptionPets();
   const existingIdx = current.findIndex((p) => p.id === newPet.id);
   let updated;
@@ -462,6 +641,12 @@ export const saveAdoptionPet = (newPet) => {
 };
 
 export const deleteAdoptionPet = (petId) => {
+  try {
+    const custom = getCustomAdoptionPets();
+    const updatedCustom = custom.filter((p) => p.id !== petId);
+    localStorage.setItem(CUSTOM_PETS_KEY, JSON.stringify(updatedCustom));
+  } catch (e) {}
+
   const current = getStoredAdoptionPets();
   const updated = current.filter((p) => p.id !== petId);
   return setStoredAdoptionPets(updated);
