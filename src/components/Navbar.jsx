@@ -19,6 +19,7 @@ const Navbar = () => {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [mobileExpanded, setMobileExpanded] = useState('');
 
   const petsDropdownRef = useRef(null);
   const servicesDropdownRef = useRef(null);
@@ -501,7 +502,7 @@ const Navbar = () => {
         <div className="fixed inset-0 z-50 flex">
           <div onClick={() => setIsMobileMenuOpen(false)} className="fixed inset-0 bg-primary/40 backdrop-blur-sm"></div>
 
-          <div className="relative w-full max-w-xs bg-primary text-white shadow-2xl flex flex-col justify-between p-6 overflow-y-auto">
+          <div className="relative w-[85%] max-w-sm bg-primary text-white shadow-2xl flex flex-col justify-between p-6 overflow-y-auto">
             <div>
               <div className="flex justify-between items-center mb-8 border-b border-white/10 pb-4">
                 <div className="flex items-center font-extrabold tracking-tight text-xl">
@@ -517,72 +518,97 @@ const Navbar = () => {
                       <PawPrint size={10} className="text-orange-500 fill-orange-500" />
                     </div>
                     SH 
-                    <span className="ml-1">PETS</span> 
-                    <span className="ml-1">HUB</span>
+                    <span className="ml-1">PETS</span>
                   </span>
                 </div>
-                <button onClick={() => setIsMobileMenuOpen(false)} className="p-1 text-white cursor-pointer">
+                <button onClick={() => setIsMobileMenuOpen(false)} className="p-1 text-white cursor-pointer hover:bg-white/10 rounded-full transition">
                   <X size={24} />
                 </button>
               </div>
 
               {/* Mobile links list */}
-              <div className="space-y-4 text-xs font-semibold uppercase tracking-wider">
-                <Link to="/" onClick={() => setIsMobileMenuOpen(false)} className="block py-2 hover:text-accent-light border-b border-white/5">Home</Link>
+              <div className="space-y-1 text-xs font-semibold uppercase tracking-wider">
+                <Link to="/" onClick={() => setIsMobileMenuOpen(false)} className="block py-3 hover:text-accent-light border-b border-white/5">Home</Link>
 
-                {/* Pets department expanded on mobile */}
-                <div className="space-y-2 py-1 pl-2 border-l border-white/10">
+                {/* Pets department accordion on mobile */}
+                <div className="border-b border-white/5">
                   <button
-                    onClick={(e) => handlePetsNavigation(e, '/pets')}
-                    className="w-full text-left text-[11px] hover:text-accent-light tracking-widest font-bold flex items-center justify-between cursor-pointer"
+                    onClick={() => setMobileExpanded(mobileExpanded === 'pets' ? '' : 'pets')}
+                    className="w-full py-3 flex items-center justify-between hover:text-accent-light cursor-pointer bg-transparent border-0 text-white font-semibold uppercase tracking-wider text-xs"
                   >
-                    <span>Pets Classifieds</span>
-                    {isNonSellerProvider && (
-                      <span className="text-[9px] bg-amber-400/20 text-amber-300 px-1.5 py-0.5 rounded font-semibold flex items-center gap-1">
-                        <Lock size={10} /> Sellers Only
-                      </span>
-                    )}
+                    <div className="flex items-center gap-2">
+                      <span>Pets Classifieds</span>
+                      {isNonSellerProvider && (
+                        <span className="text-[9px] bg-amber-400/20 text-amber-300 px-1.5 py-0.5 rounded font-semibold flex items-center gap-1 normal-case">
+                          <Lock size={10} /> Sellers Only
+                        </span>
+                      )}
+                    </div>
+                    <ChevronDown size={16} className={`transition-transform duration-300 ${mobileExpanded === 'pets' ? 'rotate-180' : ''}`} />
                   </button>
-                  {!isNonSellerProvider && (
-                    <>
-                      {petsList.map(pet => (
-                        <button
-                          key={pet.label}
-                          onClick={(e) => handlePetsNavigation(e, pet.path)}
-                          className="w-full text-left block py-1 hover:text-accent-light text-[11px] normal-case pl-2 cursor-pointer"
-                        >
-                          {pet.label}
+                  <div className={`space-y-1 overflow-hidden transition-all duration-300 ${mobileExpanded === 'pets' ? 'max-h-96 pb-3' : 'max-h-0'}`}>
+                    {!isNonSellerProvider ? (
+                      <>
+                        <button onClick={(e) => handlePetsNavigation(e, '/pets')} className="w-full text-left flex items-center gap-2.5 py-2 pl-4 hover:text-accent-light text-[11px] normal-case cursor-pointer bg-transparent border-0 text-gray-300">
+                          <span className="text-sm">🌟</span> All Pets
                         </button>
-                      ))}
-                    </>
-                  )}
+                        {petsList.map(pet => (
+                          <button
+                            key={pet.label}
+                            onClick={(e) => handlePetsNavigation(e, pet.path)}
+                            className="w-full text-left flex items-center gap-2.5 py-2 pl-4 hover:text-accent-light text-[11px] normal-case cursor-pointer bg-transparent border-0 text-gray-300"
+                          >
+                            <span className="text-sm">{pet.icon}</span> {pet.label}
+                          </button>
+                        ))}
+                      </>
+                    ) : (
+                      <div className="p-3 bg-white/5 rounded-lg mb-2 mx-2 text-[10px] text-gray-300 leading-relaxed normal-case">
+                        This section is restricted to registered Pet Sellers. Access your provider dashboard instead.
+                      </div>
+                    )}
+                  </div>
                 </div>
 
-                {/* Pet Services expanded on mobile */}
-                <div className="space-y-2 py-1 pl-2 border-l border-white/10">
-                  <span className="block text-[11px] text-accent-light tracking-widest font-bold uppercase">Pet Services</span>
-                  {servicesList.map(service => {
-                    const isLocked = isServicePathLockedForUser(user, service.path);
-                    return (
-                      <button
-                        key={service.label}
-                        onClick={(e) => handleServicesNavigation(e, service.path)}
-                        className="w-full text-left py-1 hover:text-accent-light text-[11px] normal-case pl-2 flex items-center justify-between cursor-pointer bg-transparent border-0 text-white"
-                      >
-                        <span>{service.label}</span>
-                        {isLocked && (
-                          <span className="text-[9px] bg-amber-400/20 text-amber-300 px-1.5 py-0.5 rounded font-semibold flex items-center gap-1">
-                            <Lock size={10} /> Locked
-                          </span>
-                        )}
-                      </button>
-                    );
-                  })}
+                {/* Pet Services accordion on mobile */}
+                <div className="border-b border-white/5">
+                  <button
+                    onClick={() => setMobileExpanded(mobileExpanded === 'services' ? '' : 'services')}
+                    className="w-full py-3 flex items-center justify-between hover:text-accent-light cursor-pointer bg-transparent border-0 text-white font-semibold uppercase tracking-wider text-xs"
+                  >
+                    <span>Pet Services</span>
+                    <ChevronDown size={16} className={`transition-transform duration-300 ${mobileExpanded === 'services' ? 'rotate-180' : ''}`} />
+                  </button>
+                  <div className={`space-y-1 overflow-hidden transition-all duration-300 ${mobileExpanded === 'services' ? 'max-h-[500px] pb-3' : 'max-h-0'}`}>
+                    <button onClick={(e) => handleServicesNavigation(e, '/services')} className="w-full text-left flex items-center gap-2.5 py-2 pl-4 hover:text-accent-light text-[11px] normal-case cursor-pointer bg-transparent border-0 text-gray-300">
+                      <div className="text-accent-light"><Briefcase size={14} /></div> All Services
+                    </button>
+                    {servicesList.map(service => {
+                      const isLocked = isServicePathLockedForUser(user, service.path);
+                      return (
+                        <button
+                          key={service.label}
+                          onClick={(e) => handleServicesNavigation(e, service.path)}
+                          className={`w-full text-left flex items-center justify-between py-2 pl-4 text-[11px] normal-case cursor-pointer bg-transparent border-0 ${isLocked ? 'text-gray-500 hover:text-amber-300' : 'text-gray-300 hover:text-accent-light'}`}
+                        >
+                          <div className="flex items-center gap-2.5">
+                            <div className="opacity-80">{service.icon}</div> 
+                            <span>{service.label}</span>
+                          </div>
+                          {isLocked && (
+                            <span className="text-[9px] bg-amber-400/10 text-amber-500 px-1.5 py-0.5 rounded font-semibold flex items-center gap-1 mr-2">
+                              <Lock size={10} />
+                            </span>
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
 
-                <Link to="/shop" onClick={() => setIsMobileMenuOpen(false)} className="block py-2 hover:text-accent-light border-b border-white/5">Shop</Link>
-                <Link to="/pet-care" onClick={() => setIsMobileMenuOpen(false)} className="block py-2 hover:text-accent-light border-b border-white/5">Blog</Link>
-                <Link to="/contact" onClick={() => setIsMobileMenuOpen(false)} className="block py-2 hover:text-accent-light border-b border-white/5">Contact Us</Link>
+                <Link to="/shop" onClick={() => setIsMobileMenuOpen(false)} className="block py-3 hover:text-accent-light border-b border-white/5">Shop</Link>
+                <Link to="/pet-care" onClick={() => setIsMobileMenuOpen(false)} className="block py-3 hover:text-accent-light border-b border-white/5">Blog</Link>
+                <Link to="/contact" onClick={() => setIsMobileMenuOpen(false)} className="block py-3 hover:text-accent-light border-b border-white/5">Contact Us</Link>
 
                 {isAuthenticated && (
                   <Link to="/chat" onClick={() => setIsMobileMenuOpen(false)} className="block py-2 hover:text-accent-light border-b border-white/5">Direct Messages</Link>
