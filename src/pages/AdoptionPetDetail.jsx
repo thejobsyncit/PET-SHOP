@@ -20,9 +20,24 @@ const AdoptionPetDetail = () => {
   const navigate = useNavigate();
   const { isAuthenticated, user } = useSelector((state) => state.auth);
 
-  const [pets, setPets] = useState(getStoredAdoptionPets);
-  const [pet, setPet] = useState(null);
-  const [selectedImage, setSelectedImage] = useState('');
+  const [pets, setPets] = useState(() => getStoredAdoptionPets());
+  const [pet, setPet] = useState(() => {
+    const allPets = getStoredAdoptionPets();
+    const decodedId = decodeURIComponent(id || '').trim();
+    return (
+      allPets.find(
+        (p) =>
+          p && (
+            p.id === id ||
+            String(p.id) === String(id) ||
+            String(p.id) === decodedId ||
+            p._id === id ||
+            String(p.id).toLowerCase() === decodedId.toLowerCase()
+          )
+      ) || null
+    );
+  });
+  const [selectedImage, setSelectedImage] = useState(() => pet?.image || '');
 
   // Application Form States
   const [applicantName, setApplicantName] = useState('');
@@ -64,15 +79,17 @@ const AdoptionPetDetail = () => {
       const decodedId = decodeURIComponent(id || '').trim();
       const found = currentPets.find(
         (p) =>
-          p.id === id ||
-          String(p.id) === String(id) ||
-          String(p.id) === decodedId ||
-          p._id === id ||
-          String(p.id).toLowerCase() === decodedId.toLowerCase()
+          p && (
+            p.id === id ||
+            String(p.id) === String(id) ||
+            String(p.id) === decodedId ||
+            p._id === id ||
+            String(p.id).toLowerCase() === decodedId.toLowerCase()
+          )
       );
       if (found) {
         setPet(found);
-        setSelectedImage(found.image);
+        setSelectedImage((prev) => prev || found.image);
       }
     };
 
@@ -243,7 +260,27 @@ const AdoptionPetDetail = () => {
   };
 
   // Other related pets for carousel/grid
-  const relatedPets = pets.filter((p) => p.id !== pet.id).slice(0, 3);
+  const relatedPets = (pets || []).filter((p) => p && pet && p.id !== pet.id).slice(0, 3);
+
+  if (!pet) {
+    return (
+      <div className="min-h-[70vh] flex flex-col items-center justify-center p-8 text-center bg-[#faf8fc]">
+        <div className="w-16 h-16 bg-purple-50 text-[#7c56dc] rounded-full flex items-center justify-center mb-4 shadow-sm">
+          <Heart size={32} />
+        </div>
+        <h2 className="font-serif text-2xl font-bold text-slate-800 mb-2">Pet Listing Not Found</h2>
+        <p className="text-slate-500 text-sm max-w-md mb-6">
+          The pet you are looking for may have been adopted or the listing is no longer active.
+        </p>
+        <Link
+          to="/adopt"
+          className="px-6 py-2.5 bg-[#7c56dc] hover:bg-[#6b47cb] text-white font-bold rounded-xl text-sm transition shadow-md"
+        >
+          Explore Available Adoption Pets
+        </Link>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#faf8fc] text-slate-800 pb-24 relative overflow-x-hidden">
