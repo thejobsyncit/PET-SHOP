@@ -57,7 +57,7 @@ const BlogHub = () => {
             transition={{ duration: 0.6 }}
             className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 border border-white/20 backdrop-blur-md text-sm text-[#fde047] font-bold tracking-widest uppercase"
           >
-            <BookOpen size={16} /> JOSH PETS HUB PET LIVING HUB
+            <BookOpen size={16} /> JOSH PETS CARE & WELLNESS JOURNAL
           </motion.span>
           
           <h1 className="font-sans font-black text-4xl md:text-6xl text-white tracking-tight leading-[1.1] drop-shadow-lg">
