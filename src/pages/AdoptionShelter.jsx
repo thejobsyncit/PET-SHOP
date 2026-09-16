@@ -243,6 +243,25 @@ const AdoptionShelter = () => {
     window.open(`https://wa.me/918306688827?text=${text}`, '_blank');
   };
 
+  // Handle opening the "Add Pet" modal (Requires authentication)
+  const handleOpenAddPet = () => {
+    if (!isAuthenticated || !user) {
+      toast.error('Please log in or register to post a pet for free adoption.', {
+        duration: 5000,
+        icon: '🔒'
+      });
+      window.dispatchEvent(new CustomEvent('open-register-modal', {
+        detail: {
+          tab: 'user',
+          hideProviderTab: true,
+          source: 'adoption-post-pet'
+        }
+      }));
+      return;
+    }
+    setShowAddPetModal(true);
+  };
+
   // Auto-fill guardian info if logged in when opening Add Pet modal
   useEffect(() => {
     if (showAddPetModal && user) {
@@ -254,6 +273,21 @@ const AdoptionShelter = () => {
   // Handle "Add Pet" Submission (Workable Feature)
   const handleAddPetSubmit = (e) => {
     e.preventDefault();
+
+    if (!isAuthenticated || !user) {
+      toast.error('Please log in or register to post a pet for free adoption.', {
+        duration: 5000,
+        icon: '🔒'
+      });
+      window.dispatchEvent(new CustomEvent('open-register-modal', {
+        detail: {
+          tab: 'user',
+          hideProviderTab: true,
+          source: 'adoption-post-pet'
+        }
+      }));
+      return;
+    }
 
     if (!newPetName.trim()) {
       toast.error('Please enter the pet name.');
@@ -291,12 +325,12 @@ const AdoptionShelter = () => {
       personality: newPetPersonality.trim() || 'Friendly, Loving, Playful',
       image: pickedImage,
       gallery: [pickedImage],
-      ownerId: user ? (user._id || user.id) : ('guest_' + Date.now()),
-      ownerName: user ? user.name : (newPetGuardianName.trim() || 'Pet Guardian'),
-      ownerEmail: user ? user.email : '',
-      ownerPhone: user ? user.mobile : newPetPhone.trim(),
-      parentContact: newPetPhone.trim() || (user ? user.mobile : '+91 8306-688-827'),
-      parentName: newPetGuardianName.trim() || (user ? user.name : 'Pet Guardian'),
+      ownerId: user._id || user.id,
+      ownerName: user.name || (newPetGuardianName.trim() || 'Pet Guardian'),
+      ownerEmail: user.email || '',
+      ownerPhone: user.mobile || newPetPhone.trim(),
+      parentContact: newPetPhone.trim() || user.mobile || '+91 8306-688-827',
+      parentName: newPetGuardianName.trim() || user.name || 'Pet Guardian',
       fee: finalFee,
       price: finalFee,
       vaccinated: newPetVaccinated,
@@ -522,7 +556,9 @@ const AdoptionShelter = () => {
                     <Plus size={16} className="text-primary" />
                     Add Pet
                   </span>
-                  <span className="text-[10px] bg-sand text-primary font-bold px-2 py-0.5 rounded-full">List Free</span>
+                  <span className="text-[10px] bg-sand text-primary font-bold px-2 py-0.5 rounded-full">
+                    {isAuthenticated ? '100% Free' : 'Login Required'}
+                  </span>
                 </div>
   
                 <p className="text-xs text-slate-500">
@@ -531,11 +567,11 @@ const AdoptionShelter = () => {
   
                 <button
                   type="button"
-                  onClick={() => setShowAddPetModal(true)}
+                  onClick={handleOpenAddPet}
                   className="w-full py-2.5 px-3 bg-primary hover:bg-accent text-white rounded-xl font-bold text-xs shadow-md shadow-gold/20 active:scale-95 transition cursor-pointer flex items-center justify-center gap-1.5"
                 >
                   <Plus size={15} />
-                  <span>List Pet For Adoption</span>
+                  <span>{isAuthenticated ? 'List Pet For Adoption' : 'Login to Post Pet'}</span>
                 </button>
               </div>
   
@@ -711,7 +747,7 @@ const AdoptionShelter = () => {
                     </span>
                     <button
                       type="button"
-                      onClick={() => setShowAddPetModal(true)}
+                      onClick={handleOpenAddPet}
                       className="sm:hidden px-3 py-1 bg-primary text-white text-xs font-bold rounded-lg flex items-center gap-1"
                     >
                       <Plus size={13} /> Add Pet
@@ -930,6 +966,31 @@ const AdoptionShelter = () => {
             {/* Form Fields Grid */}
             <div className="p-4 sm:p-6 space-y-4 overflow-y-auto flex-1 min-h-0 text-xs custom-scrollbar">
               
+              {/* Login required reminder banner if not authenticated */}
+              {!isAuthenticated && (
+                <div className="p-3 bg-blue-50/90 border border-blue-200 rounded-xl text-xs text-[#15559c] flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-2">
+                    <span className="text-base">🔒</span>
+                    <div>
+                      <p className="font-bold">Login or Registration Required</p>
+                      <p className="text-[11px] text-slate-600">You must be logged in to post and manage your pet listing.</p>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowAddPetModal(false);
+                      window.dispatchEvent(new CustomEvent('open-register-modal', {
+                        detail: { tab: 'user', hideProviderTab: true, source: 'adoption-post-pet' }
+                      }));
+                    }}
+                    className="px-3 py-1.5 bg-primary text-white font-bold rounded-lg text-xs whitespace-nowrap cursor-pointer hover:bg-accent transition"
+                  >
+                    Log In / Register
+                  </button>
+                </div>
+              )}
+
               {/* Pet Name & Category */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div className="space-y-1">
