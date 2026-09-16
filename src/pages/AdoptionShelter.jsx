@@ -5,7 +5,7 @@ import {
   Heart, MapPin, Search, Phone, MessageSquare, Info, ShieldCheck,
   CircleCheck, X, Plus, ChevronRight, Sparkles, Filter, SlidersHorizontal,
   Home, Award, Calendar, User, Check, ArrowRight, ChevronLeft,
-  UploadCloud, Camera, Image as ImageIcon
+  UploadCloud, Camera, Image as ImageIcon, AlertTriangle
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import {
@@ -14,7 +14,8 @@ import {
   CATEGORY_BREEDS,
   getStoredAdoptionPets,
   saveAdoptionPet,
-  compressImageFile
+  compressImageFile,
+  getGuardianListedPets
 } from '../data/adoptionPetsData';
 import ScrollReveal from '../components/ScrollReveal.jsx';
 
@@ -75,6 +76,17 @@ const AdoptionShelter = () => {
 
   // Workable "Add Pet" Modal States
   const [showAddPetModal, setShowAddPetModal] = useState(false);
+  const [showLimitReachedModal, setShowLimitReachedModal] = useState(false);
+
+  // Active free adoption pets listed by the current logged-in user (Max 1 allowed)
+  const userListedPets = useMemo(() => {
+    if (!user) return [];
+    const guardianPets = getGuardianListedPets(user) || [];
+    return guardianPets.filter((p) => !p.adopted && p.status !== 'Adopted');
+  }, [user, petsList]);
+
+  const hasReachedListingLimit = Boolean(user && userListedPets.length >= 1);
+  const activeUserPet = userListedPets[0] || null;
   const [newPetName, setNewPetName] = useState('');
   const [newPetType, setNewPetType] = useState('dogs');
   const [newPetBreed, setNewPetBreed] = useState('Labrador Retriever');
@@ -243,7 +255,7 @@ const AdoptionShelter = () => {
     window.open(`https://wa.me/918306688827?text=${text}`, '_blank');
   };
 
-  // Handle opening the "Add Pet" modal (Requires authentication)
+  // Handle opening the "Add Pet" modal (Requires authentication & 1-Pet Limit)
   const handleOpenAddPet = () => {
     if (!isAuthenticated || !user) {
       toast.error('Please log in or register to post a pet for free adoption.', {
@@ -259,6 +271,20 @@ const AdoptionShelter = () => {
       }));
       return;
     }
+
+    // Check if user already has an active free adoption pet listed
+    const freshGuardianPets = (getGuardianListedPets(user) || []).filter(
+      (p) => !p.adopted && p.status !== 'Adopted'
+    );
+    if (freshGuardianPets.length >= 1) {
+      setShowLimitReachedModal(true);
+      toast.error('Posting limit reached: You can only list 1 pet for free adoption at a time.', {
+        duration: 5000,
+        icon: '⚠️'
+      });
+      return;
+    }
+
     setShowAddPetModal(true);
   };
 
@@ -286,6 +312,20 @@ const AdoptionShelter = () => {
           source: 'adoption-post-pet'
         }
       }));
+      return;
+    }
+
+    // Guard: Prevent more than 1 free adoption pet per user
+    const freshGuardianPets = (getGuardianListedPets(user) || []).filter(
+      (p) => !p.adopted && p.status !== 'Adopted'
+    );
+    if (freshGuardianPets.length >= 1) {
+      setShowAddPetModal(false);
+      setShowLimitReachedModal(true);
+      toast.error('Posting limit reached: You can only list 1 pet for free adoption at a time.', {
+        duration: 5000,
+        icon: '⚠️'
+      });
       return;
     }
 
@@ -556,22 +596,47 @@ const AdoptionShelter = () => {
                     <Plus size={16} className="text-primary" />
                     Add Pet
                   </span>
-                  <span className="text-[10px] bg-sand text-primary font-bold px-2 py-0.5 rounded-full">
-                    {isAuthenticated ? '100% Free' : 'Login Required'}
+                  <span
+                    className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                      hasReachedListingLimit
+                        ? 'bg-amber-100 text-amber-800'
+                        : 'bg-sand text-primary'
+                    }`}
+                  >
+                    {hasReachedListingLimit
+                      ? '1/1 Limit Reached'
+                      : isAuthenticated
+                      ? '100% Free'
+                      : 'Login Required'}
                   </span>
                 </div>
   
                 <p className="text-xs text-slate-500">
-                  Have a pet needing a loving home or rescue? List them for adoption for free.
+                  {hasReachedListingLimit
+                    ? `You currently have an active adoption listing for "${activeUserPet?.name}". Free listings are limited to 1 pet per user.`
+                    : 'Have a pet needing a loving home or rescue? List them for adoption for free.'}
                 </p>
   
                 <button
                   type="button"
                   onClick={handleOpenAddPet}
-                  className="w-full py-2.5 px-3 bg-primary hover:bg-accent text-white rounded-xl font-bold text-xs shadow-md shadow-gold/20 active:scale-95 transition cursor-pointer flex items-center justify-center gap-1.5"
+                  className={`w-full py-2.5 px-3 rounded-xl font-bold text-xs shadow-md transition cursor-pointer flex items-center justify-center gap-1.5 ${
+                    hasReachedListingLimit
+                      ? 'bg-amber-600 hover:bg-amber-700 text-white shadow-amber-600/20'
+                      : 'bg-primary hover:bg-accent text-white shadow-gold/20 active:scale-95'
+                  }`}
                 >
-                  <Plus size={15} />
-                  <span>{isAuthenticated ? 'List Pet For Adoption' : 'Login to Post Pet'}</span>
+                  {hasReachedListingLimit ? (
+                    <>
+                      <AlertTriangle size={15} />
+                      <span>Listing Limit Reached (1/1)</span>
+                    </>
+                  ) : (
+                    <>
+                      <Plus size={15} />
+                      <span>{isAuthenticated ? 'List Pet For Adoption' : 'Login to Post Pet'}</span>
+                    </>
+                  )}
                 </button>
               </div>
   
@@ -748,9 +813,19 @@ const AdoptionShelter = () => {
                     <button
                       type="button"
                       onClick={handleOpenAddPet}
-                      className="sm:hidden px-3 py-1 bg-primary text-white text-xs font-bold rounded-lg flex items-center gap-1"
+                      className={`sm:hidden px-3 py-1 text-white text-xs font-bold rounded-lg flex items-center gap-1 cursor-pointer ${
+                        hasReachedListingLimit ? 'bg-amber-600 hover:bg-amber-700' : 'bg-primary'
+                      }`}
                     >
-                      <Plus size={13} /> Add Pet
+                      {hasReachedListingLimit ? (
+                        <>
+                          <AlertTriangle size={13} /> Limit (1/1)
+                        </>
+                      ) : (
+                        <>
+                          <Plus size={13} /> Add Pet
+                        </>
+                      )}
                     </button>
                   </div>
                 </div>
@@ -1378,6 +1453,104 @@ const AdoptionShelter = () => {
             </div>
 
           </form>
+        </div>
+      )}
+
+      {/* =========================================================================
+          5. LIMIT REACHED POPUP MODAL (1 Free Adoption Pet Per User Policy)
+         ========================================================================= */}
+      {showLimitReachedModal && (
+        <div className="fixed inset-0 z-[110] overflow-y-auto bg-slate-900/60 backdrop-blur-xs p-4 flex items-center justify-center animate-in fade-in duration-200">
+          <div
+            onClick={() => setShowLimitReachedModal(false)}
+            className="fixed inset-0 bg-transparent"
+          ></div>
+
+          <div className="relative bg-white w-full max-w-md rounded-3xl shadow-2xl border border-amber-200/90 overflow-hidden z-10 p-6 sm:p-7 text-center animate-in zoom-in-95 duration-200">
+            {/* Close button */}
+            <button
+              type="button"
+              onClick={() => setShowLimitReachedModal(false)}
+              className="absolute top-4 right-4 w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-800 flex items-center justify-center transition cursor-pointer"
+              aria-label="Close modal"
+            >
+              <X size={18} />
+            </button>
+
+            {/* Warning / Alert Icon Badge */}
+            <div className="w-16 h-16 rounded-2xl bg-amber-50 border border-amber-200/80 text-amber-600 flex items-center justify-center mx-auto mb-4 shadow-inner">
+              <AlertTriangle size={32} className="text-amber-600" />
+            </div>
+
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-100/80 text-amber-900 text-[11px] font-bold uppercase tracking-wider mb-2">
+              <span>Policy Restriction</span>
+              <span>•</span>
+              <span>1 Pet Per User</span>
+            </div>
+
+            <h3 className="font-serif text-xl font-bold text-slate-900 mb-2">
+              Free Adoption Listing Limit Reached
+            </h3>
+
+            <p className="text-xs text-slate-600 leading-relaxed mb-4">
+              Every single user is allowed to post a maximum of <strong>1 pet for free adoption</strong> at a time. You cannot post additional pets while you have an active listing.
+            </p>
+
+            {/* Active Pet Card Preview */}
+            {activeUserPet && (
+              <div className="bg-slate-50 rounded-2xl border border-slate-200 p-3.5 flex items-center gap-3 text-left mb-4">
+                <img
+                  src={activeUserPet.image}
+                  alt={activeUserPet.name}
+                  className="w-14 h-14 rounded-xl object-cover border border-slate-200 shrink-0 bg-white"
+                />
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center justify-between gap-1">
+                    <h4 className="text-sm font-bold text-slate-900 truncate">
+                      {activeUserPet.name}
+                    </h4>
+                    <span className="text-[10px] bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded-full shrink-0">
+                      Active (1/1)
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-slate-500 truncate">
+                    {activeUserPet.breed} • {activeUserPet.city || activeUserPet.state || 'India'}
+                  </p>
+                  <p className="text-[10px] text-primary font-semibold mt-0.5">
+                    Listed on {activeUserPet.createdAt ? new Date(activeUserPet.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : 'Recently'}
+                  </p>
+                </div>
+              </div>
+            )}
+
+            <p className="text-[11px] text-slate-400 mb-5 leading-normal">
+              💡 Need to list another pet? Once your current listing is marked as adopted or rehomed, your free listing slot will become available again.
+            </p>
+
+            {/* Action Buttons */}
+            <div className="flex flex-col sm:flex-row gap-2.5">
+              {activeUserPet && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowLimitReachedModal(false);
+                    navigate(`/adopt/${activeUserPet.id}`);
+                  }}
+                  className="flex-1 py-2.5 px-4 bg-primary hover:bg-accent text-white font-bold text-xs rounded-xl shadow-md transition cursor-pointer flex items-center justify-center gap-1.5"
+                >
+                  <span>View My Active Pet</span>
+                  <ChevronRight size={14} />
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={() => setShowLimitReachedModal(false)}
+                className="flex-1 py-2.5 px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl transition cursor-pointer"
+              >
+                Understood & Close
+              </button>
+            </div>
+          </div>
         </div>
       )}
 
