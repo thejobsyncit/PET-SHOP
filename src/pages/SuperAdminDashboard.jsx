@@ -499,7 +499,7 @@ const SuperAdminDashboard = () => {
             <p className="font-semibold text-primary uppercase tracking-wider flex items-center gap-1">
               <ShieldCheck size={12} className="text-[#7CA085]" /> Super Admin Credentials Notice
             </p>
-            <p><strong>Admin Email:</strong> superadmin@pawora.com</p>
+            <p><strong>Admin Email:</strong> superadmin@joshpetshub.com</p>
             <p><strong>Password:</strong> SuperAdmin@123</p>
           </div>
 

@@ -10,7 +10,7 @@ const PageLoader = () => {
         </div>
       </div>
       <div className="mt-3 text-[11px] font-bold text-slate-500 uppercase tracking-widest animate-pulse">
-        Loading Pawora...
+        Loading Josh Pets Hub...
       </div>
     </div>
   );

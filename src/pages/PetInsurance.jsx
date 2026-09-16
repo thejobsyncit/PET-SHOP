@@ -2171,12 +2171,12 @@ const PetInsurance = () => {
         </div>
       </ScrollReveal>
 
-      {/* 9. WHY DO PET PARENTS CHOOSE PAWORA? (TESTIMONIALS) */}
+      {/* 9. WHY DO PET PARENTS CHOOSE JOSH PETS HUB? (TESTIMONIALS) */}
       <ScrollReveal variant="fade" className="bg-white border-t border-gray-200 py-8 lg:py-16 px-4 md:px-8">
         <div className="max-w-7xl mx-auto space-y-10">
           <div className="text-center space-y-2 max-w-2xl mx-auto">
             <h2 className="text-2xl md:text-4xl font-serif font-bold text-slate-900">
-              Why Do Pet Parents Choose Pawora?
+              Why Do Pet Parents Choose Josh Pets Hub?
             </h2>
             <p className="text-xs md:text-sm text-gray-500">
               No. 1 Pet Care Provider with 100+ verified positive reinforcement trainers, behaviorists, and academies.

@@ -85,7 +85,7 @@ const TrainingProviderContent = ({ activeTab, user }) => {
     experience: '8+ Years Experience',
     phone: user?.mobile || '+91 98453 34455',
     whatsapp: user?.mobile || '+91 98453 34455',
-    email: user?.email || 'clevercanines@pawora.com',
+    email: user?.email || 'clevercanines@joshpetshub.com',
     state: user?.location?.split(',')[1]?.trim() || 'Karnataka',
     city: user?.location?.split(',')[0]?.trim() || 'Bangalore',
     area: 'Indiranagar, HSR Layout & Whitefield',
@@ -789,7 +789,7 @@ const TrainingProviderContent = ({ activeTab, user }) => {
                       type="email"
                       value={serviceForm.email}
                       onChange={(e) => setServiceForm({ ...serviceForm, email: e.target.value })}
-                      placeholder="e.g. trainer@pawora.com"
+                      placeholder="e.g. trainer@joshpetshub.com"
                       className="w-full text-sm px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:border-emerald-600"
                     />
                   </div>

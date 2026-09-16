@@ -649,7 +649,7 @@ const PetAdoptionDashboard = ({
         parentContact: emergencyPhone || user?.mobile || '+91 98455 77661',
         parentName: shelterLegalName || user?.businessName || user?.name || 'Hope Sanctuary',
         ownerId: user?._id || user?.id || 'shelter_1',
-        ownerEmail: user?.email || 'adopt@pawora.com',
+        ownerEmail: user?.email || 'adopt@joshpetshub.com',
         ownerPhone: user?.mobile || emergencyPhone,
         status: 'Available',
         adopted: false,

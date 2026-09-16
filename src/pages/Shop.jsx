@@ -11,22 +11,22 @@ import ScrollReveal from '../components/ScrollReveal.jsx';
 
 // Brand mappings per pet department & pharmacy pet type
 const DEPARTMENT_BRANDS = {
-  all: ['Royal Canin', 'Pedigree', 'Drools', 'Zoo Med', 'Exo Terra', 'API', 'Hikari', 'Himalaya', 'Beaphar', 'Pawora'],
-  dogs: ['Royal Canin', 'Pedigree', 'Drools', 'Himalaya', 'Beaphar', 'Pawora'],
-  cats: ['Royal Canin', 'Drools', 'Himalaya', 'Beaphar', 'Pawora'],
-  birds: ['Zoo Med', 'Beaphar', 'Himalaya', 'Pawora'],
-  reptiles: ['Exo Terra', 'Zoo Med', 'Pawora'],
-  fish: ['API', 'Hikari', 'Pawora'],
-  pharmacy: ['Himalaya', 'Beaphar', 'Pawora']
+  all: ['Royal Canin', 'Pedigree', 'Drools', 'Zoo Med', 'Exo Terra', 'API', 'Hikari', 'Himalaya', 'Beaphar', 'Josh Pets Hub'],
+  dogs: ['Royal Canin', 'Pedigree', 'Drools', 'Himalaya', 'Beaphar', 'Josh Pets Hub'],
+  cats: ['Royal Canin', 'Drools', 'Himalaya', 'Beaphar', 'Josh Pets Hub'],
+  birds: ['Zoo Med', 'Beaphar', 'Himalaya', 'Josh Pets Hub'],
+  reptiles: ['Exo Terra', 'Zoo Med', 'Josh Pets Hub'],
+  fish: ['API', 'Hikari', 'Josh Pets Hub'],
+  pharmacy: ['Himalaya', 'Beaphar', 'Josh Pets Hub']
 };
 
 const PHARMACY_PET_BRANDS = {
-  all: ['Himalaya', 'Beaphar', 'Pawora'],
-  dog: ['Himalaya', 'Beaphar', 'Pawora'],
-  cat: ['Himalaya', 'Beaphar', 'Pawora'],
-  bird: ['Beaphar', 'Himalaya', 'Pawora'],
-  reptile: ['Zoo Med', 'Exo Terra', 'Pawora'],
-  fish: ['API', 'Hikari', 'Pawora']
+  all: ['Himalaya', 'Beaphar', 'Josh Pets Hub'],
+  dog: ['Himalaya', 'Beaphar', 'Josh Pets Hub'],
+  cat: ['Himalaya', 'Beaphar', 'Josh Pets Hub'],
+  bird: ['Beaphar', 'Himalaya', 'Josh Pets Hub'],
+  reptile: ['Zoo Med', 'Exo Terra', 'Josh Pets Hub'],
+  fish: ['API', 'Hikari', 'Josh Pets Hub']
 };
 
 const PHARMACY_PET_OPTIONS = [
@@ -275,7 +275,7 @@ const Shop = () => {
 
   const activePet = filters.petType;
   const currentMeta = petMetadata[activePet] || {
-    title: 'Pawora Luxury Collection',
+    title: 'Josh Pets Hub Luxury Collection',
     desc: 'Everything they need. Everything they love. Browse our collection of premium pet lifestyle foods, veterinary healthcare supplements, and designer enclosures.',
     hero: 'https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?q=80&w=1200',
     subcategories: [],
@@ -573,7 +573,7 @@ const Shop = () => {
         ))}
         <ScrollReveal variant="blurIn" className="relative z-10 max-w-4xl mx-auto px-6 text-center text-white space-y-5">
           <span className="inline-block text-[10px] md:text-xs tracking-[0.25em] font-bold text-amber-400 uppercase bg-black/40 backdrop-blur-md px-4 py-1.5 rounded-full border border-white/10 shadow-2xl">
-            PAWORA LIFE EXCLUSIVE
+            JOSH PETS HUB LIFE EXCLUSIVE
           </span>
           <h1 className="font-serif text-4xl md:text-6xl text-white drop-shadow-2xl tracking-tight leading-tight">
             {currentMeta.title}

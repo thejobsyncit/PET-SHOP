@@ -55,7 +55,7 @@ export const PET_INSURANCE_TESTIMONIALS = [
     dog: 'Bella (German Shepherd)',
     city: 'Delhi NCR',
     avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=800&auto=format&fit=crop',
-    quote: 'We believe in humane, force-free science. Bella learned perfect recall, agility jumps, and stays calm around strangers. Highly recommend Pawora trainers!',
+    quote: 'We believe in humane, force-free science. Bella learned perfect recall, agility jumps, and stays calm around strangers. Highly recommend Josh Pets Hub trainers!',
     rating: 5
   }
 ];
@@ -259,8 +259,8 @@ export const INITIAL_INSURANCE_PROVIDERS = [
   },
   {
     id: 'ins-prov-04',
-    name: 'Pawora Guardian Plus (Everyday Wellness)',
-    company: 'Pawora Certified Health Network & Underwriters',
+    name: 'Josh Pets Hub Guardian Plus (Everyday Wellness)',
+    company: 'Josh Pets Hub Certified Health Network & Underwriters',
     category: 'OPD & Wellness Shield',
     planType: 'OPD & Wellness Shield',
     tagline: 'Complete Routine Vet Visits, Vaccinations, Deworming & Unlimited 24/7 Tele-Vets',
@@ -269,7 +269,7 @@ export const INITIAL_INSURANCE_PROVIDERS = [
     rating: 4.98,
     reviewsCount: 640,
     claimSettlementRatio: '99.6%',
-    avgClaimSpeed: 'Instant (Pawora Wallet)',
+    avgClaimSpeed: 'Instant (Josh Pets Hub Wallet)',
     cashlessClinicsCount: '1,650+',
     verifiedIrdai: true,
     annualPremium: 2999,
@@ -281,9 +281,9 @@ export const INITIAL_INSURANCE_PROVIDERS = [
     eligibleAge: '6 Weeks - 14 Years',
     speciesCovered: ['Dogs', 'Cats', 'Birds', 'Exotic Pets'],
     statesSupported: ['All States'],
-    phone: '1800-PAWORA-PET',
+    phone: '1800-JOSH-PETS',
     whatsapp: '+91 98450 11223',
-    email: 'insurance@pawora.com',
+    email: 'insurance@joshpetshub.com',
     features: [
       'Cashless Vet Network',
       'OPD & Prescription Medicines',
@@ -556,11 +556,11 @@ export const INITIAL_INSURANCE_PROVIDERS = [
 export const INSURANCE_FAQS = [
   {
     q: 'How does Cashless Pet Hospitalization work in India?',
-    a: 'Just like human health insurance, you walk into any of the 1,500+ partner veterinary clinics or animal hospitals with your Pawora Digital Policy Card. The hospital coordinates directly with the insurer desk and clears medical bills instantly upon discharge, without you needing to pay upfront.'
+    a: 'Just like human health insurance, you walk into any of the 1,500+ partner veterinary clinics or animal hospitals with your Josh Pets Hub Digital Policy Card. The hospital coordinates directly with the insurer desk and clears medical bills instantly upon discharge, without you needing to pay upfront.'
   },
   {
     q: 'Are Indie / Indian mixed-breed dogs and cats eligible for insurance?',
-    a: 'Yes, absolutely! Indie pets are 100% covered by all partner insurers (Bajaj Allianz, Digit, Pawora Guardian, etc.). In fact, Indies often receive lower premium rates due to higher natural immunity and lower genetic risk factors.'
+    a: 'Yes, absolutely! Indie pets are 100% covered by all partner insurers (Bajaj Allianz, Digit, Josh Pets Hub Guardian, etc.). In fact, Indies often receive lower premium rates due to higher natural immunity and lower genetic risk factors.'
   },
   {
     q: 'What is Third-Party Liability cover in pet insurance?',
@@ -572,7 +572,7 @@ export const INSURANCE_FAQS = [
   },
   {
     q: 'Can I claim reimbursement if my local vet is not on the cashless network?',
-    a: 'Yes! You can visit any certified registered veterinarian (B.V.Sc degree holder). Pay the bill, click a photo of the prescription and tax invoice via the Pawora App, and the reimbursement is credited to your bank account within 24 to 48 hours.'
+    a: 'Yes! You can visit any certified registered veterinarian (B.V.Sc degree holder). Pay the bill, click a photo of the prescription and tax invoice via the Josh Pets Hub App, and the reimbursement is credited to your bank account within 24 to 48 hours.'
   }
 ];
 

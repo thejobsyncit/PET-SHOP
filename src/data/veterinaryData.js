@@ -45,7 +45,7 @@ export const VET_CLINICAL_TABS = [
       'Parasite Prevention (Fleas, Ticks, Heartworms)',
       'Microchipping & International Travel Health Certificates'
     ],
-    highlights: ['Regular Health Updates', 'Live Status on Pawora App', 'Continued Doctor Follow-up']
+    highlights: ['Regular Health Updates', 'Live Status on Josh Pets Hub App', 'Continued Doctor Follow-up']
   },
   {
     id: 'anesthesia',
@@ -125,7 +125,7 @@ export const INITIAL_VET_DOCTORS = [
     name: 'Dr. Rajesh Iyer',
     degrees: 'B.V.Sc & A.H, M.V.Sc (Veterinary Surgery & Radiology)',
     title: 'Chief Veterinary Surgeon & Medical Director',
-    clinicName: 'Pawora Luxury Multi-Specialty Pet Hospital',
+    clinicName: 'Josh Pets Hub Luxury Multi-Specialty Pet Hospital',
     experienceYears: 14,
     experienceDisplay: '14+ Years Exp.',
     vciRegistration: 'VCI/2010/KA-08492',
@@ -642,7 +642,7 @@ export const INITIAL_VET_APPOINTMENTS = [
     id: 'app-001',
     doctorId: 'my-vet-profile',
     doctorName: 'Dr. Ramesh Kumar',
-    clinicName: 'Pawora Luxury Vet Clinic & Diagnostic Center',
+    clinicName: 'Josh Pets Hub Luxury Vet Clinic & Diagnostic Center',
     petName: 'Bruno',
     petSpecies: 'Dog',
     petBreed: 'Golden Retriever',
@@ -660,7 +660,7 @@ export const INITIAL_VET_APPOINTMENTS = [
     id: 'app-002',
     doctorId: 'my-vet-profile',
     doctorName: 'Dr. Ramesh Kumar',
-    clinicName: 'Pawora Luxury Vet Clinic & Diagnostic Center',
+    clinicName: 'Josh Pets Hub Luxury Vet Clinic & Diagnostic Center',
     petName: 'Coco',
     petSpecies: 'Dog',
     petBreed: 'Shih Tzu',
@@ -678,7 +678,7 @@ export const INITIAL_VET_APPOINTMENTS = [
     id: 'app-003',
     doctorId: 'my-vet-profile',
     doctorName: 'Dr. Ramesh Kumar',
-    clinicName: 'Pawora Luxury Vet Clinic & Diagnostic Center',
+    clinicName: 'Josh Pets Hub Luxury Vet Clinic & Diagnostic Center',
     petName: 'Milo',
     petSpecies: 'Cat',
     petBreed: 'Persian Cat',
@@ -696,7 +696,7 @@ export const INITIAL_VET_APPOINTMENTS = [
     id: 'app-004',
     doctorId: 'my-vet-profile',
     doctorName: 'Dr. Ramesh Kumar',
-    clinicName: 'Pawora Luxury Vet Clinic & Diagnostic Center',
+    clinicName: 'Josh Pets Hub Luxury Vet Clinic & Diagnostic Center',
     petName: 'Bella',
     petSpecies: 'Dog',
     petBreed: 'Labrador Retriever',
@@ -714,7 +714,7 @@ export const INITIAL_VET_APPOINTMENTS = [
     id: 'app-005',
     doctorId: 'my-vet-profile',
     doctorName: 'Dr. Ramesh Kumar',
-    clinicName: 'Pawora Luxury Vet Clinic & Diagnostic Center',
+    clinicName: 'Josh Pets Hub Luxury Vet Clinic & Diagnostic Center',
     petName: 'Leo',
     petSpecies: 'Dog',
     petBreed: 'Beagle',
@@ -828,7 +828,7 @@ export const INITIAL_VET_PRESCRIPTIONS = [
     doctorName: 'Dr. Ramesh Kumar',
     doctorDegrees: 'B.V.Sc & A.H, M.V.Sc (Veterinary Surgery)',
     vciRegistration: 'VCI/2010/KA-08492',
-    clinicName: 'Pawora Luxury Vet Clinic & Diagnostic Center',
+    clinicName: 'Josh Pets Hub Luxury Vet Clinic & Diagnostic Center',
     clinicAddress: 'MG Road, Bangalore, Karnataka • Phone: +91 98450 88219',
     createdAt: new Date().toISOString()
   },
@@ -854,7 +854,7 @@ export const INITIAL_VET_PRESCRIPTIONS = [
     doctorName: 'Dr. Ramesh Kumar',
     doctorDegrees: 'B.V.Sc & A.H, M.V.Sc (Veterinary Surgery)',
     vciRegistration: 'VCI/2010/KA-08492',
-    clinicName: 'Pawora Luxury Vet Clinic & Diagnostic Center',
+    clinicName: 'Josh Pets Hub Luxury Vet Clinic & Diagnostic Center',
     clinicAddress: 'MG Road, Bangalore, Karnataka • Phone: +91 98450 88219',
     createdAt: new Date(Date.now() - 86400000).toISOString()
   },
@@ -880,7 +880,7 @@ export const INITIAL_VET_PRESCRIPTIONS = [
     doctorName: 'Dr. Ramesh Kumar',
     doctorDegrees: 'B.V.Sc & A.H, M.V.Sc (Veterinary Surgery)',
     vciRegistration: 'VCI/2010/KA-08492',
-    clinicName: 'Pawora Luxury Vet Clinic & Diagnostic Center',
+    clinicName: 'Josh Pets Hub Luxury Vet Clinic & Diagnostic Center',
     clinicAddress: 'MG Road, Bangalore, Karnataka • Phone: +91 98450 88219',
     createdAt: new Date(Date.now() - 86400000 * 6).toISOString()
   }

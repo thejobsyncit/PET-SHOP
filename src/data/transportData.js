@@ -77,7 +77,7 @@ export const TRANSPORT_STEPS = [
 export const INITIAL_TRANSPORT_PROVIDERS = [
   {
     id: 'TRP-101',
-    name: 'Pawora Air & Road Pet Relocators',
+    name: 'Josh Pets Hub Air & Road Pet Relocators',
     tagline: 'Pan-India IATA Certified Air & Road Doorstep Pet Relocation',
     leadCoordinator: 'Capt. Rajesh Sharma (Ex-Aviation Pet Safety Officer)',
     experience: '11+ Years Experience',
@@ -847,7 +847,7 @@ export const INITIAL_DEMO_ENQUIRIES = [
   {
     id: 'ENQ-TRP-901',
     providerId: 'TRP-101',
-    providerName: 'Pawora Air & Road Pet Relocators',
+    providerName: 'Josh Pets Hub Air & Road Pet Relocators',
     userId: 'usr-demo-01',
     userName: 'Riya Sen',
     userEmail: 'riya.sen@example.com',

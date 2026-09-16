@@ -188,7 +188,7 @@ const MegaMenu = ({ category, onClose }) => {
           <div className="space-y-2">
             <div className="flex items-center gap-1.5 text-[10px] text-accent font-semibold tracking-wider uppercase">
               <Sparkles size={12} />
-              <span>PAWORA SIGNATURE</span>
+              <span>JOSH PETS HUB SIGNATURE</span>
             </div>
             <h4 className="font-serif text-base text-primary font-bold">
               {data.title}

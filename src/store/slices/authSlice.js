@@ -102,7 +102,7 @@ export const login = createAsyncThunk('auth/login', async (credentials, thunkAPI
         {
           _id: 'prov-vet-01',
           name: 'Dr. Ramesh Kumar',
-          email: 'dr.ramesh@pawora.com',
+          email: 'dr.ramesh@joshpetshub.com',
           mobile: '9845012345',
           password: 'Pass@1234',
           role: 'SERVICE_PROVIDER',
@@ -112,7 +112,7 @@ export const login = createAsyncThunk('auth/login', async (credentials, thunkAPI
         {
           _id: 'prov-groom-02',
           name: 'Velvet Fur Grooming Studio',
-          email: 'velvetfur@pawora.com',
+          email: 'velvetfur@joshpetshub.com',
           mobile: '9845199882',
           password: 'Pass@1234',
           role: 'SERVICE_PROVIDER',
@@ -122,7 +122,7 @@ export const login = createAsyncThunk('auth/login', async (credentials, thunkAPI
         {
           _id: 'prov-hostel-03',
           name: 'Happy Paws Pet Resort',
-          email: 'happypaws@pawora.com',
+          email: 'happypaws@joshpetshub.com',
           mobile: '9731299881',
           password: 'Pass@1234',
           role: 'SERVICE_PROVIDER',
@@ -132,7 +132,7 @@ export const login = createAsyncThunk('auth/login', async (credentials, thunkAPI
         {
           _id: 'prov-seller-04',
           name: 'Royal Paws Elite Pet Sellers',
-          email: 'royalpaws@pawora.com',
+          email: 'royalpaws@joshpetshub.com',
           mobile: '9945122334',
           password: 'Pass@1234',
           role: 'SERVICE_PROVIDER',
@@ -143,7 +143,7 @@ export const login = createAsyncThunk('auth/login', async (credentials, thunkAPI
           _id: 'prov-adopt-05',
           name: 'Hope Animal Sanctuary & Adoption Center',
           businessName: 'Hope Animal Welfare Foundation & Sanctuary',
-          email: 'adopt@pawora.com',
+          email: 'adopt@joshpetshub.com',
           mobile: '9845577661',
           password: 'Pass@1234',
           role: 'SERVICE_PROVIDER',
@@ -159,7 +159,7 @@ export const login = createAsyncThunk('auth/login', async (credentials, thunkAPI
         {
           _id: 'prov-walk-06',
           name: 'Swift Paws Walking',
-          email: 'swiftpaws@pawora.com',
+          email: 'swiftpaws@joshpetshub.com',
           mobile: '9845112233',
           password: 'Pass@1234',
           role: 'SERVICE_PROVIDER',
@@ -169,7 +169,7 @@ export const login = createAsyncThunk('auth/login', async (credentials, thunkAPI
         {
           _id: 'prov-trans-07',
           name: 'SafePet Transit',
-          email: 'safepet@pawora.com',
+          email: 'safepet@joshpetshub.com',
           mobile: '9845223344',
           password: 'Pass@1234',
           role: 'SERVICE_PROVIDER',
@@ -179,7 +179,7 @@ export const login = createAsyncThunk('auth/login', async (credentials, thunkAPI
         {
           _id: 'prov-train-08',
           name: 'Clever Canines',
-          email: 'clevercanines@pawora.com',
+          email: 'clevercanines@joshpetshub.com',
           mobile: '9845334455',
           password: 'Pass@1234',
           role: 'SERVICE_PROVIDER',
@@ -189,7 +189,7 @@ export const login = createAsyncThunk('auth/login', async (credentials, thunkAPI
         {
           _id: 'prov-insure-09',
           name: 'PawProtect Insurance',
-          email: 'pawinsure@pawora.com',
+          email: 'pawinsure@joshpetshub.com',
           mobile: '9845445566',
           password: 'Pass@1234',
           role: 'SERVICE_PROVIDER',
@@ -199,7 +199,7 @@ export const login = createAsyncThunk('auth/login', async (credentials, thunkAPI
         {
           _id: 'prov-breed-10',
           name: 'Elite Breeds Hub',
-          email: 'elitebreed@pawora.com',
+          email: 'elitebreed@joshpetshub.com',
           mobile: '9845556677',
           password: 'Pass@1234',
           role: 'SERVICE_PROVIDER',
@@ -209,7 +209,7 @@ export const login = createAsyncThunk('auth/login', async (credentials, thunkAPI
         {
           _id: 'user-demo-01',
           name: 'Priya Sharma',
-          email: 'priya@pawora.com',
+          email: 'priya@joshpetshub.com',
           mobile: '9876543210',
           password: 'Pass@1234',
           role: 'CUSTOMER',
@@ -219,7 +219,7 @@ export const login = createAsyncThunk('auth/login', async (credentials, thunkAPI
         {
           _id: 'admin-demo-01',
           name: 'Admin User',
-          email: 'admin@pawora.com',
+          email: 'admin@joshpetshub.com',
           mobile: '9888888888',
           password: 'Admin@123',
           role: 'ADMIN',
@@ -229,7 +229,7 @@ export const login = createAsyncThunk('auth/login', async (credentials, thunkAPI
         {
           _id: 'superadmin-demo-01',
           name: 'Super Admin',
-          email: 'superadmin@pawora.com',
+          email: 'superadmin@joshpetshub.com',
           mobile: '9999999999',
           password: 'SuperAdmin@123',
           role: 'SUPERADMIN',
@@ -242,7 +242,13 @@ export const login = createAsyncThunk('auth/login', async (credentials, thunkAPI
       const allAccounts = [...DEMO_ACCOUNTS, ...registeredUsers];
       
       const matched = allAccounts.find((u) => {
-        const emailMatch = u.email && u.email.toLowerCase() === rawId.toLowerCase();
+        const uEmail = (u.email || '').toLowerCase();
+        const searchId = rawId.toLowerCase();
+        const emailMatch = uEmail && (
+          uEmail === searchId ||
+          uEmail.replace('@joshpetshub.com', '@pawora.com') === searchId ||
+          uEmail.replace('@pawora.com', '@joshpetshub.com') === searchId
+        );
         const userMobileClean = (u.mobile || '').replace(/\D/g, '');
         const mobileMatch = cleanMobile.length >= 10 && userMobileClean && (
           userMobileClean === cleanMobile ||

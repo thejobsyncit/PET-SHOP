@@ -11,13 +11,13 @@ const About = () => {
         <div className="absolute inset-0">
           <img 
             src="https://images.unsplash.com/photo-1552053831-71594a27632d?q=80&w=800&auto=format&fit=crop" 
-            alt="About Pawora Brand" 
+            alt="About Josh Pets Hub Brand" 
             className="w-full h-full object-cover filter brightness-[0.55]"
           />
         </div>
         <div className="relative z-10 max-w-4xl mx-auto px-6 text-center text-white space-y-4">
           <span className="text-[10px] tracking-widest font-bold text-accent uppercase flex items-center justify-center gap-1.5 animate-pulse">
-            <Sparkles size={12} /> THE PAWORA MANIFESTO
+            <Sparkles size={12} /> THE JOSH PETS HUB MANIFESTO
           </span>
           <h1 className="font-serif text-3xl md:text-5xl text-secondary">Our Animal Philosophy</h1>
           <p className="text-xs md:text-sm text-secondary-dark max-w-xl mx-auto leading-relaxed font-light">
@@ -31,10 +31,10 @@ const About = () => {
         <section className="max-w-4xl mx-auto px-6 space-y-6 text-xs text-gray-600 leading-relaxed text-center">
           <h2 className="font-serif text-xl md:text-2xl text-primary font-medium">“Everything They Need. Everything They Love.”</h2>
           <p className="max-w-2xl mx-auto font-light">
-            Founded in 2026, **PAWORA** arose from a simple realization: modern pet supply stores treat animal husbandry like a secondary commodity. Cheap grains, toxic cage wires, lack of lighting regulation, and confusing medical channels put the health of our companions at risk.
+            Founded in 2026, **JOSH PETS HUB** arose from a simple realization: modern pet supply stores treat animal husbandry like a secondary commodity. Cheap grains, toxic cage wires, lack of lighting regulation, and confusing medical channels put the health of our companions at risk.
           </p>
           <p className="max-w-2xl mx-auto font-light">
-            We designed Pawora as an international-standard pet lifestyle brand. Combining expert veterinary medicine research, high-quality organic ingredients sourcing, and luxury D2C design aesthetics, we create products and enclosures that harmonize with your home and elevate your pet\'s quality of life.
+            We designed Josh Pets Hub as an international-standard pet lifestyle brand. Combining expert veterinary medicine research, high-quality organic ingredients sourcing, and luxury D2C design aesthetics, we create products and enclosures that harmonize with your home and elevate your pet's quality of life.
           </p>
         </section>
       </ScrollReveal>

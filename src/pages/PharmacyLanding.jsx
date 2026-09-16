@@ -93,13 +93,13 @@ const PharmacyLanding = () => {
         <div className="absolute inset-0">
           <img 
             src="https://images.unsplash.com/photo-1534361960057-19889db9621e?q=80&w=800&auto=format&fit=crop" 
-            alt="Pawora Veterinary Pharmacy" 
+            alt="Josh Pets Hub Veterinary Pharmacy" 
             className="w-full h-full object-cover filter brightness-[0.6]"
           />
         </div>
         <div className="relative z-10 max-w-4xl mx-auto px-6 text-center text-white space-y-4">
           <span className="text-[10px] tracking-widest font-bold text-accent uppercase flex items-center justify-center gap-1">
-            <ClipboardList size={12} /> PAWORA RX CLINIC & APOTHECARY
+            <ClipboardList size={12} /> JOSH PETS HUB RX CLINIC & APOTHECARY
           </span>
           <h1 className="font-serif text-3xl md:text-5xl text-secondary">Veterinary Health & Pharmacy</h1>
           <p className="text-xs md:text-sm text-secondary-dark max-w-xl mx-auto leading-relaxed font-light">
@@ -113,7 +113,7 @@ const PharmacyLanding = () => {
         <div className="p-4 bg-yellow-50 border border-yellow-200 text-yellow-800 text-xs flex items-center gap-3">
           <ShieldAlert size={20} className="shrink-0" />
           <p className="leading-relaxed">
-            <strong>CRITICAL SAFETY NOTE:</strong> Always follow veterinary guidance when using medicines or supplements. Never exceed dosage regulations. Pawora does not make medical claims, and prescription verification is legally mandatory for Rx-classified items.
+            <strong>CRITICAL SAFETY NOTE:</strong> Always follow veterinary guidance when using medicines or supplements. Never exceed dosage regulations. Josh Pets Hub does not make medical claims, and prescription verification is legally mandatory for Rx-classified items.
           </p>
         </div>
       </section>

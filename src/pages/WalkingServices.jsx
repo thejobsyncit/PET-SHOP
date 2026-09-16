@@ -950,14 +950,14 @@ const WalkingServices = () => {
       </ScrollReveal>
 
       {/* =========================================================================
-          5. "PAWORA SAFEWALK 3-STEP GUARANTEE"
+          5. "JOSH PETS HUB SAFEWALK 3-STEP GUARANTEE"
          ========================================================================= */}
       <ScrollReveal variant="fade" className="bg-white border-y border-purple-100 py-8 lg:py-16 px-4 md:px-8">
         <div className="max-w-7xl mx-auto text-center space-y-12">
           
           <div className="max-w-2xl mx-auto space-y-2">
             <h2 className="text-2xl md:text-3xl font-extrabold text-slate-900 font-sans">
-              Safe & Tracked Walks <span className="text-[#7c56dc]">At Pawora</span>
+              Safe & Tracked Walks <span className="text-[#7c56dc]">At Josh Pets Hub</span>
             </h2>
             <p className="text-xs md:text-sm text-slate-500 font-medium">
               You choose your preferred walk schedule, and we assign a certified, background-checked walker for your pet.

@@ -503,7 +503,7 @@ const AdminDashboard = () => {
               <p className="font-semibold text-primary uppercase tracking-wider flex items-center gap-1">
                 <ShieldCheck size={12} className="text-[#7CA085]" /> Admin Credentials Notice
               </p>
-              <p><strong>Admin Email:</strong> admin@pawora.com</p>
+              <p><strong>Admin Email:</strong> admin@joshpetshub.com</p>
               <p><strong>Password:</strong> Admin@123</p>
             </div>
             
@@ -516,7 +516,7 @@ const AdminDashboard = () => {
                   Go to Portal
                 </button>
               </p>
-              <p><strong>Superadmin Email:</strong> superadmin@pawora.com</p>
+              <p><strong>Superadmin Email:</strong> superadmin@joshpetshub.com</p>
               <p><strong>Password:</strong> SuperAdmin@123</p>
             </div>
           </div>

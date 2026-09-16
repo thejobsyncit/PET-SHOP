@@ -142,7 +142,7 @@ export const TRAINING_TESTIMONIALS = [
     dog: 'Bella (German Shepherd)',
     city: 'Delhi NCR',
     avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=800&auto=format&fit=crop',
-    quote: 'We believe in humane, force-free science. Bella learned perfect recall, agility jumps, and stays calm around strangers. Highly recommend Pawora trainers!',
+    quote: 'We believe in humane, force-free science. Bella learned perfect recall, agility jumps, and stays calm around strangers. Highly recommend Josh Pets Hub trainers!',
     rating: 5
   }
 ];
@@ -150,7 +150,7 @@ export const TRAINING_TESTIMONIALS = [
 export const INITIAL_TRAINING_PROVIDERS = [
   {
     id: 'TRN-101',
-    name: 'Pawora Elite K9 Academy & Behaviorists',
+    name: 'Josh Pets Hub Elite K9 Academy & Behaviorists',
     tagline: 'Certified Canine Behaviorists & 100% Force-Free Positive Reinforcement',
     leadTrainer: 'Capt. Aryan Roy (CCPDT-KA Certified & Canine Ethologist)',
     experience: '12+ Years Experience',

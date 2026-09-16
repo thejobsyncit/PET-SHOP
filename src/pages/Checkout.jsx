@@ -175,7 +175,7 @@ const Checkout = () => {
           <CircleCheck size={56} className="mx-auto text-green-600 animate-bounce" />
           <h2 className="font-serif text-xl font-bold text-primary">Your order is confirmed!</h2>
           <p className="text-xs text-gray-500 max-w-md mx-auto leading-relaxed">
-            Thank you for shopping at Pawora. Your order has been registered under ID <strong>{confirmedOrder._id}</strong>. We sent a receipt to your registered email address.
+            Thank you for shopping at Josh Pets Hub. Your order has been registered under ID <strong>{confirmedOrder._id}</strong>. We sent a receipt to your registered email address.
           </p>
 
           <div className="border-t border-b border-beige py-4 text-xs space-y-2 max-w-md mx-auto text-left">

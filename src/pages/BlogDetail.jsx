@@ -148,7 +148,7 @@ const BlogDetail = () => {
               </div>
               <div className="text-xs">
                 <p className="font-bold text-primary uppercase tracking-wider">{blog.author}</p>
-                <p className="text-gray-400">Veterinary Science Advisory Board Member at Pawora</p>
+                <p className="text-gray-400">Veterinary Science Advisory Board Member at Josh Pets Hub</p>
                 <p className="text-gray-500 mt-1 leading-relaxed">Specializing in preventative care medicine and customized companion habitats.</p>
               </div>
             </div>

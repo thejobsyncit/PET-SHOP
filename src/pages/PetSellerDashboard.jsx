@@ -463,7 +463,7 @@ const PetSellerDashboard = ({
         key: 'rzp_test_placeholder_key_id', // Replace with real key ID or fetch from backend
         amount: orderResponse.amount,
         currency: orderResponse.currency,
-        name: 'Pawora Pet Shop',
+        name: 'Josh Pets Hub',
         description: 'Listing Fee for ' + title,
         image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=800&auto=format&fit=crop',
         order_id: orderResponse.orderId,

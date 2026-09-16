@@ -249,7 +249,7 @@ export default function VeterinaryServices() {
   // Handle WhatsApp Direct Consultation
   const handleWhatsAppConsult = (doc) => {
     const text = encodeURIComponent(
-      `Hello ${doc.name}, I found your clinic (${doc.clinicName}) on Pawora. I would like to enquire about veterinary consultation for my pet.`
+      `Hello ${doc.name}, I found your clinic (${doc.clinicName}) on Josh Pets Hub. I would like to enquire about veterinary consultation for my pet.`
     );
     window.open(`https://wa.me/${doc.whatsapp}?text=${text}`, '_blank');
   };
@@ -1039,7 +1039,7 @@ export default function VeterinaryServices() {
               </div>
               <div className="bg-white/10 backdrop-blur-md p-3.5 rounded-2xl border border-white/10">
                 <div className="text-xl mb-1">🛡️</div>
-                <h4 className="text-xs font-bold text-white mb-0.5">Pawora Vet Guarantee</h4>
+                <h4 className="text-xs font-bold text-white mb-0.5">Josh Pets Hub Vet Guarantee</h4>
                 <p className="text-[11px] text-teal-200">100% verified VCI registration & sterile clinic standards.</p>
               </div>
               <div className="bg-white/10 backdrop-blur-md p-3.5 rounded-2xl border border-white/10">

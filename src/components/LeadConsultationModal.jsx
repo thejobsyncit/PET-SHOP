@@ -573,7 +573,7 @@ const LeadConsultationModal = () => {
 
     const payload = {
       name: userFullName || 'Pet Lover',
-      email: userEmail || `user_${userMobileNo}@pawora.com`,
+      email: userEmail || `user_${userMobileNo}@joshpetshub.com`,
       mobile: userMobileNo,
       mobileCountryCode: userCountryCode,
       whatsapp: userWhatsappNo,

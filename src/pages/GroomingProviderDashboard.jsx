@@ -328,7 +328,7 @@ const GroomingProviderDashboard = ({
         key: 'rzp_test_placeholder_key_id', // Replace with real key ID or fetch from backend
         amount: orderResponse.amount,
         currency: orderResponse.currency,
-        name: 'Pawora Pet Shop',
+        name: 'Josh Pets Hub',
         description: 'Listing Fee for ' + title,
         image: 'https://images.unsplash.com/photo-1516734212186-a967f81ad0d7?q=80&w=800&auto=format&fit=crop',
         order_id: orderResponse.orderId,

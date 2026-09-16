@@ -337,7 +337,7 @@ const PetTraining = () => {
 
     const enquiryData = {
       providerId: 'ALL-TRAINERS',
-      providerName: 'Pawora Central Dog Training Network',
+      providerName: 'Josh Pets Hub Central Dog Training Network',
       userId: user?._id || user?.id || 'usr-custom',
       userName: bottomFullName,
       userPhone: bottomPhone,
@@ -560,7 +560,7 @@ const PetTraining = () => {
           
           <div className="text-center space-y-3 max-w-2xl mx-auto">
             <p className="text-sm md:text-base font-serif font-medium text-gray-700">
-              Pawora offers 100% force-free and fully customized to suit you and your dog’s unique requirements.
+              Josh Pets Hub offers 100% force-free and fully customized to suit you and your dog’s unique requirements.
             </p>
 
             {/* 4 Circular Badges */}
@@ -604,11 +604,11 @@ const PetTraining = () => {
         </div>
       </ScrollReveal>
 
-      {/* 4. WHY DO PET PARENTS CHOOSE PAWORA? (TESTIMONIALS) */}
+      {/* 4. WHY DO PET PARENTS CHOOSE JOSH PETS HUB? (TESTIMONIALS) */}
       <ScrollReveal variant="slideUp" delay={0.2} className="max-w-7xl mx-auto px-4 md:px-8 py-8 lg:py-16 space-y-10">
         <div className="text-center space-y-2 max-w-2xl mx-auto">
           <h2 className="text-2xl md:text-4xl font-serif font-bold text-slate-900">
-            Why Do Pet Parents Choose Pawora?
+            Why Do Pet Parents Choose Josh Pets Hub?
           </h2>
           <p className="text-xs md:text-sm text-gray-500">
             No. 1 Pet Care Provider with 100+ verified positive reinforcement trainers, behaviorists, and academies.
@@ -826,7 +826,7 @@ const PetTraining = () => {
                       className="accent-purple-600 rounded"
                     />
                     <span className="flex items-center gap-1 font-semibold text-emerald-800">
-                      <ShieldCheck size={13} className="text-emerald-600" /> Pawora Verified Only
+                      <ShieldCheck size={13} className="text-emerald-600" /> Josh Pets Hub Verified Only
                     </span>
                   </label>
 

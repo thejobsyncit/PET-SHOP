@@ -38,7 +38,7 @@ const VetProviderContent = ({ activeTab }) => {
     name: 'Dr. Ramesh Kumar',
     vciRegistration: 'VCI/2010/KA-08492',
     degrees: 'B.V.Sc & A.H, M.V.Sc (Veterinary Surgery)',
-    clinicName: 'Pawora Luxury Vet Clinic & Diagnostic Center',
+    clinicName: 'Josh Pets Hub Luxury Vet Clinic & Diagnostic Center',
     address: 'Plot 42, MG Road, HAL 2nd Stage, Bangalore - 560038',
     city: 'Bangalore',
     state: 'Karnataka',
@@ -1427,7 +1427,7 @@ const VetProviderContent = ({ activeTab }) => {
               <h3 className="text-4xl font-black text-[#0F2E23] mb-1">₹{wallet.lifetimeRevenue.toLocaleString('en-IN')}</h3>
               <p className="text-xs font-bold text-slate-500 mt-2">From 142 completed patient consultations</p>
               <div className="mt-6 pt-4 border-t border-slate-100 text-xs text-slate-400 font-bold">
-                Pawora Commission: 0% Direct Provider Tier
+                Josh Pets Hub Commission: 0% Direct Provider Tier
               </div>
             </div>
 
@@ -2169,7 +2169,7 @@ const VetProviderContent = ({ activeTab }) => {
               {/* Footer Stamp & Signature */}
               <div className="pt-6 border-t-2 border-slate-100 flex justify-between items-end">
                 <div className="text-[10px] text-slate-400 font-mono">
-                  Digitally Authenticated through Pawora Health Network<br/>
+                  Digitally Authenticated through Josh Pets Hub Health Network<br/>
                   Record ID: {selectedRxForPdf.id}
                 </div>
                 <div className="text-right space-y-1">

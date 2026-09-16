@@ -449,7 +449,7 @@ const GroomingServices = () => {
           
           <div className="max-w-2xl mx-auto space-y-2">
             <h2 className="text-2xl md:text-3xl font-extrabold text-slate-900 font-sans">
-              Grooming Starts With <span className="text-primary">Care At Pawora</span>
+              Grooming Starts With <span className="text-primary">Care At Josh Pets Hub</span>
             </h2>
             <p className="text-xs md:text-sm text-slate-500 font-medium">
               You choose your preferred time, and we will assign a verified professional groomer for your pet.

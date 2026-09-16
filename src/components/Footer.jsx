@@ -9,7 +9,7 @@ const Footer = () => {
   const handleSubscribe = (e) => {
     e.preventDefault();
     if (email.trim()) {
-      toast.success('Thank you for subscribing to the Pawora Newsletter!');
+      toast.success('Thank you for subscribing to the Josh Pets Hub Newsletter!');
       setEmail('');
     }
   };
@@ -21,7 +21,7 @@ const Footer = () => {
         {/* Brand Column */}
         <div className="lg:col-span-2 space-y-4">
           <Link to="/" className="font-serif text-2xl tracking-widest text-accent font-bold">
-            JOSH PET HUB
+            JOSH PETS HUB
           </Link>
           <p className="text-xs text-secondary-dark leading-relaxed max-w-sm">
             Fictional premium pet care and lifestyle brand. Dedicated to providing veterinary-grade care products, organic foods, and luxury habitats for every kind of companion.
@@ -33,7 +33,7 @@ const Footer = () => {
             </div>
             <div className="flex items-center gap-2">
               <Mail size={14} className="text-accent" />
-              <span>care@pawora.com</span>
+              <span>care@joshpetshub.com</span>
             </div>
             <div className="flex items-center gap-2">
               <Clock size={14} className="text-accent" />
@@ -106,7 +106,7 @@ const Footer = () => {
       {/* Footer Bottom copyright and legal */}
       <div className="max-w-7xl mx-auto border-t border-white/5 pt-8 flex flex-col md:flex-row justify-between items-center text-[10px] text-secondary-dark tracking-wider space-y-4 md:space-y-0">
         <div>
-          © {new Date().getFullYear()} JOSH PET HUB. All Rights Reserved. Crafted with care.
+          © {new Date().getFullYear()} JOSH PETS HUB. All Rights Reserved. Crafted with care.
         </div>
         <div className="flex flex-wrap gap-4 font-semibold">
           <Link to="/about" className="hover:text-white transition">PRIVACY POLICY</Link>

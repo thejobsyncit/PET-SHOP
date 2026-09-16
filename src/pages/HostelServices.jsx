@@ -991,12 +991,12 @@ const HostelServices = () => {
 
 
       {/* =========================================================================
-          5. "WHY DO PET PARENTS CHOOSE PAWORA?" (Testimonials)
+          5. "WHY DO PET PARENTS CHOOSE JOSH PETS HUB?" (Testimonials)
          ========================================================================= */}
       <ScrollReveal variant="fade" className="max-w-7xl mx-auto px-4 md:px-8 py-8 lg:py-16 space-y-12">
         <div className="text-center space-y-2 max-w-2xl mx-auto">
           <h2 className="text-2xl md:text-3xl font-extrabold text-slate-900 font-sans">
-            Why Do Pet Parents Choose <span className="text-[#7c56dc]">Pawora?</span>
+            Why Do Pet Parents Choose <span className="text-[#7c56dc]">Josh Pets Hub?</span>
           </h2>
           <p className="text-xs md:text-sm text-slate-500 font-medium">
             Nationwide presence in 50+ cities including Delhi, Bangalore, Jaipur, and Chennai.

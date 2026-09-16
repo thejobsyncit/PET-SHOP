@@ -65,7 +65,7 @@ const Home = () => {
           {/* Base Image */}
           <img 
             src="https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?q=80&w=1920" 
-            alt="Pawora Luxury Pet Care" 
+            alt="Josh Pets Hub Luxury Pet Care" 
             className="w-full h-full object-cover filter brightness-[0.8] saturate-[1.1] contrast-[1.05]"
           />
           
@@ -85,7 +85,7 @@ const Home = () => {
         {/* Hero Copy overlay */}
         <ScrollReveal variant="blurIn" className="relative z-10 max-w-4xl mx-auto px-6 text-center text-white space-y-8">
           <span className="text-xs font-semibold tracking-[0.3em] text-gold uppercase flex items-center justify-center gap-2 animate-pulse drop-shadow-md">
-            <Sparkles size={16} className="text-gold" /> Pawora Premium Living
+            <Sparkles size={16} className="text-gold" /> JOSH PETS HUB PREMIUM LIVING
           </span>
           <h1 className="font-serif text-4xl md:text-6xl lg:text-7xl text-white leading-tight drop-shadow-lg">
             Better Care For Every <br className="hidden md:block" />Kind Of Companion.
@@ -271,13 +271,13 @@ const Home = () => {
           <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-1 md:grid-cols-2 gap-12 items-center relative z-10">
             <div className="space-y-6">
               <span className="text-xs font-semibold tracking-widest text-accent uppercase">
-                PAWORA BRAND CONCEPT
+                JOSH PETS HUB BRAND CONCEPT
               </span>
               <h2 className="font-serif text-3xl md:text-4xl text-secondary leading-tight">
                 “Because they deserve <br />more than ordinary.”
               </h2>
               <p className="text-xs md:text-sm text-secondary-dark leading-relaxed font-light">
-                At Pawora, we believe that pets are family members who deserve premium care, premium food, and rich habitats. We reject low-grade fillers, poor-quality cage materials, and ambiguous pharmacy solutions. Every single brand we carry, from Royal Canin to Exo Terra, is handpicked for nutritional stability and biological safety.
+                At Josh Pets Hub, we believe that pets are family members who deserve premium care, premium food, and rich habitats. We reject low-grade fillers, poor-quality cage materials, and ambiguous pharmacy solutions. Every single brand we carry, from Royal Canin to Exo Terra, is handpicked for nutritional stability and biological safety.
               </p>
               <div className="pt-4">
                 <button 

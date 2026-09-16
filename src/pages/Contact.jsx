@@ -62,7 +62,7 @@ const Contact = () => {
           </motion.span>
           
           <h1 className="font-sans font-black text-4xl md:text-6xl text-white tracking-tight leading-[1.1] drop-shadow-lg">
-            Contact Pawora <br />
+            Contact Josh Pets Hub <br />
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#fde047] to-[#f59e0b]">
               Care Team
             </span>
@@ -107,7 +107,7 @@ const Contact = () => {
                     </div>
                     <div>
                       <h4 className="font-black text-slate-900">Email Support</h4>
-                      <p className="text-sm text-emerald-600 font-bold mt-1">care@pawora.com</p>
+                      <p className="text-sm text-emerald-600 font-bold mt-1">care@joshpetshub.com</p>
                       <p className="text-xs text-slate-400 mt-1">Response timeframe: Under 24 hours</p>
                     </div>
                   </div>

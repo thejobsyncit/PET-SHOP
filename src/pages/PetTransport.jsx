@@ -397,7 +397,7 @@ const PetTransport = () => {
 
     const enquiryData = {
       providerId: 'TRP-101', // Assigned to Primary Hub or matching corridor
-      providerName: 'Pawora Air & Road Pet Relocators (Central Hub)',
+      providerName: 'Josh Pets Hub Air & Road Pet Relocators (Central Hub)',
       userId: user?._id || user?.id || 'usr-custom',
       userName: globalEnqFullName,
       userEmail: globalEnqEmail,

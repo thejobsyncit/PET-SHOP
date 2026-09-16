@@ -34,7 +34,7 @@ export const DEMO_PROVIDER_PERSONAS = [
     role: 'SERVICE_PROVIDER',
     serviceCategory: 'Veterinary',
     title: 'Chief Veterinary Surgeon (B.V.Sc & A.H, M.V.Sc)',
-    clinicName: 'Pawora Luxury Vet Clinic & Diagnostic Center',
+    clinicName: 'Josh Pets Hub Luxury Vet Clinic & Diagnostic Center',
     experience: '12+ Years Clinical Practice',
     rating: 4.9,
     reviewsCount: 142,

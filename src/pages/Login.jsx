@@ -692,7 +692,7 @@ const Login = () => {
 
     const payload = {
       name: userFullName || 'Pet Lover',
-      email: userEmail || `user_${userMobileNo}@pawora.com`,
+      email: userEmail || `user_${userMobileNo}@joshpetshub.com`,
       mobile: userMobileNo,
       mobileCountryCode: userCountryCode,
       whatsapp: userWhatsappNo,
@@ -1176,7 +1176,7 @@ const Login = () => {
                       <button
                         type="button"
                         onClick={() => {
-                          setLoginIdentifier('adopt@pawora.com');
+                          setLoginIdentifier('adopt@joshpetshub.com');
                           setLoginPassword('Pass@1234');
                         }}
                         className="p-1.5 bg-white border border-emerald-300 rounded-lg text-left hover:bg-emerald-100 transition cursor-pointer shadow-2xs"
@@ -1187,7 +1187,7 @@ const Login = () => {
                       <button
                         type="button"
                         onClick={() => {
-                          setLoginIdentifier('royalpaws@pawora.com');
+                          setLoginIdentifier('royalpaws@joshpetshub.com');
                           setLoginPassword('Pass@1234');
                         }}
                         className="p-1.5 bg-white border border-emerald-200 rounded-lg text-left hover:bg-emerald-100 transition cursor-pointer"
@@ -1198,7 +1198,7 @@ const Login = () => {
                       <button
                         type="button"
                         onClick={() => {
-                          setLoginIdentifier('dr.ramesh@pawora.com');
+                          setLoginIdentifier('dr.ramesh@joshpetshub.com');
                           setLoginPassword('Pass@1234');
                         }}
                         className="p-1.5 bg-white border border-emerald-200 rounded-lg text-left hover:bg-emerald-100 transition cursor-pointer"
@@ -1209,7 +1209,7 @@ const Login = () => {
                       <button
                         type="button"
                         onClick={() => {
-                          setLoginIdentifier('velvetfur@pawora.com');
+                          setLoginIdentifier('velvetfur@joshpetshub.com');
                           setLoginPassword('Pass@1234');
                         }}
                         className="p-1.5 bg-white border border-emerald-200 rounded-lg text-left hover:bg-emerald-100 transition cursor-pointer"
@@ -1220,7 +1220,7 @@ const Login = () => {
                       <button
                         type="button"
                         onClick={() => {
-                          setLoginIdentifier('happypaws@pawora.com');
+                          setLoginIdentifier('happypaws@joshpetshub.com');
                           setLoginPassword('Pass@1234');
                         }}
                         className="p-1.5 bg-white border border-emerald-200 rounded-lg text-left hover:bg-emerald-100 transition cursor-pointer"
@@ -1231,7 +1231,7 @@ const Login = () => {
                       <button
                         type="button"
                         onClick={() => {
-                          setLoginIdentifier('swiftpaws@pawora.com');
+                          setLoginIdentifier('swiftpaws@joshpetshub.com');
                           setLoginPassword('Pass@1234');
                         }}
                         className="p-1.5 bg-white border border-emerald-200 rounded-lg text-left hover:bg-emerald-100 transition cursor-pointer"
@@ -1242,7 +1242,7 @@ const Login = () => {
                       <button
                         type="button"
                         onClick={() => {
-                          setLoginIdentifier('safepet@pawora.com');
+                          setLoginIdentifier('safepet@joshpetshub.com');
                           setLoginPassword('Pass@1234');
                         }}
                         className="p-1.5 bg-white border border-emerald-200 rounded-lg text-left hover:bg-emerald-100 transition cursor-pointer"
@@ -1253,7 +1253,7 @@ const Login = () => {
                       <button
                         type="button"
                         onClick={() => {
-                          setLoginIdentifier('clevercanines@pawora.com');
+                          setLoginIdentifier('clevercanines@joshpetshub.com');
                           setLoginPassword('Pass@1234');
                         }}
                         className="p-1.5 bg-white border border-emerald-200 rounded-lg text-left hover:bg-emerald-100 transition cursor-pointer"
@@ -1264,7 +1264,7 @@ const Login = () => {
                       <button
                         type="button"
                         onClick={() => {
-                          setLoginIdentifier('pawinsure@pawora.com');
+                          setLoginIdentifier('pawinsure@joshpetshub.com');
                           setLoginPassword('Pass@1234');
                         }}
                         className="p-1.5 bg-white border border-emerald-200 rounded-lg text-left hover:bg-emerald-100 transition cursor-pointer"
@@ -1275,7 +1275,7 @@ const Login = () => {
                       <button
                         type="button"
                         onClick={() => {
-                          setLoginIdentifier('elitebreed@pawora.com');
+                          setLoginIdentifier('elitebreed@joshpetshub.com');
                           setLoginPassword('Pass@1234');
                         }}
                         className="p-1.5 bg-white border border-emerald-200 rounded-lg text-left hover:bg-emerald-100 transition cursor-pointer"
@@ -1289,12 +1289,12 @@ const Login = () => {
                   <div className="p-2.5 bg-blue-50/70 border border-blue-200/80 rounded-xl flex items-center justify-between">
                     <div>
                       <p className="text-[11px] font-bold text-[#15559c]">Demo User Account:</p>
-                      <p className="text-[10px] text-slate-600">priya@pawora.com • Pass@1234</p>
+                      <p className="text-[10px] text-slate-600">priya@joshpetshub.com • Pass@1234</p>
                     </div>
                     <button
                       type="button"
                       onClick={() => {
-                        setLoginIdentifier('priya@pawora.com');
+                        setLoginIdentifier('priya@joshpetshub.com');
                         setLoginPassword('Pass@1234');
                       }}
                       className="px-2.5 py-1 bg-[#15559c] text-white rounded-lg text-[10px] font-bold hover:bg-[#0f3d6b] transition cursor-pointer"
