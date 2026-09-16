@@ -259,6 +259,16 @@ const AdoptionPetDetail = () => {
     });
   };
 
+  // Handle WhatsApp chat with Guardian
+  const handleWhatsApp = () => {
+    if (!pet) return;
+    const rawPhone = pet.parentContact || pet.ownerPhone || '8306688827';
+    const clean = rawPhone.replace(/\D/g, '');
+    const fullPhone = clean.startsWith('91') ? clean : (clean.length === 10 ? `91${clean}` : clean);
+    const msg = encodeURIComponent(`Hello! I saw ${pet.name} (${pet.breed}) up for adoption on Josh Pets Hub and would love to know more.`);
+    window.open(`https://wa.me/${fullPhone}?text=${msg}`, '_blank');
+  };
+
   // Other related pets for carousel/grid
   const relatedPets = (pets || []).filter((p) => p && pet && p.id !== pet.id).slice(0, 3);
 
