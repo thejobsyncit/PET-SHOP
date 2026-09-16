@@ -4,7 +4,7 @@ import { useSelector } from 'react-redux';
 import {
   Heart, ArrowLeft, MapPin, Phone, MessageSquare, ShieldCheck,
   CircleCheck, Check, User, Calendar, Award, Share2, Info, Home,
-  Sparkles, AlertCircle, ArrowRight, Lock
+  Sparkles, AlertCircle, ArrowRight, Lock, X
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import {
