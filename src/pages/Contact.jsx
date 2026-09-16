@@ -125,25 +125,6 @@ const Contact = () => {
               </div>
             </ScrollReveal>
 
-            {/* Premium Map Mock Up */}
-            <ScrollReveal variant="slideUp" delay={0.2}>
-              <div className="bg-white rounded-[2rem] p-4 shadow-xl border border-slate-100 overflow-hidden relative group">
-                <div className="aspect-[4/3] bg-slate-100 rounded-2xl overflow-hidden relative flex flex-col justify-center items-center text-center">
-                  <div className="absolute inset-0 bg-cover bg-center opacity-30" style={{backgroundImage: 'url("https://www.transparenttextures.com/patterns/cubes.png")'}}></div>
-                  <div className="relative z-10 space-y-4 p-6 flex flex-col items-center">
-                    <div className="bg-white p-3 rounded-full shadow-lg">
-                      <MapPin size={28} className="text-blue-600 animate-bounce" />
-                    </div>
-                    <div>
-                      <h3 className="font-black text-slate-900">Bangalore Flagship Showroom</h3>
-                      <p className="text-xs text-slate-500 font-medium max-w-xs mt-2 leading-relaxed">
-                        Map data loading... Coordinates: 12.9716° N, 77.5946° E.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </ScrollReveal>
           </div>
 
           {/* MESSAGE FORM (Right 7 Columns) */}
