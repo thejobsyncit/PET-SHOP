@@ -2192,13 +2192,13 @@ const PetAdoptionDashboard = ({
         ========================================================
       */}
       {showAddPetModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="bg-white border border-slate-200 rounded-3xl max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl p-6 sm:p-8 space-y-6">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-white border border-slate-200 rounded-3xl max-w-2xl w-full max-h-[90vh] shadow-2xl flex flex-col overflow-hidden">
             
-            {/* Modal Header */}
-            <div className="flex justify-between items-center pb-4 border-b border-slate-100">
+            {/* Modal Header - Fixed at top, never scrolls away */}
+            <div className="flex justify-between items-center px-6 sm:px-8 py-5 border-b border-slate-100 shrink-0 bg-white z-10">
               <div className="flex items-center gap-2.5">
-                <div className="w-9 h-9 rounded-xl bg-[#0F2E23] text-[#ffd000] flex items-center justify-center font-black">
+                <div className="w-9 h-9 rounded-xl bg-[#0F2E23] text-[#ffd000] flex items-center justify-center font-black shrink-0">
                   <PawPrint size={18} />
                 </div>
                 <div>
@@ -2212,6 +2212,7 @@ const PetAdoptionDashboard = ({
               </div>
 
               <button 
+                type="button"
                 onClick={() => setShowAddPetModal(false)}
                 className="p-2 text-slate-400 hover:text-slate-700 rounded-full hover:bg-slate-100 transition cursor-pointer"
               >
@@ -2219,11 +2220,12 @@ const PetAdoptionDashboard = ({
               </button>
             </div>
 
-            {/* Modal Form */}
-            <form onSubmit={handleSavePet} className="space-y-4">
-              
-              {/* Pet Photo Upload with Preview */}
-              <div className="space-y-1.5">
+            {/* Scrollable Modal Content with Sleek Inner Scrollbar */}
+            <div className="overflow-y-auto px-6 sm:px-8 py-6 flex-1 custom-scrollbar">
+              <form onSubmit={handleSavePet} className="space-y-4">
+                
+                {/* Pet Photo Upload with Preview */}
+                <div className="space-y-1.5">
                 <label className="text-xs font-black text-[#0F2E23] uppercase tracking-wider block">
                   Pet Photo *
                 </label>
@@ -2706,6 +2708,7 @@ const PetAdoptionDashboard = ({
               </div>
 
             </form>
+          </div>
 
           </div>
         </div>
@@ -2795,35 +2798,39 @@ const PetAdoptionDashboard = ({
       */}
       {viewingDocument && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="bg-white rounded-3xl max-w-2xl w-full p-6 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
-            <div className="flex justify-between items-center pb-3 border-b border-slate-100">
+          <div className="bg-white border border-slate-200 rounded-3xl max-w-2xl w-full max-h-[90vh] shadow-2xl flex flex-col overflow-hidden">
+            <div className="flex justify-between items-center px-6 py-4 border-b border-slate-100 shrink-0 bg-white z-10">
               <div>
                 <h3 className="text-base font-black text-[#0F2E23]">{viewingDocument.title}</h3>
                 <p className="text-xs text-slate-500 font-mono font-bold">Reference: {viewingDocument.number}</p>
               </div>
               <button
+                type="button"
                 onClick={() => setViewingDocument(null)}
-                className="p-1.5 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 cursor-pointer"
+                className="p-1.5 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 cursor-pointer transition"
               >
                 <X size={18} />
               </button>
             </div>
 
-            <div className="rounded-2xl overflow-hidden border border-slate-200 bg-slate-100 flex items-center justify-center min-h-[300px]">
-              {viewingDocument.url?.startsWith('data:application/pdf') ? (
-                <iframe src={viewingDocument.url} title={viewingDocument.title} className="w-full h-96 border-none" />
-              ) : (
-                <img src={viewingDocument.url} alt={viewingDocument.title} className="max-h-[450px] w-auto object-contain rounded-xl" />
-              )}
+            <div className="overflow-y-auto p-6 space-y-4 flex-1 custom-scrollbar">
+              <div className="rounded-2xl overflow-hidden border border-slate-200 bg-slate-100 flex items-center justify-center min-h-[300px]">
+                {viewingDocument.url?.startsWith('data:application/pdf') ? (
+                  <iframe src={viewingDocument.url} title={viewingDocument.title} className="w-full h-96 border-none" />
+                ) : (
+                  <img src={viewingDocument.url} alt={viewingDocument.title} className="max-h-[450px] w-auto object-contain rounded-xl" />
+                )}
+              </div>
             </div>
 
-            <div className="flex justify-between items-center pt-2">
+            <div className="flex justify-between items-center px-6 py-3 border-t border-slate-100 shrink-0 bg-white">
               <span className="text-xs text-emerald-700 font-bold flex items-center gap-1">
                 <CheckCircle2 size={14} /> Official Government Document Attached
               </span>
               <button
+                type="button"
                 onClick={() => setViewingDocument(null)}
-                className="px-4 py-2 bg-[#0F2E23] text-white text-xs font-bold rounded-xl cursor-pointer"
+                className="px-4 py-2 bg-[#0F2E23] hover:bg-[#164132] text-white text-xs font-bold rounded-xl cursor-pointer transition"
               >
                 Close Preview
               </button>
