@@ -84,13 +84,15 @@ const SuperAdminDashboard = () => {
     setLoading(true);
     try {
       const data = await apiRequest('/admin/dashboard');
-      if (data.success) {
+      if (data && data.success && data.stats) {
         setStats(data.stats);
-        setRecentOrders(data.recentOrders);
-        setCharts(data.charts);
+        setRecentOrders(data.recentOrders || []);
+        setCharts(data.charts || null);
+      } else {
+        throw new Error('Incomplete stats received');
       }
     } catch (err) {
-      console.error(err);
+      console.error('Failed to load dashboard stats:', err);
     } finally {
       setLoading(false);
     }
@@ -651,12 +653,24 @@ const SuperAdminDashboard = () => {
           </div>
         </div>
 
-        {loading || (activeSection === 'overview' && !stats) ? (
+        {loading ? (
           <div className="text-center py-10 lg:py-20">
             <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-[#7CA085] mx-auto mb-4"></div>
             <p className="text-xs text-gray-500 font-bold uppercase tracking-wider">
-              {loading ? 'Compiling metrics logs...' : 'Waiting for statistics data...'}
+              Compiling metrics logs...
             </p>
+          </div>
+        ) : activeSection === 'overview' && !stats ? (
+          <div className="text-center py-10 lg:py-20">
+            <p className="text-xs text-gray-500 font-bold uppercase tracking-wider mb-4">
+              Unable to load statistics data.
+            </p>
+            <button
+              onClick={loadStats}
+              className="btn-premium !py-2 !px-4 !text-xs cursor-pointer"
+            >
+              Retry
+            </button>
           </div>
         ) : (
           <>

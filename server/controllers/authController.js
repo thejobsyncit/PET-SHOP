@@ -313,11 +313,20 @@ export const loginUser = async (req, res) => {
   }
 
   try {
-    // 1. Check if login matches any demo account
-    const matchedDemo = DEMO_ACCOUNTS.find(d => 
-      d.email.toLowerCase() === loginKey.toLowerCase() ||
-      (cleanMobile && d.mobile && (d.mobile === cleanMobile || d.mobile.endsWith(cleanMobile) || cleanMobile.endsWith(d.mobile)))
-    );
+    // 1. Check if login matches any demo account (support both @joshpetshub.com and @pawora.com)
+    const normalizedKey = loginKey.toLowerCase();
+    const altKey = normalizedKey.endsWith('@joshpetshub.com')
+      ? normalizedKey.replace('@joshpetshub.com', '@pawora.com')
+      : normalizedKey.endsWith('@pawora.com')
+        ? normalizedKey.replace('@pawora.com', '@joshpetshub.com')
+        : normalizedKey;
+
+    const matchedDemo = DEMO_ACCOUNTS.find(d => {
+      const dEmail = (d.email || '').toLowerCase();
+      const emailMatches = dEmail === normalizedKey || dEmail === altKey;
+      const mobileMatches = cleanMobile && d.mobile && (d.mobile === cleanMobile || d.mobile.endsWith(cleanMobile) || cleanMobile.endsWith(d.mobile));
+      return emailMatches || mobileMatches;
+    });
 
     const isDemoPasswordMatch = (demoAcc, pwd) => {
       if (!pwd) return false;
@@ -329,7 +338,13 @@ export const loginUser = async (req, res) => {
 
     if (matchedDemo && isDemoPasswordMatch(matchedDemo, password)) {
       if (isDbConnected()) {
-        let user = await User.findOne({ email: matchedDemo.email.toLowerCase() });
+        let user = await User.findOne({ 
+          $or: [
+            { email: matchedDemo.email.toLowerCase() },
+            { email: normalizedKey },
+            { email: altKey }
+          ]
+        });
         if (!user) {
           try {
             user = await User.create({
@@ -432,7 +447,8 @@ export const loginUser = async (req, res) => {
     if (isDbConnected()) {
       const user = await User.findOne({
         $or: [
-          { email: loginKey.toLowerCase() },
+          { email: normalizedKey },
+          { email: altKey },
           { mobile: loginKey },
           ...(cleanMobile ? [{ mobile: cleanMobile }] : [])
         ]

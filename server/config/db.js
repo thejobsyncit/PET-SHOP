@@ -1,10 +1,14 @@
 import mongoose from 'mongoose';
 
 const connectDB = async () => {
+  const connStr = process.env.MONGODB_URI;
+  if (!connStr) {
+    console.log('MongoDB is disabled (no MONGODB_URI). Running in Standalone / Supabase data mode.');
+    return false;
+  }
+
   try {
-    const connStr = process.env.MONGODB_URI || 'mongodb://localhost:27017/pawora';
     console.log(`Connecting to database: ${connStr}...`);
-    
     mongoose.set('strictQuery', false);
     
     // Set connection timeout to 5 seconds so it fails fast if not running
