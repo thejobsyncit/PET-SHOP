@@ -408,6 +408,7 @@ const Login = () => {
   // OTP Verification States
   const [isOtpStep, setIsOtpStep] = useState(false);
   const [pendingUserData, setPendingUserData] = useState(null);
+  const [otpPurpose, setOtpPurpose] = useState('register'); // 'register' or 'login'
   const [generatedOtp, setGeneratedOtp] = useState('');
   const [otpDigits, setOtpDigits] = useState(['', '', '', '', '', '']);
   const [otpTimer, setOtpTimer] = useState(30);
@@ -640,7 +641,26 @@ const Login = () => {
       toast.error('Please enter your email or mobile number and password.');
       return;
     }
-    dispatch(login({ identifier: loginIdentifier, password: loginPassword }));
+    
+    // Initiate OTP verification for login
+    const code = Math.floor(100000 + Math.random() * 900000).toString();
+    setPendingUserData({
+      identifier: loginIdentifier,
+      password: loginPassword,
+      role: loginRoleTab === 'provider' ? 'SERVICE_PROVIDER' : 'CUSTOMER',
+      mobile: loginIdentifier,
+      mobileCountryCode: ''
+    });
+    setGeneratedOtp(code);
+    setOtpDigits(['', '', '', '', '', '']);
+    setOtpTimer(30);
+    setOtpPurpose('login');
+    setIsOtpStep(true);
+
+    toast.success(`📲 OTP sent to ${loginIdentifier}! (Demo code: ${code})`, {
+      duration: 6000,
+      icon: '📲'
+    });
   };
 
   // 2. User Registration Submit Handler -> Initiates OTP Verification
@@ -708,6 +728,7 @@ const Login = () => {
     setGeneratedOtp(code);
     setOtpDigits(['', '', '', '', '', '']);
     setOtpTimer(30);
+    setOtpPurpose('register');
     setIsOtpStep(true);
 
     toast.success(`📲 OTP sent to ${userCountryCode} ${userMobileNo}! (Demo code: ${code})`, {
@@ -782,6 +803,7 @@ const Login = () => {
     setGeneratedOtp(code);
     setOtpDigits(['', '', '', '', '', '']);
     setOtpTimer(30);
+    setOtpPurpose('register');
     setIsOtpStep(true);
 
     toast.success(`📲 OTP sent to ${providerCountryCode} ${providerMobileNo}! (Demo code: ${code})`, {
@@ -884,28 +906,45 @@ const Login = () => {
     setVerifyingOtp(true);
 
     try {
-      const userObj = {
-        _id: 'user_' + Date.now(),
-        ...pendingUserData,
-        addresses: []
-      };
-      const tokenStr = 'token_' + Date.now();
-
-      // Update Redux authenticated state
-      dispatch(setAuthenticatedUser({ token: tokenStr, user: userObj }));
-
-      // Also trigger thunk in background for API sync
-      dispatch(register(pendingUserData));
-
-      toast.success(`🎉 Mobile verified successfully! Welcome ${pendingUserData?.name || 'Pet Parent'}!`);
-      setIsOtpStep(false);
-      if (pendingUserData?.role === 'SERVICE_PROVIDER') {
-        navigate('/provider-dashboard');
+      if (otpPurpose === 'login') {
+        // Handle Login OTP Verification
+        const resultAction = await dispatch(login({ 
+          identifier: pendingUserData.identifier, 
+          password: pendingUserData.password 
+        }));
+        
+        if (login.fulfilled.match(resultAction)) {
+          toast.success('🎉 Login verified successfully!');
+          setIsOtpStep(false);
+          // Redirection will be handled by the useEffect watching isAuthenticated
+        } else {
+          toast.error(resultAction.payload || 'Login failed. Please try again.');
+        }
       } else {
-        navigate('/account');
+        // Handle Registration OTP Verification
+        const userObj = {
+          _id: 'user_' + Date.now(),
+          ...pendingUserData,
+          addresses: []
+        };
+        const tokenStr = 'token_' + Date.now();
+
+        // Update Redux authenticated state
+        dispatch(setAuthenticatedUser({ token: tokenStr, user: userObj }));
+
+        // Also trigger thunk in background for API sync
+        dispatch(register(pendingUserData));
+
+        toast.success(`🎉 Mobile verified successfully! Welcome ${pendingUserData?.name || 'Pet Parent'}!`);
+        setIsOtpStep(false);
+        if (pendingUserData?.role === 'SERVICE_PROVIDER') {
+          navigate('/provider-dashboard');
+        } else {
+          navigate('/account');
+        }
       }
     } catch (err) {
-      toast.error('Verification could not be completed. Please try again.');
+      toast.error(err?.message || 'Verification could not be completed. Please try again.');
     } finally {
       setVerifyingOtp(false);
     }
@@ -966,14 +1005,16 @@ const Login = () => {
                 </div>
                 <div className="space-y-1">
                   <span className="text-[10px] uppercase tracking-widest text-[#15559c] font-bold bg-blue-50 px-2.5 py-0.5 rounded-full border border-blue-100">
-                    {pendingUserData?.role === 'SERVICE_PROVIDER' ? 'SERVICE PROVIDER VERIFICATION' : 'PET PARENT VERIFICATION'}
+                    {otpPurpose === 'login' ? 'LOGIN VERIFICATION' : pendingUserData?.role === 'SERVICE_PROVIDER' ? 'SERVICE PROVIDER VERIFICATION' : 'PET PARENT VERIFICATION'}
                   </span>
                   <h2 className="font-serif text-xl font-bold text-slate-800">
-                    {pendingUserData?.role === 'SERVICE_PROVIDER' ? 'Verify Partner Mobile' : 'Verify Your Mobile'}
+                    {otpPurpose === 'login' ? 'Verify Login OTP' : pendingUserData?.role === 'SERVICE_PROVIDER' ? 'Verify Partner Mobile' : 'Verify Your Mobile'}
                   </h2>
                   <p className="text-xs text-slate-500 font-medium">
                     We've sent a 6-digit OTP verification code to{' '}
-                    <strong className="text-slate-800 font-semibold">{pendingUserData?.mobileCountryCode || '+91'} {pendingUserData?.mobile}</strong>
+                    <strong className="text-slate-800 font-semibold">
+                      {otpPurpose === 'login' ? pendingUserData?.identifier : `${pendingUserData?.mobileCountryCode || '+91'} ${pendingUserData?.mobile}`}
+                    </strong>
                   </p>
                   {pendingUserData?.whatsapp && (
                     <p className="text-[11px] text-emerald-700 font-medium flex items-center justify-center gap-1">
@@ -993,14 +1034,14 @@ const Login = () => {
                   )}
                 </div>
 
-                {/* Edit Phone link */}
+                {/* Edit Action link */}
                 <div>
                   <button
                     type="button"
                     onClick={() => setIsOtpStep(false)}
                     className="text-[11px] text-[#15559c] font-bold hover:underline inline-flex items-center gap-1 cursor-pointer"
                   >
-                    <Edit3 size={11} /> Edit Registration Details
+                    <Edit3 size={11} /> {otpPurpose === 'login' ? 'Change Login Details' : 'Edit Registration Details'}
                   </button>
                 </div>
               </div>
@@ -1062,9 +1103,11 @@ const Login = () => {
                     <>
                       <CircleCheck size={16} />
                       <span>
-                        {pendingUserData?.role === 'SERVICE_PROVIDER'
-                          ? 'VERIFY PARTNER OTP & OPEN DASHBOARD'
-                          : 'VERIFY OTP & OPEN DASHBOARD'}
+                        {otpPurpose === 'login' 
+                          ? 'VERIFY LOGIN OTP' 
+                          : pendingUserData?.role === 'SERVICE_PROVIDER'
+                            ? 'VERIFY PARTNER OTP & OPEN DASHBOARD'
+                            : 'VERIFY OTP & OPEN DASHBOARD'}
                       </span>
                     </>
                   )}
