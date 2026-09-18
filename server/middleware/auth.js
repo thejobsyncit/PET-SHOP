@@ -37,6 +37,14 @@ export const protect = async (req, res, next) => {
       if (foundUser) {
         const { password, ...userWithoutPassword } = foundUser;
         req.user = userWithoutPassword;
+      } else if (decodedId === 'superadmin-demo-01') {
+        // Provide mock user if it wasn't written to users.json (happens on client offline login)
+        req.user = { 
+          _id: 'superadmin-demo-01', 
+          name: 'Super Admin', 
+          role: 'SUPERADMIN', 
+          email: 'superadmin@joshpetshub.com' 
+        };
       }
     }
 
@@ -86,6 +94,13 @@ export const optionalAuth = async (req, res, next) => {
         if (foundUser) {
           const { password, ...userWithoutPassword } = foundUser;
           req.user = userWithoutPassword;
+        } else if (decodedId === 'superadmin-demo-01') {
+          req.user = { 
+            _id: 'superadmin-demo-01', 
+            name: 'Super Admin', 
+            role: 'SUPERADMIN', 
+            email: 'superadmin@joshpetshub.com' 
+          };
         }
       }
     } catch (error) {
