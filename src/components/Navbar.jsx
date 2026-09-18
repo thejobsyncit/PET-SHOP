@@ -125,6 +125,7 @@ const Navbar = () => {
     { label: 'Dogs', path: '/pets?petType=dogs', icon: <span className="text-lg">🐶</span>, desc: 'Puppies & Adult Dogs' },
     { label: 'Cats', path: '/pets?petType=cats', icon: <span className="text-lg">🐱</span>, desc: 'Kittens & Adult Cats' },
     { label: 'Birds', path: '/pets?petType=birds', icon: <span className="text-lg">🦜</span>, desc: 'Parrots, Finches & more' },
+    { label: 'Fish', path: '/pets?petType=fish', icon: <span className="text-lg">🐠</span>, desc: 'Aquariums, Arowana & Exotic Fish' },
     { label: 'Reptiles', path: '/pets?petType=reptiles', icon: <span className="text-lg">🐢</span>, desc: 'Turtles, Lizards & Snakes' },
     { label: 'Small Pets', path: '/pets?petType=small-pets', icon: <span className="text-lg">🐹</span>, desc: 'Hamsters, Rabbits & Guinea Pigs' }
   ];

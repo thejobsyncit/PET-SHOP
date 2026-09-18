@@ -6,6 +6,7 @@ import { apiRequest } from '../services/api.js';
 import toast from 'react-hot-toast';
 import { SELLER_PET_BREEDS } from './PetSellerDashboard.jsx';
 import ScrollReveal from '../components/ScrollReveal.jsx';
+import { DEFAULT_CLASSIFIEDS } from '../data/classifiedsData.js';
 
 const PetClassifieds = () => {
   const navigate = useNavigate();
@@ -78,11 +79,21 @@ const PetClassifieds = () => {
     try {
       const endpoint = selectedPetType !== 'all' ? `/listings?petType=${selectedPetType}` : '/listings';
       const data = await apiRequest(endpoint);
-      if (data.success) {
+      if (data.success && Array.isArray(data.listings) && data.listings.length > 0) {
         setListings(data.listings);
+      } else {
+        // Fallback to verified curated listings (including Fish) if server returns empty
+        const fallback = selectedPetType === 'all'
+          ? DEFAULT_CLASSIFIEDS
+          : DEFAULT_CLASSIFIEDS.filter(l => l.petType === selectedPetType);
+        setListings(fallback);
       }
     } catch (err) {
       console.error(err);
+      const fallback = selectedPetType === 'all'
+        ? DEFAULT_CLASSIFIEDS
+        : DEFAULT_CLASSIFIEDS.filter(l => l.petType === selectedPetType);
+      setListings(fallback);
     } finally {
       setLoading(false);
     }
@@ -312,6 +323,7 @@ const PetClassifieds = () => {
             { id: 'dogs', label: 'Dogs' },
             { id: 'cats', label: 'Cats' },
             { id: 'birds', label: 'Birds' },
+            { id: 'fish', label: 'Fish' },
             { id: 'reptiles', label: 'Reptiles' },
             { id: 'small-pets', label: 'Small Pets' }
           ].map(tab => (
