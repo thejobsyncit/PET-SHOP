@@ -161,13 +161,17 @@ const PetClassifieds = () => {
       return;
     }
     
-    const ownerId = owner._id || owner;
-    if (ownerId === user?._id) {
+    const ownerId = owner?._id || (typeof owner === 'string' ? owner : null);
+    if (!ownerId) {
+      toast.error('Seller contact phone is available via the CALL button.');
+      return;
+    }
+    if (user?._id && ownerId === user._id) {
       toast.error('You cannot chat with yourself.');
       return;
     }
     
-    navigate('/chat', { state: { recipientId: ownerId, ownerName: owner.name || 'Seller' } });
+    navigate('/chat', { state: { recipientId: ownerId, ownerName: owner?.name || 'Seller' } });
   };
 
   const handleBuy = (pet) => {
@@ -182,8 +186,8 @@ const PetClassifieds = () => {
       return;
     }
     
-    const ownerId = pet.user?._id || pet.user;
-    if (ownerId === user?._id) {
+    const ownerId = pet.user?._id || (typeof pet.user === 'string' ? pet.user : null);
+    if (ownerId && user?._id && ownerId === user._id) {
       toast.error('You cannot buy your own pet listing.');
       return;
     }
