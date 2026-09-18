@@ -65,7 +65,6 @@ const CookieConsent = () => {
     window.addEventListener('open-cookie-banner', handleOpenBanner);
     window.addEventListener('clear-cookie-data', handleClearEvent);
     return () => {
-      clearTimeout(timer);
       window.removeEventListener('open-cookie-settings', handleOpenSettings);
       window.removeEventListener('open-cookie-banner', handleOpenBanner);
       window.removeEventListener('clear-cookie-data', handleClearEvent);
