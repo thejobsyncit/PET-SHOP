@@ -1,28 +1,4 @@
-import mongoose from 'mongoose';
+import createModel from './baseModel.js';
 
-const messageSchema = new mongoose.Schema({
-  sender: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
-    required: true
-  },
-  recipient: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
-    required: true
-  },
-  listingRef: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Listing'
-  },
-  messageText: {
-    type: String,
-    required: true
-  },
-  isRead: {
-    type: Boolean,
-    default: false
-  }
-}, { timestamps: true });
-
-export default mongoose.model('Message', messageSchema);
+export const Message = createModel('messages');
+export default Message;

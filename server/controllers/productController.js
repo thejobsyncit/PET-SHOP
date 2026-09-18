@@ -1,4 +1,3 @@
-import mongoose from 'mongoose';
 import Product from '../models/Product.js';
 import { isDbConnected, readMockData, writeMockData } from '../utils/mockDb.js';
 
@@ -322,7 +321,7 @@ export const createProduct = async (req, res) => {
       const productsList = readMockData('products');
       
       const newProduct = {
-        _id: new mongoose.Types.ObjectId().toString(),
+        _id: 'prod_' + Date.now().toString(36) + Math.random().toString(36).substr(2, 6),
         name,
         slug,
         brand,

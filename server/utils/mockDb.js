@@ -1,7 +1,6 @@
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import mongoose from 'mongoose';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -23,7 +22,7 @@ export const readMockData = (collection) => {
     const data = fs.readFileSync(filePath, 'utf-8');
     return JSON.parse(data);
   } catch (err) {
-    console.error(`Error reading mock file ${collection}:`, err);
+    console.error(`Error reading data for ${collection}:`, err);
     return [];
   }
 };
@@ -34,30 +33,25 @@ export const writeMockData = (collection, data) => {
     fs.writeFileSync(filePath, JSON.stringify(data, null, 2), 'utf-8');
     return true;
   } catch (err) {
-    console.error(`Error writing mock file ${collection}:`, err);
+    console.error(`Error writing data for ${collection}:`, err);
     return false;
   }
 };
 
-// Check if Mongoose is connected
+// MongoDB is permanently removed - always false
 export const isDbConnected = () => {
-  return mongoose.connection.readyState === 1;
+  return false;
 };
 
-// Wrapper for collection queries to handle Mongoose vs Mock DB transparently
-export const getDbData = async (collectionName, mongooseModel, filter = {}) => {
-  if (isDbConnected()) {
-    return await mongooseModel.find(filter);
-  } else {
-    const mockList = readMockData(collectionName);
-    // Basic filter implementation
-    return mockList.filter(item => {
-      for (const key in filter) {
-        if (filter[key] !== undefined && item[key] !== filter[key]) {
-          return false;
-        }
+// Wrapper for collection queries (Supabase-first / Local Cache)
+export const getDbData = async (collectionName, _, filter = {}) => {
+  const list = readMockData(collectionName);
+  return list.filter((item) => {
+    for (const key in filter) {
+      if (filter[key] !== undefined && item[key] !== filter[key]) {
+        return false;
       }
-      return true;
-    });
-  }
+    }
+    return true;
+  });
 };

@@ -1,4 +1,3 @@
-import mongoose from 'mongoose';
 import User from '../models/User.js';
 import Product from '../models/Product.js';
 import { isDbConnected, readMockData, writeMockData } from '../utils/mockDb.js';
@@ -14,7 +13,7 @@ export const getCart = async (req, res) => {
   const userId = req.user._id || req.user.id;
 
   try {
-    if (isDbConnected() && mongoose.Types.ObjectId.isValid(userId)) {
+    if (isDbConnected() && userId) {
       const user = await User.findById(userId).populate('cart.product');
       if (user) {
         return res.json({ success: true, cart: user.cart || [] });
@@ -246,7 +245,7 @@ export const getWishlist = async (req, res) => {
   const userId = req.user._id || req.user.id;
 
   try {
-    if (isDbConnected() && mongoose.Types.ObjectId.isValid(userId)) {
+    if (isDbConnected() && userId) {
       const user = await User.findById(userId).populate('wishlist');
       if (user) {
         return res.json({ success: true, wishlist: user.wishlist || [] });

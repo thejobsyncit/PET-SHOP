@@ -2,7 +2,6 @@ import Order from '../models/Order.js';
 import Product from '../models/Product.js';
 import User from '../models/User.js';
 import { isDbConnected, readMockData, writeMockData } from '../utils/mockDb.js';
-import mongoose from 'mongoose';
 
 // @desc    Create a new order
 // @route   POST /api/orders
@@ -139,7 +138,7 @@ export const createOrder = async (req, res) => {
       };
 
       const newOrder = {
-        _id: new mongoose.Types.ObjectId().toString(),
+        _id: 'ord_' + Date.now().toString(36) + Math.random().toString(36).substr(2, 6),
         user: userId.toString(),
         orderItems: verifiedItems,
         shippingAddress,
@@ -193,7 +192,7 @@ export const getOrderById = async (req, res) => {
     const isAdmin = req.user && (req.user.role === 'ADMIN' || req.user.role === 'SUPERADMIN');
 
     if (isDbConnected()) {
-      if (!mongoose.Types.ObjectId.isValid(id)) {
+      if (!id) {
         return res.status(404).json({ success: false, message: 'Order not found' });
       }
 

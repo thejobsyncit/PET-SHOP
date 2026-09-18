@@ -1,7 +1,6 @@
 import Review from '../models/Review.js';
 import Product from '../models/Product.js';
 import { isDbConnected, readMockData, writeMockData } from '../utils/mockDb.js';
-import mongoose from 'mongoose';
 
 // @desc    Get reviews for a product
 // @route   GET /api/reviews/product/:productId
@@ -80,7 +79,7 @@ export const createReview = async (req, res) => {
       }
 
       const newReview = {
-        _id: new mongoose.Types.ObjectId().toString(),
+        _id: 'rev_' + Date.now().toString(36) + Math.random().toString(36).substr(2, 6),
         user: userId.toString(),
         userName: req.user.name,
         product: productId.toString(),

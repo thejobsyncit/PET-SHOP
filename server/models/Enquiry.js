@@ -1,25 +1,4 @@
-import mongoose from 'mongoose';
+import createModel from './baseModel.js';
 
-const enquirySchema = new mongoose.Schema({
-  name: {
-    type: String,
-    required: true
-  },
-  email: {
-    type: String,
-    required: true
-  },
-  phone: {
-    type: String
-  },
-  subject: {
-    type: String,
-    required: true
-  },
-  message: {
-    type: String,
-    required: true
-  }
-}, { timestamps: true });
-
-export default mongoose.model('Enquiry', enquirySchema);
+export const Enquiry = createModel('enquiries');
+export default Enquiry;

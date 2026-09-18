@@ -1,6 +1,5 @@
 import Blog from '../models/Blog.js';
 import { isDbConnected, readMockData, writeMockData } from '../utils/mockDb.js';
-import mongoose from 'mongoose';
 
 // @desc    Get all blogs
 // @route   GET /api/blogs
@@ -92,7 +91,7 @@ export const createBlog = async (req, res) => {
     } else {
       const blogs = readMockData('blogs');
       const newBlog = {
-        _id: new mongoose.Types.ObjectId().toString(),
+        _id: 'blg_' + Date.now().toString(36) + Math.random().toString(36).substr(2, 6),
         title,
         slug,
         summary,

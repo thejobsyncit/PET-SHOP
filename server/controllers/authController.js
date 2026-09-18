@@ -1,8 +1,9 @@
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
-import mongoose from 'mongoose';
 import User from '../models/User.js';
 import { isDbConnected, readMockData, writeMockData } from '../utils/mockDb.js';
+
+const generateId = () => 'usr_' + Date.now().toString(36) + Math.random().toString(36).substr(2, 6);
 
 // Helper to generate JWT Token
 const generateToken = (id) => {
@@ -117,7 +118,7 @@ export const registerUser = async (req, res) => {
       const hashedPassword = await bcrypt.hash(password, salt);
 
       const newUser = {
-        _id: new mongoose.Types.ObjectId().toString(),
+        _id: generateId(),
         name: name.trim(),
         email: email.toLowerCase().trim(),
         password: hashedPassword,
@@ -368,7 +369,7 @@ export const loginUser = async (req, res) => {
           }
         }
         
-        const userId = user ? user._id : new mongoose.Types.ObjectId();
+        const userId = user ? user._id : generateId();
         const token = generateToken(userId);
         setAuthCookie(res, token);
         return res.json({
@@ -399,7 +400,7 @@ export const loginUser = async (req, res) => {
         let user = usersList.find(u => u.email && u.email.toLowerCase() === matchedDemo.email.toLowerCase());
         if (!user) {
           user = {
-            _id: new mongoose.Types.ObjectId().toString(),
+            _id: generateId(),
             name: matchedDemo.name,
             businessName: matchedDemo.businessName || matchedDemo.name,
             email: matchedDemo.email.toLowerCase(),
@@ -548,7 +549,7 @@ export const updateUserProfile = async (req, res) => {
 
   try {
     const userId = req.user._id || req.user.id;
-    if (isDbConnected() && mongoose.Types.ObjectId.isValid(userId)) {
+    if (isDbConnected() && userId) {
       const user = await User.findById(userId);
       if (user) {
         user.name = name || user.name;
@@ -622,7 +623,7 @@ export const addAddress = async (req, res) => {
 
   try {
     const newAddress = {
-      _id: new mongoose.Types.ObjectId().toString(),
+      _id: generateId(),
       name,
       phone,
       streetAddress,

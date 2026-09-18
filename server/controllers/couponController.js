@@ -1,6 +1,5 @@
 import Coupon from '../models/Coupon.js';
 import { isDbConnected, readMockData, writeMockData } from '../utils/mockDb.js';
-import mongoose from 'mongoose';
 
 // @desc    Validate coupon code
 // @route   POST /api/coupons/validate
@@ -104,7 +103,7 @@ export const createCoupon = async (req, res) => {
       }
 
       const newCoupon = {
-        _id: new mongoose.Types.ObjectId().toString(),
+        _id: 'cpn_' + Date.now().toString(36) + Math.random().toString(36).substr(2, 6),
         code: code.toUpperCase(),
         discountType,
         discountValue: parseFloat(discountValue),

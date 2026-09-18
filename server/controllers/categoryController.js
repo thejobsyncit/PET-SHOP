@@ -1,6 +1,5 @@
 import Category from '../models/Category.js';
 import { isDbConnected, readMockData, writeMockData } from '../utils/mockDb.js';
-import mongoose from 'mongoose';
 
 // @desc    Get all categories
 // @route   GET /api/categories
@@ -47,7 +46,7 @@ export const createCategory = async (req, res) => {
     } else {
       const categories = readMockData('categories');
       const newCategory = {
-        _id: new mongoose.Types.ObjectId().toString(),
+        _id: 'cat_' + Date.now().toString(36) + Math.random().toString(36).substr(2, 6),
         name,
         slug,
         description,

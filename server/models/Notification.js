@@ -1,33 +1,4 @@
-import mongoose from 'mongoose';
+import createModel from './baseModel.js';
 
-const NotificationSchema = new mongoose.Schema({
-  user: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
-    required: true,
-  },
-  title: {
-    type: String,
-    required: true,
-  },
-  message: {
-    type: String,
-    required: true,
-  },
-  type: {
-    type: String,
-    enum: ['Order', 'Prescription', 'System', 'Stock'],
-    default: 'System',
-  },
-  read: {
-    type: Boolean,
-    default: false,
-  },
-  createdAt: {
-    type: Date,
-    default: Date.now,
-  },
-});
-
-const Notification = mongoose.models.Notification || mongoose.model('Notification', NotificationSchema);
+export const Notification = createModel('notifications');
 export default Notification;

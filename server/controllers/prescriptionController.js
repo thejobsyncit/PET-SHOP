@@ -1,7 +1,6 @@
 import Prescription from '../models/Prescription.js';
 import User from '../models/User.js';
 import { isDbConnected, readMockData, writeMockData } from '../utils/mockDb.js';
-import mongoose from 'mongoose';
 
 // @desc    Submit a prescription
 // @route   POST /api/prescriptions
@@ -54,7 +53,7 @@ export const uploadPrescription = async (req, res) => {
       const usersList = readMockData('users');
 
       const newPrescription = {
-        _id: new mongoose.Types.ObjectId().toString(),
+        _id: 'rx_' + Date.now().toString(36) + Math.random().toString(36).substr(2, 6),
         user: userId.toString(),
         patientName,
         veterinarianName,
