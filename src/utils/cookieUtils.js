@@ -5,7 +5,7 @@
  */
 
 // Cookie consent storage key
-export const COOKIE_CONSENT_KEY = 'josh_cookie_consent';
+export const COOKIE_CONSENT_KEY = 'josh_cookie_consent_v2';
 export const COOKIE_SESSION_KEY = 'josh_session_id';
 export const COOKIE_LOCATION_KEY = 'josh_user_location';
 export const COOKIE_RECENT_KEY = 'josh_recently_viewed';

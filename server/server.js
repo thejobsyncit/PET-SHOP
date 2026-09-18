@@ -34,6 +34,7 @@ import serviceRoutes from './routes/serviceRoutes.js';
 import chatRoutes from './routes/chatRoutes.js';
 import enquiryRoutes from './routes/enquiryRoutes.js';
 import paymentRoutes from './routes/paymentRoutes.js';
+import cookieConsentRoutes from './routes/cookieConsentRoutes.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -152,6 +153,7 @@ app.use('/api/services', serviceRoutes);
 app.use('/api/chats', chatRoutes);
 app.use('/api/enquiries', enquiryRoutes);
 app.use('/api/payments', paymentRoutes);
+app.use('/api/cookie-consents', cookieConsentRoutes);
 
 // Health check endpoint
 app.get('/health', (req, res) => {

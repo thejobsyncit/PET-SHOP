@@ -11,6 +11,7 @@ import {
   clearAllCookiesData,
   DEFAULT_COOKIE_PREFERENCES
 } from '../utils/cookieUtils.js';
+import { apiRequest } from '../services/api.js';
 
 const CookieConsent = () => {
   const [mounted] = useState(() => typeof document !== 'undefined');
@@ -65,7 +66,6 @@ const CookieConsent = () => {
     window.addEventListener('open-cookie-banner', handleOpenBanner);
     window.addEventListener('clear-cookie-data', handleClearEvent);
     return () => {
-      clearTimeout(timer);
       window.removeEventListener('open-cookie-settings', handleOpenSettings);
       window.removeEventListener('open-cookie-banner', handleOpenBanner);
       window.removeEventListener('clear-cookie-data', handleClearEvent);
@@ -84,6 +84,21 @@ const CookieConsent = () => {
     });
   };
 
+  const logConsentToBackend = async (prefs) => {
+    try {
+      const sessionId = getOrCreateSessionId();
+      await apiRequest('/cookie-consents', {
+        method: 'POST',
+        body: JSON.stringify({
+          sessionId,
+          preferences: prefs
+        })
+      });
+    } catch (err) {
+      console.error('Failed to log cookie consent', err);
+    }
+  };
+
   // Accept All Cookies
   const handleAcceptAll = () => {
     const allConsented = {
@@ -94,6 +109,7 @@ const CookieConsent = () => {
     };
     setCookieConsent(allConsented);
     setPreferences(allConsented);
+    logConsentToBackend(allConsented);
     setShowBanner(false);
     setShowModal(false);
     toast.success('All cookies accepted!', {
@@ -112,6 +128,7 @@ const CookieConsent = () => {
     };
     setCookieConsent(essentialOnly);
     setPreferences(essentialOnly);
+    logConsentToBackend(essentialOnly);
     setShowBanner(false);
     setShowModal(false);
     toast.success('Essential cookies saved.', {
@@ -123,6 +140,7 @@ const CookieConsent = () => {
   // Save Customized Preferences
   const handleSavePreferences = () => {
     setCookieConsent(preferences);
+    logConsentToBackend(preferences);
     setShowBanner(false);
     setShowModal(false);
     toast.success('Cookie preferences updated!', {
@@ -143,63 +161,72 @@ const CookieConsent = () => {
 
   return createPortal(
     <>
-      {/* 1. FULL-WIDTH DOCKED BOTTOM COOKIE BAR */}
+      {/* 1. BOTTOM RIGHT COOKIE POPUP */}
       {showBanner && (
         <div 
           id="cookie-consent-banner"
           style={{ zIndex: 2147483647, position: 'fixed' }}
-          className="bottom-0 left-0 right-0 w-full bg-[#0a231b]/98 backdrop-blur-2xl text-white border-t border-white/20 shadow-[0_-12px_45px_rgba(0,0,0,0.6)] py-4 md:py-5 px-4 sm:px-6 lg:px-8 animate-in fade-in slide-in-from-bottom-5 duration-500"
+          className="bottom-4 right-4 sm:bottom-6 sm:right-6 w-[calc(100%-2rem)] sm:w-[400px] bg-[#0a231b]/95 backdrop-blur-xl text-white border border-white/20 shadow-2xl rounded-3xl p-5 md:p-6 animate-in fade-in slide-in-from-bottom-5 duration-500"
         >
-          {/* Subtle Top Gold Accent Line */}
-          <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-[#fde047] to-transparent opacity-80"></div>
-
-          <div className="max-w-7xl mx-auto flex flex-col lg:flex-row items-center justify-between gap-4 lg:gap-8">
-            {/* Left side: Icon + Content */}
-            <div className="flex items-start sm:items-center gap-3.5 sm:gap-4 flex-1">
-              <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-gradient-to-br from-[#fde047] to-[#f59e0b] text-[#0f2e23] flex items-center justify-center shrink-0 shadow-lg shadow-amber-500/20">
-                <Cookie size={22} className="sm:w-6 sm:h-6" />
+          <div className="flex flex-col gap-5">
+            {/* Top: Icon + Content */}
+            <div className="flex items-start gap-4">
+              <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#fde047] to-[#f59e0b] text-[#0f2e23] flex items-center justify-center shrink-0 shadow-lg shadow-amber-500/20">
+                <Cookie size={24} />
               </div>
-              <div className="space-y-1 flex-1">
-                <h3 className="text-sm sm:text-base font-black text-white flex items-center gap-1.5 tracking-tight">
+              <div className="space-y-1.5 flex-1 pt-1">
+                <h3 className="text-base font-black text-white flex items-center gap-1.5 tracking-tight">
                   We Value Your Privacy <Sparkles size={14} className="text-[#fde047]" />
                 </h3>
-                <p className="text-xs text-white/80 leading-relaxed max-w-3xl">
-                  Josh Pets Hub uses cookies to secure your account and shopping cart, remember your location for pet service bookings, and tailor pet recommendations.
+                <p className="text-xs text-white/80 leading-relaxed">
+                  Josh Pets Hub uses cookies to secure your account, remember your location, and tailor recommendations.
                 </p>
               </div>
             </div>
 
-            {/* Right side: Preferences Link + Action Buttons */}
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 sm:gap-3.5 w-full lg:w-auto shrink-0">
+            {/* Bottom: Action Buttons */}
+            <div className="flex flex-col gap-2.5 mt-1">
+              <div className="flex items-center gap-2.5">
+                <button
+                  type="button"
+                  onClick={handleEssentialOnly}
+                  className="flex-1 bg-white/10 hover:bg-white/15 text-white border border-white/20 font-bold py-2.5 px-3 rounded-xl text-xs transition-all active:scale-95 cursor-pointer text-center"
+                >
+                  Essential Only
+                </button>
+                <button
+                  type="button"
+                  onClick={handleAcceptAll}
+                  className="flex-1 bg-gradient-to-r from-[#fde047] to-[#f59e0b] hover:from-[#f59e0b] hover:to-[#d97706] text-[#0f2e23] font-black py-2.5 px-3 rounded-xl text-xs transition-all shadow-md shadow-amber-500/25 active:scale-95 cursor-pointer text-center"
+                >
+                  Accept All
+                </button>
+              </div>
+              
               <button 
                 type="button"
                 onClick={() => {
                   setShowBanner(false);
                   setShowModal(true);
                 }}
-                className="text-xs font-bold text-[#fde047] hover:text-white transition flex items-center justify-center gap-1 py-2 px-3 rounded-xl hover:bg-white/5 cursor-pointer whitespace-nowrap"
+                className="w-full text-xs font-bold text-[#fde047] hover:text-white transition flex items-center justify-center gap-1 py-2.5 px-3 rounded-xl bg-white/5 hover:bg-white/10 cursor-pointer"
               >
                 <Settings2 size={14} /> Customize Preferences
-              </button>
-
-              <button
-                type="button"
-                onClick={handleEssentialOnly}
-                className="bg-white/10 hover:bg-white/15 text-white border border-white/20 font-bold py-2.5 px-5 rounded-xl text-xs transition-all active:scale-95 cursor-pointer text-center whitespace-nowrap"
-              >
-                Essential Only
-              </button>
-
-              <button
-                type="button"
-                onClick={handleAcceptAll}
-                className="bg-gradient-to-r from-[#fde047] to-[#f59e0b] hover:from-[#f59e0b] hover:to-[#d97706] text-[#0f2e23] font-black py-2.5 px-6 rounded-xl text-xs transition-all shadow-md shadow-amber-500/25 active:scale-95 cursor-pointer text-center whitespace-nowrap"
-              >
-                Accept All Cookies
               </button>
             </div>
           </div>
         </div>
+      )}
+
+      {/* 2. FLOATING MANAGE COOKIES BUTTON */}
+      {!showBanner && !showModal && (
+        <button
+          onClick={() => setShowModal(true)}
+          className="fixed bottom-4 left-4 z-[2147483647] bg-[#0a231b]/90 backdrop-blur-md text-white/80 hover:text-white p-2.5 rounded-full shadow-lg border border-white/10 transition-all hover:scale-110 flex items-center justify-center cursor-pointer group"
+          title="Manage Cookie Preferences"
+        >
+          <Cookie size={20} className="group-hover:text-[#fde047] transition-colors" />
+        </button>
       )}
 
       {/* 3. PREFERENCES MODAL */}

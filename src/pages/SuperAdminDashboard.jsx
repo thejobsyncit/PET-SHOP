@@ -7,7 +7,7 @@ import {
 } from 'recharts';
 import {
   TrendingUp, ShoppingBag, Users, Layers, AlertTriangle, Clock,
-  Plus, Edit, Trash, Check, X, FileText, CheckCircle, RefreshCw, ChevronRight, MessageSquare, Heart, Lock, Mail, ShieldAlert, Award, ShieldCheck, Menu
+  Plus, Edit, Trash, Check, X, FileText, CheckCircle, RefreshCw, ChevronRight, MessageSquare, Heart, Lock, Mail, ShieldAlert, Award, ShieldCheck, Menu, Cookie
 } from 'lucide-react';
 import { apiRequest } from '../services/api.js';
 import { login, logout } from '../store/slices/authSlice.js';
@@ -40,6 +40,7 @@ const SuperAdminDashboard = () => {
   const [bookingsList, setBookingsList] = useState([]);
   const [usersList, setUsersList] = useState([]);
   const [enquiriesList, setEnquiriesList] = useState([]);
+  const [consentsList, setConsentsList] = useState([]);
   const [loading, setLoading] = useState(true);
 
   // Add/Edit Product form states
@@ -75,6 +76,7 @@ const SuperAdminDashboard = () => {
       loadAdminMarketplaceData();
       loadUsers();
       loadEnquiries();
+      loadConsents();
     }
   }, [isAuthenticated, user]);
 
@@ -158,6 +160,17 @@ const SuperAdminDashboard = () => {
       const data = await apiRequest('/enquiries');
       if (data.success) {
         setEnquiriesList(data.enquiries);
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const loadConsents = async () => {
+    try {
+      const data = await apiRequest('/cookie-consents');
+      if (data.success) {
+        setConsentsList(data.consents);
       }
     } catch (err) {
       console.error(err);
@@ -557,7 +570,8 @@ const SuperAdminDashboard = () => {
               { id: 'studs', label: 'Verify Breeders', icon: <Award size={15} /> },
               { id: 'bookings', label: 'Services Bookings', icon: <Clock size={15} /> },
               { id: 'users', label: 'Registered Users', icon: <Users size={15} /> },
-              { id: 'enquiries', label: 'Contact Enquiries', icon: <Mail size={15} /> }
+              { id: 'enquiries', label: 'Contact Enquiries', icon: <Mail size={15} /> },
+              { id: 'consents', label: 'Cookie Consents', icon: <Cookie size={15} /> }
             ].map((tab) => (
               <button
                 key={tab.id}
@@ -608,8 +622,9 @@ const SuperAdminDashboard = () => {
               {activeSection === 'listings' && 'Classified Listings Moderation'}
               {activeSection === 'studs' && 'Breeder KCI Validations'}
               {activeSection === 'bookings' && 'Care Appointment Bookings'}
-              {activeSection === 'users' && 'Registered Users Management'}
-              {activeSection === 'enquiries' && 'Contact Form Enquiries'}
+              { activeSection === 'users' && 'Registered Users Management' }
+              { activeSection === 'enquiries' && 'Contact Form Enquiries' }
+              { activeSection === 'consents' && 'Cookie Consent Logs' }
             </h2>
           </div>
 
@@ -627,6 +642,7 @@ const SuperAdminDashboard = () => {
                 loadProducts(); 
                 loadOrders(); 
                 loadPrescriptions(); 
+                loadConsents();
               }}
               className="btn-secondary-premium !py-2 !px-4 !text-[10px] gap-2 flex items-center"
             >
@@ -1221,6 +1237,58 @@ const SuperAdminDashboard = () => {
 
           </>
         )}
+
+        {/* PILLAR TAB 10: COOKIE CONSENTS MANAGER */}
+        {activeSection === 'consents' && (
+          <div className="space-y-6 animate-in fade-in duration-200">
+            <h2 className="font-serif text-lg font-bold text-primary border-b border-[#E3EBE5] pb-3">User Cookie Preferences Logs ({consentsList.length})</h2>
+
+            <div className="card-premium overflow-x-auto">
+              <table className="w-full text-left text-xs border-collapse">
+                <thead>
+                  <tr className="bg-[#F1F6F2] text-primary font-bold border-b border-[#E3EBE5]">
+                    <th className="p-4 uppercase tracking-wider text-[10px]">Session / User IP</th>
+                    <th className="p-4 uppercase tracking-wider text-[10px]">Preferences</th>
+                    <th className="p-4 uppercase tracking-wider text-[10px]">Browser / Agent</th>
+                    <th className="p-4 uppercase tracking-wider text-[10px] text-right">Date Consented</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-[#E3EBE5] text-xs">
+                  {consentsList.map((c) => (
+                    <tr key={c._id || c.sessionId} className="hover:bg-[#F9FAF9] transition-colors duration-300">
+                      <td className="p-4">
+                        <div className="font-bold text-primary truncate max-w-[150px]" title={c.sessionId}>{c.sessionId}</div>
+                        <div className="text-[10px] text-gray-500">{c.ip || 'Unknown IP'}</div>
+                      </td>
+                      <td className="p-4 space-y-1">
+                        <div className="flex gap-2">
+                          <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold ${c.preferences?.essential ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>ESSENTIAL</span>
+                          <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold ${c.preferences?.functional ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-500'}`}>FUNCTIONAL</span>
+                        </div>
+                        <div className="flex gap-2">
+                          <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold ${c.preferences?.analytics ? 'bg-purple-100 text-purple-700' : 'bg-gray-100 text-gray-500'}`}>ANALYTICS</span>
+                          <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold ${c.preferences?.marketing ? 'bg-yellow-100 text-yellow-700' : 'bg-gray-100 text-gray-500'}`}>MARKETING</span>
+                        </div>
+                      </td>
+                      <td className="p-3 text-gray-600 max-w-[200px] truncate text-[10px]" title={c.userAgent}>
+                        {c.userAgent || 'Unknown'}
+                      </td>
+                      <td className="p-3 text-right text-gray-400 font-medium">
+                        {new Date(c.createdAt).toLocaleString()}
+                      </td>
+                    </tr>
+                  ))}
+                  {consentsList.length === 0 && (
+                    <tr>
+                      <td colSpan="4" className="p-8 text-center text-gray-400 font-medium">No cookie consent logs found.</td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
 
       </main>
 
