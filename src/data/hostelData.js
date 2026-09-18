@@ -31,7 +31,7 @@ export const INITIAL_HOSTEL_PROVIDERS = [
     pricePerNight: 999,
     discountPrice: 799,
     image: 'https://images.unsplash.com/photo-1589924691995-400dc9ecc119?q=80&w=800&auto=format&fit=crop',
-    phone: '9800010007',
+    phone: '9876543210',
     amenities: ['AC Suites', '24/7 CCTV Live Stream', 'Outdoor Lawn & Play Area', 'Vet On Call', 'Daily Video Updates', 'Customized Meals', 'Pet Pool / Splash Zone'],
     packages: [
       { name: 'Deluxe AC Room (Single Pet)', price: 799, desc: 'Climate controlled private room, 3 fresh meals, 3 daily walks & video updates' },
@@ -55,7 +55,7 @@ export const INITIAL_HOSTEL_PROVIDERS = [
     pricePerNight: 750,
     discountPrice: 599,
     image: 'https://images.unsplash.com/photo-1544568100-eba616a6ce76?q=80&w=800&auto=format&fit=crop',
-    phone: '9800010008',
+    phone: '9876543210',
     amenities: ['AC Suites', 'Outdoor Lawn & Play Area', 'Daily Video Updates', 'Customized Meals', 'Vet On Call'],
     packages: [
       { name: 'Homely Day & Night Care', price: 599, desc: 'Cage-free living in spacious bungalow, home-cooked chicken & rice, daily photos' },
@@ -79,7 +79,7 @@ export const INITIAL_HOSTEL_PROVIDERS = [
     pricePerNight: 1200,
     discountPrice: 999,
     image: 'https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?q=80&w=800&auto=format&fit=crop',
-    phone: '9800010009',
+    phone: '9876543210',
     amenities: ['AC Suites', '24/7 CCTV Live Stream', 'Outdoor Lawn & Play Area', 'Vet On Call', 'Pet Pool / Splash Zone', 'Customized Meals'],
     packages: [
       { name: 'Farm Play & Stay Pass', price: 999, desc: 'Private enclosure, 2 hours supervised lawn play, splash pool & organic diet' },
@@ -103,7 +103,7 @@ export const INITIAL_HOSTEL_PROVIDERS = [
     pricePerNight: 650,
     discountPrice: 499,
     image: 'https://images.unsplash.com/photo-1548199973-03cce0bbc87b?q=80&w=800&auto=format&fit=crop',
-    phone: '9800010010',
+    phone: '9876543210',
     amenities: ['AC Suites', 'Vet On Call', 'Daily Video Updates', 'Customized Meals'],
     packages: [
       { name: 'Cat Condo / Small Dog Suite', price: 499, desc: 'Multi-level cat climbing condo or cozy dog pen, vet checkup included' },
@@ -127,7 +127,7 @@ export const INITIAL_HOSTEL_PROVIDERS = [
     pricePerNight: 1100,
     discountPrice: 899,
     image: 'https://images.unsplash.com/photo-1517849845537-4d257902454a?q=80&w=800&auto=format&fit=crop',
-    phone: '9800010011',
+    phone: '9876543210',
     amenities: ['AC Suites', 'Outdoor Lawn & Play Area', '24/7 CCTV Live Stream', 'Daily Video Updates', 'Customized Meals'],
     packages: [
       { name: 'Cottage Comfort Stay', price: 899, desc: 'Eco friendly breezy cottage, beach breeze walks, customized menu' },
@@ -151,7 +151,7 @@ export const INITIAL_HOSTEL_PROVIDERS = [
     pricePerNight: 450,
     discountPrice: 380,
     image: 'https://images.unsplash.com/photo-1534361960057-19889db9621e?q=80&w=800&auto=format&fit=crop',
-    phone: '9800010012',
+    phone: '9876543210',
     amenities: ['Daily Video Updates', 'Customized Meals', 'Vet On Call'],
     packages: [
       { name: 'Budget Essential Boarding', price: 380, desc: 'Clean bedding, 3 daily meals, morning & evening walk, photo updates' }

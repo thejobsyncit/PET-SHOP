@@ -39,7 +39,7 @@
     "addresses": [
       {
         "name": "Aarav Sharma",
-        "phone": "9123456789",
+        "phone": "9876543210",
         "streetAddress": "Block C, Flat 402, Prestige Heights",
         "city": "Mumbai",
         "state": "Maharashtra",
@@ -60,7 +60,7 @@
     "addresses": [
       {
         "name": "Ananya Iyer",
-        "phone": "9822334455",
+        "phone": "9876543210",
         "streetAddress": "Plot 45, Jubilee Hills",
         "city": "Hyderabad",
         "state": "Telangana",
@@ -108,7 +108,7 @@
     "businessName": "Dr. Ramesh Kumar Pet Clinic",
     "email": "dr.ramesh@pawora.com",
     "role": "CUSTOMER",
-    "mobile": "9845012345",
+    "mobile": "9876543210",
     "location": "Koramangala, Bangalore, Karnataka",
     "serviceCategory": "Consult a Vet",
     "govtProofType": "AWBI / NGO Registration Certificate",
@@ -124,7 +124,7 @@
     "businessName": "Hope Animal Welfare Foundation & Sanctuary",
     "email": "adopt@pawora.com",
     "role": "SERVICE_PROVIDER",
-    "mobile": "9845577661",
+    "mobile": "9876543210",
     "location": "Whitefield, Bangalore, Karnataka",
     "serviceCategory": "Pet Adoption",
     "govtProofType": "AWBI / Section 8 NGO Certificate",
@@ -156,7 +156,7 @@
     "businessName": "Velvet Fur Grooming Studio",
     "email": "velvetfur@pawora.com",
     "role": "SERVICE_PROVIDER",
-    "mobile": "9845199882",
+    "mobile": "9876543210",
     "location": "Indiranagar, Bangalore, Karnataka",
     "serviceCategory": "Pet Grooming Spa",
     "govtProofType": "AWBI / NGO Registration Certificate",

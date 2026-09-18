@@ -16,7 +16,7 @@ const HostelProviderContent = ({ activeTab }) => {
     experienceYears: 10,
     rating: 4.9,
     reviewsCount: 312,
-    phone: '+91 97312 99881',
+    phone: '+91 98765 43210',
     isVerified: true,
     openTodayTiming: '24 Hours',
     bio: 'Premium pet resort offering luxury kennels, large play areas, and 24/7 vet on call.',

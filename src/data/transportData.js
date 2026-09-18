@@ -98,8 +98,8 @@ export const INITIAL_TRANSPORT_PROVIDERS = [
     interstateMin: 8500,
     vehicleTypes: ['AC Pet Ambulance & Van', 'IATA Flight Hold', 'Private 1st AC Train Coupé'],
     amenities: ['100% Climate Controlled AC', 'Live WhatsApp & GPS Tracking', 'Vet Onboard Available', 'IATA Approved Crate Included', 'Doorstep Pickup & Drop', 'Hydration Stops Every 3 Hrs'],
-    phone: '+91 8306-944-422',
-    whatsapp: '+91 8306-944-422',
+    phone: '+91 98765 43210',
+    whatsapp: '+91 98765 43210',
     image: 'https://images.unsplash.com/photo-1548199973-03cce0bbc87b?q=80&w=800&auto=format&fit=crop',
     packages: [
       {
@@ -148,8 +148,8 @@ export const INITIAL_TRANSPORT_PROVIDERS = [
     interstateMin: 7200,
     vehicleTypes: ['Custom AC Transit Scorpio/Innova', '1st AC Indian Railways Coupé'],
     amenities: ['100% Climate Controlled AC', 'Live GPS Tracking', 'Attendant Escort', 'Sanitized Bedding & Kennels', 'Doorstep Pickup & Drop'],
-    phone: '+91 8306-944-422',
-    whatsapp: '+91 8306-944-422',
+    phone: '+91 98765 43210',
+    whatsapp: '+91 98765 43210',
     image: 'https://images.unsplash.com/photo-1517849845537-4d257902454a?q=80&w=800&auto=format&fit=crop',
     packages: [
       {
@@ -198,8 +198,8 @@ export const INITIAL_TRANSPORT_PROVIDERS = [
     interstateMin: 9500,
     vehicleTypes: ['Aviation Grade Climate Vans', 'Commercial Air Cargo Regulated', 'Private Coupés'],
     amenities: ['IATA Approved Flight Crates Provided', '24/7 Veterinary On-Call', 'Full Customs & Health Cert Paperwork', 'Live Video Calls with Pet Parent', 'Doorstep Delivery'],
-    phone: '+91 8306-944-422',
-    whatsapp: '+91 8306-944-422',
+    phone: '+91 98765 43210',
+    whatsapp: '+91 98765 43210',
     image: 'https://images.unsplash.com/photo-1534361960057-19889db9621e?q=80&w=800&auto=format&fit=crop',
     packages: [
       {
@@ -248,8 +248,8 @@ export const INITIAL_TRANSPORT_PROVIDERS = [
     interstateMin: 6500,
     vehicleTypes: ['Coastal AC SUVs', 'Ro-Ro Ship Pet Enclosure', 'Ferry Private Cabin'],
     amenities: ['Sea-Sickness Monitoring', 'Life Jackets for Dogs', 'Shaded Deck Cabins', 'Live WhatsApp Updates', 'Sanitized Kennels'],
-    phone: '+91 8306-944-422',
-    whatsapp: '+91 8306-944-422',
+    phone: '+91 98765 43210',
+    whatsapp: '+91 98765 43210',
     image: 'https://images.unsplash.com/photo-1601758228041-f3b2795255f1?q=80&w=800&auto=format&fit=crop',
     packages: [
       {
@@ -291,8 +291,8 @@ export const INITIAL_TRANSPORT_PROVIDERS = [
     interstateMin: 6800,
     vehicleTypes: ['Custom AC Relocation Van', '1st AC Train Coupé Companion'],
     amenities: ['100% Climate Controlled', 'Live Location Sharing', 'Trained Handler Companion', 'Sanitized Bedding', 'Scheduled Food/Water'],
-    phone: '+91 8306-944-422',
-    whatsapp: '+91 8306-944-422',
+    phone: '+91 98765 43210',
+    whatsapp: '+91 98765 43210',
     image: 'https://images.unsplash.com/photo-1587300003388-59208cc962cb?q=80&w=800&auto=format&fit=crop',
     packages: [
       {
@@ -334,8 +334,8 @@ export const INITIAL_TRANSPORT_PROVIDERS = [
     interstateMin: 7800,
     vehicleTypes: ['AC Pet Carrier Van', 'Air Cargo Compliant', 'Howrah 1st AC Rail Coupé'],
     amenities: ['Vet Check on Departure', 'Climate Controlled', 'Live WhatsApp Updates', 'Free Crate Sanitization', 'Food & Hydration Care'],
-    phone: '+91 8306-944-422',
-    whatsapp: '+91 8306-944-422',
+    phone: '+91 98765 43210',
+    whatsapp: '+91 98765 43210',
     image: 'https://images.unsplash.com/photo-1552053831-71594a27632d?q=80&w=800&auto=format&fit=crop',
     packages: [
       {
@@ -377,8 +377,8 @@ export const INITIAL_TRANSPORT_PROVIDERS = [
     interstateMin: 7500,
     vehicleTypes: ['AC Innova / Force Pet Cruiser', 'IATA Air Crates', '1st AC Train Escorts'],
     amenities: ['100% AC Climate Control', 'Live GPS Tracking', 'Attendant Feeding Support', 'IATA Flight Crates', 'Doorstep Pickup & Drop'],
-    phone: '+91 8306-944-422',
-    whatsapp: '+91 8306-944-422',
+    phone: '+91 98765 43210',
+    whatsapp: '+91 98765 43210',
     image: 'https://images.unsplash.com/photo-1535930891776-0c2dfb7fda1a?q=80&w=800&auto=format&fit=crop',
     packages: [
       {
@@ -420,8 +420,8 @@ export const INITIAL_TRANSPORT_PROVIDERS = [
     interstateMin: 6900,
     vehicleTypes: ['AC Multi-Utility Vans', 'IATA Air Crates'],
     amenities: ['100% Climate Control', 'Live Location Updates', 'Sanitized Crates', 'Food & Hydration Care', 'Emergency Vet Network'],
-    phone: '+91 8306-944-422',
-    whatsapp: '+91 8306-944-422',
+    phone: '+91 98765 43210',
+    whatsapp: '+91 98765 43210',
     image: 'https://images.unsplash.com/photo-1589924691995-400dc9ecc119?q=80&w=800&auto=format&fit=crop',
     packages: [
       {
@@ -528,8 +528,8 @@ export const saveOrUpdateTransportService = (serviceData, user) => {
     amenities: Array.isArray(serviceData.amenities) && serviceData.amenities.length > 0 
       ? serviceData.amenities 
       : ['100% Climate Controlled AC', 'Live GPS Tracking', 'Sanitized Kennels', 'Hydration Stops Every 3 Hrs', 'Vet Onboard Available'],
-    phone: serviceData.phone || user?.mobile || '+91 98452 23344',
-    whatsapp: serviceData.whatsapp || serviceData.phone || user?.mobile || '+91 98452 23344',
+    phone: serviceData.phone || user?.mobile || '+91 98765 43210',
+    whatsapp: serviceData.whatsapp || serviceData.phone || user?.mobile || '+91 98765 43210',
     email: userEmail || serviceData.email || 'safepet@pawora.com',
     providerEmail: userEmail || 'safepet@pawora.com',
     providerUserId: userId,
@@ -586,7 +586,7 @@ export const INITIAL_DEMO_BOOKINGS = [
     petBreed: 'Labrador Retriever',
     petAge: '3 Years',
     customerName: 'Vikram Malhotra',
-    customerPhone: '+91 98451 22334',
+    customerPhone: '+91 98765 43210',
     customerEmail: 'vikram.m@gmail.com',
     originState: 'Karnataka',
     originCity: 'Bangalore',
@@ -601,7 +601,7 @@ export const INITIAL_DEMO_BOOKINGS = [
     pickupAddress: 'Prestige Lakeside Habitat, Varthur, Whitefield, Bangalore',
     dropAddress: 'Banjara Hills, Road No. 12, Hyderabad',
     driverName: 'Ramesh Gowda',
-    driverPhone: '+91 98459 11223',
+    driverPhone: '+91 98765 43210',
     notes: 'Doorstep pickup at 7 AM. Needs 2 hydration breaks and light dry kibble.',
     createdAt: new Date(Date.now() - 3600000 * 24).toISOString()
   },
@@ -612,7 +612,7 @@ export const INITIAL_DEMO_BOOKINGS = [
     petBreed: 'Persian & British Shorthair',
     petAge: '2 Years',
     customerName: 'Sunita Rao',
-    customerPhone: '+91 98203 44556',
+    customerPhone: '+91 98765 43210',
     customerEmail: 'sunita.rao@gmail.com',
     originState: 'Karnataka',
     originCity: 'Bangalore',
@@ -627,7 +627,7 @@ export const INITIAL_DEMO_BOOKINGS = [
     pickupAddress: 'Indiranagar 100ft Road, Bangalore',
     dropAddress: 'Adyar, Chennai',
     driverName: 'Suresh Kumar',
-    driverPhone: '+91 98451 88990',
+    driverPhone: '+91 98765 43210',
     notes: 'Keep crates separated with gentle soothing pheromone spray.',
     createdAt: new Date(Date.now() - 3600000 * 48).toISOString()
   },
@@ -638,7 +638,7 @@ export const INITIAL_DEMO_BOOKINGS = [
     petBreed: 'Golden Retriever',
     petAge: '4 Years',
     customerName: 'Aditya Mehta',
-    customerPhone: '+91 97123 99887',
+    customerPhone: '+91 98765 43210',
     customerEmail: 'aditya.m@gmail.com',
     originState: 'Karnataka',
     originCity: 'Bangalore',
@@ -653,7 +653,7 @@ export const INITIAL_DEMO_BOOKINGS = [
     pickupAddress: 'Koramangala 4th Block, Bangalore',
     dropAddress: 'Juhu Tara Road, Mumbai',
     driverName: 'Capt. Rajesh Sharma',
-    driverPhone: '+91 98201 22334',
+    driverPhone: '+91 98765 43210',
     notes: 'Successfully delivered to doorstep on time. Health certificate verified.',
     createdAt: new Date(Date.now() - 3600000 * 200).toISOString()
   }
@@ -851,7 +851,7 @@ export const INITIAL_DEMO_ENQUIRIES = [
     userId: 'usr-demo-01',
     userName: 'Riya Sen',
     userEmail: 'riya.sen@example.com',
-    userPhone: '+91 98201 12345',
+    userPhone: '+91 98765 43210',
     relocationType: 'Inter-State Relocation',
     departureState: 'Maharashtra',
     departureCity: 'Mumbai',
@@ -879,7 +879,7 @@ export const INITIAL_DEMO_ENQUIRIES = [
     userId: 'usr-demo-02',
     userName: 'Anand Kulkarni',
     userEmail: 'anand.k@example.com',
-    userPhone: '+91 98450 78901',
+    userPhone: '+91 98765 43210',
     relocationType: 'Inter-State Relocation',
     departureState: 'Karnataka',
     departureCity: 'Bangalore',

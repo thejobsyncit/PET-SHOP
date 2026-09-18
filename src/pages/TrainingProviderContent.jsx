@@ -83,8 +83,8 @@ const TrainingProviderContent = ({ activeTab, user }) => {
     tagline: 'Positive Reinforcement & Certified Behavioral Problem Solving',
     leadTrainer: user?.name || 'Aryan Roy',
     experience: '8+ Years Experience',
-    phone: user?.mobile || '+91 98453 34455',
-    whatsapp: user?.mobile || '+91 98453 34455',
+    phone: user?.mobile || '+91 98765 43210',
+    whatsapp: user?.mobile || '+91 98765 43210',
     email: user?.email || 'clevercanines@joshpetshub.com',
     state: user?.location?.split(',')[1]?.trim() || 'Karnataka',
     city: user?.location?.split(',')[0]?.trim() || 'Bangalore',
@@ -804,7 +804,7 @@ const TrainingProviderContent = ({ activeTab, user }) => {
                       type="tel"
                       value={serviceForm.phone}
                       onChange={(e) => setServiceForm({ ...serviceForm, phone: e.target.value })}
-                      placeholder="+91 98453 34455"
+                      placeholder="+91 98765 43210"
                       className="w-full text-sm px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:border-emerald-600"
                       required
                     />
@@ -818,7 +818,7 @@ const TrainingProviderContent = ({ activeTab, user }) => {
                       type="tel"
                       value={serviceForm.whatsapp}
                       onChange={(e) => setServiceForm({ ...serviceForm, whatsapp: e.target.value })}
-                      placeholder="+91 98453 34455"
+                      placeholder="+91 98765 43210"
                       className="w-full text-sm px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:border-emerald-600"
                     />
                   </div>
@@ -1375,7 +1375,7 @@ const TrainingProviderContent = ({ activeTab, user }) => {
                         type="tel"
                         value={newSession.customerPhone}
                         onChange={(e) => setNewSession({ ...newSession, customerPhone: e.target.value })}
-                        placeholder="+91 98201 12345"
+                        placeholder="+91 98765 43210"
                         className="w-full text-xs px-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:border-emerald-600"
                       />
                     </div>

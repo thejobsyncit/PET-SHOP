@@ -29,7 +29,7 @@ export const INITIAL_GROOMING_PROVIDERS = [
     price: 999,
     discountPrice: 799,
     image: 'https://images.unsplash.com/photo-1516734212186-a967f81ad0d7?q=80&w=800&auto=format&fit=crop',
-    phone: '9800010013',
+    phone: '9876543210',
     offerings: ['Spa Bath', 'Full Grooming', 'Nail Clipping', 'Hair Cuts', 'Knot/Mats Removal', 'Anti-Tick Treatment'],
     packages: [
       { name: 'Basic Bath & Dry', price: 799, duration: '45 mins', desc: 'Organic herbal shampoo, blow dry, ear cleaning & paw sanitization' },
@@ -54,7 +54,7 @@ export const INITIAL_GROOMING_PROVIDERS = [
     price: 1200,
     discountPrice: 999,
     image: 'https://images.unsplash.com/photo-1516734212186-a967f81ad0d7?q=80&w=800&auto=format&fit=crop',
-    phone: '9800010014',
+    phone: '9876543210',
     offerings: ['Spa Bath', 'Full Grooming', 'Nail Clipping', 'Hair Cuts', 'Anti-Tick Treatment'],
     packages: [
       { name: 'Doorstep Express Bath', price: 999, duration: '40 mins', desc: 'Warm hydro-bath inside AC van, organic shampoo & towel dry' },
@@ -78,7 +78,7 @@ export const INITIAL_GROOMING_PROVIDERS = [
     price: 599,
     discountPrice: 499,
     image: 'https://images.unsplash.com/photo-1516734212186-a967f81ad0d7?q=80&w=800&auto=format&fit=crop',
-    phone: '9800010015',
+    phone: '9876543210',
     offerings: ['Spa Bath', 'Nail Clipping', 'Hair Cuts', 'Medical Bath', 'Knot/Mats Removal'],
     packages: [
       { name: 'Essential Hygiene Package', price: 499, duration: '30 mins', desc: 'Nail clipping, ear cleaning, paw pad trimming & teeth brushing' },
@@ -102,7 +102,7 @@ export const INITIAL_GROOMING_PROVIDERS = [
     price: 850,
     discountPrice: 699,
     image: 'https://images.unsplash.com/photo-1516734212186-a967f81ad0d7?q=80&w=800&auto=format&fit=crop',
-    phone: '9800010016',
+    phone: '9876543210',
     offerings: ['Spa Bath', 'Full Grooming', 'Nail Clipping', 'Medical Bath', 'Anti-Tick Treatment'],
     packages: [
       { name: 'Home Comfort Bath & Trim', price: 699, duration: '50 mins', desc: 'Groomer brings all sanitized equipment directly to your home' },
@@ -126,7 +126,7 @@ export const INITIAL_GROOMING_PROVIDERS = [
     price: 1500,
     discountPrice: 1299,
     image: 'https://images.unsplash.com/photo-1516734212186-a967f81ad0d7?q=80&w=800&auto=format&fit=crop',
-    phone: '9800010017',
+    phone: '9876543210',
     offerings: ['Spa Bath', 'Full Grooming', 'Nail Clipping', 'Hair Cuts', 'Knot/Mats Removal', 'Anti-Tick Treatment', 'Medical Bath'],
     packages: [
       { name: 'Show Grooming & Style Cut', price: 1299, duration: '75 mins', desc: 'Custom silhouette trim, feather styling, nail buffing & conditioning' },
@@ -150,7 +150,7 @@ export const INITIAL_GROOMING_PROVIDERS = [
     price: 450,
     discountPrice: 399,
     image: 'https://images.unsplash.com/photo-1516734212186-a967f81ad0d7?q=80&w=800&auto=format&fit=crop',
-    phone: '9800010018',
+    phone: '9876543210',
     offerings: ['Spa Bath', 'Nail Clipping', 'Medical Bath', 'Anti-Tick Treatment'],
     packages: [
       { name: 'Pocket-Friendly Puppy Bath', price: 399, duration: '35 mins', desc: 'Tearless shampoo, warm blow dry, nail cut & ear wipe' },

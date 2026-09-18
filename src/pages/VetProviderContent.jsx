@@ -46,7 +46,7 @@ const VetProviderContent = ({ activeTab }) => {
     experienceYears: 14,
     rating: 4.9,
     reviewsCount: 124,
-    phone: '+91 98450 88219',
+    phone: '+91 98765 43210',
     inClinicFee: 800,
     videoConsultFee: 500,
     homeVisitFee: 1500,
@@ -1928,7 +1928,7 @@ const VetProviderContent = ({ activeTab }) => {
                   <label className="text-[10px] font-black text-slate-500 uppercase tracking-wider block mb-1">Owner Contact Phone</label>
                   <input 
                     type="tel" 
-                    placeholder="+91 98234 56789" 
+                    placeholder="+91 98765 43210" 
                     value={newRx.ownerPhone} 
                     onChange={e => setNewRx({...newRx, ownerPhone: e.target.value})}
                     className="w-full bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-xs font-bold text-slate-800 outline-none focus:border-[#0F2E23]"

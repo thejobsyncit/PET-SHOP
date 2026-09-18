@@ -507,7 +507,7 @@ export default function VeterinaryServices() {
           {/* Quick Helpline Badge */}
           <div className="bg-white border border-slate-200 shadow-sm px-3.5 py-1.5 rounded-full flex items-center gap-2 text-xs text-slate-700 font-semibold shrink-0">
             <PhoneCall size={14} className="text-[#00838f]" />
-            <span>Emergency Vet Helpline: <strong>+91 8306-944-422</strong></span>
+            <span>Emergency Vet Helpline: <strong>+91 98765 43210</strong></span>
           </div>
         </div>
 

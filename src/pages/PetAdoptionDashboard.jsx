@@ -115,7 +115,7 @@ const PetAdoptionDashboard = ({
   const [shelterBio, setShelterBio] = useState(() => {
     return user?.bio || currentProvider?.bio || 'Dedicated AWBI-recognized non-profit sanctuary providing ethical rescue intake, compassionate foster care, full veterinary rehabilitation, and 100% free loving forever homes across India.';
   });
-  const [emergencyPhone, setEmergencyPhone] = useState('+91 98455 77661');
+  const [emergencyPhone, setEmergencyPhone] = useState('+91 98765 43210');
   const [visitingHours, setVisitingHours] = useState('10:00 AM - 06:00 PM (Tue - Sun)');
   const [shelterCapacity, setShelterCapacity] = useState(() => {
     return user?.shelterCapacity || currentProvider?.shelterCapacity || 85;
@@ -238,7 +238,7 @@ const PetAdoptionDashboard = ({
                   id: room._id,
                   buyer: room.name || 'Adoption Seeker',
                   pet: 'Adoption Inquiry',
-                  phone: '+91 98765 00000',
+                  phone: '+91 98765 43210',
                   email: room.email || 'adopter@example.com',
                   date: new Date(lastMsg.createdAt || Date.now()).toLocaleDateString(),
                   message: lastMsg.messageText,
@@ -646,7 +646,7 @@ const PetAdoptionDashboard = ({
         microchipId: microchipId.trim() || ('9560000' + Math.floor(10000000 + Math.random() * 90000000)),
         specialNeeds: specialNeeds.trim(),
         image: uploadedPhotoUrl || fallbackPhotos[petType] || fallbackPhotos.dogs,
-        parentContact: emergencyPhone || user?.mobile || '+91 98455 77661',
+        parentContact: emergencyPhone || user?.mobile || '+91 98765 43210',
         parentName: shelterLegalName || user?.businessName || user?.name || 'Hope Sanctuary',
         ownerId: user?._id || user?.id || 'shelter_1',
         ownerEmail: user?.email || 'adopt@joshpetshub.com',

@@ -43,8 +43,8 @@ const TransportProviderContent = ({ activeTab, user }) => {
     name: user?.businessName || user?.name || 'SafePet Transit',
     tagline: 'Dedicated AC Pet Transport & Doorstep Relocation Across India',
     leadCoordinator: user?.name || 'Lead Coordinator',
-    phone: user?.mobile || '+91 98452 23344',
-    whatsapp: user?.mobile || '+91 98452 23344',
+    phone: user?.mobile || '+91 98765 43210',
+    whatsapp: user?.mobile || '+91 98765 43210',
     email: user?.email || 'safepet@joshpetshub.com',
     state: user?.location?.split(',')[1]?.trim() || 'Karnataka',
     city: user?.location?.split(',')[0]?.trim() || 'Bangalore',
@@ -319,8 +319,8 @@ const TransportProviderContent = ({ activeTab, user }) => {
   const [agencyProfile, setAgencyProfile] = useState({
     businessName: user?.businessName || user?.name || 'SafePet Transit Hub',
     coordinator: user?.name || 'Lead Coordinator',
-    phone: user?.mobile || '+91 98452 23344',
-    whatsapp: user?.mobile || '+91 98452 23344',
+    phone: user?.mobile || '+91 98765 43210',
+    whatsapp: user?.mobile || '+91 98765 43210',
     email: user?.email || 'safepet@joshpetshub.com',
     hubCity: 'Bangalore, Karnataka',
     address: 'Near International Airport Terminal Cargo Rd, Devanahalli, Bangalore - 562300',
@@ -605,7 +605,7 @@ const TransportProviderContent = ({ activeTab, user }) => {
                   required
                   value={serviceForm.phone}
                   onChange={(e) => setServiceForm({ ...serviceForm, phone: e.target.value, whatsapp: e.target.value })}
-                  placeholder="e.g. +91 98452 23344"
+                  placeholder="e.g. +91 98765 43210"
                   className="w-full bg-white border border-slate-300 rounded-xl px-4 py-2.5 text-xs font-bold text-slate-900 focus:outline-none focus:border-[#0F2E23]"
                 />
               </div>

@@ -30,7 +30,7 @@ export const INITIAL_WALKING_PROVIDERS = [
     price: 350,
     discountPrice: 299,
     image: 'https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?q=80&w=800&auto=format&fit=crop',
-    phone: '9800010001',
+    phone: '9876543210',
     offerings: ['Daily Solo Walk', 'Group Fitness Stride', 'Live GPS Tracked', 'Monthly Pass', 'Puppy Walk & Potty'],
     features: ['Live GPS Route Map', 'Post-Walk Paws Cleaned', 'Water Hydration Given', 'Poop Scooped & Disposed'],
     packages: [
@@ -57,7 +57,7 @@ export const INITIAL_WALKING_PROVIDERS = [
     price: 400,
     discountPrice: 349,
     image: 'https://images.unsplash.com/photo-1548199973-03cce0bbc87b?q=80&w=800&auto=format&fit=crop',
-    phone: '9800010002',
+    phone: '9876543210',
     offerings: ['Daily Solo Walk', 'Senior Dog Stroll', 'Live GPS Tracked', 'Monthly Pass'],
     features: ['Live Photo Updates', 'GPS Tracked Route', 'Tear-Free Gentle Handling', 'Fresh Drinking Water'],
     packages: [
@@ -84,7 +84,7 @@ export const INITIAL_WALKING_PROVIDERS = [
     price: 300,
     discountPrice: 249,
     image: 'https://images.unsplash.com/photo-1517849845537-4d257902454a?q=80&w=800&auto=format&fit=crop',
-    phone: '9800010003',
+    phone: '9876543210',
     offerings: ['Puppy Walk & Potty', 'Daily Solo Walk', 'Group Fitness Stride', 'Weekend Adventure'],
     features: ['Trained in Puppy Behavior', 'Gentle Positive Reinforcement', 'Post-Walk Feeding Assistance', 'Poop Report'],
     packages: [
@@ -111,7 +111,7 @@ export const INITIAL_WALKING_PROVIDERS = [
     price: 450,
     discountPrice: 379,
     image: 'https://images.unsplash.com/photo-1534361960057-19889db9621e?q=80&w=800&auto=format&fit=crop',
-    phone: '9800010004',
+    phone: '9876543210',
     offerings: ['Group Fitness Stride', 'Weekend Adventure', 'Daily Solo Walk', 'Live GPS Tracked'],
     features: ['GPS Route & Speed Tracking', 'Pack Dynamics Expert', 'Tick Check Post-Walk', 'Paw Balm Applied'],
     packages: [
@@ -138,7 +138,7 @@ export const INITIAL_WALKING_PROVIDERS = [
     price: 400,
     discountPrice: 320,
     image: 'https://images.unsplash.com/photo-1601758228041-f3b2795255f1?q=80&w=800&auto=format&fit=crop',
-    phone: '9800010005',
+    phone: '9876543210',
     offerings: ['Weekend Adventure', 'Daily Solo Walk', 'Senior Dog Stroll', 'Monthly Pass'],
     features: ['Beach & Sand Running', 'Full Salt Rinse & Paw Clean', 'GPS Distance Tracker', 'Fresh Tender Coconut Water'],
     packages: [
@@ -165,7 +165,7 @@ export const INITIAL_WALKING_PROVIDERS = [
     price: 280,
     discountPrice: 220,
     image: 'https://images.unsplash.com/photo-1587300003388-59208cc962cb?q=80&w=800&auto=format&fit=crop',
-    phone: '9800010006',
+    phone: '9876543210',
     offerings: ['Daily Solo Walk', 'Puppy Walk & Potty', 'Live GPS Tracked', 'Monthly Pass'],
     features: ['Punctual Doorstep Pickup', 'No-Pull Leash Training', 'Sanitized Equipment', 'Emergency First Aid Kit'],
     packages: [
