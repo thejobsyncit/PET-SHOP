@@ -17,7 +17,7 @@ const Footer = () => {
   return (
     <footer className="bg-primary text-secondary border-t border-white/5 pt-16 pb-8 px-4 md:px-8 mt-auto">
       <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-12 mb-12">
-        
+
         {/* Brand Column */}
         <div className="lg:col-span-2 space-y-4">
           <Link to="/" className="font-serif text-2xl tracking-widest text-accent font-bold">
@@ -80,8 +80,8 @@ const Footer = () => {
               className="w-full bg-white/5 border border-white/10 py-2.5 pl-3 pr-10 text-xs text-white uppercase tracking-wider focus:outline-none focus:border-accent"
               required
             />
-            <button 
-              type="submit" 
+            <button
+              type="submit"
               className="absolute right-1 top-1/2 -translate-y-1/2 p-2 text-accent hover:text-white transition cursor-pointer"
             >
               <Send size={14} />
@@ -90,9 +90,9 @@ const Footer = () => {
 
           {/* Social / WhatsApp Trigger */}
           <div className="pt-2">
-            <a 
-              href="https://wa.me/918040123456" 
-              target="_blank" 
+            <a
+              href="https://wa.me/918040123456"
+              target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-2 px-4 py-2 bg-[#25D366] hover:bg-[#1ebd59] text-white text-[11px] font-bold tracking-wider rounded-none transition duration-300"
             >
@@ -108,7 +108,7 @@ const Footer = () => {
         <div>
           © {new Date().getFullYear()} JOSH PETS HUB. All Rights Reserved. Crafted with care.
         </div>
-        <div className="flex flex-wrap gap-4 font-semibold">
+        <div className="flex flex-wrap items-center gap-4 font-semibold">
           <Link to="/about" className="hover:text-white transition">PRIVACY POLICY</Link>
           <Link to="/about" className="hover:text-white transition">TERMS & CONDITIONS</Link>
           <Link to="/about" className="hover:text-white transition">SHIPPING POLICY</Link>

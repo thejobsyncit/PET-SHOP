@@ -1,5 +1,6 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { apiRequest } from '../../services/api.js';
+import { setCookie, deleteCookie } from '../../utils/cookieUtils.js';
 
 // Helper to safely read saved user
 const getInitialUser = () => {
@@ -457,6 +458,7 @@ const authSlice = createSlice({
       state.error = null;
       localStorage.setItem('pawora_token', token);
       localStorage.setItem('pawora_user', JSON.stringify(user));
+      setCookie('josh_auth_session', 'active', 30);
 
       try {
         const existing = JSON.parse(localStorage.getItem('pawora_registered_users') || '[]');
@@ -468,6 +470,11 @@ const authSlice = createSlice({
     logout(state) {
       localStorage.removeItem('pawora_token');
       localStorage.removeItem('pawora_user');
+      deleteCookie('josh_auth_session');
+      deleteCookie('pawora_token');
+      try {
+        apiRequest('/auth/logout', { method: 'POST' }).catch(() => {});
+      } catch (_) {}
       state.token = null;
       state.isAuthenticated = false;
       state.user = null;
@@ -489,6 +496,7 @@ const authSlice = createSlice({
         state.isAuthenticated = true;
         state.token = action.payload.token;
         state.user = action.payload.user;
+        setCookie('josh_auth_session', 'active', 30);
       })
       .addCase(register.rejected, (state, action) => {
         state.loading = false;
@@ -504,6 +512,7 @@ const authSlice = createSlice({
         state.isAuthenticated = true;
         state.token = action.payload.token;
         state.user = action.payload.user;
+        setCookie('josh_auth_session', 'active', 30);
       })
       .addCase(login.rejected, (state, action) => {
         state.loading = false;

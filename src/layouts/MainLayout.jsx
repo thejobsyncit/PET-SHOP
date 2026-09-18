@@ -4,6 +4,7 @@ import { useDispatch } from 'react-redux';
 import Navbar from '../components/Navbar.jsx';
 import Footer from '../components/Footer.jsx';
 import LeadConsultationModal from '../components/LeadConsultationModal.jsx';
+import CookieConsent from '../components/CookieConsent.jsx';
 import ErrorBoundary from '../components/ErrorBoundary.jsx';
 import { fetchCart } from '../store/slices/cartSlice.js';
 import { fetchWishlist } from '../store/slices/wishlistSlice.js';
@@ -41,6 +42,9 @@ const MainLayout = () => {
 
       {/* Lead Consultation Popup Modal */}
       <LeadConsultationModal />
+
+      {/* Interactive Cookie Consent Banner & Preferences Modal */}
+      <CookieConsent />
     </div>
   );
 };

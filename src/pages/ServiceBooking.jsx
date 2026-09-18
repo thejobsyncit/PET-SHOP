@@ -75,7 +75,7 @@ const SERVICES = [
   {
     id: 'insurance',
     title: 'Pet Insurance',
-    path: '/services?category=Insurance',
+    path: '/insurance',
     icon: <ShieldAlert size={28} className="text-red-600" />,
     bg: 'bg-red-50',
     border: 'border-red-200',
@@ -107,25 +107,53 @@ const TOP_PROVIDERS = [
 
 import ServiceAccessLock, { isServicePathLockedForUser } from '../components/ServiceAccessLock.jsx';
 
+const SERVICE_PATH_MAP = {
+  'Grooming': '/grooming',
+  'Hostel': '/hostel',
+  'Dog Walking': '/walking',
+  'Transport': '/transport',
+  'Training': '/training',
+  'Insurance': '/insurance',
+  'Veterinary': '/veterinary'
+};
+
 const ServiceBooking = () => {
   const navigate = useNavigate();
   const { isAuthenticated, user } = useSelector((state) => state.auth);
   const [selectedCategory, setSelectedCategory] = useState('All');
 
-  if (isServicePathLockedForUser(user, '/services')) {
-    return <ServiceAccessLock serviceName="Pet Services Hub" attemptedPath="/services" />;
-  }
-
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
 
+  if (isServicePathLockedForUser(user, '/services')) {
+    return <ServiceAccessLock serviceName="Pet Services Hub" attemptedPath="/services" />;
+  }
+
+  const handleFind = () => {
+    if (!selectedCategory || selectedCategory === 'All') {
+      const el = document.getElementById('services-grid');
+      if (el) el.scrollIntoView({ behavior: 'smooth' });
+      return;
+    }
+
+    const targetPath = SERVICE_PATH_MAP[selectedCategory];
+    if (targetPath) {
+      if (isServicePathLockedForUser(user, targetPath)) {
+        toast.error(`🔒 Access Locked: You are signed in as a ${user?.serviceCategory || 'Service Provider'}. This service is locked for your account.`, { id: 'srv-lock' });
+        return;
+      }
+      navigate(targetPath);
+    }
+  };
+
   const handleProviderClick = (category) => {
-    if (category === 'Grooming') navigate('/grooming');
-    else if (category === 'Dog Walking') navigate('/walking');
-    else if (category === 'Hostel') navigate('/hostel');
-    else if (category === 'Veterinary') navigate('/veterinary');
-    else navigate('/veterinary');
+    const targetPath = SERVICE_PATH_MAP[category] || '/veterinary';
+    if (isServicePathLockedForUser(user, targetPath)) {
+      toast.error(`🔒 Access Locked: This service is locked for your account.`, { id: 'srv-lock' });
+      return;
+    }
+    navigate(targetPath);
   };
 
   return (
@@ -207,13 +235,10 @@ const ServiceBooking = () => {
                     </div>
                   </div>
                   <button 
-                    onClick={() => {
-                      const el = document.getElementById('services-grid');
-                      if (el) el.scrollIntoView({ behavior: 'smooth' });
-                    }}
+                    onClick={handleFind}
                     className="bg-gradient-to-r from-[#fde047] to-[#f59e0b] hover:from-[#f59e0b] hover:to-[#d97706] text-[#0f2e23] font-black px-8 py-4 rounded-2xl text-sm transition-all shadow-lg shadow-amber-500/20 whitespace-nowrap cursor-pointer active:scale-95 flex items-center justify-center gap-2 border border-amber-300/50"
                   >
-                    <Search size={18} /> FIND PROS
+                    <Search size={18} /> FIND
                   </button>
                 </div>
               </div>
