@@ -22,7 +22,26 @@ const CookieConsent = () => {
   // Initialize on mount
   useEffect(() => {
     // 1. Ensure anonymous session cookie exists
-    getOrCreateSessionId();
+    const sessionId = getOrCreateSessionId();
+    
+    // Function to clear locally stored data
+    const handleClearEvent = () => {
+      clearAllCookiesData();
+      setPreferences(DEFAULT_COOKIE_PREFERENCES);
+      setShowModal(false);
+      setShowBanner(true);
+    };
+
+    // Check backend to see if admin deleted the consent log
+    if (getCookieConsent()) {
+      apiRequest(`/cookie-consents/check/${sessionId}`)
+        .then(data => {
+          if (data && data.success && data.exists === false) {
+            handleClearEvent();
+          }
+        })
+        .catch(err => console.error('Failed to verify cookie consent', err));
+    }
 
     // 2. Listen for external requests to open settings or banner
     const handleOpenSettings = () => {
@@ -35,17 +54,6 @@ const CookieConsent = () => {
     const handleOpenBanner = () => {
       setShowBanner(true);
       setShowModal(false);
-    };
-
-    const handleClearEvent = () => {
-      clearAllCookiesData();
-      setPreferences(DEFAULT_COOKIE_PREFERENCES);
-      setShowModal(false);
-      setShowBanner(true);
-      toast.success('All cookie data and consent history cleared!', {
-        icon: '🧹',
-        duration: 3500
-      });
     };
 
     if (typeof window !== 'undefined') {
@@ -222,7 +230,7 @@ const CookieConsent = () => {
       {!showBanner && !showModal && (
         <button
           onClick={() => setShowModal(true)}
-          className="fixed bottom-4 left-4 z-[2147483647] bg-[#0a231b]/90 backdrop-blur-md text-white/80 hover:text-white p-2.5 rounded-full shadow-lg border border-white/10 transition-all hover:scale-110 flex items-center justify-center cursor-pointer group"
+          className="hidden md:flex fixed bottom-4 left-4 z-[2147483647] bg-[#0a231b]/90 backdrop-blur-md text-white/80 hover:text-white p-2.5 rounded-full shadow-lg border border-white/10 transition-all hover:scale-110 items-center justify-center cursor-pointer group"
           title="Manage Cookie Preferences"
         >
           <Cookie size={20} className="group-hover:text-[#fde047] transition-colors" />

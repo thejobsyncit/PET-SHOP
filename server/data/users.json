@@ -165,5 +165,27 @@
     "verificationStatus": "Verified",
     "shelterCapacity": 50,
     "bio": ""
+  },
+  {
+    "_id": "6aad0797f7d5a7253ba9b848",
+    "name": "Test User",
+    "email": "testuser123@example.com",
+    "password": "$2b$10$quz8ntLtuKzFhpAJ/cn9zO9DX0ScHEWJfx1m3yVoj9jd/9L9tx0rW",
+    "role": "CUSTOMER",
+    "mobile": "9876543210",
+    "location": "Bangalore, Karnataka",
+    "serviceCategory": "",
+    "businessName": "Test User",
+    "govtProofType": "AWBI / NGO Registration Certificate",
+    "govtProofNumber": "",
+    "govtProofDoc": "",
+    "verificationStatus": "Verified",
+    "shelterCapacity": 50,
+    "bio": "",
+    "addresses": [],
+    "wishlist": [],
+    "cart": [],
+    "prescriptionHistory": [],
+    "createdAt": "2026-09-18T09:42:47.090Z"
   }
 ]

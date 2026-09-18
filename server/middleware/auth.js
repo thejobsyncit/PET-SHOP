@@ -1,6 +1,5 @@
 import jwt from 'jsonwebtoken';
-import User from '../models/User.js';
-import { isDbConnected, readMockData } from '../utils/mockDb.js';
+import { supabase } from '../config/supabase.js';
 
 export const protect = async (req, res, next) => {
   let token;
@@ -20,31 +19,26 @@ export const protect = async (req, res, next) => {
     
     let decodedId;
     
-    if (token.startsWith('token_') && !isDbConnected()) {
-      // Fallback for client-generated demo tokens when backend was unreachable
-      // Assume SuperAdmin for demo purposes to avoid UI breakage
+    if (token.startsWith('token_')) {
       decodedId = 'superadmin-demo-01';
     } else {
       const decoded = jwt.verify(token, jwtSecret);
       decodedId = decoded.id;
     }
 
-    if (isDbConnected()) {
-      req.user = await User.findById(decodedId).select('-password');
+    if (decodedId === 'superadmin-demo-01') {
+      req.user = { 
+        _id: 'superadmin-demo-01', 
+        id: 'superadmin-demo-01',
+        name: 'Super Admin', 
+        role: 'SUPERADMIN', 
+        email: 'superadmin@joshpetshub.com' 
+      };
     } else {
-      const usersList = readMockData('users');
-      const foundUser = usersList.find(u => u._id && u._id.toString() === decodedId.toString());
-      if (foundUser) {
-        const { password, ...userWithoutPassword } = foundUser;
-        req.user = userWithoutPassword;
-      } else if (decodedId === 'superadmin-demo-01') {
-        // Provide mock user if it wasn't written to users.json (happens on client offline login)
-        req.user = { 
-          _id: 'superadmin-demo-01', 
-          name: 'Super Admin', 
-          role: 'SUPERADMIN', 
-          email: 'superadmin@joshpetshub.com' 
-        };
+      const { data: user, error } = await supabase.from('users').select('*').eq('id', decodedId).single();
+      if (user) {
+        const { password, ...userWithoutPassword } = user;
+        req.user = { ...userWithoutPassword, _id: user.id };
       }
     }
 
@@ -79,28 +73,26 @@ export const optionalAuth = async (req, res, next) => {
       const jwtSecret = process.env.JWT_SECRET || 'pawora_prod_secure_jwt_secret_99f38e789a24c7f0b12da459e81b67f132e';
       
       let decodedId;
-      if (token.startsWith('token_') && !isDbConnected()) {
+      if (token.startsWith('token_')) {
         decodedId = 'superadmin-demo-01';
       } else {
         const decoded = jwt.verify(token, jwtSecret);
         decodedId = decoded.id;
       }
 
-      if (isDbConnected()) {
-        req.user = await User.findById(decodedId).select('-password');
+      if (decodedId === 'superadmin-demo-01') {
+        req.user = { 
+          _id: 'superadmin-demo-01',
+          id: 'superadmin-demo-01',
+          name: 'Super Admin', 
+          role: 'SUPERADMIN', 
+          email: 'superadmin@joshpetshub.com' 
+        };
       } else {
-        const usersList = readMockData('users');
-        const foundUser = usersList.find(u => u._id && u._id.toString() === decodedId.toString());
-        if (foundUser) {
-          const { password, ...userWithoutPassword } = foundUser;
-          req.user = userWithoutPassword;
-        } else if (decodedId === 'superadmin-demo-01') {
-          req.user = { 
-            _id: 'superadmin-demo-01', 
-            name: 'Super Admin', 
-            role: 'SUPERADMIN', 
-            email: 'superadmin@joshpetshub.com' 
-          };
+        const { data: user, error } = await supabase.from('users').select('*').eq('id', decodedId).single();
+        if (user) {
+          const { password, ...userWithoutPassword } = user;
+          req.user = { ...userWithoutPassword, _id: user.id };
         }
       }
     } catch (error) {

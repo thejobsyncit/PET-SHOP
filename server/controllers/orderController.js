@@ -1,8 +1,4 @@
-import Order from '../models/Order.js';
-import Product from '../models/Product.js';
-import User from '../models/User.js';
-import { isDbConnected, readMockData, writeMockData } from '../utils/mockDb.js';
-import mongoose from 'mongoose';
+import { supabase } from '../config/supabase.js';
 
 // @desc    Create a new order
 // @route   POST /api/orders
@@ -27,156 +23,81 @@ export const createOrder = async (req, res) => {
   }
 
   try {
-    if (isDbConnected()) {
-      // 1. Verify products & calculate verified subtotal server-side
-      let calculatedSubtotal = 0;
-      const verifiedItems = [];
+    let calculatedSubtotal = 0;
+    const verifiedItems = [];
 
-      for (const item of orderItems) {
-        const product = await Product.findById(item.product);
-        if (!product) {
-          return res.status(404).json({ success: false, message: `Product ${item.name || item.product} not found` });
-        }
-        if (product.stock < item.quantity) {
-          return res.status(400).json({ success: false, message: `Insufficient stock for product: ${product.name}` });
-        }
+    // Map order items to products in DB
+    const productIds = orderItems.map(item => item.product);
+    const { data: products, error: productError } = await supabase
+      .from('products')
+      .select('*')
+      .in('id', productIds);
 
-        const unitPrice = (product.discountPrice !== undefined && product.discountPrice !== null && product.discountPrice > 0)
-          ? product.discountPrice 
-          : product.price;
+    if (productError) throw productError;
 
-        calculatedSubtotal += unitPrice * item.quantity;
-        verifiedItems.push({
-          product: product._id,
-          name: product.name,
-          image: product.images && product.images[0] ? product.images[0] : item.image,
-          price: unitPrice,
-          quantity: item.quantity
-        });
+    for (const item of orderItems) {
+      const product = products?.find(p => p.id === item.product);
+      if (!product) {
+        return res.status(404).json({ success: false, message: `Product ${item.name || item.product} not found` });
+      }
+      if (product.stock < item.quantity) {
+        return res.status(400).json({ success: false, message: `Insufficient stock for product: ${product.name}` });
       }
 
-      const shippingCost = calculatedSubtotal > 499 ? 0 : 49;
-      const discount = (pricing && typeof pricing.discount === 'number' && pricing.discount >= 0) ? Math.min(pricing.discount, calculatedSubtotal) : 0;
-      const totalAmount = Math.max(0, calculatedSubtotal + shippingCost - discount);
+      const unitPrice = (product.discount_price !== undefined && product.discount_price !== null && product.discount_price > 0)
+        ? product.discount_price 
+        : product.price;
 
-      const serverPricing = {
-        subtotal: calculatedSubtotal,
-        shipping: shippingCost,
-        discount: discount,
-        total: totalAmount
-      };
-
-      // 2. Create Order (Status is Pending until confirmed by payment gateway)
-      const newOrder = new Order({
-        user: userId,
-        orderItems: verifiedItems,
-        shippingAddress,
-        paymentMethod,
-        paymentDetails: {
-          status: 'Pending',
-          transactionId: transactionId || `TXN-${Date.now()}`,
-          paidAt: undefined
-        },
-        pricing: serverPricing,
-        prescriptionId: prescriptionId || undefined,
-        trackingNumber: `TRK-${Math.floor(100000 + Math.random() * 900000)}`
+      calculatedSubtotal += unitPrice * item.quantity;
+      verifiedItems.push({
+        product: product.id,
+        name: product.name,
+        image: product.images && product.images.length > 0 ? product.images[0] : item.image,
+        price: unitPrice,
+        quantity: item.quantity
       });
-
-      const savedOrder = await newOrder.save();
-
-      // 3. Update stock and clear cart
-      for (const item of verifiedItems) {
-        await Product.findByIdAndUpdate(item.product, {
-          $inc: { stock: -item.quantity }
-        });
-      }
-
-      await User.findByIdAndUpdate(userId, { cart: [] });
-
-      res.status(201).json({ success: true, order: savedOrder });
-
-    } else {
-      // 2. Mock JSON Implementation with server-side price recalculation
-      const productsList = readMockData('products');
-      const usersList = readMockData('users');
-      const ordersList = readMockData('orders');
-
-      let calculatedSubtotal = 0;
-      const verifiedItems = [];
-
-      for (const item of orderItems) {
-        const product = productsList.find(p => p._id.toString() === item.product.toString());
-        if (!product) {
-          return res.status(404).json({ success: false, message: `Product ${item.name || item.product} not found` });
-        }
-        if (product.stock < item.quantity) {
-          return res.status(400).json({ success: false, message: `Insufficient stock for product: ${product.name}` });
-        }
-
-        const unitPrice = (product.discountPrice !== undefined && product.discountPrice !== null && product.discountPrice > 0)
-          ? product.discountPrice 
-          : product.price;
-
-        calculatedSubtotal += unitPrice * item.quantity;
-        verifiedItems.push({
-          product: product._id.toString(),
-          name: product.name,
-          image: product.images && product.images[0] ? product.images[0] : item.image,
-          price: unitPrice,
-          quantity: item.quantity
-        });
-      }
-
-      const shippingCost = calculatedSubtotal > 499 ? 0 : 49;
-      const discount = (pricing && typeof pricing.discount === 'number' && pricing.discount >= 0) ? Math.min(pricing.discount, calculatedSubtotal) : 0;
-      const totalAmount = Math.max(0, calculatedSubtotal + shippingCost - discount);
-
-      const serverPricing = {
-        subtotal: calculatedSubtotal,
-        shipping: shippingCost,
-        discount: discount,
-        total: totalAmount
-      };
-
-      const newOrder = {
-        _id: new mongoose.Types.ObjectId().toString(),
-        user: userId.toString(),
-        orderItems: verifiedItems,
-        shippingAddress,
-        paymentMethod,
-        paymentDetails: {
-          status: 'Pending',
-          transactionId: transactionId || `TXN-${Date.now()}`,
-          paidAt: undefined
-        },
-        shippingStatus: 'Pending',
-        pricing: serverPricing,
-        prescriptionId: prescriptionId || undefined,
-        trackingNumber: `TRK-${Math.floor(100000 + Math.random() * 900000)}`,
-        createdAt: new Date().toISOString()
-      };
-
-      ordersList.push(newOrder);
-      writeMockData('orders', ordersList);
-
-      // Decrement stock
-      for (const item of verifiedItems) {
-        const idx = productsList.findIndex(p => p._id.toString() === item.product.toString());
-        if (idx !== -1) {
-          productsList[idx].stock -= item.quantity;
-        }
-      }
-      writeMockData('products', productsList);
-
-      // Clear user cart
-      const userIdx = usersList.findIndex(u => u._id.toString() === userId.toString());
-      if (userIdx !== -1) {
-        usersList[userIdx].cart = [];
-        writeMockData('users', usersList);
-      }
-
-      res.status(201).json({ success: true, order: newOrder });
     }
+
+    const shippingCost = calculatedSubtotal > 499 ? 0 : 49;
+    const discount = (pricing && typeof pricing.discount === 'number' && pricing.discount >= 0) ? Math.min(pricing.discount, calculatedSubtotal) : 0;
+    const totalAmount = Math.max(0, calculatedSubtotal + shippingCost - discount);
+
+    const serverPricing = {
+      subtotal: calculatedSubtotal,
+      shipping: shippingCost,
+      discount: discount,
+      total: totalAmount
+    };
+
+    const paymentDetails = {
+      status: 'Pending',
+      transactionId: transactionId || `TXN-${Date.now()}`,
+      paidAt: null
+    };
+
+    const { data: newOrder, error: orderError } = await supabase.from('orders').insert([{
+      user_id: userId,
+      order_items: verifiedItems,
+      shipping_address: shippingAddress,
+      payment_method: paymentMethod,
+      payment_result: paymentDetails,
+      pricing: serverPricing,
+      shipping_status: 'Pending',
+      is_paid: false
+    }]).select().single();
+
+    if (orderError) throw orderError;
+
+    // Update stock
+    for (const item of verifiedItems) {
+      const p = products.find(prod => prod.id === item.product);
+      await supabase.from('products').update({ stock: p.stock - item.quantity }).eq('id', item.product);
+    }
+
+    // Clear user cart
+    await supabase.from('users').update({ cart: [] }).eq('id', userId);
+
+    res.status(201).json({ success: true, order: newOrder });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
@@ -192,47 +113,21 @@ export const getOrderById = async (req, res) => {
     const requesterId = (req.user._id || req.user.id).toString();
     const isAdmin = req.user && (req.user.role === 'ADMIN' || req.user.role === 'SUPERADMIN');
 
-    if (isDbConnected()) {
-      if (!mongoose.Types.ObjectId.isValid(id)) {
-        return res.status(404).json({ success: false, message: 'Order not found' });
-      }
+    const { data: order, error } = await supabase
+      .from('orders')
+      .select('*, user:users(name, email)')
+      .eq('id', id)
+      .single();
 
-      const order = await Order.findById(id).populate('user', 'name email').populate('orderItems.product');
-      if (!order) {
-        return res.status(404).json({ success: false, message: 'Order not found' });
-      }
-
-      // Authorization Check (IDOR prevention)
-      const orderOwnerId = order.user && (order.user._id ? order.user._id.toString() : order.user.toString());
-      if (orderOwnerId !== requesterId && !isAdmin) {
-        return res.status(403).json({ success: false, message: 'Access denied: You are not authorized to view this order' });
-      }
-
-      res.json({ success: true, order });
-    } else {
-      const ordersList = readMockData('orders');
-      const usersList = readMockData('users');
-      const order = ordersList.find(o => o._id.toString() === id.toString());
-
-      if (!order) {
-        return res.status(404).json({ success: false, message: 'Order not found' });
-      }
-
-      // Authorization Check (IDOR prevention)
-      const orderOwnerId = order.user ? order.user.toString() : '';
-      if (orderOwnerId !== requesterId && !isAdmin) {
-        return res.status(403).json({ success: false, message: 'Access denied: You are not authorized to view this order' });
-      }
-
-      // Populate user info manually
-      const user = usersList.find(u => u._id.toString() === order.user.toString());
-      const populatedOrder = {
-        ...order,
-        user: user ? { _id: user._id, name: user.name, email: user.email } : { name: 'Unknown User' }
-      };
-
-      res.json({ success: true, order: populatedOrder });
+    if (error || !order) {
+      return res.status(404).json({ success: false, message: 'Order not found' });
     }
+
+    if (order.user_id !== requesterId && !isAdmin) {
+      return res.status(403).json({ success: false, message: 'Access denied: You are not authorized to view this order' });
+    }
+
+    res.json({ success: true, order });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
@@ -245,16 +140,14 @@ export const getMyOrders = async (req, res) => {
   const userId = req.user._id || req.user.id;
 
   try {
-    if (isDbConnected()) {
-      const orders = await Order.find({ user: userId }).sort({ createdAt: -1 });
-      res.json({ success: true, orders });
-    } else {
-      const ordersList = readMockData('orders');
-      const myOrders = ordersList
-        .filter(o => o.user.toString() === userId.toString())
-        .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-      res.json({ success: true, orders: myOrders });
-    }
+    const { data: orders, error } = await supabase
+      .from('orders')
+      .select('*')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+    res.json({ success: true, orders: orders || [] });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
@@ -265,23 +158,13 @@ export const getMyOrders = async (req, res) => {
 // @access  Private/Admin
 export const getAllOrders = async (req, res) => {
   try {
-    if (isDbConnected()) {
-      const orders = await Order.find({}).populate('user', 'name email').sort({ createdAt: -1 });
-      res.json({ success: true, orders });
-    } else {
-      const ordersList = readMockData('orders');
-      const usersList = readMockData('users');
-      
-      const populatedOrders = ordersList.map(o => {
-        const userObj = usersList.find(u => u._id.toString() === o.user.toString());
-        return {
-          ...o,
-          user: userObj ? { _id: userObj._id, name: userObj.name, email: userObj.email } : { name: 'Unknown User' }
-        };
-      }).sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    const { data: orders, error } = await supabase
+      .from('orders')
+      .select('*, user:users(name, email)')
+      .order('created_at', { ascending: false });
 
-      res.json({ success: true, orders: populatedOrders });
-    }
+    if (error) throw error;
+    res.json({ success: true, orders: orders || [] });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
@@ -295,37 +178,30 @@ export const updateOrderStatus = async (req, res) => {
   const { status } = req.body;
 
   try {
-    if (isDbConnected()) {
-      const order = await Order.findById(id);
-      if (!order) {
-        return res.status(404).json({ success: false, message: 'Order not found' });
-      }
-
-      order.shippingStatus = status;
-      if (status === 'Delivered') {
-        order.paymentDetails.status = 'Completed';
-        order.paymentDetails.paidAt = new Date();
-      }
-
-      await order.save();
-      res.json({ success: true, order });
-    } else {
-      const ordersList = readMockData('orders');
-      const idx = ordersList.findIndex(o => o._id.toString() === id.toString());
-
-      if (idx === -1) {
-        return res.status(404).json({ success: false, message: 'Order not found' });
-      }
-
-      ordersList[idx].shippingStatus = status;
-      if (status === 'Delivered') {
-        ordersList[idx].paymentDetails.status = 'Completed';
-        ordersList[idx].paymentDetails.paidAt = new Date().toISOString();
-      }
-
-      writeMockData('orders', ordersList);
-      res.json({ success: true, order: ordersList[idx] });
+    const { data: order, error: fetchErr } = await supabase.from('orders').select('*').eq('id', id).single();
+    if (fetchErr || !order) {
+      return res.status(404).json({ success: false, message: 'Order not found' });
     }
+
+    const updates = { shipping_status: status };
+    if (status === 'Delivered') {
+      const paymentResult = order.payment_result || {};
+      paymentResult.status = 'Completed';
+      paymentResult.paidAt = new Date().toISOString();
+      updates.payment_result = paymentResult;
+      updates.is_paid = true;
+      updates.paid_at = new Date().toISOString();
+    }
+
+    const { data: updatedOrder, error: updateErr } = await supabase
+      .from('orders')
+      .update(updates)
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (updateErr) throw updateErr;
+    res.json({ success: true, order: updatedOrder });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }

@@ -1,7 +1,4 @@
-import mongoose from 'mongoose';
-import User from '../models/User.js';
-import Product from '../models/Product.js';
-import { isDbConnected, readMockData, writeMockData } from '../utils/mockDb.js';
+import { supabase } from '../config/supabase.js';
 
 // ==========================================
 // CART CONTROLLERS
@@ -14,31 +11,27 @@ export const getCart = async (req, res) => {
   const userId = req.user._id || req.user.id;
 
   try {
-    if (isDbConnected() && mongoose.Types.ObjectId.isValid(userId)) {
-      const user = await User.findById(userId).populate('cart.product');
-      if (user) {
-        return res.json({ success: true, cart: user.cart || [] });
-      }
-    }
-    
-    const usersList = readMockData('users');
-    const productsList = readMockData('products');
-    const user = usersList.find(u => u._id && u._id.toString() === userId.toString());
-    
-    if (!user) {
+    const { data: user, error: userError } = await supabase.from('users').select('cart').eq('id', userId).single();
+    if (userError) throw userError;
+
+    const cart = user?.cart || [];
+    if (cart.length === 0) {
       return res.json({ success: true, cart: [] });
     }
 
-      // Populate manually
-      const populatedCart = (user.cart || []).map(item => {
-        const prod = productsList.find(p => p._id.toString() === item.product.toString());
-        return {
-          product: prod || { _id: item.product, name: 'Unknown Product', price: 0 },
-          quantity: item.quantity
-        };
-      }).filter(item => item.product !== null);
+    const productIds = cart.map(item => item.product);
+    const { data: products, error: prodError } = await supabase.from('products').select('*').in('id', productIds);
+    if (prodError) throw prodError;
 
-      res.json({ success: true, cart: populatedCart });
+    const populatedCart = cart.map(item => {
+      const prod = products?.find(p => p.id === item.product);
+      return {
+        product: prod || { _id: item.product, id: item.product, name: 'Unknown Product', price: 0 },
+        quantity: item.quantity
+      };
+    }).filter(item => item.product !== null);
+
+    res.json({ success: true, cart: populatedCart });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
@@ -52,52 +45,36 @@ export const addToCart = async (req, res) => {
   const userId = req.user._id || req.user.id;
 
   try {
-    if (isDbConnected()) {
-      const user = await User.findById(userId);
-      const cartItemIndex = user.cart.findIndex(item => item.product.toString() === productId);
-
-      if (cartItemIndex > -1) {
-        user.cart[cartItemIndex].quantity += parseInt(quantity);
-      } else {
-        user.cart.push({ product: productId, quantity: parseInt(quantity) });
-      }
-
-      await user.save();
-      const populatedUser = await User.findById(userId).populate('cart.product');
-      res.json({ success: true, cart: populatedUser.cart });
-    } else {
-      const usersList = readMockData('users');
-      const productsList = readMockData('products');
-      const userIdx = usersList.findIndex(u => u._id.toString() === userId.toString());
-
-      if (userIdx === -1) {
-        return res.status(404).json({ success: false, message: 'User not found' });
-      }
-
-      const user = usersList[userIdx];
-      user.cart = user.cart || [];
-      const itemIdx = user.cart.findIndex(item => item.product.toString() === productId.toString());
-
-      if (itemIdx > -1) {
-        user.cart[itemIdx].quantity += parseInt(quantity);
-      } else {
-        user.cart.push({ product: productId, quantity: parseInt(quantity) });
-      }
-
-      usersList[userIdx] = user;
-      writeMockData('users', usersList);
-
-      // Populate manually
-      const populatedCart = user.cart.map(item => {
-        const prod = productsList.find(p => p._id.toString() === item.product.toString());
-        return {
-          product: prod || { _id: item.product, name: 'Unknown Product', price: 0 },
-          quantity: item.quantity
-        };
-      });
-
-      res.json({ success: true, cart: populatedCart });
+    const { data: user, error: userError } = await supabase.from('users').select('cart').eq('id', userId).single();
+    if (userError || !user) {
+      return res.status(404).json({ success: false, message: 'User not found' });
     }
+
+    let cart = user.cart || [];
+    const itemIndex = cart.findIndex(item => item.product === productId);
+
+    if (itemIndex > -1) {
+      cart[itemIndex].quantity += parseInt(quantity);
+    } else {
+      cart.push({ product: productId, quantity: parseInt(quantity) });
+    }
+
+    const { error: updateError } = await supabase.from('users').update({ cart }).eq('id', userId);
+    if (updateError) throw updateError;
+
+    // Fetch populated cart to return
+    const productIds = cart.map(item => item.product);
+    const { data: products } = await supabase.from('products').select('*').in('id', productIds);
+    
+    const populatedCart = cart.map(item => {
+      const prod = products?.find(p => p.id === item.product);
+      return {
+        product: prod || { _id: item.product, id: item.product, name: 'Unknown Product', price: 0 },
+        quantity: item.quantity
+      };
+    });
+
+    res.json({ success: true, cart: populatedCart });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
@@ -115,47 +92,33 @@ export const updateCartQuantity = async (req, res) => {
   }
 
   try {
-    if (isDbConnected()) {
-      const user = await User.findById(userId);
-      const cartItemIndex = user.cart.findIndex(item => item.product.toString() === productId);
-
-      if (cartItemIndex > -1) {
-        user.cart[cartItemIndex].quantity = parseInt(quantity);
-        await user.save();
-      }
-
-      const populatedUser = await User.findById(userId).populate('cart.product');
-      res.json({ success: true, cart: populatedUser.cart });
-    } else {
-      const usersList = readMockData('users');
-      const productsList = readMockData('products');
-      const userIdx = usersList.findIndex(u => u._id.toString() === userId.toString());
-
-      if (userIdx === -1) {
-        return res.status(404).json({ success: false, message: 'User not found' });
-      }
-
-      const user = usersList[userIdx];
-      user.cart = user.cart || [];
-      const itemIdx = user.cart.findIndex(item => item.product.toString() === productId.toString());
-
-      if (itemIdx > -1) {
-        user.cart[itemIdx].quantity = parseInt(quantity);
-        usersList[userIdx] = user;
-        writeMockData('users', usersList);
-      }
-
-      // Populate manually
-      const populatedCart = user.cart.map(item => {
-        const prod = productsList.find(p => p._id.toString() === item.product.toString());
-        return {
-          product: prod || { _id: item.product, name: 'Unknown Product', price: 0 },
-          quantity: item.quantity
-        };
-      });
-
-      res.json({ success: true, cart: populatedCart });
+    const { data: user, error: userError } = await supabase.from('users').select('cart').eq('id', userId).single();
+    if (userError || !user) {
+      return res.status(404).json({ success: false, message: 'User not found' });
     }
+
+    let cart = user.cart || [];
+    const itemIndex = cart.findIndex(item => item.product === productId);
+
+    if (itemIndex > -1) {
+      cart[itemIndex].quantity = parseInt(quantity);
+      const { error: updateError } = await supabase.from('users').update({ cart }).eq('id', userId);
+      if (updateError) throw updateError;
+    }
+
+    // Fetch populated cart to return
+    const productIds = cart.map(item => item.product);
+    const { data: products } = await supabase.from('products').select('*').in('id', productIds);
+    
+    const populatedCart = cart.map(item => {
+      const prod = products?.find(p => p.id === item.product);
+      return {
+        product: prod || { _id: item.product, id: item.product, name: 'Unknown Product', price: 0 },
+        quantity: item.quantity
+      };
+    });
+
+    res.json({ success: true, cart: populatedCart });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
@@ -169,37 +132,30 @@ export const removeFromCart = async (req, res) => {
   const userId = req.user._id || req.user.id;
 
   try {
-    if (isDbConnected()) {
-      const user = await User.findById(userId);
-      user.cart = user.cart.filter(item => item.product.toString() !== productId);
-      await user.save();
-      const populatedUser = await User.findById(userId).populate('cart.product');
-      res.json({ success: true, cart: populatedUser.cart });
-    } else {
-      const usersList = readMockData('users');
-      const productsList = readMockData('products');
-      const userIdx = usersList.findIndex(u => u._id.toString() === userId.toString());
-
-      if (userIdx === -1) {
-        return res.status(404).json({ success: false, message: 'User not found' });
-      }
-
-      const user = usersList[userIdx];
-      user.cart = (user.cart || []).filter(item => item.product.toString() !== productId.toString());
-      usersList[userIdx] = user;
-      writeMockData('users', usersList);
-
-      // Populate manually
-      const populatedCart = user.cart.map(item => {
-        const prod = productsList.find(p => p._id.toString() === item.product.toString());
-        return {
-          product: prod || { _id: item.product, name: 'Unknown Product', price: 0 },
-          quantity: item.quantity
-        };
-      });
-
-      res.json({ success: true, cart: populatedCart });
+    const { data: user, error: userError } = await supabase.from('users').select('cart').eq('id', userId).single();
+    if (userError || !user) {
+      return res.status(404).json({ success: false, message: 'User not found' });
     }
+
+    let cart = user.cart || [];
+    cart = cart.filter(item => item.product !== productId);
+
+    const { error: updateError } = await supabase.from('users').update({ cart }).eq('id', userId);
+    if (updateError) throw updateError;
+
+    // Fetch populated cart to return
+    const productIds = cart.map(item => item.product);
+    const { data: products } = await supabase.from('products').select('*').in('id', productIds);
+    
+    const populatedCart = cart.map(item => {
+      const prod = products?.find(p => p.id === item.product);
+      return {
+        product: prod || { _id: item.product, id: item.product, name: 'Unknown Product', price: 0 },
+        quantity: item.quantity
+      };
+    });
+
+    res.json({ success: true, cart: populatedCart });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
@@ -212,28 +168,13 @@ export const clearCart = async (req, res) => {
   const userId = req.user._id || req.user.id;
 
   try {
-    if (isDbConnected()) {
-      const user = await User.findById(userId);
-      user.cart = [];
-      await user.save();
-      res.json({ success: true, cart: [] });
-    } else {
-      const usersList = readMockData('users');
-      const userIdx = usersList.findIndex(u => u._id.toString() === userId.toString());
-
-      if (userIdx !== -1) {
-        usersList[userIdx].cart = [];
-        writeMockData('users', usersList);
-        res.json({ success: true, cart: [] });
-      } else {
-        res.status(404).json({ success: false, message: 'User not found' });
-      }
-    }
+    const { error: updateError } = await supabase.from('users').update({ cart: [] }).eq('id', userId);
+    if (updateError) throw updateError;
+    res.json({ success: true, cart: [] });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
 };
-
 
 // ==========================================
 // WISHLIST CONTROLLERS
@@ -246,27 +187,18 @@ export const getWishlist = async (req, res) => {
   const userId = req.user._id || req.user.id;
 
   try {
-    if (isDbConnected() && mongoose.Types.ObjectId.isValid(userId)) {
-      const user = await User.findById(userId).populate('wishlist');
-      if (user) {
-        return res.json({ success: true, wishlist: user.wishlist || [] });
-      }
-    }
+    const { data: user, error: userError } = await supabase.from('users').select('wishlist').eq('id', userId).single();
+    if (userError) throw userError;
 
-    const usersList = readMockData('users');
-    const productsList = readMockData('products');
-    const user = usersList.find(u => u._id && u._id.toString() === userId.toString());
-
-    if (!user) {
+    const wishlist = user?.wishlist || [];
+    if (wishlist.length === 0) {
       return res.json({ success: true, wishlist: [] });
     }
 
-      // Populate manually
-      const populatedWishlist = (user.wishlist || []).map(pId => {
-        return productsList.find(p => p._id.toString() === pId.toString());
-      }).filter(p => p !== undefined && p !== null);
+    const { data: products, error: prodError } = await supabase.from('products').select('*').in('id', wishlist);
+    if (prodError) throw prodError;
 
-      res.json({ success: true, wishlist: populatedWishlist });
+    res.json({ success: true, wishlist: products || [] });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
@@ -280,48 +212,25 @@ export const toggleWishlist = async (req, res) => {
   const userId = req.user._id || req.user.id;
 
   try {
-    if (isDbConnected()) {
-      const user = await User.findById(userId);
-      const isWishlisted = user.wishlist.includes(productId);
-
-      if (isWishlisted) {
-        user.wishlist = user.wishlist.filter(id => id.toString() !== productId);
-      } else {
-        user.wishlist.push(productId);
-      }
-
-      await user.save();
-      const populatedUser = await User.findById(userId).populate('wishlist');
-      res.json({ success: true, wishlist: populatedUser.wishlist });
-    } else {
-      const usersList = readMockData('users');
-      const productsList = readMockData('products');
-      const userIdx = usersList.findIndex(u => u._id.toString() === userId.toString());
-
-      if (userIdx === -1) {
-        return res.status(404).json({ success: false, message: 'User not found' });
-      }
-
-      const user = usersList[userIdx];
-      user.wishlist = user.wishlist || [];
-      
-      const pIdx = user.wishlist.findIndex(id => id.toString() === productId.toString());
-      if (pIdx > -1) {
-        user.wishlist = user.wishlist.filter(id => id.toString() !== productId.toString());
-      } else {
-        user.wishlist.push(productId);
-      }
-
-      usersList[userIdx] = user;
-      writeMockData('users', usersList);
-
-      // Populate manually
-      const populatedWishlist = user.wishlist.map(pId => {
-        return productsList.find(p => p._id.toString() === pId.toString());
-      }).filter(p => p !== undefined && p !== null);
-
-      res.json({ success: true, wishlist: populatedWishlist });
+    const { data: user, error: userError } = await supabase.from('users').select('wishlist').eq('id', userId).single();
+    if (userError || !user) {
+      return res.status(404).json({ success: false, message: 'User not found' });
     }
+
+    let wishlist = user.wishlist || [];
+    const isWishlisted = wishlist.includes(productId);
+
+    if (isWishlisted) {
+      wishlist = wishlist.filter(id => id !== productId);
+    } else {
+      wishlist.push(productId);
+    }
+
+    const { error: updateError } = await supabase.from('users').update({ wishlist }).eq('id', userId);
+    if (updateError) throw updateError;
+
+    const { data: products } = await supabase.from('products').select('*').in('id', wishlist);
+    res.json({ success: true, wishlist: products || [] });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }

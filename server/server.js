@@ -10,7 +10,6 @@ import { fileURLToPath } from 'url';
 import fs from 'fs';
 
 // Configuration
-import connectDB from './config/db.js';
 import { supabase } from './config/supabase.js';
 import errorHandler from './middleware/errorHandler.js';
 
@@ -51,8 +50,7 @@ if (process.env.NODE_ENV === 'production') {
   }
 }
 
-// Connect to database
-connectDB();
+// Connect to database removed (migrating to Supabase)
 
 const app = express();
 

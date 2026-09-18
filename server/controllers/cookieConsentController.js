@@ -1,5 +1,4 @@
-import CookieConsent from '../models/CookieConsent.js';
-import { isDbConnected, readMockData, writeMockData, getDbData } from '../utils/mockDb.js';
+import { supabase } from '../config/supabase.js';
 
 // @desc    Save user cookie consent
 // @route   POST /api/cookie-consents
@@ -12,32 +11,23 @@ export const saveConsent = async (req, res) => {
       return res.status(400).json({ success: false, message: 'Missing required fields' });
     }
 
-    const consentData = {
-      sessionId,
-      preferences,
-      ip: req.ip || req.connection.remoteAddress,
-      userAgent: req.headers['user-agent'],
-      createdAt: new Date().toISOString()
-    };
+    const { data: existing, error: checkError } = await supabase.from('cookie_consents').select('*').eq('session_id', sessionId).single();
 
-    if (isDbConnected()) {
-      // Find if exists and update, or create new
-      await CookieConsent.findOneAndUpdate(
-        { sessionId },
-        consentData,
-        { upsert: true, new: true }
-      );
+    if (existing) {
+      const { error: updateError } = await supabase.from('cookie_consents').update({
+        preferences,
+        ip_address: req.ip || req.connection.remoteAddress,
+        user_agent: req.headers['user-agent']
+      }).eq('session_id', sessionId);
+      if (updateError) throw updateError;
     } else {
-      const consents = readMockData('consents');
-      const existingIndex = consents.findIndex(c => c.sessionId === sessionId);
-      
-      if (existingIndex !== -1) {
-        consents[existingIndex] = { ...consents[existingIndex], ...consentData };
-      } else {
-        consentData._id = 'mock_' + Date.now().toString(36) + Math.random().toString(36).substr(2);
-        consents.push(consentData);
-      }
-      writeMockData('consents', consents);
+      const { error: insertError } = await supabase.from('cookie_consents').insert([{
+        session_id: sessionId,
+        preferences,
+        ip_address: req.ip || req.connection.remoteAddress,
+        user_agent: req.headers['user-agent']
+      }]);
+      if (insertError) throw insertError;
     }
 
     res.status(200).json({ success: true, message: 'Consent saved successfully' });
@@ -51,14 +41,37 @@ export const saveConsent = async (req, res) => {
 // @access  Private/Admin
 export const getConsents = async (req, res) => {
   try {
-    let consents = [];
-    if (isDbConnected()) {
-      consents = await CookieConsent.find({}).sort({ createdAt: -1 }).limit(100);
-    } else {
-      consents = readMockData('consents');
-      consents.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-    }
-    res.status(200).json({ success: true, consents });
+    const { data: consents, error } = await supabase.from('cookie_consents').select('*').order('created_at', { ascending: false }).limit(100);
+    if (error) throw error;
+    res.status(200).json({ success: true, consents: consents || [] });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// @desc    Check if consent exists
+// @route   GET /api/cookie-consents/check/:sessionId
+// @access  Public
+export const checkConsent = async (req, res) => {
+  try {
+    const { sessionId } = req.params;
+    const { data: consent, error } = await supabase.from('cookie_consents').select('id').eq('session_id', sessionId).single();
+    
+    res.status(200).json({ success: true, exists: !!consent });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// @desc    Delete a cookie consent log
+// @route   DELETE /api/cookie-consents/:id
+// @access  Private/Admin
+export const deleteConsent = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { error } = await supabase.from('cookie_consents').delete().eq('id', id);
+    if (error) throw error;
+    res.status(200).json({ success: true, message: 'Consent log deleted successfully' });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
