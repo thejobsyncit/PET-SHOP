@@ -252,10 +252,17 @@ const AdoptionShelter = () => {
 
   // Open WhatsApp direct chat
   const handleWhatsAppChat = (pet) => {
-    const text = encodeURIComponent(
-      `Hello! I am interested in adopting "${pet.name}" (${pet.breed}, ${pet.city}) listed on JOSH PETS HUB.`
-    );
-    window.open(`https://wa.me/918306688827?text=${text}`, '_blank');
+    const rawContact = pet.parentContact || pet.shelterPhone || pet.whatsappNumber || pet.contactPhone || '';
+    const cleanNumber = rawContact.replace(/\D/g, '');
+    if (cleanNumber) {
+      const fullPhone = cleanNumber.startsWith('91') ? cleanNumber : (cleanNumber.length === 10 ? `91${cleanNumber}` : cleanNumber);
+      const text = encodeURIComponent(
+        `Hello! I am interested in adopting "${pet.name}" (${pet.breed}, ${pet.city}) listed on JOSH PETS HUB.`
+      );
+      window.open(`https://wa.me/${fullPhone}?text=${text}`, '_blank');
+    } else {
+      navigate(`/adopt/${pet.id}`);
+    }
   };
 
   // Handle opening the "Add Pet" modal (Requires authentication & 1-Pet Limit)
