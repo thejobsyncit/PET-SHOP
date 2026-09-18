@@ -95,9 +95,9 @@ const Contact = () => {
                       <Phone size={20} className="text-amber-600" />
                     </div>
                     <div>
-                      <h4 className="font-black text-slate-900">Phone Support</h4>
-                      <p className="text-sm text-slate-600 font-bold mt-1">+91 80 4012 3456</p>
-                      <p className="text-xs text-slate-400 mt-1">Mon - Sat (9:00 AM - 6:00 PM)</p>
+                      <h4 className="font-black text-slate-900">Customer Helpline</h4>
+                      <p className="text-sm text-slate-600 font-bold mt-1">Online Support & Ticket Desk</p>
+                      <p className="text-xs text-slate-400 mt-1">Mon - Sat (9:00 AM - 6:00 PM IST)</p>
                     </div>
                   </div>
 

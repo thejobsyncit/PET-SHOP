@@ -593,27 +593,29 @@ const AccountDashboard = () => {
                           <p className="font-bold text-slate-800">{app.guardianName || 'Verified Guardian'}</p>
                           <p className="text-[11px] text-slate-500 flex items-center gap-1">
                             <Phone size={11} className="text-slate-400" />
-                            <span>{app.guardianPhone || '+91 8306-688-827'}</span>
+                            <span>{app.guardianPhone || 'Contact details via Chat'}</span>
                           </p>
 
-                          <div className="pt-2 flex items-center gap-2">
-                            <a
-                              href={`https://wa.me/${(app.guardianPhone || '8306688827').replace(/\D/g, '')}?text=${encodeURIComponent(`Hello ${app.guardianName || 'Guardian'}, I am following up on my adoption application for "${app.petName}" (Ref: ${app.id}) on JOSH PETS HUB.`)}`}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="py-1 px-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-bold text-[10px] inline-flex items-center gap-1 transition shadow-xs"
-                            >
-                              <MessageSquare size={11} />
-                              <span>WhatsApp</span>
-                            </a>
-                            <a
-                              href={`tel:${app.guardianPhone || '8306688827'}`}
-                              className="py-1 px-2.5 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-bold text-[10px] inline-flex items-center gap-1 transition shadow-xs"
-                            >
-                              <Phone size={11} />
-                              <span>Call</span>
-                            </a>
-                          </div>
+                          {app.guardianPhone && (
+                            <div className="pt-2 flex items-center gap-2">
+                              <a
+                                href={`https://wa.me/${app.guardianPhone.replace(/\D/g, '')}?text=${encodeURIComponent(`Hello ${app.guardianName || 'Guardian'}, I am following up on my adoption application for "${app.petName}" (Ref: ${app.id}) on JOSH PETS HUB.`)}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="py-1 px-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-bold text-[10px] inline-flex items-center gap-1 transition shadow-xs"
+                              >
+                                <MessageSquare size={11} />
+                                <span>WhatsApp</span>
+                              </a>
+                              <a
+                                href={`tel:${app.guardianPhone}`}
+                                className="py-1 px-2.5 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-bold text-[10px] inline-flex items-center gap-1 transition shadow-xs"
+                              >
+                                <Phone size={11} />
+                                <span>Call</span>
+                              </a>
+                            </div>
+                          )}
                         </div>
 
                         {/* Your Application Summary */}
@@ -1302,14 +1304,23 @@ const AccountDashboard = () => {
                               <span className="text-[10px] text-emerald-700 font-semibold">
                                 ✓ Sanitized Crate & GPS Updates Included
                               </span>
-                              <a
-                                href={`https://wa.me/918306944422?text=Hello%2C%20I%20received%20quote%20for%20enquiry%20${enq.id}`}
-                                target="_blank"
-                                rel="noreferrer"
-                                className="bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-[11px] uppercase tracking-wider px-3.5 py-1.5 rounded-lg transition inline-flex items-center gap-1"
-                              >
-                                <MessageSquare size={13} /> Confirm with Coordinator
-                              </a>
+                              {enq.coordinatorPhone || import.meta.env?.VITE_WHATSAPP_NUMBER ? (
+                                <a
+                                  href={`https://wa.me/${(enq.coordinatorPhone || import.meta.env.VITE_WHATSAPP_NUMBER).replace(/\D/g, '')}?text=Hello%2C%20I%20received%20quote%20for%20enquiry%20${enq.id}`}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  className="bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-[11px] uppercase tracking-wider px-3.5 py-1.5 rounded-lg transition inline-flex items-center gap-1"
+                                >
+                                  <MessageSquare size={13} /> Confirm with Coordinator
+                                </a>
+                              ) : (
+                                <Link
+                                  to="/contact"
+                                  className="bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-[11px] uppercase tracking-wider px-3.5 py-1.5 rounded-lg transition inline-flex items-center gap-1"
+                                >
+                                  <MessageSquare size={13} /> Contact Support Desk
+                                </Link>
+                              )}
                             </div>
                           </div>
                         ) : (

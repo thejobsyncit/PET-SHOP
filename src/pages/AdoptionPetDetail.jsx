@@ -210,8 +210,7 @@ const AdoptionPetDetail = () => {
       petType: pet.type || 'dogs',
       petImage: pet.image,
       petCity: pet.city,
-      guardianName: pet.parentName || 'Pet Guardian',
-      guardianPhone: pet.parentContact || '8306688827',
+      guardianPhone: pet.parentContact || '',
       guardianId: pet.ownerId || null,
       guardianEmail: pet.ownerEmail || null,
       applicantId: user._id || user.id,
@@ -262,8 +261,13 @@ const AdoptionPetDetail = () => {
   // Handle WhatsApp chat with Guardian
   const handleWhatsApp = () => {
     if (!pet) return;
-    const rawPhone = pet.parentContact || pet.ownerPhone || '8306688827';
+    const rawPhone = pet.parentContact || pet.ownerPhone || '';
     const clean = rawPhone.replace(/\D/g, '');
+    if (!clean) {
+      toast.error('Direct guardian phone is not available. Please send an in-app inquiry.');
+      setShowInquiryModal(true);
+      return;
+    }
     const fullPhone = clean.startsWith('91') ? clean : (clean.length === 10 ? `91${clean}` : clean);
     const msg = encodeURIComponent(`Hello! I saw ${pet.name} (${pet.breed}) up for adoption on Josh Pets Hub and would love to know more.`);
     window.open(`https://wa.me/${fullPhone}?text=${msg}`, '_blank');
@@ -519,13 +523,24 @@ const AdoptionPetDetail = () => {
                   <span>WhatsApp Chat</span>
                 </button>
 
-                <a
-                  href={`tel:${pet.parentContact || '8306688827'}`}
-                  className="py-3 px-3 bg-[#7c56dc] hover:bg-[#6842c8] text-white rounded-xl font-bold text-xs shadow-md shadow-purple-600/20 active:scale-95 transition cursor-pointer flex items-center justify-center gap-2"
-                >
-                  <Phone size={16} />
-                  <span>Call Guardian</span>
-                </a>
+                {pet.parentContact ? (
+                  <a
+                    href={`tel:${pet.parentContact}`}
+                    className="py-3 px-3 bg-[#7c56dc] hover:bg-[#6842c8] text-white rounded-xl font-bold text-xs shadow-md shadow-purple-600/20 active:scale-95 transition cursor-pointer flex items-center justify-center gap-2"
+                  >
+                    <Phone size={16} />
+                    <span>Call Guardian</span>
+                  </a>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => setShowInquiryModal(true)}
+                    className="py-3 px-3 bg-[#7c56dc] hover:bg-[#6842c8] text-white rounded-xl font-bold text-xs shadow-md shadow-purple-600/20 active:scale-95 transition cursor-pointer flex items-center justify-center gap-2"
+                  >
+                    <MessageSquare size={16} />
+                    <span>Inquire Now</span>
+                  </button>
+                )}
               </div>
 
               {/* Direct In-App Chat Inquiry Trigger */}

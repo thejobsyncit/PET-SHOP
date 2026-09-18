@@ -274,13 +274,12 @@ const PharmacyLanding = () => {
               <p>
                 Consult with our partnered veterinarians online. Set up an e-consultation, get a prescription, and shop instantly.
               </p>
-              <a 
-                href="https://wa.me/918040123456" 
-                target="_blank" 
-                className="text-accent font-bold hover:text-white transition flex items-center gap-1 group pt-1"
+              <button 
+                onClick={() => navigate('/veterinary')}
+                className="text-accent font-bold hover:text-white transition flex items-center gap-1 group pt-1 bg-transparent border-0 cursor-pointer p-0"
               >
                 BOOK CONSULTATION <ArrowRight size={12} className="group-hover:translate-x-1 transition-transform" />
-              </a>
+              </button>
             </div>
           </div>
 

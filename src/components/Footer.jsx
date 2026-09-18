@@ -29,7 +29,7 @@ const Footer = () => {
           <div className="space-y-2 pt-2 text-xs text-secondary-dark">
             <div className="flex items-center gap-2">
               <Phone size={14} className="text-accent" />
-              <span>+91 80 4012 3456 (9 AM - 6 PM IST)</span>
+              <span>Customer Helpline (9 AM - 6 PM IST)</span>
             </div>
             <div className="flex items-center gap-2">
               <Mail size={14} className="text-accent" />
@@ -88,16 +88,25 @@ const Footer = () => {
             </button>
           </form>
 
-          {/* Social / WhatsApp Trigger */}
+          {/* Support Link */}
           <div className="pt-2">
-            <a
-              href="https://wa.me/918040123456"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 px-4 py-2 bg-[#25D366] hover:bg-[#1ebd59] text-white text-[11px] font-bold tracking-wider rounded-none transition duration-300"
-            >
-              <MessageSquare size={14} /> WHATSAPP CHAT SUPPORT
-            </a>
+            {import.meta.env?.VITE_WHATSAPP_NUMBER ? (
+              <a
+                href={`https://wa.me/${import.meta.env.VITE_WHATSAPP_NUMBER.replace(/\D/g, '')}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 px-4 py-2 bg-[#25D366] hover:bg-[#1ebd59] text-white text-[11px] font-bold tracking-wider rounded-none transition duration-300"
+              >
+                <MessageSquare size={14} /> WHATSAPP SUPPORT
+              </a>
+            ) : (
+              <Link
+                to="/contact"
+                className="inline-flex items-center gap-2 px-4 py-2 bg-[#1c4b3a] hover:bg-[#235d48] text-[#fde047] text-[11px] font-bold tracking-wider rounded-none transition duration-300 border border-[#fde047]/30"
+              >
+                <MessageSquare size={14} /> 24/7 ONLINE SUPPORT
+              </Link>
+            )}
           </div>
         </div>
 

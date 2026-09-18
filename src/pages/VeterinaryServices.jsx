@@ -1061,12 +1061,15 @@ export default function VeterinaryServices() {
               <p className="text-xs text-slate-500">
                 Speak directly with an on-call veterinary emergency triage officer.
               </p>
-              <a
-                href="tel:+918306944422"
-                className="block w-full py-2.5 bg-[#00838f] hover:bg-[#006064] text-white font-bold text-xs uppercase tracking-wider rounded-xl transition shadow-md"
+              <button
+                onClick={() => {
+                  const el = document.getElementById('doctors-list');
+                  if (el) el.scrollIntoView({ behavior: 'smooth' });
+                }}
+                className="block w-full py-2.5 bg-[#00838f] hover:bg-[#006064] text-white font-bold text-xs uppercase tracking-wider rounded-xl transition shadow-md cursor-pointer border-0"
               >
-                +91 - 8306-944-422
-              </a>
+                CONNECT WITH ON-CALL VET
+              </button>
             </div>
           </div>
 
