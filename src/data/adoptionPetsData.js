@@ -105,7 +105,7 @@ export const DEFAULT_ADOPTION_PETS = [
       'https://images.unsplash.com/photo-1544568100-eba616a6ce76?q=80&w=800&auto=format&fit=crop',
       'https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?q=80&w=800&auto=format&fit=crop'
     ],
-    parentContact: '+91 8306-688-827',
+    parentContact: '',
     parentName: 'Ramesh Sharma',
     fee: 0,
     vaccinated: true,
@@ -130,7 +130,7 @@ export const DEFAULT_ADOPTION_PETS = [
       'https://images.unsplash.com/photo-1517849845537-4d257902454a?q=80&w=800&auto=format&fit=crop',
       'https://images.unsplash.com/photo-1534361960057-19889db9621e?q=80&w=800&auto=format&fit=crop'
     ],
-    parentContact: '+91 8306-688-827',
+    parentContact: '',
     parentName: 'Pooja Verma',
     fee: 0,
     vaccinated: true,
@@ -155,7 +155,7 @@ export const DEFAULT_ADOPTION_PETS = [
       'https://images.unsplash.com/photo-1587300003388-59208cc962cb?q=80&w=800&auto=format&fit=crop',
       'https://images.unsplash.com/photo-1552053831-71594a27632d?q=80&w=800&auto=format&fit=crop'
     ],
-    parentContact: '+91 8306-688-827',
+    parentContact: '',
     parentName: 'Ananya Reddy',
     fee: 0,
     vaccinated: true,
@@ -179,7 +179,7 @@ export const DEFAULT_ADOPTION_PETS = [
     gallery: [
       'https://images.unsplash.com/photo-1589924691995-400dc9ecc119?q=80&w=800&auto=format&fit=crop'
     ],
-    parentContact: '+91 8306-688-827',
+    parentContact: '',
     parentName: 'Kapil Joshi',
     fee: 0,
     vaccinated: true,
@@ -203,7 +203,7 @@ export const DEFAULT_ADOPTION_PETS = [
     gallery: [
       'https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?q=80&w=800&auto=format&fit=crop'
     ],
-    parentContact: '+91 8306-688-827',
+    parentContact: '',
     parentName: 'Sanjay Nair',
     fee: 0,
     vaccinated: true,
@@ -227,7 +227,7 @@ export const DEFAULT_ADOPTION_PETS = [
     gallery: [
       'https://images.unsplash.com/photo-1517849845537-4d257902454a?q=80&w=800&auto=format&fit=crop'
     ],
-    parentContact: '+91 8306-688-827',
+    parentContact: '',
     parentName: 'Vikram Sharma',
     fee: 0,
     vaccinated: true,
@@ -251,7 +251,7 @@ export const DEFAULT_ADOPTION_PETS = [
     gallery: [
       'https://images.unsplash.com/photo-1601758228041-f3b2795255f1?q=80&w=800&auto=format&fit=crop'
     ],
-    parentContact: '+91 8306-688-827',
+    parentContact: '',
     parentName: 'Meera Khanna',
     fee: 0,
     vaccinated: true,
@@ -276,7 +276,7 @@ export const DEFAULT_ADOPTION_PETS = [
       'https://images.unsplash.com/photo-1552053831-71594a27632d?q=80&w=800&auto=format&fit=crop',
       'https://images.unsplash.com/photo-1535930891776-0c2dfb7fda1a?q=80&w=800&auto=format&fit=crop'
     ],
-    parentContact: '+91 8306-688-827',
+    parentContact: '',
     parentName: 'Sneha Patel',
     fee: 0,
     vaccinated: true,
@@ -300,7 +300,7 @@ export const DEFAULT_ADOPTION_PETS = [
     gallery: [
       'https://images.unsplash.com/photo-1544568100-eba616a6ce76?q=80&w=800&auto=format&fit=crop'
     ],
-    parentContact: '+91 8306-688-827',
+    parentContact: '',
     parentName: 'Karthik Raja',
     fee: 0,
     vaccinated: true,
@@ -324,7 +324,7 @@ export const DEFAULT_ADOPTION_PETS = [
     gallery: [
       'https://images.unsplash.com/photo-1548199973-03cce0bbc87b?q=80&w=800&auto=format&fit=crop'
     ],
-    parentContact: '+91 8306-688-827',
+    parentContact: '',
     parentName: 'Deepak Rao',
     fee: 0,
     vaccinated: true,
@@ -348,7 +348,7 @@ export const DEFAULT_ADOPTION_PETS = [
     gallery: [
       'https://images.unsplash.com/photo-1534361960057-19889db9621e?q=80&w=800&auto=format&fit=crop'
     ],
-    parentContact: '+91 8306-688-827',
+    parentContact: '',
     parentName: 'Rina Mukherjee',
     fee: 0,
     vaccinated: true,
@@ -372,7 +372,7 @@ export const DEFAULT_ADOPTION_PETS = [
     gallery: [
       'https://images.unsplash.com/photo-1587300003388-59208cc962cb?q=80&w=800&auto=format&fit=crop'
     ],
-    parentContact: '+91 8306-688-827',
+    parentContact: '',
     parentName: 'Manish Hegde',
     fee: 0,
     vaccinated: true,
@@ -397,7 +397,7 @@ export const DEFAULT_ADOPTION_PETS = [
       'https://images.unsplash.com/photo-1535930891776-0c2dfb7fda1a?q=80&w=800&auto=format&fit=crop',
       'https://images.unsplash.com/photo-1589924691995-400dc9ecc119?q=80&w=800&auto=format&fit=crop'
     ],
-    parentContact: '+91 8306-688-827',
+    parentContact: '',
     parentName: 'Rohan Deshmukh',
     fee: 0,
     vaccinated: true,
@@ -583,7 +583,12 @@ export const getStoredAdoptionPets = () => {
       try {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed) && parsed.length > 0) {
-          baseList = parsed;
+          baseList = parsed.map((p) => {
+            if (p && typeof p === 'object' && p.parentContact && p.parentContact.includes('8306')) {
+              return { ...p, parentContact: '' };
+            }
+            return p;
+          });
         }
       } catch (e) {}
     }

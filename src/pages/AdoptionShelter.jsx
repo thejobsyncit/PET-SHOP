@@ -250,20 +250,6 @@ const AdoptionShelter = () => {
     toast.success('Filters reset to default!');
   };
 
-  // Open WhatsApp direct chat
-  const handleWhatsAppChat = (pet) => {
-    const rawContact = pet.parentContact || pet.shelterPhone || pet.whatsappNumber || pet.contactPhone || '';
-    const cleanNumber = rawContact.replace(/\D/g, '');
-    if (cleanNumber) {
-      const fullPhone = cleanNumber.startsWith('91') ? cleanNumber : (cleanNumber.length === 10 ? `91${cleanNumber}` : cleanNumber);
-      const text = encodeURIComponent(
-        `Hello! I am interested in adopting "${pet.name}" (${pet.breed}, ${pet.city}) listed on JOSH PETS HUB.`
-      );
-      window.open(`https://wa.me/${fullPhone}?text=${text}`, '_blank');
-    } else {
-      navigate(`/adopt/${pet.id}`);
-    }
-  };
 
   // Handle opening the "Add Pet" modal (Requires authentication & 1-Pet Limit)
   const handleOpenAddPet = () => {
@@ -379,7 +365,7 @@ const AdoptionShelter = () => {
       ownerName: user.name || (newPetGuardianName.trim() || 'Pet Guardian'),
       ownerEmail: user.email || '',
       ownerPhone: user.mobile || newPetPhone.trim(),
-      parentContact: newPetPhone.trim() || user.mobile || '+91 8306-688-827',
+      parentContact: newPetPhone.trim() || user.mobile || '',
       parentName: newPetGuardianName.trim() || user.name || 'Pet Guardian',
       fee: finalFee,
       price: finalFee,
@@ -926,38 +912,13 @@ const AdoptionShelter = () => {
                               {pet.personality}
                             </span>
                           </div>
-  
-                          {/* Parent Contact Trigger */}
-                          <div className="text-center pt-0.5">
-                            <button
-                              type="button"
-                              onClick={() => {
-                                toast.success(`📞 Contact for ${pet.name}: ${pet.parentContact} (${pet.parentName})`);
-                              }}
-                              className="text-[11px] text-primary font-bold hover:underline inline-flex items-center gap-1 cursor-pointer"
-                            >
-                              <span>{pet.name} Parent Contact</span>
-                              <Phone size={11} />
-                            </button>
-                          </div>
                         </div>
-  
-                        {/* Action Buttons Row: WhatsApp + Separate Page "Know More" Button */}
-                        <div className="flex items-center gap-2 pt-2 border-t border-slate-100">
-                          {/* WhatsApp Button */}
-                          <button
-                            type="button"
-                            onClick={() => handleWhatsAppChat(pet)}
-                            title={`Chat on WhatsApp about ${pet.name}`}
-                            className="w-10 h-10 rounded-xl bg-[#25D366] hover:bg-[#20bd5a] text-white flex items-center justify-center shrink-0 shadow-md shadow-emerald-500/20 active:scale-95 transition cursor-pointer"
-                          >
-                            <MessageSquare size={18} />
-                          </button>
-  
-                          {/* Know More Button -> Navigates to SEPARATE PAGE */}
+
+                        {/* Action Button: Navigate to Details Page */}
+                        <div className="pt-2 border-t border-slate-100">
                           <Link
                             to={`/adopt/${pet.id}`}
-                            className="flex-1 py-2.5 px-3 bg-primary hover:bg-accent text-white rounded-xl font-bold text-xs shadow-md shadow-gold/20 active:scale-95 transition cursor-pointer text-center truncate block"
+                            className="w-full py-2.5 px-3 bg-primary hover:bg-accent text-white rounded-xl font-bold text-xs shadow-md shadow-gold/20 active:scale-95 transition cursor-pointer text-center truncate block"
                           >
                             Know More About {pet.name}
                           </Link>
@@ -1292,7 +1253,7 @@ const AdoptionShelter = () => {
                 </div>
 
                 <div className="space-y-1">
-                  <label className="font-bold text-slate-700 block">Contact Phone / WhatsApp *</label>
+                  <label className="font-bold text-slate-700 block">Contact Phone *</label>
                   <input
                     type="tel"
                     placeholder="e.g. +91 98765 43210"

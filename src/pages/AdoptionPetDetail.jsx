@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import {
-  Heart, ArrowLeft, MapPin, Phone, MessageSquare, ShieldCheck,
+  Heart, ArrowLeft, MapPin, MessageSquare, ShieldCheck,
   CircleCheck, Check, User, Calendar, Award, Share2, Info, Home,
   Sparkles, AlertCircle, ArrowRight, Lock, X
 } from 'lucide-react';
@@ -258,20 +258,6 @@ const AdoptionPetDetail = () => {
     });
   };
 
-  // Handle WhatsApp chat with Guardian
-  const handleWhatsApp = () => {
-    if (!pet) return;
-    const rawPhone = pet.parentContact || pet.ownerPhone || '';
-    const clean = rawPhone.replace(/\D/g, '');
-    if (!clean) {
-      toast.error('Direct guardian phone is not available. Please send an in-app inquiry.');
-      setShowInquiryModal(true);
-      return;
-    }
-    const fullPhone = clean.startsWith('91') ? clean : (clean.length === 10 ? `91${clean}` : clean);
-    const msg = encodeURIComponent(`Hello! I saw ${pet.name} (${pet.breed}) up for adoption on Josh Pets Hub and would love to know more.`);
-    window.open(`https://wa.me/${fullPhone}?text=${msg}`, '_blank');
-  };
 
   // Other related pets for carousel/grid
   const relatedPets = (pets || []).filter((p) => p && pet && p.id !== pet.id).slice(0, 3);
@@ -512,44 +498,13 @@ const AdoptionPetDetail = () => {
                 </div>
               </div>
 
-              {/* Instant WhatsApp, Call & In-App Direct Chat Buttons */}
-              <div className="grid grid-cols-2 gap-3">
-                <button
-                  type="button"
-                  onClick={handleWhatsApp}
-                  className="py-3 px-3 bg-[#25D366] hover:bg-[#20bd5a] text-white rounded-xl font-bold text-xs shadow-md shadow-emerald-500/20 active:scale-95 transition cursor-pointer flex items-center justify-center gap-2"
-                >
-                  <MessageSquare size={16} />
-                  <span>WhatsApp Chat</span>
-                </button>
-
-                {pet.parentContact ? (
-                  <a
-                    href={`tel:${pet.parentContact}`}
-                    className="py-3 px-3 bg-[#7c56dc] hover:bg-[#6842c8] text-white rounded-xl font-bold text-xs shadow-md shadow-purple-600/20 active:scale-95 transition cursor-pointer flex items-center justify-center gap-2"
-                  >
-                    <Phone size={16} />
-                    <span>Call Guardian</span>
-                  </a>
-                ) : (
-                  <button
-                    type="button"
-                    onClick={() => setShowInquiryModal(true)}
-                    className="py-3 px-3 bg-[#7c56dc] hover:bg-[#6842c8] text-white rounded-xl font-bold text-xs shadow-md shadow-purple-600/20 active:scale-95 transition cursor-pointer flex items-center justify-center gap-2"
-                  >
-                    <MessageSquare size={16} />
-                    <span>Inquire Now</span>
-                  </button>
-                )}
-              </div>
-
               {/* Direct In-App Chat Inquiry Trigger */}
               <button
                 type="button"
                 onClick={() => setShowInquiryModal(true)}
-                className="w-full py-2.5 px-4 bg-purple-50 hover:bg-purple-100 text-[#7c56dc] rounded-xl font-bold text-xs border border-purple-200 transition flex items-center justify-center gap-2 cursor-pointer shadow-xs"
+                className="w-full py-3.5 px-4 bg-[#7c56dc] hover:bg-[#6842c8] text-white rounded-xl font-bold text-xs shadow-md shadow-purple-600/20 active:scale-95 transition flex items-center justify-center gap-2 cursor-pointer"
               >
-                <MessageSquare size={15} />
+                <MessageSquare size={16} />
                 <span>💬 Ask Shelter a Question / Start Chat</span>
               </button>
 
@@ -654,7 +609,7 @@ const AdoptionPetDetail = () => {
                     </div>
 
                     <div className="space-y-1">
-                      <label className="font-bold text-slate-700 block">Your Contact Phone / WhatsApp *</label>
+                      <label className="font-bold text-slate-700 block">Your Contact Phone *</label>
                       <input
                         type="tel"
                         placeholder="e.g. +91 98765 43210"
