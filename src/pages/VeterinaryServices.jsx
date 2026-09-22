@@ -44,6 +44,7 @@ import {
 import { INDIAN_STATES_CITIES } from '../data/adoptionPetsData.js';
 import ServiceAccessLock, { isServicePathLockedForUser } from '../components/ServiceAccessLock.jsx';
 import ScrollReveal from '../components/ScrollReveal.jsx';
+import PetBreedDropdown from '../components/PetBreedDropdown.jsx';
 
 export default function VeterinaryServices() {
   const navigate = useNavigate();
@@ -273,6 +274,9 @@ export default function VeterinaryServices() {
     }
     setSelectedDoctorForBooking(doc);
     setBookingMode(prefilledMode);
+    if (heroPetType && heroPetType !== 'All Pets') {
+      setPetSpecies(heroPetType);
+    }
     setShowBookingModal(true);
   };
 
@@ -447,8 +451,6 @@ export default function VeterinaryServices() {
                     <option value="Dogs">Dogs</option>
                     <option value="Cats">Cats</option>
                     <option value="Birds">Birds</option>
-                    <option value="Fish">Fish</option>
-                    <option value="Reptiles">Reptiles</option>
                   </select>
                   <ChevronDown size={14} className="absolute right-3 top-3 text-slate-400 pointer-events-none" />
                 </div>
@@ -1302,14 +1304,15 @@ export default function VeterinaryServices() {
                   </label>
                   <select
                     value={petSpecies}
-                    onChange={(e) => setPetSpecies(e.target.value)}
+                    onChange={(e) => {
+                      setPetSpecies(e.target.value);
+                      setPetBreed('');
+                    }}
                     className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-[#00838f]"
                   >
                     <option value="Dogs">Dog</option>
                     <option value="Cats">Cat</option>
                     <option value="Birds">Bird</option>
-                    <option value="Fish">Fish</option>
-                    <option value="Reptiles">Reptile</option>
                   </select>
                 </div>
 
@@ -1317,12 +1320,13 @@ export default function VeterinaryServices() {
                   <label className="block text-[10px] font-bold text-slate-700 uppercase tracking-wider mb-1">
                     Breed
                   </label>
-                  <input
-                    type="text"
+                  <PetBreedDropdown
+                    petType={petSpecies}
                     value={petBreed}
-                    onChange={(e) => setPetBreed(e.target.value)}
-                    className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-[#00838f]"
-                    placeholder="e.g. Golden Retriever"
+                    onChange={setPetBreed}
+                    placeholder="Select Breed"
+                    className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-[#00838f] text-xs font-medium text-slate-800"
+                    allowedCategories={['dogs', 'cats', 'birds']}
                   />
                 </div>
               </div>

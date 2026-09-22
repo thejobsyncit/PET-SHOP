@@ -36,6 +36,7 @@ import {
 } from '../data/breedingData.js';
 import { INDIAN_STATES_CITIES } from '../data/adoptionPetsData.js';
 import ServiceAccessLock, { isServicePathLockedForUser } from '../components/ServiceAccessLock.jsx';
+import PetBreedDropdown from '../components/PetBreedDropdown.jsx';
 
 import ScrollReveal from '../components/ScrollReveal.jsx';
 const BreedingDirectory = () => {
@@ -196,15 +197,11 @@ const BreedingDirectory = () => {
     if (selectedCategory === 'Dogs') return BREEDING_BREEDS_BY_CATEGORY.Dogs;
     if (selectedCategory === 'Cats') return BREEDING_BREEDS_BY_CATEGORY.Cats;
     if (selectedCategory === 'Birds') return BREEDING_BREEDS_BY_CATEGORY.Birds;
-    if (selectedCategory === 'Fish') return BREEDING_BREEDS_BY_CATEGORY.Fish;
-    if (selectedCategory === 'Reptiles') return BREEDING_BREEDS_BY_CATEGORY.Reptiles;
     return [
       'All Breeds',
       ...BREEDING_BREEDS_BY_CATEGORY.Dogs.slice(1),
       ...BREEDING_BREEDS_BY_CATEGORY.Cats.slice(1),
-      ...BREEDING_BREEDS_BY_CATEGORY.Birds.slice(1),
-      ...BREEDING_BREEDS_BY_CATEGORY.Fish.slice(1),
-      ...BREEDING_BREEDS_BY_CATEGORY.Reptiles.slice(1)
+      ...BREEDING_BREEDS_BY_CATEGORY.Birds.slice(1)
     ];
   }, [selectedCategory]);
 
@@ -581,13 +578,11 @@ const BreedingDirectory = () => {
                     onChange={(e) => setHeroBreed(e.target.value)}
                     className="w-full p-2.5 bg-slate-50 border border-slate-200 text-xs font-semibold text-slate-800 rounded-xl focus:outline-none focus:border-[#6D28D9] cursor-pointer appearance-none"
                   >
-                    <option value="All Breeds">All Breeds (Dogs, Cats, Birds, Fish, Reptiles)</option>
+                    <option value="All Breeds">All Breeds (Dogs, Cats, Birds)</option>
                     {[
                       ...BREEDING_BREEDS_BY_CATEGORY.Dogs.slice(1),
                       ...BREEDING_BREEDS_BY_CATEGORY.Cats.slice(1),
-                      ...BREEDING_BREEDS_BY_CATEGORY.Birds.slice(1),
-                      ...BREEDING_BREEDS_BY_CATEGORY.Fish.slice(1),
-                      ...BREEDING_BREEDS_BY_CATEGORY.Reptiles.slice(1)
+                      ...BREEDING_BREEDS_BY_CATEGORY.Birds.slice(1)
                     ].map((b) => (
                       <option key={b} value={b}>
                         {b}
@@ -740,8 +735,6 @@ const BreedingDirectory = () => {
                   { id: 'Dogs', label: '🐶 Dogs' },
                   { id: 'Cats', label: '🐱 Cats' },
                   { id: 'Birds', label: '🦜 Birds' },
-                  { id: 'Fish', label: '🐠 Fish' },
-                  { id: 'Reptiles', label: '🦎 Reptiles' },
                   { id: 'All', label: '🐾 All Pets' }
                 ].map((item) => (
                   <label
@@ -1408,12 +1401,13 @@ const BreedingDirectory = () => {
                   <label className="block text-[10px] font-bold text-slate-700 uppercase tracking-wider mb-1">
                     Your Pet's Breed
                   </label>
-                  <input
-                    type="text"
+                  <PetBreedDropdown
+                    petType={selectedPetForDetails?.petCategory || 'Dogs'}
                     value={proposalPetBreed}
-                    onChange={(e) => setProposalPetBreed(e.target.value)}
-                    className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-[#6D28D9]"
-                    placeholder={selectedPetForDetails.breed}
+                    onChange={setProposalPetBreed}
+                    placeholder={`Select ${selectedPetForDetails?.petCategory || 'Pet'} Breed`}
+                    className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-[#6D28D9] text-xs"
+                    allowedCategories={['dogs', 'cats', 'birds']}
                   />
                 </div>
               </div>
@@ -1492,14 +1486,15 @@ const BreedingDirectory = () => {
                   </label>
                   <select
                     value={newPetCategory}
-                    onChange={(e) => setNewPetCategory(e.target.value)}
+                    onChange={(e) => {
+                      setNewPetCategory(e.target.value);
+                      setNewBreed('');
+                    }}
                     className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-[#6D28D9]"
                   >
                     <option value="Dogs">Dogs</option>
                     <option value="Cats">Cats</option>
                     <option value="Birds">Birds</option>
-                    <option value="Fish">Fish</option>
-                    <option value="Reptiles">Reptiles</option>
                   </select>
                 </div>
 
@@ -1507,13 +1502,14 @@ const BreedingDirectory = () => {
                   <label className="block text-[10px] font-bold text-slate-700 uppercase tracking-wider mb-1">
                     Breed *
                   </label>
-                  <input
-                    type="text"
-                    required
+                  <PetBreedDropdown
+                    petType={newPetCategory}
                     value={newBreed}
-                    onChange={(e) => setNewBreed(e.target.value)}
-                    className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-[#6D28D9]"
-                    placeholder="e.g. Pug, Golden Retriever"
+                    onChange={setNewBreed}
+                    required
+                    placeholder="Select Breed *"
+                    className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-[#6D28D9] text-xs"
+                    allowedCategories={['dogs', 'cats', 'birds']}
                   />
                 </div>
               </div>

@@ -20,6 +20,7 @@ import { INDIAN_STATES_CITIES } from '../data/adoptionPetsData.js';
 import ServiceAccessLock, { isServicePathLockedForUser } from '../components/ServiceAccessLock.jsx';
 
 import ScrollReveal from '../components/ScrollReveal.jsx';
+import PetBreedDropdown from '../components/PetBreedDropdown.jsx';
 const PetTransport = () => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -883,7 +884,7 @@ const PetTransport = () => {
             <div className="space-y-1.5">
               <label className="text-[10px] font-bold uppercase text-gray-400 tracking-wider">Pet Accepted</label>
               <div className="grid grid-cols-2 gap-1">
-                {['All', 'Dogs', 'Cats', 'Birds', 'Fish', 'Small Animals'].map((pet) => (
+                {['All', 'Dogs', 'Cats', 'Birds'].map((pet) => (
                   <button
                     key={pet}
                     onClick={() => setSelectedPetType(pet)}
@@ -1307,18 +1308,17 @@ const PetTransport = () => {
                     <option value="Dog">Dog</option>
                     <option value="Cat">Cat</option>
                     <option value="Bird">Bird</option>
-                    <option value="Fish">Fish / Aquatic</option>
-                    <option value="Small Animal">Small Animal</option>
                   </select>
                 </div>
                 <div>
-                  <input
-                    type="text"
-                    placeholder="Pet Breed *"
-                    required
+                  <PetBreedDropdown
+                    petType={globalEnqPetSpecies}
                     value={globalEnqPetBreed}
-                    onChange={(e) => setGlobalEnqPetBreed(e.target.value)}
+                    onChange={setGlobalEnqPetBreed}
+                    required
+                    placeholder="Select Pet Breed *"
                     className="w-full bg-stone-50 border border-stone-200 text-xs rounded-lg px-3 py-2 text-slate-800 focus:outline-none focus:border-[#0F2E23]"
+                    allowedCategories={['dogs', 'cats', 'birds']}
                   />
                 </div>
                 <div>
@@ -1934,14 +1934,15 @@ const PetTransport = () => {
                   />
                 </div>
                 <div>
-                  <label className="block text-[10px] font-bold uppercase text-gray-500 mb-1">Breed</label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="e.g. Beagle"
+                  <label className="block text-[10px] font-bold uppercase text-gray-500 mb-1">Breed *</label>
+                  <PetBreedDropdown
+                    petType={selectedPetType}
                     value={bookingPetBreed}
-                    onChange={(e) => setBookingPetBreed(e.target.value)}
-                    className="w-full bg-stone-50 border border-stone-200 rounded-lg px-2.5 py-1.5 text-slate-800 focus:outline-none focus:border-[#13274F]"
+                    onChange={setBookingPetBreed}
+                    required
+                    placeholder="Select Breed *"
+                    className="w-full bg-stone-50 border border-stone-200 rounded-lg px-2.5 py-1.5 text-slate-800 focus:outline-none focus:border-[#13274F] text-xs"
+                    allowedCategories={['dogs', 'cats', 'birds']}
                   />
                 </div>
                 <div>
@@ -2064,13 +2065,14 @@ const PetTransport = () => {
               <div className="grid grid-cols-2 gap-2.5">
                 <div>
                   <label className="block text-[10px] font-bold uppercase text-gray-500 mb-1">Pet Breed *</label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="e.g. Golden Retriever"
+                  <PetBreedDropdown
+                    petType={enqPetSpecies}
                     value={enqPetBreed}
-                    onChange={(e) => setEnqPetBreed(e.target.value)}
-                    className="w-full bg-stone-50 border border-stone-200 rounded-lg px-2.5 py-1.5 text-slate-800 focus:outline-none focus:border-[#13274F]"
+                    onChange={setEnqPetBreed}
+                    required
+                    placeholder="Select Pet Breed *"
+                    className="w-full bg-stone-50 border border-stone-200 rounded-lg px-2.5 py-1.5 text-slate-800 focus:outline-none focus:border-[#13274F] text-xs"
+                    allowedCategories={['dogs', 'cats', 'birds']}
                   />
                 </div>
                 <div>

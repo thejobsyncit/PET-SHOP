@@ -338,8 +338,8 @@ const ServiceBooking = () => {
           {/* Become a Partner Card */}
           <ScrollReveal variant="slideUp" delay={0.5}>
             <Link
-              to="/provider-dashboard"
-              className="group relative bg-gradient-to-br from-slate-900 to-[#0f2e23] rounded-[2rem] border border-slate-700/50 p-6 md:p-8 shadow-2xl transition-all duration-500 hover:-translate-y-2 flex flex-col justify-center items-center text-center text-white h-full overflow-hidden"
+              to="/signup?role=provider"
+              className="group relative bg-gradient-to-br from-slate-900 to-[#0f2e23] rounded-[2rem] border border-slate-700/50 p-6 md:p-8 shadow-2xl transition-all duration-500 hover:-translate-y-2 flex flex-col justify-center items-center text-center text-white h-full overflow-hidden cursor-pointer"
             >
               <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent z-0"></div>
               

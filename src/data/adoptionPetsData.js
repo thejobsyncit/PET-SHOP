@@ -72,19 +72,7 @@ export const POPULAR_BREEDS = [
   { name: 'Lovebird', count: 19, type: 'birds' }
 ];
 
-export const INDIAN_STATES_CITIES = {
-  'All States': ['All Cities'],
-  'Karnataka': ['All Cities', 'Bangalore', 'Mysore', 'Hubli', 'Mangalore', 'Belgaum'],
-  'Maharashtra': ['All Cities', 'Mumbai', 'Pune', 'Nagpur', 'Thane', 'Nashik'],
-  'Delhi NCR': ['All Cities', 'New Delhi', 'Noida', 'Gurgaon', 'Faridabad', 'Ghaziabad'],
-  'Tamil Nadu': ['All Cities', 'Chennai', 'Coimbatore', 'Madurai', 'Tiruchirappalli', 'Salem'],
-  'Telangana': ['All Cities', 'Hyderabad', 'Warangal', 'Nizamabad'],
-  'Gujarat': ['All Cities', 'Ahmedabad', 'Surat', 'Vadodara', 'Rajkot'],
-  'Uttar Pradesh': ['All Cities', 'Lucknow', 'Jhansi', 'Kanpur', 'Agra', 'Varanasi', 'Noida'],
-  'Rajasthan': ['All Cities', 'Jaipur', 'Jodhpur', 'Udaipur', 'Kota'],
-  'Punjab': ['All Cities', 'Ludhiana', 'Amritsar', 'Jalandhar', 'Mohali'],
-  'West Bengal': ['All Cities', 'Kolkata', 'Howrah', 'Durgapur', 'Siliguri']
-};
+export { INDIAN_STATES_CITIES, INDIAN_STATES_DISTRICTS } from './indiaLocations.js';
 
 export const DEFAULT_ADOPTION_PETS = [
   {

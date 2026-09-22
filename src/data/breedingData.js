@@ -39,26 +39,6 @@ export const BREEDING_BREEDS_BY_CATEGORY = {
     'Budgerigar (Budgie)',
     'Finch (Zebra/Gouldian)',
     'Canary'
-  ],
-  Fish: [
-    'All Fish Breeds',
-    'Flowerhorn Cichlid',
-    'Super Red Arowana',
-    'Discus Fish (Blue Diamond)',
-    'Halfmoon Betta',
-    'Show Guppy (Full Red/Blue)',
-    'Angelfish (Altum/Koi)',
-    'Oranda Goldfish'
-  ],
-  Reptiles: [
-    'All Reptile Breeds',
-    'Bearded Dragon (Hypo Leatherback)',
-    'Leopard Gecko (Tremper Albino)',
-    'Ball Python (Banana / Clown)',
-    'Corn Snake (Albino)',
-    'Crested Gecko',
-    'Red-Footed Tortoise',
-    'Sulcata Tortoise'
   ]
 };
 
@@ -446,134 +426,6 @@ export const INITIAL_MATING_PETS = [
     dam: 'Golden Sunshine',
     matingTerms: 'Pairing in climate-controlled breeding aviaries with egg incubation monitoring.',
     createdAt: '2026-08-31T11:00:00.000Z'
-  },
-  {
-    id: 'mate-13',
-    name: 'Titan',
-    petCategory: 'Fish',
-    breed: 'Flowerhorn Cichlid',
-    gender: 'Male',
-    age: '1.8 Years',
-    ageMonths: 22,
-    quality: 'Champion Bloodline',
-    price: 15000,
-    priceDisplay: '₹15,000 / Fry Share',
-    isFreeOrShare: true,
-    state: 'Tamil Nadu',
-    city: 'Chennai',
-    temperament: ['Active', 'Dominant', 'Vibrant Pearl Line', 'Aggressive Spawner'],
-    mateRequirement: 'Titan Seeking Kamfa / Super Red Dragon Female for Spawning',
-    parentName: 'Karthik Raja (Aqua Exotics)',
-    parentPhone: '+91 98765 43210',
-    whatsappNumber: '919876543210',
-    isVerified: true,
-    kciRegistered: true,
-    kciNumber: 'AQUA/2024/FH-110',
-    vaccinated: true,
-    dewormed: true,
-    geneticTested: true,
-    image: 'https://images.unsplash.com/photo-1601758228041-f3b2795255f1?q=80&w=800&auto=format&fit=crop',
-    description: 'Massive high kok Super Red Dragon Flowerhorn with metallic crosshead pearls and deep red body coloration. Proven fertile spawner.',
-    sire: 'King Kok Titan (Imp. Thailand)',
-    dam: 'Ruby Queen Dragon',
-    matingTerms: 'Controlled divider tank spawning with 50/50 fry share or fixed stud fee.',
-    createdAt: '2026-08-31T14:15:00.000Z'
-  },
-  {
-    id: 'mate-14',
-    name: 'Crimson Dragon',
-    petCategory: 'Fish',
-    breed: 'Super Red Arowana',
-    gender: 'Male',
-    age: '3.5 Years',
-    ageMonths: 42,
-    quality: 'Champion Bloodline',
-    price: 35000,
-    priceDisplay: '₹35,000 (Microchip Certified)',
-    isFreeOrShare: false,
-    state: 'Karnataka',
-    city: 'Bangalore',
-    temperament: ['Majestic', 'Placid', 'Broad Body', 'Deep Chili Red'],
-    mateRequirement: 'Seeking CITES Microchipped Super Red Arowana Queen for Breeding Pond',
-    parentName: 'Sunil Hedge',
-    parentPhone: '+91 98765 43210',
-    whatsappNumber: '919876543210',
-    isVerified: true,
-    kciRegistered: true,
-    kciNumber: 'CITES/IND/AR-9921',
-    vaccinated: true,
-    dewormed: true,
-    geneticTested: true,
-    image: 'https://images.unsplash.com/photo-1587300003388-59208cc962cb?q=80&w=800&auto=format&fit=crop',
-    description: 'Full helmet spoon head Chili Red Arowana. CITES certified with microchip certificate. High fertility rate in earthen/cement pond systems.',
-    sire: 'Grand Champion Red Dragon of Pontianak',
-    dam: 'Crimson Empress',
-    matingTerms: 'Professional pond pairing under expert aquaculturist supervision.',
-    createdAt: '2026-08-31T16:45:00.000Z'
-  },
-  {
-    id: 'mate-15',
-    name: 'Ignis',
-    petCategory: 'Reptiles',
-    breed: 'Bearded Dragon (Hypo Leatherback)',
-    gender: 'Male',
-    age: '2.5 Years',
-    ageMonths: 30,
-    quality: 'Champion Bloodline',
-    price: 18000,
-    priceDisplay: '₹18,000 / Clutch Share',
-    isFreeOrShare: true,
-    state: 'Maharashtra',
-    city: 'Pune',
-    temperament: ['Docile', 'Calm', 'Vibrant Citrus Orange', 'Proven Breeder'],
-    mateRequirement: 'Ignis Seeking Translucent / Leatherback Female Bearded Dragon',
-    parentName: 'Devang Solanki (Exotic Herp)',
-    parentPhone: '+91 98765 43210',
-    whatsappNumber: '919876543210',
-    isVerified: true,
-    kciRegistered: true,
-    kciNumber: 'HERP/2023/BD-409',
-    vaccinated: true,
-    dewormed: true,
-    geneticTested: true,
-    image: 'https://images.unsplash.com/photo-1552053831-71594a27632d?q=80&w=800&auto=format&fit=crop',
-    description: 'High-intensity Citrus Hypo Leatherback Bearded Dragon with clear nails and smooth velvet scales. Highly docile, healthy appetite and proven stud.',
-    sire: 'Fire Lord Phoenix (Imp. USA)',
-    dam: 'Citrus Sunburst of Pune Herpetics',
-    matingTerms: 'Pairing in specialized climate and UVB enclosure. 50% hatchling egg clutch share.',
-    createdAt: '2026-08-31T18:00:00.000Z'
-  },
-  {
-    id: 'mate-16',
-    name: 'Ziggy',
-    petCategory: 'Reptiles',
-    breed: 'Leopard Gecko (Tremper Albino)',
-    gender: 'Female',
-    age: '2 Years',
-    ageMonths: 24,
-    quality: 'KCI Registered',
-    price: 12000,
-    priceDisplay: '₹12,000 / Egg Share',
-    isFreeOrShare: true,
-    state: 'Karnataka',
-    city: 'Bangalore',
-    temperament: ['Gentle', 'Healthy Fat Tail', 'Placid', 'Clean Morph'],
-    mateRequirement: 'Ziggy Seeking Super Giant / Bell Albino Leopard Gecko Male',
-    parentName: 'Pooja Iyer',
-    parentPhone: '+91 98765 43210',
-    whatsappNumber: '919876543210',
-    isVerified: true,
-    kciRegistered: true,
-    kciNumber: 'HERP/2024/LG-220',
-    vaccinated: true,
-    dewormed: true,
-    geneticTested: true,
-    image: 'https://images.unsplash.com/photo-1535930891776-0c2dfb7fda1a?q=80&w=800&auto=format&fit=crop',
-    description: 'Tremper Albino Leopard Gecko female with vibrant yellow-lavender banding and healthy regenerated fat tail. Ready for seasonal breeding.',
-    sire: 'Giant Tremper Leo',
-    dam: 'Sunset Tangerine Queen',
-    matingTerms: 'Egg incubation assistance and hatchling sharing agreement.',
-    createdAt: '2026-08-31T19:30:00.000Z'
   }
 ];
 
@@ -583,8 +435,9 @@ export const getStoredMatingPets = () => {
     // Clean up old legacy keys to free storage quota
     localStorage.removeItem('pawora_mating_pets');
     localStorage.removeItem('pawora_mating_pets_v2');
+    localStorage.removeItem('pawora_mating_pets_v3');
 
-    const saved = localStorage.getItem('pawora_mating_pets_v3');
+    const saved = localStorage.getItem('pawora_mating_pets_v4');
     if (saved) {
       const parsed = JSON.parse(saved);
       if (Array.isArray(parsed) && parsed.length > 0) return parsed;
@@ -594,7 +447,7 @@ export const getStoredMatingPets = () => {
   }
 
   try {
-    localStorage.setItem('pawora_mating_pets_v3', JSON.stringify(INITIAL_MATING_PETS));
+    localStorage.setItem('pawora_mating_pets_v4', JSON.stringify(INITIAL_MATING_PETS));
   } catch (e) {
     console.warn('LocalStorage quota exceeded or unavailable, using in-memory INITIAL_MATING_PETS', e);
   }
@@ -606,7 +459,7 @@ export const saveMatingPet = (newPet) => {
   const current = getStoredMatingPets();
   const updated = [newPet, ...current];
   try {
-    localStorage.setItem('pawora_mating_pets_v3', JSON.stringify(updated));
+    localStorage.setItem('pawora_mating_pets_v4', JSON.stringify(updated));
   } catch (e) {
     console.warn('LocalStorage quota exceeded, updated in-memory', e);
   }

@@ -25,6 +25,7 @@ const AdminDashboard = lazy(() => import('./pages/AdminDashboard.jsx'));
 const SuperAdminDashboard = lazy(() => import('./pages/SuperAdminDashboard.jsx'));
 const ServiceProviderDashboard = lazy(() => import('./pages/ServiceProviderDashboard.jsx'));
 const NotFound = lazy(() => import('./pages/NotFound.jsx'));
+const PetCrmApp = lazy(() => import('./pages/crm/PetCrmApp.jsx'));
 
 // India Pet Hub Pillars
 const PetClassifieds = lazy(() => import('./pages/PetClassifieds.jsx'));
@@ -99,6 +100,9 @@ function App() {
               <Route path="login" element={<Login />} />
               <Route path="signup" element={<Login />} />
               <Route path="register" element={<Login />} />
+              <Route path="provider-register" element={<Login />} />
+              <Route path="provider/register" element={<Login />} />
+              <Route path="partner-register" element={<Login />} />
               
               {/* India Pet Hub Pillars */}
               <Route path="pets" element={<PetClassifieds />} />
@@ -137,6 +141,10 @@ function App() {
             {/* Admin Panels */}
             <Route path="Admin.com" element={<AdminDashboard />} />
             <Route path="superadmin.com" element={<SuperAdminDashboard />} />
+            
+            {/* Enterprise Pet Care CRM Suite */}
+            <Route path="crm" element={<PetCrmApp />} />
+            <Route path="crm/:tab" element={<PetCrmApp />} />
             
             {/* Fallback 404 */}
             <Route path="*" element={<NotFound />} />

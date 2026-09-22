@@ -7,6 +7,7 @@ import {
   Trash2, ShieldCheck, CheckCheck
 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import PetBreedDropdown from '../components/PetBreedDropdown.jsx';
 import { 
   updateVetProfile, 
   getStoredVetDoctors, 
@@ -1689,14 +1690,12 @@ const VetProviderContent = ({ activeTab }) => {
                   <label className="text-xs font-black text-slate-700 uppercase tracking-wider block mb-1">Species</label>
                   <select 
                     value={newApp.petSpecies} 
-                    onChange={e => setNewApp({...newApp, petSpecies: e.target.value})}
+                    onChange={e => setNewApp({...newApp, petSpecies: e.target.value, petBreed: ''})}
                     className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-800 outline-none focus:border-[#0F2E23]"
                   >
                     <option value="Dog">Dog</option>
                     <option value="Cat">Cat</option>
                     <option value="Bird">Bird</option>
-                    <option value="Rabbit">Rabbit</option>
-                    <option value="Other">Other Pet</option>
                   </select>
                 </div>
               </div>
@@ -1704,12 +1703,13 @@ const VetProviderContent = ({ activeTab }) => {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="text-xs font-black text-slate-700 uppercase tracking-wider block mb-1">Pet Breed</label>
-                  <input 
-                    type="text" 
-                    placeholder="e.g. Golden Retriever" 
-                    value={newApp.petBreed} 
-                    onChange={e => setNewApp({...newApp, petBreed: e.target.value})}
+                  <PetBreedDropdown
+                    petType={newApp.petSpecies}
+                    value={newApp.petBreed}
+                    onChange={b => setNewApp({...newApp, petBreed: b})}
+                    placeholder="Select Breed"
                     className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-800 outline-none focus:border-[#0F2E23]"
+                    allowedCategories={['dogs', 'cats', 'birds']}
                   />
                 </div>
                 <div>

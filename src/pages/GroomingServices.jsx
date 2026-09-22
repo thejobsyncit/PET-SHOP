@@ -16,6 +16,7 @@ import { INDIAN_STATES_CITIES } from '../data/adoptionPetsData.js';
 import { apiRequest } from '../services/api.js';
 import ScrollReveal from '../components/ScrollReveal.jsx';
 import ServiceAccessLock, { isServicePathLockedForUser } from '../components/ServiceAccessLock.jsx';
+import PetBreedDropdown from '../components/PetBreedDropdown.jsx';
 
 const GroomingServices = () => {
   const navigate = useNavigate();
@@ -68,6 +69,12 @@ const GroomingServices = () => {
     const newState = e.target.value;
     setSelectedState(newState);
     setSelectedCity('All Cities');
+  };
+
+  // Handle Pet Type selection change
+  const handlePetTypeChange = (newType) => {
+    setSelectedPetType(newType);
+    setPetBreed('');
   };
 
   // Filter & Sort Providers
@@ -276,7 +283,7 @@ const GroomingServices = () => {
                     <label className="text-[10px] uppercase font-extrabold text-slate-400 block px-2">Pet Type</label>
                     <select
                       value={selectedPetType}
-                      onChange={(e) => setSelectedPetType(e.target.value)}
+                      onChange={(e) => handlePetTypeChange(e.target.value)}
                       className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-800 focus:outline-none focus:border-primary"
                     >
                       <option value="All">All Pets</option>
@@ -694,7 +701,7 @@ const GroomingServices = () => {
                   {['All', 'Dogs', 'Cats'].map((pt) => (
                     <button
                       key={pt}
-                      onClick={() => setSelectedPetType(pt)}
+                      onClick={() => handlePetTypeChange(pt)}
                       className={`py-1.5 px-2 rounded-xl font-bold text-center transition cursor-pointer ${
                         selectedPetType === pt
                           ? 'bg-primary text-white shadow-xs'
@@ -1046,12 +1053,12 @@ const GroomingServices = () => {
 
                 <div className="space-y-1">
                   <label className="text-[11px] font-bold text-slate-700">Pet Breed *</label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="e.g. Shih Tzu / Labrador"
+                  <PetBreedDropdown
+                    petType={selectedPetType}
                     value={petBreed}
-                    onChange={(e) => setPetBreed(e.target.value)}
+                    onChange={setPetBreed}
+                    required
+                    placeholder="Select Pet Breed *"
                     className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-medium text-slate-800 focus:outline-none focus:border-primary"
                   />
                 </div>

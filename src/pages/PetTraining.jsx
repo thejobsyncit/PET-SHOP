@@ -40,6 +40,7 @@ import {
 import { INDIAN_STATES_CITIES } from '../data/adoptionPetsData.js';
 import ServiceAccessLock, { isServicePathLockedForUser } from '../components/ServiceAccessLock.jsx';
 import ScrollReveal from '../components/ScrollReveal.jsx';
+import PetBreedDropdown from '../components/PetBreedDropdown.jsx';
 
 const PetTraining = () => {
   const navigate = useNavigate();
@@ -1075,8 +1076,11 @@ const PetTraining = () => {
                 <label className="block text-[10px] font-bold uppercase text-gray-500 mb-1">Pet Species</label>
                 <select
                   value={bottomPetSpecies}
-                  onChange={(e) => setBottomPetSpecies(e.target.value)}
-                  className="w-full bg-stone-50 border border-stone-200 rounded-xl px-2.5 py-2 text-slate-800 focus:outline-none focus:border-purple-600"
+                  onChange={(e) => {
+                    setBottomPetSpecies(e.target.value);
+                    setBottomPetBreed('');
+                  }}
+                  className="w-full bg-stone-50 border border-stone-200 rounded-xl px-2.5 py-2 text-slate-800 focus:outline-none focus:border-purple-600 font-medium"
                 >
                   <option value="Dog">Dog</option>
                   <option value="Puppy">Puppy (Under 6 mos)</option>
@@ -1086,13 +1090,13 @@ const PetTraining = () => {
 
               <div>
                 <label className="block text-[10px] font-bold uppercase text-gray-500 mb-1">Pet Breed *</label>
-                <input
-                  type="text"
-                  required
-                  placeholder="e.g. Labrador"
+                <PetBreedDropdown
+                  petType={bottomPetSpecies}
                   value={bottomPetBreed}
-                  onChange={(e) => setBottomPetBreed(e.target.value)}
-                  className="w-full bg-stone-50 border border-stone-200 rounded-xl px-3 py-2 text-slate-800 focus:outline-none focus:border-purple-600"
+                  onChange={setBottomPetBreed}
+                  required
+                  placeholder="Select Pet Breed *"
+                  className="w-full bg-stone-50 border border-stone-200 rounded-xl px-3 py-2 text-slate-800 focus:outline-none focus:border-purple-600 text-xs"
                 />
               </div>
             </div>
@@ -1238,13 +1242,13 @@ const PetTraining = () => {
                 </div>
                 <div>
                   <label className="block text-[10px] font-bold uppercase text-gray-500 mb-1">Breed *</label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="e.g. Beagle"
+                  <PetBreedDropdown
+                    petType={selectedPetType}
                     value={bookingPetBreed}
-                    onChange={(e) => setBookingPetBreed(e.target.value)}
-                    className="w-full bg-stone-50 border border-stone-200 rounded-lg px-2.5 py-1.5 text-slate-800 focus:outline-none focus:border-purple-600"
+                    onChange={setBookingPetBreed}
+                    required
+                    placeholder="Select Breed *"
+                    className="w-full bg-stone-50 border border-stone-200 rounded-lg px-2.5 py-1.5 text-slate-800 focus:outline-none focus:border-purple-600 text-xs"
                   />
                 </div>
                 <div>
@@ -1367,13 +1371,13 @@ const PetTraining = () => {
                 </div>
                 <div>
                   <label className="block text-[10px] font-bold uppercase text-gray-500 mb-1">Pet Breed *</label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="e.g. Golden Retriever"
+                  <PetBreedDropdown
+                    petType={selectedPetType}
                     value={enqPetBreed}
-                    onChange={(e) => setEnqPetBreed(e.target.value)}
-                    className="w-full bg-stone-50 border border-stone-200 rounded-lg px-2.5 py-1.5 text-slate-800 focus:outline-none focus:border-purple-600"
+                    onChange={setEnqPetBreed}
+                    required
+                    placeholder="Select Pet Breed *"
+                    className="w-full bg-stone-50 border border-stone-200 rounded-lg px-2.5 py-1.5 text-slate-800 focus:outline-none focus:border-purple-600 text-xs"
                   />
                 </div>
               </div>

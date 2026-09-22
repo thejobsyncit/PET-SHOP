@@ -2390,26 +2390,26 @@ const PetAdoptionDashboard = ({
                     onChange={(e) => {
                       const newState = e.target.value;
                       setStateName(newState);
-                      if (INDIAN_STATES_CITIES[newState] && INDIAN_STATES_CITIES[newState].length > 0) {
-                        setCityName(INDIAN_STATES_CITIES[newState][0]);
-                      }
+                      setCityName('');
                     }}
                     className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:outline-none focus:border-[#0F2E23]"
                   >
-                    {Object.keys(INDIAN_STATES_CITIES).map(st => (
+                    <option value="">Select State</option>
+                    {Object.keys(INDIAN_STATES_CITIES).filter(st => st !== 'All States').map(st => (
                       <option key={st} value={st}>{st}</option>
                     ))}
                   </select>
                 </div>
 
                 <div>
-                  <label className="text-[11px] font-black text-slate-700 block mb-1">City *</label>
+                  <label className="text-[11px] font-black text-slate-700 block mb-1">District / City *</label>
                   <select
                     value={cityName}
                     onChange={(e) => setCityName(e.target.value)}
                     className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:outline-none focus:border-[#0F2E23]"
                   >
-                    {(INDIAN_STATES_CITIES[stateName] || ['Bangalore', 'Mumbai', 'Delhi']).map(ct => (
+                    <option value="">Select District</option>
+                    {(INDIAN_STATES_CITIES[stateName] || []).filter(ct => ct !== 'All Cities').map(ct => (
                       <option key={ct} value={ct}>{ct}</option>
                     ))}
                   </select>

@@ -54,6 +54,7 @@ import {
   saveInsuranceEnquiry
 } from '../data/insuranceData.js';
 import { INDIAN_STATES_CITIES } from '../data/adoptionPetsData.js';
+import PetBreedDropdown from '../components/PetBreedDropdown.jsx';
 
 // Species-Specific Insurance Coverage Options & Medical Protection Tiers
 export const SPECIES_COVERAGE_OPTIONS = {
@@ -1850,23 +1851,26 @@ const PetInsurance = () => {
                         <label className="block text-[10px] font-medium text-slate-600 mb-1">Species</label>
                         <select
                           value={petSpecies}
-                          onChange={(e) => setPetSpecies(e.target.value)}
+                          onChange={(e) => {
+                            setPetSpecies(e.target.value);
+                            setPetBreed('');
+                          }}
                           className="w-full p-2 bg-gray-50 border border-gray-200 focus:outline-none focus:border-primary text-xs"
                         >
                           <option>Dog</option>
                           <option>Cat</option>
                           <option>Bird</option>
-                          <option>Exotic Pet</option>
                         </select>
                       </div>
                       <div>
                         <label className="block text-[10px] font-medium text-slate-600 mb-1">Breed</label>
-                        <input
-                          type="text"
-                          placeholder="e.g. Golden Retriever / Indie"
+                        <PetBreedDropdown
+                          petType={petSpecies}
                           value={petBreed}
-                          onChange={(e) => setPetBreed(e.target.value)}
+                          onChange={setPetBreed}
+                          placeholder="Select Pet Breed *"
                           className="w-full p-2 bg-gray-50 border border-gray-200 focus:outline-none focus:border-primary text-xs"
+                          allowedCategories={['dogs', 'cats', 'birds']}
                         />
                       </div>
                     </div>

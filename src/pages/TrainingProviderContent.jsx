@@ -838,29 +838,30 @@ const TrainingProviderContent = ({ activeTab, user }) => {
                       value={serviceForm.state}
                       onChange={(e) => {
                         const newState = e.target.value;
-                        const cities = INDIAN_STATES_CITIES[newState] || ['All Cities'];
                         setServiceForm({
                           ...serviceForm,
                           state: newState,
-                          city: cities[0] || 'Bangalore'
+                          city: ''
                         });
                       }}
                       className="w-full text-sm px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:border-emerald-600 bg-white"
                     >
-                      {Object.keys(INDIAN_STATES_CITIES).map((st) => (
+                      <option value="">Select State</option>
+                      {Object.keys(INDIAN_STATES_CITIES).filter(st => st !== 'All States').map((st) => (
                         <option key={st} value={st}>{st}</option>
                       ))}
                     </select>
                   </div>
 
                   <div>
-                    <label className="text-xs font-bold text-slate-700 block mb-1">City</label>
+                    <label className="text-xs font-bold text-slate-700 block mb-1">District / City</label>
                     <select
                       value={serviceForm.city}
                       onChange={(e) => setServiceForm({ ...serviceForm, city: e.target.value })}
                       className="w-full text-sm px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:border-emerald-600 bg-white"
                     >
-                      {(INDIAN_STATES_CITIES[serviceForm.state] || [serviceForm.city]).map((c) => (
+                      <option value="">Select District</option>
+                      {(INDIAN_STATES_CITIES[serviceForm.state] || []).filter(c => c !== 'All Cities').map((c) => (
                         <option key={c} value={c}>{c}</option>
                       ))}
                     </select>
