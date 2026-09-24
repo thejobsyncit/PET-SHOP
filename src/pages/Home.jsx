@@ -3,8 +3,8 @@ import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate, Link } from 'react-router-dom';
 import { ArrowRight, ShieldCheck, HeartPulse, Sparkles, Award } from 'lucide-react';
 import { fetchProducts } from '../store/slices/productSlice.js';
-import ProductCard from '../components/ProductCard.jsx';
-import ScrollReveal from '../components/ScrollReveal.jsx';
+import ProductCard from '../components/ui/ProductCard.jsx';
+import ScrollReveal from '../components/ui/ScrollReveal.jsx';
 
 const Home = () => {
   const dispatch = useDispatch();

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { X, Calendar, Clock, User, Phone, DollarSign, FileText, CheckCircle2, Sparkles } from 'lucide-react';
 import toast from 'react-hot-toast';
-import PetBreedDropdown from '../../../components/PetBreedDropdown.jsx';
+import PetBreedDropdown from '../../../components/ui/PetBreedDropdown.jsx';
 
 export default function NewBookingModal({ isOpen, onClose, onAddBooking, staffList = [] }) {
   const [petName, setPetName] = useState('');

@@ -4,42 +4,42 @@ import { Provider } from 'react-redux';
 import { Toaster } from 'react-hot-toast';
 import { store } from './store/index.js';
 import MainLayout from './layouts/MainLayout.jsx';
-import PageLoader from './components/PageLoader.jsx';
-import ScrollToTop from './components/ScrollToTop.jsx';
-import ErrorBoundary from './components/ErrorBoundary.jsx';
+import PageLoader from './components/layout/PageLoader.jsx';
+import ScrollToTop from './components/layout/ScrollToTop.jsx';
+import ErrorBoundary from './components/ui/ErrorBoundary.jsx';
 
 // Lazy Loaded Route Chunks for Blazing-Fast Page Transitions & Micro Bundle Sizes
 const Home = lazy(() => import('./pages/Home.jsx'));
-const Shop = lazy(() => import('./pages/Shop.jsx'));
-const ProductDetails = lazy(() => import('./pages/ProductDetails.jsx'));
-const PharmacyLanding = lazy(() => import('./pages/PharmacyLanding.jsx'));
-const Checkout = lazy(() => import('./pages/Checkout.jsx'));
-const AccountDashboard = lazy(() => import('./pages/AccountDashboard.jsx'));
-const Wishlist = lazy(() => import('./pages/Wishlist.jsx'));
-const BlogHub = lazy(() => import('./pages/BlogHub.jsx'));
-const BlogDetail = lazy(() => import('./pages/BlogDetail.jsx'));
+const Shop = lazy(() => import('./pages/shop/Shop.jsx'));
+const ProductDetails = lazy(() => import('./pages/shop/ProductDetails.jsx'));
+const PharmacyLanding = lazy(() => import('./pages/shop/PharmacyLanding.jsx'));
+const Checkout = lazy(() => import('./pages/shop/Checkout.jsx'));
+const AccountDashboard = lazy(() => import('./pages/dashboards/AccountDashboard.jsx'));
+const Wishlist = lazy(() => import('./pages/shop/Wishlist.jsx'));
+const BlogHub = lazy(() => import('./pages/blog/BlogHub.jsx'));
+const BlogDetail = lazy(() => import('./pages/blog/BlogDetail.jsx'));
 const About = lazy(() => import('./pages/About.jsx'));
 const Contact = lazy(() => import('./pages/Contact.jsx'));
 const Login = lazy(() => import('./pages/Login.jsx'));
-const AdminDashboard = lazy(() => import('./pages/AdminDashboard.jsx'));
-const SuperAdminDashboard = lazy(() => import('./pages/SuperAdminDashboard.jsx'));
-const ServiceProviderDashboard = lazy(() => import('./pages/ServiceProviderDashboard.jsx'));
+const AdminDashboard = lazy(() => import('./pages/dashboards/AdminDashboard.jsx'));
+const SuperAdminDashboard = lazy(() => import('./pages/dashboards/SuperAdminDashboard.jsx'));
+const ServiceProviderDashboard = lazy(() => import('./pages/dashboards/ServiceProviderDashboard.jsx'));
 const NotFound = lazy(() => import('./pages/NotFound.jsx'));
 const PetCrmApp = lazy(() => import('./pages/crm/PetCrmApp.jsx'));
 
 // India Pet Hub Pillars
-const PetClassifieds = lazy(() => import('./pages/PetClassifieds.jsx'));
-const AdoptionShelter = lazy(() => import('./pages/AdoptionShelter.jsx'));
-const AdoptionPetDetail = lazy(() => import('./pages/AdoptionPetDetail.jsx'));
-const BreedingDirectory = lazy(() => import('./pages/BreedingDirectory.jsx'));
-const ServiceBooking = lazy(() => import('./pages/ServiceBooking.jsx'));
-const GroomingServices = lazy(() => import('./pages/GroomingServices.jsx'));
-const HostelServices = lazy(() => import('./pages/HostelServices.jsx'));
-const WalkingServices = lazy(() => import('./pages/WalkingServices.jsx'));
-const PetTransport = lazy(() => import('./pages/PetTransport.jsx'));
-const PetTraining = lazy(() => import('./pages/PetTraining.jsx'));
-const PetInsurance = lazy(() => import('./pages/PetInsurance.jsx'));
-const VeterinaryServices = lazy(() => import('./pages/VeterinaryServices.jsx'));
+const PetClassifieds = lazy(() => import('./pages/pets/PetClassifieds.jsx'));
+const AdoptionShelter = lazy(() => import('./pages/pets/AdoptionShelter.jsx'));
+const AdoptionPetDetail = lazy(() => import('./pages/pets/AdoptionPetDetail.jsx'));
+const BreedingDirectory = lazy(() => import('./pages/pets/BreedingDirectory.jsx'));
+const ServiceBooking = lazy(() => import('./pages/services/ServiceBooking.jsx'));
+const GroomingServices = lazy(() => import('./pages/services/GroomingServices.jsx'));
+const HostelServices = lazy(() => import('./pages/services/HostelServices.jsx'));
+const WalkingServices = lazy(() => import('./pages/services/WalkingServices.jsx'));
+const PetTransport = lazy(() => import('./pages/services/PetTransport.jsx'));
+const PetTraining = lazy(() => import('./pages/services/PetTraining.jsx'));
+const PetInsurance = lazy(() => import('./pages/services/PetInsurance.jsx'));
+const VeterinaryServices = lazy(() => import('./pages/services/VeterinaryServices.jsx'));
 const ChatConsole = lazy(() => import('./pages/ChatConsole.jsx'));
 
 function App() {

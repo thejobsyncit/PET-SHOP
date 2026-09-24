@@ -1,6 +1,6 @@
 import React from 'react';
 import { Award, ShieldCheck, Heart, Sparkles } from 'lucide-react';
-import ScrollReveal from '../components/ScrollReveal.jsx';
+import ScrollReveal from '../components/ui/ScrollReveal.jsx';
 
 const About = () => {
   return (
