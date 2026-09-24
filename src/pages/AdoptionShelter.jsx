@@ -5,7 +5,7 @@ import {
   Heart, MapPin, Search, Phone, MessageSquare, Info, ShieldCheck,
   CircleCheck, X, Plus, ChevronRight, Sparkles, Filter, SlidersHorizontal,
   Home, Award, Calendar, User, Check, ArrowRight, ChevronLeft,
-  UploadCloud, Camera, Image as ImageIcon, AlertTriangle
+  UploadCloud, Camera, Image as ImageIcon, AlertTriangle, ArrowUpDown, ChevronDown
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import {
@@ -65,13 +65,13 @@ const AdoptionShelter = () => {
   // Top Search Filter States
   const [selectedPetType, setSelectedPetType] = useState('all');
   const [selectedState, setSelectedState] = useState('All States');
-  const [selectedCity, setSelectedCity] = useState('All Cities');
+  const [selectedCity, setSelectedCity] = useState('Cities and Districts');
 
   // Sidebar Filter States
   const [selectedBreedFilter, setSelectedBreedFilter] = useState('All');
   const [genderFilter, setGenderFilter] = useState('Any'); // 'Male' | 'Female' | 'Any'
   const [qualityFilter, setQualityFilter] = useState('All');
-  const [budgetLimit, setBudgetLimit] = useState(500000); // 0 to 1000000
+  const [sortBy, setSortBy] = useState('featured'); // 'featured' | 'newest' | 'name_asc' | 'name_desc' | 'fee_low' | 'fee_high'
 
   // UI Expand / Read More State
   const [isReadMoreOpen, setIsReadMoreOpen] = useState(false);
@@ -189,14 +189,17 @@ const AdoptionShelter = () => {
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
-  // Available Cities based on State
-  const availableCities = INDIAN_STATES_CITIES[selectedState] || ['All Cities'];
+  // Available Cities based on State (with 'Cities and Districts' as default option)
+  const availableCities = useMemo(() => {
+    const list = INDIAN_STATES_CITIES[selectedState] || ['All Cities'];
+    return list.map((c) => (c === 'All Cities' ? 'Cities and Districts' : c));
+  }, [selectedState]);
   const newPetAvailableCities = INDIAN_STATES_CITIES[newPetState] || ['Bangalore'];
 
   // Handle State Change in Top Search
   const handleStateChange = (stateName) => {
     setSelectedState(stateName);
-    setSelectedCity('All Cities');
+    setSelectedCity('Cities and Districts');
   };
 
   // Filtered Pets calculation
@@ -214,8 +217,8 @@ const AdoptionShelter = () => {
       if (selectedState !== 'All States' && pet.state !== selectedState) {
         return false;
       }
-      // City filter
-      if (selectedCity !== 'All Cities' && pet.city !== selectedCity) {
+      // City / District filter
+      if (selectedCity !== 'All Cities' && selectedCity !== 'Cities and Districts' && pet.city !== selectedCity) {
         return false;
       }
       // Popular Breed filter
@@ -242,13 +245,37 @@ const AdoptionShelter = () => {
   const handleResetFilters = () => {
     setSelectedPetType('all');
     setSelectedState('All States');
-    setSelectedCity('All Cities');
+    setSelectedCity('Cities and Districts');
     setSelectedBreedFilter('All');
     setGenderFilter('Any');
     setQualityFilter('All');
-    setBudgetLimit(500000);
+    setSortBy('featured');
     toast.success('Filters reset to default!');
   };
+
+  // Sorted Pets calculation based on sortBy state
+  const sortedPets = useMemo(() => {
+    const list = [...filteredPets];
+    switch (sortBy) {
+      case 'newest':
+        return list.sort((a, b) => {
+          const timeA = a.createdAt ? new Date(a.createdAt).getTime() : (parseInt(String(a.id).replace(/\D/g, ''), 10) || 0);
+          const timeB = b.createdAt ? new Date(b.createdAt).getTime() : (parseInt(String(b.id).replace(/\D/g, ''), 10) || 0);
+          return timeB - timeA;
+        });
+      case 'name_asc':
+        return list.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+      case 'name_desc':
+        return list.sort((a, b) => (b.name || '').localeCompare(a.name || ''));
+      case 'fee_low':
+        return list.sort((a, b) => (Number(a.fee) || 0) - (Number(b.fee) || 0));
+      case 'fee_high':
+        return list.sort((a, b) => (Number(b.fee) || 0) - (Number(a.fee) || 0));
+      case 'featured':
+      default:
+        return list;
+    }
+  }, [filteredPets, sortBy]);
 
 
   // Handle opening the "Add Pet" modal (Requires authentication & 1-Pet Limit)
@@ -541,9 +568,9 @@ const AdoptionShelter = () => {
             </select>
           </div>
 
-          {/* 3. City Selector */}
+          {/* 3. City / District Selector */}
           <div>
-            <label className="text-[10px] uppercase font-bold text-slate-400 block mb-1 pl-1">Select City</label>
+            <label className="text-[10px] uppercase font-bold text-slate-400 block mb-1 pl-1">Cities and Districts</label>
             <select
               value={selectedCity}
               onChange={(e) => setSelectedCity(e.target.value)}
@@ -559,7 +586,7 @@ const AdoptionShelter = () => {
           <div className="pt-4 sm:pt-0 sm:self-end">
             <button
               type="button"
-              onClick={() => toast.success(`Showing results for ${selectedPetType} in ${selectedCity}, ${selectedState}`)}
+              onClick={() => toast.success(`Showing results for ${selectedPetType} in ${selectedCity === 'Cities and Districts' || selectedCity === 'All Cities' ? 'All Cities & Districts' : selectedCity}, ${selectedState}`)}
               className="w-full py-3 bg-gradient-premium hover:shadow-premium-hover hover:-translate-y-0.5 text-white font-bold text-sm rounded-[16px] shadow-lg active:scale-95 transition-all duration-300 cursor-pointer flex items-center justify-center gap-2"
             >
               <Search size={16} />
@@ -676,28 +703,6 @@ const AdoptionShelter = () => {
                         <span>{q}</span>
                       </label>
                     ))}
-                  </div>
-                </div>
-  
-                {/* C. Budget Range Slider */}
-                <div className="space-y-2 border-t border-slate-100 pt-4">
-                  <div className="flex justify-between items-center">
-                    <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wider">Budget</h4>
-                    <span className="text-[11px] font-bold text-primary">₹0 - ₹10L</span>
-                  </div>
-                  <input
-                    type="range"
-                    min={0}
-                    max={1000000}
-                    step={25000}
-                    value={budgetLimit}
-                    onChange={(e) => setBudgetLimit(Number(e.target.value))}
-                    className="w-full accent-[#7c56dc] cursor-pointer"
-                  />
-                  <div className="text-[11px] text-slate-500 font-semibold flex justify-between">
-                    <span>0</span>
-                    <span>Your Budget ₹: <strong>{budgetLimit.toLocaleString('en-IN')}</strong></span>
-                    <span>10L</span>
                   </div>
                 </div>
   
@@ -840,14 +845,42 @@ const AdoptionShelter = () => {
                 </div>
   
               </div>
-  
+
+              {/* Toolbar: Result Counts & Sorting */}
+              <div className="bg-white rounded-2xl border border-beige p-3 md:px-5 md:py-3.5 shadow-sm flex flex-wrap items-center justify-between gap-3">
+                <span className="text-xs font-bold text-slate-600">
+                  Showing <span className="text-primary font-extrabold">{sortedPets.length}</span> pets for adoption
+                </span>
+
+                <div className="flex items-center gap-2 text-xs font-bold">
+                  <div className="flex items-center gap-1.5 text-slate-400">
+                    <ArrowUpDown size={14} />
+                    <span className="uppercase tracking-wider text-[11px]">Sort By:</span>
+                  </div>
+                  <div className="relative group">
+                    <select
+                      value={sortBy}
+                      onChange={(e) => setSortBy(e.target.value)}
+                      className="appearance-none bg-slate-50 border border-slate-200 hover:border-primary text-slate-700 px-3.5 py-1.5 pr-8 rounded-xl text-xs font-semibold cursor-pointer focus:outline-none focus:border-primary focus:ring-2 focus:ring-beige transition-all"
+                    >
+                      <option value="featured">Featured / Recommended</option>
+                      <option value="newest">Recently Added</option>
+                      <option value="name_asc">Name: A to Z</option>
+                      <option value="name_desc">Name: Z to A</option>
+                      <option value="fee_low">Fee: Free First</option>
+                      <option value="fee_high">Fee: High to Low</option>
+                    </select>
+                    <ChevronDown size={14} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none group-hover:text-primary transition-colors" />
+                  </div>
+                </div>
+              </div>
   
               {/* =========================================================================
                   ADOPTION CARDS GRID (With Separate Page Navigation on "Know More")
                  ========================================================================= */}
-              {filteredPets.length > 0 ? (
+              {sortedPets.length > 0 ? (
                 <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
-                  {filteredPets.map((pet) => (
+                  {sortedPets.map((pet) => (
                     <div
                       key={pet.id}
                       className="bg-white rounded-2xl border border-beige/90 shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden flex flex-col justify-between group hover:-translate-y-1"
@@ -1137,13 +1170,13 @@ const AdoptionShelter = () => {
                 </div>
 
                 <div className="space-y-1">
-                  <label className="font-bold text-slate-700 block">City *</label>
+                  <label className="font-bold text-slate-700 block">City / District *</label>
                   <select
                     value={newPetCity}
                     onChange={(e) => setNewPetCity(e.target.value)}
                     className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-xs focus:outline-none focus:border-primary font-medium bg-slate-50"
                   >
-                    {newPetAvailableCities.filter(c => c !== 'All Cities').map((c) => (
+                    {newPetAvailableCities.filter(c => c !== 'All Cities' && c !== 'Cities and Districts').map((c) => (
                       <option key={c} value={c}>{c}</option>
                     ))}
                   </select>

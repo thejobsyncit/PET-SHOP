@@ -22,8 +22,10 @@ import PetProfilesView from './views/PetProfilesView.jsx';
 import MessagesInboxView from './views/MessagesInboxView.jsx';
 import AnalyticsReportsView from './views/AnalyticsReportsView.jsx';
 import SettingsView from './views/SettingsView.jsx';
+import CrmLogin from './views/CrmLogin.jsx';
 
 import { CRM_ROLES, getCrmState, saveCrmState } from './crmData.js';
+import { getCrmSession, clearCrmSession } from './crmAuth.js';
 import toast from 'react-hot-toast';
 
 export default function PetCrmApp() {
@@ -31,10 +33,17 @@ export default function PetCrmApp() {
   const initialRoleParam = searchParams.get('role');
   const initialTabParam = searchParams.get('tab') || 'dashboard';
 
-  // State
+  // CRM Authentication Session State
+  const [crmSession, setCrmSession] = useState(getCrmSession);
+
+  // Active Role State (initialized from query param or authenticated staff role)
   const [currentRole, setCurrentRole] = useState(() => {
     if (initialRoleParam && CRM_ROLES[initialRoleParam]) {
       return CRM_ROLES[initialRoleParam];
+    }
+    const session = getCrmSession();
+    if (session && session.roleId && CRM_ROLES[session.roleId]) {
+      return CRM_ROLES[session.roleId];
     }
     return CRM_ROLES.SUPER_ADMIN;
   });
@@ -50,6 +59,25 @@ export default function PetCrmApp() {
   const [showBookingModal, setShowBookingModal] = useState(false);
   const [selectedPet, setSelectedPet] = useState(null);
   const [replyMessage, setReplyMessage] = useState(null);
+
+  // Handle Login
+  const handleLoginSuccess = (session, role) => {
+    setCrmSession(session);
+    if (role) {
+      setCurrentRole(role);
+      setSearchParams({ role: role.id, tab: 'dashboard' });
+    }
+  };
+
+  // Handle Logout
+  const handleLogout = () => {
+    clearCrmSession();
+    setCrmSession(null);
+    toast.success('Workstation locked. Logged out of CRM.', {
+      icon: '🔒',
+      style: { background: '#081714', color: '#6EE7B7' }
+    });
+  };
 
   // Sync state to local storage
   useEffect(() => {
@@ -231,7 +259,7 @@ export default function PetCrmApp() {
       return <AnalyticsReportsView />;
     }
     if (activeTab === 'settings') {
-      return <SettingsView currentRole={currentRole} />;
+      return <SettingsView currentRole={currentRole} crmSession={crmSession} onLogout={handleLogout} />;
     }
 
     // Default: 'dashboard' -> Renders the custom tailored dashboard for the currently selected role!
@@ -301,6 +329,11 @@ export default function PetCrmApp() {
     }
   };
 
+  // If unauthenticated, render the secure enterprise CRM Login portal
+  if (!crmSession) {
+    return <CrmLogin onLoginSuccess={handleLoginSuccess} />;
+  }
+
   return (
     <div className="min-h-screen bg-[#070D0C] text-slate-100 flex font-sans antialiased overflow-x-hidden selection:bg-emerald-500 selection:text-slate-950">
       {/* Sleek Dark Sidebar */}
@@ -308,6 +341,8 @@ export default function PetCrmApp() {
         activeTab={activeTab}
         setActiveTab={handleTabChange}
         currentRole={currentRole}
+        crmSession={crmSession}
+        onLogout={handleLogout}
         isCollapsed={isSidebarCollapsed}
         setIsCollapsed={setIsSidebarCollapsed}
       />
@@ -317,6 +352,8 @@ export default function PetCrmApp() {
         {/* Top Header */}
         <CrmHeader 
           currentRole={currentRole}
+          crmSession={crmSession}
+          onLogout={handleLogout}
           onRoleChange={handleRoleChange}
           onOpenNewBooking={() => setShowBookingModal(true)}
           onOpenOrgChart={() => handleTabChange('orgchart')}

@@ -224,9 +224,8 @@ const Navbar = () => {
                 {/* Dropdown Card */}
                 {petsMenuOpen && (
                   <div className="absolute top-full -left-12 w-64 bg-white border border-slate-100 shadow-2xl z-50 rounded-2xl animate-in fade-in slide-in-from-top-2 duration-200 overflow-hidden">
-                    <div className="bg-primary/5 px-4 py-2.5 border-b border-primary/10 flex justify-between items-center">
+                    <div className="bg-primary/5 px-4 py-2.5 border-b border-primary/10 flex items-center">
                       <span className="text-[10px] font-bold text-primary uppercase tracking-widest">Pet Categories</span>
-                      <button onClick={(e) => handlePetsNavigation(e, '/pets')} className="text-[9px] font-bold text-accent hover:underline cursor-pointer bg-transparent border-0">View All</button>
                     </div>
                     {isNonSellerProvider ? (
                       <div className="p-5 text-center space-y-2">
@@ -301,9 +300,8 @@ const Navbar = () => {
                 {/* Dropdown Card with Scroll */}
                 {servicesMenuOpen && (
                   <div className="absolute top-full -left-12 w-64 bg-white border border-slate-100 shadow-2xl z-50 rounded-2xl animate-in fade-in slide-in-from-top-2 duration-200 overflow-hidden">
-                    <div className="bg-primary/5 px-4 py-2.5 border-b border-primary/10 flex justify-between items-center">
+                    <div className="bg-primary/5 px-4 py-2.5 border-b border-primary/10 flex items-center">
                       <span className="text-[10px] font-bold text-primary uppercase tracking-widest">Premium Services</span>
-                      <button onClick={(e) => handleServicesNavigation(e, '/services')} className="text-[9px] font-bold text-accent hover:underline cursor-pointer bg-transparent border-0">View Hub</button>
                     </div>
                     {isPetSeller ? (
                       <div className="p-5 text-center space-y-2">

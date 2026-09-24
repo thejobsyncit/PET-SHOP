@@ -122,6 +122,19 @@ const Footer = () => {
           <Link to="/about" className="hover:text-white transition">TERMS & CONDITIONS</Link>
           <Link to="/about" className="hover:text-white transition">SHIPPING POLICY</Link>
           <Link to="/about" className="hover:text-white transition">REFUND POLICY</Link>
+          <button 
+            type="button"
+            onClick={() => {
+              if (typeof window !== 'undefined' && window.openCookieSettings) {
+                window.openCookieSettings();
+              } else {
+                window.dispatchEvent(new CustomEvent('open-cookie-settings'));
+              }
+            }}
+            className="hover:text-[#fde047] transition uppercase cursor-pointer text-left font-semibold"
+          >
+            COOKIE SETTINGS
+          </button>
         </div>
       </div>
     </footer>

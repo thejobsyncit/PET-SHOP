@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useSelector } from 'react-redux';
-import { Search, Plus, MapPin, MessageSquare, ShieldCheck, Tag, Phone, X, Heart, Lock, ShieldAlert, Briefcase, Clock, Syringe, CreditCard, Check, Shield } from 'lucide-react';
+import { Search, MapPin, MessageSquare, ShieldCheck, Tag, Phone, X, Heart, Lock, ShieldAlert, Briefcase, Clock, Syringe, CreditCard, Check, Shield } from 'lucide-react';
 import { apiRequest } from '../services/api.js';
 import toast from 'react-hot-toast';
 import { SELLER_PET_BREEDS } from './PetSellerDashboard.jsx';
@@ -306,15 +306,6 @@ const PetClassifieds = () => {
           <h1 className="font-serif text-2xl sm:text-3xl md:text-4xl text-primary font-bold mt-1">Buy, Sell & Rehome</h1>
           <p className="text-xs text-gray-500 font-normal mt-0.5">Verify credentials, adopt locally, and find healthy litters near you.</p>
         </div>
-        
-        {(user?.role === 'SERVICE_PROVIDER' && (user?.serviceCategory || '').toLowerCase() === 'pet seller') || user?.role === 'ADMIN' || user?.role === 'SUPERADMIN' ? (
-          <button
-            onClick={() => setShowAddForm(true)}
-            className="w-full sm:w-auto px-5 py-3 bg-primary hover:bg-accent text-white hover:text-primary font-bold tracking-widest text-xs uppercase flex items-center justify-center gap-1.5 transition cursor-pointer shadow-sm active:scale-[0.98]"
-          >
-            <Plus size={15} /> POST PET LISTING
-          </button>
-        ) : null}
       </ScrollReveal>
 
       {/* Filters & Search Row */}

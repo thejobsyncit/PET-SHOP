@@ -1,9 +1,9 @@
 import React from 'react';
-import { Settings, Shield, Lock, Users, Key, Database, RefreshCw, CheckCircle2 } from 'lucide-react';
+import { Settings, Shield, Lock, Users, Key, Database, RefreshCw, CheckCircle2, UserCheck, LogOut } from 'lucide-react';
 import { CRM_ROLES } from '../crmData.js';
 import toast from 'react-hot-toast';
 
-export default function SettingsView({ currentRole }) {
+export default function SettingsView({ currentRole, crmSession, onLogout }) {
   const isSuperAdmin = currentRole.id === 'SUPER_ADMIN';
 
   const auditLogs = [
@@ -95,6 +95,36 @@ export default function SettingsView({ currentRole }) {
             </div>
           ))}
         </div>
+      </div>
+
+      {/* Active Workstation Session Card */}
+      <div className="bg-[#101C1A]/90 backdrop-blur-md rounded-2xl border border-emerald-900/30 p-5 shadow-xl flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="flex items-center gap-3.5">
+          <div className="w-10 h-10 rounded-xl bg-emerald-950/60 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
+            <UserCheck className="w-5 h-5" />
+          </div>
+          <div>
+            <div className="text-xs font-bold text-white flex items-center gap-2">
+              <span>{crmSession?.name || currentRole.holder}</span>
+              <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                {currentRole.name}
+              </span>
+            </div>
+            <p className="text-[11px] text-slate-400 mt-0.5">
+              {crmSession?.email || 'Authorized Staff'} • Authenticated Terminal #CRM-01
+            </p>
+          </div>
+        </div>
+
+        {onLogout && (
+          <button
+            onClick={onLogout}
+            className="px-4 py-2.5 rounded-xl bg-rose-500/15 hover:bg-rose-500/25 text-rose-300 font-bold border border-rose-500/30 flex items-center justify-center gap-2 text-xs transition-colors self-start sm:self-auto"
+          >
+            <Lock className="w-3.5 h-3.5" />
+            Lock & Sign Out
+          </button>
+        )}
       </div>
 
       {/* Storage Reset Tool */}

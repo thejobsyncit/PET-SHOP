@@ -70,6 +70,7 @@ const PetSellerDashboard = ({
   const [newChatMessage, setNewChatMessage] = useState('');
   const [loadingChat, setLoadingChat] = useState(false);
   const messagesEndRef = React.useRef(null);
+  const chatContainerRef = React.useRef(null);
 
   const handleOpenChat = async (inquiry) => {
     setActiveChatContact(inquiry);
@@ -79,8 +80,10 @@ const PetSellerDashboard = ({
       if (res.success) {
         setChatMessages(res.messages || []);
         setTimeout(() => {
-          messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-        }, 100);
+          if (chatContainerRef.current) {
+            chatContainerRef.current.scrollTo({ top: chatContainerRef.current.scrollHeight, behavior: 'smooth' });
+          }
+        }, 50);
       }
     } catch (e) {
       console.error('Error fetching chat', e);
@@ -106,8 +109,10 @@ const PetSellerDashboard = ({
         setChatMessages([...chatMessages, res.message]);
         setNewChatMessage('');
         setTimeout(() => {
-          messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-        }, 100);
+          if (chatContainerRef.current) {
+            chatContainerRef.current.scrollTo({ top: chatContainerRef.current.scrollHeight, behavior: 'smooth' });
+          }
+        }, 50);
       }
     } catch (err) {
       toast.error('Failed to send message');
@@ -921,7 +926,7 @@ const PetSellerDashboard = ({
                       </div>
                     </div>
                     
-                    <div className="flex-1 overflow-y-auto p-6 bg-[#FAF9F5] space-y-4">
+                    <div ref={chatContainerRef} className="flex-1 overflow-y-auto p-6 bg-[#FAF9F5] space-y-4">
                       {loadingChat ? (
                         <p className="text-center text-slate-400 text-xs font-bold animate-pulse py-10">Loading conversation...</p>
                       ) : chatMessages.length > 0 ? (

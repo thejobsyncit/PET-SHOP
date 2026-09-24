@@ -10,12 +10,16 @@ import {
   Menu, 
   Check, 
   Layers,
-  Crown
+  Crown,
+  Lock,
+  LogOut
 } from 'lucide-react';
 import { CRM_ROLES } from '../crmData.js';
 
 export default function CrmHeader({ 
   currentRole, 
+  crmSession,
+  onLogout,
   onRoleChange, 
   onOpenNewBooking, 
   onOpenOrgChart, 
@@ -119,12 +123,10 @@ export default function CrmHeader({
               <div className="px-3 py-2 border-b border-emerald-900/40 mb-1 flex items-center justify-between">
                 <div>
                   <div className="text-[11px] font-bold uppercase tracking-wider text-emerald-400">
-                    Switch Active Dashboard
+                    Staff Identity & Role
                   </div>
-                  <div className="text-[10px] text-slate-400">
-                    {currentRole.id === 'SUPER_ADMIN' 
-                      ? 'Super Admin full access granted to all views' 
-                      : 'Simulate specific role workflow'}
+                  <div className="text-[10px] text-slate-400 truncate max-w-[220px]">
+                    {crmSession?.name ? `${crmSession.name} (${crmSession.email})` : 'Enterprise Staff Session'}
                   </div>
                 </div>
               </div>
@@ -168,7 +170,7 @@ export default function CrmHeader({
               </div>
 
               {/* View Org Chart Shortcut */}
-              <div className="mt-2 pt-2 border-t border-emerald-900/40">
+              <div className="mt-2 pt-2 border-t border-emerald-900/40 space-y-1.5">
                 <button
                   onClick={() => {
                     setRoleDropdownOpen(false);
@@ -179,6 +181,19 @@ export default function CrmHeader({
                   <Network className="w-3.5 h-3.5 text-emerald-400" />
                   View Full Organization Chart
                 </button>
+
+                {onLogout && (
+                  <button
+                    onClick={() => {
+                      setRoleDropdownOpen(false);
+                      onLogout();
+                    }}
+                    className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-xl text-xs font-semibold text-rose-400 hover:text-rose-300 bg-rose-950/30 hover:bg-rose-950/50 border border-rose-800/30 transition-colors"
+                  >
+                    <Lock className="w-3.5 h-3.5 text-rose-400" />
+                    Lock & Sign Out
+                  </button>
+                )}
               </div>
             </div>
           )}
@@ -208,6 +223,17 @@ export default function CrmHeader({
             )}
           </button>
         </div>
+
+        {/* Quick Lock / Sign Out Button */}
+        {onLogout && (
+          <button 
+            onClick={onLogout}
+            className="p-2.5 rounded-xl bg-[#101C1A] hover:bg-rose-950/40 border border-emerald-800/30 hover:border-rose-500/40 text-slate-400 hover:text-rose-400 transition-colors"
+            title="Lock Workstation & Sign Out"
+          >
+            <Lock className="w-4 h-4" />
+          </button>
+        )}
 
         {/* + New Booking Primary CTA (Matching Reference Image) */}
         <button

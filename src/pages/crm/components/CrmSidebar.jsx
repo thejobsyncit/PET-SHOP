@@ -14,11 +14,12 @@ import {
   ShieldCheck, 
   ChevronRight,
   LogOut,
-  Sparkles
+  Sparkles,
+  Lock
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
-export default function CrmSidebar({ activeTab, setActiveTab, currentRole, isCollapsed, setIsCollapsed }) {
+export default function CrmSidebar({ activeTab, setActiveTab, currentRole, crmSession, onLogout, isCollapsed, setIsCollapsed }) {
   const navItems = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { id: 'orgchart', label: 'Org Chart & Roles', icon: Network, highlight: true },
@@ -133,13 +134,23 @@ export default function CrmSidebar({ activeTab, setActiveTab, currentRole, isCol
       </div>
 
       {/* Footer Navigation */}
-      <div className="p-3 border-t border-emerald-950/60 bg-[#070D0C]">
+      <div className="p-3 border-t border-emerald-950/60 bg-[#070D0C] space-y-1">
+        {onLogout && (
+          <button
+            onClick={onLogout}
+            className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-semibold text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 border border-rose-500/20 transition-colors text-left group"
+            title={isCollapsed ? 'Lock & Sign Out' : undefined}
+          >
+            <Lock className="w-4 h-4 text-rose-400 flex-shrink-0 group-hover:scale-105 transition-transform" />
+            {!isCollapsed && <span>Lock & Sign Out</span>}
+          </button>
+        )}
         <Link
           to="/"
           className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-medium text-slate-400 hover:text-white hover:bg-white/[0.05] transition-colors"
           title={isCollapsed ? 'Return to Store' : undefined}
         >
-          <LogOut className="w-4 h-4 text-slate-400" />
+          <LogOut className="w-4 h-4 text-slate-400 flex-shrink-0" />
           {!isCollapsed && <span>Exit CRM to Store</span>}
         </Link>
       </div>

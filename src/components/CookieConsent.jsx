@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { 
-  Cookie, X, Settings2, Sparkles, Lock, BarChart3, Tag, RotateCcw
+  Cookie, X, Settings2, Sparkles, Lock, BarChart3, Tag
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { 
@@ -218,6 +218,22 @@ const CookieConsent = () => {
         </div>
       )}
 
+      {/* 2. FLOATING MANAGE COOKIES BUTTON */}
+      {!showBanner && !showModal && (
+        <button
+          type="button"
+          onClick={() => {
+            const current = getCookieConsent() || DEFAULT_COOKIE_PREFERENCES;
+            setPreferences(current);
+            setShowModal(true);
+          }}
+          className="fixed bottom-4 left-4 sm:bottom-6 sm:left-6 z-[2147483647] bg-[#0F2E23] hover:bg-[#153f31] text-white p-3 rounded-full shadow-2xl border border-white/20 transition-all duration-300 hover:scale-110 active:scale-95 flex items-center justify-center cursor-pointer group"
+          title="Manage Cookie Preferences"
+          aria-label="Manage Cookie Preferences"
+        >
+          <Cookie size={20} className="text-white group-hover:text-[#fde047] transition-colors" />
+        </button>
+      )}
 
       {/* 3. PREFERENCES MODAL */}
       {showModal && (
@@ -357,15 +373,6 @@ const CookieConsent = () => {
                   className="w-full sm:w-auto text-xs font-bold text-slate-600 hover:text-slate-900 px-3.5 py-2.5 rounded-xl border border-slate-200 hover:bg-slate-100 transition cursor-pointer"
                 >
                   Reject Optional
-                </button>
-                <button
-                  type="button"
-                  onClick={handleClearCookiesData}
-                  className="w-full sm:w-auto text-xs font-bold text-rose-600 hover:text-rose-700 px-3.5 py-2.5 rounded-xl border border-rose-200 hover:bg-rose-50 transition cursor-pointer flex items-center justify-center gap-1.5"
-                  title="Clear all stored cookies and reset consent"
-                >
-                  <RotateCcw size={13} />
-                  Clear Cookies Data
                 </button>
               </div>
 
