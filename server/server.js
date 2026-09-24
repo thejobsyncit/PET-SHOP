@@ -7,6 +7,11 @@ import cookieParser from 'cookie-parser';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import fs from 'fs';
+<<<<<<< HEAD
+=======
+
+// Configuration
+>>>>>>> origin/main
 import { supabase } from './config/supabase.js';
 import errorHandler from './middleware/errorHandler.js';
 
@@ -47,8 +52,12 @@ if (process.env.NODE_ENV === 'production') {
   }
 }
 
+<<<<<<< HEAD
 // Supabase Backend Mode
 console.log('Pawora Backend initialized with Supabase as exclusive database');
+=======
+// Connect to database removed (migrating to Supabase)
+>>>>>>> origin/main
 
 const app = express();
 

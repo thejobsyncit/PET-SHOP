@@ -1,0 +1,16 @@
+- [x] Uninstall `mongoose` and delete `models/` directory.
+- [x] Update `server.js` to remove DB connections.
+- [x] Rewrite `authController.js` to use Supabase.
+- [x] Rewrite `adminController.js` to use Supabase.
+- [x] Rewrite `productController.js` to use Supabase.
+- [x] Rewrite `orderController.js` to use Supabase.
+- [x] Rewrite `cartWishlistController.js` to use Supabase.
+- [x] Rewrite `categoryController.js` to use Supabase.
+- [x] Rewrite `enquiryController.js` to use Supabase.
+- [x] Rewrite `cookieConsentController.js` to use Supabase.
+- [x] Rewrite `blogController.js` to use Supabase.
+- [x] Rewrite `couponController.js` to use Supabase.
+- [x] Rewrite `paymentController.js` to use Supabase.
+- [x] Rewrite `prescriptionController.js` to use Supabase.
+- [x] Rewrite `reviewController.js` to use Supabase.
+- [x] Verify backend server compiles and boots without crashes.

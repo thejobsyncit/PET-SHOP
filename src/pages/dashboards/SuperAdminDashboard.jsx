@@ -211,6 +211,21 @@ const SuperAdminDashboard = () => {
     }
   };
 
+  const handleDeleteConsent = async (consentId) => {
+    if (!window.confirm('Are you sure you want to delete this cookie consent log?')) return;
+    try {
+      const data = await apiRequest(`/cookie-consents/${consentId}`, {
+        method: 'DELETE'
+      });
+      if (data.success) {
+        toast.success('Cookie consent log removed.');
+        loadConsents();
+      }
+    } catch (err) {
+      toast.error(err.message || 'Failed to delete consent.');
+    }
+  };
+
   // ==========================================
   // ADMIN AUTHENTICATION SUBMIT
   // ==========================================
@@ -1265,6 +1280,7 @@ const SuperAdminDashboard = () => {
                     <th className="p-4 uppercase tracking-wider text-[10px]">Preferences</th>
                     <th className="p-4 uppercase tracking-wider text-[10px]">Browser / Agent</th>
                     <th className="p-4 uppercase tracking-wider text-[10px] text-right">Date Consented</th>
+                    <th className="p-4 uppercase tracking-wider text-[10px] text-right">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[#E3EBE5] text-xs">
@@ -1290,11 +1306,20 @@ const SuperAdminDashboard = () => {
                       <td className="p-3 text-right text-gray-400 font-medium">
                         {new Date(c.createdAt).toLocaleString()}
                       </td>
+                      <td className="p-3 text-right">
+                        <button
+                          onClick={() => handleDeleteConsent(c._id)}
+                          className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-md transition-colors"
+                          title="Delete Log"
+                        >
+                          <Trash size={16} />
+                        </button>
+                      </td>
                     </tr>
                   ))}
                   {consentsList.length === 0 && (
                     <tr>
-                      <td colSpan="4" className="p-8 text-center text-gray-400 font-medium">No cookie consent logs found.</td>
+                      <td colSpan="5" className="p-8 text-center text-gray-400 font-medium">No cookie consent logs found.</td>
                     </tr>
                   )}
                 </tbody>

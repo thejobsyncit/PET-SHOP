@@ -1,90 +1,40 @@
+<<<<<<< HEAD
 import Coupon from '../models/Coupon.js';
 import { isDbConnected, readMockData, writeMockData } from '../utils/mockDb.js';
+=======
+import { supabase } from '../config/supabase.js';
+>>>>>>> origin/main
 
-// @desc    Validate coupon code
-// @route   POST /api/coupons/validate
-// @access  Private
-export const validateCoupon = async (req, res) => {
-  const { code, cartTotal } = req.body;
-
-  if (!code) {
-    return res.status(400).json({ success: false, message: 'Coupon code is required' });
-  }
-
-  try {
-    let coupon;
-    if (isDbConnected()) {
-      coupon = await Coupon.findOne({ code: code.toUpperCase(), isActive: true });
-    } else {
-      const coupons = readMockData('coupons');
-      coupon = coupons.find(c => c.code === code.toUpperCase() && c.isActive);
-    }
-
-    if (!coupon) {
-      return res.status(404).json({ success: false, message: 'Invalid or inactive coupon code' });
-    }
-
-    // Check expiry
-    const now = new Date();
-    const expiry = new Date(coupon.expiresAt);
-    if (expiry < now) {
-      return res.status(400).json({ success: false, message: 'Coupon code has expired' });
-    }
-
-    // Check min order value
-    if (cartTotal && cartTotal < coupon.minOrderValue) {
-      return res.status(400).json({ 
-        success: false, 
-        message: `Minimum order value to apply this coupon is ₹${coupon.minOrderValue}` 
-      });
-    }
-
-    res.json({
-      success: true,
-      message: 'Coupon applied successfully!',
-      coupon: {
-        code: coupon.code,
-        discountType: coupon.discountType,
-        discountValue: coupon.discountValue,
-        maxDiscount: coupon.maxDiscount
-      }
-    });
-
-  } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
-  }
-};
-
-// @desc    Get all coupons (Admin only)
+// @desc    Get all coupons
 // @route   GET /api/coupons
-// @access  Private/Admin
+// @access  Public
 export const getCoupons = async (req, res) => {
   try {
-    if (isDbConnected()) {
-      const coupons = await Coupon.find({}).sort({ createdAt: -1 });
-      res.json({ success: true, coupons });
-    } else {
-      const coupons = readMockData('coupons');
-      res.json({ success: true, coupons: coupons.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)) });
-    }
+    const { data: coupons, error } = await supabase.from('coupons').select('*');
+    if (error) throw error;
+    res.json({ success: true, coupons: coupons || [] });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
 };
 
-// @desc    Create coupon (Admin only)
+// @desc    Create a coupon
 // @route   POST /api/coupons
 // @access  Private/Admin
 export const createCoupon = async (req, res) => {
-  const { code, discountType, discountValue, minOrderValue, maxDiscount, expiresAt } = req.body;
-
   try {
-    if (isDbConnected()) {
-      const couponExists = await Coupon.findOne({ code: code.toUpperCase() });
-      if (couponExists) {
-        return res.status(400).json({ success: false, message: 'Coupon with this code already exists' });
-      }
+    const { code, discount, expiryDate, isActive } = req.body;
+    const { data: coupon, error } = await supabase.from('coupons').insert([{
+      code, discount, expiry_date: expiryDate, is_active: isActive
+    }]).select().single();
+    if (error) throw error;
+    res.status(201).json({ success: true, coupon });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
 
+<<<<<<< HEAD
       const newCoupon = new Coupon({
         code: code.toUpperCase(),
         discountType,
@@ -116,7 +66,24 @@ export const createCoupon = async (req, res) => {
       coupons.push(newCoupon);
       writeMockData('coupons', coupons);
       res.status(201).json({ success: true, coupon: newCoupon });
+=======
+// @desc    Validate a coupon
+// @route   POST /api/coupons/validate
+// @access  Private
+export const validateCoupon = async (req, res) => {
+  try {
+    const { code } = req.body;
+    const { data: coupon, error } = await supabase.from('coupons').select('*').eq('code', code).single();
+    
+    if (error || !coupon) {
+      return res.status(404).json({ success: false, message: 'Invalid coupon code' });
     }
+    if (!coupon.is_active || new Date(coupon.expiry_date) < new Date()) {
+      return res.status(400).json({ success: false, message: 'Coupon expired or inactive' });
+>>>>>>> origin/main
+    }
+    
+    res.json({ success: true, discount: coupon.discount });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }

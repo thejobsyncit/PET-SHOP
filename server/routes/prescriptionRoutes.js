@@ -4,7 +4,7 @@ import {
   getMyPrescriptions,
   getPrescriptionById,
   getAllPrescriptions,
-  verifyPrescription
+  updatePrescriptionStatus
 } from '../controllers/prescriptionController.js';
 import { protect, admin } from '../middleware/auth.js';
 import upload, { verifyMagicBytes } from '../middleware/upload.js';
@@ -24,6 +24,6 @@ router.route('/:id')
   .get(getPrescriptionById);
 
 router.route('/:id/status')
-  .put(admin, verifyPrescription);
+  .put(admin, updatePrescriptionStatus);
 
 export default router;

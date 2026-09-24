@@ -1,5 +1,9 @@
+<<<<<<< HEAD
 import Product from '../models/Product.js';
 import { isDbConnected, readMockData, writeMockData } from '../utils/mockDb.js';
+=======
+import { supabase } from '../config/supabase.js';
+>>>>>>> origin/main
 
 // @desc    Get all products (with search, filter, sorting, pagination)
 // @route   GET /api/products
@@ -25,191 +29,92 @@ export const getProducts = async (req, res) => {
 
     const pageNum = parseInt(page);
     const limitNum = parseInt(limit);
-    const skip = (pageNum - 1) * limitNum;
+    const from = (pageNum - 1) * limitNum;
+    const to = from + limitNum - 1;
 
-    if (isDbConnected()) {
-      // 1. MongoDB Implementation
-      const query = {};
+    let query = supabase.from('products').select('*', { count: 'exact' });
 
-      if (petType) query.petType = petType;
-      if (category) query.category = category;
-      if (subcategory) query.subcategory = subcategory;
-      
-      if (brand) {
-        const brandsList = brand.split(',');
-        query.brand = { $in: brandsList.map(b => new RegExp('^' + b.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '$', 'i')) };
-      }
-
-      if (requiresPrescription !== undefined) {
-        query.requiresPrescription = requiresPrescription === 'true';
-      }
-
-      if (isFeatured !== undefined) {
-        query.isFeatured = isFeatured === 'true';
-      }
-
-      if (isBestSeller !== undefined) {
-        query.isBestSeller = isBestSeller === 'true';
-      }
-
-      if (rating) {
-        query.rating = { $gte: parseFloat(rating) };
-      }
-
-      // Price Filter (considers discountPrice if present, fallback to price)
-      if (minPrice || maxPrice) {
-        query.$or = [];
-        const minVal = minPrice ? parseFloat(minPrice) : 0;
-        const maxVal = maxPrice ? parseFloat(maxPrice) : 999999;
-        
-        // Match where discountPrice is in range OR (discountPrice is null/undefined AND price is in range)
-        query.$or.push({
-          discountPrice: { $gte: minVal, $lte: maxVal }
-        });
-        query.$or.push({
-          discountPrice: { $exists: false },
-          price: { $gte: minVal, $lte: maxVal }
-        });
-        query.$or.push({
-          discountPrice: null,
-          price: { $gte: minVal, $lte: maxVal }
-        });
-      }
-
-      // Full-text search with ReDoS protection
-      if (search) {
-        const sanitizedSearch = String(search).trim().slice(0, 100).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-        if (sanitizedSearch) {
-          query.$or = [
-            { name: { $regex: sanitizedSearch, $options: 'i' } },
-            { brand: { $regex: sanitizedSearch, $options: 'i' } },
-            { description: { $regex: sanitizedSearch, $options: 'i' } }
-          ];
-        }
-      }
-
-      // Build Sorting
-      let sortObj = { createdAt: -1 }; // default: newest
-      if (sort) {
-        switch (sort) {
-          case 'price_asc':
-            sortObj = { discountPrice: 1, price: 1 };
-            break;
-          case 'price_desc':
-            sortObj = { discountPrice: -1, price: -1 };
-            break;
-          case 'rating_desc':
-            sortObj = { rating: -1 };
-            break;
-          case 'bestseller':
-            sortObj = { isBestSeller: -1, createdAt: -1 };
-            break;
-          case 'featured':
-            sortObj = { isFeatured: -1, createdAt: -1 };
-            break;
-          case 'date_desc':
-          default:
-            sortObj = { createdAt: -1 };
-            break;
-        }
-      }
-
-      const total = await Product.countDocuments(query);
-      const dbProducts = await Product.find(query)
-        .sort(sortObj)
-        .skip(skip)
-        .limit(limitNum);
-
-      res.json({
-        success: true,
-        count: dbProducts.length,
-        total,
-        page: pageNum,
-        pages: Math.ceil(total / limitNum),
-        products: dbProducts
-      });
-
-    } else {
-      // 2. Mock JSON Implementation
-      let filteredProducts = readMockData('products');
-
-      if (petType) {
-        filteredProducts = filteredProducts.filter(p => p.petType === petType);
-      }
-      if (category) {
-        filteredProducts = filteredProducts.filter(p => p.category.toLowerCase() === category.toLowerCase());
-      }
-      if (subcategory) {
-        filteredProducts = filteredProducts.filter(p => p.subcategory.toLowerCase() === subcategory.toLowerCase());
-      }
-      if (brand) {
-        const brandsList = brand.toLowerCase().split(',');
-        filteredProducts = filteredProducts.filter(p => brandsList.includes(p.brand.toLowerCase()));
-      }
-      if (requiresPrescription !== undefined) {
-        const reqPresc = requiresPrescription === 'true';
-        filteredProducts = filteredProducts.filter(p => p.requiresPrescription === reqPresc);
-      }
-      if (isFeatured !== undefined) {
-        const reqFeatured = isFeatured === 'true';
-        filteredProducts = filteredProducts.filter(p => p.isFeatured === reqFeatured);
-      }
-      if (isBestSeller !== undefined) {
-        const reqBest = isBestSeller === 'true';
-        filteredProducts = filteredProducts.filter(p => p.isBestSeller === reqBest);
-      }
-      if (rating) {
-        const rateVal = parseFloat(rating);
-        filteredProducts = filteredProducts.filter(p => p.rating >= rateVal);
-      }
-      if (minPrice || maxPrice) {
-        const minVal = minPrice ? parseFloat(minPrice) : 0;
-        const maxVal = maxPrice ? parseFloat(maxPrice) : 999999;
-        filteredProducts = filteredProducts.filter(p => {
-          const effectivePrice = p.discountPrice !== undefined && p.discountPrice !== null ? p.discountPrice : p.price;
-          return effectivePrice >= minVal && effectivePrice <= maxVal;
-        });
-      }
-      if (search) {
-        const term = search.toLowerCase();
-        filteredProducts = filteredProducts.filter(p => 
-          p.name.toLowerCase().includes(term) ||
-          p.brand.toLowerCase().includes(term) ||
-          p.description.toLowerCase().includes(term)
-        );
-      }
-
-      // Sort JSON Products
-      filteredProducts.sort((a, b) => {
-        const getEffectivePrice = (p) => p.discountPrice !== undefined && p.discountPrice !== null ? p.discountPrice : p.price;
-        if (sort === 'price_asc') {
-          return getEffectivePrice(a) - getEffectivePrice(b);
-        } else if (sort === 'price_desc') {
-          return getEffectivePrice(b) - getEffectivePrice(a);
-        } else if (sort === 'rating_desc') {
-          return b.rating - a.rating;
-        } else if (sort === 'bestseller') {
-          return (b.isBestSeller ? 1 : 0) - (a.isBestSeller ? 1 : 0);
-        } else if (sort === 'featured') {
-          return (b.isFeatured ? 1 : 0) - (a.isFeatured ? 1 : 0);
-        } else {
-          // Default: date_desc (newest)
-          return new Date(b.createdAt) - new Date(a.createdAt);
-        }
-      });
-
-      const total = filteredProducts.length;
-      const paginatedProducts = filteredProducts.slice(skip, skip + limitNum);
-
-      res.json({
-        success: true,
-        count: paginatedProducts.length,
-        total,
-        page: pageNum,
-        pages: Math.ceil(total / limitNum),
-        products: paginatedProducts
-      });
+    if (petType) query = query.eq('pet_type', petType);
+    if (category) query = query.ilike('category', category);
+    if (subcategory) query = query.ilike('subcategory', subcategory);
+    
+    if (brand) {
+      const brandsList = brand.split(',').map(b => b.trim());
+      query = query.in('brand', brandsList);
     }
+
+    if (requiresPrescription !== undefined) {
+      query = query.eq('requires_prescription', requiresPrescription === 'true');
+    }
+
+    if (isFeatured !== undefined) {
+      query = query.eq('is_featured', isFeatured === 'true');
+    }
+
+    if (isBestSeller !== undefined) {
+      query = query.eq('is_bestseller', isBestSeller === 'true');
+    }
+
+    if (rating) {
+      query = query.gte('ratings', parseFloat(rating));
+    }
+
+    if (minPrice || maxPrice) {
+      const minVal = minPrice ? parseFloat(minPrice) : 0;
+      const maxVal = maxPrice ? parseFloat(maxPrice) : 999999;
+      // Approximate filter using just price for now
+      query = query.gte('price', minVal).lte('price', maxVal);
+    }
+
+    if (search) {
+      const term = String(search).trim();
+      if (term) {
+        query = query.or(`name.ilike.%${term}%,brand.ilike.%${term}%,description.ilike.%${term}%`);
+      }
+    }
+
+    // Sorting
+    if (sort) {
+      switch (sort) {
+        case 'price_asc':
+          query = query.order('price', { ascending: true });
+          break;
+        case 'price_desc':
+          query = query.order('price', { ascending: false });
+          break;
+        case 'rating_desc':
+          query = query.order('ratings', { ascending: false });
+          break;
+        case 'bestseller':
+          query = query.order('is_bestseller', { ascending: false }).order('created_at', { ascending: false });
+          break;
+        case 'featured':
+          query = query.order('is_featured', { ascending: false }).order('created_at', { ascending: false });
+          break;
+        case 'date_desc':
+        default:
+          query = query.order('created_at', { ascending: false });
+          break;
+      }
+    } else {
+      query = query.order('created_at', { ascending: false });
+    }
+
+    query = query.range(from, to);
+
+    const { data: dbProducts, count: total, error } = await query;
+    
+    if (error) throw error;
+
+    res.json({
+      success: true,
+      count: dbProducts?.length || 0,
+      total: total || 0,
+      page: pageNum,
+      pages: Math.ceil((total || 0) / limitNum),
+      products: dbProducts || []
+    });
+
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
@@ -221,21 +126,12 @@ export const getProducts = async (req, res) => {
 export const getProductBySlug = async (req, res) => {
   try {
     const { slug } = req.params;
-
-    if (isDbConnected()) {
-      const product = await Product.findOne({ slug });
-      if (!product) {
-        return res.status(404).json({ success: false, message: 'Product not found' });
-      }
-      res.json({ success: true, product });
-    } else {
-      const productsList = readMockData('products');
-      const product = productsList.find(p => p.slug === slug);
-      if (!product) {
-        return res.status(404).json({ success: false, message: 'Product not found' });
-      }
-      res.json({ success: true, product });
+    const { data: product, error } = await supabase.from('products').select('*').eq('slug', slug).single();
+    if (error) throw error;
+    if (!product) {
+      return res.status(404).json({ success: false, message: 'Product not found' });
     }
+    res.json({ success: true, product });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
@@ -247,21 +143,12 @@ export const getProductBySlug = async (req, res) => {
 export const getProductById = async (req, res) => {
   try {
     const { id } = req.params;
-
-    if (isDbConnected()) {
-      const product = await Product.findById(id);
-      if (!product) {
-        return res.status(404).json({ success: false, message: 'Product not found' });
-      }
-      res.json({ success: true, product });
-    } else {
-      const productsList = readMockData('products');
-      const product = productsList.find(p => p._id.toString() === id.toString());
-      if (!product) {
-        return res.status(404).json({ success: false, message: 'Product not found' });
-      }
-      res.json({ success: true, product });
+    const { data: product, error } = await supabase.from('products').select('*').eq('id', id).single();
+    if (error) throw error;
+    if (!product) {
+      return res.status(404).json({ success: false, message: 'Product not found' });
     }
+    res.json({ success: true, product });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
@@ -272,28 +159,15 @@ export const getProductById = async (req, res) => {
 // @access  Private/Admin
 export const createProduct = async (req, res) => {
   const {
-    name,
-    brand,
-    sku,
-    description,
-    longDescription,
-    ingredients,
-    specifications,
-    price,
-    discountPrice,
-    stock,
-    images,
-    category,
-    subcategory,
-    petType,
-    isFeatured,
-    isBestSeller,
-    requiresPrescription
+    name, brand, sku, description, longDescription, ingredients, specifications,
+    price, discountPrice, stock, images, category, subcategory, petType,
+    isFeatured, isBestSeller, requiresPrescription
   } = req.body;
 
   const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
 
   try {
+<<<<<<< HEAD
     if (isDbConnected()) {
       const newProduct = new Product({
         name,
@@ -346,11 +220,20 @@ export const createProduct = async (req, res) => {
         requiresPrescription: requiresPrescription || false,
         createdAt: new Date().toISOString()
       };
+=======
+    const { data: newProduct, error } = await supabase.from('products').insert([{
+      name, slug, brand, sku, description, long_description: longDescription,
+      ingredients: ingredients || [], specifications: specifications || [],
+      price, discount_price: discountPrice, stock, images,
+      category, subcategory, pet_type: petType,
+      is_featured: isFeatured || false,
+      is_bestseller: isBestSeller || false,
+      requires_prescription: requiresPrescription || false
+    }]).select().single();
+>>>>>>> origin/main
 
-      productsList.push(newProduct);
-      writeMockData('products', productsList);
-      res.status(201).json({ success: true, product: newProduct });
-    }
+    if (error) throw error;
+    res.status(201).json({ success: true, product: newProduct });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
@@ -367,43 +250,25 @@ export const updateProduct = async (req, res) => {
     updates.slug = updates.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
   }
 
+  // Map JS casing to DB casing
+  const dbUpdates = {};
+  for (const [key, value] of Object.entries(updates)) {
+    if (key === 'longDescription') dbUpdates.long_description = value;
+    else if (key === 'discountPrice') dbUpdates.discount_price = value;
+    else if (key === 'petType') dbUpdates.pet_type = value;
+    else if (key === 'isFeatured') dbUpdates.is_featured = value;
+    else if (key === 'isBestSeller') dbUpdates.is_bestseller = value;
+    else if (key === 'requiresPrescription') dbUpdates.requires_prescription = value;
+    else dbUpdates[key] = value;
+  }
+
   try {
-    if (isDbConnected()) {
-      const product = await Product.findByIdAndUpdate(id, updates, { new: true, runValidators: true });
-      if (!product) {
-        return res.status(404).json({ success: false, message: 'Product not found' });
-      }
-      res.json({ success: true, product });
-    } else {
-      const productsList = readMockData('products');
-      const idx = productsList.findIndex(p => p._id.toString() === id.toString());
-      if (idx !== -1) {
-        // Calculate discount percentage if price changed
-        const p = parseFloat(updates.price !== undefined ? updates.price : productsList[idx].price);
-        const dp = updates.discountPrice !== undefined ? parseFloat(updates.discountPrice) : productsList[idx].discountPrice;
-        let discountPercentage = 0;
-        if (dp && p > 0) {
-          discountPercentage = Math.round(((p - dp) / p) * 100);
-        }
-
-        productsList[idx] = {
-          ...productsList[idx],
-          ...updates,
-          price: updates.price !== undefined ? parseFloat(updates.price) : productsList[idx].price,
-          discountPrice: updates.discountPrice !== undefined ? (updates.discountPrice ? parseFloat(updates.discountPrice) : undefined) : productsList[idx].discountPrice,
-          discountPercentage,
-          stock: updates.stock !== undefined ? parseInt(updates.stock) : productsList[idx].stock,
-          isFeatured: updates.isFeatured !== undefined ? updates.isFeatured : productsList[idx].isFeatured,
-          isBestSeller: updates.isBestSeller !== undefined ? updates.isBestSeller : productsList[idx].isBestSeller,
-          requiresPrescription: updates.requiresPrescription !== undefined ? updates.requiresPrescription : productsList[idx].requiresPrescription
-        };
-
-        writeMockData('products', productsList);
-        res.json({ success: true, product: productsList[idx] });
-      } else {
-        res.status(404).json({ success: false, message: 'Product not found' });
-      }
+    const { data: product, error } = await supabase.from('products').update(dbUpdates).eq('id', id).select().single();
+    if (error) throw error;
+    if (!product) {
+      return res.status(404).json({ success: false, message: 'Product not found' });
     }
+    res.json({ success: true, product });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
@@ -416,22 +281,9 @@ export const deleteProduct = async (req, res) => {
   const { id } = req.params;
 
   try {
-    if (isDbConnected()) {
-      const product = await Product.findByIdAndDelete(id);
-      if (!product) {
-        return res.status(404).json({ success: false, message: 'Product not found' });
-      }
-      res.json({ success: true, message: 'Product deleted successfully' });
-    } else {
-      let productsList = readMockData('products');
-      const exists = productsList.some(p => p._id.toString() === id.toString());
-      if (!exists) {
-        return res.status(404).json({ success: false, message: 'Product not found' });
-      }
-      productsList = productsList.filter(p => p._id.toString() !== id.toString());
-      writeMockData('products', productsList);
-      res.json({ success: true, message: 'Product deleted successfully' });
-    }
+    const { error } = await supabase.from('products').delete().eq('id', id);
+    if (error) throw error;
+    res.json({ success: true, message: 'Product deleted successfully' });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }

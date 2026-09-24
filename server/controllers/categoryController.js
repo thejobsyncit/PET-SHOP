@@ -1,5 +1,9 @@
+<<<<<<< HEAD
 import Category from '../models/Category.js';
 import { isDbConnected, readMockData, writeMockData } from '../utils/mockDb.js';
+=======
+import { supabase } from '../config/supabase.js';
+>>>>>>> origin/main
 
 // @desc    Get all categories
 // @route   GET /api/categories
@@ -8,17 +12,15 @@ export const getCategories = async (req, res) => {
   try {
     const { petType } = req.query;
     
-    if (isDbConnected()) {
-      const filter = petType ? { petType } : {};
-      const categories = await Category.find(filter);
-      res.json({ success: true, categories });
-    } else {
-      let categories = readMockData('categories');
-      if (petType) {
-        categories = categories.filter(c => c.petType === petType);
-      }
-      res.json({ success: true, categories });
+    let query = supabase.from('categories').select('*');
+    if (petType) {
+      query = query.eq('pet_type', petType);
     }
+    
+    const { data: categories, error } = await query;
+    if (error) throw error;
+    
+    res.json({ success: true, categories: categories || [] });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
@@ -32,6 +34,7 @@ export const createCategory = async (req, res) => {
   const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
 
   try {
+<<<<<<< HEAD
     if (isDbConnected()) {
       const category = new Category({
         name,
@@ -59,6 +62,19 @@ export const createCategory = async (req, res) => {
       writeMockData('categories', categories);
       res.status(201).json({ success: true, category: newCategory });
     }
+=======
+    const { data: newCategory, error } = await supabase.from('categories').insert([{
+      name,
+      slug,
+      description,
+      image,
+      pet_type: petType,
+      subcategories: subcategories || []
+    }]).select().single();
+
+    if (error) throw error;
+    res.status(201).json({ success: true, category: newCategory });
+>>>>>>> origin/main
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }

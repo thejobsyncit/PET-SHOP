@@ -258,29 +258,40 @@ const AdoptionPetDetail = () => {
     });
   };
 
-
-  // Other related pets for carousel/grid
-  const relatedPets = (pets || []).filter((p) => p && pet && p.id !== pet.id).slice(0, 3);
+  // Handle direct WhatsApp inquiry
+  const handleWhatsApp = () => {
+    if (!pet) return;
+    const text = encodeURIComponent(
+      `Hello! I am interested in adopting "${pet.name}" (${pet.breed}, ${pet.city}) listed on JOSH PETS HUB.`
+    );
+    const phone = pet.parentContact ? pet.parentContact.replace(/\D/g, '') : '918306688827';
+    window.open(`https://wa.me/${phone}?text=${text}`, '_blank');
+  };
 
   if (!pet) {
     return (
-      <div className="min-h-[70vh] flex flex-col items-center justify-center p-8 text-center bg-[#faf8fc]">
-        <div className="w-16 h-16 bg-purple-50 text-[#7c56dc] rounded-full flex items-center justify-center mb-4 shadow-sm">
-          <Heart size={32} />
+      <div className="min-h-screen bg-[#faf8fc] flex items-center justify-center p-4">
+        <div className="bg-white p-8 rounded-2xl border border-purple-100 shadow-md max-w-md text-center space-y-4">
+          <div className="w-16 h-16 bg-purple-50 rounded-full flex items-center justify-center mx-auto text-[#7c56dc]">
+            <AlertCircle size={32} />
+          </div>
+          <h2 className="text-xl font-serif font-bold text-slate-800">Pet Listing Not Found</h2>
+          <p className="text-xs text-slate-500">
+            The pet listing you are looking for might have been adopted or removed.
+          </p>
+          <Link
+            to="/adopt"
+            className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#7c56dc] text-white rounded-xl font-bold text-xs shadow-md transition"
+          >
+            <ArrowLeft size={16} /> Back to All Adoption Pets
+          </Link>
         </div>
-        <h2 className="font-serif text-2xl font-bold text-slate-800 mb-2">Pet Listing Not Found</h2>
-        <p className="text-slate-500 text-sm max-w-md mb-6">
-          The pet you are looking for may have been adopted or the listing is no longer active.
-        </p>
-        <Link
-          to="/adopt"
-          className="px-6 py-2.5 bg-[#7c56dc] hover:bg-[#6b47cb] text-white font-bold rounded-xl text-sm transition shadow-md"
-        >
-          Explore Available Adoption Pets
-        </Link>
       </div>
     );
   }
+
+  // Other related pets for carousel/grid
+  const relatedPets = (pets || []).filter((p) => p && pet && p.id !== pet.id).slice(0, 3);
 
   return (
     <div className="min-h-screen bg-[#faf8fc] text-slate-800 pb-24 relative overflow-x-hidden">

@@ -1,5 +1,4 @@
-import Enquiry from '../models/Enquiry.js';
-import { isDbConnected, readMockData, writeMockData } from '../utils/mockDb.js';
+import { supabase } from '../config/supabase.js';
 
 // @desc    Submit a new contact/enquiry message
 // @route   POST /api/enquiries
@@ -12,24 +11,11 @@ export const createEnquiry = async (req, res) => {
   }
 
   try {
-    let newEnquiry;
-    if (isDbConnected()) {
-      newEnquiry = await Enquiry.create({ name, email, phone, subject, message });
-    } else {
-      const enquiries = readMockData('enquiries');
-      newEnquiry = {
-        _id: `ENQ-${Math.floor(100000 + Math.random() * 900000)}`,
-        name,
-        email,
-        phone: phone || '',
-        subject,
-        message,
-        createdAt: new Date().toISOString()
-      };
-      enquiries.unshift(newEnquiry);
-      writeMockData('enquiries', enquiries);
-    }
+    const { data: newEnquiry, error } = await supabase.from('enquiries').insert([{
+      name, email, phone: phone || '', subject, message
+    }]).select().single();
 
+    if (error) throw error;
     res.status(201).json({ success: true, enquiry: newEnquiry });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
@@ -41,13 +27,9 @@ export const createEnquiry = async (req, res) => {
 // @access  Private/Admin
 export const getAllEnquiries = async (req, res) => {
   try {
-    let enquiries = [];
-    if (isDbConnected()) {
-      enquiries = await Enquiry.find({}).sort({ createdAt: -1 });
-    } else {
-      enquiries = readMockData('enquiries');
-    }
-    res.json({ success: true, enquiries });
+    const { data: enquiries, error } = await supabase.from('enquiries').select('*').order('created_at', { ascending: false });
+    if (error) throw error;
+    res.json({ success: true, enquiries: enquiries || [] });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }

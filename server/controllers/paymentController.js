@@ -1,7 +1,6 @@
 import Razorpay from 'razorpay';
 import crypto from 'crypto';
-import Order from '../models/Order.js';
-import { isDbConnected, readMockData, writeMockData } from '../utils/mockDb.js';
+import { supabase } from '../config/supabase.js';
 
 // Initialize Razorpay
 let razorpay;
@@ -90,23 +89,18 @@ export const verifyPayment = async (req, res) => {
     if (isAuthentic) {
       // If an associated internal orderId is provided, confirm its payment
       if (orderId) {
-        if (isDbConnected()) {
-          await Order.findByIdAndUpdate(orderId, {
-            'paymentDetails.status': 'Completed',
-            'paymentDetails.transactionId': razorpay_payment_id,
-            'paymentDetails.paidAt': new Date()
-          });
-        } else {
-          const ordersList = readMockData('orders');
-          const idx = ordersList.findIndex(o => o._id.toString() === orderId.toString());
-          if (idx !== -1) {
-            ordersList[idx].paymentDetails = {
-              status: 'Completed',
-              transactionId: razorpay_payment_id,
-              paidAt: new Date().toISOString()
-            };
-            writeMockData('orders', ordersList);
-          }
+        const { data: order } = await supabase.from('orders').select('payment_result').eq('id', orderId).single();
+        if (order) {
+          const paymentResult = order.payment_result || {};
+          paymentResult.status = 'Completed';
+          paymentResult.transactionId = razorpay_payment_id;
+          paymentResult.paidAt = new Date().toISOString();
+          
+          await supabase.from('orders').update({
+            payment_result: paymentResult,
+            is_paid: true,
+            paid_at: new Date().toISOString()
+          }).eq('id', orderId);
         }
       }
 

@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -55,3 +56,10 @@ export const getDbData = async (collectionName, _, filter = {}) => {
     return true;
   });
 };
+=======
+// Stub mockDb.js to prevent crashes in unmigrated controllers
+export const isDbConnected = () => true; // Force DB path in unmigrated controllers
+export const readMockData = () => [];
+export const writeMockData = () => {};
+export const getDbData = () => [];
+>>>>>>> origin/main
