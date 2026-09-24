@@ -26,7 +26,11 @@
     "_id": "mock_mu6iep8cq771p3kmuw"
   },
   {
+<<<<<<< HEAD
+    "sessionId": "sess_mu5ewnpc_ks9mgni",
+=======
     "sessionId": "sess_mu6rbqis_c2g5bc2",
+>>>>>>> origin/main
     "preferences": {
       "essential": true,
       "functional": true,
@@ -34,8 +38,14 @@
       "marketing": true
     },
     "ip": "127.0.0.1",
+<<<<<<< HEAD
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/153.0.0.0 Safari/537.36 Edg/153.0.0.0",
+    "createdAt": "2026-09-21T12:52:01.233Z",
+    "_id": "mock_mub8vn1035c91zaglzk"
+=======
     "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/153.0.0.0 Safari/537.36",
     "createdAt": "2026-09-18T09:31:03.941Z",
     "_id": "mock_mu6rdnleyfmc3stblhg"
+>>>>>>> origin/main
   }
 ]

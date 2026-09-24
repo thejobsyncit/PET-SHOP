@@ -89,7 +89,7 @@
     "breed": "Show Guppy (Full Red / Blue / Moscow)",
     "age": "3.5 months",
     "price": 1400,
-    "quantity": 5,
+    "quantity": 4,
     "description": "High dorsal, wide delta-tail pure Full Red Moscow Guppy trio (1 male + 2 females). Active surface feeders, peaceful temperament, raised in planted live tanks.",
     "images": [
       "https://images.unsplash.com/photo-1520315342629-6ea920342047?q=80&w=800&auto=format&fit=crop"
@@ -101,7 +101,8 @@
     "vaccinationCertificate": null,
     "createdAt": "2026-09-18T05:21:35.205Z",
     "paymentStatus": "paid",
-    "paymentAmount": 200
+    "paymentAmount": 200,
+    "soldCount": 1
   },
   {
     "_id": "LIST-DOG-01",

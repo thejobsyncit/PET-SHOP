@@ -1,11 +1,11 @@
 import React, { useEffect } from 'react';
 import { Outlet } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
-import Navbar from '../components/Navbar.jsx';
-import Footer from '../components/Footer.jsx';
-import LeadConsultationModal from '../components/LeadConsultationModal.jsx';
-import CookieConsent from '../components/CookieConsent.jsx';
-import ErrorBoundary from '../components/ErrorBoundary.jsx';
+import Navbar from '../components/layout/Navbar.jsx';
+import Footer from '../components/layout/Footer.jsx';
+import LeadConsultationModal from '../components/widgets/LeadConsultationModal.jsx';
+import CookieConsent from '../components/widgets/CookieConsent.jsx';
+import ErrorBoundary from '../components/ui/ErrorBoundary.jsx';
 import { fetchCart } from '../store/slices/cartSlice.js';
 import { fetchWishlist } from '../store/slices/wishlistSlice.js';
 import { fetchProfile } from '../store/slices/authSlice.js';

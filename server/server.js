@@ -3,13 +3,15 @@ import dotenv from 'dotenv';
 import cors from 'cors';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
-import mongoSanitize from 'express-mongo-sanitize';
 import cookieParser from 'cookie-parser';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import fs from 'fs';
+<<<<<<< HEAD
+=======
 
 // Configuration
+>>>>>>> origin/main
 import { supabase } from './config/supabase.js';
 import errorHandler from './middleware/errorHandler.js';
 
@@ -50,7 +52,12 @@ if (process.env.NODE_ENV === 'production') {
   }
 }
 
+<<<<<<< HEAD
+// Supabase Backend Mode
+console.log('Pawora Backend initialized with Supabase as exclusive database');
+=======
 // Connect to database removed (migrating to Supabase)
+>>>>>>> origin/main
 
 const app = express();
 
@@ -85,14 +92,6 @@ app.use(cors(corsOptions));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(cookieParser());
-
-// Sanitize incoming data to defend against NoSQL injection
-app.use((req, res, next) => {
-  if (req.body) mongoSanitize.sanitize(req.body);
-  if (req.query) mongoSanitize.sanitize(req.query);
-  if (req.params) mongoSanitize.sanitize(req.params);
-  next();
-});
 
 // Rate limiting
 const apiLimiter = rateLimit({
@@ -164,7 +163,7 @@ app.use(errorHandler);
 const PORT = process.env.PORT || 5000;
 
 const server = app.listen(PORT, '0.0.0.0', () => {
-  console.log(`Pawora Express Server running in ${process.env.NODE_ENV || 'development'} mode on port ${PORT}`);
+  console.log(`Pawora Express Server running on port ${PORT} [Database: Supabase Backend]`);
 });
 
 process.on('unhandledRejection', (err) => {

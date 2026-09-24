@@ -17,7 +17,8 @@ const ChatConsole = () => {
   const [loadingRooms, setLoadingRooms] = useState(true);
   const [loadingMessages, setLoadingMessages] = useState(false);
 
-  const messagesEndRef = useRef(null);
+  const messagesContainerRef = useRef(null);
+  const inputRef = useRef(null);
   const activeContactRef = useRef(null);
 
   // Sync ref with state
@@ -102,6 +103,8 @@ const ChatConsole = () => {
         setMessages([...messages, data.message]);
         setNewMessage('');
         scrollToBottom();
+        // Maintain focus on text input without scrolling the window
+        setTimeout(() => inputRef.current?.focus({ preventScroll: true }), 10);
         // Refresh rooms sidebar to pull latest contacts list
         loadRoomsWithoutReset();
       }
@@ -121,8 +124,10 @@ const ChatConsole = () => {
 
   const scrollToBottom = () => {
     setTimeout(() => {
-      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-    }, 100);
+      if (messagesContainerRef.current) {
+        messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight;
+      }
+    }, 30);
   };
 
   return (
@@ -141,14 +146,14 @@ const ChatConsole = () => {
         </button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-12 border border-beige bg-white h-[65vh] shadow-sm overflow-hidden">
+      <div className="grid grid-cols-1 md:grid-cols-12 border border-beige bg-white h-[650px] max-h-[75vh] min-h-[480px] shadow-sm overflow-hidden">
         
         {/* SIDEBAR: CONTACT ROOMS (Left 4 columns) */}
-        <aside className="md:col-span-4 border-r border-beige flex flex-col">
-          <div className="bg-secondary p-4 border-b border-beige text-xs font-bold text-primary uppercase tracking-wider">
+        <aside className="md:col-span-4 border-r border-beige flex flex-col h-full min-h-0 overflow-hidden bg-white">
+          <div className="shrink-0 bg-secondary p-4 border-b border-beige text-xs font-bold text-primary uppercase tracking-wider">
             Active Chats
           </div>
-          <div className="flex-grow overflow-y-auto divide-y divide-beige">
+          <div className="flex-1 min-h-0 overflow-y-auto divide-y divide-beige">
             {loadingRooms ? (
               <p className="p-4 text-xs text-gray-400">Loading contacts list...</p>
             ) : rooms.length > 0 ? (
@@ -178,11 +183,11 @@ const ChatConsole = () => {
         </aside>
 
         {/* CHAT MESSAGES WINDOW (Right 8 columns) */}
-        <section className="md:col-span-8 flex flex-col justify-between h-full">
+        <section className="md:col-span-8 flex flex-col h-full min-h-0 overflow-hidden bg-white relative">
           {activeContact ? (
-            <>
+            <div className="flex flex-col h-full min-h-0 overflow-hidden">
               {/* Top active contact name */}
-              <div className="bg-secondary p-4 border-b border-beige text-xs font-bold text-primary flex items-center gap-2">
+              <div className="shrink-0 bg-secondary p-4 border-b border-beige text-xs font-bold text-primary flex items-center gap-2">
                 <div className="w-6 h-6 rounded-full bg-primary text-white flex items-center justify-center font-bold text-[10px]">
                   {activeContact.name[0]}
                 </div>
@@ -190,7 +195,7 @@ const ChatConsole = () => {
               </div>
 
               {/* Scrolling messages list */}
-              <div className="flex-grow overflow-y-auto p-6 space-y-4 bg-[#FAFBF9]">
+              <div ref={messagesContainerRef} className="flex-1 min-h-0 overflow-y-auto p-4 sm:p-6 space-y-4 bg-[#FAFBF9]">
                 {loadingMessages ? (
                   <p className="text-xs text-gray-400 text-center">Loading message logs...</p>
                 ) : messages.length > 0 ? (
@@ -224,29 +229,30 @@ const ChatConsole = () => {
                 ) : (
                   <p className="text-xs text-gray-400 text-center italic py-10 lg:py-20">Send a greeting message to initiate contact.</p>
                 )}
-                <div ref={messagesEndRef} />
               </div>
 
-              {/* Input text message box */}
-              <form onSubmit={handleSendMessage} className="p-4 border-t border-beige bg-white flex gap-2 shrink-0">
+              {/* Input text message box - PERMANENTLY PINNED AT BOTTOM */}
+              <form onSubmit={handleSendMessage} className="shrink-0 p-3.5 sm:p-4 border-t border-beige bg-white flex items-center gap-2 z-10">
                 <input
+                  ref={inputRef}
                   type="text"
                   placeholder="Type message content here..."
                   value={newMessage}
                   onChange={(e) => setNewMessage(e.target.value)}
-                  className="flex-grow px-3 py-2.5 border border-beige text-xs focus:outline-none focus:border-primary"
+                  className="flex-grow px-3.5 py-2.5 border border-beige text-xs focus:outline-none focus:border-primary bg-white shadow-inner"
                   required
                 />
                 <button
                   type="submit"
-                  className="px-4 py-2.5 bg-primary text-white hover:bg-accent hover:text-primary transition cursor-pointer flex items-center justify-center"
+                  className="px-5 py-2.5 bg-primary text-white hover:bg-accent hover:text-primary transition cursor-pointer flex items-center justify-center shrink-0 font-bold"
+                  title="Send Message"
                 >
                   <Send size={16} />
                 </button>
               </form>
-            </>
+            </div>
           ) : (
-            <div className="flex-grow flex flex-col justify-center items-center text-center p-8 space-y-3">
+            <div className="flex-1 min-h-0 flex flex-col justify-center items-center text-center p-8 space-y-3">
               <MessageSquare size={36} className="text-gray-300 animate-bounce" />
               <h3 className="font-serif text-sm font-semibold text-primary">No Active Conversation Room</h3>
               <p className="text-xs text-gray-400 max-w-xs leading-relaxed">

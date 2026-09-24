@@ -15,8 +15,6 @@ export const VET_PET_CATEGORIES = [
   { id: 'Dogs', label: '🐶 Dogs' },
   { id: 'Cats', label: '🐱 Cats' },
   { id: 'Birds', label: '🦜 Birds' },
-  { id: 'Fish', label: '🐠 Fish' },
-  { id: 'Reptiles', label: '🦎 Reptiles' },
   { id: 'All', label: '🐾 All Pets' }
 ];
 

@@ -1,4 +1,9 @@
+<<<<<<< HEAD
+import Product from '../models/Product.js';
+import { isDbConnected, readMockData, writeMockData } from '../utils/mockDb.js';
+=======
 import { supabase } from '../config/supabase.js';
+>>>>>>> origin/main
 
 // @desc    Get all products (with search, filter, sorting, pagination)
 // @route   GET /api/products
@@ -162,6 +167,60 @@ export const createProduct = async (req, res) => {
   const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
 
   try {
+<<<<<<< HEAD
+    if (isDbConnected()) {
+      const newProduct = new Product({
+        name,
+        slug,
+        brand,
+        sku,
+        description,
+        longDescription,
+        ingredients: ingredients || [],
+        specifications: specifications || [],
+        price,
+        discountPrice,
+        stock,
+        images,
+        category,
+        subcategory,
+        petType,
+        isFeatured: isFeatured || false,
+        isBestSeller: isBestSeller || false,
+        requiresPrescription: requiresPrescription || false
+      });
+      const saved = await newProduct.save();
+      res.status(201).json({ success: true, product: saved });
+    } else {
+      const productsList = readMockData('products');
+      
+      const newProduct = {
+        _id: 'prod_' + Date.now().toString(36) + Math.random().toString(36).substr(2, 6),
+        name,
+        slug,
+        brand,
+        sku,
+        description,
+        longDescription,
+        ingredients: ingredients || [],
+        specifications: specifications || [],
+        price: parseFloat(price),
+        discountPrice: discountPrice ? parseFloat(discountPrice) : undefined,
+        discountPercentage: discountPrice ? Math.round(((price - discountPrice) / price) * 100) : 0,
+        rating: 5.0,
+        reviewCount: 0,
+        stock: parseInt(stock),
+        lowStockThreshold: 5,
+        images: images && images.length ? images : ['https://images.unsplash.com/photo-1589924691995-400dc9ecc119?q=80&w=800'],
+        category,
+        subcategory,
+        petType,
+        isFeatured: isFeatured || false,
+        isBestSeller: isBestSeller || false,
+        requiresPrescription: requiresPrescription || false,
+        createdAt: new Date().toISOString()
+      };
+=======
     const { data: newProduct, error } = await supabase.from('products').insert([{
       name, slug, brand, sku, description, long_description: longDescription,
       ingredients: ingredients || [], specifications: specifications || [],
@@ -171,6 +230,7 @@ export const createProduct = async (req, res) => {
       is_bestseller: isBestSeller || false,
       requires_prescription: requiresPrescription || false
     }]).select().single();
+>>>>>>> origin/main
 
     if (error) throw error;
     res.status(201).json({ success: true, product: newProduct });

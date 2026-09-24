@@ -1,11 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { useNavigate, useLocation, Link } from 'react-router-dom';
+import { useNavigate, useLocation, useSearchParams, Link } from 'react-router-dom';
 import {
   Lock, Mail, User, ShieldCheck, Sparkles, ArrowRight,
   Briefcase, Phone, Eye, EyeOff, Search, MapPin, AlertCircle,
   CircleCheck, RotateCcw, Edit3, Smartphone, KeyRound,
-  ChevronDown, MessageSquare, Check, HelpCircle, PawPrint, Upload
+  ChevronDown, MessageSquare, Check, HelpCircle, PawPrint, Upload, X
 } from 'lucide-react';
 import { login, register, setAuthenticatedUser, clearAuthError, logout } from '../store/slices/authSlice.js';
 import toast from 'react-hot-toast';
@@ -72,20 +72,9 @@ const HERE_FOR_OPTIONS = [
   'Other'
 ];
 
-// Indian States & Major Cities Data for Searchable Autocomplete
-const INDIAN_STATES_CITIES = {
-  'Karnataka': ['Bangalore', 'Mysore', 'Hubli', 'Mangalore', 'Belgaum', 'Davangere', 'Bellary', 'Shimoga', 'Tumkur'],
-  'Maharashtra': ['Mumbai', 'Pune', 'Nagpur', 'Thane', 'Nashik', 'Kalyan-Dombivli', 'Vasai-Virar', 'Aurangabad', 'Solapur'],
-  'Delhi NCR': ['New Delhi', 'Noida', 'Gurgaon', 'Faridabad', 'Ghaziabad'],
-  'Tamil Nadu': ['Chennai', 'Coimbatore', 'Madurai', 'Tiruchirappalli', 'Salem', 'Tiruppur', 'Erode', 'Vellore'],
-  'Telangana': ['Hyderabad', 'Warangal', 'Nizamabad', 'Khammam', 'Karimnagar'],
-  'West Bengal': ['Kolkata', 'Howrah', 'Durgapur', 'Asansol', 'Siliguri', 'Kharagpur'],
-  'Gujarat': ['Ahmedabad', 'Surat', 'Vadodara', 'Rajkot', 'Bhavnagar', 'Jamnagar'],
-  'Kerala': ['Kochi', 'Thiruvananthapuram', 'Kozhikode', 'Kollam', 'Thrissur', 'Kannur'],
-  'Uttar Pradesh': ['Lucknow', 'Kanpur', 'Ghaziabad', 'Agra', 'Varanasi', 'Meerut', 'Prayagraj', 'Noida'],
-  'Punjab': ['Ludhiana', 'Amritsar', 'Jalandhar', 'Patiala', 'Bhatinda', 'Mohali'],
-  'Rajasthan': ['Jaipur', 'Jodhpur', 'Udaipur', 'Kota', 'Bikaner', 'Ajmer']
-};
+import { INDIAN_STATES_DISTRICTS } from '../data/indiaLocations.js';
+export { INDIAN_STATES_DISTRICTS };
+const INDIAN_STATES_CITIES = INDIAN_STATES_DISTRICTS;
 
 const providerServiceCategories = [
   'Pet Seller',
@@ -342,14 +331,28 @@ const Login = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const location = useLocation();
+  const [searchParams] = useSearchParams();
 
-  const isSignUp = location.pathname === '/signup' || location.pathname === '/register';
+  const queryRole = (searchParams.get('role') || searchParams.get('tab') || searchParams.get('type') || '').toLowerCase();
+  const isProviderRoute = 
+    location.pathname === '/provider-register' || 
+    location.pathname === '/provider/register' || 
+    location.pathname === '/partner-register' ||
+    queryRole === 'provider';
+
+  const isSignUp = 
+    location.pathname === '/signup' || 
+    location.pathname === '/register' || 
+    location.pathname === '/provider-register' || 
+    location.pathname === '/provider/register' || 
+    location.pathname === '/partner-register' || 
+    Boolean(queryRole);
 
   const { isAuthenticated, user, error, loading } = useSelector((state) => state.auth);
 
   // Role Tabs for Login & Registration
-  const [loginRoleTab, setLoginRoleTab] = useState('user'); // 'user' | 'provider'
-  const [registerRoleTab, setRegisterRoleTab] = useState('user'); // 'user' | 'provider'
+  const [loginRoleTab, setLoginRoleTab] = useState(isProviderRoute ? 'provider' : 'user'); // 'user' | 'provider'
+  const [registerRoleTab, setRegisterRoleTab] = useState(isProviderRoute ? 'provider' : 'user'); // 'user' | 'provider'
 
   // Login Form States (Supports both Email and Mobile Number)
   const [loginIdentifier, setLoginIdentifier] = useState('');
@@ -378,8 +381,9 @@ const Login = () => {
   const [userPassword, setUserPassword] = useState('');
   const [userPasswordError, setUserPasswordError] = useState('');
 
-  const [userState, setUserState] = useState('Karnataka');
-  const [userCitySearch, setUserCitySearch] = useState('Bangalore');
+  const [userState, setUserState] = useState('Gujarat');
+  const [userCitySearch, setUserCitySearch] = useState('');
+  const [selectedUserCity, setSelectedUserCity] = useState('');
   const [isUserCityDropdownOpen, setIsUserCityDropdownOpen] = useState(false);
 
   // Service Provider Registration States
@@ -401,8 +405,9 @@ const Login = () => {
   const [providerPassword, setProviderPassword] = useState('');
   const [providerPasswordError, setProviderPasswordError] = useState('');
   const [providerCategory, setProviderCategory] = useState('Pet Seller');
-  const [providerState, setProviderState] = useState('Karnataka');
-  const [providerCitySearch, setProviderCitySearch] = useState('Bangalore');
+  const [providerState, setProviderState] = useState('Gujarat');
+  const [providerCitySearch, setProviderCitySearch] = useState('');
+  const [selectedProviderCity, setSelectedProviderCity] = useState('');
   const [isProviderCityDropdownOpen, setIsProviderCityDropdownOpen] = useState(false);
 
   // OTP Verification States
@@ -454,6 +459,32 @@ const Login = () => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  // Sync tab with URL parameters or dedicated provider routes
+  useEffect(() => {
+    if (isProviderRoute) {
+      setRegisterRoleTab('provider');
+      setLoginRoleTab('provider');
+    } else if (queryRole === 'user') {
+      setRegisterRoleTab('user');
+      setLoginRoleTab('user');
+    }
+  }, [isProviderRoute, queryRole]);
+
+  // Support pre-selecting provider category from URL query (?category=vet etc.)
+  useEffect(() => {
+    const catQuery = searchParams.get('category') || searchParams.get('service');
+    if (catQuery) {
+      const match = providerServiceCategories.find(c => c.toLowerCase().includes(catQuery.toLowerCase()));
+      if (match) {
+        setProviderCategory(match);
+        const proofOpts = PROVIDER_PROOF_TYPES_MAP[match] || DEFAULT_PROOF_TYPES;
+        if (proofOpts.length > 0) {
+          setProviderGovtProofType(proofOpts[0]);
+        }
+      }
+    }
+  }, [searchParams]);
+
   // Auth Redirects
   useEffect(() => {
     if (isAuthenticated && user) {
@@ -463,12 +494,15 @@ const Login = () => {
       } else if (user.role === 'SERVICE_PROVIDER') {
         toast.success(`Welcome to Provider Dashboard, ${user.name}!`);
         navigate('/provider-dashboard');
+      } else if (isProviderRoute || (isSignUp && registerRoleTab === 'provider')) {
+        // Allow accessing the clean, original service provider signup form
+        return;
       } else {
         toast.success(`Welcome back, ${user.name}!`);
         navigate('/account');
       }
     }
-  }, [isAuthenticated, user, navigate, dispatch]);
+  }, [isAuthenticated, user, isProviderRoute, isSignUp, registerRoleTab, navigate, dispatch]);
 
   useEffect(() => {
     if (error) {
@@ -619,19 +653,21 @@ const Login = () => {
     }
   };
 
-  // State Change Handlers
+  // State Change Handlers - reset district selection so no single district is forced
   const handleUserStateChange = (e) => {
     const newState = e.target.value;
     setUserState(newState);
-    const availableCities = INDIAN_STATES_CITIES[newState] || [];
-    setUserCitySearch(availableCities[0] || '');
+    setUserCitySearch('');
+    setSelectedUserCity('');
+    setIsUserCityDropdownOpen(false);
   };
 
   const handleProviderStateChange = (e) => {
     const newState = e.target.value;
     setProviderState(newState);
-    const availableCities = INDIAN_STATES_CITIES[newState] || [];
-    setProviderCitySearch(availableCities[0] || '');
+    setProviderCitySearch('');
+    setSelectedProviderCity('');
+    setIsProviderCityDropdownOpen(false);
   };
 
   // 1. Sign In Submit Handler (Email or Mobile Number)
@@ -708,7 +744,12 @@ const Login = () => {
       toast.error(pwdErr);
       return;
     }
-    setUserPasswordError('');
+    // 5. District / Location validation
+    const finalUserLocationCity = (selectedUserCity || userCitySearch).trim();
+    if (!finalUserLocationCity) {
+      toast.error('Please select your district / city *');
+      return;
+    }
 
     const payload = {
       name: userFullName || 'Pet Lover',
@@ -720,7 +761,7 @@ const Login = () => {
       purpose: userPurpose,
       password: userPassword,
       role: 'CUSTOMER',
-      location: `${userCitySearch}, ${userState}`
+      location: `${finalUserLocationCity}, ${userState}`
     };
 
     const code = Math.floor(100000 + Math.random() * 900000).toString();
@@ -781,6 +822,13 @@ const Login = () => {
     }
     setProviderPasswordError('');
 
+    // District / Location validation
+    const finalProviderLocationCity = (selectedProviderCity || providerCitySearch).trim();
+    if (!finalProviderLocationCity) {
+      toast.error('Please select your business district / city *');
+      return;
+    }
+
     const payload = {
       name: providerBusinessName || 'Pet Partner',
       businessName: providerBusinessName || 'Pet Partner',
@@ -795,7 +843,7 @@ const Login = () => {
       password: providerPassword,
       role: 'SERVICE_PROVIDER',
       serviceCategory: providerCategory,
-      location: `${providerCitySearch}, ${providerState}`
+      location: `${finalProviderLocationCity}, ${providerState}`
     };
 
     const code = Math.floor(100000 + Math.random() * 900000).toString();
@@ -950,16 +998,24 @@ const Login = () => {
     }
   };
 
-  // Available cities lists
-  const availableUserCities = INDIAN_STATES_CITIES[userState] || [];
-  const filteredUserCities = availableUserCities.filter(c =>
-    c.toLowerCase().includes(userCitySearch.toLowerCase())
-  );
+  // Available districts lists - show all districts when opened, filter only when actively typing
+  const availableUserCities = INDIAN_STATES_DISTRICTS[userState] || [];
+  const filteredUserCities = (() => {
+    if (!userCitySearch.trim() || userCitySearch.trim() === selectedUserCity.trim()) {
+      return availableUserCities;
+    }
+    const q = userCitySearch.toLowerCase().trim();
+    return availableUserCities.filter(c => c.toLowerCase().includes(q));
+  })();
 
-  const availableProviderCities = INDIAN_STATES_CITIES[providerState] || [];
-  const filteredProviderCities = availableProviderCities.filter(c =>
-    c.toLowerCase().includes(providerCitySearch.toLowerCase())
-  );
+  const availableProviderCities = INDIAN_STATES_DISTRICTS[providerState] || [];
+  const filteredProviderCities = (() => {
+    if (!providerCitySearch.trim() || providerCitySearch.trim() === selectedProviderCity.trim()) {
+      return availableProviderCities;
+    }
+    const q = providerCitySearch.toLowerCase().trim();
+    return availableProviderCities.filter(c => c.toLowerCase().includes(q));
+  })();
 
   return (
     <div className="min-h-[85vh] flex items-center justify-center py-6 sm:py-10 px-2.5 sm:px-4 bg-gradient-to-b from-[#f0f5fa] via-secondary to-[#f8fafc]">
@@ -1654,40 +1710,91 @@ const Login = () => {
                     </div>
 
                     <div className="relative" ref={userCityRef}>
-                      <div className="relative">
+                      <div className="relative flex items-center">
                         <input
                           type="text"
-                          placeholder="Search / Type City..."
+                          placeholder="Select / Search District..."
                           value={userCitySearch}
                           onChange={(e) => {
                             setUserCitySearch(e.target.value);
                             setIsUserCityDropdownOpen(true);
                           }}
                           onFocus={() => setIsUserCityDropdownOpen(true)}
-                          className="w-full pl-8 pr-3 py-2.5 border border-slate-200 rounded-xl text-xs md:text-sm focus:outline-none focus:border-[#15559c] focus:ring-2 focus:ring-blue-100 transition bg-slate-50/50 hover:bg-white font-medium"
+                          className="w-full pl-8 pr-12 py-2.5 border border-slate-200 rounded-xl text-xs md:text-sm focus:outline-none focus:border-[#15559c] focus:ring-2 focus:ring-blue-100 transition bg-slate-50/50 hover:bg-white font-medium text-slate-800"
                         />
-                        <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+                        <Search size={14} className="absolute left-2.5 text-slate-400 pointer-events-none" />
+
+                        <div className="absolute right-2.5 flex items-center gap-1">
+                          {userCitySearch && (
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setUserCitySearch('');
+                                setSelectedUserCity('');
+                                setIsUserCityDropdownOpen(true);
+                              }}
+                              className="p-0.5 text-slate-400 hover:text-slate-600 rounded-full hover:bg-slate-100 transition cursor-pointer"
+                              title="Clear district"
+                            >
+                              <X size={12} />
+                            </button>
+                          )}
+                          <button
+                            type="button"
+                            onClick={() => setIsUserCityDropdownOpen(!isUserCityDropdownOpen)}
+                            className="p-0.5 text-slate-400 hover:text-slate-600 cursor-pointer"
+                            title="Toggle district dropdown"
+                          >
+                            <ChevronDown size={14} className={`transition-transform duration-200 ${isUserCityDropdownOpen ? 'rotate-180 text-[#15559c]' : ''}`} />
+                          </button>
+                        </div>
                       </div>
 
                       {isUserCityDropdownOpen && (
-                        <div className="absolute left-0 right-0 top-full mt-1 bg-white border border-slate-200 rounded-xl shadow-xl z-30 max-h-36 overflow-y-auto divide-y divide-slate-50 animate-in fade-in zoom-in-95">
+                        <div className="absolute left-0 right-0 top-full mt-1 bg-white border border-slate-200 rounded-xl shadow-2xl z-50 max-h-56 overflow-y-auto divide-y divide-slate-100 animate-in fade-in zoom-in-95">
+                          <div className="px-3 py-1.5 bg-slate-50 text-[10px] font-bold text-slate-500 uppercase tracking-wider sticky top-0 flex items-center justify-between border-b border-slate-100 z-10">
+                            <span>{userState} Districts ({filteredUserCities.length})</span>
+                            <span className="text-[9px] font-normal text-slate-400">All districts</span>
+                          </div>
                           {filteredUserCities.length > 0 ? (
-                            filteredUserCities.map((c) => (
-                              <div
-                                key={c}
+                            filteredUserCities.map((c) => {
+                              const isSelected = selectedUserCity === c;
+                              return (
+                                <div
+                                  key={c}
+                                  onClick={() => {
+                                    setUserCitySearch(c);
+                                    setSelectedUserCity(c);
+                                    setIsUserCityDropdownOpen(false);
+                                  }}
+                                  className={`px-3 py-2 text-xs cursor-pointer flex items-center justify-between font-medium transition ${
+                                    isSelected
+                                      ? 'bg-blue-50 text-[#15559c] font-bold'
+                                      : 'text-slate-700 hover:bg-slate-50 hover:text-[#15559c]'
+                                  }`}
+                                >
+                                  <div className="flex items-center gap-2">
+                                    <MapPin size={11} className={isSelected ? 'text-[#15559c]' : 'text-slate-400'} />
+                                    <span>{c}</span>
+                                  </div>
+                                  {isSelected && <Check size={12} className="text-[#15559c]" />}
+                                </div>
+                              );
+                            })
+                          ) : (
+                            <div className="px-3 py-3 text-[11px] text-slate-400 font-medium text-center">
+                              No matching district found.
+                              <button
+                                type="button"
                                 onClick={() => {
-                                  setUserCitySearch(c);
+                                  setSelectedUserCity(userCitySearch);
                                   setIsUserCityDropdownOpen(false);
                                 }}
-                                className="px-3 py-2 text-xs text-slate-700 hover:bg-blue-50 hover:text-[#15559c] cursor-pointer flex items-center justify-between font-medium transition"
+                                className="block mx-auto mt-1 text-[#15559c] font-bold hover:underline cursor-pointer"
                               >
-                                <span>{c}</span>
-                                <MapPin size={10} className="text-blue-400" />
-                              </div>
-                            ))
-                          ) : (
-                            <div className="px-3 py-2 text-[11px] text-slate-400 font-medium text-center">
-                              Use "{userCitySearch}" as custom city
+                                Use "{userCitySearch}" as custom district
+                              </button>
                             </div>
                           )}
                         </div>
@@ -1894,40 +2001,91 @@ const Login = () => {
                     </div>
 
                     <div className="relative" ref={providerCityRef}>
-                      <div className="relative">
+                      <div className="relative flex items-center">
                         <input
                           type="text"
-                          placeholder="Search / Type City..."
+                          placeholder="Select / Search District..."
                           value={providerCitySearch}
                           onChange={(e) => {
                             setProviderCitySearch(e.target.value);
                             setIsProviderCityDropdownOpen(true);
                           }}
                           onFocus={() => setIsProviderCityDropdownOpen(true)}
-                          className="w-full pl-8 pr-3 py-2.5 border border-slate-200 rounded-xl text-xs md:text-sm focus:outline-none focus:border-[#15559c] focus:ring-2 focus:ring-blue-100 transition bg-slate-50/50 hover:bg-white font-medium"
+                          className="w-full pl-8 pr-12 py-2.5 border border-slate-200 rounded-xl text-xs md:text-sm focus:outline-none focus:border-[#15559c] focus:ring-2 focus:ring-blue-100 transition bg-slate-50/50 hover:bg-white font-medium text-slate-800"
                         />
-                        <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+                        <Search size={14} className="absolute left-2.5 text-slate-400 pointer-events-none" />
+
+                        <div className="absolute right-2.5 flex items-center gap-1">
+                          {providerCitySearch && (
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setProviderCitySearch('');
+                                setSelectedProviderCity('');
+                                setIsProviderCityDropdownOpen(true);
+                              }}
+                              className="p-0.5 text-slate-400 hover:text-slate-600 rounded-full hover:bg-slate-100 transition cursor-pointer"
+                              title="Clear district"
+                            >
+                              <X size={12} />
+                            </button>
+                          )}
+                          <button
+                            type="button"
+                            onClick={() => setIsProviderCityDropdownOpen(!isProviderCityDropdownOpen)}
+                            className="p-0.5 text-slate-400 hover:text-slate-600 cursor-pointer"
+                            title="Toggle district dropdown"
+                          >
+                            <ChevronDown size={14} className={`transition-transform duration-200 ${isProviderCityDropdownOpen ? 'rotate-180 text-[#15559c]' : ''}`} />
+                          </button>
+                        </div>
                       </div>
 
                       {isProviderCityDropdownOpen && (
-                        <div className="absolute left-0 right-0 top-full mt-1 bg-white border border-slate-200 rounded-xl shadow-xl z-30 max-h-36 overflow-y-auto divide-y divide-slate-50 animate-in fade-in zoom-in-95">
+                        <div className="absolute left-0 right-0 top-full mt-1 bg-white border border-slate-200 rounded-xl shadow-2xl z-50 max-h-56 overflow-y-auto divide-y divide-slate-100 animate-in fade-in zoom-in-95">
+                          <div className="px-3 py-1.5 bg-slate-50 text-[10px] font-bold text-slate-500 uppercase tracking-wider sticky top-0 flex items-center justify-between border-b border-slate-100 z-10">
+                            <span>{providerState} Districts ({filteredProviderCities.length})</span>
+                            <span className="text-[9px] font-normal text-slate-400">All districts</span>
+                          </div>
                           {filteredProviderCities.length > 0 ? (
-                            filteredProviderCities.map((c) => (
-                              <div
-                                key={c}
+                            filteredProviderCities.map((c) => {
+                              const isSelected = selectedProviderCity === c;
+                              return (
+                                <div
+                                  key={c}
+                                  onClick={() => {
+                                    setProviderCitySearch(c);
+                                    setSelectedProviderCity(c);
+                                    setIsProviderCityDropdownOpen(false);
+                                  }}
+                                  className={`px-3 py-2 text-xs cursor-pointer flex items-center justify-between font-medium transition ${
+                                    isSelected
+                                      ? 'bg-blue-50 text-[#15559c] font-bold'
+                                      : 'text-slate-700 hover:bg-slate-50 hover:text-[#15559c]'
+                                  }`}
+                                >
+                                  <div className="flex items-center gap-2">
+                                    <MapPin size={11} className={isSelected ? 'text-[#15559c]' : 'text-slate-400'} />
+                                    <span>{c}</span>
+                                  </div>
+                                  {isSelected && <Check size={12} className="text-[#15559c]" />}
+                                </div>
+                              );
+                            })
+                          ) : (
+                            <div className="px-3 py-3 text-[11px] text-slate-400 font-medium text-center">
+                              No matching district found.
+                              <button
+                                type="button"
                                 onClick={() => {
-                                  setProviderCitySearch(c);
+                                  setSelectedProviderCity(providerCitySearch);
                                   setIsProviderCityDropdownOpen(false);
                                 }}
-                                className="px-3 py-2 text-xs text-slate-700 hover:bg-blue-50 hover:text-[#15559c] cursor-pointer flex items-center justify-between font-medium transition"
+                                className="block mx-auto mt-1 text-[#15559c] font-bold hover:underline cursor-pointer"
                               >
-                                <span>{c}</span>
-                                <MapPin size={10} className="text-blue-400" />
-                              </div>
-                            ))
-                          ) : (
-                            <div className="px-3 py-2 text-[11px] text-slate-400 font-medium text-center">
-                              Use "{providerCitySearch}" as custom city
+                                Use "{providerCitySearch}" as custom district
+                              </button>
                             </div>
                           )}
                         </div>

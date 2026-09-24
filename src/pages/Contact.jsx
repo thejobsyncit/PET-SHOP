@@ -3,7 +3,7 @@ import { MessageSquare, Phone, Mail, MapPin, Clock, Send, ChevronDown, Sparkles 
 import { motion } from 'framer-motion';
 import toast from 'react-hot-toast';
 import { apiRequest } from '../services/api.js';
-import ScrollReveal from '../components/ScrollReveal.jsx';
+import ScrollReveal from '../components/ui/ScrollReveal.jsx';
 
 const Contact = () => {
   const [name, setName] = useState('');

@@ -1,4 +1,9 @@
+<<<<<<< HEAD
+import Coupon from '../models/Coupon.js';
+import { isDbConnected, readMockData, writeMockData } from '../utils/mockDb.js';
+=======
 import { supabase } from '../config/supabase.js';
+>>>>>>> origin/main
 
 // @desc    Get all coupons
 // @route   GET /api/coupons
@@ -29,6 +34,39 @@ export const createCoupon = async (req, res) => {
   }
 };
 
+<<<<<<< HEAD
+      const newCoupon = new Coupon({
+        code: code.toUpperCase(),
+        discountType,
+        discountValue,
+        minOrderValue,
+        maxDiscount,
+        expiresAt: new Date(expiresAt)
+      });
+      await newCoupon.save();
+      res.status(201).json({ success: true, coupon: newCoupon });
+    } else {
+      const coupons = readMockData('coupons');
+      const couponExists = coupons.find(c => c.code === code.toUpperCase());
+      if (couponExists) {
+        return res.status(400).json({ success: false, message: 'Coupon with this code already exists' });
+      }
+
+      const newCoupon = {
+        _id: 'cpn_' + Date.now().toString(36) + Math.random().toString(36).substr(2, 6),
+        code: code.toUpperCase(),
+        discountType,
+        discountValue: parseFloat(discountValue),
+        minOrderValue: parseFloat(minOrderValue || 0),
+        maxDiscount: maxDiscount ? parseFloat(maxDiscount) : undefined,
+        expiresAt: new Date(expiresAt).toISOString(),
+        isActive: true,
+        createdAt: new Date().toISOString()
+      };
+      coupons.push(newCoupon);
+      writeMockData('coupons', coupons);
+      res.status(201).json({ success: true, coupon: newCoupon });
+=======
 // @desc    Validate a coupon
 // @route   POST /api/coupons/validate
 // @access  Private
@@ -42,6 +80,7 @@ export const validateCoupon = async (req, res) => {
     }
     if (!coupon.is_active || new Date(coupon.expiry_date) < new Date()) {
       return res.status(400).json({ success: false, message: 'Coupon expired or inactive' });
+>>>>>>> origin/main
     }
     
     res.json({ success: true, discount: coupon.discount });

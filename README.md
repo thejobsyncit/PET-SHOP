@@ -1,16 +1,43 @@
-# React + Vite
+# PAWORA — Modern Pet Care & Commerce Ecosystem
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+PAWORA is a full-stack, enterprise-grade pet care platform combining e-commerce, veterinary telehealth, grooming, boarding/hostels, dog walking, pet insurance, ethical breeding, adoption shelters, and an integrated CRM suite.
 
-Currently, two official plugins are available:
+## 🚀 Quick Start
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+### 1. Installation
+Install root frontend dependencies:
+```bash
+npm install
+```
+Install backend dependencies:
+```bash
+cd server && npm install && cd ..
+```
 
-## React Compiler
+### 2. Development Mode
+Run both frontend and backend concurrently:
+```bash
+npm run dev
+```
+- **Frontend**: `http://localhost:5173`
+- **Backend API**: `http://localhost:5000`
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+### 3. Build & Production Preview
+```bash
+npm run build
+npm run preview
+```
 
-## Expanding the Oxlint configuration
+---
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and Oxlint's TypeScript related rules in your project.
+## 📁 Project Architecture & File Structure
+
+The project has been organized with a clean, domain-driven directory structure:
+- **`src/components/`**: Divided into `layout/`, `ui/`, and `widgets/` with a central `index.js` barrel.
+- **`src/pages/`**: Grouped into `shop/`, `services/`, `pets/`, `blog/`, `dashboards/`, and `crm/`.
+- **`src/data/`**: Centralized datasets and catalogues for breeds, locations, and services.
+- **`scripts/`**: Maintenance, database fixing, and media automation tools organized under `scripts/maintenance/` and `scripts/media/`.
+- **`database/`**: SQL schemas and migration files.
+- **`server/`**: Modular MVC Express backend.
+
+👉 For complete architectural diagrams and folder breakdowns, see [PROJECT_STRUCTURE.md](./PROJECT_STRUCTURE.md).
