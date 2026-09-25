@@ -122,5 +122,23 @@
     "messageText": "hi",
     "isRead": false,
     "createdAt": "2026-09-01T11:35:52.091Z"
+  },
+  {
+    "_id": "MSG-1790256470124-3107",
+    "sender": {
+      "_id": "60d5ec49ad70591244000002",
+      "id": "60d5ec49ad70591244000002",
+      "name": "Aarav Sharma",
+      "email": "customer1@pawora.com"
+    },
+    "recipient": {
+      "_id": "seller-cat-01",
+      "id": "seller-cat-01",
+      "name": "Fluffy Felines Cattery"
+    },
+    "listingTitle": "Purebred Punch Face Persian Kitten",
+    "messageText": "Hello! Is this kitten still available for viewing?",
+    "isRead": false,
+    "createdAt": "2026-09-24T13:27:50.124Z"
   }
 ]

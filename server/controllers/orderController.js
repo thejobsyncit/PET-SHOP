@@ -1,11 +1,4 @@
-<<<<<<< HEAD
-import Order from '../models/Order.js';
-import Product from '../models/Product.js';
-import User from '../models/User.js';
-import { isDbConnected, readMockData, writeMockData } from '../utils/mockDb.js';
-=======
 import { supabase } from '../config/supabase.js';
->>>>>>> origin/main
 
 // @desc    Create a new order
 // @route   POST /api/orders
@@ -63,104 +56,6 @@ export const createOrder = async (req, res) => {
         price: unitPrice,
         quantity: item.quantity
       });
-<<<<<<< HEAD
-
-      const savedOrder = await newOrder.save();
-
-      // 3. Update stock and clear cart
-      for (const item of verifiedItems) {
-        await Product.findByIdAndUpdate(item.product, {
-          $inc: { stock: -item.quantity }
-        });
-      }
-
-      await User.findByIdAndUpdate(userId, { cart: [] });
-
-      res.status(201).json({ success: true, order: savedOrder });
-
-    } else {
-      // 2. Mock JSON Implementation with server-side price recalculation
-      const productsList = readMockData('products');
-      const usersList = readMockData('users');
-      const ordersList = readMockData('orders');
-
-      let calculatedSubtotal = 0;
-      const verifiedItems = [];
-
-      for (const item of orderItems) {
-        const product = productsList.find(p => p._id.toString() === item.product.toString());
-        if (!product) {
-          return res.status(404).json({ success: false, message: `Product ${item.name || item.product} not found` });
-        }
-        if (product.stock < item.quantity) {
-          return res.status(400).json({ success: false, message: `Insufficient stock for product: ${product.name}` });
-        }
-
-        const unitPrice = (product.discountPrice !== undefined && product.discountPrice !== null && product.discountPrice > 0)
-          ? product.discountPrice 
-          : product.price;
-
-        calculatedSubtotal += unitPrice * item.quantity;
-        verifiedItems.push({
-          product: product._id.toString(),
-          name: product.name,
-          image: product.images && product.images[0] ? product.images[0] : item.image,
-          price: unitPrice,
-          quantity: item.quantity
-        });
-      }
-
-      const shippingCost = calculatedSubtotal > 499 ? 0 : 49;
-      const discount = (pricing && typeof pricing.discount === 'number' && pricing.discount >= 0) ? Math.min(pricing.discount, calculatedSubtotal) : 0;
-      const totalAmount = Math.max(0, calculatedSubtotal + shippingCost - discount);
-
-      const serverPricing = {
-        subtotal: calculatedSubtotal,
-        shipping: shippingCost,
-        discount: discount,
-        total: totalAmount
-      };
-
-      const newOrder = {
-        _id: 'ord_' + Date.now().toString(36) + Math.random().toString(36).substr(2, 6),
-        user: userId.toString(),
-        orderItems: verifiedItems,
-        shippingAddress,
-        paymentMethod,
-        paymentDetails: {
-          status: 'Pending',
-          transactionId: transactionId || `TXN-${Date.now()}`,
-          paidAt: undefined
-        },
-        shippingStatus: 'Pending',
-        pricing: serverPricing,
-        prescriptionId: prescriptionId || undefined,
-        trackingNumber: `TRK-${Math.floor(100000 + Math.random() * 900000)}`,
-        createdAt: new Date().toISOString()
-      };
-
-      ordersList.push(newOrder);
-      writeMockData('orders', ordersList);
-
-      // Decrement stock
-      for (const item of verifiedItems) {
-        const idx = productsList.findIndex(p => p._id.toString() === item.product.toString());
-        if (idx !== -1) {
-          productsList[idx].stock -= item.quantity;
-        }
-      }
-      writeMockData('products', productsList);
-
-      // Clear user cart
-      const userIdx = usersList.findIndex(u => u._id.toString() === userId.toString());
-      if (userIdx !== -1) {
-        usersList[userIdx].cart = [];
-        writeMockData('users', usersList);
-      }
-
-      res.status(201).json({ success: true, order: newOrder });
-=======
->>>>>>> origin/main
     }
 
     const shippingCost = calculatedSubtotal > 499 ? 0 : 49;
@@ -218,18 +113,11 @@ export const getOrderById = async (req, res) => {
     const requesterId = (req.user._id || req.user.id).toString();
     const isAdmin = req.user && (req.user.role === 'ADMIN' || req.user.role === 'SUPERADMIN');
 
-<<<<<<< HEAD
-    if (isDbConnected()) {
-      if (!id) {
-        return res.status(404).json({ success: false, message: 'Order not found' });
-      }
-=======
     const { data: order, error } = await supabase
       .from('orders')
       .select('*, user:users(name, email)')
       .eq('id', id)
       .single();
->>>>>>> origin/main
 
     if (error || !order) {
       return res.status(404).json({ success: false, message: 'Order not found' });

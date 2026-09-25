@@ -1,9 +1,4 @@
-<<<<<<< HEAD
-import Blog from '../models/Blog.js';
-import { isDbConnected, readMockData, writeMockData } from '../utils/mockDb.js';
-=======
 import { supabase } from '../config/supabase.js';
->>>>>>> origin/main
 
 // @desc    Get all blogs
 // @route   GET /api/blogs
@@ -65,47 +60,6 @@ export const createBlog = async (req, res) => {
   const slug = title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
 
   try {
-<<<<<<< HEAD
-    if (isDbConnected()) {
-      const newBlog = new Blog({
-        title,
-        slug,
-        summary,
-        content,
-        author,
-        featuredImage,
-        petType,
-        tags: tags || [],
-        readTime,
-        faqs: faqs || [],
-        relatedProducts: relatedProducts || []
-      });
-      await newBlog.save();
-      res.status(201).json({ success: true, blog: newBlog });
-    } else {
-      const blogs = readMockData('blogs');
-      const newBlog = {
-        _id: 'blg_' + Date.now().toString(36) + Math.random().toString(36).substr(2, 6),
-        title,
-        slug,
-        summary,
-        content,
-        author: author || 'Pawora Editorial Team',
-        featuredImage,
-        petType,
-        tags: tags || [],
-        readTime: readTime || '5 min read',
-        faqs: faqs || [],
-        relatedProducts: relatedProducts || [],
-        publishedDate: new Date().toISOString(),
-        updatedDate: new Date().toISOString(),
-        isPublished: true
-      };
-      blogs.push(newBlog);
-      writeMockData('blogs', blogs);
-      res.status(201).json({ success: true, blog: newBlog });
-    }
-=======
     const { data: newBlog, error } = await supabase.from('blogs').insert([{
       title,
       slug,
@@ -123,7 +77,6 @@ export const createBlog = async (req, res) => {
 
     if (error) throw error;
     res.status(201).json({ success: true, blog: newBlog });
->>>>>>> origin/main
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }

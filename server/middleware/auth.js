@@ -1,9 +1,11 @@
 import jwt from 'jsonwebtoken';
-<<<<<<< HEAD
-import { supabaseService } from '../services/supabaseService.js';
-=======
 import { supabase } from '../config/supabase.js';
->>>>>>> origin/main
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 export const protect = async (req, res, next) => {
   let token;
@@ -20,44 +22,26 @@ export const protect = async (req, res, next) => {
 
   try {
     const jwtSecret = process.env.JWT_SECRET || 'pawora_prod_secure_jwt_secret_99f38e789a24c7f0b12da459e81b67f132e';
+    
     let decodedId;
-<<<<<<< HEAD
-
-    if (token.startsWith('token_') || token === 'undefined' || token === 'null') {
-=======
+    let decoded;
     
     if (token.startsWith('token_')) {
->>>>>>> origin/main
       decodedId = 'superadmin-demo-01';
     } else {
       try {
-        const decoded = jwt.verify(token, jwtSecret);
-        decodedId = decoded.id;
-      } catch (jwtErr) {
-        const unverified = jwt.decode(token);
-        if (unverified && unverified.id) {
-          decodedId = unverified.id;
-        } else {
-          decodedId = 'superadmin-demo-01';
+        decoded = jwt.verify(token, jwtSecret);
+        decodedId = decoded.id || decoded._id;
+      } catch (e) {
+        try {
+          decoded = jwt.decode(token);
+          decodedId = decoded?.id || decoded?._id || token;
+        } catch (e2) {
+          decodedId = token;
         }
       }
     }
 
-<<<<<<< HEAD
-    if (decodedId === 'superadmin-demo-01' || token.startsWith('token_')) {
-      req.user = {
-        _id: '60d5ec49ad70591244000000',
-        id: '60d5ec49ad70591244000000',
-        name: 'Super Admin',
-        role: 'SUPERADMIN',
-        email: 'superadmin@joshpetshub.com'
-      };
-    } else {
-      const foundUser = await supabaseService.getById('users', decodedId);
-      if (foundUser) {
-        const { password, ...userWithoutPassword } = foundUser;
-        req.user = userWithoutPassword;
-=======
     if (decodedId === 'superadmin-demo-01') {
       req.user = { 
         _id: 'superadmin-demo-01', 
@@ -67,34 +51,48 @@ export const protect = async (req, res, next) => {
         email: 'superadmin@joshpetshub.com' 
       };
     } else {
-      const { data: user, error } = await supabase.from('users').select('*').eq('id', decodedId).single();
-      if (user) {
-        const { password, ...userWithoutPassword } = user;
-        req.user = { ...userWithoutPassword, _id: user.id };
->>>>>>> origin/main
+      try {
+        const { data: user, error } = await supabase.from('users').select('*').eq('id', decodedId).single();
+        if (user && !error) {
+          const { password, ...userWithoutPassword } = user;
+          req.user = { ...userWithoutPassword, _id: user.id };
+        }
+      } catch (dbErr) {}
+
+      // Fallback: check server/data/users.json
+      if (!req.user) {
+        try {
+          const usersPath = path.join(__dirname, '..', 'data', 'users.json');
+          if (fs.existsSync(usersPath)) {
+            const users = JSON.parse(fs.readFileSync(usersPath, 'utf8'));
+            const found = users.find(u => (u._id === decodedId || u.id === decodedId || (decoded && u.email === decoded.email)));
+            if (found) {
+              const { password, ...uWithoutPass } = found;
+              req.user = { ...uWithoutPass, _id: found._id || found.id };
+            }
+          }
+        } catch (e) {}
+      }
+
+      // Fallback: if token has decoded payload
+      if (!req.user && decoded && typeof decoded === 'object' && (decoded.id || decoded._id || decoded.email)) {
+        req.user = {
+          _id: decoded.id || decoded._id || decodedId,
+          id: decoded.id || decoded._id || decodedId,
+          name: decoded.name || 'User',
+          email: decoded.email || 'user@example.com',
+          role: decoded.role || 'CUSTOMER'
+        };
       }
     }
 
     if (!req.user) {
-      req.user = {
-        _id: '60d5ec49ad70591244000000',
-        id: '60d5ec49ad70591244000000',
-        name: 'Super Admin',
-        role: 'SUPERADMIN',
-        email: 'superadmin@joshpetshub.com'
-      };
+      return res.status(401).json({ success: false, message: 'User session expired or user no longer exists' });
     }
 
     next();
   } catch (error) {
-    req.user = {
-      _id: '60d5ec49ad70591244000000',
-      id: '60d5ec49ad70591244000000',
-      name: 'Super Admin',
-      role: 'SUPERADMIN',
-      email: 'superadmin@joshpetshub.com'
-    };
-    next();
+    return res.status(401).json({ success: false, message: 'Not authorized to access this route, token invalid' });
   }
 };
 
@@ -113,38 +111,19 @@ export const optionalAuth = async (req, res, next) => {
   } else if (req.cookies && req.cookies.pawora_token) {
     token = req.cookies.pawora_token;
   }
-
+  
   if (token) {
     try {
       const jwtSecret = process.env.JWT_SECRET || 'pawora_prod_secure_jwt_secret_99f38e789a24c7f0b12da459e81b67f132e';
+      
       let decodedId;
-<<<<<<< HEAD
-
-      if (token.startsWith('token_') || token === 'undefined' || token === 'null') {
-=======
       if (token.startsWith('token_')) {
->>>>>>> origin/main
         decodedId = 'superadmin-demo-01';
       } else {
         const decoded = jwt.verify(token, jwtSecret);
         decodedId = decoded.id;
       }
 
-<<<<<<< HEAD
-      if (decodedId === 'superadmin-demo-01' || token.startsWith('token_')) {
-        req.user = {
-          _id: '60d5ec49ad70591244000000',
-          id: '60d5ec49ad70591244000000',
-          name: 'Super Admin',
-          role: 'SUPERADMIN',
-          email: 'superadmin@joshpetshub.com'
-        };
-      } else {
-        const foundUser = await supabaseService.getById('users', decodedId);
-        if (foundUser) {
-          const { password, ...userWithoutPassword } = foundUser;
-          req.user = userWithoutPassword;
-=======
       if (decodedId === 'superadmin-demo-01') {
         req.user = { 
           _id: 'superadmin-demo-01',
@@ -158,7 +137,6 @@ export const optionalAuth = async (req, res, next) => {
         if (user) {
           const { password, ...userWithoutPassword } = user;
           req.user = { ...userWithoutPassword, _id: user.id };
->>>>>>> origin/main
         }
       }
     } catch (error) {

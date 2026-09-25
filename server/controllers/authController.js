@@ -1,13 +1,6 @@
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
-<<<<<<< HEAD
-import User from '../models/User.js';
-import { isDbConnected, readMockData, writeMockData } from '../utils/mockDb.js';
-=======
 import { supabase } from '../config/supabase.js';
->>>>>>> origin/main
-
-const generateId = () => 'usr_' + Date.now().toString(36) + Math.random().toString(36).substr(2, 6);
 
 // Helper to generate JWT Token
 const generateToken = (id) => {
@@ -56,114 +49,9 @@ export const registerUser = async (req, res) => {
   const safeVerification = safeRole === 'SERVICE_PROVIDER' ? 'Pending' : 'Verified';
 
   try {
-<<<<<<< HEAD
-    if (isDbConnected()) {
-      const userExists = await User.findOne({ email: email.toLowerCase() });
-      if (userExists) {
-        return res.status(400).json({ success: false, message: 'User already exists with this email' });
-      }
-
-      const user = await User.create({
-        name: name.trim(),
-        email: email.toLowerCase().trim(),
-        password,
-        mobile: mobile ? mobile.trim() : '',
-        role: safeRole,
-        location: location || '',
-        serviceCategory: serviceCategory || '',
-        businessName: businessName || name,
-        govtProofType: govtProofType || 'AWBI / NGO Registration Certificate',
-        govtProofNumber: govtProofNumber || '',
-        govtProofDoc: govtProofDoc || '',
-        verificationStatus: safeVerification,
-        shelterCapacity: shelterCapacity || 50,
-        bio: bio || ''
-      });
-      const token = generateToken(user._id);
-      setAuthCookie(res, token);
-      res.status(201).json({
-        success: true,
-        token,
-        user: { 
-          id: user._id, 
-          name: user.name, 
-          email: user.email, 
-          role: user.role,
-          mobile: user.mobile,
-          location: user.location,
-          serviceCategory: user.serviceCategory,
-          businessName: user.businessName,
-          govtProofType: user.govtProofType,
-          govtProofNumber: user.govtProofNumber,
-          govtProofDoc: user.govtProofDoc,
-          verificationStatus: user.verificationStatus,
-          shelterCapacity: user.shelterCapacity,
-          bio: user.bio
-        }
-      });
-    } else {
-      const usersList = readMockData('users');
-      const userExists = usersList.find(u => u.email.toLowerCase() === email.toLowerCase());
-      if (userExists) {
-        return res.status(400).json({ success: false, message: 'User already exists with this email' });
-      }
-
-      const salt = await bcrypt.genSalt(10);
-      const hashedPassword = await bcrypt.hash(password, salt);
-
-      const newUser = {
-        _id: generateId(),
-        name: name.trim(),
-        email: email.toLowerCase().trim(),
-        password: hashedPassword,
-        role: safeRole,
-        mobile: mobile || '',
-        location: location || '',
-        serviceCategory: serviceCategory || '',
-        businessName: businessName || name,
-        govtProofType: govtProofType || 'AWBI / NGO Registration Certificate',
-        govtProofNumber: govtProofNumber || '',
-        govtProofDoc: govtProofDoc || '',
-        verificationStatus: safeVerification,
-        shelterCapacity: shelterCapacity || 50,
-        bio: bio || '',
-        addresses: [],
-        wishlist: [],
-        cart: [],
-        prescriptionHistory: [],
-        createdAt: new Date().toISOString()
-      };
-
-      usersList.push(newUser);
-      writeMockData('users', usersList);
-
-      const token = generateToken(newUser._id);
-      setAuthCookie(res, token);
-      res.status(201).json({
-        success: true,
-        token,
-        user: { 
-          id: newUser._id, 
-          name: newUser.name, 
-          email: newUser.email, 
-          role: newUser.role,
-          mobile: newUser.mobile,
-          location: newUser.location,
-          serviceCategory: newUser.serviceCategory,
-          businessName: newUser.businessName,
-          govtProofType: newUser.govtProofType,
-          govtProofNumber: newUser.govtProofNumber,
-          govtProofDoc: newUser.govtProofDoc,
-          verificationStatus: newUser.verificationStatus,
-          shelterCapacity: newUser.shelterCapacity,
-          bio: newUser.bio
-        }
-      });
-=======
     const { data: userExists } = await supabase.from('users').select('id').eq('email', email.toLowerCase()).single();
     if (userExists) {
       return res.status(400).json({ success: false, message: 'User already exists with this email' });
->>>>>>> origin/main
     }
 
     const salt = await bcrypt.genSalt(10);
@@ -266,20 +154,11 @@ export const loginUser = async (req, res) => {
   }
 
   try {
-    // 1. Check if login matches any demo account (support both @joshpetshub.com and @pawora.com)
-    const normalizedKey = loginKey.toLowerCase();
-    const altKey = normalizedKey.endsWith('@joshpetshub.com')
-      ? normalizedKey.replace('@joshpetshub.com', '@pawora.com')
-      : normalizedKey.endsWith('@pawora.com')
-        ? normalizedKey.replace('@pawora.com', '@joshpetshub.com')
-        : normalizedKey;
-
-    const matchedDemo = DEMO_ACCOUNTS.find(d => {
-      const dEmail = (d.email || '').toLowerCase();
-      const emailMatches = dEmail === normalizedKey || dEmail === altKey;
-      const mobileMatches = cleanMobile && d.mobile && (d.mobile === cleanMobile || d.mobile.endsWith(cleanMobile) || cleanMobile.endsWith(d.mobile));
-      return emailMatches || mobileMatches;
-    });
+    // 1. Check if login matches any demo account
+    const matchedDemo = DEMO_ACCOUNTS.find(d => 
+      d.email.toLowerCase() === loginKey.toLowerCase() ||
+      (cleanMobile && d.mobile && (d.mobile === cleanMobile || d.mobile.endsWith(cleanMobile) || cleanMobile.endsWith(d.mobile)))
+    );
 
     const isDemoPasswordMatch = (demoAcc, pwd) => {
       if (!pwd) return false;
@@ -290,18 +169,7 @@ export const loginUser = async (req, res) => {
     };
 
     if (matchedDemo && isDemoPasswordMatch(matchedDemo, password)) {
-<<<<<<< HEAD
-      if (isDbConnected()) {
-        let user = await User.findOne({ 
-          $or: [
-            { email: matchedDemo.email.toLowerCase() },
-            { email: normalizedKey },
-            { email: altKey }
-          ]
-        });
-=======
         let { data: user } = await supabase.from('users').select('*').eq('email', matchedDemo.email.toLowerCase()).single();
->>>>>>> origin/main
         if (!user) {
           const salt = await bcrypt.genSalt(10);
           const hashedPassword = await bcrypt.hash(matchedDemo.password, salt);
@@ -319,70 +187,14 @@ export const loginUser = async (req, res) => {
           user = newUser;
         }
         
-<<<<<<< HEAD
-        const userId = user ? user._id : generateId();
-        const token = generateToken(userId);
-=======
         const token = generateToken(user.id);
->>>>>>> origin/main
         setAuthCookie(res, token);
         return res.json({
           success: true,
           token,
           user: { 
-<<<<<<< HEAD
-            id: userId,
-            _id: userId,
-            name: user ? user.name : matchedDemo.name, 
-            email: user ? user.email : matchedDemo.email, 
-            role: user ? user.role : matchedDemo.role,
-            mobile: user ? user.mobile : matchedDemo.mobile,
-            location: user ? user.location : matchedDemo.location,
-            serviceCategory: user ? user.serviceCategory : matchedDemo.serviceCategory,
-            businessName: user ? user.businessName : (matchedDemo.businessName || matchedDemo.name),
-            govtProofType: user ? user.govtProofType : matchedDemo.govtProofType,
-            govtProofNumber: user ? user.govtProofNumber : matchedDemo.govtProofNumber,
-            govtProofDoc: user ? user.govtProofDoc : matchedDemo.govtProofDoc,
-            verificationStatus: user ? user.verificationStatus : (matchedDemo.verificationStatus || 'Verified'),
-            shelterCapacity: user ? user.shelterCapacity : matchedDemo.shelterCapacity,
-            bio: user ? user.bio : matchedDemo.bio,
-            avatar: user?.avatar,
-            profilePicture: user?.avatar
-          }
-        });
-      } else {
-        const usersList = readMockData('users');
-        let user = usersList.find(u => u.email && u.email.toLowerCase() === matchedDemo.email.toLowerCase());
-        if (!user) {
-          user = {
-            _id: generateId(),
-            name: matchedDemo.name,
-            businessName: matchedDemo.businessName || matchedDemo.name,
-            email: matchedDemo.email.toLowerCase(),
-            role: matchedDemo.role,
-            mobile: matchedDemo.mobile,
-            location: matchedDemo.location,
-            serviceCategory: matchedDemo.serviceCategory,
-            govtProofType: matchedDemo.govtProofType || 'AWBI / NGO Registration Certificate',
-            govtProofNumber: matchedDemo.govtProofNumber || '',
-            govtProofDoc: matchedDemo.govtProofDoc || '',
-            verificationStatus: matchedDemo.verificationStatus || 'Verified',
-            shelterCapacity: matchedDemo.shelterCapacity || 50,
-            bio: matchedDemo.bio || ''
-          };
-          usersList.push(user);
-          writeMockData('users', usersList);
-        }
-        return res.json({
-          success: true,
-          token: generateToken(user._id),
-          user: { 
-            id: user._id, 
-            _id: user._id,
-=======
             id: user.id,
             _id: user.id,
->>>>>>> origin/main
             name: user.name, 
             email: user.email, 
             role: user.role,
@@ -396,52 +208,10 @@ export const loginUser = async (req, res) => {
         });
     }
 
-<<<<<<< HEAD
-    // 2. Standard DB / Mock User Verification
-    if (isDbConnected()) {
-      const user = await User.findOne({
-        $or: [
-          { email: normalizedKey },
-          { email: altKey },
-          { mobile: loginKey },
-          ...(cleanMobile ? [{ mobile: cleanMobile }] : [])
-        ]
-      });
-      if (user && (await user.comparePassword(password))) {
-        const token = generateToken(user._id);
-        setAuthCookie(res, token);
-        res.json({
-          success: true,
-          token,
-          user: { 
-            id: user._id, 
-            _id: user._id,
-            name: user.name, 
-            email: user.email, 
-            role: user.role,
-            mobile: user.mobile,
-            location: user.location,
-            serviceCategory: user.serviceCategory,
-            businessName: user.businessName,
-            govtProofType: user.govtProofType,
-            govtProofNumber: user.govtProofNumber,
-            govtProofDoc: user.govtProofDoc,
-            verificationStatus: user.verificationStatus,
-            shelterCapacity: user.shelterCapacity,
-            bio: user.bio,
-            avatar: user.avatar,
-            profilePicture: user.avatar
-          }
-        });
-      } else {
-        res.status(401).json({ success: false, message: 'Invalid credentials. Please check your details.' });
-      }
-=======
     // 2. Standard DB Verification
     let userQuery = supabase.from('users').select('*');
     if (cleanMobile) {
       userQuery = userQuery.or(`email.eq.${loginKey.toLowerCase()},mobile.eq.${loginKey},mobile.eq.${cleanMobile}`);
->>>>>>> origin/main
     } else {
       userQuery = userQuery.eq('email', loginKey.toLowerCase());
     }
@@ -502,42 +272,6 @@ export const updateUserProfile = async (req, res) => {
 
   try {
     const userId = req.user._id || req.user.id;
-<<<<<<< HEAD
-    if (isDbConnected() && userId) {
-      const user = await User.findById(userId);
-      if (user) {
-        user.name = name || user.name;
-        user.email = email || user.email;
-        if (avatar || profilePicture) user.avatar = avatar || profilePicture;
-        if (businessName) user.businessName = businessName;
-        if (password) {
-          user.password = password;
-        }
-        const updatedUser = await user.save();
-        return res.json({
-          success: true,
-          user: {
-            id: updatedUser._id,
-            name: updatedUser.name,
-            email: updatedUser.email,
-            role: updatedUser.role,
-            avatar: updatedUser.avatar,
-            businessName: updatedUser.businessName,
-            addresses: updatedUser.addresses
-          }
-        });
-      }
-    }
-
-    // If not a valid ObjectId or not found in MongoDB, update mockDb or return simulated user
-    const usersList = readMockData('users');
-    const idx = usersList.findIndex(u => u._id && u._id.toString() === userId.toString());
-    if (idx !== -1) {
-      usersList[idx].name = name || usersList[idx].name;
-      usersList[idx].email = email ? email.toLowerCase() : usersList[idx].email;
-      if (avatar || profilePicture) usersList[idx].avatar = avatar || profilePicture;
-      if (businessName) usersList[idx].businessName = businessName;
-=======
     const { data: user, error: fetchErr } = await supabase.from('users').select('*').eq('id', userId).single();
     
     if (user) {
@@ -546,7 +280,6 @@ export const updateUserProfile = async (req, res) => {
       if (email) updateData.email = email;
       if (avatar || profilePicture) updateData.avatar = avatar || profilePicture;
       if (businessName) updateData.business_name = businessName;
->>>>>>> origin/main
       if (password) {
         const salt = await bcrypt.genSalt(10);
         updateData.password = await bcrypt.hash(password, salt);
@@ -584,11 +317,7 @@ export const addAddress = async (req, res) => {
 
   try {
     const newAddress = {
-<<<<<<< HEAD
-      _id: generateId(),
-=======
       _id: require('crypto').randomUUID(),
->>>>>>> origin/main
       name,
       phone,
       streetAddress,
