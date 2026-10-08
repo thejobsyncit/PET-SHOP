@@ -1,6 +1,6 @@
-# PAWORA — Modern Pet Care & Commerce Ecosystem
+# JOSH PETS HUB — Modern Pet Care & Commerce Ecosystem
 
-PAWORA is a full-stack, enterprise-grade pet care platform combining e-commerce, veterinary telehealth, grooming, boarding/hostels, dog walking, pet insurance, ethical breeding, adoption shelters, and an integrated CRM suite.
+JOSH PETS HUB is a full-stack, enterprise-grade pet care platform combining e-commerce, veterinary telehealth, grooming, boarding/hostels, dog walking, pet insurance, ethical breeding, and adoption shelters.
 
 ## 🚀 Quick Start
 
@@ -34,7 +34,7 @@ npm run preview
 
 The project has been organized with a clean, domain-driven directory structure:
 - **`src/components/`**: Divided into `layout/`, `ui/`, and `widgets/` with a central `index.js` barrel.
-- **`src/pages/`**: Grouped into `shop/`, `services/`, `pets/`, `blog/`, `dashboards/`, and `crm/`.
+- **`src/pages/`**: Grouped into `shop/`, `services/`, `pets/`, `blog/`, and `dashboards/`.
 - **`src/data/`**: Centralized datasets and catalogues for breeds, locations, and services.
 - **`scripts/`**: Maintenance, database fixing, and media automation tools organized under `scripts/maintenance/` and `scripts/media/`.
 - **`database/`**: SQL schemas and migration files.

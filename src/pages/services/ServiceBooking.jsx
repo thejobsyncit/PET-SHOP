@@ -106,6 +106,7 @@ const TOP_PROVIDERS = [
 ];
 
 import ServiceAccessLock, { isServicePathLockedForUser } from '../../components/ui/ServiceAccessLock.jsx';
+import { handleServiceAction } from '../../components/widgets/ServicePackageAccessModal.jsx';
 
 const SERVICE_PATH_MAP = {
   'Grooming': '/grooming',
@@ -147,13 +148,22 @@ const ServiceBooking = () => {
     }
   };
 
-  const handleProviderClick = (category) => {
-    const targetPath = SERVICE_PATH_MAP[category] || '/veterinary';
-    if (isServicePathLockedForUser(user, targetPath)) {
-      toast.error(`🔒 Access Locked: This service is locked for your account.`, { id: 'srv-lock' });
-      return;
-    }
-    navigate(targetPath);
+  const handleProviderClick = (provider) => {
+    const rawCategory = typeof provider === 'string' ? provider : provider.category;
+    const categoryKey = rawCategory === 'Dog Walking' ? 'Walking' : rawCategory;
+
+    handleServiceAction({
+      isAuthenticated,
+      serviceType: categoryKey,
+      provider: typeof provider === 'object' ? {
+        name: provider.name,
+        rating: provider.rating,
+        reviews: provider.reviews,
+        city: provider.location,
+        image: provider.image
+      } : { name: `Top Verified ${categoryKey} Provider`, city: 'Bangalore' },
+      action: 'visit'
+    });
   };
 
   return (
@@ -383,7 +393,7 @@ const ServiceBooking = () => {
               <ScrollReveal key={provider.id} variant="slideUp" delay={0.1 + (index * 0.1)}>
                 <div 
                   className="bg-white rounded-[1.5rem] border border-slate-100 overflow-hidden group cursor-pointer shadow-lg hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 flex flex-col h-full"
-                  onClick={() => handleProviderClick(provider.category)}
+                  onClick={() => handleProviderClick(provider)}
                 >
                   <div className="aspect-[4/3] overflow-hidden relative">
                     <div className="absolute inset-0 bg-gradient-to-t from-slate-900/60 to-transparent z-10"></div>

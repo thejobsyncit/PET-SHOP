@@ -159,8 +159,8 @@ export const INITIAL_HOSTEL_PROVIDERS = [
   }
 ];
 
-const STORAGE_KEY_HOSTELS = 'pawora_hostel_providers_v1';
-const STORAGE_KEY_HOSTEL_BOOKINGS = 'pawora_hostel_bookings_v1';
+const STORAGE_KEY_HOSTELS = 'joshpetshub_hostel_providers_v1';
+const STORAGE_KEY_HOSTEL_BOOKINGS = 'joshpetshub_hostel_bookings_v1';
 
 export const getStoredHostelProviders = () => {
   try {

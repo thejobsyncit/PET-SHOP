@@ -119,9 +119,9 @@ const TransportProviderDashboard = ({
 
   // Stats for Transport Dashboard
   const stats = {
-    totalBookings: bookings.length || 12,
-    pendingTrips: bookings.filter(b => b.status === 'In Transit' || b.status === 'Confirmed').length || 2,
-    completedTrips: bookings.filter(b => b.status === 'Completed').length || 45,
+    totalBookings: Array.isArray(bookings) ? bookings.length : 12,
+    pendingTrips: (Array.isArray(bookings) ? bookings.filter(b => b && (b.status === 'In Transit' || b.status === 'Confirmed')).length : 0) || 2,
+    completedTrips: (Array.isArray(bookings) ? bookings.filter(b => b && b.status === 'Completed').length : 0) || 45,
     totalOrders: 60,
     revenue: 68450,
     discounts: 500, 

@@ -7,11 +7,6 @@ import cookieParser from 'cookie-parser';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import fs from 'fs';
-<<<<<<< HEAD
-=======
-
-// Configuration
->>>>>>> origin/main
 import { supabase } from './config/supabase.js';
 import errorHandler from './middleware/errorHandler.js';
 
@@ -46,18 +41,14 @@ dotenv.config();
 // Production Secrets Gatekeeper: Fail fast if critical secrets are missing in production
 if (process.env.NODE_ENV === 'production') {
   const secret = process.env.JWT_SECRET || '';
-  if (!secret || secret.length < 32 || secret.includes('pawora_super_secret') || secret.includes('123')) {
+  if (!secret || secret.length < 32 || secret.includes('joshpetshub_super_secret') || secret.includes('123')) {
     console.error('FATAL SECURITY ERROR: A secure, random JWT_SECRET (>= 32 chars) must be provided in production.');
     process.exit(1);
   }
 }
 
-<<<<<<< HEAD
 // Supabase Backend Mode
-console.log('Pawora Backend initialized with Supabase as exclusive database');
-=======
-// Connect to database removed (migrating to Supabase)
->>>>>>> origin/main
+console.log('JOSH PETS HUB Backend initialized with Supabase as exclusive database');
 
 const app = express();
 
@@ -163,7 +154,7 @@ app.use(errorHandler);
 const PORT = process.env.PORT || 5000;
 
 const server = app.listen(PORT, '0.0.0.0', () => {
-  console.log(`Pawora Express Server running on port ${PORT} [Database: Supabase Backend]`);
+  console.log(`JOSH PETS HUB Express Server running on port ${PORT} [Database: Supabase Backend]`);
 });
 
 process.on('unhandledRejection', (err) => {
@@ -172,4 +163,3 @@ process.on('unhandledRejection', (err) => {
 });
 
 export default app;
-// reload trigger 2

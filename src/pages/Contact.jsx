@@ -90,37 +90,58 @@ const Contact = () => {
                 </div>
 
                 <div className="space-y-4">
-                  <div className="group flex gap-4 p-4 rounded-2xl hover:bg-slate-50 transition-colors border border-transparent hover:border-slate-100 cursor-pointer">
+                  <a
+                    href="tel:+919876543210"
+                    className="group flex gap-4 p-4 rounded-2xl hover:bg-amber-50/70 transition-colors border border-transparent hover:border-amber-200 cursor-pointer block"
+                    title="Call Josh Pets Hub Customer Helpline"
+                  >
                     <div className="bg-amber-100 w-12 h-12 rounded-xl flex items-center justify-center shrink-0 group-hover:scale-110 group-hover:rotate-6 transition-transform duration-300">
                       <Phone size={20} className="text-amber-600" />
                     </div>
                     <div>
-                      <h4 className="font-black text-slate-900">Customer Helpline</h4>
-                      <p className="text-sm text-slate-600 font-bold mt-1">Online Support & Ticket Desk</p>
-                      <p className="text-xs text-slate-400 mt-1">Mon - Sat (9:00 AM - 6:00 PM IST)</p>
+                      <h4 className="font-black text-slate-900 group-hover:text-amber-800 transition-colors flex items-center gap-1.5">
+                        Customer Helpline <span className="text-[10px] text-amber-700 bg-amber-100 px-2 py-0.5 rounded-full font-bold">Call Now</span>
+                      </h4>
+                      <p className="text-sm text-amber-700 font-bold mt-1">+91 98765 43210</p>
+                      <p className="text-xs text-slate-400 mt-0.5">Online Support & Ticket Desk • Mon - Sat (9:00 AM - 6:00 PM IST)</p>
                     </div>
-                  </div>
+                  </a>
 
-                  <div className="group flex gap-4 p-4 rounded-2xl hover:bg-slate-50 transition-colors border border-transparent hover:border-slate-100 cursor-pointer">
+                  <a
+                    href="mailto:care@joshpetshub.com"
+                    className="group flex gap-4 p-4 rounded-2xl hover:bg-emerald-50/70 transition-colors border border-transparent hover:border-emerald-200 cursor-pointer block"
+                    title="Send Email to Customer Care"
+                  >
                     <div className="bg-emerald-100 w-12 h-12 rounded-xl flex items-center justify-center shrink-0 group-hover:scale-110 group-hover:-rotate-6 transition-transform duration-300">
                       <Mail size={20} className="text-emerald-600" />
                     </div>
                     <div>
-                      <h4 className="font-black text-slate-900">Email Support</h4>
-                      <p className="text-sm text-emerald-600 font-bold mt-1">care@joshpetshub.com</p>
-                      <p className="text-xs text-slate-400 mt-1">Response timeframe: Under 24 hours</p>
+                      <h4 className="font-black text-slate-900 group-hover:text-emerald-800 transition-colors flex items-center gap-1.5">
+                        Email Support <span className="text-[10px] text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full font-bold">Mail Us</span>
+                      </h4>
+                      <p className="text-sm text-emerald-700 font-bold mt-1 underline underline-offset-2">care@joshpetshub.com</p>
+                      <p className="text-xs text-slate-400 mt-0.5">Response timeframe: Under 24 hours</p>
                     </div>
-                  </div>
+                  </a>
 
-                  <div className="group flex gap-4 p-4 rounded-2xl hover:bg-slate-50 transition-colors border border-transparent hover:border-slate-100 cursor-pointer">
+                  <a
+                    href="https://maps.google.com/?q=12+Luxury+Retail+Lane+MG+Road+Bangalore"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="group flex gap-4 p-4 rounded-2xl hover:bg-blue-50/70 transition-colors border border-transparent hover:border-blue-200 cursor-pointer block"
+                    title="View Flagship Showroom on Google Maps"
+                  >
                     <div className="bg-blue-100 w-12 h-12 rounded-xl flex items-center justify-center shrink-0 group-hover:scale-110 group-hover:rotate-6 transition-transform duration-300">
                       <MapPin size={20} className="text-blue-600" />
                     </div>
                     <div>
-                      <h4 className="font-black text-slate-900">Flagship Showroom</h4>
-                      <p className="text-sm text-slate-600 font-bold mt-1 leading-relaxed">12, Luxury Retail Lane, MG Road, Bangalore, KA, India</p>
+                      <h4 className="font-black text-slate-900 group-hover:text-blue-800 transition-colors flex items-center gap-1.5">
+                        Flagship Showroom <span className="text-[10px] text-blue-700 bg-blue-100 px-2 py-0.5 rounded-full font-bold">Directions</span>
+                      </h4>
+                      <p className="text-sm text-slate-600 group-hover:text-blue-600 font-bold mt-1 leading-relaxed">12, Luxury Retail Lane, MG Road, Bangalore, KA, India</p>
+                      <p className="text-xs text-blue-500 font-semibold mt-0.5">Open in Google Maps →</p>
                     </div>
-                  </div>
+                  </a>
                 </div>
               </div>
             </ScrollReveal>

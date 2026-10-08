@@ -433,11 +433,11 @@ export const INITIAL_MATING_PETS = [
 export const getStoredMatingPets = () => {
   try {
     // Clean up old legacy keys to free storage quota
-    localStorage.removeItem('pawora_mating_pets');
-    localStorage.removeItem('pawora_mating_pets_v2');
-    localStorage.removeItem('pawora_mating_pets_v3');
+    localStorage.removeItem('joshpetshub_mating_pets');
+    localStorage.removeItem('joshpetshub_mating_pets_v2');
+    localStorage.removeItem('joshpetshub_mating_pets_v3');
 
-    const saved = localStorage.getItem('pawora_mating_pets_v4');
+    const saved = localStorage.getItem('joshpetshub_mating_pets_v4');
     if (saved) {
       const parsed = JSON.parse(saved);
       if (Array.isArray(parsed) && parsed.length > 0) return parsed;
@@ -447,7 +447,7 @@ export const getStoredMatingPets = () => {
   }
 
   try {
-    localStorage.setItem('pawora_mating_pets_v4', JSON.stringify(INITIAL_MATING_PETS));
+    localStorage.setItem('joshpetshub_mating_pets_v4', JSON.stringify(INITIAL_MATING_PETS));
   } catch (e) {
     console.warn('LocalStorage quota exceeded or unavailable, using in-memory INITIAL_MATING_PETS', e);
   }
@@ -459,7 +459,7 @@ export const saveMatingPet = (newPet) => {
   const current = getStoredMatingPets();
   const updated = [newPet, ...current];
   try {
-    localStorage.setItem('pawora_mating_pets_v4', JSON.stringify(updated));
+    localStorage.setItem('joshpetshub_mating_pets_v4', JSON.stringify(updated));
   } catch (e) {
     console.warn('LocalStorage quota exceeded, updated in-memory', e);
   }
@@ -468,9 +468,9 @@ export const saveMatingPet = (newPet) => {
 
 export const saveMatingEnquiry = (enquiry) => {
   try {
-    const current = JSON.parse(localStorage.getItem('pawora_mating_enquiries') || '[]');
+    const current = JSON.parse(localStorage.getItem('joshpetshub_mating_enquiries') || '[]');
     const updated = [enquiry, ...current];
-    localStorage.setItem('pawora_mating_enquiries', JSON.stringify(updated));
+    localStorage.setItem('joshpetshub_mating_enquiries', JSON.stringify(updated));
     return updated;
   } catch (e) {
     console.warn('Failed to save mating enquiry to localStorage', e);

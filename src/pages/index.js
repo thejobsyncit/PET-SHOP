@@ -1,5 +1,5 @@
 // ==========================================
-// PAWORA Page Registry & Barrel Export
+// JOSH PETS HUB Page Registry & Barrel Export
 // ==========================================
 
 // Core & Top-Level Pages
@@ -42,6 +42,3 @@ export { default as AccountDashboard } from './dashboards/AccountDashboard.jsx';
 export { default as AdminDashboard } from './dashboards/AdminDashboard.jsx';
 export { default as SuperAdminDashboard } from './dashboards/SuperAdminDashboard.jsx';
 export { default as ServiceProviderDashboard } from './dashboards/ServiceProviderDashboard.jsx';
-
-// CRM Suite
-export { default as PetCrmApp } from './crm/PetCrmApp.jsx';

@@ -1,5 +1,5 @@
 -- ==============================================================================
--- JOSH PETS HUB (PAWORA) - SUPABASE POSTGRESQL SCHEMA MIGRATION
+-- JOSH PETS HUB (JOSH PETS HUB) - SUPABASE POSTGRESQL SCHEMA MIGRATION
 -- Run this SQL in your Supabase SQL Editor (https://supabase.com/dashboard/project/chkaqdokgyppcadfkoce/sql)
 -- ==============================================================================
 

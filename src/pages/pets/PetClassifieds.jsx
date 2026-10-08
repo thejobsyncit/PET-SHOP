@@ -154,24 +154,34 @@ const PetClassifieds = () => {
     }
   };
 
-  const handleStartChat = async (owner) => {
+  const handleStartChat = async (listing) => {
     if (!isAuthenticated) {
-      toast.error('Please login to initiate a direct chat.');
-      navigate('/login');
+      toast.error('Please login to chat with pet sellers.');
+      navigate('/login', { state: { from: '/pets' } });
       return;
     }
     
-    const ownerId = owner?._id || (typeof owner === 'string' ? owner : null);
-    if (!ownerId) {
-      toast.error('Seller contact phone is available via the CALL button.');
-      return;
-    }
-    if (user?._id && ownerId === user._id) {
-      toast.error('You cannot chat with yourself.');
+    const owner = listing?.user;
+    const ownerId = owner?._id || owner?.id || listing?.sellerId || (typeof owner === 'string' ? owner : `seller-${listing?._id || 'pet'}`);
+    const currentUserId = user?._id || user?.id;
+    
+    if (currentUserId && ownerId === currentUserId) {
+      toast.error('You cannot chat with yourself on your own pet listing.');
       return;
     }
     
-    navigate('/chat', { state: { recipientId: ownerId, ownerName: owner?.name || 'Seller' } });
+    navigate('/chat', { 
+      state: { 
+        recipientId: ownerId, 
+        ownerName: owner?.name || listing?.sellerName || 'Pet Seller',
+        ownerEmail: owner?.email || '',
+        listingId: listing?._id || listing?.id,
+        listingTitle: listing?.title,
+        listingImage: listing?.images?.[0],
+        listingPrice: listing?.price,
+        listingBreed: listing?.breed
+      } 
+    });
   };
 
   const handleBuy = (pet) => {
@@ -446,7 +456,7 @@ const PetClassifieds = () => {
                     <Phone size={12} /> CALL
                   </a>
                   <button
-                    onClick={() => handleStartChat(l.user)}
+                    onClick={() => handleStartChat(l)}
                     disabled={l.status === 'Sold Out' || l.quantity === 0}
                     className={`py-2 text-[10px] tracking-widest font-bold uppercase flex items-center justify-center gap-1 transition ${l.status === 'Sold Out' || l.quantity === 0 ? 'bg-gray-200 text-gray-400 cursor-not-allowed' : 'bg-primary text-white hover:bg-accent hover:text-primary cursor-pointer'}`}
                   >

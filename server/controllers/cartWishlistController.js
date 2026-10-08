@@ -1,10 +1,4 @@
-<<<<<<< HEAD
-import User from '../models/User.js';
-import Product from '../models/Product.js';
-import { isDbConnected, readMockData, writeMockData } from '../utils/mockDb.js';
-=======
 import { supabase } from '../config/supabase.js';
->>>>>>> origin/main
 
 // ==========================================
 // CART CONTROLLERS
@@ -17,26 +11,11 @@ export const getCart = async (req, res) => {
   const userId = req.user._id || req.user.id;
 
   try {
-<<<<<<< HEAD
-    if (isDbConnected() && userId) {
-      const user = await User.findById(userId).populate('cart.product');
-      if (user) {
-        return res.json({ success: true, cart: user.cart || [] });
-      }
-    }
-    
-    const usersList = readMockData('users');
-    const productsList = readMockData('products');
-    const user = usersList.find(u => u._id && u._id.toString() === userId.toString());
-    
-    if (!user) {
-=======
     const { data: user, error: userError } = await supabase.from('users').select('cart').eq('id', userId).single();
     if (userError) throw userError;
 
     const cart = user?.cart || [];
     if (cart.length === 0) {
->>>>>>> origin/main
       return res.json({ success: true, cart: [] });
     }
 
@@ -208,17 +187,8 @@ export const getWishlist = async (req, res) => {
   const userId = req.user._id || req.user.id;
 
   try {
-<<<<<<< HEAD
-    if (isDbConnected() && userId) {
-      const user = await User.findById(userId).populate('wishlist');
-      if (user) {
-        return res.json({ success: true, wishlist: user.wishlist || [] });
-      }
-    }
-=======
     const { data: user, error: userError } = await supabase.from('users').select('wishlist').eq('id', userId).single();
     if (userError) throw userError;
->>>>>>> origin/main
 
     const wishlist = user?.wishlist || [];
     if (wishlist.length === 0) {

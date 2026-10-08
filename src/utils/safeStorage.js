@@ -18,8 +18,8 @@ export const safeSetItem = (key, value) => {
       try {
         // Purge non-critical or legacy cache keys to free up quota
         const keysToPurge = [
-          'pawora_vet_doctors_v1',
-          'pawora_adoption_documents',
+          'joshpetshub_vet_doctors_v1',
+          'joshpetshub_adoption_documents',
           'sellerDashboardTab',
           'transportDashboardTab',
           'walkingDashboardTab',

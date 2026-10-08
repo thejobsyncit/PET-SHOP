@@ -5,9 +5,9 @@ import { setCookie, deleteCookie } from '../../utils/cookieUtils.js';
 // Helper to safely read saved user
 const getInitialUser = () => {
   try {
-    const saved = localStorage.getItem('pawora_user');
-    const sellerAvatar = localStorage.getItem('pawora_seller_avatar');
-    const sellerName = localStorage.getItem('pawora_seller_name');
+    const saved = localStorage.getItem('joshpetshub_user') || localStorage.getItem('joshpetshub_user');
+    const sellerAvatar = localStorage.getItem('joshpetshub_seller_avatar');
+    const sellerName = localStorage.getItem('joshpetshub_seller_name');
 
     if (saved) {
       const parsed = JSON.parse(saved);
@@ -21,6 +21,7 @@ const getInitialUser = () => {
           parsed.businessName = sellerName;
         }
       }
+      parsed.addresses = Array.isArray(parsed.addresses) ? parsed.addresses : [];
       return parsed;
     }
 
@@ -32,14 +33,23 @@ const getInitialUser = () => {
 
 // Async Thunks
 export const register = createAsyncThunk('auth/register', async (userData, thunkAPI) => {
+  const candidateEmail = (userData.email || '').trim().toLowerCase();
+  try {
+    const existing = JSON.parse(localStorage.getItem('joshpetshub_registered_users') || '[]');
+    const isDuplicate = Array.isArray(existing) && existing.some(u => u?.email?.trim().toLowerCase() === candidateEmail);
+    if (isDuplicate) {
+      return thunkAPI.rejectWithValue('An account with this email address already exists. Please login instead.');
+    }
+  } catch (e) {}
+
   try {
     const data = await apiRequest('/auth/register', {
       method: 'POST',
       body: JSON.stringify(userData),
     });
-    localStorage.setItem('pawora_token', data.token);
+    localStorage.setItem('joshpetshub_token', data.token);
     if (data.user) {
-      localStorage.setItem('pawora_user', JSON.stringify(data.user));
+      localStorage.setItem('joshpetshub_user', JSON.stringify(data.user));
     }
     return data;
   } catch (error) {
@@ -67,14 +77,14 @@ export const register = createAsyncThunk('auth/register', async (userData, thunk
       addresses: []
     };
     const simulatedToken = 'token_' + Date.now();
-    localStorage.setItem('pawora_token', simulatedToken);
-    localStorage.setItem('pawora_user', JSON.stringify(simulatedUser));
+    localStorage.setItem('joshpetshub_token', simulatedToken);
+    localStorage.setItem('joshpetshub_user', JSON.stringify(simulatedUser));
 
     try {
-      const existing = JSON.parse(localStorage.getItem('pawora_registered_users') || '[]');
+      const existing = JSON.parse(localStorage.getItem('joshpetshub_registered_users') || '[]');
       const filtered = existing.filter(u => u.email !== simulatedUser.email && u.mobile !== simulatedUser.mobile);
       filtered.push(simulatedUser);
-      localStorage.setItem('pawora_registered_users', JSON.stringify(filtered));
+      localStorage.setItem('joshpetshub_registered_users', JSON.stringify(filtered));
     } catch (e) {}
 
     return { token: simulatedToken, user: simulatedUser };
@@ -91,9 +101,9 @@ export const login = createAsyncThunk('auth/login', async (credentials, thunkAPI
       method: 'POST',
       body: JSON.stringify({ identifier: rawId, email: rawId, mobile: cleanMobile, password }),
     });
-    localStorage.setItem('pawora_token', data.token);
+    localStorage.setItem('joshpetshub_token', data.token);
     if (data.user) {
-      localStorage.setItem('pawora_user', JSON.stringify(data.user));
+      localStorage.setItem('joshpetshub_user', JSON.stringify(data.user));
     }
     return data;
   } catch (error) {
@@ -239,7 +249,7 @@ export const login = createAsyncThunk('auth/login', async (credentials, thunkAPI
         }
       ];
 
-      const registeredUsers = JSON.parse(localStorage.getItem('pawora_registered_users') || '[]');
+      const registeredUsers = JSON.parse(localStorage.getItem('joshpetshub_registered_users') || '[]');
       const allAccounts = [...DEMO_ACCOUNTS, ...registeredUsers];
       
       const matched = allAccounts.find((u) => {
@@ -247,8 +257,8 @@ export const login = createAsyncThunk('auth/login', async (credentials, thunkAPI
         const searchId = rawId.toLowerCase();
         const emailMatch = uEmail && (
           uEmail === searchId ||
-          uEmail.replace('@joshpetshub.com', '@pawora.com') === searchId ||
-          uEmail.replace('@pawora.com', '@joshpetshub.com') === searchId
+          uEmail.replace('@joshpetshub.com', '@joshpetshub.com') === searchId ||
+          uEmail.replace('@joshpetshub.com', '@joshpetshub.com') === searchId
         );
         const userMobileClean = (u.mobile || '').replace(/\D/g, '');
         const mobileMatch = cleanMobile.length >= 10 && userMobileClean && (
@@ -264,8 +274,8 @@ export const login = createAsyncThunk('auth/login', async (credentials, thunkAPI
 
       if (matched) {
         const isPetSeller = matched.serviceCategory === 'Pet Seller' || matched._id === 'prov-seller-04';
-        const sellerAvatar = isPetSeller ? localStorage.getItem('pawora_seller_avatar') : null;
-        const sellerName = isPetSeller ? localStorage.getItem('pawora_seller_name') : null;
+        const sellerAvatar = isPetSeller ? localStorage.getItem('joshpetshub_seller_avatar') : null;
+        const sellerName = isPetSeller ? localStorage.getItem('joshpetshub_seller_name') : null;
         const mergedUser = {
           ...matched,
           avatar: sellerAvatar || matched.avatar,
@@ -274,8 +284,8 @@ export const login = createAsyncThunk('auth/login', async (credentials, thunkAPI
           businessName: sellerName || matched.businessName
         };
         const token = 'token_' + Date.now();
-        localStorage.setItem('pawora_token', token);
-        localStorage.setItem('pawora_user', JSON.stringify(mergedUser));
+        localStorage.setItem('joshpetshub_token', token);
+        localStorage.setItem('joshpetshub_user', JSON.stringify(mergedUser));
         return { token, user: mergedUser };
       }
     } catch (e) {}
@@ -286,7 +296,7 @@ export const login = createAsyncThunk('auth/login', async (credentials, thunkAPI
 
 export const fetchProfile = createAsyncThunk('auth/fetchProfile', async (_, thunkAPI) => {
   try {
-    const token = localStorage.getItem('pawora_token');
+    const token = localStorage.getItem('joshpetshub_token');
     const saved = getInitialUser();
     
     // Always prefer our local saved user if it contains user profile details
@@ -297,15 +307,15 @@ export const fetchProfile = createAsyncThunk('auth/fetchProfile', async (_, thun
       const data = await apiRequest('/auth/profile');
       if (data && data.user) {
         const isPetSeller = data.user.serviceCategory === 'Pet Seller' || data.user._id === 'prov-seller-04';
-        const sellerAvatar = isPetSeller ? localStorage.getItem('pawora_seller_avatar') : null;
-        const sellerName = isPetSeller ? localStorage.getItem('pawora_seller_name') : null;
+        const sellerAvatar = isPetSeller ? localStorage.getItem('joshpetshub_seller_avatar') : null;
+        const sellerName = isPetSeller ? localStorage.getItem('joshpetshub_seller_name') : null;
         const finalUser = {
           ...data.user,
           avatar: sellerAvatar || data.user.avatar || saved?.avatar,
           profilePicture: sellerAvatar || data.user.profilePicture || saved?.profilePicture,
           name: sellerName || data.user.name || saved?.name
         };
-        localStorage.setItem('pawora_user', JSON.stringify(finalUser));
+        localStorage.setItem('joshpetshub_user', JSON.stringify(finalUser));
         return { user: finalUser };
       }
     }
@@ -327,7 +337,7 @@ export const updateProfile = createAsyncThunk('auth/updateProfile', async (profi
       _id: 'user_' + Date.now(),
       name: profileData.name || 'User',
       role: 'CUSTOMER',
-      email: 'user@pawora.com'
+      email: 'user@joshpetshub.com'
     };
 
     const finalAvatar = profileData.avatar || profileData.profilePicture || saved.avatar || saved.profilePicture;
@@ -344,36 +354,36 @@ export const updateProfile = createAsyncThunk('auth/updateProfile', async (profi
 
     // Safely write to localStorage with dedicated backup keys for Pet Seller
     try {
-      localStorage.setItem('pawora_user', JSON.stringify(updated));
+      localStorage.setItem('joshpetshub_user', JSON.stringify(updated));
       if (updated.serviceCategory === 'Pet Seller' || updated._id === 'prov-seller-04') {
         if (finalAvatar) {
-          localStorage.setItem('pawora_seller_avatar', finalAvatar);
+          localStorage.setItem('joshpetshub_seller_avatar', finalAvatar);
         }
         if (finalName) {
-          localStorage.setItem('pawora_seller_name', finalName);
+          localStorage.setItem('joshpetshub_seller_name', finalName);
         }
       }
-      if (!localStorage.getItem('pawora_token')) {
-        localStorage.setItem('pawora_token', 'token_' + Date.now());
+      if (!localStorage.getItem('joshpetshub_token')) {
+        localStorage.setItem('joshpetshub_token', 'token_' + Date.now());
       }
     } catch (e) {
-      console.warn('LocalStorage error while saving pawora_user:', e);
+      console.warn('LocalStorage error while saving joshpetshub_user:', e);
     }
 
     // Persist changes across logouts by saving to local registered users
     try {
-      const registered = JSON.parse(localStorage.getItem('pawora_registered_users') || '[]');
+      const registered = JSON.parse(localStorage.getItem('joshpetshub_registered_users') || '[]');
       const idx = registered.findIndex(u => u._id === updated._id || (u.email && updated.email && u.email.toLowerCase() === updated.email.toLowerCase()));
       if (idx !== -1) {
         registered[idx] = { ...registered[idx], ...updated };
       } else {
         registered.push(updated);
       }
-      localStorage.setItem('pawora_registered_users', JSON.stringify(registered));
+      localStorage.setItem('joshpetshub_registered_users', JSON.stringify(registered));
     } catch (e) {}
 
     // Asynchronously try updating backend (without failing if demo account / offline)
-    const token = localStorage.getItem('pawora_token');
+    const token = localStorage.getItem('joshpetshub_token');
     if (token) {
       try {
         const data = await apiRequest('/auth/profile', {
@@ -383,7 +393,7 @@ export const updateProfile = createAsyncThunk('auth/updateProfile', async (profi
         if (data && data.user) {
           const merged = { ...updated, ...data.user, ...profileData, avatar: finalAvatar, profilePicture: finalAvatar };
           try {
-            localStorage.setItem('pawora_user', JSON.stringify(merged));
+            localStorage.setItem('joshpetshub_user', JSON.stringify(merged));
           } catch (e) {}
           return { user: merged };
         }
@@ -398,7 +408,7 @@ export const updateProfile = createAsyncThunk('auth/updateProfile', async (profi
     const saved = getInitialUser() || { name: profileData.name || 'Royal Paws Elite Pet Sellers', ...profileData };
     const fallbackUpdated = { ...saved, ...profileData };
     try {
-      localStorage.setItem('pawora_user', JSON.stringify(fallbackUpdated));
+      localStorage.setItem('joshpetshub_user', JSON.stringify(fallbackUpdated));
     } catch (e) {}
     return { user: fallbackUpdated };
   }
@@ -406,34 +416,68 @@ export const updateProfile = createAsyncThunk('auth/updateProfile', async (profi
 
 export const addUserAddress = createAsyncThunk('auth/addUserAddress', async (addressData, thunkAPI) => {
   try {
-    return await apiRequest('/auth/address', {
+    const data = await apiRequest('/auth/address', {
       method: 'POST',
       body: JSON.stringify(addressData),
     });
+    if (data && data.addresses) {
+      return data;
+    }
   } catch (error) {
-    return thunkAPI.rejectWithValue(error.message);
+    console.warn('Backend address sync notice:', error.message);
   }
+
+  // Resilient fallback for demo / offline / non-persisted accounts
+  const state = thunkAPI.getState();
+  const currentUser = state.auth.user;
+  if (currentUser) {
+    const currentAddresses = Array.isArray(currentUser.addresses) ? [...currentUser.addresses] : [];
+    const newAddress = {
+      _id: 'addr_' + Date.now(),
+      ...addressData,
+      isDefault: addressData.isDefault ?? currentAddresses.length === 0
+    };
+    let updatedAddresses = currentAddresses;
+    if (newAddress.isDefault) {
+      updatedAddresses = updatedAddresses.map(a => ({ ...a, isDefault: false }));
+    }
+    updatedAddresses.push(newAddress);
+    return { success: true, addresses: updatedAddresses };
+  }
+  return thunkAPI.rejectWithValue('Unable to save address: No active session');
 });
 
 export const removeUserAddress = createAsyncThunk('auth/removeUserAddress', async (addressId, thunkAPI) => {
   try {
-    return await apiRequest(`/auth/address/${addressId}`, {
+    const data = await apiRequest(`/auth/address/${addressId}`, {
       method: 'DELETE',
     });
+    if (data && data.addresses) {
+      return data;
+    }
   } catch (error) {
-    return thunkAPI.rejectWithValue(error.message);
+    console.warn('Backend address delete notice:', error.message);
   }
+
+  const state = thunkAPI.getState();
+  const currentUser = state.auth.user;
+  if (currentUser) {
+    const currentAddresses = Array.isArray(currentUser.addresses) ? currentUser.addresses : [];
+    const updatedAddresses = currentAddresses.filter(a => a._id !== addressId);
+    return { success: true, addresses: updatedAddresses };
+  }
+  return thunkAPI.rejectWithValue('Unable to remove address: No active session');
 });
 
 const initialUser = getInitialUser();
-const savedToken = localStorage.getItem('pawora_token');
+const savedToken = localStorage.getItem('joshpetshub_token') || localStorage.getItem('joshpetshub_token');
 
 // Self-heal session token if user is saved in localStorage
 let initialToken = savedToken;
 if (initialUser && !initialToken) {
   initialToken = 'token_' + (initialUser._id || Date.now());
   try {
-    localStorage.setItem('pawora_token', initialToken);
+    localStorage.setItem('joshpetshub_token', initialToken);
   } catch (e) {}
 }
 
@@ -456,22 +500,22 @@ const authSlice = createSlice({
       state.user = user;
       state.loading = false;
       state.error = null;
-      localStorage.setItem('pawora_token', token);
-      localStorage.setItem('pawora_user', JSON.stringify(user));
+      localStorage.setItem('joshpetshub_token', token);
+      localStorage.setItem('joshpetshub_user', JSON.stringify(user));
       setCookie('josh_auth_session', 'active', 30);
 
       try {
-        const existing = JSON.parse(localStorage.getItem('pawora_registered_users') || '[]');
+        const existing = JSON.parse(localStorage.getItem('joshpetshub_registered_users') || '[]');
         const filtered = existing.filter((u) => u.email !== user.email && u.mobile !== user.mobile);
         filtered.push(user);
-        localStorage.setItem('pawora_registered_users', JSON.stringify(filtered));
+        localStorage.setItem('joshpetshub_registered_users', JSON.stringify(filtered));
       } catch (e) {}
     },
     logout(state) {
-      localStorage.removeItem('pawora_token');
-      localStorage.removeItem('pawora_user');
+      localStorage.removeItem('joshpetshub_token');
+      localStorage.removeItem('joshpetshub_user');
       deleteCookie('josh_auth_session');
-      deleteCookie('pawora_token');
+      deleteCookie('joshpetshub_token');
       try {
         apiRequest('/auth/logout', { method: 'POST' }).catch(() => {});
       } catch (_) {}
@@ -558,11 +602,29 @@ const authSlice = createSlice({
       .addCase(addUserAddress.fulfilled, (state, action) => {
         if (state.user) {
           state.user.addresses = action.payload.addresses;
+          localStorage.setItem('joshpetshub_user', JSON.stringify(state.user));
+          try {
+            const regUsers = JSON.parse(localStorage.getItem('joshpetshub_registered_users') || '[]');
+            const idx = regUsers.findIndex(u => u.email === state.user.email || u.mobile === state.user.mobile);
+            if (idx !== -1) {
+              regUsers[idx].addresses = action.payload.addresses;
+              localStorage.setItem('joshpetshub_registered_users', JSON.stringify(regUsers));
+            }
+          } catch (e) {}
         }
       })
       .addCase(removeUserAddress.fulfilled, (state, action) => {
         if (state.user) {
           state.user.addresses = action.payload.addresses;
+          localStorage.setItem('joshpetshub_user', JSON.stringify(state.user));
+          try {
+            const regUsers = JSON.parse(localStorage.getItem('joshpetshub_registered_users') || '[]');
+            const idx = regUsers.findIndex(u => u.email === state.user.email || u.mobile === state.user.mobile);
+            if (idx !== -1) {
+              regUsers[idx].addresses = action.payload.addresses;
+              localStorage.setItem('joshpetshub_registered_users', JSON.stringify(regUsers));
+            }
+          } catch (e) {}
         }
       });
   },

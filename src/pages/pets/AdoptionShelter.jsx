@@ -20,6 +20,7 @@ import {
   recordUserFreeAdoption
 } from '../../data/adoptionPetsData';
 import ScrollReveal from '../../components/ui/ScrollReveal.jsx';
+import { handleServiceAction } from '../../components/widgets/ServicePackageAccessModal.jsx';
 
 // Hero Auto-Rotating Slides (Dogs, Cats, Birds)
 const HERO_SLIDES = [
@@ -309,6 +310,50 @@ const AdoptionShelter = () => {
     }
 
     setShowAddPetModal(true);
+  };
+
+  // Handle "Know More About [Pet]" click:
+  // 1. Without login: show the already existing registration/auth popup for this page
+  // 2. If registered & logged in: show the payment / service access modal from other service pages
+  const handleKnowMore = (pet) => {
+    if (!isAuthenticated || !user) {
+      toast.error('Please register or log in as a user to view adoption details.', {
+        duration: 4000,
+        icon: '🔒'
+      });
+      window.dispatchEvent(
+        new CustomEvent('open-register-modal', {
+          detail: {
+            tab: 'user',
+            hideProviderTab: true,
+            source: 'adoption-know-more',
+            petName: pet?.name
+          }
+        })
+      );
+      return;
+    }
+
+    handleServiceAction({
+      isAuthenticated: true,
+      serviceType: 'Adoption',
+      provider: {
+        id: pet.id,
+        name: pet.name,
+        parentName: pet.parentName || pet.guardianName || 'Rescue Shelter',
+        breed: pet.breed,
+        gender: pet.gender,
+        age: pet.age,
+        city: pet.city,
+        area: pet.state,
+        phone: pet.parentContact || pet.shelterPhone || '+91 98765 43210',
+        image: pet.image,
+        rating: 4.9,
+        reviews: 42,
+        price: pet.fee ? Number(pet.fee) : 499
+      },
+      action: 'adopt'
+    });
   };
 
   // Auto-fill guardian info if logged in when opening Add Pet modal
@@ -886,8 +931,11 @@ const AdoptionShelter = () => {
                       className="bg-white rounded-2xl border border-beige/90 shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden flex flex-col justify-between group hover:-translate-y-1"
                     >
                       
-                      {/* Card Top: Image with Quality & Pricing Badges (Clickable to detail page) */}
-                      <Link to={`/adopt/${pet.id}`} className="relative aspect-[4/3] overflow-hidden bg-sand block">
+                      {/* Card Top: Image with Quality & Pricing Badges */}
+                      <div 
+                        onClick={() => handleKnowMore(pet)} 
+                        className="relative aspect-[4/3] overflow-hidden bg-sand block cursor-pointer group"
+                      >
                         <img
                           src={pet.image}
                           alt={pet.name}
@@ -904,7 +952,7 @@ const AdoptionShelter = () => {
                         <span className={`absolute top-3 left-3 ${(pet.fee > 0 || pet.price > 0) ? 'bg-[#0F2E23]/95 text-amber-300 border border-amber-300/30' : 'bg-emerald-600/95 text-white'} backdrop-blur-xs text-[10px] font-black px-2.5 py-0.5 rounded-md shadow-sm uppercase tracking-wider`}>
                           {(pet.fee > 0 || pet.price > 0) ? `₹${pet.fee || pet.price} Fee` : 'Free Adoption'}
                         </span>
-                      </Link>
+                      </div>
   
                       {/* Card Body: Details */}
                       <div className="p-4 space-y-2.5 flex-1 flex flex-col justify-between">
@@ -913,9 +961,13 @@ const AdoptionShelter = () => {
                           {/* Name Header */}
                           <h3 className="text-sm font-bold text-slate-800">
                             Hi! My name is:{' '}
-                            <Link to={`/adopt/${pet.id}`} className="text-primary font-extrabold text-base hover:underline">
+                            <button 
+                              type="button" 
+                              onClick={() => handleKnowMore(pet)}
+                              className="text-primary font-extrabold text-base hover:underline cursor-pointer inline-block text-left"
+                            >
                               {pet.name}
-                            </Link>
+                            </button>
                           </h3>
   
                           {/* Specs Row 1 */}
@@ -947,14 +999,15 @@ const AdoptionShelter = () => {
                           </div>
                         </div>
 
-                        {/* Action Button: Navigate to Details Page */}
+                        {/* Action Button: Know More */}
                         <div className="pt-2 border-t border-slate-100">
-                          <Link
-                            to={`/adopt/${pet.id}`}
+                          <button
+                            type="button"
+                            onClick={() => handleKnowMore(pet)}
                             className="w-full py-2.5 px-3 bg-primary hover:bg-accent text-white rounded-xl font-bold text-xs shadow-md shadow-gold/20 active:scale-95 transition cursor-pointer text-center truncate block"
                           >
                             Know More About {pet.name}
-                          </Link>
+                          </button>
                         </div>
   
                       </div>

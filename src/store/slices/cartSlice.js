@@ -38,10 +38,10 @@ const calculateTotals = (items, appliedCoupon = null) => {
 // Async Thunks
 export const fetchCart = createAsyncThunk('cart/fetchCart', async (_, thunkAPI) => {
   try {
-    const token = localStorage.getItem('pawora_token');
+    const token = localStorage.getItem('joshpetshub_token');
     if (!token) {
       // Return guest cart from localStorage
-      const localCart = JSON.parse(localStorage.getItem('pawora_cart') || '[]');
+      const localCart = JSON.parse(localStorage.getItem('joshpetshub_cart') || '[]');
       return { cart: localCart };
     }
     return await apiRequest('/cart');
@@ -52,17 +52,17 @@ export const fetchCart = createAsyncThunk('cart/fetchCart', async (_, thunkAPI) 
 
 export const addToCartAPI = createAsyncThunk('cart/addToCart', async ({ product, quantity = 1 }, thunkAPI) => {
   try {
-    const token = localStorage.getItem('pawora_token');
+    const token = localStorage.getItem('joshpetshub_token');
     if (!token) {
       // Handle local guest cart
-      const localCart = JSON.parse(localStorage.getItem('pawora_cart') || '[]');
+      const localCart = JSON.parse(localStorage.getItem('joshpetshub_cart') || '[]');
       const existIdx = localCart.findIndex(item => item.product._id === product._id);
       if (existIdx > -1) {
         localCart[existIdx].quantity += quantity;
       } else {
         localCart.push({ product, quantity });
       }
-      localStorage.setItem('pawora_cart', JSON.stringify(localCart));
+      localStorage.setItem('joshpetshub_cart', JSON.stringify(localCart));
       return { cart: localCart };
     }
     
@@ -79,14 +79,14 @@ export const addToCartAPI = createAsyncThunk('cart/addToCart', async ({ product,
 
 export const updateCartQuantityAPI = createAsyncThunk('cart/updateQuantity', async ({ productId, quantity }, thunkAPI) => {
   try {
-    const token = localStorage.getItem('pawora_token');
+    const token = localStorage.getItem('joshpetshub_token');
     if (!token) {
-      const localCart = JSON.parse(localStorage.getItem('pawora_cart') || '[]');
+      const localCart = JSON.parse(localStorage.getItem('joshpetshub_cart') || '[]');
       const existIdx = localCart.findIndex(item => item.product._id === productId);
       if (existIdx > -1) {
         localCart[existIdx].quantity = quantity;
       }
-      localStorage.setItem('pawora_cart', JSON.stringify(localCart));
+      localStorage.setItem('joshpetshub_cart', JSON.stringify(localCart));
       return { cart: localCart };
     }
 
@@ -101,11 +101,11 @@ export const updateCartQuantityAPI = createAsyncThunk('cart/updateQuantity', asy
 
 export const removeFromCartAPI = createAsyncThunk('cart/removeFromCart', async (productId, thunkAPI) => {
   try {
-    const token = localStorage.getItem('pawora_token');
+    const token = localStorage.getItem('joshpetshub_token');
     if (!token) {
-      let localCart = JSON.parse(localStorage.getItem('pawora_cart') || '[]');
+      let localCart = JSON.parse(localStorage.getItem('joshpetshub_cart') || '[]');
       localCart = localCart.filter(item => item.product._id !== productId);
-      localStorage.setItem('pawora_cart', JSON.stringify(localCart));
+      localStorage.setItem('joshpetshub_cart', JSON.stringify(localCart));
       return { cart: localCart };
     }
 
@@ -119,9 +119,9 @@ export const removeFromCartAPI = createAsyncThunk('cart/removeFromCart', async (
 
 export const clearCartAPI = createAsyncThunk('cart/clearCart', async (_, thunkAPI) => {
   try {
-    const token = localStorage.getItem('pawora_token');
+    const token = localStorage.getItem('joshpetshub_token');
     if (!token) {
-      localStorage.removeItem('pawora_cart');
+      localStorage.removeItem('joshpetshub_cart');
       return { cart: [] };
     }
     return await apiRequest('/cart', {

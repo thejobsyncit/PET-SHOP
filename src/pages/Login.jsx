@@ -378,6 +378,7 @@ const Login = () => {
   const [userPurposeError, setUserPurposeError] = useState('');
 
   const [userEmail, setUserEmail] = useState('');
+  const [userEmailError, setUserEmailError] = useState('');
   const [userPassword, setUserPassword] = useState('');
   const [userPasswordError, setUserPasswordError] = useState('');
 
@@ -510,6 +511,41 @@ const Login = () => {
       dispatch(clearAuthError());
     }
   }, [error, dispatch]);
+
+  // Existing Registered / Demo Accounts Email Duplicate Checker (Issue 9)
+  const EXISTING_SYSTEM_EMAILS = [
+    'dr.ramesh@joshpetshub.com',
+    'velvetfur@joshpetshub.com',
+    'happypaws@joshpetshub.com',
+    'royalpaws@joshpetshub.com',
+    'adopt@joshpetshub.com',
+    'swiftpaws@joshpetshub.com',
+    'safepet@joshpetshub.com',
+    'clevercanines@joshpetshub.com',
+    'pawinsure@joshpetshub.com',
+    'elitebreed@joshpetshub.com',
+    'priya@joshpetshub.com',
+    'admin@joshpetshub.com'
+  ];
+
+  const checkEmailAlreadyRegistered = (email) => {
+    if (!email) return false;
+    const clean = email.trim().toLowerCase();
+    if (EXISTING_SYSTEM_EMAILS.includes(clean)) return true;
+    try {
+      const list = JSON.parse(localStorage.getItem('joshpetshub_registered_users') || '[]');
+      if (Array.isArray(list) && list.some(u => u?.email?.trim().toLowerCase() === clean)) {
+        return true;
+      }
+    } catch (e) {}
+    try {
+      const curr = JSON.parse(localStorage.getItem('joshpetshub_user') || 'null');
+      if (curr?.email?.trim().toLowerCase() === clean) {
+        return true;
+      }
+    } catch (e) {}
+    return false;
+  };
 
   // Password Complexity Validator (Max 10 chars, Cap, Small, Num, Spec)
   const validatePassword = (pwd) => {
@@ -744,7 +780,24 @@ const Login = () => {
       toast.error(pwdErr);
       return;
     }
-    // 5. District / Location validation
+
+    // 5. Email format and duplicate validation (Issue 9)
+    if (userEmail && userEmail.trim()) {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(userEmail.trim())) {
+        setUserEmailError('Please enter a valid email address *');
+        toast.error('Please enter a valid email address!');
+        return;
+      }
+      if (checkEmailAlreadyRegistered(userEmail)) {
+        setUserEmailError('This email is already registered. Please log in or use a different email *');
+        toast.error('An account with this email address already exists! Please log in instead.');
+        return;
+      }
+    }
+    setUserEmailError('');
+
+    // 6. District / Location validation
     const finalUserLocationCity = (selectedUserCity || userCitySearch).trim();
     if (!finalUserLocationCity) {
       toast.error('Please select your district / city *');
@@ -810,6 +863,11 @@ const Login = () => {
     if (!providerEmail || !providerEmail.includes('@')) {
       setProviderEmailError('Business Email is mandatory for Service Providers *');
       toast.error('Business Email is required for Service Providers!');
+      return;
+    }
+    if (checkEmailAlreadyRegistered(providerEmail)) {
+      setProviderEmailError('This email is already registered. Please log in or use a different email *');
+      toast.error('An account with this email address already exists! Please log in instead.');
       return;
     }
     setProviderEmailError('');
@@ -1645,14 +1703,26 @@ const Login = () => {
 
                   {/* Email & Password Grid */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <div>
+                    <div className="space-y-1">
                       <input
                         type="email"
                         placeholder="Email"
                         value={userEmail}
-                        onChange={(e) => setUserEmail(e.target.value)}
-                        className="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-xs md:text-sm focus:outline-none focus:border-[#15559c] focus:ring-2 focus:ring-blue-100 transition bg-slate-50/50 hover:bg-white font-medium"
+                        onChange={(e) => {
+                          setUserEmail(e.target.value);
+                          if (userEmailError) setUserEmailError('');
+                        }}
+                        className={`w-full px-4 py-2.5 border rounded-xl text-xs md:text-sm focus:outline-none transition font-medium ${
+                          userEmailError
+                            ? 'border-red-500 ring-2 ring-red-100 bg-red-50/20 text-red-900'
+                            : 'border-slate-200 focus:border-[#15559c] focus:ring-2 focus:ring-blue-100 bg-slate-50/50 hover:bg-white'
+                        }`}
                       />
+                      {userEmailError && (
+                        <p className="text-[10px] font-bold text-red-500 pl-1 leading-tight flex items-center gap-1">
+                          <AlertCircle size={10} /> {userEmailError}
+                        </p>
+                      )}
                     </div>
 
                     <div className="space-y-1">

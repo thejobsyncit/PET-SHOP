@@ -25,25 +25,25 @@ export const categories = [
 ];
 
 export const brands = [
-  'Royal Canin', 'Pedigree', 'Drools', 'Zoo Med', 'Exo Terra', 'API', 'Hikari', 'Himalaya', 'Beaphar', 'Pawora'
+  'Royal Canin', 'Pedigree', 'Drools', 'Zoo Med', 'Exo Terra', 'API', 'Hikari', 'Himalaya', 'Beaphar', 'Josh Pets Hub'
 ];
 
 export const users = [
   {
-    name: 'Pawora Superadmin',
-    email: 'superadmin@pawora.com',
+    name: 'JOSH PETS HUB Superadmin',
+    email: 'superadmin@joshpetshub.com',
     password: hashPassword('SuperAdmin@123'),
     role: 'SUPERADMIN',
     addresses: []
   },
   {
-    name: 'Pawora Admin',
-    email: 'admin@pawora.com',
+    name: 'JOSH PETS HUB Admin',
+    email: 'admin@joshpetshub.com',
     password: hashPassword('Admin@123'),
     role: 'ADMIN',
     addresses: [
       {
-        name: 'Pawora Corporate HQ',
+        name: 'JOSH PETS HUB Corporate HQ',
         phone: '9876543210',
         streetAddress: '12, Luxury Retail Lane, MG Road',
         city: 'Bangalore',
@@ -56,7 +56,7 @@ export const users = [
   },
   {
     name: 'Aarav Sharma',
-    email: 'customer1@pawora.com',
+    email: 'customer1@joshpetshub.com',
     password: hashPassword('Customer@123'),
     role: 'CUSTOMER',
     addresses: [
@@ -74,7 +74,7 @@ export const users = [
   },
   {
     name: 'Ananya Iyer',
-    email: 'customer2@pawora.com',
+    email: 'customer2@joshpetshub.com',
     password: hashPassword('Customer@123'),
     role: 'CUSTOMER',
     addresses: [
@@ -92,21 +92,21 @@ export const users = [
   },
   {
     name: 'Rahul Verma',
-    email: 'customer3@pawora.com',
+    email: 'customer3@joshpetshub.com',
     password: hashPassword('Customer@123'),
     role: 'CUSTOMER',
     addresses: []
   },
   {
     name: 'Pooja Nair',
-    email: 'customer4@pawora.com',
+    email: 'customer4@joshpetshub.com',
     password: hashPassword('Customer@123'),
     role: 'CUSTOMER',
     addresses: []
   },
   {
     name: 'Vikram Singh',
-    email: 'customer5@pawora.com',
+    email: 'customer5@joshpetshub.com',
     password: hashPassword('Customer@123'),
     role: 'CUSTOMER',
     addresses: []
@@ -203,7 +203,7 @@ export const products = [
   {
     name: 'Orthopedic Memory Foam Dog Bed (Large)',
     slug: 'orthopedic-memory-foam-dog-bed-l',
-    brand: 'Pawora',
+    brand: 'Josh Pets Hub',
     sku: 'DOG-PW-ORTHOBED-L',
     description: 'Therapeutic memory foam pet bed with removable, machine-washable plush cover.',
     longDescription: 'Crafted with a dual-layer design (2 inches of medical-grade gel memory foam and 3 inches of support foam), this premium bed cradles joint pressure points and relieves arthritis pain. The water-resistant inner lining protects the foam from spills and accidents, while the luxury suede outer cover matches modern home decors.',
@@ -231,7 +231,7 @@ export const products = [
   {
     name: 'Premium Leather Padded Dog Collar',
     slug: 'premium-leather-padded-dog-collar',
-    brand: 'Pawora',
+    brand: 'Josh Pets Hub',
     sku: 'DOG-PW-LEATHERCOLLAR',
     description: 'Handcrafted full-grain leather collar with soft neoprene padding for maximum comfort.',
     longDescription: 'This luxury leather collar is made from vegetable-tanned cowhide, detailed with brass hardware and heavy-duty stitching. The inner lining is layered with soft neoprene to prevent neck chafing, making it perfect for daily wear and training.',
@@ -258,7 +258,7 @@ export const products = [
   {
     name: 'Interactive Puzzle Smart Dog Toy',
     slug: 'interactive-puzzle-smart-dog-toy',
-    brand: 'Pawora',
+    brand: 'Josh Pets Hub',
     sku: 'DOG-PW-SMARTTOY',
     description: 'Level 2 mental stimulation puzzle toy with slide-and-lock treat hiding slots.',
     longDescription: 'Stimulate your dog\'s brain with this premium wooden-look composite puzzle. Featuring 9 sliding covers that conceal treats, it rewards search behavior, reduces boredom, and curbs destructive habits. Slip-resistant rubber feet hold the game in place during play.',
@@ -339,7 +339,7 @@ export const products = [
   {
     name: 'Double Stainless Steel Elevated Feeder Bowls',
     slug: 'double-stainless-steel-elevated-bowls',
-    brand: 'Pawora',
+    brand: 'Josh Pets Hub',
     sku: 'DOG-PW-ELEVATEDBOWLS',
     description: 'Elevated double dog diner with non-slip iron frame and two rustproof steel bowls.',
     longDescription: 'Elevating your dog\'s food bowl improves digestive alignment, reduces neck strain, and keeps pests away from food. This heavy-duty metal stand includes silent silicone bumpers under the bowls to prevent clanking while eating.',
@@ -422,7 +422,7 @@ export const products = [
   {
     name: 'Natural Sand-Blasted Java Wood Bird Perch',
     slug: 'natural-java-wood-bird-perch',
-    brand: 'Pawora',
+    brand: 'Josh Pets Hub',
     sku: 'BRD-PW-JAVAPERCH-M',
     description: 'Ultra-durable, natural Java wood perch with variable diameters to exercise bird feet.',
     longDescription: 'Java wood perches are harvested from plantation coffee trees, providing a hard, rugged texture that naturally grooms nails and beaks. The varying thickness simulates natural branches, preventing bumblefoot and muscle stiffness in pet birds.',
@@ -449,7 +449,7 @@ export const products = [
   {
     name: 'Premium Large Wrought Iron Bird Cage',
     slug: 'premium-wrought-iron-bird-cage',
-    brand: 'Pawora',
+    brand: 'Josh Pets Hub',
     sku: 'BRD-PW-IRONCAGE-XL',
     description: 'Luxury open-playtop bird cage with rolling stand, seed catcher, and locking feed doors.',
     longDescription: 'A gorgeous home for cockatiels, African greys, or ringnecks. Built with thick wrought iron, non-toxic powder coating, and narrow bar spacing. The drop-down landing gate and open playtop allow out-of-cage play, and the slide-out bottom tray makes clean-up quick and painless.',
@@ -503,7 +503,7 @@ export const products = [
   {
     name: 'Multi-Color Wooden Chew & Rope Bird Toy',
     slug: 'multi-color-wooden-rope-bird-toy',
-    brand: 'Pawora',
+    brand: 'Josh Pets Hub',
     sku: 'BRD-PW-WOODTOY',
     description: 'Colorful chew toy made of safe food-dye dyed pine wood blocks and cotton rope.',
     longDescription: 'Keep intelligent birds busy for hours. Birds love to shred, preen, and chew. This block toy encourages climbing, chewing, and beak trimming, preventing feather plucking due to anxiety or lack of stimulation.',
@@ -557,7 +557,7 @@ export const products = [
   {
     name: 'Automatic No-Mess Bird Seed Feeder',
     slug: 'automatic-no-mess-bird-feeder',
-    brand: 'Pawora',
+    brand: 'Josh Pets Hub',
     sku: 'BRD-PW-NOMESSFEEDER',
     description: 'Acrylic seed feeder that catches hulls and debris, maintaining cage hygiene.',
     longDescription: 'This transparent acrylic automatic feeder feeds birds gravity-style. The hull-separating drawer underneath catches empty seed shells, keeping them separate from fresh seeds and saving you hours of cage sweep-ups.',
@@ -887,7 +887,7 @@ export const products = [
   {
     name: 'Premium Glass Rimless Nano Aquarium (30L)',
     slug: 'premium-glass-rimless-nano-aquarium',
-    brand: 'Pawora',
+    brand: 'Josh Pets Hub',
     sku: 'FSH-PW-RIMLESSTANK-30L',
     description: 'Elegant high-clarity 30L glass fish tank with curved front corners for aquascaping.',
     longDescription: 'Crafted with premium low-iron glass for maximum light transmission, this rimless aquarium provides an uninterrupted view of your underwater landscaping. Features curved front corners and a protective base mat.',
@@ -941,7 +941,7 @@ export const products = [
   {
     name: 'Submersible Automatic Aquarium Heater (100W)',
     slug: 'submersible-aquarium-heater-100w',
-    brand: 'Pawora',
+    brand: 'Josh Pets Hub',
     sku: 'FSH-PW-HEATER-100W',
     description: 'Explosion-proof quartz glass heater with adjustable thermostat scale (18-32°C).',
     longDescription: 'Maintain a stable tropical climate inside your tank with this 100W heater. Crafted from high-strength quartz glass with double waterproof insulation, it turns off automatically when water levels drop too low.',
@@ -968,7 +968,7 @@ export const products = [
   {
     name: 'Full Spectrum LED Aquarium Light (30-45 cm)',
     slug: 'full-spectrum-led-aquarium-light',
-    brand: 'Pawora',
+    brand: 'Josh Pets Hub',
     sku: 'FSH-PW-LEDLIGHT-45',
     description: 'Dimmable LED fixture with daylight and moonlight modes for live aquarium plants.',
     longDescription: 'Features 6500K white LEDs combined with red, green, and blue light bands to stimulate robust growth in live aquarium plants. Includes extendable metal brackets and an inline digital timer controller.',
@@ -995,7 +995,7 @@ export const products = [
   {
     name: 'Live Anubias Nana Aquatic Plant on Driftwood',
     slug: 'live-anubias-nana-driftwood',
-    brand: 'Pawora',
+    brand: 'Josh Pets Hub',
     sku: 'FSH-PW-ANUBIASNANA',
     description: 'Easy-care, slow-growing hardy live plant anchored to a small piece of natural driftwood.',
     longDescription: 'Anubias Nana is an exceptionally hardy aquatic plant that thrives in low light. Pre-anchored to a selected natural driftwood root, it can be dropped directly into the tank, providing instant shelter and breeding spots for small shrimp and fish.',
@@ -1105,7 +1105,7 @@ export const products = [
   {
     name: 'Premium Pet First Aid & Wound Care Kit',
     slug: 'premium-pet-first-aid-kit',
-    brand: 'Pawora',
+    brand: 'Josh Pets Hub',
     sku: 'PHM-PW-FIRSTAIDKIT',
     description: 'Comprehensive 40-piece emergency pet healthcare kit with bandages and antiseptics.',
     longDescription: 'An essential first aid kit for every pet owner. Includes gauze pads, cohesive wraps, antiseptic wipes, medical tape, tweezers, saline rinse, scissors, emergency blanket, and an instructional first-aid guide for injuries, burns, and ticks.',

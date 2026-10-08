@@ -43,6 +43,7 @@ import {
 } from '../../data/veterinaryData.js';
 import { INDIAN_STATES_CITIES } from '../../data/adoptionPetsData.js';
 import ServiceAccessLock, { isServicePathLockedForUser } from '../../components/ui/ServiceAccessLock.jsx';
+import { handleServiceAction } from '../../components/widgets/ServicePackageAccessModal.jsx';
 import ScrollReveal from '../../components/ui/ScrollReveal.jsx';
 import PetBreedDropdown from '../../components/ui/PetBreedDropdown.jsx';
 
@@ -247,24 +248,10 @@ export default function VeterinaryServices() {
     sortBy
   ]);
 
-  // Handle WhatsApp Direct Consultation
+  // Handle WhatsApp Direct Consultation or Visit
   const handleWhatsAppConsult = (doc) => {
-    const text = encodeURIComponent(
-      `Hello ${doc.name}, I found your clinic (${doc.clinicName}) on Josh Pets Hub. I would like to enquire about veterinary consultation for my pet.`
-    );
-    window.open(`https://wa.me/${doc.whatsapp}?text=${text}`, '_blank');
-  };
-
-  // Open Details Modal
-  const handleOpenDetails = (doc) => {
-    setSelectedDoctorForDetails(doc);
-    setShowDoctorModal(true);
-  };
-
-  // Open Booking Modal with Auth Verification
-  const handleOpenBooking = (doc, prefilledMode = 'In-Clinic Visit') => {
     if (!isAuthenticated) {
-      toast.error('Please log in or register to book a veterinary appointment.');
+      toast.error('Please register or log in first to contact veterinarians.', { icon: '🔒' });
       window.dispatchEvent(
         new CustomEvent('open-register-modal', {
           detail: { tab: 'user', hideProviderTab: true, source: 'veterinary' }
@@ -272,12 +259,41 @@ export default function VeterinaryServices() {
       );
       return;
     }
-    setSelectedDoctorForBooking(doc);
-    setBookingMode(prefilledMode);
-    if (heroPetType && heroPetType !== 'All Pets') {
-      setPetSpecies(heroPetType);
+    handleServiceAction({
+      isAuthenticated,
+      serviceType: 'Veterinary',
+      provider: { ...doc, phone: doc.whatsapp },
+      action: 'visit'
+    });
+  };
+
+  // Open Details Modal / Visit Doctor
+  const handleOpenDetails = (doc) => {
+    if (!isAuthenticated) {
+      toast.error('Please register or log in first to view veterinarian profiles.', { icon: '🔒' });
+      window.dispatchEvent(
+        new CustomEvent('open-register-modal', {
+          detail: { tab: 'user', hideProviderTab: true, source: 'veterinary' }
+        })
+      );
+      return;
     }
-    setShowBookingModal(true);
+    handleServiceAction({
+      isAuthenticated,
+      serviceType: 'Veterinary',
+      provider: { ...doc, phone: doc.whatsapp },
+      action: 'visit'
+    });
+  };
+
+  // Open Booking Modal with Auth Verification & Package Access
+  const handleOpenBooking = (doc, prefilledMode = 'In-Clinic Visit') => {
+    handleServiceAction({
+      isAuthenticated,
+      serviceType: 'Veterinary',
+      provider: { ...doc, phone: doc.whatsapp },
+      action: 'book'
+    });
   };
 
   // Handle Appointment Booking Submit

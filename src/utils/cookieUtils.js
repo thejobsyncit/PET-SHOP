@@ -155,7 +155,7 @@ export const clearAllCookiesData = () => {
     COOKIE_LOCATION_KEY,
     COOKIE_RECENT_KEY,
     COOKIE_AUTH_KEY,
-    'pawora_token',
+    'joshpetshub_token',
     'josh_promo_tracker'
   ].forEach((key) => {
     deleteCookie(key, { path: '/' });

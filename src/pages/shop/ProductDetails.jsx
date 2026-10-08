@@ -95,7 +95,7 @@ const ProductDetails = () => {
       return;
     }
 
-    const token = localStorage.getItem('pawora_token');
+    const token = localStorage.getItem('joshpetshub_token');
     if (!token) {
       toast.error('Please log in to submit a product review.');
       navigate('/login');

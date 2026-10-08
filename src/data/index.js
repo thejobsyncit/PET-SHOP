@@ -1,5 +1,5 @@
 // ==========================================
-// PAWORA Data Registry & Central Exports
+// JOSH PETS HUB Data Registry & Central Exports
 // ==========================================
 
 export * from './adoptionPetsData.js';

@@ -40,7 +40,7 @@ export const DEMO_PROVIDER_PERSONAS = [
     reviewsCount: 142,
     phone: '+91 98765 43210',
     whatsapp: '+91 98765 43210',
-    email: 'dr.ramesh@pawora.com',
+    email: 'dr.ramesh@joshpetshub.com',
     location: 'MG Road, Bangalore, Karnataka',
     city: 'Bangalore',
     state: 'Karnataka',
@@ -74,7 +74,7 @@ export const DEMO_PROVIDER_PERSONAS = [
     reviewsCount: 198,
     phone: '+91 98765 43210',
     whatsapp: '+91 98765 43210',
-    email: 'velvetfur@pawora.com',
+    email: 'velvetfur@joshpetshub.com',
     location: 'Koramangala 4th Block, Bangalore',
     city: 'Bangalore',
     state: 'Karnataka',
@@ -108,7 +108,7 @@ export const DEMO_PROVIDER_PERSONAS = [
     reviewsCount: 220,
     phone: '+91 98765 43210',
     whatsapp: '+91 98765 43210',
-    email: 'happypaws@pawora.com',
+    email: 'happypaws@joshpetshub.com',
     location: 'Sarjapur Road, Bangalore',
     city: 'Bangalore',
     state: 'Karnataka',
@@ -142,7 +142,7 @@ export const DEMO_PROVIDER_PERSONAS = [
     reviewsCount: 310,
     phone: '+91 98765 43210',
     whatsapp: '+91 98765 43210',
-    email: 'royalpaws@pawora.com',
+    email: 'royalpaws@joshpetshub.com',
     location: 'Indiranagar, Bangalore, Karnataka',
     city: 'Bangalore',
     state: 'Karnataka',
@@ -182,7 +182,7 @@ export const DEMO_PROVIDER_PERSONAS = [
     reviewsCount: 420,
     phone: '+91 98765 43210',
     whatsapp: '+91 98765 43210',
-    email: 'adopt@pawora.com',
+    email: 'adopt@joshpetshub.com',
     location: 'Whitefield, Bangalore, Karnataka',
     city: 'Bangalore',
     state: 'Karnataka',
@@ -677,11 +677,11 @@ export const INITIAL_PAYOUTS = [
 ];
 
 // Local Storage Keys
-const STORAGE_SERVICES_KEY = 'pawora_provider_services';
-const STORAGE_BOOKINGS_KEY = 'pawora_provider_bookings';
-const STORAGE_REVIEWS_KEY = 'pawora_provider_reviews';
-const STORAGE_PAYOUTS_KEY = 'pawora_provider_payouts';
-const STORAGE_PROFILES_KEY = 'pawora_provider_profiles';
+const STORAGE_SERVICES_KEY = 'joshpetshub_provider_services';
+const STORAGE_BOOKINGS_KEY = 'joshpetshub_provider_bookings';
+const STORAGE_REVIEWS_KEY = 'joshpetshub_provider_reviews';
+const STORAGE_PAYOUTS_KEY = 'joshpetshub_provider_payouts';
+const STORAGE_PROFILES_KEY = 'joshpetshub_provider_profiles';
 
 // ==========================================
 // PERSISTENCE GETTERS & SETTERS

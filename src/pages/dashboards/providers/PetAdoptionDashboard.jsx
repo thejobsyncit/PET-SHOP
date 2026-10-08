@@ -103,7 +103,7 @@ const PetAdoptionDashboard = ({
   // =========================================================================
   const savedDocsData = useMemo(() => {
     try {
-      const saved = localStorage.getItem('pawora_adoption_documents');
+      const saved = localStorage.getItem('joshpetshub_adoption_documents');
       if (saved) return JSON.parse(saved);
     } catch (_e) {}
     return null;
@@ -383,15 +383,19 @@ const PetAdoptionDashboard = ({
 
   // Filtered Pets for Inventory Table / Grid
   const availablePets = useMemo(() => {
-    return allPets.filter(p => !p.adopted && p.status !== 'Adopted');
+    const list = Array.isArray(allPets) ? allPets : [];
+    return list.filter(p => p && !p.adopted && p.status !== 'Adopted');
   }, [allPets]);
 
   const soldPets = useMemo(() => {
-    return allPets.filter(p => p.adopted || p.status === 'Adopted');
+    const list = Array.isArray(allPets) ? allPets : [];
+    return list.filter(p => p && (p.adopted || p.status === 'Adopted'));
   }, [allPets]);
 
   const filteredPets = useMemo(() => {
-    return allPets.filter(p => {
+    const list = Array.isArray(allPets) ? allPets : [];
+    return list.filter(p => {
+      if (!p) return false;
       // Search match
       const matchSearch = !petSearchQuery.trim() || 
         p.name?.toLowerCase().includes(petSearchQuery.toLowerCase()) ||
@@ -422,11 +426,12 @@ const PetAdoptionDashboard = ({
 
   // Filtered Applications
   const filteredApplications = useMemo(() => {
-    if (appStatusFilter === 'All') return applications;
-    return applications.filter(a => (a.status || 'Submitted').toLowerCase() === appStatusFilter.toLowerCase());
+    const list = Array.isArray(applications) ? applications : [];
+    if (appStatusFilter === 'All') return list;
+    return list.filter(a => a && (a.status || 'Submitted').toLowerCase() === appStatusFilter.toLowerCase());
   }, [applications, appStatusFilter]);
 
-  const pendingAppsCount = applications.filter(a => !['Approved', 'Adopted', 'Rejected'].includes(a.status)).length;
+  const pendingAppsCount = (Array.isArray(applications) ? applications.filter(a => a && !['Approved', 'Adopted', 'Rejected'].includes(a.status)).length : 0);
 
   // Exact KPI metrics matching layout
   const stats = {
@@ -744,7 +749,7 @@ const PetAdoptionDashboard = ({
     };
 
     try {
-      localStorage.setItem('pawora_adoption_documents', JSON.stringify(payload));
+      localStorage.setItem('joshpetshub_adoption_documents', JSON.stringify(payload));
       
       const updatedUser = {
         ...(user || {}),
@@ -756,7 +761,7 @@ const PetAdoptionDashboard = ({
         shelterCapacity: Number(shelterCapacity),
         bio: shelterBio
       };
-      localStorage.setItem('pawora_user', JSON.stringify(updatedUser));
+      localStorage.setItem('joshpetshub_user', JSON.stringify(updatedUser));
     } catch (_e) {}
 
     toast.success('🛡️ Sanctuary Profile, Licenses & Verification Documents saved successfully!', {

@@ -1,10 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   Calendar, Stethoscope, Star, MessageSquare, Clock, CreditCard, Building, Check, 
   Video, Paperclip, CheckCircle2, FileText, PawPrint, Save, Clock3, User, Plus, 
   Download, Edit3, HeartPulse, StarHalf, Home, X, Printer, Phone, MapPin, 
   Mic, MicOff, VideoOff, PhoneOff, Send, Eye, RefreshCw, AlertCircle, Sparkles,
-  Trash2, ShieldCheck, CheckCheck
+  Trash2, ShieldCheck, CheckCheck, Upload
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import PetBreedDropdown from '../../../../components/ui/PetBreedDropdown.jsx';
@@ -30,6 +30,9 @@ import {
 } from '../../../../data/veterinaryData.js';
 
 const VetProviderContent = ({ activeTab }) => {
+  const profilePhotoInputRef = useRef(null);
+  const chatAttachmentRef = useRef(null);
+
   // -------------------------------------------------------------
   // 1. Profile State
   // -------------------------------------------------------------
@@ -545,6 +548,25 @@ const VetProviderContent = ({ activeTab }) => {
     
     sendVetChatMessage(activeChat.id, attachmentText, 'doctor', { type: 'prescription', rxId: latestRx?.id });
     toast.success('Prescription attached to chat thread!');
+  };
+
+  const handleChatAttachmentUpload = (e) => {
+    const file = e.target.files?.[0];
+    if (!file || !activeChat) return;
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const fileData = event.target?.result;
+      const text = `📎 Attached Diagnostic File: ${file.name} (${(file.size / 1024).toFixed(1)} KB)`;
+      const updatedChats = sendVetChatMessage(activeChat.id, text, 'doctor', {
+        type: 'file',
+        fileName: file.name,
+        fileUrl: fileData
+      });
+      setChats(updatedChats);
+      toast.success(`Attached ${file.name} to patient chat!`);
+    };
+    reader.readAsDataURL(file);
+    e.target.value = '';
   };
 
   // -------------------------------------------------------------
@@ -1233,6 +1255,22 @@ const VetProviderContent = ({ activeTab }) => {
                             </button>
                           </div>
                         )}
+                        {msg.attachment && msg.attachment.type === 'file' && (
+                          <div className="mt-2.5 pt-2.5 border-t border-white/20 flex items-center justify-between gap-3 bg-black/10 p-2 rounded-lg">
+                            <div className="flex items-center gap-1.5 truncate">
+                              <Paperclip size={14} className="shrink-0" />
+                              <span className="text-xs font-bold truncate">{msg.attachment.fileName || 'Diagnostic Attachment'}</span>
+                            </div>
+                            {msg.attachment.fileUrl && (
+                              <a 
+                                href={msg.attachment.fileUrl} 
+                                download={msg.attachment.fileName || 'diagnostic-report'}
+                                className="text-[10px] bg-white text-[#0F2E23] px-2 py-0.5 rounded font-black uppercase tracking-wider hover:bg-emerald-50 shrink-0 inline-flex items-center gap-1">
+                                <Download size={10} /> View
+                              </a>
+                            )}
+                          </div>
+                        )}
                         <p className={`text-[10px] font-bold mt-1.5 text-right ${msg.sender === 'doctor' ? 'text-emerald-200/80' : 'text-slate-400'}`}>
                           {msg.time}
                         </p>
@@ -1243,11 +1281,19 @@ const VetProviderContent = ({ activeTab }) => {
 
                 {/* Bottom Input Area */}
                 <form onSubmit={handleSendMessage} className="absolute bottom-0 left-0 right-0 p-4 bg-white border-t border-slate-200">
+                  <input 
+                    type="file" 
+                    ref={chatAttachmentRef}
+                    onChange={handleChatAttachmentUpload}
+                    className="hidden" 
+                    accept="image/*,.pdf,.doc,.docx"
+                  />
                   <div className="flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-xl p-2 focus-within:border-[#0F2E23] focus-within:bg-white transition">
                     <button 
                       type="button" 
-                      onClick={() => toast.success('Select diagnostic report or lab image to upload')}
-                      className="p-2 text-slate-400 hover:text-[#0F2E23] transition cursor-pointer">
+                      onClick={() => chatAttachmentRef.current?.click()}
+                      title="Attach diagnostic report or lab image"
+                      className="p-2 text-slate-400 hover:text-[#0F2E23] hover:bg-slate-200/60 rounded-lg transition cursor-pointer">
                       <Paperclip size={18} />
                     </button>
                     <input 
@@ -1503,17 +1549,48 @@ const VetProviderContent = ({ activeTab }) => {
           </div>
 
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6 pb-2">
-            <div className="w-24 h-24 rounded-2xl border-2 border-dashed border-slate-300 flex items-center justify-center bg-slate-50 overflow-hidden shrink-0 shadow-xs">
+            <div className="w-24 h-24 rounded-2xl border-2 border-dashed border-slate-300 flex items-center justify-center bg-slate-50 overflow-hidden shrink-0 shadow-xs relative group">
               {profile.avatar ? (
                 <img src={profile.avatar} alt="Profile" className="w-full h-full object-cover" />
               ) : (
                 <User size={32} className="text-slate-400" />
               )}
             </div>
-            <div>
-              <label className="text-xs font-black text-[#0F2E23] uppercase tracking-widest block mb-2">Hospital / Profile Image</label>
-              <input type="file" accept="image/*" onChange={handleImageUpload} className="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-black file:bg-[#0F2E23] file:text-white hover:file:bg-[#163e30] transition cursor-pointer" />
-              <p className="text-[10px] text-slate-500 mt-2 font-bold">Recommended: Square image (1:1 ratio), max 2MB.</p>
+            <div className="space-y-2">
+              <label className="text-xs font-black text-[#0F2E23] uppercase tracking-widest block">Hospital / Profile Image</label>
+              
+              <input 
+                type="file" 
+                ref={profilePhotoInputRef}
+                accept="image/*" 
+                onChange={handleImageUpload} 
+                className="hidden" 
+              />
+              
+              <div className="flex items-center gap-2.5 flex-wrap">
+                <button
+                  type="button"
+                  onClick={() => profilePhotoInputRef.current?.click()}
+                  className="px-4 py-2 bg-[#0F2E23] hover:bg-[#163e30] text-white rounded-xl text-xs font-black uppercase tracking-wider transition cursor-pointer flex items-center gap-1.5 shadow-xs"
+                >
+                  <Upload size={14} /> {profile.avatar ? 'Change / Edit Photo' : 'Choose / Upload Photo'}
+                </button>
+                
+                {profile.avatar && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setProfile(prev => ({ ...prev, avatar: '' }));
+                      if (profilePhotoInputRef.current) profilePhotoInputRef.current.value = '';
+                      toast.success('Profile photo removed. Click "Save & Publish" to apply.');
+                    }}
+                    className="px-4 py-2 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 rounded-xl text-xs font-black uppercase tracking-wider transition cursor-pointer flex items-center gap-1.5"
+                  >
+                    <Trash2 size={14} /> Delete Photo
+                  </button>
+                )}
+              </div>
+              <p className="text-[10px] text-slate-500 font-bold">Recommended: Square image (1:1 ratio), max 2MB. Supports JPG, PNG, WEBP.</p>
             </div>
           </div>
 
@@ -1572,6 +1649,15 @@ const VetProviderContent = ({ activeTab }) => {
                 );
               })}
             </div>
+          </div>
+
+          <div className="pt-6 border-t border-slate-200 flex justify-end">
+            <button 
+              type="submit" 
+              className="px-8 py-3.5 bg-[#0F2E23] hover:bg-[#163e30] text-white rounded-xl text-xs font-black uppercase tracking-widest shadow-lg flex items-center gap-2 transition cursor-pointer hover:shadow-xl active:scale-[0.99]"
+            >
+              <Save size={18} /> Save & Publish Profile
+            </button>
           </div>
         </form>
       )}

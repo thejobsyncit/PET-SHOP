@@ -20,45 +20,74 @@ const ServiceProviderDashboard = (props) => {
   const { user } = useSelector(state => state.auth);
   const [searchParams] = useSearchParams();
   const typeParam = (searchParams.get('type') || searchParams.get('category') || '').toLowerCase();
+  const userCat = (user?.serviceCategory || '').toLowerCase();
 
-  if (typeParam === 'adoption' || user?.serviceCategory === 'Pet Adoption') {
-    return <PetAdoptionDashboard {...props} />;
+  // Robust safe defaults for provider props
+  const defaultProvider = {
+    id: user?.id || user?._id || 'provider-default',
+    name: user?.businessName || user?.name || 'Service Partner',
+    email: user?.email || '',
+    phone: user?.mobile || '+91 98765 43210',
+    serviceCategory: user?.serviceCategory || 'Pet Seller',
+    rating: 4.9,
+    reviewsCount: 128,
+    avatar: user?.avatar || user?.profilePicture || ''
+  };
+
+  const safeProps = {
+    currentProvider: props.currentProvider || defaultProvider,
+    profiles: Array.isArray(props.profiles) ? props.profiles : [],
+    handleToggleOnline: props.handleToggleOnline || (() => {}),
+    ...props
+  };
+
+  // 1. Pet Adoption
+  if (typeParam === 'adoption' || typeParam === 'shelter' || userCat.includes('adoption') || userCat.includes('shelter')) {
+    return <PetAdoptionDashboard {...safeProps} />;
   }
 
-  if (typeParam === 'vet' || user?.serviceCategory === 'Consult a Vet' || user?.name?.includes('Dr.')) {
-    return <VetProviderDashboard {...props} />;
+  // 2. Consult a Vet
+  if (typeParam === 'vet' || typeParam === 'veterinary' || userCat.includes('vet') || user?.name?.includes('Dr.')) {
+    return <VetProviderDashboard {...safeProps} />;
   }
   
-  if (typeParam === 'grooming' || user?.serviceCategory === 'Pet Grooming Spa' || user?.serviceCategory === 'Grooming' || user?.name?.includes('Grooming')) {
-    return <GroomingProviderDashboard {...props} />;
+  // 3. Grooming Spa
+  if (typeParam === 'grooming' || typeParam === 'spa' || userCat.includes('grooming') || user?.name?.includes('Grooming')) {
+    return <GroomingProviderDashboard {...safeProps} />;
   }
 
-  if (typeParam === 'hostel' || user?.serviceCategory === 'Pet Hostel / Boarding' || user?.serviceCategory === 'Hostel' || user?.name?.includes('Hostel') || user?.name?.includes('Resort')) {
-    return <HostelProviderDashboard {...props} />;
+  // 4. Pet Hostel / Boarding
+  if (typeParam === 'hostel' || typeParam === 'boarding' || typeParam === 'resort' || userCat.includes('hostel') || userCat.includes('boarding') || user?.name?.includes('Hostel') || user?.name?.includes('Resort')) {
+    return <HostelProviderDashboard {...safeProps} />;
   }
 
-  if (typeParam === 'walking' || user?.serviceCategory === 'Pet Walking & Fitness') {
-    return <WalkingProviderDashboard {...props} />;
+  // 5. Dog Walking & Fitness
+  if (typeParam === 'walking' || typeParam === 'walker' || userCat.includes('walking') || userCat.includes('fitness')) {
+    return <WalkingProviderDashboard {...safeProps} />;
   }
 
-  if (typeParam === 'transport' || user?.serviceCategory === 'Pet Transport & Relocation') {
-    return <TransportProviderDashboard {...props} />;
+  // 6. Pet Transport & Relocation
+  if (typeParam === 'transport' || typeParam === 'relocation' || userCat.includes('transport') || userCat.includes('relocation') || userCat.includes('ambulance')) {
+    return <TransportProviderDashboard {...safeProps} />;
   }
 
-  if (user?.serviceCategory === 'Pet Training & Behavior') {
-    return <TrainingProviderDashboard {...props} />;
+  // 7. Training & Behavior
+  if (typeParam === 'training' || typeParam === 'trainer' || userCat.includes('training') || userCat.includes('behavior')) {
+    return <TrainingProviderDashboard {...safeProps} />;
   }
 
-  if (user?.serviceCategory === 'Pet Insurance') {
-    return <InsuranceProviderDashboard {...props} />;
+  // 8. Pet Insurance
+  if (typeParam === 'insurance' || userCat.includes('insurance')) {
+    return <InsuranceProviderDashboard {...safeProps} />;
   }
 
-  if (user?.serviceCategory === 'Pet Mating & Breeding') {
-    return <BreedingProviderDashboard {...props} />;
+  // 9. Mating & Breeding
+  if (typeParam === 'breeding' || typeParam === 'mating' || userCat.includes('breeding') || userCat.includes('mating')) {
+    return <BreedingProviderDashboard {...safeProps} />;
   }
 
-  // Fallback to PetSellerDashboard
-  return <PetSellerDashboard {...props} />;
+  // 10. Pet Classifieds / Seller / Default
+  return <PetSellerDashboard {...safeProps} />;
 };
 
 export default ServiceProviderDashboard;

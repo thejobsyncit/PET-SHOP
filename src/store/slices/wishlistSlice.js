@@ -4,9 +4,9 @@ import { apiRequest } from '../../services/api.js';
 // Async Thunks
 export const fetchWishlist = createAsyncThunk('wishlist/fetchWishlist', async (_, thunkAPI) => {
   try {
-    const token = localStorage.getItem('pawora_token');
+    const token = localStorage.getItem('joshpetshub_token');
     if (!token) {
-      const local = JSON.parse(localStorage.getItem('pawora_wishlist') || '[]');
+      const local = JSON.parse(localStorage.getItem('joshpetshub_wishlist') || '[]');
       return { wishlist: local };
     }
     return await apiRequest('/wishlist');
@@ -17,16 +17,16 @@ export const fetchWishlist = createAsyncThunk('wishlist/fetchWishlist', async (_
 
 export const toggleWishlistAPI = createAsyncThunk('wishlist/toggle', async (product, thunkAPI) => {
   try {
-    const token = localStorage.getItem('pawora_token');
+    const token = localStorage.getItem('joshpetshub_token');
     if (!token) {
-      let local = JSON.parse(localStorage.getItem('pawora_wishlist') || '[]');
+      let local = JSON.parse(localStorage.getItem('joshpetshub_wishlist') || '[]');
       const existIdx = local.findIndex(p => p._id === product._id);
       if (existIdx > -1) {
         local = local.filter(p => p._id !== product._id);
       } else {
         local.push(product);
       }
-      localStorage.setItem('pawora_wishlist', JSON.stringify(local));
+      localStorage.setItem('joshpetshub_wishlist', JSON.stringify(local));
       return { wishlist: local };
     }
 

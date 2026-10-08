@@ -210,11 +210,16 @@ const VetProviderDashboard = ({
     setLoading(true);
     try {
       const data = await apiRequest('/listings/my');
-      if (data.success) {
+      if (data && data.success && Array.isArray(data.listings)) {
         setAllListings(data.listings);
+      } else if (data && data.success && Array.isArray(data.data)) {
+        setAllListings(data.data);
+      } else {
+        setAllListings(prev => (Array.isArray(prev) ? prev : []));
       }
     } catch (err) {
       console.error("Error fetching listings:", err);
+      setAllListings(prev => (Array.isArray(prev) ? prev : []));
     } finally {
       setLoading(false);
     }
@@ -472,30 +477,32 @@ const VetProviderDashboard = ({
   };
 
   const myPets = useMemo(() => {
-    if (!searchQuery.trim()) return allListings;
+    const list = Array.isArray(allListings) ? allListings : [];
+    if (!searchQuery?.trim()) return list;
     const query = searchQuery.toLowerCase().trim();
-    return allListings.filter(pet => {
+    return list.filter(pet => {
       return (
-        pet.title?.toLowerCase().includes(query) ||
-        pet.breed?.toLowerCase().includes(query) ||
-        pet.petType?.toLowerCase().includes(query)
+        pet?.title?.toLowerCase().includes(query) ||
+        pet?.breed?.toLowerCase().includes(query) ||
+        pet?.petType?.toLowerCase().includes(query)
       );
     });
   }, [allListings, currentProvider, searchQuery]);
 
-  const activePets = myPets.filter(p => p.status !== 'Sold Out' && p.quantity > 0);
-  const soldOutPets = myPets.filter(p => p.status === 'Sold Out' || p.quantity === 0);
-  const petsWithSales = myPets.filter(p => p.soldCount > 0 || p.status === 'Sold Out' || p.quantity === 0);
+  const activePets = useMemo(() => (Array.isArray(myPets) ? myPets.filter(p => p && p.status !== 'Sold Out' && (p.quantity ?? 1) > 0) : []), [myPets]);
+  const soldOutPets = useMemo(() => (Array.isArray(myPets) ? myPets.filter(p => p && (p.status === 'Sold Out' || p.quantity === 0)) : []), [myPets]);
+  const petsWithSales = useMemo(() => (Array.isArray(myPets) ? myPets.filter(p => p && ((p.soldCount || 0) > 0 || p.status === 'Sold Out' || p.quantity === 0)) : []), [myPets]);
   
-  const totalDiscountGiven = myPets.reduce((acc, curr) => {
-    if (curr.originalPrice && curr.price && curr.originalPrice > curr.price) {
+  const totalDiscountGiven = useMemo(() => (Array.isArray(myPets) ? myPets.reduce((acc, curr) => {
+    if (curr?.originalPrice && curr?.price && curr.originalPrice > curr.price) {
       return acc + (curr.originalPrice - curr.price);
     }
     return acc;
-  }, 0);
+  }, 0) : 0), [myPets]);
 
-  const pendingAppointments = vetAppointments.filter(a => a.status === 'In Queue' || a.status === 'Confirmed');
-  const completedAppointments = vetAppointments.filter(a => a.status === 'Completed');
+  const appts = Array.isArray(vetAppointments) ? vetAppointments : [];
+  const pendingAppointments = appts.filter(a => a && (a.status === 'In Queue' || a.status === 'Confirmed'));
+  const completedAppointments = appts.filter(a => a && a.status === 'Completed');
   const activeServicesCount = (vetServicesFees?.inClinic?.active ? 1 : 0) + (vetServicesFees?.video?.active ? 1 : 0) + (vetServicesFees?.home?.active ? 1 : 0);
 
   // Safe Stats Calculation for Vet Provider

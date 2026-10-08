@@ -139,22 +139,23 @@ const TransportProviderContent = ({ activeTab, user }) => {
   const [bookingSearch, setBookingSearch] = useState('');
   const [selectedBookingForDetails, setSelectedBookingForDetails] = useState(null);
   const [showNewBookingModal, setShowNewBookingModal] = useState(false);
-  const [newBookingForm, setNewBookingForm] = useState({
+  const initialNewBookingForm = {
     petName: '',
     petSpecies: 'Dog',
     petBreed: '',
     customerName: '',
     customerPhone: '',
     customerEmail: '',
-    originCity: 'Bangalore',
-    destCity: 'Chennai',
+    originCity: '',
+    destCity: '',
     travelDate: new Date().toISOString().split('T')[0],
     mode: 'Road Transport',
     vehicleType: 'Innova Crysta AC Pet Cab',
-    distanceKm: 350,
-    totalAmount: 9800,
+    distanceKm: '',
+    totalAmount: '',
     notes: 'Doorstep pickup in sanitized carrier'
-  });
+  };
+  const [newBookingForm, setNewBookingForm] = useState(initialNewBookingForm);
 
   const refreshBookings = () => setBookings(getStoredTransportBookings());
 
@@ -188,6 +189,7 @@ const TransportProviderContent = ({ activeTab, user }) => {
     });
     if (created) {
       toast.success('Manual booking added to your schedule!');
+      setNewBookingForm(initialNewBookingForm);
       setShowNewBookingModal(false);
       refreshBookings();
     }
@@ -209,16 +211,17 @@ const TransportProviderContent = ({ activeTab, user }) => {
   // 3. VEHICLES & FLEET STATE
   const [vehicles, setVehicles] = useState(() => getStoredTransportVehicles());
   const [showAddVehicleModal, setShowAddVehicleModal] = useState(false);
-  const [newVehicleForm, setNewVehicleForm] = useState({
+  const initialVehicleForm = {
     name: '',
     regNumber: '',
     type: 'Private AC Cab',
     capacity: '2 Large Dogs or 4 Cats',
     climateControl: '100% Dual AC (18°C - 24°C)',
-    baseRate: 1299,
-    kmRate: 26,
+    baseRate: '',
+    kmRate: '',
     status: 'Active'
-  });
+  };
+  const [newVehicleForm, setNewVehicleForm] = useState(initialVehicleForm);
 
   const handleAddVehicle = (e) => {
     e.preventDefault();
@@ -230,6 +233,8 @@ const TransportProviderContent = ({ activeTab, user }) => {
       ...vehicles,
       {
         ...newVehicleForm,
+        baseRate: Number(newVehicleForm.baseRate) || 0,
+        kmRate: Number(newVehicleForm.kmRate) || 0,
         id: 'VEH-' + Math.floor(10 + Math.random() * 90),
         lastSanitized: 'Just Now'
       }
@@ -237,6 +242,7 @@ const TransportProviderContent = ({ activeTab, user }) => {
     setVehicles(updated);
     saveStoredTransportVehicles(updated);
     toast.success('Vehicle successfully added to your fleet!');
+    setNewVehicleForm(initialVehicleForm);
     setShowAddVehicleModal(false);
   };
 
@@ -301,17 +307,48 @@ const TransportProviderContent = ({ activeTab, user }) => {
   };
 
   // 6. WALLET & PAYOUTS STATE
+  const initialPayoutForm = {
+    bankName: '',
+    accountNumber: '',
+    ifsc: '',
+    amount: ''
+  };
   const [showPayoutModal, setShowPayoutModal] = useState(false);
-  const [payoutForm, setPayoutForm] = useState({
-    bankName: 'HDFC Bank',
-    accountNumber: '9845001239841',
-    ifsc: 'HDFC0001234',
-    amount: 14250
-  });
+  const [payoutForm, setPayoutForm] = useState(initialPayoutForm);
+  const [availableBalance, setAvailableBalance] = useState(14250);
+  const [settlements, setSettlements] = useState([
+    { id: 'SET-991', date: 'Yesterday, 4:00 PM', amount: 17459, bank: 'HDFC Bank (..9841)', status: 'Settled' },
+    { id: 'SET-990', date: '28 Aug 2026', amount: 24500, bank: 'HDFC Bank (..9841)', status: 'Settled' },
+    { id: 'SET-988', date: '15 Aug 2026', amount: 12200, bank: 'HDFC Bank (..9841)', status: 'Settled' }
+  ]);
+
+  const openPayoutModal = () => {
+    setPayoutForm(initialPayoutForm);
+    setShowPayoutModal(true);
+  };
 
   const handleRequestPayout = (e) => {
     e.preventDefault();
-    toast.success(`Payout request of ₹${Number(payoutForm.amount).toLocaleString('en-IN')} submitted! Funds will reflect in your account within 24 hours.`);
+    const withdrawAmt = Number(payoutForm.amount);
+    if (!withdrawAmt || withdrawAmt <= 0) {
+      toast.error('Please enter a valid payout amount.');
+      return;
+    }
+    if (withdrawAmt > availableBalance) {
+      toast.error(`Withdrawal amount cannot exceed available balance of ₹${availableBalance.toLocaleString('en-IN')}`);
+      return;
+    }
+    const newTxn = {
+      id: 'SET-' + Math.floor(100 + Math.random() * 900),
+      date: 'Just Now',
+      amount: withdrawAmt,
+      bank: `${payoutForm.bankName} (..${payoutForm.accountNumber.slice(-4) || 'XXXX'})`,
+      status: 'Processing'
+    };
+    setSettlements([newTxn, ...settlements]);
+    setAvailableBalance(prev => Math.max(0, prev - withdrawAmt));
+    toast.success(`Payout request of ₹${withdrawAmt.toLocaleString('en-IN')} submitted! Funds will reflect in your account within 24 hours.`);
+    setPayoutForm(initialPayoutForm);
     setShowPayoutModal(false);
   };
 
@@ -604,7 +641,10 @@ const TransportProviderContent = ({ activeTab, user }) => {
                   type="text"
                   required
                   value={serviceForm.phone}
-                  onChange={(e) => setServiceForm({ ...serviceForm, phone: e.target.value, whatsapp: e.target.value })}
+                  onChange={(e) => {
+                    const cleaned = e.target.value.replace(/[^0-9+\s\-()]/g, '');
+                    setServiceForm({ ...serviceForm, phone: cleaned, whatsapp: cleaned });
+                  }}
                   placeholder="e.g. +91 98765 43210"
                   className="w-full bg-white border border-slate-300 rounded-xl px-4 py-2.5 text-xs font-bold text-slate-900 focus:outline-none focus:border-[#0F2E23]"
                 />
@@ -826,7 +866,10 @@ const TransportProviderContent = ({ activeTab, user }) => {
           </div>
 
           <button
-            onClick={() => setShowNewBookingModal(true)}
+            onClick={() => {
+              setNewBookingForm(initialNewBookingForm);
+              setShowNewBookingModal(true);
+            }}
             className="w-full sm:w-auto justify-center bg-[#0F2E23] hover:bg-[#164E3D] text-[#D4AF37] hover:text-white text-xs font-black px-4 py-2.5 rounded-xl transition flex items-center gap-2 shadow-sm cursor-pointer"
           >
             <Plus size={14} /> Add Manual Booking
@@ -1069,7 +1112,11 @@ const TransportProviderContent = ({ activeTab, user }) => {
                       type="text"
                       required
                       value={newBookingForm.customerPhone}
-                      onChange={(e) => setNewBookingForm({ ...newBookingForm, customerPhone: e.target.value })}
+                      onChange={(e) => {
+                        const cleaned = e.target.value.replace(/[^0-9+\s\-()]/g, '');
+                        setNewBookingForm({ ...newBookingForm, customerPhone: cleaned });
+                      }}
+                      placeholder="e.g. +91 98765 43210"
                       className="w-full mt-1 border rounded-lg p-2.5 font-bold text-slate-900"
                     />
                   </div>
@@ -1082,6 +1129,7 @@ const TransportProviderContent = ({ activeTab, user }) => {
                       type="text"
                       value={newBookingForm.originCity}
                       onChange={(e) => setNewBookingForm({ ...newBookingForm, originCity: e.target.value })}
+                      placeholder="e.g. Bangalore"
                       className="w-full mt-1 border rounded-lg p-2.5 font-bold text-slate-900"
                     />
                   </div>
@@ -1091,6 +1139,7 @@ const TransportProviderContent = ({ activeTab, user }) => {
                       type="text"
                       value={newBookingForm.destCity}
                       onChange={(e) => setNewBookingForm({ ...newBookingForm, destCity: e.target.value })}
+                      placeholder="e.g. Chennai"
                       className="w-full mt-1 border rounded-lg p-2.5 font-bold text-slate-900"
                     />
                   </div>
@@ -1112,6 +1161,7 @@ const TransportProviderContent = ({ activeTab, user }) => {
                       type="number"
                       value={newBookingForm.totalAmount}
                       onChange={(e) => setNewBookingForm({ ...newBookingForm, totalAmount: e.target.value })}
+                      placeholder="e.g. 5000"
                       className="w-full mt-1 border rounded-lg p-2.5 font-bold text-slate-900"
                     />
                   </div>
@@ -1145,7 +1195,10 @@ const TransportProviderContent = ({ activeTab, user }) => {
           </div>
 
           <button
-            onClick={() => setShowAddVehicleModal(true)}
+            onClick={() => {
+              setNewVehicleForm(initialVehicleForm);
+              setShowAddVehicleModal(true);
+            }}
             className="w-full sm:w-auto justify-center bg-[#0F2E23] hover:bg-[#164E3D] text-[#D4AF37] hover:text-white text-xs font-black px-4 py-2.5 rounded-xl transition flex items-center gap-2 shadow-sm cursor-pointer"
           >
             <Plus size={14} /> Add New Vehicle
@@ -1263,7 +1316,8 @@ const TransportProviderContent = ({ activeTab, user }) => {
                       type="number"
                       required
                       value={newVehicleForm.baseRate}
-                      onChange={(e) => setNewVehicleForm({ ...newVehicleForm, baseRate: Number(e.target.value) })}
+                      onChange={(e) => setNewVehicleForm({ ...newVehicleForm, baseRate: e.target.value === '' ? '' : Number(e.target.value) })}
+                      placeholder="e.g. 1299"
                       className="w-full mt-1 border rounded-lg p-2.5 font-bold text-slate-900"
                     />
                   </div>
@@ -1273,7 +1327,8 @@ const TransportProviderContent = ({ activeTab, user }) => {
                       type="number"
                       required
                       value={newVehicleForm.kmRate}
-                      onChange={(e) => setNewVehicleForm({ ...newVehicleForm, kmRate: Number(e.target.value) })}
+                      onChange={(e) => setNewVehicleForm({ ...newVehicleForm, kmRate: e.target.value === '' ? '' : Number(e.target.value) })}
+                      placeholder="e.g. 26"
                       className="w-full mt-1 border rounded-lg p-2.5 font-bold text-slate-900"
                     />
                   </div>
@@ -1561,7 +1616,7 @@ const TransportProviderContent = ({ activeTab, user }) => {
           </div>
 
           <button
-            onClick={() => setShowPayoutModal(true)}
+            onClick={openPayoutModal}
             className="w-full sm:w-auto justify-center bg-[#0F2E23] hover:bg-[#164E3D] text-[#D4AF37] hover:text-white text-xs font-black px-5 py-2.5 rounded-xl transition shadow-sm cursor-pointer"
           >
             Request Bank Payout
@@ -1570,10 +1625,19 @@ const TransportProviderContent = ({ activeTab, user }) => {
 
         {/* Finance Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
-          <div className="bg-gradient-to-br from-[#0F2E23] to-[#1a4a39] text-white p-4 sm:p-6 rounded-2xl sm:rounded-3xl space-y-2 shadow-lg">
-            <span className="text-[10px] font-black uppercase text-amber-300 tracking-wider">Available for Payout</span>
-            <div className="text-2xl sm:text-3xl font-sans font-black text-white">₹14,250</div>
-            <p className="text-[11px] text-emerald-200">Cleared from recent completed trips</p>
+          <div className="bg-gradient-to-br from-[#0F2E23] to-[#1a4a39] text-white p-4 sm:p-6 rounded-2xl sm:rounded-3xl space-y-2 shadow-lg flex flex-col justify-between">
+            <div>
+              <span className="text-[10px] font-black uppercase text-amber-300 tracking-wider">Available for Payout</span>
+              <div className="text-2xl sm:text-3xl font-sans font-black text-white">₹{availableBalance.toLocaleString('en-IN')}</div>
+              <p className="text-[11px] text-emerald-200">Cleared from recent completed trips</p>
+            </div>
+            <button
+              type="button"
+              onClick={openPayoutModal}
+              className="mt-3 w-full bg-white/10 hover:bg-white text-white hover:text-[#0F2E23] border border-white/20 py-2 rounded-xl text-xs font-black transition-all shadow-sm cursor-pointer"
+            >
+              Withdraw Funds
+            </button>
           </div>
 
           <div className="bg-white border border-slate-200 p-4 sm:p-6 rounded-2xl sm:rounded-3xl space-y-2 shadow-sm">
@@ -1593,11 +1657,7 @@ const TransportProviderContent = ({ activeTab, user }) => {
         <div className="space-y-3 pt-2">
           <h4 className="text-sm font-black text-slate-700">Recent Bank Settlements</h4>
           <div className="bg-white rounded-2xl border border-slate-200 divide-y divide-slate-100 overflow-hidden text-xs">
-            {[
-              { id: 'SET-991', date: 'Yesterday, 4:00 PM', amount: 17459, bank: 'HDFC Bank (..9841)', status: 'Settled' },
-              { id: 'SET-990', date: '28 Aug 2026', amount: 24500, bank: 'HDFC Bank (..9841)', status: 'Settled' },
-              { id: 'SET-988', date: '15 Aug 2026', amount: 12200, bank: 'HDFC Bank (..9841)', status: 'Settled' }
-            ].map((s) => (
+            {settlements.map((s) => (
               <div key={s.id} className="p-3.5 sm:p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
                 <div>
                   <div className="font-bold text-slate-900">{s.bank}</div>
@@ -1638,6 +1698,7 @@ const TransportProviderContent = ({ activeTab, user }) => {
                     required
                     value={payoutForm.bankName}
                     onChange={(e) => setPayoutForm({ ...payoutForm, bankName: e.target.value })}
+                    placeholder="e.g. HDFC Bank"
                     className="w-full mt-1 border rounded-lg p-2.5 font-bold text-slate-900"
                   />
                 </div>
@@ -1648,7 +1709,8 @@ const TransportProviderContent = ({ activeTab, user }) => {
                     type="text"
                     required
                     value={payoutForm.accountNumber}
-                    onChange={(e) => setPayoutForm({ ...payoutForm, accountNumber: e.target.value })}
+                    onChange={(e) => setPayoutForm({ ...payoutForm, accountNumber: e.target.value.replace(/[^0-9]/g, '') })}
+                    placeholder="e.g. 9845001239841"
                     className="w-full mt-1 border rounded-lg p-2.5 font-bold text-slate-900"
                   />
                 </div>
@@ -1659,8 +1721,9 @@ const TransportProviderContent = ({ activeTab, user }) => {
                     type="text"
                     required
                     value={payoutForm.ifsc}
-                    onChange={(e) => setPayoutForm({ ...payoutForm, ifsc: e.target.value })}
-                    className="w-full mt-1 border rounded-lg p-2.5 font-bold text-slate-900"
+                    onChange={(e) => setPayoutForm({ ...payoutForm, ifsc: e.target.value.toUpperCase() })}
+                    placeholder="e.g. HDFC0001234"
+                    className="w-full mt-1 border rounded-lg p-2.5 font-bold text-slate-900 uppercase"
                   />
                 </div>
 
@@ -1669,12 +1732,14 @@ const TransportProviderContent = ({ activeTab, user }) => {
                   <input
                     type="number"
                     required
-                    max="14250"
+                    min="1"
+                    max={availableBalance}
                     value={payoutForm.amount}
-                    onChange={(e) => setPayoutForm({ ...payoutForm, amount: Number(e.target.value) })}
+                    onChange={(e) => setPayoutForm({ ...payoutForm, amount: e.target.value === '' ? '' : Number(e.target.value) })}
+                    placeholder="e.g. 5000"
                     className="w-full mt-1 border rounded-lg p-2.5 font-black text-sm text-[#0F2E23]"
                   />
-                  <span className="text-[10px] text-slate-400">Available: ₹14,250</span>
+                  <span className="text-[10px] text-slate-400">Available: ₹{availableBalance.toLocaleString('en-IN')}</span>
                 </div>
 
                 <button
@@ -1730,7 +1795,11 @@ const TransportProviderContent = ({ activeTab, user }) => {
               <input
                 type="text"
                 value={agencyProfile.phone}
-                onChange={(e) => setAgencyProfile({ ...agencyProfile, phone: e.target.value })}
+                onChange={(e) => {
+                  const cleaned = e.target.value.replace(/[^0-9+\s\-()]/g, '');
+                  setAgencyProfile({ ...agencyProfile, phone: cleaned });
+                }}
+                placeholder="e.g. +91 98765 43210"
                 className="w-full mt-1 bg-white border rounded-xl p-2.5 font-bold text-slate-900"
               />
             </div>

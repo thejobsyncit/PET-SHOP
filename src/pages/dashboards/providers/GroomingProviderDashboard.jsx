@@ -183,11 +183,16 @@ const GroomingProviderDashboard = ({
     setLoading(true);
     try {
       const data = await apiRequest('/bookings/provider');
-      if (data.success) {
+      if (data && data.success && Array.isArray(data.bookings)) {
         setAllBookings(data.bookings);
+      } else if (data && data.success && Array.isArray(data.data)) {
+        setAllBookings(data.data);
+      } else {
+        setAllBookings(prev => (Array.isArray(prev) ? prev : []));
       }
     } catch (err) {
       console.error("Error fetching bookings:", err);
+      setAllBookings(prev => (Array.isArray(prev) ? prev : []));
     } finally {
       setLoading(false);
     }
@@ -433,19 +438,20 @@ const GroomingProviderDashboard = ({
   };
 
   const myBookings = useMemo(() => {
-    if (!searchQuery.trim()) return allBookings;
+    const list = Array.isArray(allBookings) ? allBookings : [];
+    if (!searchQuery?.trim()) return list;
     const query = searchQuery.toLowerCase().trim();
-    return allBookings.filter(b => {
+    return list.filter(b => {
       return (
-        b.petDetails?.name?.toLowerCase().includes(query) ||
-        b.user?.name?.toLowerCase().includes(query) ||
-        b.serviceType?.toLowerCase().includes(query)
+        b?.petDetails?.name?.toLowerCase().includes(query) ||
+        b?.user?.name?.toLowerCase().includes(query) ||
+        b?.serviceType?.toLowerCase().includes(query)
       );
     });
   }, [allBookings, searchQuery]);
 
-  const activeBookings = myBookings.filter(p => p.status === 'Pending' || p.status === 'Confirmed');
-  const completedBookings = myBookings.filter(p => p.status === 'Completed');
+  const activeBookings = useMemo(() => (Array.isArray(myBookings) ? myBookings.filter(p => p && (p.status === 'Pending' || p.status === 'Confirmed')) : []), [myBookings]);
+  const completedBookings = useMemo(() => (Array.isArray(myBookings) ? myBookings.filter(p => p && p.status === 'Completed') : []), [myBookings]);
   
   // Safe Stats Calculation
   const stats = {

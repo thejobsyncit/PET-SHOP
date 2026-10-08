@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Calendar, Star, MessageSquare, Clock, CreditCard, Building, Check, Video, Paperclip, CheckCircle2, FileText, PawPrint, Save, Clock3, User, Plus, Download, Edit3, HeartPulse, StarHalf, Home, Image as ImageIcon, Scissors, Sparkles, Upload, Store } from 'lucide-react';
+import { Calendar, Star, MessageSquare, Clock, CreditCard, Building, Check, Video, Paperclip, CheckCircle2, FileText, PawPrint, Save, Clock3, User, Plus, Download, Edit3, HeartPulse, StarHalf, Home, Image as ImageIcon, Scissors, Sparkles, Upload, Store, Wallet, Landmark, X, ShieldCheck } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useSelector, useDispatch } from 'react-redux';
 import { apiRequest } from '../../../../services/api.js';
@@ -80,6 +80,31 @@ const GroomingProviderContent = ({ activeTab }) => {
   const handleProfileChange = (e) => {
     const { name, value } = e.target;
     setProfile(prev => ({ ...prev, [name]: value }));
+  };
+
+  const [walletBalance, setWalletBalance] = useState(8450);
+  const [showWithdrawModal, setShowWithdrawModal] = useState(false);
+  const [withdrawAmount, setWithdrawAmount] = useState('8450');
+  const [isSubmittingWithdraw, setIsSubmittingWithdraw] = useState(false);
+
+  const handleWithdrawSubmit = (e) => {
+    e.preventDefault();
+    const num = Number(withdrawAmount);
+    if (!num || num <= 0) {
+      toast.error('Please enter a valid withdrawal amount');
+      return;
+    }
+    if (num > walletBalance) {
+      toast.error('Amount exceeds available balance');
+      return;
+    }
+    setIsSubmittingWithdraw(true);
+    setTimeout(() => {
+      setWalletBalance(prev => prev - num);
+      setIsSubmittingWithdraw(false);
+      setShowWithdrawModal(false);
+      toast.success(`Withdrawal of ₹${num.toLocaleString('en-IN')} requested successfully!`);
+    }, 500);
   };
 
   const [appointments, setAppointments] = useState([]);
@@ -534,12 +559,78 @@ const GroomingProviderContent = ({ activeTab }) => {
               <h2 className="text-xl font-black text-[#0F2E23]">Wallet & Payouts</h2>
               <p className="text-sm text-slate-500 font-medium mt-1">Track your grooming earnings and bank settlements.</p>
             </div>
+            <button 
+              onClick={() => {
+                setWithdrawAmount(walletBalance.toString());
+                setShowWithdrawModal(true);
+              }}
+              className="px-6 py-2.5 bg-[#0F2E23] hover:bg-[#163e30] text-white rounded-xl text-xs font-black uppercase tracking-widest flex items-center gap-2 cursor-pointer shadow-sm"
+            >
+              <Wallet size={16} /> Withdraw to Bank
+            </button>
           </div>
           <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
             <h3 className="text-sm font-black text-slate-500 uppercase tracking-widest mb-4">Current Balance</h3>
-            <div className="text-4xl font-black text-[#0F2E23]">₹8,450</div>
-            <button className="mt-4 px-6 py-2 bg-[#0F2E23] text-white rounded-xl text-xs font-black uppercase tracking-widest">Withdraw to Bank</button>
+            <div className="text-4xl font-black text-[#0F2E23]">₹{walletBalance.toLocaleString('en-IN')}</div>
+            <button 
+              onClick={() => {
+                setWithdrawAmount(walletBalance.toString());
+                setShowWithdrawModal(true);
+              }}
+              className="mt-4 px-6 py-2.5 bg-[#0F2E23] hover:bg-[#163e30] text-white rounded-xl text-xs font-black uppercase tracking-widest cursor-pointer shadow-sm"
+            >
+              Withdraw to Bank
+            </button>
           </div>
+
+          {showWithdrawModal && (
+            <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fadeIn" onClick={() => setShowWithdrawModal(false)}>
+              <div className="bg-white rounded-3xl max-w-md w-full border border-slate-200 shadow-2xl overflow-hidden p-6 space-y-4" onClick={(e) => e.stopPropagation()}>
+                <div className="flex justify-between items-center pb-3 border-b border-slate-100">
+                  <div className="flex items-center gap-2.5">
+                    <Landmark size={20} className="text-[#0F2E23]" />
+                    <h3 className="font-black text-[#0F2E23] text-base">Withdraw to Bank</h3>
+                  </div>
+                  <button onClick={() => setShowWithdrawModal(false)} className="p-1.5 text-slate-400 hover:text-slate-700 rounded-full hover:bg-slate-100 cursor-pointer">
+                    <X size={18} />
+                  </button>
+                </div>
+                <form onSubmit={handleWithdrawSubmit} className="space-y-4 text-xs">
+                  <div className="bg-emerald-50 border border-emerald-200 p-3 rounded-xl flex justify-between items-center">
+                    <span className="font-bold text-emerald-800">Available Balance:</span>
+                    <span className="font-black text-[#0F2E23] text-base">₹{walletBalance.toLocaleString('en-IN')}</span>
+                  </div>
+                  <div>
+                    <label className="font-bold text-slate-700 block mb-1">Amount (₹) *</label>
+                    <input 
+                      type="number"
+                      required
+                      min="500"
+                      max={walletBalance}
+                      value={withdrawAmount}
+                      onChange={(e) => setWithdrawAmount(e.target.value)}
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-sm font-bold text-slate-800"
+                    />
+                  </div>
+                  <div>
+                    <label className="font-bold text-slate-700 block mb-1">Destination Bank Account</label>
+                    <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 font-bold text-slate-800 flex items-center justify-between">
+                      <span>HDFC Bank (••••5678)</span>
+                      <span className="text-[10px] bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full font-black">Verified</span>
+                    </div>
+                  </div>
+                  <div className="flex gap-3 pt-2">
+                    <button type="button" onClick={() => setShowWithdrawModal(false)} className="flex-1 py-2.5 border rounded-xl font-bold text-slate-600 hover:bg-slate-50 cursor-pointer">
+                      Cancel
+                    </button>
+                    <button type="submit" disabled={isSubmittingWithdraw} className="flex-1 py-2.5 bg-[#0F2E23] text-white rounded-xl font-black uppercase tracking-wider hover:bg-[#163e30] cursor-pointer">
+                      {isSubmittingWithdraw ? 'Processing...' : 'Confirm'}
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          )}
         </div>
       )}
 

@@ -1,6 +1,6 @@
-# PAWORA Pet Care Ecosystem — Architecture & File Structure
+# JOSH PETS HUB Pet Care Ecosystem — Architecture & File Structure
 
-This document outlines the organized, modular directory structure for the PAWORA pet care platform.
+This document outlines the organized, modular directory structure for the JOSH PETS HUB pet care platform.
 
 ---
 
@@ -37,7 +37,6 @@ PET-SHOP/
     ├── lib/                # Third-party SDK initializations (Supabase)
     ├── pages/              # Domain-categorized page views
     │   ├── blog/           # Educational content & pet care articles
-    │   ├── crm/            # Enterprise Pet Care CRM Suite
     │   ├── dashboards/     # User, Admin & Service Provider Dashboards
     │   │   └── providers/  # Niche provider dashboards (Vet, Grooming, etc.)
     │   │       └── content/# Provider dashboard modular view content
@@ -79,7 +78,6 @@ Pages are organized cleanly by business domain instead of a flat list:
 | **`shop/`** | `Shop.jsx`, `ProductDetails.jsx`, `Checkout.jsx`, `Wishlist.jsx`, `PharmacyLanding.jsx` | E-commerce catalog, product display, cart, and pharmacy checkout. |
 | **`pets/`** | `PetClassifieds.jsx`, `AdoptionShelter.jsx`, `AdoptionPetDetail.jsx`, `BreedingDirectory.jsx` | Pet listings, rescue adoptions, and certified breeding directories. |
 | **`blog/`** | `BlogHub.jsx`, `BlogDetail.jsx` | Editorial pet care guides and wellness articles. |
-| **`crm/`** | `PetCrmApp.jsx`, `views/`, `dashboards/`, `components/` | Complete enterprise CRM suite for clinics, salons, and daycare. |
 | **Core Pages** | `Home.jsx`, `About.jsx`, `Contact.jsx`, `Login.jsx`, `ChatConsole.jsx`, `NotFound.jsx` | Top-level entry points and static pages. |
 | **`index.js`** | Barrel export | Allows clean imports: `import { Home, Shop } from '@/pages'` |
 

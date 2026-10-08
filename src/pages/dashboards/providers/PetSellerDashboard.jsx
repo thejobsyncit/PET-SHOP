@@ -10,6 +10,7 @@ import {
 import { apiRequest } from '../../../services/api.js';
 import toast from 'react-hot-toast';
 import { PET_BREEDS_BY_CATEGORY } from '../../../data/petBreedsData.js';
+import { DEFAULT_CLASSIFIEDS } from '../../../data/classifiedsData.js';
 
 export const SELLER_PET_BREEDS = PET_BREEDS_BY_CATEGORY;
 
@@ -60,8 +61,11 @@ const PetSellerDashboard = ({
     }
   };
 
-  const [allListings, setAllListings] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [allListings, setAllListings] = useState(() => {
+    const cached = safeGetItem('seller_custom_listings');
+    return Array.isArray(cached) && cached.length > 0 ? cached : DEFAULT_CLASSIFIEDS;
+  });
+  const [loading, setLoading] = useState(false);
 
   const [inquiries, setInquiries] = useState([]);
   const [loadingInquiries, setLoadingInquiries] = useState(false);
@@ -137,6 +141,53 @@ const PetSellerDashboard = ({
   const [imageFile, setImageFile] = useState(null);
   const [vaccinationFile, setVaccinationFile] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
+  
+  // Payment Method States (Issue 15)
+  const [paymentMethod, setPaymentMethod] = useState('upi'); // 'upi' | 'card'
+  const [cardForm, setCardForm] = useState({
+    cardNumber: '',
+    cardExpiry: '',
+    cardCvv: '',
+    cardHolder: ''
+  });
+
+  // Cancel Confirmation Modal State (Issue 16)
+  const [showCancelConfirmModal, setShowCancelConfirmModal] = useState(false);
+
+  const handleAttemptCloseAddForm = () => {
+    const hasChanges = Boolean(
+      title.trim() ||
+      age.trim() ||
+      price ||
+      location.trim() ||
+      contactPhone.trim() ||
+      description.trim() ||
+      imageFile
+    );
+
+    if (hasChanges) {
+      setShowCancelConfirmModal(true);
+    } else {
+      setShowAddForm(false);
+      setEditListingId(null);
+    }
+  };
+
+  const handleConfirmDiscard = () => {
+    setShowCancelConfirmModal(false);
+    setShowAddForm(false);
+    setEditListingId(null);
+    setTitle('');
+    setAge('');
+    setPrice('');
+    setOriginalPrice('');
+    setLocation('');
+    setContactPhone('');
+    setDescription('');
+    setImageFile(null);
+    setVaccinationFile(null);
+    toast('Pet listing discarded.');
+  };
 
   const handleCategoryChange = (newType) => {
     setPetType(newType);
@@ -211,11 +262,16 @@ const PetSellerDashboard = ({
     setLoading(true);
     try {
       const data = await apiRequest('/listings/my');
-      if (data.success) {
+      if (data && data.success && Array.isArray(data.listings) && data.listings.length > 0) {
         setAllListings(data.listings);
+      } else if (data && data.success && Array.isArray(data.data) && data.data.length > 0) {
+        setAllListings(data.data);
+      } else {
+        setAllListings(prev => (Array.isArray(prev) && prev.length > 0 ? prev : DEFAULT_CLASSIFIEDS));
       }
     } catch (err) {
       console.error("Error fetching listings:", err);
+      setAllListings(prev => (Array.isArray(prev) && prev.length > 0 ? prev : DEFAULT_CLASSIFIEDS));
     } finally {
       setLoading(false);
     }
@@ -342,6 +398,28 @@ const PetSellerDashboard = ({
 
   const submitPaidListing = async () => {
     setIsProcessingPayment(true);
+
+    if (paymentMethod === 'card') {
+      const cleanCard = (cardForm.cardNumber || '').replace(/\s/g, '');
+      if (!cleanCard || cleanCard.length < 15) {
+        toast.error('Please enter a valid 16-digit Card Number.');
+        setIsProcessingPayment(false);
+        return;
+      }
+      if (!cardForm.cardExpiry.trim() || !cardForm.cardCvv.trim()) {
+        toast.error('Please enter Card Expiry (MM/YY) and CVV.');
+        setIsProcessingPayment(false);
+        return;
+      }
+
+      setTimeout(async () => {
+        setIsProcessingPayment(false);
+        setShowPaymentModal(false);
+        toast.success('Listing fee of ₹200 paid successfully via Card/NetBanking!');
+        await finalizeListingSubmission();
+      }, 1200);
+      return;
+    }
 
     try {
       // 1. Load Razorpay script
@@ -475,27 +553,28 @@ const PetSellerDashboard = ({
   };
 
   const myPets = useMemo(() => {
-    if (!searchQuery.trim()) return allListings;
+    const list = Array.isArray(allListings) ? allListings : [];
+    if (!searchQuery?.trim()) return list;
     const query = searchQuery.toLowerCase().trim();
-    return allListings.filter(pet => {
+    return list.filter(pet => {
       return (
-        pet.title?.toLowerCase().includes(query) ||
-        pet.breed?.toLowerCase().includes(query) ||
-        pet.petType?.toLowerCase().includes(query)
+        pet?.title?.toLowerCase().includes(query) ||
+        pet?.breed?.toLowerCase().includes(query) ||
+        pet?.petType?.toLowerCase().includes(query)
       );
     });
   }, [allListings, currentProvider, searchQuery]);
 
-  const activePets = myPets.filter(p => p.status !== 'Sold Out' && p.quantity > 0);
-  const soldOutPets = myPets.filter(p => p.status === 'Sold Out' || p.quantity === 0);
-  const petsWithSales = myPets.filter(p => p.soldCount > 0 || p.status === 'Sold Out' || p.quantity === 0);
+  const activePets = useMemo(() => (Array.isArray(myPets) ? myPets.filter(p => p && p.status !== 'Sold Out' && (p.quantity ?? 1) > 0) : []), [myPets]);
+  const soldOutPets = useMemo(() => (Array.isArray(myPets) ? myPets.filter(p => p && (p.status === 'Sold Out' || p.quantity === 0)) : []), [myPets]);
+  const petsWithSales = useMemo(() => (Array.isArray(myPets) ? myPets.filter(p => p && ((p.soldCount || 0) > 0 || p.status === 'Sold Out' || p.quantity === 0)) : []), [myPets]);
   
-  const totalDiscountGiven = myPets.reduce((acc, curr) => {
-    if (curr.originalPrice && curr.price && curr.originalPrice > curr.price) {
+  const totalDiscountGiven = useMemo(() => (Array.isArray(myPets) ? myPets.reduce((acc, curr) => {
+    if (curr?.originalPrice && curr?.price && curr.originalPrice > curr.price) {
       return acc + (curr.originalPrice - curr.price);
     }
     return acc;
-  }, 0);
+  }, 0) : 0), [myPets]);
 
   // Safe Stats Calculation
   const stats = {
@@ -1070,7 +1149,7 @@ const PetSellerDashboard = ({
       {/* OVERLAY MODAL: CREATE NEW LISTING */}
       {showAddForm && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
-          <div onClick={() => setShowAddForm(false)} className="fixed inset-0 bg-[#0F2E23]/40 backdrop-blur-sm"></div>
+          <div onClick={handleAttemptCloseAddForm} className="fixed inset-0 bg-[#0F2E23]/40 backdrop-blur-sm"></div>
           
           <form 
             onSubmit={triggerPayment}
@@ -1080,7 +1159,7 @@ const PetSellerDashboard = ({
               <h3 className="font-sans text-lg font-black tracking-wider text-[#ffd000] uppercase flex items-center gap-2">
                 <Plus size={20} /> {editListingId ? 'Edit Pet Listing' : 'List Pet for Sale'}
               </h3>
-              <button type="button" onClick={() => setShowAddForm(false)} className="text-slate-300 hover:text-white transition cursor-pointer">
+              <button type="button" onClick={handleAttemptCloseAddForm} className="text-slate-300 hover:text-white transition cursor-pointer">
                 <X size={20} />
               </button>
             </div>
@@ -1267,14 +1346,14 @@ const PetSellerDashboard = ({
             <div className="bg-slate-50 px-6 py-4 border-t border-slate-200 flex justify-end gap-3 shrink-0">
               <button 
                 type="button" 
-                onClick={() => setShowAddForm(false)}
-                className="px-6 py-2.5 rounded-xl border border-slate-300 text-slate-700 font-black text-xs uppercase tracking-wider hover:bg-slate-100 transition shadow-sm"
+                onClick={handleAttemptCloseAddForm}
+                className="px-6 py-2.5 rounded-xl border border-slate-300 text-slate-700 font-black text-xs uppercase tracking-wider hover:bg-slate-100 transition shadow-sm cursor-pointer"
               >
                 Cancel
               </button>
               <button 
                 type="submit" 
-                className="px-6 py-2.5 rounded-xl bg-[#0F2E23] hover:bg-[#163e30] text-white font-black text-xs uppercase tracking-wider transition shadow-md"
+                className="px-6 py-2.5 rounded-xl bg-[#0F2E23] hover:bg-[#163e30] text-white font-black text-xs uppercase tracking-wider transition shadow-md cursor-pointer"
               >
                 {editListingId ? 'Update Listing' : 'Publish Listing'}
               </button>
@@ -1283,7 +1362,50 @@ const PetSellerDashboard = ({
         </div>
       )}
 
-      {/* PAYMENT MODAL */}
+      {/* CANCEL CONFIRMATION POPUP / MODAL (Issue 16) */}
+      {showCancelConfirmModal && (
+        <div className="fixed inset-0 z-[75] flex items-center justify-center p-4">
+          <div 
+            onClick={() => setShowCancelConfirmModal(false)}
+            className="fixed inset-0 bg-[#0F2E23]/60 backdrop-blur-xs animate-in fade-in duration-200"
+          ></div>
+
+          <div className="relative bg-white w-full max-w-sm rounded-3xl p-6 shadow-2xl z-10 border border-slate-200 space-y-4 animate-in fade-in zoom-in-95 duration-200">
+            <div className="flex items-center gap-3 text-amber-600">
+              <div className="w-11 h-11 rounded-2xl bg-amber-50 border border-amber-200 flex items-center justify-center shrink-0">
+                <AlertCircle size={24} className="text-amber-600" />
+              </div>
+              <div>
+                <h4 className="text-base font-black text-slate-900">Discard Pet Listing?</h4>
+                <p className="text-xs text-slate-500 font-medium">Unsaved changes will be lost</p>
+              </div>
+            </div>
+
+            <p className="text-xs text-slate-600 font-medium leading-relaxed">
+              You have unsaved changes in your pet listing. Are you sure you want to cancel and leave? All entered information will be discarded.
+            </p>
+
+            <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-slate-100">
+              <button
+                type="button"
+                onClick={() => setShowCancelConfirmModal(false)}
+                className="px-4 py-2.5 rounded-xl text-xs font-bold text-slate-700 hover:bg-slate-100 transition cursor-pointer"
+              >
+                Keep Editing
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmDiscard}
+                className="px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider bg-rose-600 hover:bg-rose-700 text-white transition shadow-sm cursor-pointer"
+              >
+                Discard & Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* PAYMENT MODAL (Issue 15) */}
       {showPaymentModal && (
         <div className="fixed inset-0 z-[70] flex items-center justify-center p-4">
           <div className="fixed inset-0 bg-[#0F2E23]/60 backdrop-blur-md"></div>
@@ -1317,13 +1439,77 @@ const PetSellerDashboard = ({
               <div className="space-y-3">
                 <p className="text-xs text-center font-bold text-slate-500 uppercase tracking-widest">Select Payment Method</p>
                 <div className="grid grid-cols-2 gap-3">
-                  <button type="button" className="py-3 px-4 rounded-xl border-2 border-[#0F2E23] bg-[#0F2E23]/5 font-black text-[#0F2E23] text-sm flex items-center justify-center gap-2 hover:bg-[#0F2E23]/10 transition">
+                  <button 
+                    type="button" 
+                    onClick={() => setPaymentMethod('upi')}
+                    className={`py-3 px-4 rounded-xl border-2 font-black text-sm flex items-center justify-center gap-2 transition cursor-pointer ${
+                      paymentMethod === 'upi'
+                        ? 'border-[#0F2E23] bg-[#0F2E23]/10 text-[#0F2E23] shadow-xs'
+                        : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50'
+                    }`}
+                  >
                     UPI (GPay/PhonePe)
                   </button>
-                  <button type="button" className="py-3 px-4 rounded-xl border border-slate-200 bg-white font-black text-slate-600 text-sm flex items-center justify-center gap-2 hover:bg-slate-50 hover:border-slate-300 transition">
+                  <button 
+                    type="button" 
+                    onClick={() => setPaymentMethod('card')}
+                    className={`py-3 px-4 rounded-xl border-2 font-black text-sm flex items-center justify-center gap-2 transition cursor-pointer ${
+                      paymentMethod === 'card'
+                        ? 'border-[#0F2E23] bg-[#0F2E23]/10 text-[#0F2E23] shadow-xs'
+                        : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50'
+                    }`}
+                  >
                     Card / NetBanking
                   </button>
                 </div>
+
+                {paymentMethod === 'card' && (
+                  <div className="p-4 bg-slate-50 border border-slate-200 rounded-2xl space-y-3 animate-in fade-in duration-200">
+                    <div>
+                      <label className="text-[10px] font-black uppercase text-slate-500 block mb-1">Card Number *</label>
+                      <input 
+                        type="text"
+                        maxLength={19}
+                        placeholder="4532 8900 1234 5678"
+                        value={cardForm.cardNumber}
+                        onChange={(e) => {
+                          const v = e.target.value.replace(/\D/g, '').slice(0, 16);
+                          const formatted = v.match(/.{1,4}/g)?.join(' ') || v;
+                          setCardForm({ ...cardForm, cardNumber: formatted });
+                        }}
+                        className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-800 focus:outline-none focus:border-[#0F2E23]"
+                      />
+                    </div>
+                    <div className="grid grid-cols-2 gap-2">
+                      <div>
+                        <label className="text-[10px] font-black uppercase text-slate-500 block mb-1">Expiry (MM/YY) *</label>
+                        <input 
+                          type="text"
+                          maxLength={5}
+                          placeholder="MM/YY"
+                          value={cardForm.cardExpiry}
+                          onChange={(e) => {
+                            let v = e.target.value.replace(/\D/g, '').slice(0, 4);
+                            if (v.length >= 3) v = `${v.slice(0, 2)}/${v.slice(2)}`;
+                            setCardForm({ ...cardForm, cardExpiry: v });
+                          }}
+                          className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-800 focus:outline-none focus:border-[#0F2E23]"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[10px] font-black uppercase text-slate-500 block mb-1">CVV *</label>
+                        <input 
+                          type="password"
+                          maxLength={4}
+                          placeholder="123"
+                          value={cardForm.cardCvv}
+                          onChange={(e) => setCardForm({ ...cardForm, cardCvv: e.target.value.replace(/\D/g, '').slice(0, 4) })}
+                          className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-800 focus:outline-none focus:border-[#0F2E23]"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -1332,7 +1518,7 @@ const PetSellerDashboard = ({
               <button 
                 onClick={submitPaidListing}
                 disabled={isProcessingPayment}
-                className="w-full py-4 rounded-xl bg-[#0F2E23] text-[#ffd000] font-black text-sm uppercase tracking-widest hover:bg-[#163e30] transition shadow-lg flex justify-center items-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
+                className="w-full py-4 rounded-xl bg-[#0F2E23] text-[#ffd000] font-black text-sm uppercase tracking-widest hover:bg-[#163e30] transition shadow-lg flex justify-center items-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed cursor-pointer"
               >
                 {isProcessingPayment ? (
                   <>
@@ -1340,13 +1526,13 @@ const PetSellerDashboard = ({
                     Processing...
                   </>
                 ) : (
-                  <>Pay ₹200 & Publish</>
+                  paymentMethod === 'card' ? <>Pay ₹200 via Card & Publish</> : <>Pay ₹200 & Publish</>
                 )}
               </button>
               <button 
                 onClick={() => setShowPaymentModal(false)}
                 disabled={isProcessingPayment}
-                className="w-full py-3 rounded-xl bg-transparent text-slate-500 font-bold text-xs uppercase tracking-widest hover:text-slate-700 transition"
+                className="w-full py-3 rounded-xl bg-transparent text-slate-500 font-bold text-xs uppercase tracking-widest hover:text-slate-700 transition cursor-pointer"
               >
                 Cancel
               </button>

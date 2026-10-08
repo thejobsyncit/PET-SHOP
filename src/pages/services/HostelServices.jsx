@@ -19,6 +19,7 @@ import ServiceAccessLock, { isServicePathLockedForUser } from '../../components/
 
 import ScrollReveal from '../../components/ui/ScrollReveal.jsx';
 import PetBreedDropdown from '../../components/ui/PetBreedDropdown.jsx';
+import { handleServiceAction } from '../../components/widgets/ServicePackageAccessModal.jsx';
 const HostelServices = () => {
   const navigate = useNavigate();
   const { isAuthenticated, user } = useSelector((state) => state.auth);
@@ -190,18 +191,14 @@ const HostelServices = () => {
     selectedAmenity, priceRange, selectedStayType, sortBy, searchKeyword
   ]);
 
-  // Open Booking Modal for a hostel
+  // Open Booking & Service Access Modal for a hostel
   const handleOpenBookingModal = (provider, pkg = null) => {
-    if (!isAuthenticated) {
-      toast.error('Please register or log in to book a pet hostel stay.', {
-        icon: '🔒'
-      });
-      window.dispatchEvent(new CustomEvent('open-register-modal', { detail: { tab: 'user', hideProviderTab: true, source: 'hostel' } }));
-      return;
-    }
-    setSelectedProvider(provider);
-    setSelectedPackage(pkg || provider.packages[0] || null);
-    setShowBookingModal(true);
+    handleServiceAction({
+      isAuthenticated,
+      serviceType: 'Hostel',
+      provider,
+      action: 'book'
+    });
   };
 
   // Submit Booking Form
@@ -260,12 +257,21 @@ const HostelServices = () => {
     });
   };
 
-  // Direct WhatsApp Connect
+  // Direct WhatsApp Connect or Provider Visit
   const handleWhatsApp = (provider) => {
-    const text = encodeURIComponent(
-      `Hello! I am inquiring about boarding my pet at "${provider.name}" (${provider.city}) listed on JOSH PETS HUB.`
-    );
-    window.open(`https://wa.me/91${provider.phone}?text=${text}`, '_blank');
+    if (!isAuthenticated) {
+      toast.error('Please register or log in first to contact pet hostels.', {
+        icon: '🔒'
+      });
+      window.dispatchEvent(new CustomEvent('open-register-modal', { detail: { tab: 'user', hideProviderTab: true, source: 'hostel' } }));
+      return;
+    }
+    handleServiceAction({
+      isAuthenticated,
+      serviceType: 'Hostel',
+      provider,
+      action: 'visit'
+    });
   };
 
   const handleResetFilters = () => {
@@ -723,7 +729,11 @@ const HostelServices = () => {
                     >
                       <div>
                         {/* Provider Header Image & Badges */}
-                        <div className="relative aspect-[16/9] overflow-hidden bg-slate-100">
+                        <div 
+                          onClick={() => handleServiceAction({ isAuthenticated, serviceType: 'Hostel', provider, action: 'visit' })}
+                          className="relative aspect-[16/9] overflow-hidden bg-slate-100 cursor-pointer"
+                          title={`Visit ${provider.name} and view packages`}
+                        >
                           <img
                             src={provider.image}
                             alt={provider.name}
@@ -1203,7 +1213,13 @@ const HostelServices = () => {
                     required
                     value={checkInDate}
                     min={new Date().toISOString().split('T')[0]}
-                    onChange={(e) => setCheckInDate(e.target.value)}
+                    onChange={(e) => {
+                      const newIn = e.target.value;
+                      setCheckInDate(newIn);
+                      if (checkOutDate && new Date(checkOutDate) <= new Date(newIn)) {
+                        setCheckOutDate('');
+                      }
+                    }}
                     className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-medium text-slate-800 focus:outline-none focus:border-[#7c56dc]"
                   />
                 </div>
@@ -1214,7 +1230,11 @@ const HostelServices = () => {
                     type="date"
                     required
                     value={checkOutDate}
-                    min={checkInDate || new Date().toISOString().split('T')[0]}
+                    min={
+                      checkInDate 
+                        ? new Date(new Date(checkInDate).getTime() + 86400000).toISOString().split('T')[0]
+                        : new Date(Date.now() + 86400000).toISOString().split('T')[0]
+                    }
                     onChange={(e) => setCheckOutDate(e.target.value)}
                     className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-medium text-slate-800 focus:outline-none focus:border-[#7c56dc]"
                   />

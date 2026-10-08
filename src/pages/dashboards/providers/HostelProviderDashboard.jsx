@@ -14,13 +14,16 @@ import {
   CheckCircle,
   AlertCircle,
   Camera,
-  Edit2
+  Edit2,
+  LogOut,
+  Menu,
+  X
 } from 'lucide-react';
 import { apiRequest } from '../../../services/api.js';
 import toast from 'react-hot-toast';
 import HostelProviderContent from './content/HostelProviderContent.jsx';
 import { useSearchParams, useNavigate } from 'react-router-dom';
-import { updateProfile } from '../../../store/slices/authSlice.js';
+import { updateProfile, logout } from '../../../store/slices/authSlice.js';
 
 import { safeSetItem, safeGetItem } from '../../../utils/safeStorage.js';
 
@@ -34,16 +37,16 @@ const HostelProviderDashboard = ({
   const storedTab = safeGetItem('hostelDashboardTab');
   const activeTabParam = searchParams.get('tab') || storedTab || 'bookings';
   const [activeTab, setActiveTab] = useState(activeTabParam);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const { user } = useSelector(state => state.auth);
   const dispatch = useDispatch();
 
   const [stats, setStats] = useState({
-    totalListings: 0,
-    availableStock: 0,
-    soldOutCount: 0,
-    revenue: 0,
-    totalOrders: 0
+    activeGuests: 8,
+    availableKennels: 12,
+    upcomingCheckins: 3,
+    totalRevenue: '₹24,500'
   });
 
   const [isUploading, setIsUploading] = useState(false);
@@ -59,6 +62,13 @@ const HostelProviderDashboard = ({
     setActiveTab(tabName);
     setSearchParams({ tab: tabName });
     safeSetItem('hostelDashboardTab', tabName);
+    setMobileMenuOpen(false);
+  };
+
+  const handleLogout = () => {
+    dispatch(logout());
+    toast.success('Logged out successfully');
+    navigate('/login');
   };
 
   const handleFileChange = async (e) => {
@@ -117,21 +127,93 @@ const HostelProviderDashboard = ({
     }
   };
 
+  const navMenuItems = [
+    { id: 'bookings', label: 'Boarding Bookings', count: 8, icon: Calendar },
+    { id: 'rooms', label: 'Kennels & Accommodations', count: 4, icon: Home },
+    { id: 'gallery', label: 'Facility Gallery', count: 6, icon: Camera },
+    { id: 'messages', label: 'Pet Parent Inquiries', count: 3, icon: MessageSquare },
+    { id: 'hours', label: 'Check-in/Out Timings', icon: Clock },
+    { id: 'reviews', label: 'Guest Reviews', extra: '4.9 ★', icon: Heart },
+    { id: 'wallet', label: 'Wallet & Payouts', icon: DollarSign },
+    { id: 'profile', label: 'Resort Registration', icon: Building }
+  ];
+
   return (
-    <div className="min-h-auto lg:h-screen bg-[#F8F9FA]">
+    <div className="min-h-screen bg-[#FAF9F5] text-slate-900 font-sans selection:bg-[#0F2E23]/20 selection:text-[#0F2E23] flex flex-col lg:flex-row">
+      
+      {/* Mobile Top bar */}
+      <div className="lg:hidden bg-white border-b border-slate-200 px-4 py-3 flex items-center justify-between sticky top-[73px] z-30 shadow-sm">
+        <div className="flex items-center gap-3">
+          <div className="w-9 h-9 rounded-full overflow-hidden border-2 border-emerald-600 shrink-0">
+            <img 
+              src={user?.avatar || "https://images.unsplash.com/photo-1548199973-03cce0bbc87b?q=80&w=800&auto=format&fit=crop"} 
+              alt="Profile" 
+              className="w-full h-full object-cover"
+            />
+          </div>
+          <div>
+            <h2 className="font-black text-slate-800 text-xs truncate max-w-[180px]">{user?.name || 'Happy Paws Resort'}</h2>
+            <p className="text-[10px] text-emerald-600 font-bold">Pet Hostel & Boarding</p>
+          </div>
+        </div>
+        <button 
+          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+          className="p-2 rounded-xl bg-slate-100 text-slate-700 hover:bg-slate-200 transition"
+        >
+          {mobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
+        </button>
+      </div>
+
+      {/* Mobile Dropdown Menu */}
+      {mobileMenuOpen && (
+        <div className="lg:hidden bg-white border-b border-slate-200 px-4 py-3 space-y-1 shadow-lg z-20">
+          {navMenuItems.map(item => (
+            <button
+              key={item.id}
+              onClick={() => handleTabChange(item.id)}
+              className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl transition ${
+                activeTab === item.id 
+                  ? 'bg-[#0F2E23] text-white font-bold' 
+                  : 'text-slate-600 hover:bg-slate-50'
+              }`}
+            >
+              <div className="flex items-center gap-2.5">
+                <item.icon size={16} className={activeTab === item.id ? 'text-[#ffd000]' : 'text-slate-400'} />
+                <span className="text-xs font-bold">{item.label}</span>
+              </div>
+              {item.count !== undefined && (
+                <span className={`text-[9px] font-black px-1.5 py-0.5 rounded-full ${
+                  activeTab === item.id ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-500'
+                }`}>
+                  {item.count}
+                </span>
+              )}
+            </button>
+          ))}
+          <div className="pt-2 border-t border-slate-100">
+            <button
+              onClick={handleLogout}
+              className="w-full py-2 flex items-center justify-center gap-2 text-rose-600 text-xs font-black uppercase tracking-wider hover:bg-rose-50 rounded-xl transition"
+            >
+              <LogOut size={14} /> Logout
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* 
         ========================================================
-        SIDEBAR NAVIGATION
+        LEFT SIDEBAR NAVIGATION (Desktop)
         ========================================================
       */}
-      <aside className="fixed top-[73px] left-0 w-full lg:w-64 h-[calc(100vh-73px)] bg-white border-r border-slate-200 shadow-sm hidden lg:flex flex-col z-10">
+      <aside className="w-full lg:w-72 shrink-0 bg-white border-r border-slate-200 relative lg:sticky top-0 lg:top-[73px] h-auto lg:h-[calc(100vh-73px)] hidden lg:flex flex-col justify-between overflow-y-auto z-10 shadow-[4px_0_24px_rgba(0,0,0,0.02)]">
         
         {/* Profile Summary */}
         <div className="p-6 border-b border-slate-100 flex flex-col items-center text-center">
           <div className="relative group cursor-pointer mb-4">
             <div className={`w-24 h-24 rounded-full border-4 border-white shadow-md overflow-hidden ${isUploading ? 'opacity-50' : ''}`}>
               <img 
-                src={user?.avatar || "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?q=80&w=800&auto=format&fit=crop"} 
+                src={user?.avatar || "https://images.unsplash.com/photo-1548199973-03cce0bbc87b?q=80&w=800&auto=format&fit=crop"} 
                 alt="Profile" 
                 className="w-full h-full object-cover"
               />
@@ -156,32 +238,24 @@ const HostelProviderDashboard = ({
             )}
           </div>
 
-          <h2 className="font-black text-slate-800 text-lg mb-1">{user?.name || 'Pet Resort'}</h2>
+          <h2 className="font-black text-slate-800 text-lg mb-1">{user?.name || 'Happy Paws Pet Resort'}</h2>
+          <p className="text-xs text-slate-500 font-medium">Sarjapur Road, Bangalore</p>
           
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#ffd000]/10 border border-[#ffd000]/20 text-amber-700 text-[10px] font-black uppercase tracking-widest mt-2">
-            <Star size={12} fill="currentColor" /> ELITE RESORT
+            <Star size={12} fill="currentColor" /> 5-STAR PET RESORT
           </div>
         </div>
 
         {/* Navigation Links */}
-        <div className="flex-1 overflow-y-auto py-6 custom-scrollbar">
-          <nav className="px-4">
+        <div className="flex-1 overflow-y-auto py-4 custom-scrollbar">
+          <nav className="px-3">
             <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 px-3">Main Menu</div>
             <ul className="space-y-1">
-              {[
-                { id: 'bookings', label: 'Boarding Bookings', count: 8, icon: Calendar },
-                { id: 'rooms', label: 'Kennels & Accommodations', count: 4, icon: Home },
-                { id: 'gallery', label: 'Facility Gallery', count: 15, icon: Camera },
-                { id: 'messages', label: 'Pet Parent Inquiries', count: 3, icon: MessageSquare },
-                { id: 'hours', label: 'Check-in/Out Timings', icon: Clock },
-                { id: 'reviews', label: 'Guest Reviews', extra: '4.9 ★', icon: Heart },
-                { id: 'wallet', label: 'Wallet & Payouts', icon: DollarSign },
-                { id: 'profile', label: 'Resort Registration', icon: Building }
-              ].map(item => (
+              {navMenuItems.map(item => (
                 <li key={item.id}>
                   <button
                     onClick={() => handleTabChange(item.id)}
-                    className={`w-full flex items-center justify-between px-3 py-3 rounded-xl transition-all duration-200 group ${
+                    className={`w-full flex items-center justify-between px-3 py-3 rounded-2xl transition-all duration-200 group cursor-pointer ${
                       activeTab === item.id 
                         ? 'bg-[#0F2E23] text-white shadow-md' 
                         : 'text-slate-600 hover:bg-slate-50 hover:text-[#0F2E23]'
@@ -213,9 +287,12 @@ const HostelProviderDashboard = ({
         </div>
 
         {/* Footer actions */}
-        <div className="p-4 border-t border-slate-200 bg-slate-50">
-           <button onClick={() => toast.success('Logged out successfully')} className="w-full py-2.5 flex items-center justify-center gap-2 text-rose-500 font-black text-xs uppercase tracking-widest hover:bg-rose-50 rounded-xl transition border border-transparent hover:border-rose-100">
-             LOGOUT
+        <div className="p-4 border-t border-slate-200 bg-slate-50/50 mt-auto">
+           <button 
+             onClick={handleLogout} 
+             className="w-full py-2.5 flex items-center justify-center gap-2 text-rose-500 font-black text-xs uppercase tracking-widest hover:bg-rose-50 rounded-xl transition border border-transparent hover:border-rose-100 cursor-pointer"
+           >
+             <LogOut size={16} /> LOGOUT
            </button>
         </div>
       </aside>
@@ -225,7 +302,7 @@ const HostelProviderDashboard = ({
         MAIN CONTENT AREA
         ========================================================
       */}
-      <main className="lg:ml-64 pt-[73px] p-4 sm:p-6 lg:p-8">
+      <main className="flex-1 min-w-0 px-4 sm:px-6 lg:px-8 py-8 lg:py-10 overflow-x-hidden">
         
         {/* Header Area */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
@@ -234,7 +311,7 @@ const HostelProviderDashboard = ({
               Pet Hostel & Resort Dashboard
             </h1>
             <p className="text-sm text-slate-500 font-medium mt-1">
-              Manage your boarding bookings, kennels, and guest reviews.
+              Manage your boarding bookings, kennels, guest check-ins, and parent inquiries.
             </p>
           </div>
         </div>
@@ -244,7 +321,7 @@ const HostelProviderDashboard = ({
           CUSTOM HOSTEL KPI METRICS
           ========================================================
         */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5 mb-10">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5 mb-8">
           
           <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
             <div className="flex items-center justify-between mb-3">
@@ -281,7 +358,7 @@ const HostelProviderDashboard = ({
             </div>
             <div className="flex items-baseline gap-2">
               <h3 className="text-3xl font-black text-rose-700">3</h3>
-              <span className="text-xs font-bold text-rose-600/70">ARRIVING TOMORROW</span>
+              <span className="text-xs font-bold text-rose-600/70">ARRIVING TODAY</span>
             </div>
           </div>
 
@@ -306,7 +383,7 @@ const HostelProviderDashboard = ({
           TAB CONTENT AREA
           ========================================================
         */}
-        <div className="bg-white rounded-3xl p-8 lg:p-4 lg:p-10 border border-slate-200 min-h-[500px] shadow-sm">
+        <div className="bg-white rounded-3xl p-6 sm:p-8 lg:p-10 border border-slate-200 min-h-[500px] shadow-sm">
           <HostelProviderContent activeTab={activeTab} />
         </div>
       </main>

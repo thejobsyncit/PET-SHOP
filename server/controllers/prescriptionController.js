@@ -1,10 +1,4 @@
-<<<<<<< HEAD
-import Prescription from '../models/Prescription.js';
-import User from '../models/User.js';
-import { isDbConnected, readMockData, writeMockData } from '../utils/mockDb.js';
-=======
 import { supabase } from '../config/supabase.js';
->>>>>>> origin/main
 
 // @desc    Upload a prescription
 // @route   POST /api/prescriptions
@@ -26,49 +20,8 @@ export const uploadPrescription = async (req, res) => {
       status: 'Pending'
     }]).select().single();
 
-<<<<<<< HEAD
-      const saved = await newPrescription.save();
-
-      // Add to user's history
-      await User.findByIdAndUpdate(userId, {
-        $push: { prescriptionHistory: saved._id }
-      });
-
-      res.status(201).json({ success: true, prescription: saved });
-    } else {
-      const prescriptionsList = readMockData('prescriptions');
-      const usersList = readMockData('users');
-
-      const newPrescription = {
-        _id: 'rx_' + Date.now().toString(36) + Math.random().toString(36).substr(2, 6),
-        user: userId.toString(),
-        patientName,
-        veterinarianName,
-        clinicName,
-        customerComments,
-        prescriptionFileUrl: fileUrl,
-        status: 'Pending',
-        items: parsedItems,
-        createdAt: new Date().toISOString()
-      };
-
-      prescriptionsList.push(newPrescription);
-      writeMockData('prescriptions', prescriptionsList);
-
-      // Add to user history
-      const uIdx = usersList.findIndex(u => u._id.toString() === userId.toString());
-      if (uIdx !== -1) {
-        usersList[uIdx].prescriptionHistory = usersList[uIdx].prescriptionHistory || [];
-        usersList[uIdx].prescriptionHistory.push(newPrescription._id);
-        writeMockData('users', usersList);
-      }
-
-      res.status(201).json({ success: true, prescription: newPrescription });
-    }
-=======
     if (error) throw error;
     res.status(201).json({ success: true, prescription });
->>>>>>> origin/main
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }

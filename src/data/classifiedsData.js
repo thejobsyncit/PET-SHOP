@@ -2,7 +2,7 @@ export const DEFAULT_CLASSIFIEDS = [
   // ===================== FISH & AQUATICS =====================
   {
     _id: 'LIST-FISH-01',
-    user: { _id: 'seller-aqua-01', name: 'Karthik Raja (Aqua Exotics)', email: 'aqua.exotics@pawora.com' },
+    user: { _id: 'seller-aqua-01', name: 'Karthik Raja (Aqua Exotics)', email: 'aqua.exotics@joshpetshub.com' },
     title: 'Show Grade Super Red Arowana (Microchipped with CITES Certificate)',
     petType: 'fish',
     breed: 'Super Red Arowana',
@@ -20,7 +20,7 @@ export const DEFAULT_CLASSIFIEDS = [
   },
   {
     _id: 'LIST-FISH-02',
-    user: { _id: 'seller-aqua-02', name: 'Deep Blue Aquatics', email: 'deepblue@pawora.com' },
+    user: { _id: 'seller-aqua-02', name: 'Deep Blue Aquatics', email: 'deepblue@joshpetshub.com' },
     title: 'Champion Line Kamfa Flowerhorn (High Kok & Crosshead Pearls)',
     petType: 'fish',
     breed: 'Flowerhorn Cichlid',
@@ -38,7 +38,7 @@ export const DEFAULT_CLASSIFIEDS = [
   },
   {
     _id: 'LIST-FISH-03',
-    user: { _id: 'seller-aqua-03', name: 'Oceanic Discus Hatchery', email: 'discus@pawora.com' },
+    user: { _id: 'seller-aqua-03', name: 'Oceanic Discus Hatchery', email: 'discus@joshpetshub.com' },
     title: 'Breeding Pair of German Blue Diamond Discus',
     petType: 'fish',
     breed: 'Discus Fish (Blue Diamond / Pigeon Blood)',
@@ -56,7 +56,7 @@ export const DEFAULT_CLASSIFIEDS = [
   },
   {
     _id: 'LIST-FISH-04',
-    user: { _id: 'seller-aqua-04', name: 'Green Aqua Studios', email: 'greenaqua@pawora.com' },
+    user: { _id: 'seller-aqua-04', name: 'Green Aqua Studios', email: 'greenaqua@joshpetshub.com' },
     title: 'Show Guppy Trio - Pure Full Red Moscow Strain',
     petType: 'fish',
     breed: 'Show Guppy (Full Red / Blue / Moscow)',
@@ -76,7 +76,7 @@ export const DEFAULT_CLASSIFIEDS = [
   // ===================== DOGS =====================
   {
     _id: 'LIST-DOG-01',
-    user: { _id: 'seller-dog-01', name: 'Royal Paws Kennel', email: 'royalpaws@pawora.com' },
+    user: { _id: 'seller-dog-01', name: 'Royal Paws Kennel', email: 'royalpaws@joshpetshub.com' },
     title: 'KCI Certified Siberian Husky Puppy (Blue-Eyed)',
     petType: 'dogs',
     breed: 'Siberian Husky',
@@ -94,7 +94,7 @@ export const DEFAULT_CLASSIFIEDS = [
   },
   {
     _id: 'LIST-DOG-02',
-    user: { _id: 'seller-dog-02', name: 'Golden Haven Kennels', email: 'golden@pawora.com' },
+    user: { _id: 'seller-dog-02', name: 'Golden Haven Kennels', email: 'golden@joshpetshub.com' },
     title: 'Golden Retriever Puppies (Heavy Bone Structure)',
     petType: 'dogs',
     breed: 'Golden Retriever',
@@ -114,7 +114,7 @@ export const DEFAULT_CLASSIFIEDS = [
   // ===================== CATS =====================
   {
     _id: 'LIST-CAT-01',
-    user: { _id: 'seller-cat-01', name: 'Fluffy Felines Cattery', email: 'cattery@pawora.com' },
+    user: { _id: 'seller-cat-01', name: 'Fluffy Felines Cattery', email: 'cattery@joshpetshub.com' },
     title: 'Purebred Punch Face Persian Kitten (White Doll Face)',
     petType: 'cats',
     breed: 'Persian Cat',
@@ -134,7 +134,7 @@ export const DEFAULT_CLASSIFIEDS = [
   // ===================== BIRDS =====================
   {
     _id: 'LIST-BIRD-01',
-    user: { _id: 'seller-bird-01', name: 'Parrot Paradise Avian Farm', email: 'aviary@pawora.com' },
+    user: { _id: 'seller-bird-01', name: 'Parrot Paradise Avian Farm', email: 'aviary@joshpetshub.com' },
     title: 'Hand-Tamed Talking African Grey Parrot',
     petType: 'birds',
     breed: 'African Grey Parrot',
@@ -154,7 +154,7 @@ export const DEFAULT_CLASSIFIEDS = [
   // ===================== REPTILES =====================
   {
     _id: 'LIST-REP-01',
-    user: { _id: 'seller-rep-01', name: 'Exotic Herp Hub', email: 'herphub@pawora.com' },
+    user: { _id: 'seller-rep-01', name: 'Exotic Herp Hub', email: 'herphub@joshpetshub.com' },
     title: 'Hypo Citrus Bearded Dragon (Juvenile Captive Bred)',
     petType: 'reptiles',
     breed: 'Bearded Dragon',
@@ -174,7 +174,7 @@ export const DEFAULT_CLASSIFIEDS = [
   // ===================== SMALL PETS =====================
   {
     _id: 'LIST-SP-01',
-    user: { _id: 'seller-sp-01', name: 'Cozy Warren Rabbitry', email: 'rabbits@pawora.com' },
+    user: { _id: 'seller-sp-01', name: 'Cozy Warren Rabbitry', email: 'rabbits@joshpetshub.com' },
     title: 'Pure Holland Lop Bunny (Broken Blue Eyes)',
     petType: 'small-pets',
     breed: 'Holland Lop Rabbit',

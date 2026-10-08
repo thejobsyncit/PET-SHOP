@@ -50,7 +50,6 @@ const Footer = () => {
             <li><Link to="/shop?petType=birds" className="hover:text-white transition duration-200">Birds</Link></li>
             <li><Link to="/shop?petType=reptiles" className="hover:text-white transition duration-200">Reptiles</Link></li>
             <li><Link to="/shop?petType=fish" className="hover:text-white transition duration-200">Fish & Aquatics</Link></li>
-            <li><Link to="/pharmacy" className="hover:text-white transition duration-200">Pharmacy & Health</Link></li>
           </ul>
         </div>
 

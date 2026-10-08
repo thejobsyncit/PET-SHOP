@@ -18,6 +18,7 @@ import ServiceAccessLock, { isServicePathLockedForUser } from '../../components/
 
 import ScrollReveal from '../../components/ui/ScrollReveal.jsx';
 import PetBreedDropdown from '../../components/ui/PetBreedDropdown.jsx';
+import { handleServiceAction } from '../../components/widgets/ServicePackageAccessModal.jsx';
 const WalkingServices = () => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -213,20 +214,14 @@ const WalkingServices = () => {
     selectedOffering, priceRange, selectedServiceMode, sortBy, searchKeyword
   ]);
 
-  // Open Booking Modal for a provider - Triggers registration popup if not logged in
+  // Open Booking & Service Access Modal for a provider
   const handleOpenBookingModal = (provider, pkg = null) => {
-    if (!isAuthenticated) {
-      toast.error('Please register or log in to book a verified dog walker.', {
-        icon: '🔒'
-      });
-      // Fire global custom event to trigger registration/lead modal
-      window.dispatchEvent(new CustomEvent('open-register-modal', { detail: { tab: 'user', hideProviderTab: true, source: 'walking' } }));
-      return;
-    }
-    setSelectedProvider(provider);
-    const preselectedPkg = pkg || getFeaturedPackageForOffering(provider, selectedOffering) || provider.packages[0] || null;
-    setSelectedPackage(preselectedPkg);
-    setShowBookingModal(true);
+    handleServiceAction({
+      isAuthenticated,
+      serviceType: 'Walking',
+      provider,
+      action: 'book'
+    });
   };
 
   // Submit Booking Form
@@ -274,12 +269,21 @@ const WalkingServices = () => {
     });
   };
 
-  // Direct WhatsApp Connect
+  // Direct WhatsApp Connect or Provider Visit
   const handleWhatsApp = (provider) => {
-    const text = encodeURIComponent(
-      `Hello! I want to book daily dog walking sessions at "${provider.name}" (${provider.city}) found on JOSH PETS HUB.`
-    );
-    window.open(`https://wa.me/91${provider.phone}?text=${text}`, '_blank');
+    if (!isAuthenticated) {
+      toast.error('Please register or log in first to contact verified dog walkers.', {
+        icon: '🔒'
+      });
+      window.dispatchEvent(new CustomEvent('open-register-modal', { detail: { tab: 'user', hideProviderTab: true, source: 'walking' } }));
+      return;
+    }
+    handleServiceAction({
+      isAuthenticated,
+      serviceType: 'Walking',
+      provider,
+      action: 'visit'
+    });
   };
 
   const handleResetFilters = () => {
@@ -682,7 +686,11 @@ const WalkingServices = () => {
                     >
                       <div>
                         {/* Provider Header Image & Badges */}
-                        <div className="relative aspect-[16/9] overflow-hidden bg-slate-100">
+                        <div 
+                          onClick={() => handleServiceAction({ isAuthenticated, serviceType: 'Walking', provider, action: 'visit' })}
+                          className="relative aspect-[16/9] overflow-hidden bg-slate-100 cursor-pointer"
+                          title={`Visit ${provider.name} and view packages`}
+                        >
                           <img
                             src={provider.image}
                             alt={provider.name}

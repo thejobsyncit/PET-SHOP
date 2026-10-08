@@ -446,7 +446,7 @@ export const INITIAL_TRANSPORT_PROVIDERS = [
 
 export const getStoredTransportProviders = () => {
   try {
-    const data = localStorage.getItem('pawora_transport_providers');
+    const data = localStorage.getItem('joshpetshub_transport_providers');
     if (data) {
       const parsed = JSON.parse(data);
       if (Array.isArray(parsed) && parsed.length > 0) return parsed;
@@ -457,7 +457,7 @@ export const getStoredTransportProviders = () => {
 
 export const saveStoredTransportProviders = (providers) => {
   try {
-    localStorage.setItem('pawora_transport_providers', JSON.stringify(providers));
+    localStorage.setItem('joshpetshub_transport_providers', JSON.stringify(providers));
   } catch (_e) {}
 };
 
@@ -530,8 +530,8 @@ export const saveOrUpdateTransportService = (serviceData, user) => {
       : ['100% Climate Controlled AC', 'Live GPS Tracking', 'Sanitized Kennels', 'Hydration Stops Every 3 Hrs', 'Vet Onboard Available'],
     phone: serviceData.phone || user?.mobile || '+91 98765 43210',
     whatsapp: serviceData.whatsapp || serviceData.phone || user?.mobile || '+91 98765 43210',
-    email: userEmail || serviceData.email || 'safepet@pawora.com',
-    providerEmail: userEmail || 'safepet@pawora.com',
+    email: userEmail || serviceData.email || 'safepet@joshpetshub.com',
+    providerEmail: userEmail || 'safepet@joshpetshub.com',
     providerUserId: userId,
     image: serviceData.image || 'https://images.unsplash.com/photo-1544568100-eba616a6ce76?q=80&w=800&auto=format&fit=crop',
     packages: serviceData.packages || [
@@ -661,7 +661,7 @@ export const INITIAL_DEMO_BOOKINGS = [
 
 export const getStoredTransportBookings = () => {
   try {
-    const data = localStorage.getItem('pawora_transport_bookings');
+    const data = localStorage.getItem('joshpetshub_transport_bookings');
     if (data) {
       const parsed = JSON.parse(data);
       if (Array.isArray(parsed) && parsed.length > 0) return parsed;
@@ -672,7 +672,7 @@ export const getStoredTransportBookings = () => {
 
 export const saveStoredTransportBookings = (bookings) => {
   try {
-    localStorage.setItem('pawora_transport_bookings', JSON.stringify(bookings));
+    localStorage.setItem('joshpetshub_transport_bookings', JSON.stringify(bookings));
   } catch (_e) {}
 };
 
@@ -775,7 +775,7 @@ export const INITIAL_DEMO_VEHICLES = [
 
 export const getStoredTransportVehicles = () => {
   try {
-    const data = localStorage.getItem('pawora_transport_vehicles');
+    const data = localStorage.getItem('joshpetshub_transport_vehicles');
     if (data) {
       const parsed = JSON.parse(data);
       if (Array.isArray(parsed) && parsed.length > 0) return parsed;
@@ -786,7 +786,7 @@ export const getStoredTransportVehicles = () => {
 
 export const saveStoredTransportVehicles = (vehicles) => {
   try {
-    localStorage.setItem('pawora_transport_vehicles', JSON.stringify(vehicles));
+    localStorage.setItem('joshpetshub_transport_vehicles', JSON.stringify(vehicles));
     window.dispatchEvent(new CustomEvent('transport-vehicles-updated', { detail: vehicles }));
   } catch (_e) {}
 };
@@ -827,7 +827,7 @@ export const INITIAL_DEMO_REVIEWS = [
 
 export const getStoredTransportReviews = () => {
   try {
-    const data = localStorage.getItem('pawora_transport_reviews');
+    const data = localStorage.getItem('joshpetshub_transport_reviews');
     if (data) {
       const parsed = JSON.parse(data);
       if (Array.isArray(parsed) && parsed.length > 0) return parsed;
@@ -838,7 +838,7 @@ export const getStoredTransportReviews = () => {
 
 export const saveStoredTransportReviews = (reviews) => {
   try {
-    localStorage.setItem('pawora_transport_reviews', JSON.stringify(reviews));
+    localStorage.setItem('joshpetshub_transport_reviews', JSON.stringify(reviews));
   } catch (_e) {}
 };
 
@@ -904,7 +904,7 @@ export const INITIAL_DEMO_ENQUIRIES = [
 
 export const getStoredTransportEnquiries = () => {
   try {
-    const data = localStorage.getItem('pawora_transport_enquiries');
+    const data = localStorage.getItem('joshpetshub_transport_enquiries');
     if (data) {
       const parsed = JSON.parse(data);
       if (Array.isArray(parsed) && parsed.length > 0) return parsed;
@@ -915,7 +915,7 @@ export const getStoredTransportEnquiries = () => {
 
 export const saveStoredTransportEnquiries = (enquiries) => {
   try {
-    localStorage.setItem('pawora_transport_enquiries', JSON.stringify(enquiries));
+    localStorage.setItem('joshpetshub_transport_enquiries', JSON.stringify(enquiries));
   } catch (_e) {}
 };
 

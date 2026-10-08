@@ -17,6 +17,7 @@ import { apiRequest } from '../../services/api.js';
 import ScrollReveal from '../../components/ui/ScrollReveal.jsx';
 import ServiceAccessLock, { isServicePathLockedForUser } from '../../components/ui/ServiceAccessLock.jsx';
 import PetBreedDropdown from '../../components/ui/PetBreedDropdown.jsx';
+import { handleServiceAction } from '../../components/widgets/ServicePackageAccessModal.jsx';
 
 const GroomingServices = () => {
   const navigate = useNavigate();
@@ -146,18 +147,14 @@ const GroomingServices = () => {
     selectedOffering, priceRange, selectedServiceMode, sortBy, searchKeyword
   ]);
 
-  // Open Booking Modal for a provider
+  // Open Booking & Service Access Modal for a provider
   const handleOpenBookingModal = (provider, pkg = null) => {
-    if (!isAuthenticated) {
-      toast.error('Please register or log in to book a grooming appointment.', {
-        icon: '🔒'
-      });
-      window.dispatchEvent(new CustomEvent('open-register-modal', { detail: { tab: 'user' } }));
-      return;
-    }
-    setSelectedProvider(provider);
-    setSelectedPackage(pkg || provider.packages[0] || null);
-    setShowBookingModal(true);
+    handleServiceAction({
+      isAuthenticated,
+      serviceType: 'Grooming',
+      provider,
+      action: 'book'
+    });
   };
 
   // Submit Booking Form
@@ -208,12 +205,21 @@ const GroomingServices = () => {
     }
   };
 
-  // Direct WhatsApp Connect
+  // Direct WhatsApp Connect or Provider Visit
   const handleWhatsApp = (provider) => {
-    const text = encodeURIComponent(
-      `Hello! I want to book a pet grooming session at "${provider.name}" (${provider.city}) found on JOSH PETS HUB.`
-    );
-    window.open(`https://wa.me/91${provider.phone}?text=${text}`, '_blank');
+    if (!isAuthenticated) {
+      toast.error('Please register or log in first to contact verified groomers.', {
+        icon: '🔒'
+      });
+      window.dispatchEvent(new CustomEvent('open-register-modal', { detail: { tab: 'user', hideProviderTab: true, source: 'grooming' } }));
+      return;
+    }
+    handleServiceAction({
+      isAuthenticated,
+      serviceType: 'Grooming',
+      provider,
+      action: 'visit'
+    });
   };
 
   const handleResetFilters = () => {
@@ -780,7 +786,11 @@ const GroomingServices = () => {
                     >
                       <div>
                         {/* Provider Header Image & Badges */}
-                        <div className="relative aspect-[16/9] overflow-hidden bg-slate-100">
+                        <div 
+                          onClick={() => handleServiceAction({ isAuthenticated, serviceType: 'Grooming', provider, action: 'visit' })}
+                          className="relative aspect-[16/9] overflow-hidden bg-slate-100 cursor-pointer"
+                          title={`Visit ${provider.name} profile and view service packages`}
+                        >
                           <img
                             src={provider.image}
                             alt={provider.name}
