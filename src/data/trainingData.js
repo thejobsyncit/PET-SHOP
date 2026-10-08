@@ -445,7 +445,7 @@ export const INITIAL_TRAINING_PROVIDERS = [
 
 export const getStoredTrainingProviders = () => {
   try {
-    const data = localStorage.getItem('pawora_training_providers');
+    const data = localStorage.getItem('joshpetshub_training_providers');
     if (data) {
       const parsed = JSON.parse(data);
       if (Array.isArray(parsed) && parsed.length > 0) return parsed;
@@ -458,7 +458,7 @@ export const getStoredTrainingProviders = () => {
 
 export const saveStoredTrainingProviders = (providers) => {
   try {
-    localStorage.setItem('pawora_training_providers', JSON.stringify(providers));
+    localStorage.setItem('joshpetshub_training_providers', JSON.stringify(providers));
   } catch (err) {
     console.error('Failed saving stored training providers:', err);
   }
@@ -523,8 +523,8 @@ export const saveOrUpdateTrainingService = (serviceData, user) => {
     packageStarting: Number(serviceData.packageStarting) || 4999,
     phone: serviceData.phone || user?.mobile || '+91 98453 34455',
     whatsapp: serviceData.whatsapp || serviceData.phone || user?.mobile || '+91 98453 34455',
-    email: userEmail || serviceData.email || 'clevercanines@pawora.com',
-    providerEmail: userEmail || 'clevercanines@pawora.com',
+    email: userEmail || serviceData.email || 'clevercanines@joshpetshub.com',
+    providerEmail: userEmail || 'clevercanines@joshpetshub.com',
     providerUserId: userId,
     image: serviceData.image || 'https://images.unsplash.com/photo-1535930891776-0c2dfb7fda1a?q=80&w=800&auto=format&fit=crop',
     certifications: Array.isArray(serviceData.certifications) 
@@ -646,7 +646,7 @@ export const INITIAL_DEMO_TRAINING_SESSIONS = [
 
 export const getStoredTrainingSessions = () => {
   try {
-    const data = localStorage.getItem('pawora_training_sessions');
+    const data = localStorage.getItem('joshpetshub_training_sessions');
     if (data) {
       const parsed = JSON.parse(data);
       if (Array.isArray(parsed) && parsed.length > 0) return parsed;
@@ -657,7 +657,7 @@ export const getStoredTrainingSessions = () => {
 
 export const saveStoredTrainingSessions = (sessions) => {
   try {
-    localStorage.setItem('pawora_training_sessions', JSON.stringify(sessions));
+    localStorage.setItem('joshpetshub_training_sessions', JSON.stringify(sessions));
   } catch (_e) {}
 };
 
@@ -739,7 +739,7 @@ export const INITIAL_DEMO_COURSES = [
 
 export const getStoredTrainingCourses = () => {
   try {
-    const data = localStorage.getItem('pawora_training_courses');
+    const data = localStorage.getItem('joshpetshub_training_courses');
     if (data) {
       const parsed = JSON.parse(data);
       if (Array.isArray(parsed) && parsed.length > 0) return parsed;
@@ -750,7 +750,7 @@ export const getStoredTrainingCourses = () => {
 
 export const saveStoredTrainingCourses = (courses) => {
   try {
-    localStorage.setItem('pawora_training_courses', JSON.stringify(courses));
+    localStorage.setItem('joshpetshub_training_courses', JSON.stringify(courses));
     window.dispatchEvent(new CustomEvent('training-courses-updated', { detail: courses }));
   } catch (_e) {}
 };
@@ -791,7 +791,7 @@ export const INITIAL_DEMO_TRAINING_REVIEWS = [
 
 export const getStoredTrainingReviews = () => {
   try {
-    const data = localStorage.getItem('pawora_training_reviews');
+    const data = localStorage.getItem('joshpetshub_training_reviews');
     if (data) {
       const parsed = JSON.parse(data);
       if (Array.isArray(parsed) && parsed.length > 0) return parsed;
@@ -802,15 +802,15 @@ export const getStoredTrainingReviews = () => {
 
 export const saveStoredTrainingReviews = (reviews) => {
   try {
-    localStorage.setItem('pawora_training_reviews', JSON.stringify(reviews));
+    localStorage.setItem('joshpetshub_training_reviews', JSON.stringify(reviews));
   } catch (_e) {}
 };
 
 export const saveTrainingBooking = (booking) => {
   try {
-    const current = JSON.parse(localStorage.getItem('pawora_training_bookings') || '[]');
+    const current = JSON.parse(localStorage.getItem('joshpetshub_training_bookings') || '[]');
     const updated = [booking, ...current];
-    localStorage.setItem('pawora_training_bookings', JSON.stringify(updated));
+    localStorage.setItem('joshpetshub_training_bookings', JSON.stringify(updated));
     window.dispatchEvent(new CustomEvent('training-booking-created', { detail: booking }));
     return updated;
   } catch (err) {
@@ -821,7 +821,7 @@ export const saveTrainingBooking = (booking) => {
 
 export const getStoredTrainingBookings = () => {
   try {
-    return JSON.parse(localStorage.getItem('pawora_training_bookings') || '[]');
+    return JSON.parse(localStorage.getItem('joshpetshub_training_bookings') || '[]');
   } catch (err) {
     console.error('Failed to read training bookings:', err);
     return [];
@@ -830,7 +830,7 @@ export const getStoredTrainingBookings = () => {
 
 export const saveTrainingEnquiry = (enquiry) => {
   try {
-    const current = JSON.parse(localStorage.getItem('pawora_training_enquiries') || '[]');
+    const current = JSON.parse(localStorage.getItem('joshpetshub_training_enquiries') || '[]');
     const newEnquiry = {
       id: 'TRN-ENQ-' + Date.now().toString().slice(-6),
       createdAt: new Date().toISOString(),
@@ -840,7 +840,7 @@ export const saveTrainingEnquiry = (enquiry) => {
       ...enquiry
     };
     const updated = [newEnquiry, ...current];
-    localStorage.setItem('pawora_training_enquiries', JSON.stringify(updated));
+    localStorage.setItem('joshpetshub_training_enquiries', JSON.stringify(updated));
     window.dispatchEvent(new CustomEvent('training-enquiry-created', { detail: newEnquiry }));
     return newEnquiry;
   } catch (err) {
@@ -851,7 +851,7 @@ export const saveTrainingEnquiry = (enquiry) => {
 
 export const getStoredTrainingEnquiries = () => {
   try {
-    return JSON.parse(localStorage.getItem('pawora_training_enquiries') || '[]');
+    return JSON.parse(localStorage.getItem('joshpetshub_training_enquiries') || '[]');
   } catch (err) {
     console.error('Failed to read training enquiries:', err);
     return [];
@@ -873,7 +873,7 @@ export const updateTrainingEnquiryStatus = (enquiryId, status, quoteAmount = nul
       }
       return enq;
     });
-    localStorage.setItem('pawora_training_enquiries', JSON.stringify(updated));
+    localStorage.setItem('joshpetshub_training_enquiries', JSON.stringify(updated));
     window.dispatchEvent(new CustomEvent('training-enquiry-updated', { detail: { enquiryId, status, quoteAmount, quoteMessage } }));
     return updated;
   } catch (err) {

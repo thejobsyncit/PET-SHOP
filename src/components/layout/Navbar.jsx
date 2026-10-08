@@ -7,6 +7,7 @@ import CartDrawer from './CartDrawer.jsx';
 import { logout } from '../../store/slices/authSlice.js';
 import { isServicePathLockedForUser } from '../ui/ServiceAccessLock.jsx';
 import toast from 'react-hot-toast';
+import LogoutConfirmModal from '../ui/LogoutConfirmModal.jsx';
 
 const Navbar = () => {
   const navigate = useNavigate();
@@ -18,6 +19,7 @@ const Navbar = () => {
   const [servicesMenuOpen, setServicesMenuOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isCartOpen, setIsCartOpen] = useState(false);
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [mobileExpanded, setMobileExpanded] = useState('');
 
@@ -65,10 +67,16 @@ const Navbar = () => {
     setIsMobileMenuOpen(false);
   }, [location.pathname, location.search]);
 
-  const handleLogout = () => {
-    dispatch(logout());
+  const handleLogoutClick = () => {
     setIsMobileMenuOpen(false);
+    setShowLogoutModal(true);
+  };
+
+  const handleConfirmLogout = () => {
+    setShowLogoutModal(false);
+    dispatch(logout());
     navigate('/');
+    toast.success('Logged out successfully.');
   };
 
   const isActive = (path) => {
@@ -466,7 +474,7 @@ const Navbar = () => {
                       </Link>
                     )}
                     <button
-                      onClick={handleLogout}
+                      onClick={handleLogoutClick}
                       className="bg-accent hover:bg-accent-dark text-white font-bold px-3.5 py-2 text-xs tracking-wider rounded-none uppercase transition cursor-pointer flex items-center gap-1"
                     >
                       <LogOut size={14} /> Logout
@@ -638,7 +646,7 @@ const Navbar = () => {
                     </Link>
                   )}
                   <button
-                    onClick={handleLogout}
+                    onClick={handleLogoutClick}
                     className="w-full py-2.5 bg-accent text-white text-xs font-bold uppercase tracking-widest rounded-none cursor-pointer"
                   >
                     LOGOUT
@@ -713,6 +721,12 @@ const Navbar = () => {
       </div>
 
       {/* Global Overlays */}
+      <LogoutConfirmModal
+        isOpen={showLogoutModal}
+        onClose={() => setShowLogoutModal(false)}
+        onConfirm={handleConfirmLogout}
+        userName={user?.name}
+      />
       <SearchOverlay isOpen={isSearchOpen} onClose={() => setIsSearchOpen(false)} />
       <CartDrawer isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} />
     </>

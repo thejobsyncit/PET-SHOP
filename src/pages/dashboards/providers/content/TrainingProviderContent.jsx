@@ -2104,25 +2104,16 @@ const TrainingProviderContent = ({ activeTab, user }) => {
       {activeTab === 'profile' && (
         <form onSubmit={handleSaveProfile} className="space-y-6">
           
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-6 border-b border-slate-100">
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="p-2 bg-emerald-100 text-emerald-800 rounded-xl">
-                  <PawPrint size={20} />
-                </span>
-                <h2 className="text-2xl font-sans font-black text-[#0F2E23]">Trainer Professional Profile</h2>
-              </div>
-              <p className="text-sm text-slate-500 mt-1">
-                Customize your bio, philosophy, operating hours, and certifications visible to clients.
-              </p>
+          <div className="pb-6 border-b border-slate-100">
+            <div className="flex items-center gap-2">
+              <span className="p-2 bg-emerald-100 text-emerald-800 rounded-xl">
+                <PawPrint size={20} />
+              </span>
+              <h2 className="text-2xl font-sans font-black text-[#0F2E23]">Trainer Professional Profile</h2>
             </div>
-
-            <button
-              type="submit"
-              className="bg-[#0F2E23] text-white px-6 py-2.5 rounded-xl font-bold text-xs hover:bg-emerald-900 transition shadow-md flex items-center gap-2"
-            >
-              <Check size={16} /> Save Profile
-            </button>
+            <p className="text-sm text-slate-500 mt-1">
+              Customize your bio, philosophy, operating hours, and certifications visible to clients.
+            </p>
           </div>
 
           <div className="bg-white rounded-3xl border border-slate-200 p-6 sm:p-8 space-y-6 shadow-sm">
@@ -2176,6 +2167,16 @@ const TrainingProviderContent = ({ activeTab, user }) => {
                 className="w-5 h-5 accent-emerald-700 rounded cursor-pointer"
               />
             </div>
+          </div>
+
+          {/* Save Profile Button placed at the bottom */}
+          <div className="flex justify-end pt-2">
+            <button
+              type="submit"
+              className="bg-[#0F2E23] text-white px-8 py-3 rounded-xl font-black text-xs uppercase tracking-wider hover:bg-emerald-900 transition shadow-md flex items-center gap-2 cursor-pointer"
+            >
+              <Check size={16} /> Save Profile
+            </button>
           </div>
 
         </form>

@@ -55,6 +55,7 @@ import {
 } from '../../data/insuranceData.js';
 import { INDIAN_STATES_CITIES } from '../../data/adoptionPetsData.js';
 import PetBreedDropdown from '../../components/ui/PetBreedDropdown.jsx';
+import { handleServiceAction } from '../../components/widgets/ServicePackageAccessModal.jsx';
 
 // Species-Specific Insurance Coverage Options & Medical Protection Tiers
 export const SPECIES_COVERAGE_OPTIONS = {
@@ -576,13 +577,20 @@ const PetInsurance = () => {
     printWindow.document.close();
   };
 
-  // Open Application Modal (Requires User to be Registered / Logged In)
+  // Open Application & Package Access Modal
   const handleOpenApplyModal = (provider) => {
+    handleServiceAction({
+      isAuthenticated,
+      serviceType: 'Insurance',
+      provider,
+      action: 'book'
+    });
+  };
+
+  // Open Details Modal / Visit Provider
+  const handleOpenDetailsModal = (provider) => {
     if (!isAuthenticated) {
-      setShowDetailsModal(false);
-      setShowCompareModal(false);
-      setShowQuoteModal(false);
-      toast('Please sign up or log in to complete your pet insurance application.', {
+      toast('Please sign up or log in to view insurance provider details.', {
         icon: '🔐',
         duration: 4000
       });
@@ -591,25 +599,19 @@ const PetInsurance = () => {
           detail: {
             tab: 'user',
             hideProviderTab: true,
-            source: 'insurance-apply',
+            source: 'insurance-details',
             providerName: provider?.name
           }
         })
       );
       return;
     }
-
-    setSelectedProviderForApply(provider);
-    setSelectedTierIndex(1); // Default to Gold / middle tier if available
-    setSelectedAddons([]);
-    setSubmittedApplication(null);
-    setShowApplyModal(true);
-  };
-
-  // Open Details Modal
-  const handleOpenDetailsModal = (provider) => {
-    setSelectedProviderForDetails(provider);
-    setShowDetailsModal(true);
+    handleServiceAction({
+      isAuthenticated,
+      serviceType: 'Insurance',
+      provider,
+      action: 'visit'
+    });
   };
 
   // Submit Policy Application

@@ -4,12 +4,12 @@
     "sender": {
       "_id": "6584c6ef0c25a0ab6e5a0101",
       "name": "Test Customer",
-      "email": "customer1@pawora.com"
+      "email": "customer1@joshpetshub.com"
     },
     "recipient": {
       "_id": "6584c6ef0c25a0ab6e5a0100",
-      "name": "Pawora Admin",
-      "email": "admin@pawora.com"
+      "name": "JOSH PETS HUB Admin",
+      "email": "admin@joshpetshub.com"
     },
     "listingRef": "LIST-101",
     "messageText": "Hello! I am interested in the Alaskan Malamute puppy. Is it still available?",
@@ -20,13 +20,13 @@
     "_id": "MSG-502",
     "sender": {
       "_id": "6584c6ef0c25a0ab6e5a0100",
-      "name": "Pawora Admin",
-      "email": "admin@pawora.com"
+      "name": "JOSH PETS HUB Admin",
+      "email": "admin@joshpetshub.com"
     },
     "recipient": {
       "_id": "6584c6ef0c25a0ab6e5a0101",
       "name": "Test Customer",
-      "email": "customer1@pawora.com"
+      "email": "customer1@joshpetshub.com"
     },
     "listingRef": "LIST-101",
     "messageText": "Yes, it is! You can schedule a home visit this Saturday if you like.",
@@ -38,7 +38,7 @@
     "sender": {
       "_id": "6a912da7b08a341adcdc9727",
       "name": "Aarav",
-      "email": "aarav@pawora.com"
+      "email": "aarav@joshpetshub.com"
     },
     "recipient": {
       "_id": "6584c6ef0c25a0ab6e5a0100",
@@ -52,8 +52,8 @@
     "_id": "MSG-515359",
     "sender": {
       "_id": "60d5ec49ad70591244000000",
-      "name": "Pawora Superadmin",
-      "email": "superadmin@pawora.com"
+      "name": "JOSH PETS HUB Superadmin",
+      "email": "superadmin@joshpetshub.com"
     },
     "recipient": {
       "_id": "60d5ec49ad70591244000000",
@@ -68,7 +68,7 @@
     "sender": {
       "_id": "prov-seller-04",
       "name": "Simulated Demo User",
-      "email": "demo@pawora.com"
+      "email": "demo@joshpetshub.com"
     },
     "recipient": {
       "_id": "prov-seller-04",
@@ -83,7 +83,7 @@
     "sender": {
       "_id": "prov-seller-04",
       "name": "Simulated Demo User",
-      "email": "demo@pawora.com"
+      "email": "demo@joshpetshub.com"
     },
     "recipient": {
       "_id": "prov-seller-04",
@@ -98,7 +98,7 @@
     "sender": {
       "_id": "prov-seller-04",
       "name": "Simulated Demo User",
-      "email": "demo@pawora.com"
+      "email": "demo@joshpetshub.com"
     },
     "recipient": {
       "_id": "prov-seller-04",
@@ -113,7 +113,7 @@
     "sender": {
       "_id": "prov-seller-04",
       "name": "Simulated Demo User",
-      "email": "demo@pawora.com"
+      "email": "demo@joshpetshub.com"
     },
     "recipient": {
       "_id": "prov-seller-04",
@@ -129,7 +129,7 @@
       "_id": "60d5ec49ad70591244000002",
       "id": "60d5ec49ad70591244000002",
       "name": "Aarav Sharma",
-      "email": "customer1@pawora.com"
+      "email": "customer1@joshpetshub.com"
     },
     "recipient": {
       "_id": "seller-cat-01",
@@ -140,5 +140,25 @@
     "messageText": "Hello! Is this kitten still available for viewing?",
     "isRead": false,
     "createdAt": "2026-09-24T13:27:50.124Z"
+  },
+  {
+    "_id": "MSG-1791022763911-3920",
+    "sender": {
+      "_id": "superadmin-demo-01",
+      "id": "superadmin-demo-01",
+      "name": "Super Admin",
+      "email": "superadmin@joshpetshub.com"
+    },
+    "recipient": {
+      "_id": "seller-dog-01",
+      "id": "seller-dog-01",
+      "name": "Royal Paws Kennel"
+    },
+    "listingRef": "LIST-DOG-01",
+    "listingTitle": "KCI Certified Siberian Husky Puppy (Blue-Eyed)",
+    "listingImage": "https://images.unsplash.com/photo-1534361960057-19889db9621e?q=80&w=800&auto=format&fit=crop",
+    "messageText": "Is this pet still available?",
+    "isRead": false,
+    "createdAt": "2026-10-03T10:19:23.911Z"
   }
 ]

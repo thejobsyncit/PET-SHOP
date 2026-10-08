@@ -65,7 +65,7 @@ export const createBlog = async (req, res) => {
       slug,
       summary,
       content,
-      author: author || 'Pawora Editorial Team',
+      author: author || 'JOSH PETS HUB Editorial Team',
       featured_image: featuredImage,
       pet_type: petType,
       tags: tags || [],

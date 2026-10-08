@@ -26,6 +26,7 @@ import {
 } from '../../data/transportData.js';
 import { apiRequest } from '../../services/api.js';
 import toast from 'react-hot-toast';
+import LogoutConfirmModal from '../../components/ui/LogoutConfirmModal.jsx';
 
 const AccountDashboard = () => {
   const dispatch = useDispatch();
@@ -52,6 +53,7 @@ const AccountDashboard = () => {
   const [addrState, setAddrState] = useState('');
   const [addrZip, setAddrZip] = useState('');
   const [showAddressForm, setShowAddressForm] = useState(false);
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
   // History logs states
   const [orders, setOrders] = useState([]);
@@ -177,19 +179,19 @@ const AccountDashboard = () => {
 
   const handleAddAddress = async (e) => {
     e.preventDefault();
-    if (!addrName || !addrPhone || !addrStreet || !addrCity || !addrState || !addrZip) {
+    if (!addrName.trim() || !addrPhone.trim() || !addrStreet.trim() || !addrCity.trim() || !addrState.trim() || !addrZip.trim()) {
       toast.error('Please enter all address parameters.');
       return;
     }
 
     const payload = {
-      name: addrName,
-      phone: addrPhone,
-      streetAddress: addrStreet,
-      city: addrCity,
-      state: addrState,
-      postalCode: addrZip,
-      isDefault: user.addresses.length === 0
+      name: addrName.trim(),
+      phone: addrPhone.trim(),
+      streetAddress: addrStreet.trim(),
+      city: addrCity.trim(),
+      state: addrState.trim(),
+      postalCode: addrZip.trim(),
+      isDefault: !user?.addresses || user.addresses.length === 0
     };
 
     const result = await dispatch(addUserAddress(payload));
@@ -204,7 +206,7 @@ const AccountDashboard = () => {
       setAddrState('');
       setAddrZip('');
     } else {
-      toast.error('Could not save address.');
+      toast.error(result.payload || 'Could not save address.');
     }
   };
 
@@ -213,7 +215,12 @@ const AccountDashboard = () => {
     toast.success('Address removed.');
   };
 
-  const handleLogout = () => {
+  const handleLogoutClick = () => {
+    setShowLogoutConfirm(true);
+  };
+
+  const handleConfirmLogout = () => {
+    setShowLogoutConfirm(false);
     dispatch(logout());
     navigate('/');
     toast.success('Logged out successfully.');
@@ -293,7 +300,7 @@ const AccountDashboard = () => {
         </div>
         
         <button
-          onClick={handleLogout}
+          onClick={handleLogoutClick}
           className="px-4 py-2 border border-beige hover:border-red-500 hover:text-red-500 text-xs font-bold uppercase tracking-widest flex items-center gap-1.5 transition cursor-pointer"
         >
           <LogOut size={14} /> LOGOUT
@@ -1001,10 +1008,11 @@ const AccountDashboard = () => {
                       required
                     />
                     <input
-                      type="text"
-                      placeholder="Phone Number"
+                      type="tel"
+                      placeholder="Phone Number (10 Digits)"
+                      maxLength={10}
                       value={addrPhone}
-                      onChange={(e) => setAddrPhone(e.target.value)}
+                      onChange={(e) => setAddrPhone(e.target.value.replace(/\D/g, '').slice(0, 10))}
                       className="px-3 py-2 border border-beige text-xs bg-white focus:outline-none focus:border-primary rounded"
                       required
                     />
@@ -1036,9 +1044,10 @@ const AccountDashboard = () => {
                     />
                     <input
                       type="text"
-                      placeholder="Postal Code"
+                      placeholder="Postal Code (6 Digits)"
+                      maxLength={6}
                       value={addrZip}
-                      onChange={(e) => setAddrZip(e.target.value)}
+                      onChange={(e) => setAddrZip(e.target.value.replace(/\D/g, '').slice(0, 6))}
                       className="px-3 py-2 border border-beige text-xs bg-white focus:outline-none focus:border-primary rounded"
                       required
                     />
@@ -1344,6 +1353,13 @@ const AccountDashboard = () => {
         </div>
 
       </div>
+
+      <LogoutConfirmModal
+        isOpen={showLogoutConfirm}
+        onClose={() => setShowLogoutConfirm(false)}
+        onConfirm={handleConfirmLogout}
+        userName={user?.name}
+      />
 
     </div>
   );

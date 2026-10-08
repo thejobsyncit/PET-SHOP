@@ -14,6 +14,7 @@ import {
   saveAdoptionInquiry
 } from '../../data/adoptionPetsData';
 import FlyingMacawMessenger from '../../components/widgets/FlyingMacawMessenger.jsx';
+import { handleServiceAction } from '../../components/widgets/ServicePackageAccessModal.jsx';
 
 const AdoptionPetDetail = () => {
   const { id } = useParams();
@@ -70,6 +71,48 @@ const AdoptionPetDetail = () => {
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, [id]);
+
+  // Handle "Know More" action: unauthenticated gets register modal, authenticated gets payment/package modal
+  const handleKnowMore = (targetPet) => {
+    if (!isAuthenticated || !user) {
+      toast.error('Please register or log in as a user to view adoption details.', {
+        duration: 4000,
+        icon: '🔒'
+      });
+      window.dispatchEvent(
+        new CustomEvent('open-register-modal', {
+          detail: {
+            tab: 'user',
+            hideProviderTab: true,
+            source: 'adoption-know-more',
+            petName: targetPet?.name
+          }
+        })
+      );
+      return;
+    }
+
+    handleServiceAction({
+      isAuthenticated: true,
+      serviceType: 'Adoption',
+      provider: {
+        id: targetPet.id,
+        name: targetPet.name,
+        parentName: targetPet.parentName || targetPet.guardianName || 'Rescue Shelter',
+        breed: targetPet.breed,
+        gender: targetPet.gender,
+        age: targetPet.age,
+        city: targetPet.city,
+        area: targetPet.state,
+        phone: targetPet.parentContact || targetPet.shelterPhone || '+91 98765 43210',
+        image: targetPet.image,
+        rating: 4.9,
+        reviews: 42,
+        price: targetPet.fee ? Number(targetPet.fee) : 499
+      },
+      action: 'adopt'
+    });
+  };
 
   // Load target pet with robust ID and string matching & real-time sync
   useEffect(() => {
@@ -519,6 +562,16 @@ const AdoptionPetDetail = () => {
                 <span>💬 Ask Shelter a Question / Start Chat</span>
               </button>
 
+              {/* Adoption Package & Payment Pass Trigger */}
+              <button
+                type="button"
+                onClick={() => pet && handleKnowMore(pet)}
+                className="w-full py-3 px-4 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white rounded-xl font-bold text-xs shadow-md shadow-amber-500/20 active:scale-95 transition flex items-center justify-center gap-2 cursor-pointer"
+              >
+                <Sparkles size={16} />
+                <span>⭐ View Adoption Care Packages & Payment</span>
+              </button>
+
               {/* Adoption Application Form Section */}
               <div className="border-t border-slate-100 pt-4 space-y-4">
                 <div>
@@ -726,12 +779,13 @@ const AdoptionPetDetail = () => {
                       Hi! My name is: <span className="text-[#7c56dc]">{p.name}</span>
                     </h4>
                     <p className="text-xs text-slate-500">{p.breed} • {p.city}</p>
-                    <Link
-                      to={`/adopt/${p.id}`}
-                      className="block text-center py-2 bg-[#7c56dc] hover:bg-[#6842c8] text-white text-xs font-bold rounded-xl transition"
+                    <button
+                      type="button"
+                      onClick={() => handleKnowMore(p)}
+                      className="w-full text-center py-2 bg-[#7c56dc] hover:bg-[#6842c8] text-white text-xs font-bold rounded-xl transition cursor-pointer"
                     >
                       Know More About {p.name}
-                    </Link>
+                    </button>
                   </div>
                 </div>
               ))}

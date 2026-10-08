@@ -103,8 +103,8 @@ const TrainingProviderDashboard = ({
   };
 
   // Live Stats from Persistent Storage
-  const scheduledCount = useMemo(() => sessions.filter(s => s.status === 'Scheduled').length, [sessions]);
-  const completedCount = useMemo(() => sessions.filter(s => s.status === 'Completed').length, [sessions]);
+  const scheduledCount = useMemo(() => (Array.isArray(sessions) ? sessions.filter(s => s && s.status === 'Scheduled').length : 0), [sessions]);
+  const completedCount = useMemo(() => (Array.isArray(sessions) ? sessions.filter(s => s && s.status === 'Completed').length : 0), [sessions]);
   const totalRevenue = useMemo(() => {
     return (completedCount * (myService?.pricePerSession || 850)) + 28500;
   }, [completedCount, myService]);

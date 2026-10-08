@@ -175,8 +175,8 @@ export const INITIAL_WALKING_PROVIDERS = [
   }
 ];
 
-const STORAGE_KEY_PROVIDERS = 'pawora_walking_providers_v1';
-const STORAGE_KEY_BOOKINGS = 'pawora_walking_bookings_v1';
+const STORAGE_KEY_PROVIDERS = 'joshpetshub_walking_providers_v1';
+const STORAGE_KEY_BOOKINGS = 'joshpetshub_walking_bookings_v1';
 
 export const getStoredWalkingProviders = () => {
   try {

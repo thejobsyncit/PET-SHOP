@@ -21,6 +21,7 @@ import ServiceAccessLock, { isServicePathLockedForUser } from '../../components/
 
 import ScrollReveal from '../../components/ui/ScrollReveal.jsx';
 import PetBreedDropdown from '../../components/ui/PetBreedDropdown.jsx';
+import { handleServiceAction } from '../../components/widgets/ServicePackageAccessModal.jsx';
 const PetTransport = () => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -42,6 +43,8 @@ const PetTransport = () => {
   const [iataOnly, setIataOnly] = useState(false);
 
   // Multi-Provider Comparison State (Dedicated for Pet Transport: Max 3)
+  const todayStr = new Date().toISOString().split('T')[0];
+
   const [comparedProviders, setComparedProviders] = useState([]);
   const [showCompareModal, setShowCompareModal] = useState(false);
 
@@ -53,7 +56,7 @@ const PetTransport = () => {
   const [bookingDate, setBookingDate] = useState('');
   const [bookingPetName, setBookingPetName] = useState('');
   const [bookingPetBreed, setBookingPetBreed] = useState('');
-  const [bookingPetWeight, setBookingPetWeight] = useState('12 kg');
+  const [bookingPetWeight, setBookingPetWeight] = useState('');
   const [bookingCrateNeeded, setBookingCrateNeeded] = useState('Yes, need sanitized IATA crate');
   const [bookingOwnerPhone, setBookingOwnerPhone] = useState(user?.mobile || '');
   const [bookingNotes, setBookingNotes] = useState('');
@@ -253,20 +256,14 @@ const PetTransport = () => {
     }
   };
 
-  // Auth Guard for Booking
+  // Auth Guard for Booking & Package Access
   const handleOpenBookingModal = (provider, pkg = null) => {
-    if (!isAuthenticated) {
-      toast.error('Please register or log in to book pet transport.', {
-        icon: '🔒'
-      });
-      window.dispatchEvent(new CustomEvent('open-register-modal', { detail: { tab: 'user', hideProviderTab: true, source: 'transport' } }));
-      return;
-    }
-    setSelectedProviderForBooking(provider);
-    setSelectedPackage(pkg || provider.packages[0] || null);
-    setBookingOriginCity(provider.city);
-    setBookingDestCity('Delhi');
-    setShowBookingModal(true);
+    handleServiceAction({
+      isAuthenticated,
+      serviceType: 'Transport',
+      provider,
+      action: 'book'
+    });
   };
 
   // Submit Booking Form
@@ -276,12 +273,20 @@ const PetTransport = () => {
       toast.error('Please select an expected relocation date.');
       return;
     }
+    if (bookingDate < todayStr) {
+      toast.error('Relocation date cannot be in the past. Please select today or a future date.');
+      return;
+    }
     if (!bookingPetName.trim() || !bookingPetBreed.trim()) {
       toast.error('Please enter your pet name and breed.');
       return;
     }
     if (!bookingOwnerPhone.trim()) {
-      toast.error('Please provide a contact phone number.');
+      toast.error('Please provide an owner contact number.');
+      return;
+    }
+    if (bookingOwnerPhone.replace(/\D/g, '').length !== 10) {
+      toast.error('Please enter a valid 10-digit mobile number.');
       return;
     }
 
@@ -319,18 +324,14 @@ const PetTransport = () => {
     setBookingNotes('');
   };
 
-  // Open Enquiry Modal for a specific provider
+  // Open Enquiry / Visit Modal for a specific provider
   const handleOpenEnquiryModal = (provider) => {
-    if (!isAuthenticated) {
-      toast.error('Please register or log in to send a relocation enquiry.', {
-        icon: '🔒'
-      });
-      window.dispatchEvent(new CustomEvent('open-register-modal', { detail: { tab: 'user', hideProviderTab: true, source: 'transport-enquiry' } }));
-      return;
-    }
-    setSelectedProviderForEnquiry(provider);
-    setEnqDepCity(provider.city);
-    setShowEnquiryModal(true);
+    handleServiceAction({
+      isAuthenticated,
+      serviceType: 'Transport',
+      provider,
+      action: 'visit'
+    });
   };
 
   // Submit Provider Enquiry
@@ -340,8 +341,16 @@ const PetTransport = () => {
       toast.error('Please provide your name and contact phone number.');
       return;
     }
+    if (enqPhone.replace(/\D/g, '').length !== 10) {
+      toast.error('Please enter a valid 10-digit mobile number.');
+      return;
+    }
     if (!enqPetBreed.trim()) {
       toast.error('Please specify your pet breed.');
+      return;
+    }
+    if (enqExpectedDate && enqExpectedDate < todayStr) {
+      toast.error('Expected relocation date cannot be in the past. Please select today or a future date.');
       return;
     }
 
@@ -391,8 +400,16 @@ const PetTransport = () => {
       toast.error('Please provide your name and contact phone number.');
       return;
     }
+    if (globalEnqPhone.replace(/\D/g, '').length !== 10) {
+      toast.error('Please enter a valid 10-digit mobile number.');
+      return;
+    }
     if (!globalEnqPetBreed.trim()) {
       toast.error('Please specify your pet breed.');
+      return;
+    }
+    if (globalEnqDate && globalEnqDate < todayStr) {
+      toast.error('Expected relocation date cannot be in the past. Please select today or a future date.');
       return;
     }
 
@@ -472,7 +489,7 @@ const PetTransport = () => {
             <div className="flex flex-wrap items-center gap-3 pt-2">
               <button
                 onClick={() => {
-                  const target = document.getElementById('transport-catalog');
+                  const target = document.getElementById('types-of-transportation') || document.getElementById('transport-catalog');
                   if (target) target.scrollIntoView({ behavior: 'smooth' });
                 }}
                 className="bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-500 hover:to-amber-600 text-slate-950 text-xs md:text-sm font-extrabold px-5 py-3 rounded-xl transition shadow-lg flex items-center gap-2 cursor-pointer hover:shadow-xl active:scale-95"
@@ -615,81 +632,96 @@ const PetTransport = () => {
       </ScrollReveal>
 
       {/* 2. TYPES OF TRANSPORTATION (ROAD, RAIL, SHIP, AIR) */}
-      <ScrollReveal variant="fade" className="bg-white py-8 lg:py-16 border-b border-stone-200">
-        <div className="max-w-7xl mx-auto px-4 md:px-8 space-y-12">
-          
-          <div className="text-center space-y-3 max-w-2xl mx-auto">
-            <span className="text-[11px] font-extrabold uppercase tracking-widest text-[#13274F] bg-sky-50 px-3 py-1 rounded-full border border-sky-100">
-              Modalities & Fleet
-            </span>
-            <h2 className="text-3xl md:text-4xl font-serif font-bold text-[#0B1528]">
-              Types of Transportation
-            </h2>
-            <p className="text-xs md:text-sm text-gray-500">
-              We work with trusted transport services on the road, rail, ship, and air for a hassle-free process.
-            </p>
-          </div>
+      <div id="types-of-transportation" className="scroll-mt-8">
+        <ScrollReveal variant="fade" className="bg-white py-8 lg:py-16 border-b border-stone-200">
+          <div className="max-w-7xl mx-auto px-4 md:px-8 space-y-12">
+            
+            <div className="text-center space-y-3 max-w-2xl mx-auto">
+              <span className="text-[11px] font-extrabold uppercase tracking-widest text-[#13274F] bg-sky-50 px-3 py-1 rounded-full border border-sky-100">
+                Modalities & Fleet
+              </span>
+              <h2 className="text-3xl md:text-4xl font-serif font-bold text-[#0B1528]">
+                Types of Transportation
+              </h2>
+              <p className="text-xs md:text-sm text-gray-500">
+                We work with trusted transport services on the road, rail, ship, and air for a hassle-free process.
+              </p>
+            </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {TRANSPORT_MODES.map((mode) => {
-              const isSelected = selectedMode.toLowerCase().includes(mode.id);
-              return (
-                <div
-                  key={mode.id}
-                  onClick={() => {
-                    setSelectedMode(mode.name);
-                    const catalog = document.getElementById('transport-catalog');
-                    if (catalog) catalog.scrollIntoView({ behavior: 'smooth' });
-                  }}
-                  className={`group relative p-6 rounded-2xl transition-all duration-300 cursor-pointer border flex flex-col justify-between ${
-                    isSelected
-                      ? 'bg-[#0B1528] text-white border-[#0B1528] shadow-xl scale-[1.02]'
-                      : 'bg-stone-50 hover:bg-[#0B1528] text-slate-800 hover:text-white border-stone-200 hover:border-[#0B1528] hover:shadow-xl'
-                  }`}
-                >
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between">
-                      <div className="w-14 h-14 rounded-2xl bg-white/90 shadow-md flex items-center justify-center text-3xl group-hover:scale-110 transition-transform">
-                        {mode.icon}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              {TRANSPORT_MODES.map((mode) => {
+                const isSelected = selectedMode.toLowerCase().includes(mode.id);
+                return (
+                  <div
+                    key={mode.id}
+                    onClick={() => {
+                      setSelectedMode(mode.name);
+                      const catalog = document.getElementById('transport-catalog');
+                      if (catalog) catalog.scrollIntoView({ behavior: 'smooth' });
+                    }}
+                    className={`group relative p-6 rounded-2xl transition-all duration-300 cursor-pointer border flex flex-col justify-between ${
+                      isSelected
+                        ? 'bg-[#0B1528] text-white border-[#0B1528] shadow-xl scale-[1.02]'
+                        : 'bg-stone-50 hover:bg-[#0B1528] text-slate-800 hover:text-white border-stone-200 hover:border-[#0B1528] hover:shadow-xl'
+                    }`}
+                  >
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between">
+                        <div className="w-14 h-14 rounded-2xl bg-white/90 shadow-md flex items-center justify-center text-3xl group-hover:scale-110 transition-transform">
+                          {mode.icon}
+                        </div>
+                        <span className={`text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-md ${
+                          isSelected 
+                            ? 'bg-amber-400 text-slate-950 font-bold' 
+                            : 'bg-[#13274F]/10 text-[#13274F] group-hover:bg-amber-400 group-hover:text-slate-950'
+                        }`}>
+                          {mode.badge}
+                        </span>
                       </div>
-                      <span className={`text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-md ${
-                        isSelected 
-                          ? 'bg-amber-400 text-slate-950 font-bold' 
-                          : 'bg-[#13274F]/10 text-[#13274F] group-hover:bg-amber-400 group-hover:text-slate-950'
-                      }`}>
-                        {mode.badge}
-                      </span>
-                    </div>
 
-                    <div>
-                      <h3 className="text-lg font-serif font-bold tracking-tight">
-                        {mode.name.toUpperCase()}
-                      </h3>
-                      <p className={`text-xs mt-1 font-medium ${
-                        isSelected ? 'text-sky-200' : 'text-gray-500 group-hover:text-sky-200'
+                      <div>
+                        <h3 className="text-lg font-serif font-bold tracking-tight">
+                          {mode.name.toUpperCase()}
+                        </h3>
+                        <p className={`text-xs mt-1 font-medium ${
+                          isSelected ? 'text-sky-200' : 'text-gray-500 group-hover:text-sky-200'
+                        }`}>
+                          {mode.subtitle}
+                        </p>
+                      </div>
+
+                      <p className={`text-xs leading-relaxed ${
+                        isSelected ? 'text-gray-200' : 'text-gray-600 group-hover:text-gray-200'
                       }`}>
-                        {mode.subtitle}
+                        {mode.desc}
                       </p>
                     </div>
 
-                    <p className={`text-xs leading-relaxed ${
-                      isSelected ? 'text-gray-200' : 'text-gray-600 group-hover:text-gray-200'
-                    }`}>
-                      {mode.desc}
-                    </p>
+                    <div className="pt-6 border-t border-black/10 group-hover:border-white/20 mt-4">
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedMode(mode.name);
+                          toast.success(`Filtered fleet for ${mode.name}!`, { icon: '🚐' });
+                          const catalog = document.getElementById('transport-catalog');
+                          if (catalog) catalog.scrollIntoView({ behavior: 'smooth' });
+                        }}
+                        className="w-full flex items-center justify-between text-xs font-bold text-amber-400 hover:text-amber-300 py-1.5 px-2 rounded-lg hover:bg-white/10 transition cursor-pointer"
+                        title={`Filter by ${mode.name}`}
+                      >
+                        <span>Click to Filter Fleet</span>
+                        <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
+                      </button>
+                    </div>
                   </div>
+                );
+              })}
+            </div>
 
-                  <div className="pt-6 border-t border-black/10 group-hover:border-white/20 mt-4 flex items-center justify-between text-xs font-bold">
-                    <span className="text-amber-400">Click to Filter Fleet</span>
-                    <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
-                  </div>
-                </div>
-              );
-            })}
           </div>
-
-        </div>
-      </ScrollReveal>
+        </ScrollReveal>
+      </div>
 
       {/* 4. HOW WE MOVE YOUR PET (4 STEPS) */}
       <ScrollReveal variant="fade" className="max-w-7xl mx-auto px-4 md:px-8 py-8 lg:py-16 space-y-12">
@@ -1017,7 +1049,11 @@ const PetTransport = () => {
 
                     {/* Provider Image & Badges */}
                     <div className="md:w-56 shrink-0">
-                      <div className="aspect-[4/3] rounded-xl overflow-hidden relative shadow-sm border border-stone-100">
+                      <div 
+                        onClick={() => handleServiceAction({ isAuthenticated, serviceType: 'Transport', provider, action: 'visit' })}
+                        className="aspect-[4/3] rounded-xl overflow-hidden relative shadow-sm border border-stone-100 cursor-pointer"
+                        title={`Visit ${provider.name} and view packages`}
+                      >
                         <img
                           src={provider.image}
                           alt={provider.name}
@@ -1187,10 +1223,11 @@ const PetTransport = () => {
                 <div>
                   <input
                     type="tel"
-                    placeholder="Contact Number *"
+                    placeholder="10-Digit Mobile Number *"
                     required
+                    maxLength={10}
                     value={globalEnqPhone}
-                    onChange={(e) => setGlobalEnqPhone(e.target.value)}
+                    onChange={(e) => setGlobalEnqPhone(e.target.value.replace(/\D/g, '').slice(0, 10))}
                     className="w-full bg-stone-50 border border-stone-200 text-xs rounded-lg px-3 py-2 text-slate-800 focus:outline-none focus:border-[#0F2E23]"
                   />
                 </div>
@@ -1264,6 +1301,7 @@ const PetTransport = () => {
                 <div>
                   <input
                     type="date"
+                    min={todayStr}
                     value={globalEnqDate}
                     onChange={(e) => setGlobalEnqDate(e.target.value)}
                     className="w-full bg-stone-50 border border-stone-200 text-xs rounded-lg px-3 py-2 text-slate-800 focus:outline-none focus:border-[#0F2E23]"
@@ -1902,6 +1940,7 @@ const PetTransport = () => {
                   <input
                     type="date"
                     required
+                    min={todayStr}
                     value={bookingDate}
                     onChange={(e) => setBookingDate(e.target.value)}
                     className="w-full bg-stone-50 border border-stone-200 rounded-lg px-2.5 py-1.5 text-slate-800 font-semibold focus:outline-none focus:border-[#13274F]"
@@ -1912,9 +1951,10 @@ const PetTransport = () => {
                   <input
                     type="tel"
                     required
-                    placeholder="+91..."
+                    maxLength={10}
+                    placeholder="10-digit mobile number"
                     value={bookingOwnerPhone}
-                    onChange={(e) => setBookingOwnerPhone(e.target.value)}
+                    onChange={(e) => setBookingOwnerPhone(e.target.value.replace(/\D/g, '').slice(0, 10))}
                     className="w-full bg-stone-50 border border-stone-200 rounded-lg px-2.5 py-1.5 text-slate-800 font-semibold focus:outline-none focus:border-[#13274F]"
                   />
                 </div>
@@ -1949,7 +1989,7 @@ const PetTransport = () => {
                   <label className="block text-[10px] font-bold uppercase text-gray-500 mb-1">Weight</label>
                   <input
                     type="text"
-                    placeholder="e.g. 15 kg"
+                    placeholder="e.g. 12 kg"
                     value={bookingPetWeight}
                     onChange={(e) => setBookingPetWeight(e.target.value)}
                     className="w-full bg-stone-50 border border-stone-200 rounded-lg px-2.5 py-1.5 text-slate-800 focus:outline-none focus:border-[#13274F]"
@@ -2032,8 +2072,10 @@ const PetTransport = () => {
                   <input
                     type="tel"
                     required
+                    maxLength={10}
+                    placeholder="10-digit mobile number"
                     value={enqPhone}
-                    onChange={(e) => setEnqPhone(e.target.value)}
+                    onChange={(e) => setEnqPhone(e.target.value.replace(/\D/g, '').slice(0, 10))}
                     className="w-full bg-stone-50 border border-stone-200 rounded-lg px-2.5 py-1.5 text-slate-800 focus:outline-none focus:border-[#13274F]"
                   />
                 </div>
@@ -2079,6 +2121,7 @@ const PetTransport = () => {
                   <label className="block text-[10px] font-bold uppercase text-gray-500 mb-1">Expected Date</label>
                   <input
                     type="date"
+                    min={todayStr}
                     value={enqExpectedDate}
                     onChange={(e) => setEnqExpectedDate(e.target.value)}
                     className="w-full bg-stone-50 border border-stone-200 rounded-lg px-2.5 py-1.5 text-slate-800 focus:outline-none focus:border-[#13274F]"

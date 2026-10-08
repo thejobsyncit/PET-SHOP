@@ -449,7 +449,7 @@ const LeadConsultationModal = () => {
 
   useEffect(() => {
     // Show popup after 5 seconds delay when visiting the site if not closed during current session and not logged in
-    const hasBeenClosed = sessionStorage.getItem('pawora_lead_modal_closed');
+    const hasBeenClosed = sessionStorage.getItem('joshpetshub_lead_modal_closed');
     if (!hasBeenClosed && !isAuthenticated) {
       const timer = setTimeout(() => {
         setIsOpen(true);
@@ -496,7 +496,7 @@ const LeadConsultationModal = () => {
   const handleClose = () => {
     setIsOpen(false);
     setHideProviderTab(false);
-    sessionStorage.setItem('pawora_lead_modal_closed', 'true');
+    sessionStorage.setItem('joshpetshub_lead_modal_closed', 'true');
   };
 
   // State Change Handlers - reset district selection so no single district is forced

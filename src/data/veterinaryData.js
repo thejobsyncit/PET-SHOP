@@ -1,5 +1,5 @@
 /**
- * Pawora Veterinary & Healthcare Dataset & Storage Helpers
+ * Josh Pets Hub Veterinary & Healthcare Dataset & Storage Helpers
  * Complete clinical records, doctor profiles, diagnostic packages, and booking state.
  */
 
@@ -615,7 +615,7 @@ export const INITIAL_VET_DOCTORS = [
 // LocalStorage helpers with safe Quota handling
 export const getStoredVetDoctors = () => {
   try {
-    const saved = localStorage.getItem('pawora_vet_doctors_v2');
+    const saved = localStorage.getItem('joshpetshub_vet_doctors_v2');
     if (saved) {
       const parsed = JSON.parse(saved);
       if (Array.isArray(parsed) && parsed.length > 0) return parsed;
@@ -626,8 +626,8 @@ export const getStoredVetDoctors = () => {
 
   try {
     // Clean old keys if needed
-    localStorage.removeItem('pawora_vet_doctors_v1');
-    localStorage.setItem('pawora_vet_doctors_v2', JSON.stringify(INITIAL_VET_DOCTORS));
+    localStorage.removeItem('joshpetshub_vet_doctors_v1');
+    localStorage.setItem('joshpetshub_vet_doctors_v2', JSON.stringify(INITIAL_VET_DOCTORS));
   } catch (e) {
     console.warn('LocalStorage quota exceeded, using in-memory INITIAL_VET_DOCTORS', e);
   }
@@ -732,7 +732,7 @@ export const saveVetAppointment = (appointment) => {
   try {
     const current = getVetAppointments();
     const updated = [appointment, ...current];
-    localStorage.setItem('pawora_vet_appointments', JSON.stringify(updated));
+    localStorage.setItem('joshpetshub_vet_appointments', JSON.stringify(updated));
     window.dispatchEvent(new CustomEvent('vet-data-updated', { detail: { type: 'appointment', action: 'create', appointment } }));
     return updated;
   } catch (e) {
@@ -743,7 +743,7 @@ export const saveVetAppointment = (appointment) => {
 
 export const getVetAppointments = () => {
   try {
-    const saved = localStorage.getItem('pawora_vet_appointments');
+    const saved = localStorage.getItem('joshpetshub_vet_appointments');
     if (saved) {
       const parsed = JSON.parse(saved);
       if (Array.isArray(parsed) && parsed.length > 0) return parsed;
@@ -753,7 +753,7 @@ export const getVetAppointments = () => {
   }
 
   try {
-    localStorage.setItem('pawora_vet_appointments', JSON.stringify(INITIAL_VET_APPOINTMENTS));
+    localStorage.setItem('joshpetshub_vet_appointments', JSON.stringify(INITIAL_VET_APPOINTMENTS));
   } catch (e) {}
 
   return INITIAL_VET_APPOINTMENTS;
@@ -768,7 +768,7 @@ export const updateVetAppointmentStatus = (id, newStatus, additionalData = {}) =
       }
       return app;
     });
-    localStorage.setItem('pawora_vet_appointments', JSON.stringify(updated));
+    localStorage.setItem('joshpetshub_vet_appointments', JSON.stringify(updated));
     window.dispatchEvent(new CustomEvent('vet-data-updated', { detail: { type: 'appointment', action: 'update', id, newStatus } }));
     return updated;
   } catch (e) {
@@ -794,7 +794,7 @@ export const updateVetProfile = (profileData) => {
       updatedDoctors = [profileData, ...currentDoctors];
     }
     
-    localStorage.setItem('pawora_vet_doctors_v2', JSON.stringify(updatedDoctors));
+    localStorage.setItem('joshpetshub_vet_doctors_v2', JSON.stringify(updatedDoctors));
     window.dispatchEvent(new CustomEvent('vet-data-updated', { detail: { type: 'profile', profile: profileData } }));
     return updatedDoctors;
   } catch (e) {
@@ -886,7 +886,7 @@ export const INITIAL_VET_PRESCRIPTIONS = [
 
 export const getStoredVetPrescriptions = () => {
   try {
-    const saved = localStorage.getItem('pawora_vet_prescriptions');
+    const saved = localStorage.getItem('joshpetshub_vet_prescriptions');
     if (saved) {
       const parsed = JSON.parse(saved);
       if (Array.isArray(parsed) && parsed.length > 0) return parsed;
@@ -896,7 +896,7 @@ export const getStoredVetPrescriptions = () => {
   }
 
   try {
-    localStorage.setItem('pawora_vet_prescriptions', JSON.stringify(INITIAL_VET_PRESCRIPTIONS));
+    localStorage.setItem('joshpetshub_vet_prescriptions', JSON.stringify(INITIAL_VET_PRESCRIPTIONS));
   } catch (e) {}
 
   return INITIAL_VET_PRESCRIPTIONS;
@@ -906,7 +906,7 @@ export const saveVetPrescription = (rx) => {
   try {
     const current = getStoredVetPrescriptions();
     const updated = [rx, ...current];
-    localStorage.setItem('pawora_vet_prescriptions', JSON.stringify(updated));
+    localStorage.setItem('joshpetshub_vet_prescriptions', JSON.stringify(updated));
     window.dispatchEvent(new CustomEvent('vet-data-updated', { detail: { type: 'prescription', rx } }));
     return updated;
   } catch (e) {
@@ -930,7 +930,7 @@ export const INITIAL_VET_SCHEDULE = {
 
 export const getStoredVetSchedule = () => {
   try {
-    const saved = localStorage.getItem('pawora_vet_schedule');
+    const saved = localStorage.getItem('joshpetshub_vet_schedule');
     if (saved) {
       const parsed = JSON.parse(saved);
       if (parsed && parsed.days) return parsed;
@@ -940,7 +940,7 @@ export const getStoredVetSchedule = () => {
   }
 
   try {
-    localStorage.setItem('pawora_vet_schedule', JSON.stringify(INITIAL_VET_SCHEDULE));
+    localStorage.setItem('joshpetshub_vet_schedule', JSON.stringify(INITIAL_VET_SCHEDULE));
   } catch (e) {}
 
   return INITIAL_VET_SCHEDULE;
@@ -948,7 +948,7 @@ export const getStoredVetSchedule = () => {
 
 export const saveVetSchedule = (schedule) => {
   try {
-    localStorage.setItem('pawora_vet_schedule', JSON.stringify(schedule));
+    localStorage.setItem('joshpetshub_vet_schedule', JSON.stringify(schedule));
     window.dispatchEvent(new CustomEvent('vet-data-updated', { detail: { type: 'schedule', schedule } }));
     return schedule;
   } catch (e) {
@@ -975,7 +975,7 @@ export const INITIAL_VET_WALLET = {
 
 export const getStoredVetWallet = () => {
   try {
-    const saved = localStorage.getItem('pawora_vet_wallet');
+    const saved = localStorage.getItem('joshpetshub_vet_wallet');
     if (saved) {
       const parsed = JSON.parse(saved);
       if (parsed && typeof parsed.availableBalance === 'number') return parsed;
@@ -985,7 +985,7 @@ export const getStoredVetWallet = () => {
   }
 
   try {
-    localStorage.setItem('pawora_vet_wallet', JSON.stringify(INITIAL_VET_WALLET));
+    localStorage.setItem('joshpetshub_vet_wallet', JSON.stringify(INITIAL_VET_WALLET));
   } catch (e) {}
 
   return INITIAL_VET_WALLET;
@@ -1012,7 +1012,7 @@ export const withdrawVetFunds = (amount) => {
       transactions: [newTxn, ...wallet.transactions]
     };
 
-    localStorage.setItem('pawora_vet_wallet', JSON.stringify(updated));
+    localStorage.setItem('joshpetshub_vet_wallet', JSON.stringify(updated));
     window.dispatchEvent(new CustomEvent('vet-data-updated', { detail: { type: 'wallet', wallet: updated, newTxn } }));
     return { success: true, txn: newTxn, wallet: updated };
   } catch (e) {
@@ -1059,7 +1059,7 @@ export const INITIAL_VET_REVIEWS = [
 
 export const getStoredVetReviews = () => {
   try {
-    const saved = localStorage.getItem('pawora_vet_reviews');
+    const saved = localStorage.getItem('joshpetshub_vet_reviews');
     if (saved) {
       const parsed = JSON.parse(saved);
       if (Array.isArray(parsed) && parsed.length > 0) return parsed;
@@ -1069,7 +1069,7 @@ export const getStoredVetReviews = () => {
   }
 
   try {
-    localStorage.setItem('pawora_vet_reviews', JSON.stringify(INITIAL_VET_REVIEWS));
+    localStorage.setItem('joshpetshub_vet_reviews', JSON.stringify(INITIAL_VET_REVIEWS));
   } catch (e) {}
 
   return INITIAL_VET_REVIEWS;
@@ -1091,7 +1091,7 @@ export const addVetReviewReply = (reviewId, replyText) => {
       return rev;
     });
 
-    localStorage.setItem('pawora_vet_reviews', JSON.stringify(updated));
+    localStorage.setItem('joshpetshub_vet_reviews', JSON.stringify(updated));
     window.dispatchEvent(new CustomEvent('vet-data-updated', { detail: { type: 'review', reviewId } }));
     return updated;
   } catch (e) {
@@ -1151,7 +1151,7 @@ export const INITIAL_VET_CHATS = [
 
 export const getStoredVetChats = () => {
   try {
-    const saved = localStorage.getItem('pawora_vet_chats');
+    const saved = localStorage.getItem('joshpetshub_vet_chats');
     if (saved) {
       const parsed = JSON.parse(saved);
       if (Array.isArray(parsed) && parsed.length > 0) return parsed;
@@ -1161,7 +1161,7 @@ export const getStoredVetChats = () => {
   }
 
   try {
-    localStorage.setItem('pawora_vet_chats', JSON.stringify(INITIAL_VET_CHATS));
+    localStorage.setItem('joshpetshub_vet_chats', JSON.stringify(INITIAL_VET_CHATS));
   } catch (e) {}
 
   return INITIAL_VET_CHATS;
@@ -1190,7 +1190,7 @@ export const sendVetChatMessage = (chatId, text, sender = 'doctor', attachment =
       return chat;
     });
 
-    localStorage.setItem('pawora_vet_chats', JSON.stringify(updated));
+    localStorage.setItem('joshpetshub_vet_chats', JSON.stringify(updated));
     window.dispatchEvent(new CustomEvent('vet-data-updated', { detail: { type: 'chat', chatId } }));
     return updated;
   } catch (e) {
@@ -1213,7 +1213,7 @@ export const INITIAL_VET_SERVICES_FEES = {
 
 export const getStoredVetServicesFees = () => {
   try {
-    const saved = localStorage.getItem('pawora_vet_services_fees');
+    const saved = localStorage.getItem('joshpetshub_vet_services_fees');
     if (saved) {
       const parsed = JSON.parse(saved);
       if (parsed && parsed.inClinic) return parsed;
@@ -1223,7 +1223,7 @@ export const getStoredVetServicesFees = () => {
   }
 
   try {
-    localStorage.setItem('pawora_vet_services_fees', JSON.stringify(INITIAL_VET_SERVICES_FEES));
+    localStorage.setItem('joshpetshub_vet_services_fees', JSON.stringify(INITIAL_VET_SERVICES_FEES));
   } catch (e) {}
 
   return INITIAL_VET_SERVICES_FEES;
@@ -1235,7 +1235,7 @@ export const saveVetServicesFees = (servicesState, specializations) => {
       ...servicesState,
       specializations: specializations || INITIAL_VET_SERVICES_FEES.specializations
     };
-    localStorage.setItem('pawora_vet_services_fees', JSON.stringify(data));
+    localStorage.setItem('joshpetshub_vet_services_fees', JSON.stringify(data));
     window.dispatchEvent(new CustomEvent('vet-data-updated', { detail: { type: 'services_fees', data } }));
     return data;
   } catch (e) {

@@ -159,8 +159,8 @@ export const INITIAL_GROOMING_PROVIDERS = [
   }
 ];
 
-const STORAGE_KEY_PROVIDERS = 'pawora_grooming_providers_v1';
-const STORAGE_KEY_BOOKINGS = 'pawora_grooming_bookings_v1';
+const STORAGE_KEY_PROVIDERS = 'joshpetshub_grooming_providers_v1';
+const STORAGE_KEY_BOOKINGS = 'joshpetshub_grooming_bookings_v1';
 
 export const getStoredGroomingProviders = () => {
   try {

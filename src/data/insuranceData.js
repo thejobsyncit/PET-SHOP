@@ -595,9 +595,9 @@ export const HOW_CLAIM_WORKS_STEPS = [
 ];
 
 // LocalStorage helpers
-const STORAGE_KEY_PROVIDERS = 'pawora_pet_insurance_providers';
-const STORAGE_KEY_APPLICATIONS = 'pawora_pet_insurance_applications';
-const STORAGE_KEY_ENQUIRIES = 'pawora_pet_insurance_enquiries';
+const STORAGE_KEY_PROVIDERS = 'joshpetshub_pet_insurance_providers';
+const STORAGE_KEY_APPLICATIONS = 'joshpetshub_pet_insurance_applications';
+const STORAGE_KEY_ENQUIRIES = 'joshpetshub_pet_insurance_enquiries';
 
 export const getStoredInsuranceProviders = () => {
   try {

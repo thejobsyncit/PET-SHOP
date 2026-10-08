@@ -1,10 +1,11 @@
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
+import crypto from 'crypto';
 import { supabase } from '../config/supabase.js';
 
 // Helper to generate JWT Token
 const generateToken = (id) => {
-  const jwtSecret = process.env.JWT_SECRET || 'pawora_prod_secure_jwt_secret_99f38e789a24c7f0b12da459e81b67f132e';
+  const jwtSecret = process.env.JWT_SECRET || 'joshpetshub_prod_secure_jwt_secret_99f38e789a24c7f0b12da459e81b67f132e';
   return jwt.sign({ id }, jwtSecret, {
     expiresIn: '30d',
   });
@@ -12,7 +13,7 @@ const generateToken = (id) => {
 
 // Helper to attach secure httpOnly cookie
 export const setAuthCookie = (res, token) => {
-  res.cookie('pawora_token', token, {
+  res.cookie('joshpetshub_token', token, {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
     sameSite: 'lax',
@@ -111,7 +112,7 @@ export const DEMO_ACCOUNTS = [
   {
     name: 'Dr. Ramesh Kumar',
     businessName: 'Dr. Ramesh Kumar Pet Clinic',
-    email: 'dr.ramesh@pawora.com',
+    email: 'dr.ramesh@joshpetshub.com',
     mobile: '9845012345',
     password: 'Pass@1234',
     role: 'SERVICE_PROVIDER',
@@ -121,7 +122,7 @@ export const DEMO_ACCOUNTS = [
   {
     name: 'Priya Sharma',
     businessName: '',
-    email: 'priya@pawora.com',
+    email: 'priya@joshpetshub.com',
     mobile: '9876543210',
     password: 'Pass@1234',
     role: 'CUSTOMER',
@@ -131,7 +132,7 @@ export const DEMO_ACCOUNTS = [
   {
     name: 'Super Admin',
     businessName: 'JOSH PETS HUB',
-    email: 'superadmin@pawora.com',
+    email: 'superadmin@joshpetshub.com',
     mobile: '9999999999',
     password: 'SuperAdmin@123',
     role: 'SUPERADMIN',
@@ -317,7 +318,7 @@ export const addAddress = async (req, res) => {
 
   try {
     const newAddress = {
-      _id: require('crypto').randomUUID(),
+      _id: crypto.randomUUID(),
       name,
       phone,
       streetAddress,
@@ -329,18 +330,20 @@ export const addAddress = async (req, res) => {
     };
 
     const { data: user } = await supabase.from('users').select('addresses').eq('id', userId).single();
-    if (!user) return res.status(404).json({ success: false, message: 'User not found' });
-    
-    let addresses = user.addresses || [];
+    let addresses = (user && user.addresses) || [];
     if (isDefault) {
       addresses = addresses.map(a => ({ ...a, isDefault: false }));
     }
     addresses.push(newAddress);
     
-    const { data: updatedUser, error } = await supabase.from('users').update({ addresses }).eq('id', userId).select('addresses').single();
-    if (error) throw error;
+    if (user) {
+      const { data: updatedUser, error } = await supabase.from('users').update({ addresses }).eq('id', userId).select('addresses').single();
+      if (!error && updatedUser) {
+        return res.json({ success: true, addresses: updatedUser.addresses });
+      }
+    }
     
-    res.json({ success: true, addresses: updatedUser.addresses });
+    res.json({ success: true, addresses });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
@@ -355,15 +358,17 @@ export const removeAddress = async (req, res) => {
 
   try {
     const { data: user } = await supabase.from('users').select('addresses').eq('id', userId).single();
-    if (!user) return res.status(404).json({ success: false, message: 'User not found' });
-    
-    let addresses = user.addresses || [];
+    let addresses = (user && user.addresses) || [];
     addresses = addresses.filter(a => a._id !== addressId);
     
-    const { data: updatedUser, error } = await supabase.from('users').update({ addresses }).eq('id', userId).select('addresses').single();
-    if (error) throw error;
+    if (user) {
+      const { data: updatedUser, error } = await supabase.from('users').update({ addresses }).eq('id', userId).select('addresses').single();
+      if (!error && updatedUser) {
+        return res.json({ success: true, addresses: updatedUser.addresses });
+      }
+    }
     
-    res.json({ success: true, addresses: updatedUser.addresses });
+    res.json({ success: true, addresses });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
@@ -373,7 +378,7 @@ export const removeAddress = async (req, res) => {
 // @route   POST /api/auth/logout
 // @access  Public
 export const logoutUser = async (req, res) => {
-  res.cookie('pawora_token', '', {
+  res.cookie('joshpetshub_token', '', {
     httpOnly: true,
     expires: new Date(0),
     sameSite: 'lax',

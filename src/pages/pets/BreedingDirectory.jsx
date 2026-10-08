@@ -39,6 +39,7 @@ import ServiceAccessLock, { isServicePathLockedForUser } from '../../components/
 import PetBreedDropdown from '../../components/ui/PetBreedDropdown.jsx';
 
 import ScrollReveal from '../../components/ui/ScrollReveal.jsx';
+import { handleServiceAction } from '../../components/widgets/ServicePackageAccessModal.jsx';
 const BreedingDirectory = () => {
   const navigate = useNavigate();
   const { isAuthenticated, user } = useSelector((state) => state.auth);
@@ -278,16 +279,10 @@ const BreedingDirectory = () => {
     sortBy
   ]);
 
-  // Open Details Modal
+  // Open Details Modal / Visit Mating Profile
   const handleOpenDetails = (pet) => {
-    setSelectedPetForDetails(pet);
-    setShowDetailsModal(true);
-  };
-
-  // Open Proposal / Contact Modal (Requires Login)
-  const handleOpenProposal = (pet) => {
     if (!isAuthenticated) {
-      toast('Please sign up or log in to connect with pet parents for mating.', {
+      toast('Please sign up or log in to view breeding companion details.', {
         icon: '🔐',
         duration: 4000
       });
@@ -296,16 +291,29 @@ const BreedingDirectory = () => {
           detail: {
             tab: 'user',
             hideProviderTab: true,
-            source: 'mating-proposal',
+            source: 'mating-details',
             petName: pet?.name
           }
         })
       );
       return;
     }
-    setSelectedPetForDetails(pet);
-    setProposalPetBreed(pet.breed);
-    setShowProposalModal(true);
+    handleServiceAction({
+      isAuthenticated,
+      serviceType: 'Breeding',
+      provider: { name: `${pet.name} (${pet.parentName})`, phone: pet.parentPhone, city: pet.city, image: pet.image },
+      action: 'visit'
+    });
+  };
+
+  // Open Proposal & Package Access Modal (Requires Login)
+  const handleOpenProposal = (pet) => {
+    handleServiceAction({
+      isAuthenticated,
+      serviceType: 'Breeding',
+      provider: { name: `${pet.name} (${pet.parentName})`, phone: pet.parentPhone, city: pet.city, image: pet.image },
+      action: 'book'
+    });
   };
 
   // Open Add Pet Modal (Requires Login)
@@ -414,14 +422,31 @@ const BreedingDirectory = () => {
     setNewImageUrl('');
   };
 
-  // Open Direct WhatsApp Chat
+  // Open Direct WhatsApp Chat or Service Access Modal
   const handleOpenWhatsApp = (pet) => {
-    const rawNumber = pet.whatsappNumber || pet.parentPhone.replace(/\D/g, '');
-    const cleanNumber = rawNumber.startsWith('91') ? rawNumber : `91${rawNumber}`;
-    const text = encodeURIComponent(
-      `Hello ${pet.parentName}, I saw your pet ${pet.name} (${pet.breed}) on Josh Pets Hub Pet Mating Directory. I am interested in discussing a mating proposal for my pet.`
-    );
-    window.open(`https://wa.me/${cleanNumber}?text=${text}`, '_blank');
+    if (!isAuthenticated) {
+      toast('Please sign up or log in first to contact pet parents.', {
+        icon: '🔐',
+        duration: 4000
+      });
+      window.dispatchEvent(
+        new CustomEvent('open-register-modal', {
+          detail: {
+            tab: 'user',
+            hideProviderTab: true,
+            source: 'mating-whatsapp',
+            petName: pet?.name
+          }
+        })
+      );
+      return;
+    }
+    handleServiceAction({
+      isAuthenticated,
+      serviceType: 'Breeding',
+      provider: { name: `${pet.name} (${pet.parentName})`, phone: pet.parentPhone, city: pet.city, image: pet.image },
+      action: 'visit'
+    });
   };
 
   return (

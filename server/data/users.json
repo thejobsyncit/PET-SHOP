@@ -1,8 +1,8 @@
 [
   {
     "_id": "60d5ec49ad70591244000000",
-    "name": "Pawora Superadmin",
-    "email": "superadmin@pawora.com",
+    "name": "JOSH PETS HUB Superadmin",
+    "email": "superadmin@joshpetshub.com",
     "password": "$2b$10$wTEU/vGgDBhbGavIEELy4OfOoxdFFbJg71Awlt7Q5f1qoGGxsOVAq",
     "role": "SUPERADMIN",
     "addresses": [],
@@ -11,13 +11,13 @@
   },
   {
     "_id": "60d5ec49ad70591244000001",
-    "name": "Pawora Admin",
-    "email": "admin@pawora.com",
+    "name": "JOSH PETS HUB Admin",
+    "email": "admin@joshpetshub.com",
     "password": "$2b$10$TdjkLfgbPNGv7bL1ah8txeasG1djMy.03rwXA/H2CklSs4jab.Sey",
     "role": "ADMIN",
     "addresses": [
       {
-        "name": "Pawora Corporate HQ",
+        "name": "JOSH PETS HUB Corporate HQ",
         "phone": "9876543210",
         "streetAddress": "12, Luxury Retail Lane, MG Road",
         "city": "Bangalore",
@@ -33,7 +33,7 @@
   {
     "_id": "60d5ec49ad70591244000002",
     "name": "Aarav Sharma",
-    "email": "customer1@pawora.com",
+    "email": "customer1@joshpetshub.com",
     "password": "$2b$10$p3xiPNnQNhFuCeO/Nv7.oueBZ8/d7eQosc7vKLa20LX.S2PJQt5qS",
     "role": "CUSTOMER",
     "addresses": [
@@ -54,7 +54,7 @@
   {
     "_id": "60d5ec49ad70591244000003",
     "name": "Ananya Iyer",
-    "email": "customer2@pawora.com",
+    "email": "customer2@joshpetshub.com",
     "password": "$2b$10$XzXiqR1v7PUz9U5L6SS/mO6PWVFVWcitAr9JUD1XxhWP/t5FNb.x2",
     "role": "CUSTOMER",
     "addresses": [
@@ -75,7 +75,7 @@
   {
     "_id": "60d5ec49ad70591244000004",
     "name": "Rahul Verma",
-    "email": "customer3@pawora.com",
+    "email": "customer3@joshpetshub.com",
     "password": "$2b$10$0JRgp2kOc1pa6Hkb3Fo.dOpbzuFVuGHUSJ4h8GkTz.zhRNBzgKx/i",
     "role": "CUSTOMER",
     "addresses": [],
@@ -85,7 +85,7 @@
   {
     "_id": "60d5ec49ad70591244000005",
     "name": "Pooja Nair",
-    "email": "customer4@pawora.com",
+    "email": "customer4@joshpetshub.com",
     "password": "$2b$10$R5l/IypXyUx0PuVUI5utUuxdSpaPVgM2K5FpXGg6v6g1ySsr6/cvq",
     "role": "CUSTOMER",
     "addresses": [],
@@ -95,7 +95,7 @@
   {
     "_id": "60d5ec49ad70591244000006",
     "name": "Vikram Singh",
-    "email": "customer5@pawora.com",
+    "email": "customer5@joshpetshub.com",
     "password": "$2b$10$9FWeR.rHyXbazSjWgFocpuvVgxwKD86QI8LHhvGAtWW5cxx5r1ErC",
     "role": "SERVICE_PROVIDER",
     "addresses": [],
@@ -106,7 +106,7 @@
     "_id": "6aa1015bf1fcb3cdcbf2e2da",
     "name": "Dr. Ramesh Kumar",
     "businessName": "Dr. Ramesh Kumar Pet Clinic",
-    "email": "dr.ramesh@pawora.com",
+    "email": "dr.ramesh@joshpetshub.com",
     "role": "CUSTOMER",
     "mobile": "9876543210",
     "location": "Koramangala, Bangalore, Karnataka",
@@ -122,7 +122,7 @@
     "_id": "6aa93dfad2902622a9e533e7",
     "name": "Hope Animal Sanctuary & Adoption Center",
     "businessName": "Hope Animal Welfare Foundation & Sanctuary",
-    "email": "adopt@pawora.com",
+    "email": "adopt@joshpetshub.com",
     "role": "SERVICE_PROVIDER",
     "mobile": "9876543210",
     "location": "Whitefield, Bangalore, Karnataka",
@@ -138,7 +138,7 @@
     "_id": "6aa12ddc8cb516b3b281a3df",
     "name": "Priya Sharma",
     "businessName": "Priya Sharma",
-    "email": "priya@pawora.com",
+    "email": "priya@joshpetshub.com",
     "role": "CUSTOMER",
     "mobile": "9876543210",
     "location": "Bangalore, Karnataka",
@@ -154,7 +154,7 @@
     "_id": "6aa2737bee2374873b773fc9",
     "name": "Velvet Fur Grooming Studio",
     "businessName": "Velvet Fur Grooming Studio",
-    "email": "velvetfur@pawora.com",
+    "email": "velvetfur@joshpetshub.com",
     "role": "SERVICE_PROVIDER",
     "mobile": "9876543210",
     "location": "Indiranagar, Bangalore, Karnataka",

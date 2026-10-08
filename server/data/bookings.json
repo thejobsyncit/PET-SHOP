@@ -3,8 +3,8 @@
     "_id": "BOOK-836454",
     "user": {
       "_id": "60d5ec49ad70591244000000",
-      "name": "Pawora Superadmin",
-      "email": "superadmin@pawora.com"
+      "name": "JOSH PETS HUB Superadmin",
+      "email": "superadmin@joshpetshub.com"
     },
     "providerName": "Velvet Fur Luxury Spa Studio",
     "serviceType": "Grooming",
@@ -24,7 +24,7 @@
   {
     "_id": "BOOK-401",
     "user": "6584c6ef0c25a0ab6e5a0101",
-    "providerName": "Dr. Ramesh Kumar (Pawora Vet Clinic)",
+    "providerName": "Dr. Ramesh Kumar (Josh Pets Hub Vet Clinic)",
     "serviceType": "Veterinary",
     "location": "MG Road, Bangalore",
     "date": "2026-08-28",

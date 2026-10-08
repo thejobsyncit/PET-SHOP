@@ -399,8 +399,8 @@ export const DEFAULT_ADOPTION_PETS = [
 let memoryPetsCache = null;
 
 // Dedicated registry key for free adoption limit tracking (safe from quota exhaustion)
-const FREE_ADOPTION_REGISTRY_KEY = 'pawora_free_adoption_registry';
-const CUSTOM_PETS_KEY = 'pawora_custom_adoption_pets';
+const FREE_ADOPTION_REGISTRY_KEY = 'joshpetshub_free_adoption_registry';
+const CUSTOM_PETS_KEY = 'joshpetshub_custom_adoption_pets';
 
 export const getCustomAdoptionPets = () => {
   try {
@@ -566,7 +566,7 @@ export const getStoredAdoptionPets = () => {
   try {
     const customPets = getCustomAdoptionPets();
     let baseList = DEFAULT_ADOPTION_PETS;
-    const saved = localStorage.getItem('pawora_adoption_pets');
+    const saved = localStorage.getItem('joshpetshub_adoption_pets');
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
@@ -595,10 +595,10 @@ export const getStoredAdoptionPets = () => {
 export const setStoredAdoptionPets = (petsList) => {
   memoryPetsCache = petsList;
   try {
-    localStorage.setItem('pawora_adoption_pets', JSON.stringify(petsList));
+    localStorage.setItem('joshpetshub_adoption_pets', JSON.stringify(petsList));
   } catch (e) {
     try {
-      sessionStorage.setItem('pawora_adoption_pets', JSON.stringify(petsList));
+      sessionStorage.setItem('joshpetshub_adoption_pets', JSON.stringify(petsList));
     } catch (se) {}
   }
   if (typeof window !== 'undefined') {
@@ -762,7 +762,7 @@ export const getStoredAdoptionApplications = () => {
     return memoryApplicationsCache;
   }
   try {
-    const saved = localStorage.getItem('pawora_adoption_applications') || sessionStorage.getItem('pawora_adoption_applications');
+    const saved = localStorage.getItem('joshpetshub_adoption_applications') || sessionStorage.getItem('joshpetshub_adoption_applications');
     if (saved) {
       const parsed = JSON.parse(saved);
       if (Array.isArray(parsed) && parsed.length > 0) {
@@ -775,7 +775,7 @@ export const getStoredAdoptionApplications = () => {
   }
   memoryApplicationsCache = DEFAULT_ADOPTION_APPLICATIONS;
   try {
-    localStorage.setItem('pawora_adoption_applications', JSON.stringify(DEFAULT_ADOPTION_APPLICATIONS));
+    localStorage.setItem('joshpetshub_adoption_applications', JSON.stringify(DEFAULT_ADOPTION_APPLICATIONS));
   } catch (e) {}
   return DEFAULT_ADOPTION_APPLICATIONS;
 };
@@ -787,10 +787,10 @@ export const saveAdoptionApplication = (newApp) => {
   memoryApplicationsCache = updated;
 
   try {
-    localStorage.setItem('pawora_adoption_applications', JSON.stringify(updated));
+    localStorage.setItem('joshpetshub_adoption_applications', JSON.stringify(updated));
   } catch (e) {
     try {
-      sessionStorage.setItem('pawora_adoption_applications', JSON.stringify(updated));
+      sessionStorage.setItem('joshpetshub_adoption_applications', JSON.stringify(updated));
     } catch (se) {}
   }
   return updated;
@@ -812,10 +812,10 @@ export const updateAdoptionApplicationStatus = (appId, newStatus, guardianNotes 
   memoryApplicationsCache = updated;
 
   try {
-    localStorage.setItem('pawora_adoption_applications', JSON.stringify(updated));
+    localStorage.setItem('joshpetshub_adoption_applications', JSON.stringify(updated));
   } catch (e) {
     try {
-      sessionStorage.setItem('pawora_adoption_applications', JSON.stringify(updated));
+      sessionStorage.setItem('joshpetshub_adoption_applications', JSON.stringify(updated));
     } catch (se) {}
   }
   return updated;
@@ -995,7 +995,7 @@ export const DEFAULT_ADOPTION_INQUIRIES = [
 
 export const getStoredAdoptionInquiries = () => {
   try {
-    const saved = localStorage.getItem('pawora_adoption_inquiries') || sessionStorage.getItem('pawora_adoption_inquiries');
+    const saved = localStorage.getItem('joshpetshub_adoption_inquiries') || sessionStorage.getItem('joshpetshub_adoption_inquiries');
     if (saved) {
       const parsed = JSON.parse(saved);
       if (Array.isArray(parsed) && parsed.length > 0) {
@@ -1020,7 +1020,7 @@ export const saveAdoptionInquiry = (newInquiry) => {
   }
 
   try {
-    localStorage.setItem('pawora_adoption_inquiries', JSON.stringify(updated));
+    localStorage.setItem('joshpetshub_adoption_inquiries', JSON.stringify(updated));
   } catch (e) {}
   return updated;
 };

@@ -1,14 +1,14 @@
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
 const getHeaders = () => {
-  let token = localStorage.getItem('pawora_token');
+  let token = localStorage.getItem('joshpetshub_token');
 
   if (!token || token === 'undefined' || token === 'null') {
     try {
-      const savedUser = JSON.parse(localStorage.getItem('pawora_user') || '{}');
+      const savedUser = JSON.parse(localStorage.getItem('joshpetshub_user') || '{}');
       if (savedUser && (savedUser.role === 'SUPERADMIN' || savedUser.role === 'ADMIN')) {
         token = 'token_' + Date.now();
-        localStorage.setItem('pawora_token', token);
+        localStorage.setItem('joshpetshub_token', token);
       }
     } catch (e) {}
   }
@@ -54,7 +54,7 @@ export const apiRequest = async (endpoint, options = {}) => {
 
 export const apiUploadRequest = async (endpoint, formData, options = {}) => {
   const url = `${API_BASE_URL}${endpoint}`;
-  const token = localStorage.getItem('pawora_token');
+  const token = localStorage.getItem('joshpetshub_token');
   
   const headers = {
     ...options.headers,

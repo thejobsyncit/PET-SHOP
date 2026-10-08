@@ -22,7 +22,7 @@ const adminId = '6584c6ef0c25a0ab6e5a0100'; // Default Admin ID from seedData.js
 const mockListings = [
   {
     _id: 'LIST-101',
-    user: { _id: adminId, name: 'Pawora Admin', email: 'admin@pawora.com' },
+    user: { _id: adminId, name: 'JOSH PETS HUB Admin', email: 'admin@joshpetshub.com' },
     title: 'Champion Line Alaskan Malamute Puppies',
     petType: 'dogs',
     breed: 'Alaskan Malamute',
@@ -38,7 +38,7 @@ const mockListings = [
   },
   {
     _id: 'LIST-102',
-    user: { _id: adminId, name: 'Pawora Admin', email: 'admin@pawora.com' },
+    user: { _id: adminId, name: 'JOSH PETS HUB Admin', email: 'admin@joshpetshub.com' },
     title: 'Sweet Siamese Kitten looking for Rehoming',
     petType: 'cats',
     breed: 'Siamese Cat',
@@ -54,7 +54,7 @@ const mockListings = [
   },
   {
     _id: 'LIST-103',
-    user: { _id: customerId, name: 'Test Customer', email: 'customer1@pawora.com' },
+    user: { _id: customerId, name: 'Test Customer', email: 'customer1@joshpetshub.com' },
     title: 'Talking African Grey Parrot with Cage',
     petType: 'birds',
     breed: 'African Grey Parrot',
@@ -106,7 +106,7 @@ const mockAdoptions = [
 const mockBreedings = [
   {
     _id: 'STUD-301',
-    user: { _id: adminId, name: 'Pawora Admin', email: 'admin@pawora.com' },
+    user: { _id: adminId, name: 'JOSH PETS HUB Admin', email: 'admin@joshpetshub.com' },
     studName: 'Thor (KCI Registered Champion)',
     petType: 'dogs',
     breed: 'Golden Retriever',
@@ -127,7 +127,7 @@ const mockBookings = [
   {
     _id: 'BOOK-401',
     user: customerId,
-    providerName: 'Dr. Ramesh Kumar (Pawora Vet Clinic)',
+    providerName: 'Dr. Ramesh Kumar (Josh Pets Hub Vet Clinic)',
     serviceType: 'Veterinary',
     location: 'MG Road, Bangalore',
     date: '2026-08-28',
@@ -143,8 +143,8 @@ const mockBookings = [
 const mockMessages = [
   {
     _id: 'MSG-501',
-    sender: { _id: customerId, name: 'Test Customer', email: 'customer1@pawora.com' },
-    recipient: { _id: adminId, name: 'Pawora Admin', email: 'admin@pawora.com' },
+    sender: { _id: customerId, name: 'Test Customer', email: 'customer1@joshpetshub.com' },
+    recipient: { _id: adminId, name: 'JOSH PETS HUB Admin', email: 'admin@joshpetshub.com' },
     listingRef: 'LIST-101',
     messageText: 'Hello! I am interested in the Alaskan Malamute puppy. Is it still available?',
     isRead: false,
@@ -152,8 +152,8 @@ const mockMessages = [
   },
   {
     _id: 'MSG-502',
-    sender: { _id: adminId, name: 'Pawora Admin', email: 'admin@pawora.com' },
-    recipient: { _id: customerId, name: 'Test Customer', email: 'customer1@pawora.com' },
+    sender: { _id: adminId, name: 'JOSH PETS HUB Admin', email: 'admin@joshpetshub.com' },
+    recipient: { _id: customerId, name: 'Test Customer', email: 'customer1@joshpetshub.com' },
     listingRef: 'LIST-101',
     messageText: 'Yes, it is! You can schedule a home visit this Saturday if you like.',
     isRead: true,

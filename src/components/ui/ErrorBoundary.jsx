@@ -48,9 +48,9 @@ class ErrorBoundary extends React.Component {
 
   handleResetAndLogin = () => {
     try {
-      localStorage.removeItem('pawora_provider_profiles');
-      localStorage.removeItem('pawora_token');
-      localStorage.removeItem('pawora_user');
+      localStorage.removeItem('joshpetshub_provider_profiles');
+      localStorage.removeItem('joshpetshub_token');
+      localStorage.removeItem('joshpetshub_user');
     } catch (e) {}
     this.setState({ hasError: false, error: null, errorInfo: null });
     window.location.href = '/login';
@@ -58,7 +58,7 @@ class ErrorBoundary extends React.Component {
 
   handleClearStorageAndReload = () => {
     try {
-      const keysToKeep = ['pawora_token', 'pawora_user'];
+      const keysToKeep = ['joshpetshub_token', 'joshpetshub_user'];
       const preserved = {};
       keysToKeep.forEach(k => {
         try { preserved[k] = localStorage.getItem(k); } catch (_) {}

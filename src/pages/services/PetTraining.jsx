@@ -41,6 +41,7 @@ import { INDIAN_STATES_CITIES } from '../../data/adoptionPetsData.js';
 import ServiceAccessLock, { isServicePathLockedForUser } from '../../components/ui/ServiceAccessLock.jsx';
 import ScrollReveal from '../../components/ui/ScrollReveal.jsx';
 import PetBreedDropdown from '../../components/ui/PetBreedDropdown.jsx';
+import { handleServiceAction } from '../../components/widgets/ServicePackageAccessModal.jsx';
 
 const PetTraining = () => {
   const navigate = useNavigate();
@@ -208,19 +209,14 @@ const PetTraining = () => {
     });
   }, [providers, selectedType, selectedMode, selectedPetType, selectedState, selectedCity, priceRange, verifiedOnly, forceFreeOnly, searchKeyword, sortBy]);
 
-  // Open Booking Modal (Auth-Gated)
+  // Open Booking & Service Access Modal (Auth-Gated)
   const handleOpenBookingModal = (provider, pkg = null) => {
-    if (!isAuthenticated) {
-      toast.error('Please register or log in to book a training session.', {
-        icon: '🔒'
-      });
-      window.dispatchEvent(new CustomEvent('open-register-modal', { detail: { tab: 'user', hideProviderTab: true, source: 'training-booking' } }));
-      return;
-    }
-    setSelectedProviderForBooking(provider);
-    setSelectedPackage(pkg || provider.packages[0] || null);
-    setBookingAddress(provider.area + ', ' + provider.city);
-    setShowBookingModal(true);
+    handleServiceAction({
+      isAuthenticated,
+      serviceType: 'Training',
+      provider,
+      action: 'book'
+    });
   };
 
   // Submit Booking
@@ -272,18 +268,14 @@ const PetTraining = () => {
     setBookingBehaviorNotes('');
   };
 
-  // Open Enquiry Modal (Auth-Gated)
+  // Open Enquiry / Visit Modal (Auth-Gated)
   const handleOpenEnquiryModal = (provider) => {
-    if (!isAuthenticated) {
-      toast.error('Please register or log in to send a training enquiry.', {
-        icon: '🔒'
-      });
-      window.dispatchEvent(new CustomEvent('open-register-modal', { detail: { tab: 'user', hideProviderTab: true, source: 'training-enquiry' } }));
-      return;
-    }
-    setSelectedProviderForEnquiry(provider);
-    setEnqCity(provider.city);
-    setShowEnquiryModal(true);
+    handleServiceAction({
+      isAuthenticated,
+      serviceType: 'Training',
+      provider,
+      action: 'visit'
+    });
   };
 
   // Submit Provider Enquiry
@@ -878,7 +870,11 @@ const PetTraining = () => {
                   >
                     <div>
                       {/* Image Banner with Badges */}
-                      <div className="aspect-[16/10] overflow-hidden relative bg-stone-100">
+                      <div 
+                        onClick={() => handleServiceAction({ isAuthenticated, serviceType: 'Training', provider: trainer, action: 'visit' })}
+                        className="aspect-[16/10] overflow-hidden relative bg-stone-100 cursor-pointer"
+                        title={`Visit ${trainer.name} and view packages`}
+                      >
                         <img
                           src={trainer.image}
                           alt={trainer.name}

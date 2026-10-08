@@ -12,8 +12,8 @@ export const protect = async (req, res, next) => {
 
   if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
     token = req.headers.authorization.split(' ')[1];
-  } else if (req.cookies && req.cookies.pawora_token) {
-    token = req.cookies.pawora_token;
+  } else if (req.cookies && req.cookies.joshpetshub_token) {
+    token = req.cookies.joshpetshub_token;
   }
 
   if (!token) {
@@ -21,7 +21,7 @@ export const protect = async (req, res, next) => {
   }
 
   try {
-    const jwtSecret = process.env.JWT_SECRET || 'pawora_prod_secure_jwt_secret_99f38e789a24c7f0b12da459e81b67f132e';
+    const jwtSecret = process.env.JWT_SECRET || 'joshpetshub_prod_secure_jwt_secret_99f38e789a24c7f0b12da459e81b67f132e';
     
     let decodedId;
     let decoded;
@@ -108,13 +108,13 @@ export const optionalAuth = async (req, res, next) => {
   let token;
   if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
     token = req.headers.authorization.split(' ')[1];
-  } else if (req.cookies && req.cookies.pawora_token) {
-    token = req.cookies.pawora_token;
+  } else if (req.cookies && req.cookies.joshpetshub_token) {
+    token = req.cookies.joshpetshub_token;
   }
   
   if (token) {
     try {
-      const jwtSecret = process.env.JWT_SECRET || 'pawora_prod_secure_jwt_secret_99f38e789a24c7f0b12da459e81b67f132e';
+      const jwtSecret = process.env.JWT_SECRET || 'joshpetshub_prod_secure_jwt_secret_99f38e789a24c7f0b12da459e81b67f132e';
       
       let decodedId;
       if (token.startsWith('token_')) {
