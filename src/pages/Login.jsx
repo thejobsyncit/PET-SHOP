@@ -868,51 +868,64 @@ const Login = () => {
   };
 
   // 1. Sign In Submit Handler (Email or Mobile Number)
-  const handleLoginSubmit = (e) => {
+  const handleLoginSubmit = async (e) => {
     if (e) e.preventDefault();
     if (!loginIdentifier || !loginPassword) {
       toast.error('Please enter your email or mobile number and password.');
       return;
     }
     
-    const code = Math.floor(100000 + Math.random() * 900000).toString();
     const isEmail = loginIdentifier.includes('@');
-    
-    // ⚡ INSTANT 0ms OPTIMISTIC UI TRANSITION
-    setPendingUserData({
-      identifier: loginIdentifier,
-      password: loginPassword,
-      role: loginRoleTab === 'provider' ? 'SERVICE_PROVIDER' : 'CUSTOMER',
-      mobile: loginIdentifier,
-      mobileCountryCode: ''
-    });
-    setGeneratedOtp(code);
-    setOtpDigits(['', '', '', '', '', '']);
-    setOtpTimer(30);
-    setOtpPurpose('login');
-    setIsRealEmailSent(false);
-    setIsOtpStep(true);
+    setVerifyingOtp(true);
 
-    // ⚡ Non-blocking background email dispatch
-    if (isEmail) {
-      apiRequest('/auth/send-otp', {
+    try {
+      // 🔒 Check credentials & send OTP from backend first
+      const res = await apiRequest('/auth/send-otp', {
         method: 'POST',
         body: JSON.stringify({
           email: loginIdentifier,
           identifier: loginIdentifier,
+          password: loginPassword,
           purpose: 'login'
         })
-      }).then(res => {
-        if (res?.otp) setGeneratedOtp(res.otp);
-        if (res && !res.simulated) {
-          setIsRealEmailSent(true);
-          toast.success(`📧 Verification OTP sent to ${loginIdentifier}! Check your inbox.`, { duration: 6000, icon: '📧' });
-        }
-      }).catch(err => {
-        console.warn('Background send-otp error:', err);
       });
-    } else {
-      toast.success(`📲 OTP sent to ${loginIdentifier}! Please check your messages/inbox.`, { duration: 6000, icon: '📲' });
+
+      if (!res.success) {
+        toast.error(res.message || 'Invalid credentials. Please register first.');
+        setVerifyingOtp(false);
+        return;
+      }
+
+      const receivedOtp = res.otp || Math.floor(100000 + Math.random() * 900000).toString();
+
+      setPendingUserData({
+        identifier: loginIdentifier,
+        password: loginPassword,
+        role: loginRoleTab === 'provider' ? 'SERVICE_PROVIDER' : 'CUSTOMER',
+        mobile: loginIdentifier,
+        mobileCountryCode: ''
+      });
+      setGeneratedOtp(receivedOtp);
+      setOtpDigits(['', '', '', '', '', '']);
+      setOtpTimer(30);
+      setOtpPurpose('login');
+      setIsRealEmailSent(!res.simulated);
+      setIsOtpStep(true);
+
+      if (isEmail) {
+        if (!res.simulated) {
+          toast.success(`📧 Verification OTP sent to ${loginIdentifier}! Check your inbox.`, { duration: 6000, icon: '📧' });
+        } else {
+          toast.success(`Verification code generated for ${loginIdentifier}!`, { duration: 6000 });
+        }
+      } else {
+        toast.success(`📲 OTP sent to ${loginIdentifier}! Please check your messages.`, { duration: 6000, icon: '📲' });
+      }
+    } catch (err) {
+      console.error('Login submit check error:', err);
+      toast.error(err.message || 'Account not found or password incorrect. Please register first.');
+    } finally {
+      setVerifyingOtp(false);
     }
   };
 

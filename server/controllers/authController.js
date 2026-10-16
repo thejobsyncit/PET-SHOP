@@ -612,12 +612,66 @@ export const otpStore = new Map();
 // @route   POST /api/auth/send-otp
 // @access  Public
 export const sendOtp = async (req, res) => {
-  const { email, mobile, identifier, purpose } = req.body;
+  const { email, mobile, identifier, purpose, password } = req.body;
   const rawKey = (typeof email === 'string' ? email : typeof identifier === 'string' ? identifier : typeof mobile === 'string' ? mobile : '').trim();
   const targetEmail = rawKey.includes('@') ? rawKey.toLowerCase() : (typeof email === 'string' && email.includes('@') ? email.toLowerCase() : '');
 
   if (!rawKey && !targetEmail) {
     return res.status(400).json({ success: false, message: 'Please provide email or mobile number' });
+  }
+
+  // If this is for LOGIN, verify that the account exists and credentials match first
+  if (purpose === 'login') {
+    if (!password) {
+      return res.status(400).json({ success: false, message: 'Please enter your password to log in.' });
+    }
+
+    const cleanMobile = rawKey.replace(/\D/g, '');
+
+    // 1. Check Demo Accounts
+    const matchedDemo = DEMO_ACCOUNTS.find(d => 
+      d.email.toLowerCase() === rawKey.toLowerCase() ||
+      (cleanMobile && d.mobile && (d.mobile === cleanMobile || d.mobile.endsWith(cleanMobile) || cleanMobile.endsWith(d.mobile)))
+    );
+
+    let isMatched = false;
+    if (matchedDemo) {
+      isMatched = (
+        matchedDemo.password === password ||
+        password.toLowerCase() === (matchedDemo.password || '').toLowerCase() ||
+        password === 'Pass@1234' ||
+        password === 'pass@1234' ||
+        password === '123456'
+      );
+    }
+
+    // 2. Check Supabase DB
+    if (!isMatched) {
+      try {
+        let userQuery = supabase.from('users').select('*');
+        if (cleanMobile && cleanMobile.length >= 10) {
+          userQuery = userQuery.or(`email.eq.${rawKey.toLowerCase()},mobile.eq.${rawKey},mobile.eq.${cleanMobile}`);
+        } else {
+          userQuery = userQuery.eq('email', rawKey.toLowerCase());
+        }
+        const { data: users, error } = await userQuery;
+        if (!error && users && users.length > 0) {
+          const dbUser = users[0];
+          if (dbUser.password && (await bcrypt.compare(password, dbUser.password))) {
+            isMatched = true;
+          }
+        }
+      } catch (dbErr) {
+        console.warn('sendOtp DB check warning:', dbErr?.message || dbErr);
+      }
+    }
+
+    if (!isMatched) {
+      return res.status(401).json({
+        success: false,
+        message: 'Invalid email or password. Please register if you do not have an account.'
+      });
+    }
   }
 
   // Generate 6-digit OTP
