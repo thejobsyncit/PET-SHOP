@@ -58,8 +58,13 @@ app.use(helmet({
 }));
 
 // CORS setup
+const rawClientUrl = process.env.CLIENT_URL ? process.env.CLIENT_URL.replace(/\/+$/, '') : null;
+
 const allowedOrigins = [
-  process.env.CLIENT_URL,
+  rawClientUrl,
+  'https://www.joshpetshub.com',
+  'https://joshpetshub.com',
+  'https://pet-shop-beta.vercel.app',
   process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null,
   'http://localhost:5173',
   'http://localhost:5174',
@@ -69,7 +74,13 @@ const allowedOrigins = [
 const corsOptions = {
   origin: function (origin, callback) {
     if (!origin) return callback(null, true);
-    if (allowedOrigins.includes(origin) || /^http:\/\/localhost:\d+$/.test(origin)) {
+    const cleanOrigin = origin.replace(/\/+$/, '');
+    if (
+      allowedOrigins.includes(cleanOrigin) ||
+      /^http:\/\/localhost:\d+$/.test(cleanOrigin) ||
+      /\.vercel\.app$/.test(cleanOrigin) ||
+      /\.?joshpetshub\.com$/.test(cleanOrigin)
+    ) {
       return callback(null, true);
     }
     return callback(new Error('CORS not allowed'), false);
