@@ -15,6 +15,11 @@ const MainLayout = () => {
   const dispatch = useDispatch();
 
   useEffect(() => {
+    // Purge legacy service pass storage if any
+    try {
+      localStorage.removeItem('pawora_active_service_pass');
+    } catch (_) {}
+
     // Check local token or saved user session and trigger profile load
     const token = localStorage.getItem('joshpetshub_token');
     const user = localStorage.getItem('joshpetshub_user');

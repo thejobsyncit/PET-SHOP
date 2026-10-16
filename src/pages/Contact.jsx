@@ -38,7 +38,7 @@ const Contact = () => {
   const contactFAQs = [
     { q: 'How long does prescription verification take?', a: 'Prescription verifications are processed by our licensed veterinary team within 2 hours of upload, between 9 AM and 6 PM. Orders containing Rx items are packaged immediately after approval.' },
     { q: 'What is your refund policy on medications?', a: 'To comply with pharmaceutical regulations and ensure clinical safety, we cannot accept returns, exchanges, or issue refunds for veterinary medicines or dietary supplements once dispatched.' },
-    { q: 'Where is your physical flagship store located?', a: 'Our corporate office and retail space are located at 12, Luxury Retail Lane, MG Road, Bangalore, Karnataka. Visitors are welcome from 10 AM to 8 PM.' }
+    { q: 'Where is your physical flagship store located?', a: 'Our corporate office and retail space are located at Plot 108, Companion Plaza, Anna Salai, T. Nagar, Chennai, Tamil Nadu - 600017. Visitors are welcome from 10 AM to 8 PM.' }
   ];
 
   return (
@@ -125,7 +125,7 @@ const Contact = () => {
                   </a>
 
                   <a
-                    href="https://maps.google.com/?q=12+Luxury+Retail+Lane+MG+Road+Bangalore"
+                    href="https://maps.google.com/?q=Anna+Salai+T+Nagar+Chennai+Tamil+Nadu+India"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="group flex gap-4 p-4 rounded-2xl hover:bg-blue-50/70 transition-colors border border-transparent hover:border-blue-200 cursor-pointer block"
@@ -138,7 +138,7 @@ const Contact = () => {
                       <h4 className="font-black text-slate-900 group-hover:text-blue-800 transition-colors flex items-center gap-1.5">
                         Flagship Showroom <span className="text-[10px] text-blue-700 bg-blue-100 px-2 py-0.5 rounded-full font-bold">Directions</span>
                       </h4>
-                      <p className="text-sm text-slate-600 group-hover:text-blue-600 font-bold mt-1 leading-relaxed">12, Luxury Retail Lane, MG Road, Bangalore, KA, India</p>
+                      <p className="text-sm text-slate-600 group-hover:text-blue-600 font-bold mt-1 leading-relaxed">Plot 108, Companion Plaza, Anna Salai, T. Nagar, Chennai, TN - 600017, India</p>
                       <p className="text-xs text-blue-500 font-semibold mt-0.5">Open in Google Maps →</p>
                     </div>
                   </a>

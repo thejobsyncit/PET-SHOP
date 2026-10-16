@@ -258,11 +258,18 @@ const PetTransport = () => {
 
   // Auth Guard for Booking & Package Access
   const handleOpenBookingModal = (provider, pkg = null) => {
+    setSelectedProviderForBooking(provider);
+    if (pkg) setSelectedPackage(pkg);
     handleServiceAction({
       isAuthenticated,
       serviceType: 'Transport',
       provider,
-      action: 'book'
+      action: 'book',
+      onAuthorized: () => {
+        setSelectedProviderForBooking(provider);
+        if (pkg) setSelectedPackage(pkg);
+        setShowBookingModal(true);
+      }
     });
   };
 
@@ -330,7 +337,7 @@ const PetTransport = () => {
       isAuthenticated,
       serviceType: 'Transport',
       provider,
-      action: 'visit'
+      action: 'chat'
     });
   };
 
@@ -1050,7 +1057,7 @@ const PetTransport = () => {
                     {/* Provider Image & Badges */}
                     <div className="md:w-56 shrink-0">
                       <div 
-                        onClick={() => handleServiceAction({ isAuthenticated, serviceType: 'Transport', provider, action: 'visit' })}
+                        onClick={() => handleServiceAction({ isAuthenticated, serviceType: 'Transport', provider, action: 'view_expert_profile' })}
                         className="aspect-[4/3] rounded-xl overflow-hidden relative shadow-sm border border-stone-100 cursor-pointer"
                         title={`Visit ${provider.name} and view packages`}
                       >

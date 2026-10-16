@@ -90,7 +90,7 @@ export const DEFAULT_ADOPTION_PETS = [
     image: 'https://images.unsplash.com/photo-1535930891776-0c2dfb7fda1a?q=80&w=800&auto=format&fit=crop',
     gallery: [
       'https://images.unsplash.com/photo-1589924691995-400dc9ecc119?q=80&w=800&auto=format&fit=crop',
-      'https://images.unsplash.com/photo-1544568100-eba616a6ce76?q=80&w=800&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1543466835-00a7907e9de1?q=80&w=800&auto=format&fit=crop',
       'https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?q=80&w=800&auto=format&fit=crop'
     ],
     parentContact: '',
@@ -187,7 +187,7 @@ export const DEFAULT_ADOPTION_PETS = [
     state: 'Maharashtra',
     quality: 'Pet Quality',
     personality: 'Intelligent, hardy, loyal',
-    image: 'https://images.unsplash.com/photo-1544568100-eba616a6ce76?q=80&w=800&auto=format&fit=crop',
+    image: 'https://images.unsplash.com/photo-1543466835-00a7907e9de1?q=80&w=800&auto=format&fit=crop',
     gallery: [
       'https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?q=80&w=800&auto=format&fit=crop'
     ],
@@ -286,7 +286,7 @@ export const DEFAULT_ADOPTION_PETS = [
     personality: 'Curious, happy, food lover',
     image: 'https://images.unsplash.com/photo-1589924691995-400dc9ecc119?q=80&w=800&auto=format&fit=crop',
     gallery: [
-      'https://images.unsplash.com/photo-1544568100-eba616a6ce76?q=80&w=800&auto=format&fit=crop'
+      'https://images.unsplash.com/photo-1543466835-00a7907e9de1?q=80&w=800&auto=format&fit=crop'
     ],
     parentContact: '',
     parentName: 'Karthik Raja',
@@ -698,7 +698,7 @@ export const DEFAULT_ADOPTION_APPLICATIONS = [
     petName: 'Prince',
     petBreed: 'Golden Retriever',
     petType: 'dogs',
-    petImage: 'https://images.unsplash.com/photo-1544568100-eba616a6ce76?q=80&w=800&auto=format&fit=crop',
+    petImage: 'https://images.unsplash.com/photo-1543466835-00a7907e9de1?q=80&w=800&auto=format&fit=crop',
     guardianName: 'Hope Animal Welfare Foundation',
     guardianPhone: '+91 98455 77661',
     guardianId: 'prov-adopt-05',

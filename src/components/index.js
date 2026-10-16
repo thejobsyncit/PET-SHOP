@@ -24,4 +24,5 @@ export { default as CookieConsent } from './widgets/CookieConsent.jsx';
 export { default as LeadConsultationModal } from './widgets/LeadConsultationModal.jsx';
 export { default as FlyingMacawMessenger } from './widgets/FlyingMacawMessenger.jsx';
 export { default as WalkingDogOnLine } from './widgets/WalkingDogOnLine.jsx';
-export { default as ServicePackageAccessModal, handleServiceAction, SERVICE_PACKAGES_DATA } from './widgets/ServicePackageAccessModal.jsx';
+export { default as AnimatedDepartmentIcon } from './widgets/AnimatedDepartmentIcon.jsx';
+export { default as ServicePackageAccessModal, handleServiceAction, SERVICE_PACKAGES_DATA, hasUserPurchasedPackage, getActiveUserMembership } from './widgets/ServicePackageAccessModal.jsx';

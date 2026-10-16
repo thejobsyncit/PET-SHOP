@@ -34,3 +34,7 @@ server/uploads/*
 !server/uploads/.gitkeep
 scratch/*
 !scratch/replace.cjs
+
+# Python
+__pycache__/
+*.py[cod]

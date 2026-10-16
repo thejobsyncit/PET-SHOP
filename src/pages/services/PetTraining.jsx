@@ -211,11 +211,18 @@ const PetTraining = () => {
 
   // Open Booking & Service Access Modal (Auth-Gated)
   const handleOpenBookingModal = (provider, pkg = null) => {
+    setSelectedProviderForBooking(provider);
+    if (pkg) setSelectedPackage(pkg);
     handleServiceAction({
       isAuthenticated,
       serviceType: 'Training',
       provider,
-      action: 'book'
+      action: 'book',
+      onAuthorized: () => {
+        setSelectedProviderForBooking(provider);
+        if (pkg) setSelectedPackage(pkg);
+        setShowBookingModal(true);
+      }
     });
   };
 
@@ -274,7 +281,7 @@ const PetTraining = () => {
       isAuthenticated,
       serviceType: 'Training',
       provider,
-      action: 'visit'
+      action: 'chat'
     });
   };
 
@@ -871,7 +878,7 @@ const PetTraining = () => {
                     <div>
                       {/* Image Banner with Badges */}
                       <div 
-                        onClick={() => handleServiceAction({ isAuthenticated, serviceType: 'Training', provider: trainer, action: 'visit' })}
+                        onClick={() => handleServiceAction({ isAuthenticated, serviceType: 'Training', provider: trainer, action: 'view_expert_profile' })}
                         className="aspect-[16/10] overflow-hidden relative bg-stone-100 cursor-pointer"
                         title={`Visit ${trainer.name} and view packages`}
                       >

@@ -54,7 +54,7 @@ export const INITIAL_HOSTEL_PROVIDERS = [
     stayType: 'Cage-Free Home Boarding',
     pricePerNight: 750,
     discountPrice: 599,
-    image: 'https://images.unsplash.com/photo-1544568100-eba616a6ce76?q=80&w=800&auto=format&fit=crop',
+    image: 'https://images.unsplash.com/photo-1543466835-00a7907e9de1?q=80&w=800&auto=format&fit=crop',
     phone: '9876543210',
     amenities: ['AC Suites', 'Outdoor Lawn & Play Area', 'Daily Video Updates', 'Customized Meals', 'Vet On Call'],
     packages: [

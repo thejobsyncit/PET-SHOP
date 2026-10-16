@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
-import { CreditCard, Truck, CircleCheck, ChevronRight, ShoppingBag, ClipboardList } from 'lucide-react';
+import { CreditCard, Truck, CircleCheck, ChevronRight, ShoppingBag, ClipboardList, Download } from 'lucide-react';
 import { clearCartAPI } from '../../store/slices/cartSlice.js';
 import { fetchProducts } from '../../store/slices/productSlice.js';
 import { apiRequest } from '../../services/api.js';
+import { downloadBill } from '../../utils/billGenerator.js';
 import toast from 'react-hot-toast';
 
 const Checkout = () => {
@@ -199,7 +200,45 @@ const Checkout = () => {
             )}
           </div>
 
-          <div className="flex justify-center gap-4 pt-4">
+          <div className="flex flex-wrap justify-center items-center gap-3 pt-4">
+            <button
+              onClick={() => {
+                const total = confirmedOrder.pricing?.total || 0;
+                const base = Number((total / 1.18).toFixed(2));
+                downloadBill({
+                  invoiceNumber: confirmedOrder.trackingNumber || `ORD-${confirmedOrder._id?.slice(-8)}`,
+                  invoiceTitle: 'TAX INVOICE / ORDER RECEIPT',
+                  statusText: '✓ PAYMENT COMPLETED',
+                  customer: {
+                    name: confirmedOrder.shippingAddress?.fullName || name || user?.name || 'Customer',
+                    email: user?.email || '',
+                    phone: confirmedOrder.shippingAddress?.phone || phone || user?.mobile || '',
+                    address: `${confirmedOrder.shippingAddress?.streetAddress || streetAddress || ''}, ${confirmedOrder.shippingAddress?.city || city || ''} ${confirmedOrder.shippingAddress?.postalCode || postalCode || ''}`,
+                  },
+                  payment: {
+                    method: 'Prepaid Online',
+                    validity: `Tracking: ${confirmedOrder.trackingNumber}`,
+                  },
+                  items: (confirmedOrder.orderItems || []).map((it) => ({
+                    name: it.name,
+                    quantity: it.quantity || 1,
+                    sacOrHsn: 'HSN: 2309',
+                    amount: (it.price || 0) * (it.quantity || 1),
+                  })),
+                  totals: {
+                    baseAmount: base,
+                    cgst: Number((base * 0.09).toFixed(2)),
+                    sgst: Number((base * 0.09).toFixed(2)),
+                    total: total,
+                  }
+                });
+                toast.success('Payment bill downloaded successfully');
+              }}
+              className="px-5 py-2.5 bg-[#0F2E23] hover:bg-[#164E3D] text-[#D4AF37] rounded-xl text-xs font-black uppercase tracking-wider transition flex items-center gap-2 cursor-pointer shadow-md active:scale-95"
+            >
+              <Download size={13} />
+              <span>Download Payment Bill</span>
+            </button>
             <button onClick={() => navigate('/shop')} className="btn-premium py-2 text-xs">
               CONTINUE SHOPPING
             </button>

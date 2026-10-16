@@ -123,7 +123,7 @@ const MegaMenu = ({ category, onClose }) => {
     },
     pharmacy: {
       title: 'VETERINARY PHARMACY',
-      image: 'https://images.unsplash.com/photo-1584813470769-d758f2d59ab5?q=80&w=800&auto=format&fit=crop',
+      image: 'https://images.unsplash.com/photo-1576201836106-db1758fd1c97?q=80&w=800&auto=format&fit=crop',
       groups: [
         {
           name: 'Everyday Supplements',

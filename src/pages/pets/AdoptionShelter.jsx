@@ -48,7 +48,7 @@ const HERO_SLIDES = [
     category: 'birds',
     title: 'Macaws & Birds For Adoption',
     sub: 'Charming, singing, and colorful feathery Macaws looking for loving caretakers',
-    image: 'https://images.unsplash.com/photo-1544568100-eba616a6ce76?q=80&w=800&auto=format&fit=crop',
+    image: 'https://images.unsplash.com/photo-1543466835-00a7907e9de1?q=80&w=800&auto=format&fit=crop',
     badge: '45+ Tamed Birds Available'
   }
 ];
@@ -646,7 +646,7 @@ const AdoptionShelter = () => {
       {/* =========================================================================
           3. MAIN CONTENT: SIDEBAR (Filter ON TOP, Most Popular Breeds BELOW)
          ========================================================================= */}
-      <ScrollReveal variant="fade">
+      <div>
         <div className="max-w-7xl mx-auto px-4 md:px-8 mt-10">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
   
@@ -993,7 +993,7 @@ const AdoptionShelter = () => {
   
                           {/* Personality Pill Tag */}
                           <div className="pt-1">
-                            <span className="inline-block w-full bg-[#fef2f2] text-rose-700 text-[10.5px] font-semibold px-2.5 py-1 rounded-full text-center border border-rose-100/70 truncate">
+                            <span className="inline-block w-full bg-[#fdf8e8] text-[#856312] text-[10.5px] font-bold px-2.5 py-1 rounded-full text-center border border-[#e8d595] truncate">
                               {pet.personality}
                             </span>
                           </div>
@@ -1038,7 +1038,7 @@ const AdoptionShelter = () => {
   
           </div>
         </div>
-      </ScrollReveal>
+      </div>
 
 
       {/* =========================================================================

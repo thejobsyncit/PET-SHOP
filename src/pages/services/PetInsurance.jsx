@@ -610,7 +610,7 @@ const PetInsurance = () => {
       isAuthenticated,
       serviceType: 'Insurance',
       provider,
-      action: 'visit'
+      action: 'view_expert_profile'
     });
   };
 

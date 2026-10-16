@@ -38,7 +38,7 @@ const VetProviderContent = ({ activeTab }) => {
   // -------------------------------------------------------------
   const [profile, setProfile] = useState({
     id: 'my-vet-profile',
-    avatar: 'https://images.unsplash.com/photo-1584813470769-d758f2d59ab5?q=80&w=800&auto=format&fit=crop',
+    avatar: 'https://images.unsplash.com/photo-1576201836106-db1758fd1c97?q=80&w=800&auto=format&fit=crop',
     name: 'Dr. Ramesh Kumar',
     vciRegistration: 'VCI/2010/KA-08492',
     degrees: 'B.V.Sc & A.H, M.V.Sc (Veterinary Surgery)',
@@ -2428,7 +2428,7 @@ const VetProviderContent = ({ activeTab }) => {
             {/* Main Video Screen (Patient Video Simulation) */}
             <div className="flex-1 relative flex items-center justify-center bg-slate-900 overflow-hidden">
               <img 
-                src="https://images.unsplash.com/photo-1628009368231-7718fc89829e?q=80&w=800&auto=format&fit=crop" 
+                src="https://images.unsplash.com/photo-1629909615184-74f495363b67?q=80&w=800&auto=format&fit=crop" 
                 alt="Patient pet" 
                 className="w-full h-full object-cover opacity-90"
               />

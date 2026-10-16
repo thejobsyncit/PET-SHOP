@@ -168,7 +168,7 @@ export const INITIAL_TRAINING_PROVIDERS = [
     packageStarting: 5499,
     phone: '+91 98765 43210',
     whatsapp: '+91 98765 43210',
-    image: 'https://images.unsplash.com/photo-1544568100-eba616a6ce76?q=80&w=800&auto=format&fit=crop',
+    image: 'https://images.unsplash.com/photo-1543466835-00a7907e9de1?q=80&w=800&auto=format&fit=crop',
     certifications: ['CCPDT-KA Certified', 'Fear Free Certified Professional', 'KCI Obedience Judge'],
     packages: [
       {

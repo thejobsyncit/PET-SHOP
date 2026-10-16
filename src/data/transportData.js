@@ -63,7 +63,7 @@ export const TRANSPORT_STEPS = [
     title: 'Start the Paperwork',
     desc: 'We handle all necessary vet health certifications, vaccination verifications, fit-to-travel permits, and airline/railway authority clearances.',
     icon: '📑',
-    image: 'https://images.unsplash.com/photo-1544568100-eba616a6ce76?q=80&w=800&auto=format&fit=crop'
+    image: 'https://images.unsplash.com/photo-1543466835-00a7907e9de1?q=80&w=800&auto=format&fit=crop'
   },
   {
     step: 'STEP 04',
@@ -533,7 +533,7 @@ export const saveOrUpdateTransportService = (serviceData, user) => {
     email: userEmail || serviceData.email || 'safepet@joshpetshub.com',
     providerEmail: userEmail || 'safepet@joshpetshub.com',
     providerUserId: userId,
-    image: serviceData.image || 'https://images.unsplash.com/photo-1544568100-eba616a6ce76?q=80&w=800&auto=format&fit=crop',
+    image: serviceData.image || 'https://images.unsplash.com/photo-1543466835-00a7907e9de1?q=80&w=800&auto=format&fit=crop',
     packages: serviceData.packages || [
       {
         id: 'pkg-default-1',

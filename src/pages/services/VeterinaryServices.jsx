@@ -263,7 +263,7 @@ export default function VeterinaryServices() {
       isAuthenticated,
       serviceType: 'Veterinary',
       provider: { ...doc, phone: doc.whatsapp },
-      action: 'visit'
+      action: 'whatsapp'
     });
   };
 
@@ -282,17 +282,24 @@ export default function VeterinaryServices() {
       isAuthenticated,
       serviceType: 'Veterinary',
       provider: { ...doc, phone: doc.whatsapp },
-      action: 'visit'
+      action: 'view_expert_profile'
     });
   };
 
   // Open Booking Modal with Auth Verification & Package Access
   const handleOpenBooking = (doc, prefilledMode = 'In-Clinic Visit') => {
+    setSelectedDoctorForBooking(doc);
+    setAppointmentMode(prefilledMode);
     handleServiceAction({
       isAuthenticated,
       serviceType: 'Veterinary',
       provider: { ...doc, phone: doc.whatsapp },
-      action: 'book'
+      action: 'book',
+      onAuthorized: () => {
+        setSelectedDoctorForBooking(doc);
+        setAppointmentMode(prefilledMode);
+        setShowBookingModal(true);
+      }
     });
   };
 

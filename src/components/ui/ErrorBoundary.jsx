@@ -58,7 +58,7 @@ class ErrorBoundary extends React.Component {
 
   handleClearStorageAndReload = () => {
     try {
-      const keysToKeep = ['joshpetshub_token', 'joshpetshub_user'];
+      const keysToKeep = ['joshpetshub_token', 'joshpetshub_user', 'pawora_user_membership'];
       const preserved = {};
       keysToKeep.forEach(k => {
         try { preserved[k] = localStorage.getItem(k); } catch (_) {}

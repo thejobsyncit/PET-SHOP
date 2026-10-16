@@ -17,7 +17,18 @@ export const getBlogs = async (req, res) => {
     
     res.json({ success: true, blogs: blogs || [] });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    try {
+      const fs = await import('fs');
+      const path = await import('path');
+      const raw = fs.readFileSync(path.resolve('server/data/blogs.json'), 'utf8');
+      let localBlogs = JSON.parse(raw);
+      if (req.query.petType) {
+        localBlogs = localBlogs.filter(b => b.petType === req.query.petType);
+      }
+      return res.json({ success: true, blogs: localBlogs });
+    } catch {
+      res.status(500).json({ success: false, message: error.message });
+    }
   }
 };
 

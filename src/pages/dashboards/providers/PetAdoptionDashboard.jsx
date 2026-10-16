@@ -142,7 +142,7 @@ const PetAdoptionDashboard = ({
   // Document 4: Veterinary Medical Officer MOU / Tie-Up
   const [vetDoctorName, setVetDoctorName] = useState(savedDocsData?.vetDoctorName || 'Dr. Sneha Hegde (B.V.Sc, M.V.Sc)');
   const [vetRegNumber, setVetRegNumber] = useState(savedDocsData?.vetRegNumber || 'KVC-7841/2016');
-  const [vetDocUrl, setVetDocUrl] = useState(savedDocsData?.vetDocUrl || 'https://images.unsplash.com/photo-1606425134789-5f21272fc4d6?q=80&w=800&auto=format&fit=crop');
+  const [vetDocUrl, setVetDocUrl] = useState(savedDocsData?.vetDocUrl || 'https://images.unsplash.com/photo-1583337130417-3346a1be7dee?q=80&w=800&auto=format&fit=crop');
   const [vetStatus, setVetStatus] = useState(savedDocsData?.vetStatus || 'Verified');
 
   // Document 5: Founder / Trustee Govt Identity Proof
@@ -578,7 +578,7 @@ const PetAdoptionDashboard = ({
     const fallbackPhotos = {
       dogs: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?q=80&w=800&auto=format&fit=crop',
       cats: 'https://images.unsplash.com/photo-1519052537078-e6302a4968d4?q=80&w=800&auto=format&fit=crop',
-      birds: 'https://images.unsplash.com/photo-1602058376483-e8eeeb63b320?q=80&w=800&auto=format&fit=crop'
+      birds: 'https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?q=80&w=800&auto=format&fit=crop'
     };
 
     if (editingPetId) {

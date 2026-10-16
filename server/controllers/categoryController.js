@@ -17,7 +17,18 @@ export const getCategories = async (req, res) => {
     
     res.json({ success: true, categories: categories || [] });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    try {
+      const fs = await import('fs');
+      const path = await import('path');
+      const raw = fs.readFileSync(path.resolve('server/data/categories.json'), 'utf8');
+      let localCategories = JSON.parse(raw);
+      if (req.query.petType) {
+        localCategories = localCategories.filter(c => c.petType === req.query.petType);
+      }
+      return res.json({ success: true, categories: localCategories });
+    } catch {
+      res.status(500).json({ success: false, message: error.message });
+    }
   }
 };
 
