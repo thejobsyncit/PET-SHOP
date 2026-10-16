@@ -669,7 +669,7 @@ export const sendOtp = async (req, res) => {
     if (!isMatched) {
       return res.status(401).json({
         success: false,
-        message: 'Invalid email or password. Please register if you do not have an account.'
+        message: 'Invalid email or password.'
       });
     }
   }

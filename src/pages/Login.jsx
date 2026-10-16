@@ -893,7 +893,7 @@ const Login = () => {
       });
 
       if (!res.success) {
-        setLoginError(res.message || 'Invalid email or password. Please register if you do not have an account.');
+        setLoginError(res.message || 'Invalid email or password.');
         setVerifyingOtp(false);
         return;
       }
@@ -925,7 +925,7 @@ const Login = () => {
       }
     } catch (err) {
       console.error('Login submit check error:', err);
-      setLoginError(err.message || 'Invalid email or password. Please register if you do not have an account.');
+      setLoginError(err.message || 'Invalid email or password.');
     } finally {
       setVerifyingOtp(false);
     }
