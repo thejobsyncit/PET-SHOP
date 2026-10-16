@@ -94,13 +94,13 @@ const SERVICES = [
     hover: 'hover:border-teal-400',
     shadow: 'hover:shadow-teal-900/10',
     desc: 'Online consultations and clinic bookings with top veterinarians.',
-    image: 'https://images.unsplash.com/photo-1629909613654-20e3650275cc?q=80&w=800&auto=format&fit=crop'
+    image: 'https://images.unsplash.com/photo-1629909615184-74f495363b67?q=80&w=800&auto=format&fit=crop'
   }
 ];
 
 const TOP_PROVIDERS = [
   { id: 1, name: 'Dr. Ramesh Kumar', category: 'Veterinary', rating: 4.9, reviews: 120, location: 'Bangalore', image: 'https://images.unsplash.com/photo-1583337130417-3346a1be7dee?q=80&w=800&auto=format&fit=crop' },
-  { id: 2, name: 'Velvet Fur Spa', category: 'Grooming', rating: 5.0, reviews: 75, location: 'Bangalore', image: 'https://images.unsplash.com/photo-1544568100-eba616a6ce76?q=80&w=800&auto=format&fit=crop' },
+  { id: 2, name: 'Velvet Fur Spa', category: 'Grooming', rating: 5.0, reviews: 75, location: 'Bangalore', image: 'https://images.unsplash.com/photo-1543466835-00a7907e9de1?q=80&w=800&auto=format&fit=crop' },
   { id: 3, name: 'Pawsome Walkers', category: 'Dog Walking', rating: 4.8, reviews: 115, location: 'Bangalore', image: 'https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?q=80&w=800&auto=format&fit=crop' },
   { id: 4, name: 'Happy Paws Resort', category: 'Hostel', rating: 4.9, reviews: 145, location: 'Bangalore', image: 'https://images.unsplash.com/photo-1548199973-03cce0bbc87b?q=80&w=800&auto=format&fit=crop' }
 ];
@@ -162,7 +162,7 @@ const ServiceBooking = () => {
         city: provider.location,
         image: provider.image
       } : { name: `Top Verified ${categoryKey} Provider`, city: 'Bangalore' },
-      action: 'visit'
+      action: 'view_expert_profile'
     });
   };
 

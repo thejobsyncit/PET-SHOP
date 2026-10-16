@@ -383,8 +383,12 @@ const AdoptionPetDetail = () => {
               {/* Big High-Res Main Image */}
               <div className="relative aspect-[16/10] rounded-2xl overflow-hidden bg-purple-50">
                 <img
-                  src={selectedImage || pet.image}
+                  src={selectedImage || pet.image || 'https://images.unsplash.com/photo-1548199973-03cce0bbc87b?q=80&w=800'}
                   alt={pet.name}
+                  onError={(e) => {
+                    e.currentTarget.onerror = null;
+                    e.currentTarget.src = 'https://images.unsplash.com/photo-1548199973-03cce0bbc87b?q=80&w=800';
+                  }}
                   className="w-full h-full object-cover"
                 />
 
@@ -425,7 +429,15 @@ const AdoptionPetDetail = () => {
                       className={`w-20 h-16 rounded-xl overflow-hidden border-2 transition shrink-0 cursor-pointer ${selectedImage === imgUrl ? 'border-[#7c56dc] ring-2 ring-purple-200' : 'border-transparent opacity-70 hover:opacity-100'
                         }`}
                     >
-                      <img src={imgUrl} alt={`Thumbnail ${idx}`} className="w-full h-full object-cover" />
+                      <img 
+                        src={imgUrl} 
+                        alt={`Thumbnail ${idx}`} 
+                        onError={(e) => {
+                          e.currentTarget.onerror = null;
+                          e.currentTarget.src = 'https://images.unsplash.com/photo-1548199973-03cce0bbc87b?q=80&w=800';
+                        }}
+                        className="w-full h-full object-cover" 
+                      />
                     </button>
                   ))}
                 </div>
@@ -447,7 +459,7 @@ const AdoptionPetDetail = () => {
                   </p>
                 </div>
 
-                <div className="inline-block bg-purple-50 text-[#7c56dc] font-bold text-xs px-3.5 py-1.5 rounded-xl border border-purple-100">
+                <div className="inline-block bg-[#fdf8e8] text-[#856312] font-bold text-xs px-3.5 py-1.5 rounded-xl border border-[#e8d595]">
                   {pet.personality}
                 </div>
               </div>

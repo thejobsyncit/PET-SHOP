@@ -113,8 +113,12 @@ const ProductCard = ({ product }) => {
         {/* Image Display */}
         <div className="relative aspect-square overflow-hidden bg-gray-50/50">
           <img
-            src={hovered && product.images[1] ? product.images[1] : product.images[0]}
+            src={(hovered && product.images?.[1]) ? product.images[1] : (product.images?.[0] || product.image || 'https://images.unsplash.com/photo-1548199973-03cce0bbc87b?q=80&w=800')}
             alt={product.name}
+            onError={(e) => {
+              e.currentTarget.onerror = null;
+              e.currentTarget.src = 'https://images.unsplash.com/photo-1548199973-03cce0bbc87b?q=80&w=800';
+            }}
             className="w-full h-full object-cover transition-all duration-700 ease-out group-hover:scale-[1.15] group-hover:-rotate-1"
           />
 
@@ -198,8 +202,12 @@ const ProductCard = ({ product }) => {
             {/* Left Image Pane */}
             <div className="w-full md:w-1/2 aspect-square bg-gray-50 border-r border-beige">
               <img 
-                src={product.images[0]} 
+                src={product.images?.[0] || product.image || 'https://images.unsplash.com/photo-1548199973-03cce0bbc87b?q=80&w=800'} 
                 alt={product.name} 
+                onError={(e) => {
+                  e.currentTarget.onerror = null;
+                  e.currentTarget.src = 'https://images.unsplash.com/photo-1548199973-03cce0bbc87b?q=80&w=800';
+                }}
                 className="w-full h-full object-cover" 
               />
             </div>

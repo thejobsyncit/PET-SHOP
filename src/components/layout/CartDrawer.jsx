@@ -126,8 +126,12 @@ const CartDrawer = ({ isOpen, onClose }) => {
                       className="flex bg-white border border-beige p-3 shadow-sm hover:shadow-md transition duration-300"
                     >
                       <img 
-                        src={item.product.images[0]} 
-                        alt={item.product.name} 
+                        src={item.product?.images?.[0] || item.product?.image || 'https://images.unsplash.com/photo-1548199973-03cce0bbc87b?q=80&w=800'} 
+                        alt={item.product?.name || 'Product'} 
+                        onError={(e) => {
+                          e.currentTarget.onerror = null;
+                          e.currentTarget.src = 'https://images.unsplash.com/photo-1548199973-03cce0bbc87b?q=80&w=800';
+                        }}
                         className="w-20 h-20 object-cover bg-gray-50 border border-beige"
                       />
                       <div className="ml-4 flex-grow flex flex-col justify-between">

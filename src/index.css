@@ -91,25 +91,25 @@
 }
 
 /* ==========================================================================
-   WALKING DOG INSIDE SEARCH BAR SPACE (SLOW & UN-FLIPPED TEXT)
+   WALKING DOG ON SEARCH BAR TOP BORDER (ELEGANT STROLL)
    ========================================================================== */
 
-/* Dog moves slowly horizontally inside the search bar from after search icon to before search button */
+/* Dog moves slowly horizontally along the top border of the search bar */
 @keyframes dog-walk-inside-space {
   0% {
-    left: 55px;
+    left: 40px;
   }
   48% {
-    left: calc(100% - 190px);
+    left: calc(100% - 110px);
   }
   52% {
-    left: calc(100% - 190px);
+    left: calc(100% - 110px);
   }
   98% {
-    left: 55px;
+    left: 40px;
   }
   100% {
-    left: 55px;
+    left: 40px;
   }
 }
 
@@ -312,5 +312,17 @@
 }
 
 
-.hide-scrollbar::-webkit-scrollbar { display: none; }
-.hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+.hide-scrollbar::-webkit-scrollbar, .no-scrollbar::-webkit-scrollbar { display: none; }
+.hide-scrollbar, .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+/* Hide scrollbars completely */
+.no-scrollbar::-webkit-scrollbar,
+.hide-scrollbar::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+.no-scrollbar,
+.hide-scrollbar {
+  -ms-overflow-style: none !important;
+  scrollbar-width: none !important;
+}

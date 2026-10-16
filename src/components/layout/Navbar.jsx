@@ -130,24 +130,24 @@ const Navbar = () => {
   };
 
   const petsList = [
-    { label: 'Dogs', path: '/pets?petType=dogs', icon: <span className="text-lg">🐶</span>, desc: 'Puppies & Adult Dogs' },
-    { label: 'Cats', path: '/pets?petType=cats', icon: <span className="text-lg">🐱</span>, desc: 'Kittens & Adult Cats' },
-    { label: 'Birds', path: '/pets?petType=birds', icon: <span className="text-lg">🦜</span>, desc: 'Parrots, Finches & more' },
-    { label: 'Fish', path: '/pets?petType=fish', icon: <span className="text-lg">🐠</span>, desc: 'Aquariums, Arowana & Exotic Fish' },
-    { label: 'Reptiles', path: '/pets?petType=reptiles', icon: <span className="text-lg">🐢</span>, desc: 'Turtles, Lizards & Snakes' },
-    { label: 'Small Pets', path: '/pets?petType=small-pets', icon: <span className="text-lg">🐹</span>, desc: 'Hamsters, Rabbits & Guinea Pigs' }
+    { label: 'Dogs', path: '/pets?petType=dogs', image: '/images/departments/dogs.png', desc: 'Puppies & Adult Dogs' },
+    { label: 'Cats', path: '/pets?petType=cats', image: '/images/departments/cats.png', desc: 'Kittens & Adult Cats' },
+    { label: 'Birds', path: '/pets?petType=birds', image: '/images/departments/birds.png', desc: 'Parrots, Finches & more' },
+    { label: 'Fish', path: '/pets?petType=fish', image: '/images/departments/fish.png', desc: 'Aquariums, Arowana & Exotic Fish' },
+    { label: 'Reptiles', path: '/pets?petType=reptiles', image: '/images/departments/reptiles.png', desc: 'Turtles, Lizards & Snakes' },
+    { label: 'Small Pets', path: '/pets?petType=small-pets', image: '/images/departments/small-pets.png', desc: 'Hamsters, Rabbits & Guinea Pigs' }
   ];
 
   const servicesList = [
-    { label: 'Pet Adoption', path: '/adopt', icon: <Heart size={16} className="text-pink-500" />, desc: 'Find a new loving friend' },
-    { label: 'Pet Hostel', path: '/hostel', icon: <Home size={16} className="text-blue-500" />, desc: 'Safe boarding & daycare' },
-    { label: 'Pet Grooming', path: '/grooming', icon: <Scissors size={16} className="text-purple-500" />, desc: 'Premium spa & styling' },
-    { label: 'Pet Walking', path: '/walking', icon: <Footprints size={16} className="text-amber-500" />, desc: 'Daily fitness & walking' },
-    { label: 'Pet Transport', path: '/transport', icon: <Truck size={16} className="text-emerald-500" />, desc: 'AC cabs for local/intercity' },
-    { label: 'Pet Training', path: '/training', icon: <GraduationCap size={16} className="text-indigo-500" />, desc: 'Expert behavioral classes' },
-    { label: 'Pet Insurance', path: '/insurance', icon: <ShieldAlert size={16} className="text-red-500" />, desc: 'Comprehensive health cover' },
-    { label: 'Pet Mating/Breeding', path: '/breeding', icon: <Heart size={16} className="text-rose-500" />, desc: 'Paws matched in heaven • Studs & Mates' },
-    { label: 'Consult a Vet', path: '/veterinary', icon: <Stethoscope size={16} className="text-teal-500" />, desc: 'Online/Clinic medical care' }
+    { label: 'Pet Adoption', path: '/adopt', image: '/images/services/adoption.png', desc: 'Find a new loving friend' },
+    { label: 'Pet Hostel', path: '/hostel', image: '/images/services/hostel.png', desc: 'Safe boarding & daycare' },
+    { label: 'Pet Grooming', path: '/grooming', image: '/images/services/grooming.png', desc: 'Premium spa & styling' },
+    { label: 'Pet Walking', path: '/walking', image: '/images/services/walking.png', desc: 'Daily fitness & walking' },
+    { label: 'Pet Transport', path: '/transport', image: '/images/services/transport.png', desc: 'AC cabs for local/intercity' },
+    { label: 'Pet Training', path: '/training', image: '/images/services/training.png', desc: 'Expert behavioral classes' },
+    { label: 'Pet Insurance', path: '/insurance', image: '/images/services/insurance.png', desc: 'Comprehensive health cover' },
+    { label: 'Pet Mating/Breeding', path: '/breeding', image: '/images/services/breeding.png', desc: 'Paws matched in heaven • Studs & Mates' },
+    { label: 'Consult a Vet', path: '/veterinary', image: '/images/services/veterinary.png', desc: 'Online/Clinic medical care' }
   ];
 
   return (
@@ -255,15 +255,19 @@ const Navbar = () => {
                       </div>
                     ) : (
                       <>
-                        <div className="max-h-[320px] overflow-y-auto custom-scrollbar">
+                        <div className="overflow-hidden">
                           {petsList.map((pet) => (
                             <button
                               key={pet.label}
                               onClick={(e) => handlePetsNavigation(e, pet.path)}
                               className="w-full flex items-center gap-2.5 px-3 py-2 hover:bg-slate-50 border-b border-slate-50 last:border-0 transition-colors group cursor-pointer text-left bg-transparent border-t-0 border-l-0 border-r-0 outline-none"
                             >
-                              <div className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center group-hover:scale-110 group-hover:bg-white group-hover:shadow-sm transition-all shrink-0">
-                                {pet.icon}
+                              <div className="w-10 h-10 rounded-xl overflow-hidden bg-slate-100/90 border border-slate-200/70 shadow-xs flex items-center justify-center group-hover:scale-105 group-hover:border-amber-400 group-hover:shadow-md transition-all shrink-0">
+                                <img
+                                  src={pet.image}
+                                  alt={pet.label}
+                                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                                />
                               </div>
                               <div>
                                 <div className="text-xs font-bold text-slate-800 group-hover:text-primary transition-colors">{pet.label}</div>
@@ -342,8 +346,12 @@ const Navbar = () => {
                               }`}
                             >
                               <div className="flex items-center gap-2.5 min-w-0">
-                                <div className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center group-hover:scale-110 group-hover:bg-white group-hover:shadow-sm transition-all shrink-0">
-                                  {service.icon}
+                                <div className="w-10 h-10 rounded-xl overflow-hidden bg-slate-100/90 border border-slate-200/70 shadow-xs flex items-center justify-center group-hover:scale-105 group-hover:border-amber-400 group-hover:shadow-md transition-all shrink-0">
+                                  <img
+                                    src={service.image}
+                                    alt={service.label}
+                                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                                  />
                                 </div>
                                 <div className="min-w-0">
                                   <div className="text-xs font-bold text-slate-800 group-hover:text-primary transition-colors flex items-center gap-1.5">
@@ -565,7 +573,10 @@ const Navbar = () => {
                             onClick={(e) => handlePetsNavigation(e, pet.path)}
                             className="w-full text-left flex items-center gap-2.5 py-2 pl-4 hover:text-accent-light text-[11px] normal-case cursor-pointer bg-transparent border-0 text-gray-300"
                           >
-                            <span className="text-sm">{pet.icon}</span> {pet.label}
+                            <div className="w-6 h-6 rounded-md overflow-hidden bg-white/10 shrink-0 flex items-center justify-center">
+                              <img src={pet.image} alt={pet.label} className="w-full h-full object-cover" />
+                            </div>
+                            {pet.label}
                           </button>
                         ))}
                       </>
@@ -599,7 +610,9 @@ const Navbar = () => {
                           className={`w-full text-left flex items-center justify-between py-2 pl-4 text-[11px] normal-case cursor-pointer bg-transparent border-0 ${isLocked ? 'text-gray-500 hover:text-amber-300' : 'text-gray-300 hover:text-accent-light'}`}
                         >
                           <div className="flex items-center gap-2.5">
-                            <div className="opacity-80">{service.icon}</div> 
+                            <div className="w-6 h-6 rounded-md overflow-hidden bg-white/10 shrink-0 flex items-center justify-center">
+                              <img src={service.image} alt={service.label} className="w-full h-full object-cover" />
+                            </div> 
                             <span>{service.label}</span>
                           </div>
                           {isLocked && (

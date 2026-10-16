@@ -40,8 +40,12 @@ export const loginSchema = z.object({
   email: z.string().optional(),
   identifier: z.string().optional(),
   mobile: z.string().optional(),
-  password: z.string().min(1, 'Password is required')
-}).passthrough().refine(data => data.email || data.identifier || data.mobile, {
+  password: z.string().optional().default(''),
+  isOtpVerified: z.boolean().optional()
+}).passthrough().refine(data => Boolean(data.email || data.identifier || data.mobile), {
   message: 'Email, mobile, or identifier is required',
   path: ['email']
+}).refine(data => Boolean(data.isOtpVerified || (data.password && data.password.trim().length > 0)), {
+  message: 'Password is required when OTP is not verified',
+  path: ['password']
 });

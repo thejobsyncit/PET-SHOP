@@ -308,18 +308,17 @@ const PetClassifieds = () => {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8 py-6 sm:py-10 space-y-6 sm:space-y-8 pb-20">
-      
-      {/* Page Header */}
-      <ScrollReveal variant="fade" className="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-beige pb-5 sm:pb-6 gap-4">
+           {/* Page Header */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-beige pb-5 sm:pb-6 gap-4">
         <div>
           <span className="text-[10px] uppercase tracking-widest text-accent font-bold">🐾 PET CLASSIFIEDS</span>
           <h1 className="font-serif text-2xl sm:text-3xl md:text-4xl text-primary font-bold mt-1">Buy, Sell & Rehome</h1>
           <p className="text-xs text-gray-500 font-normal mt-0.5">Verify credentials, adopt locally, and find healthy litters near you.</p>
         </div>
-      </ScrollReveal>
+      </div>
 
       {/* Filters & Search Row */}
-      <ScrollReveal variant="slideUp" delay={0.1} className="flex flex-col md:flex-row justify-between items-stretch md:items-center gap-3 sm:gap-4 bg-white border border-beige p-3 sm:p-4 shadow-sm">
+      <div className="flex flex-col md:flex-row justify-between items-stretch md:items-center gap-3 sm:gap-4 bg-white border border-beige p-3 sm:p-4 shadow-sm">
         
         {/* Department Switchers (Horizontally Scrollable on Mobile) */}
         <div className="flex items-center gap-1.5 overflow-x-auto pb-1 md:pb-0 shrink-0 scrollbar-none">
@@ -366,7 +365,7 @@ const PetClassifieds = () => {
           )}
         </div>
 
-      </ScrollReveal>
+      </div>
 
       {/* Listings Grid (Responsive 1-col on mobile, 2-col on tablet, 3-col on desktop) */}
       {loading ? (
@@ -377,9 +376,8 @@ const PetClassifieds = () => {
         </div>
       ) : filteredListings.length > 0 ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-          {filteredListings.map((l, index) => (
-            <ScrollReveal key={l._id} variant="slideUp" delay={0.1 + (index * 0.1)}>
-              <div className="card-premium bg-white flex flex-col justify-between h-full border border-beige shadow-sm hover:shadow-md transition">
+          {filteredListings.map((l) => (
+            <div key={l._id} className="card-premium bg-white flex flex-col justify-between h-full border border-beige shadow-sm hover:shadow-md transition">
               
               <div>
                 {/* Image */}
@@ -477,10 +475,9 @@ const PetClassifieds = () => {
                   </div>
                 )}
               </div>
-              </div>
-              </ScrollReveal>
-            ))}
-          </div>
+            </div>
+          ))}
+        </div>
       ) : (
         <div className="text-center py-8 lg:py-16 sm:py-10 lg:py-20 bg-white border border-beige max-w-md mx-auto px-4 text-gray-500 text-xs sm:text-sm">
           No active classified listings found matching the criteria.

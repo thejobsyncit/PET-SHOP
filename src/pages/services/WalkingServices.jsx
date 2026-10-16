@@ -216,11 +216,18 @@ const WalkingServices = () => {
 
   // Open Booking & Service Access Modal for a provider
   const handleOpenBookingModal = (provider, pkg = null) => {
+    setSelectedProvider(provider);
+    if (pkg) setSelectedPackage(pkg);
     handleServiceAction({
       isAuthenticated,
       serviceType: 'Walking',
       provider,
-      action: 'book'
+      action: 'book',
+      onAuthorized: () => {
+        setSelectedProvider(provider);
+        if (pkg) setSelectedPackage(pkg);
+        setShowBookingModal(true);
+      }
     });
   };
 
@@ -282,7 +289,7 @@ const WalkingServices = () => {
       isAuthenticated,
       serviceType: 'Walking',
       provider,
-      action: 'visit'
+      action: 'whatsapp'
     });
   };
 
@@ -304,7 +311,7 @@ const WalkingServices = () => {
       {/* =========================================================================
           1. HERO BANNER WITH SEARCH BAR (Exact Visual Match to Screenshot 1)
          ========================================================================= */}
-      <ScrollReveal variant="fade" className="relative bg-gradient-to-r from-[#ffc83b] via-[#febc2e] to-[#ffb11b] text-slate-900 pt-8 pb-12 px-4 md:px-8 shadow-sm border-b border-amber-300">
+      <ScrollReveal variant="fade" className="relative bg-[#FAC52E] text-slate-900 pt-8 pb-12 px-4 md:px-8 shadow-sm border-b border-[#E0B025]">
         <div className="max-w-7xl mx-auto">
           
           {/* Breadcrumb Navigation */}
@@ -609,8 +616,8 @@ const WalkingServices = () => {
                       onClick={() => setPriceRange(tier.id)}
                       className={`flex items-center justify-between w-full py-2 px-3 rounded-xl font-semibold text-left transition cursor-pointer ${
                         priceRange === tier.id
-                          ? 'bg-[#7c56dc] text-white font-bold shadow-xs'
-                          : 'text-slate-600 hover:bg-purple-50 hover:text-[#7c56dc]'
+                          ? 'bg-amber-100 text-amber-900 font-bold'
+                          : 'text-slate-600 hover:bg-slate-50'
                       }`}
                     >
                       <span>{tier.label}</span>
@@ -687,7 +694,7 @@ const WalkingServices = () => {
                       <div>
                         {/* Provider Header Image & Badges */}
                         <div 
-                          onClick={() => handleServiceAction({ isAuthenticated, serviceType: 'Walking', provider, action: 'visit' })}
+                          onClick={() => handleServiceAction({ isAuthenticated, serviceType: 'Walking', provider, action: 'view_expert_profile' })}
                           className="relative aspect-[16/9] overflow-hidden bg-slate-100 cursor-pointer"
                           title={`Visit ${provider.name} and view packages`}
                         >
@@ -699,7 +706,7 @@ const WalkingServices = () => {
                           <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
 
                           {/* Service Mode Badge */}
-                          <div className="absolute top-3 left-3 bg-[#7c56dc] text-white text-[10px] font-extrabold px-3 py-1 rounded-full shadow-md">
+                          <div className="absolute top-3 left-3 bg-white/95 text-emerald-700 text-[10px] font-extrabold px-2.5 py-1 rounded-full shadow-md">
                             {provider.serviceMode}
                           </div>
 
@@ -1033,7 +1040,7 @@ const WalkingServices = () => {
           <div className="relative bg-white rounded-3xl shadow-2xl border border-purple-100 w-full max-w-lg overflow-hidden z-10 my-auto max-h-[85vh] sm:max-h-[88vh] flex flex-col min-h-0">
             
             {/* Modal Header */}
-            <div className="bg-gradient-to-r from-[#ffc83b] to-[#f59e0b] p-5 text-slate-950 flex justify-between items-center shrink-0">
+            <div className="bg-[#FAC52E] p-5 text-slate-950 flex justify-between items-center shrink-0">
               <div>
                 <span className="text-[10px] uppercase font-extrabold tracking-wider bg-black/10 px-2 py-0.5 rounded">
                   Book Dog Walking Routine

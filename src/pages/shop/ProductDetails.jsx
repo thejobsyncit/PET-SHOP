@@ -165,24 +165,36 @@ const ProductDetails = () => {
           <div className="w-full lg:w-1/2 space-y-4">
             <div className="aspect-square bg-gray-50 border border-beige overflow-hidden">
               <img 
-                src={product.images[activeImage]} 
+                src={product.images?.[activeImage] || product.image || 'https://images.unsplash.com/photo-1548199973-03cce0bbc87b?q=80&w=800'} 
                 alt={product.name} 
+                onError={(e) => {
+                  e.currentTarget.onerror = null;
+                  e.currentTarget.src = 'https://images.unsplash.com/photo-1548199973-03cce0bbc87b?q=80&w=800';
+                }}
                 className="w-full h-full object-cover" 
               />
             </div>
             
             {/* Gallery thumbnails */}
-            {product.images.length > 1 && (
+            {product.images && product.images.length > 1 && (
               <div className="flex gap-2">
                 {product.images.map((img, idx) => (
                   <button
                     key={idx}
                     onClick={() => setActiveImage(idx)}
                     className={`w-20 h-20 border object-cover bg-gray-50 cursor-pointer overflow-hidden transition ${
-                      activeImage === idx ? 'border-primary' : 'border-beige hover:border-accent'
+                      activeImage === idx ? 'border-primary ring-2 ring-primary/40' : 'border-beige hover:border-accent'
                     }`}
                   >
-                    <img src={img} alt="Product Thumbnail" className="w-full h-full object-cover" />
+                    <img 
+                      src={img} 
+                      alt="Product Thumbnail" 
+                      onError={(e) => {
+                        e.currentTarget.onerror = null;
+                        e.currentTarget.src = 'https://images.unsplash.com/photo-1548199973-03cce0bbc87b?q=80&w=800';
+                      }}
+                      className="w-full h-full object-cover" 
+                    />
                   </button>
                 ))}
               </div>

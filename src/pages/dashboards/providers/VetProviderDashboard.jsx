@@ -374,7 +374,7 @@ const VetProviderDashboard = ({
         currency: orderResponse.currency,
         name: 'Josh Pets Hub',
         description: 'Listing Fee for ' + title,
-        image: 'https://images.unsplash.com/photo-1606425134789-5f21272fc4d6?q=80&w=800&auto=format&fit=crop',
+        image: 'https://images.unsplash.com/photo-1583337130417-3346a1be7dee?q=80&w=800&auto=format&fit=crop',
         order_id: orderResponse.orderId,
         handler: async function (response) {
           try {
@@ -518,7 +518,7 @@ const VetProviderDashboard = ({
   };
 
   // Fix Profile Avatar - Use actual user's avatar if they are logged in, otherwise fallback
-  const displayAvatar = user?.avatar || user?.profilePicture || currentProvider?.avatar || 'https://images.unsplash.com/photo-1629909613654-20e3650275cc?q=80&w=800&auto=format&fit=crop';
+  const displayAvatar = user?.avatar || user?.profilePicture || currentProvider?.avatar || 'https://images.unsplash.com/photo-1629909615184-74f495363b67?q=80&w=800&auto=format&fit=crop';
   const displayName = user?.name || currentProvider?.name || 'Dr. Ramesh Kumar';
 
   return (

@@ -149,11 +149,18 @@ const GroomingServices = () => {
 
   // Open Booking & Service Access Modal for a provider
   const handleOpenBookingModal = (provider, pkg = null) => {
+    setSelectedProvider(provider);
+    if (pkg) setSelectedPackage(pkg);
     handleServiceAction({
       isAuthenticated,
       serviceType: 'Grooming',
       provider,
-      action: 'book'
+      action: 'book',
+      onAuthorized: () => {
+        setSelectedProvider(provider);
+        if (pkg) setSelectedPackage(pkg);
+        setShowBookingModal(true);
+      }
     });
   };
 
@@ -218,7 +225,7 @@ const GroomingServices = () => {
       isAuthenticated,
       serviceType: 'Grooming',
       provider,
-      action: 'visit'
+      action: 'whatsapp'
     });
   };
 
@@ -239,7 +246,7 @@ const GroomingServices = () => {
       {/* =========================================================================
           1. RADIANT HERO BANNER WITH SEARCH FILTER BAR (Screenshot 1 Match)
          ========================================================================= */}
-      <section className="relative bg-gradient-to-r from-[#ffc83b] via-[#febc2e] to-[#ffb11b] text-slate-900 pt-8 pb-12 px-4 md:px-8 shadow-sm border-b border-amber-300">
+      <section className="relative bg-[#FAC52E] text-slate-900 pt-8 pb-12 px-4 md:px-8 shadow-sm border-b border-[#E0B025]">
         <div className="max-w-7xl mx-auto">
           
           {/* Breadcrumb Navigation */}
@@ -787,7 +794,7 @@ const GroomingServices = () => {
                       <div>
                         {/* Provider Header Image & Badges */}
                         <div 
-                          onClick={() => handleServiceAction({ isAuthenticated, serviceType: 'Grooming', provider, action: 'visit' })}
+                          onClick={() => handleServiceAction({ isAuthenticated, serviceType: 'Grooming', provider, action: 'view_expert_profile' })}
                           className="relative aspect-[16/9] overflow-hidden bg-slate-100 cursor-pointer"
                           title={`Visit ${provider.name} profile and view service packages`}
                         >
@@ -799,7 +806,7 @@ const GroomingServices = () => {
                           <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
 
                           {/* Mode Badge */}
-                          <div className="absolute top-3 left-3 bg-primary text-white text-[10px] font-extrabold px-3 py-1 rounded-full shadow-md">
+                          <div className="absolute top-3 left-3 bg-white/95 text-emerald-700 text-[10px] font-extrabold px-2.5 py-1 rounded-full shadow-md">
                             {provider.serviceMode}
                           </div>
 
@@ -963,7 +970,7 @@ const GroomingServices = () => {
           <div className="relative bg-white rounded-3xl shadow-2xl border border-beige w-full max-w-lg overflow-hidden z-10 my-auto max-h-[85vh] sm:max-h-[88vh] flex flex-col min-h-0">
             
             {/* Modal Header */}
-            <div className="bg-gradient-to-r from-[#ffc83b] to-[#f59e0b] p-5 text-slate-950 flex justify-between items-center shrink-0">
+            <div className="bg-[#FAC52E] p-5 text-slate-950 flex justify-between items-center shrink-0">
               <div>
                 <span className="text-[10px] uppercase font-extrabold tracking-wider bg-black/10 px-2 py-0.5 rounded">
                   Book Grooming Appointment

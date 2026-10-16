@@ -35,15 +35,15 @@ const WalkingDogOnLine = ({ isSearching, className = '' }) => {
 
   return (
     <div
-      className={`absolute inset-x-0 bottom-0 pointer-events-none transition-all duration-500 ease-out z-10 overflow-visible ${
+      className={`absolute inset-x-0 bottom-full pointer-events-none transition-all duration-500 ease-out z-20 overflow-visible ${
         isSearching
           ? 'opacity-0 scale-90 pointer-events-none'
           : 'opacity-100 scale-100'
       } ${className}`}
       aria-hidden={isSearching}
     >
-      {/* Horizontal movement container walking directly along the bottom border */}
-      <div className="absolute bottom-0 -mb-[1px] flex items-end animate-dog-walk-space pointer-events-none">
+      {/* Horizontal movement container walking directly along the top golden border */}
+      <div className="absolute bottom-0 mb-[1px] flex items-end animate-dog-walk-space pointer-events-none">
         
         {/* Interactive clickable container */}
         <div

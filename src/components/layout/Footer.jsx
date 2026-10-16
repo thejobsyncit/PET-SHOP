@@ -124,9 +124,10 @@ const Footer = () => {
           <button 
             type="button"
             onClick={() => {
-              if (typeof window !== 'undefined' && window.openCookieSettings) {
-                window.openCookieSettings();
-              } else {
+              if (typeof window !== 'undefined') {
+                if (typeof window.openCookieSettings === 'function') {
+                  window.openCookieSettings();
+                }
                 window.dispatchEvent(new CustomEvent('open-cookie-settings'));
               }
             }}

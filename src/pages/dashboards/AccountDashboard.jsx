@@ -5,7 +5,7 @@ import {
   User, MapPin, ClipboardList, ShoppingBag, Plus, Trash2, CircleCheck,
   ShieldAlert, Clock, LogOut, Heart, ShieldCheck, MessageSquare, Phone,
   ExternalLink, Check, AlertCircle, ArrowRight, Sparkles, Filter, ChevronRight,
-  Truck, Calendar
+  Truck, Calendar, Eye, EyeOff, Lock, KeyRound, Download, FileText, Printer, X
 } from 'lucide-react';
 import { 
   fetchProfile, 
@@ -27,6 +27,8 @@ import {
 import { apiRequest } from '../../services/api.js';
 import toast from 'react-hot-toast';
 import LogoutConfirmModal from '../../components/ui/LogoutConfirmModal.jsx';
+import { getActiveUserMembership } from '../../components/widgets/ServicePackageAccessModal.jsx';
+import { downloadBill } from '../../utils/billGenerator.js';
 
 const AccountDashboard = () => {
   const dispatch = useDispatch();
@@ -37,13 +39,35 @@ const AccountDashboard = () => {
   
   // Navigation Tabs state
   const tabParam = searchParams.get('tab');
-  const [activeTab, setActiveTab] = useState(tabParam || 'orders');
+  const [activeTab, setActiveTab] = useState(tabParam || 'profile');
 
   // Form Profile State
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [avatar, setAvatar] = useState('');
+
+  // Password Change Fields
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [newPasswordError, setNewPasswordError] = useState('');
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [isUpdatingProfile, setIsUpdatingProfile] = useState(false);
+
+  const validateNewPassword = (pwd, currPwd = currentPassword) => {
+    if (!pwd) return '';
+    if (currPwd && pwd === currPwd) return 'New password cannot be the same as your current password *';
+    if (pwd.length < 6) return 'Password must be at least 6 characters *';
+    if (pwd.length > 10) return 'Password total length must not exceed 10 characters *';
+    if (!/[A-Z]/.test(pwd)) return 'Must contain at least 1 capital letter (A-Z) *';
+    if (!/[a-z]/.test(pwd)) return 'Must contain at least 1 small letter (a-z) *';
+    if (!/[0-9]/.test(pwd)) return 'Must contain at least 1 number (0-9) *';
+    if (!/[!@#$%^&*(),.?":{}|<>\-_+=[\]\\/~`]/.test(pwd)) return 'Must contain at least 1 special character (!@#$%^&*) *';
+    return '';
+  };
 
   // Form Address State
   const [addrName, setAddrName] = useState('');
@@ -69,10 +93,176 @@ const AccountDashboard = () => {
   // Transport relocation enquiries states
   const [userTransportEnquiries, setUserTransportEnquiries] = useState([]);
 
+  // Service Membership state for 199 and 499 package indications
+  const [membership, setMembership] = useState(() => {
+    return getActiveUserMembership(user);
+  });
+  const [showBillModal, setShowBillModal] = useState(false);
+
+  const handleDownloadMembershipBill = async (m = membership) => {
+    if (!m) {
+      toast.error('No active payment bill found');
+      return;
+    }
+    const invNo = m.transactionId || 'TXN_PET_69033320';
+    const invDate = m.activatedAt ? new Date(m.activatedAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+    const base = m.basePrice || (m.tier === 'VIP' ? 499 : 199);
+    const cgst = Number((base * 0.09).toFixed(2));
+    const sgst = Number((base * 0.09).toFixed(2));
+    const total = Number((base * 1.18).toFixed(2));
+    const pkg = m.packageName || (m.tier === 'VIP' ? 'VIP All-Access & Priority Pass' : 'Standard Service Access Pass');
+    const payMode = m.paymentMethod || 'UPI';
+
+    const success = await downloadBill({
+      invoiceNumber: invNo,
+      invoiceTitle: 'TAX INVOICE',
+      invoiceDate: invDate,
+      statusText: '✓ PAYMENT COMPLETED',
+      customer: {
+        name: user?.name || 'Valued Member',
+        email: user?.email || '',
+        phone: user?.mobile ? `${user?.mobileCountryCode || '+91'} ${user?.mobile}` : '',
+      },
+      payment: {
+        method: payMode,
+        validity: '1 Year Unlimited Pass',
+      },
+      items: [
+        {
+          name: pkg,
+          description: 'Annual verified service provider direct connect & priority booking pass',
+          sacOrHsn: '998399',
+          amount: base,
+        }
+      ],
+      totals: {
+        baseAmount: base,
+        cgst: cgst,
+        sgst: sgst,
+        total: total,
+      }
+    });
+
+    if (success) {
+      toast.success('Payment bill downloaded successfully');
+    } else {
+      toast.error('Could not download payment bill');
+    }
+  };
+
+  const handleDownloadOrderBill = async (order) => {
+    if (!order) return;
+    const invNo = order.trackingNumber || `ORD-${order._id?.slice(-8) || Date.now()}`;
+    const invDate = order.createdAt ? new Date(order.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+    const total = order.pricing?.total || order.total || 0;
+    const baseSubtotal = Number((total / 1.18).toFixed(2));
+    const cgst = Number((baseSubtotal * 0.09).toFixed(2));
+    const sgst = Number((baseSubtotal * 0.09).toFixed(2));
+
+    const items = (order.orderItems || []).map((it) => ({
+      name: it.name,
+      quantity: it.quantity || 1,
+      sacOrHsn: 'HSN: 2309',
+      amount: (it.price || 0) * (it.quantity || 1),
+    }));
+
+    const success = await downloadBill({
+      invoiceNumber: invNo,
+      invoiceTitle: 'TAX INVOICE / ORDER RECEIPT',
+      invoiceDate: invDate,
+      statusText: order.shippingStatus === 'Delivered' ? '✓ ORDER DELIVERED' : '✓ PAYMENT CONFIRMED',
+      customer: {
+        name: user?.name || 'Valued Customer',
+        email: user?.email || '',
+        phone: user?.mobile ? `${user?.mobileCountryCode || '+91'} ${user?.mobile}` : '',
+        address: order.shippingAddress ? `${order.shippingAddress.streetAddress || ''}, ${order.shippingAddress.city || ''} ${order.shippingAddress.postalCode || ''}` : '',
+      },
+      payment: {
+        method: order.paymentMethod || 'Prepaid Online',
+        validity: `Tracking: ${order.trackingNumber || 'Active'}`,
+      },
+      items: items.length > 0 ? items : [{ name: 'Pet Products Order', sacOrHsn: 'HSN: 2309', amount: baseSubtotal }],
+      totals: {
+        baseAmount: baseSubtotal,
+        cgst: cgst,
+        sgst: sgst,
+        total: total,
+      }
+    });
+
+    if (success) {
+      toast.success('Order invoice downloaded successfully');
+    }
+  };
+
+  const handleDownloadBookingBill = async (booking) => {
+    if (!booking) return;
+    const invNo = `BKG-${booking._id?.slice(-8) || Date.now()}`;
+    const invDate = booking.date ? new Date(booking.date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+    const fee = Number(booking.fee) || 0;
+    const base = Number((fee / 1.18).toFixed(2));
+    const cgst = Number((base * 0.09).toFixed(2));
+    const sgst = Number((base * 0.09).toFixed(2));
+
+    const success = await downloadBill({
+      invoiceNumber: invNo,
+      invoiceTitle: 'SERVICE BOOKING RECEIPT',
+      invoiceDate: invDate,
+      statusText: booking.paymentStatus === 'Paid' ? '✓ PAYMENT COMPLETED' : 'BOOKING CONFIRMED',
+      customer: {
+        name: user?.name || 'Valued Client',
+        email: user?.email || '',
+        phone: user?.mobile ? `${user?.mobileCountryCode || '+91'} ${user?.mobile}` : '',
+      },
+      payment: {
+        method: booking.paymentStatus === 'Paid' ? 'Online / App' : 'Pay on Service',
+        validity: `Service Date: ${invDate} at ${booking.timeSlot || ''}`,
+      },
+      items: [
+        {
+          name: `${booking.serviceType || 'Pet Service'} - Provider: ${booking.providerName || 'Josh Verified Partner'}`,
+          description: `Location: ${booking.location || 'Doorstep / Clinic'}`,
+          sacOrHsn: '998399',
+          amount: base,
+        }
+      ],
+      totals: {
+        baseAmount: base,
+        cgst: cgst,
+        sgst: sgst,
+        total: fee,
+      }
+    });
+
+    if (success) {
+      toast.success('Service booking receipt downloaded successfully');
+    }
+  };
+
+  useEffect(() => {
+    const updateMem = () => {
+      setMembership(getActiveUserMembership(user));
+    };
+    updateMem();
+
+    const handleMemUpdate = (e) => {
+      if (e?.detail) setMembership(e.detail);
+      else updateMem();
+    };
+    window.addEventListener('user-membership-updated', handleMemUpdate);
+    window.addEventListener('storage', handleMemUpdate);
+    return () => {
+      window.removeEventListener('user-membership-updated', handleMemUpdate);
+      window.removeEventListener('storage', handleMemUpdate);
+    };
+  }, [user]);
+
   // Sync tab with URL search parameter
   useEffect(() => {
     if (tabParam) {
       setActiveTab(tabParam);
+    } else {
+      setActiveTab('bookings');
     }
   }, [tabParam]);
 
@@ -168,10 +358,86 @@ const AccountDashboard = () => {
 
   const handleUpdateProfile = async (e) => {
     e.preventDefault();
-    const result = await dispatch(updateProfile({ name, email, password, avatar }));
+
+    const isPasswordChangeAttempted = Boolean(currentPassword || newPassword || confirmPassword);
+
+    if (isPasswordChangeAttempted) {
+      if (!currentPassword) {
+        toast.error('Please enter your current password.', { icon: '🔒' });
+        return;
+      }
+      if (!newPassword) {
+        toast.error('Please enter your new password.', { icon: '🔑' });
+        return;
+      }
+      if (newPassword === currentPassword) {
+        toast.error('New password cannot be the same as your current password.', { icon: '⚠️' });
+        return;
+      }
+      if (newPassword.length < 6) {
+        toast.error('New password must be at least 6 characters long.', { icon: '⚠️' });
+        return;
+      }
+      if (newPassword.length > 10) {
+        toast.error('New password total length must not exceed 10 characters.', { icon: '⚠️' });
+        return;
+      }
+      if (!/[A-Z]/.test(newPassword)) {
+        toast.error('New password must contain at least 1 capital letter (A-Z).', { icon: '⚠️' });
+        return;
+      }
+      if (!/[a-z]/.test(newPassword)) {
+        toast.error('New password must contain at least 1 small letter (a-z).', { icon: '⚠️' });
+        return;
+      }
+      if (!/[0-9]/.test(newPassword)) {
+        toast.error('New password must contain at least 1 number (0-9).', { icon: '⚠️' });
+        return;
+      }
+      if (!/[!@#$%^&*(),.?":{}|<>\-_+=[\]\\/~`]/.test(newPassword)) {
+        toast.error('New password must contain at least 1 special character (!@#$%^&*).', { icon: '⚠️' });
+        return;
+      }
+      if (!confirmPassword) {
+        toast.error('Please re-enter your new password to confirm.', { icon: '🔑' });
+        return;
+      }
+      if (newPassword !== confirmPassword) {
+        toast.error('New passwords do not match. Please verify.', { icon: '❌' });
+        return;
+      }
+    }
+
+    setIsUpdatingProfile(true);
+    const payload = {
+      name: name.trim(),
+      email: email.trim(),
+      avatar
+    };
+
+    if (isPasswordChangeAttempted) {
+      payload.currentPassword = currentPassword;
+      payload.newPassword = newPassword;
+      payload.confirmPassword = confirmPassword;
+    }
+
+    const result = await dispatch(updateProfile(payload));
+    setIsUpdatingProfile(false);
+
     if (updateProfile.fulfilled.match(result)) {
-      toast.success('Profile details updated successfully!');
+      if (isPasswordChangeAttempted) {
+        toast.success('Profile and password updated successfully!');
+      } else {
+        toast.success('Profile details updated successfully!');
+      }
+      setCurrentPassword('');
+      setNewPassword('');
+      setConfirmPassword('');
+      setNewPasswordError('');
       setPassword('');
+      setShowCurrentPassword(false);
+      setShowNewPassword(false);
+      setShowConfirmPassword(false);
     } else {
       toast.error(result.payload || 'Profile update failed.');
     }
@@ -237,8 +503,8 @@ const AccountDashboard = () => {
         );
       case 'Contacted':
         return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-purple-100 text-purple-800 border border-purple-200">
-            <Phone size={12} className="text-purple-700" /> Guardian Contacted
+          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-[#f8efcd] text-[#0F2E23] border border-[#e6c968]">
+            <Phone size={12} className="text-[#0F2E23]" /> Guardian Contacted
           </span>
         );
       case 'Under Review':
@@ -275,22 +541,23 @@ const AccountDashboard = () => {
     <div className="max-w-7xl mx-auto px-4 md:px-8 py-10">
       
       {/* Overview Dashboard Header */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center border-b border-beige pb-6 mb-8 gap-4">
+      <div className="border-b border-beige pb-6 mb-8">
         <div>
-          <div className="flex items-center gap-2 mb-1">
-            <span className="text-[10px] uppercase tracking-widest text-accent font-bold">
-              {user.role === 'SERVICE_PROVIDER' ? 'SERVICE PROVIDER PORTAL' : 'CUSTOMER AREA'}
-            </span>
-            {user.role === 'SERVICE_PROVIDER' && (
-              <span className="text-[10px] font-bold bg-blue-100 text-[#15559c] px-2 py-0.5 rounded-md uppercase tracking-wider">
-                {user.serviceCategory || 'Service Partner'}
-              </span>
+          <h1 className="font-serif text-2xl md:text-3xl text-primary font-medium flex flex-wrap items-center gap-2.5">
+            <span>Welcome Back, {user.name}</span>
+            {membership && (
+              (membership.tier === 'VIP' || membership.basePrice === 499) ? (
+                <span className="inline-flex items-center px-3 py-1 rounded-lg text-[10px] sm:text-[11px] font-black uppercase tracking-[0.16em] bg-[#0F2E23] text-[#D4AF37] border border-[#D4AF37]/60 shadow-sm ring-1 ring-[#D4AF37]/25">
+                  VIP PASSHOLDER
+                </span>
+              ) : (
+                <span className="inline-flex items-center px-3 py-1 rounded-lg text-[10px] sm:text-[11px] font-black uppercase tracking-[0.16em] bg-[#0F2E23] text-emerald-300 border border-emerald-400/50 shadow-sm ring-1 ring-emerald-400/25">
+                  STANDARD PASSHOLDER
+                </span>
+              )
             )}
-          </div>
-          <h1 className="font-serif text-2xl md:text-3xl text-primary font-medium">
-            Welcome Back, {user.name}
           </h1>
-          <p className="text-xs text-gray-400 font-medium mt-0.5">
+          <p className="text-xs text-gray-400 font-medium mt-1">
             Logged in as <strong className="text-gray-600">{user.email}</strong>
             {user.mobile && <span> • Mobile: <strong className="text-gray-600">{user.mobileCountryCode || '+91'} {user.mobile}</strong></span>}
             {user.whatsapp && <span> • WhatsApp: <strong className="text-emerald-700">{user.whatsappCountryCode || '+91'} {user.whatsapp}</strong></span>}
@@ -298,13 +565,6 @@ const AccountDashboard = () => {
             {user.location && <span> • Location: <strong className="text-gray-600">{user.location}</strong></span>}
           </p>
         </div>
-        
-        <button
-          onClick={handleLogoutClick}
-          className="px-4 py-2 border border-beige hover:border-red-500 hover:text-red-500 text-xs font-bold uppercase tracking-widest flex items-center gap-1.5 transition cursor-pointer"
-        >
-          <LogOut size={14} /> LOGOUT
-        </button>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
@@ -312,26 +572,26 @@ const AccountDashboard = () => {
         {/* Navigation Sidebar (Left 3 Columns) */}
         <aside className="lg:col-span-3 bg-white border border-beige p-6 space-y-2 shadow-sm rounded-xl">
           {[
+            { id: 'profile', label: 'Profile Details', icon: <User size={16} /> },
             { id: 'bookings', label: 'Service Bookings', icon: <Calendar size={16} /> },
             { id: 'orders', label: 'Order History', icon: <ShoppingBag size={16} /> },
             { 
               id: 'transport-enquiries', 
               label: `Pet Relocation (${userTransportEnquiries.length})`, 
-              icon: <Truck size={16} className={userTransportEnquiries.length > 0 ? 'text-emerald-700' : ''} /> 
+              icon: <Truck size={16} /> 
             },
             { 
               id: 'my-applications', 
               label: `My Adoption Enquiries (${userAdoptionApps.length})`, 
-              icon: <Heart size={16} className={userAdoptionApps.length > 0 ? 'text-rose-500' : ''} /> 
+              icon: <Heart size={16} /> 
             },
             { 
               id: 'adoption-listings', 
               label: `My Listed Pets (${guardianPets.length})`, 
-              icon: <ShieldCheck size={16} className={guardianPets.length > 0 ? 'text-[#7c56dc]' : ''} /> 
+              icon: <ShieldCheck size={16} /> 
             },
             { id: 'prescriptions', label: 'Prescriptions', icon: <ClipboardList size={16} /> },
-            { id: 'addresses', label: 'Address Book', icon: <MapPin size={16} /> },
-            { id: 'profile', label: 'Profile Details', icon: <User size={16} /> }
+            { id: 'addresses', label: 'Address Book', icon: <MapPin size={16} /> }
           ].map((tab) => (
             <button
               key={tab.id}
@@ -400,11 +660,19 @@ const AccountDashboard = () => {
                             <p className="text-[10px] text-gray-400">Location: {booking.location}</p>
                           </div>
                         </div>
-                        <div className="text-right">
+                        <div className="text-right space-y-1">
                           <span className="font-bold text-primary block">₹{booking.fee}</span>
-                          <span className={`text-[10px] uppercase font-bold ${booking.paymentStatus === 'Paid' ? 'text-green-600' : 'text-amber-500'}`}>
+                          <span className={`text-[10px] uppercase font-bold block ${booking.paymentStatus === 'Paid' ? 'text-green-600' : 'text-amber-500'}`}>
                             {booking.paymentStatus}
                           </span>
+                          <button
+                            type="button"
+                            onClick={() => handleDownloadBookingBill(booking)}
+                            className="px-2.5 py-1 bg-[#0F2E23] hover:bg-[#163f30] text-[#D4AF37] hover:text-white rounded-lg text-[10px] font-bold shadow-xs transition inline-flex items-center gap-1 cursor-pointer active:scale-95"
+                          >
+                            <Download size={10} />
+                            <span>Download Bill</span>
+                          </button>
                         </div>
                       </div>
                     </div>
@@ -488,13 +756,23 @@ const AccountDashboard = () => {
                       </div>
 
                       {/* Tracking detail */}
-                      <div className="flex justify-between items-center border-t border-beige pt-3 text-[11px]">
+                      <div className="flex flex-wrap justify-between items-center border-t border-beige pt-3 text-[11px] gap-2">
                         <span className="text-gray-400 font-semibold">Tracking Code: <strong>{order.trackingNumber}</strong></span>
-                        {order.prescriptionId && (
-                          <span className="px-2 py-0.5 bg-red-50 border border-red-200 text-red-700 font-semibold uppercase text-[9px] rounded">
-                            Prescription order under review
-                          </span>
-                        )}
+                        <div className="flex items-center gap-2">
+                          {order.prescriptionId && (
+                            <span className="px-2 py-0.5 bg-red-50 border border-red-200 text-red-700 font-semibold uppercase text-[9px] rounded">
+                              Prescription order under review
+                            </span>
+                          )}
+                          <button
+                            type="button"
+                            onClick={() => handleDownloadOrderBill(order)}
+                            className="px-3 py-1 bg-[#0F2E23] hover:bg-[#163f30] text-[#D4AF37] hover:text-white rounded-lg text-[10.5px] font-bold shadow-xs transition inline-flex items-center gap-1.5 cursor-pointer active:scale-95"
+                          >
+                            <Download size={11} />
+                            <span>Download Bill</span>
+                          </button>
+                        </div>
                       </div>
                     </div>
                   ))}
@@ -529,9 +807,8 @@ const AccountDashboard = () => {
             <div className="space-y-6">
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-beige pb-3 gap-2">
                 <div>
-                  <h2 className="font-serif text-lg font-bold text-primary flex items-center gap-2">
-                    <Heart size={18} className="text-rose-500" />
-                    <span>My Adoption Enquiries ({userAdoptionApps.length})</span>
+                  <h2 className="font-serif text-lg font-bold text-primary">
+                    My Adoption Enquiries ({userAdoptionApps.length})
                   </h2>
                   <p className="text-xs text-gray-500 mt-0.5">
                     Track the real-time application and screening status of pets you've applied to adopt.
@@ -539,7 +816,7 @@ const AccountDashboard = () => {
                 </div>
                 <Link
                   to="/adopt"
-                  className="px-3.5 py-2 bg-[#7c56dc] hover:bg-[#6842c8] text-white rounded-lg text-xs font-bold transition flex items-center gap-1.5 shadow-sm"
+                  className="px-3.5 py-2 bg-[#0F2E23] hover:bg-[#163f30] text-[#d4af37] hover:text-white rounded-lg text-xs font-bold transition flex items-center gap-1.5 shadow-sm"
                 >
                   <Sparkles size={13} />
                   <span>Browse More Pets</span>
@@ -551,11 +828,14 @@ const AccountDashboard = () => {
                   {userAdoptionApps.map((app) => (
                     <div
                       key={app.id}
-                      className="border border-purple-100 rounded-2xl p-5 bg-gradient-to-b from-purple-50/20 to-white shadow-xs space-y-4 hover:border-purple-300 transition"
+                      className="border border-[#e6c968]/50 rounded-2xl p-5 bg-white shadow-xs space-y-4 hover:border-[#d4af37] transition"
                     >
                       {/* Top Header Row */}
                       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 pb-3">
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2.5">
+                          <div className="w-8 h-8 bg-[#f8efcd] text-[#0F2E23] rounded-full flex items-center justify-center border border-[#e6c968] shrink-0">
+                            <Heart size={14} />
+                          </div>
                           <span className="font-mono text-xs font-bold text-slate-700 bg-slate-100 px-2 py-0.5 rounded-md">
                             {app.id}
                           </span>
@@ -576,17 +856,17 @@ const AccountDashboard = () => {
                           <img
                             src={app.petImage || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=800&auto=format&fit=crop'}
                             alt={app.petName}
-                            className="w-16 h-16 rounded-xl object-cover border border-purple-100 shrink-0 bg-purple-50"
+                            className="w-16 h-16 rounded-xl object-cover border border-[#e6c968]/60 shrink-0 bg-[#fdfaf2]"
                           />
                           <div className="min-w-0">
                             <h3 className="font-serif font-bold text-slate-900 text-sm truncate">
                               {app.petName}
                             </h3>
                             <p className="text-xs text-slate-500 truncate">{app.petBreed}</p>
-                            <p className="text-[11px] text-[#7c56dc] font-semibold mt-0.5">{app.petCity}</p>
+                            <p className="text-[11px] text-[#0F2E23] font-semibold mt-0.5">{app.petCity}</p>
                             <Link
                               to={`/adopt/${app.petId}`}
-                              className="text-[11px] text-[#7c56dc] font-bold hover:underline inline-flex items-center gap-0.5 mt-1"
+                              className="text-[11px] text-[#0F2E23] hover:text-[#d4af37] font-bold hover:underline inline-flex items-center gap-0.5 mt-1"
                             >
                               <span>View Pet Listing</span>
                               <ArrowRight size={11} />
@@ -616,7 +896,7 @@ const AccountDashboard = () => {
                               </a>
                               <a
                                 href={`tel:${app.guardianPhone}`}
-                                className="py-1 px-2.5 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-bold text-[10px] inline-flex items-center gap-1 transition shadow-xs"
+                                className="py-1 px-2.5 bg-[#0F2E23] hover:bg-[#163f30] text-[#d4af37] hover:text-white rounded-lg font-bold text-[10px] inline-flex items-center gap-1 transition shadow-xs"
                               >
                                 <Phone size={11} />
                                 <span>Call</span>
@@ -626,12 +906,12 @@ const AccountDashboard = () => {
                         </div>
 
                         {/* Your Application Summary */}
-                        <div className="md:col-span-4 bg-purple-50/40 p-3 rounded-xl border border-purple-100 text-xs space-y-1.5">
-                          <span className="text-[10px] uppercase font-bold text-purple-700 block">Your Submission</span>
+                        <div className="md:col-span-4 bg-[#fdfaf2] p-3 rounded-xl border border-[#e6c968]/50 text-xs space-y-1.5">
+                          <span className="text-[10px] uppercase font-bold text-[#0F2E23] block">Your Submission</span>
                           <p className="text-slate-600">
                             <strong className="text-slate-800">Home:</strong> {app.homeType || 'Apartment'} • <strong className="text-slate-800">Exp:</strong> {app.hasPetExperience || 'Yes'}
                           </p>
-                          <p className="text-[11px] text-slate-600 italic bg-white p-2 rounded-lg border border-purple-50 line-clamp-3">
+                          <p className="text-[11px] text-slate-600 italic bg-white p-2 rounded-lg border border-[#e6c968]/30 line-clamp-3">
                             "{app.adoptionReason}"
                           </p>
                         </div>
@@ -653,18 +933,18 @@ const AccountDashboard = () => {
                   ))}
                 </div>
               ) : (
-                <div className="p-4 lg:p-10 border border-dashed border-purple-200 rounded-2xl text-center space-y-3 bg-purple-50/20">
-                  <div className="w-14 h-14 bg-purple-100 text-[#7c56dc] rounded-full flex items-center justify-center mx-auto">
-                    <Heart size={28} />
+                <div className="p-4 lg:p-10 border border-dashed border-[#d4af37]/40 rounded-2xl text-center space-y-3 bg-[#fdfaf2] shadow-sm">
+                  <div className="w-14 h-14 bg-[#f8efcd] text-[#0F2E23] rounded-full flex items-center justify-center mx-auto border border-[#e6c968]">
+                    <Heart size={24} />
                   </div>
-                  <h3 className="font-serif text-base font-bold text-slate-800">No Adoption Applications Yet</h3>
-                  <p className="text-xs text-slate-500 max-w-md mx-auto">
+                  <h3 className="font-serif text-lg font-bold text-[#0F2E23]">No Adoption Applications Yet</h3>
+                  <p className="text-xs text-gray-500 max-w-md mx-auto leading-relaxed">
                     You have not applied for any pet adoptions yet. Find your perfect companion from our loving rescue pets!
                   </p>
-                  <div className="pt-2">
+                  <div className="pt-3">
                     <Link
                       to="/adopt"
-                      className="px-5 py-2.5 bg-[#7c56dc] hover:bg-[#6842c8] text-white rounded-xl text-xs font-bold shadow-md transition inline-flex items-center gap-1.5"
+                      className="px-5 py-2.5 bg-[#0F2E23] text-[#d4af37] hover:text-white hover:bg-[#163f30] rounded-xl text-xs font-bold shadow transition inline-flex items-center gap-1.5"
                     >
                       <Sparkles size={14} />
                       <span>Explore Free Adoption Pets</span>
@@ -682,9 +962,8 @@ const AccountDashboard = () => {
             <div className="space-y-6">
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-beige pb-3 gap-2">
                 <div>
-                  <h2 className="font-serif text-lg font-bold text-primary flex items-center gap-2">
-                    <ShieldCheck size={18} className="text-[#7c56dc]" />
-                    <span>My Listed Pets & Received Applications ({guardianPets.length})</span>
+                  <h2 className="font-serif text-lg font-bold text-primary">
+                    My Listed Pets & Received Applications ({guardianPets.length})
                   </h2>
                   <p className="text-xs text-gray-500 mt-0.5">
                     Track all adoption listings you created, manage applicant profiles, and update status in real-time.
@@ -692,7 +971,7 @@ const AccountDashboard = () => {
                 </div>
                 <Link
                   to="/adopt"
-                  className="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold transition flex items-center gap-1.5 shadow-sm"
+                  className="px-3.5 py-2 bg-[#0F2E23] hover:bg-[#163f30] text-[#d4af37] hover:text-white rounded-lg text-xs font-bold transition flex items-center gap-1.5 shadow-sm"
                 >
                   <Plus size={14} />
                   <span>List Pet For Free Adoption</span>
@@ -701,9 +980,9 @@ const AccountDashboard = () => {
 
               {/* Summary Stats Cards */}
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                <div className="p-3 bg-purple-50/70 border border-purple-100 rounded-xl text-center">
-                  <span className="text-[10px] font-bold text-purple-700 uppercase tracking-wider block">Pets Listed</span>
-                  <span className="text-xl font-extrabold text-slate-900">{guardianPets.length}</span>
+                <div className="p-3 bg-[#fdfaf2] border border-[#e6c968]/60 rounded-xl text-center">
+                  <span className="text-[10px] font-bold text-[#0F2E23] uppercase tracking-wider block">Pets Listed</span>
+                  <span className="text-xl font-extrabold text-[#0F2E23]">{guardianPets.length}</span>
                 </div>
 
                 <div className="p-3 bg-blue-50/70 border border-blue-100 rounded-xl text-center">
@@ -734,7 +1013,7 @@ const AccountDashboard = () => {
                     return (
                       <div
                         key={pet.id}
-                        className="border border-purple-200 rounded-2xl p-5 bg-white shadow-sm space-y-5"
+                        className="border border-[#e6c968]/60 rounded-2xl p-5 bg-white shadow-sm space-y-5"
                       >
                         {/* Pet Info Header */}
                         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-slate-100 pb-4">
@@ -742,21 +1021,21 @@ const AccountDashboard = () => {
                             <img
                               src={pet.image}
                               alt={pet.name}
-                              className="w-16 h-16 rounded-2xl object-cover border border-purple-100 shrink-0 bg-purple-50 shadow-xs"
+                              className="w-16 h-16 rounded-2xl object-cover border border-[#e6c968]/50 shrink-0 bg-[#fdfaf2] shadow-xs"
                             />
                             <div>
                               <div className="flex items-center gap-2">
                                 <h3 className="font-serif font-bold text-slate-900 text-base">
                                   {pet.name}
                                 </h3>
-                                <span className="text-[10px] font-bold bg-purple-100 text-[#7c56dc] px-2 py-0.5 rounded-full">
+                                <span className="text-[10px] font-bold bg-[#f8efcd] text-[#0F2E23] border border-[#e6c968] px-2 py-0.5 rounded-full">
                                   {pet.gender} • {pet.age}
                                 </span>
                               </div>
                               <p className="text-xs text-slate-500">{pet.breed} • {pet.city}</p>
                               <Link
                                 to={`/adopt/${pet.id}`}
-                                className="text-[11px] text-[#7c56dc] font-bold hover:underline inline-flex items-center gap-1 mt-0.5"
+                                className="text-[11px] text-[#0F2E23] hover:text-[#d4af37] font-bold hover:underline inline-flex items-center gap-1 mt-0.5"
                               >
                                 <span>View Public Pet Profile</span>
                                 <ExternalLink size={11} />
@@ -766,7 +1045,7 @@ const AccountDashboard = () => {
 
                           <div className="text-right flex sm:flex-col items-center sm:items-end justify-between w-full sm:w-auto gap-1">
                             <span className="text-[10px] uppercase font-bold text-slate-400">Total Inquiries</span>
-                            <span className="px-3 py-1 bg-purple-50 text-[#7c56dc] font-extrabold text-xs rounded-full border border-purple-200">
+                            <span className="px-3 py-1 bg-[#fdfaf2] text-[#0F2E23] font-extrabold text-xs rounded-full border border-[#e6c968]">
                               👥 {petApplicants.length} Applicant{petApplicants.length !== 1 ? 's' : ''}
                             </span>
                           </div>
@@ -784,12 +1063,12 @@ const AccountDashboard = () => {
                               {petApplicants.map((app) => (
                                 <div
                                   key={app.id}
-                                  className="border border-slate-200 rounded-xl p-4 bg-slate-50/60 space-y-3 hover:bg-white hover:border-purple-300 transition"
+                                  className="border border-slate-200 rounded-xl p-4 bg-slate-50/60 space-y-3 hover:bg-white hover:border-[#d4af37] transition"
                                 >
                                   {/* Applicant Header */}
                                   <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-200/60 pb-2">
                                     <div className="flex items-center gap-2">
-                                      <div className="w-8 h-8 rounded-full bg-purple-200/80 text-[#7c56dc] font-bold text-xs flex items-center justify-center">
+                                      <div className="w-8 h-8 rounded-full bg-[#f8efcd] text-[#0F2E23] border border-[#e6c968] font-bold text-xs flex items-center justify-center">
                                         {app.applicantName ? app.applicantName.charAt(0) : 'U'}
                                       </div>
                                       <div>
@@ -804,7 +1083,7 @@ const AccountDashboard = () => {
                                       <select
                                         value={app.status || 'Submitted'}
                                         onChange={(e) => handleUpdateApplicantStatus(app.id, e.target.value)}
-                                        className="text-xs font-bold py-1.5 px-3 rounded-lg border border-slate-300 bg-white focus:outline-none focus:border-[#7c56dc] cursor-pointer shadow-2xs"
+                                        className="text-xs font-bold py-1.5 px-3 rounded-lg border border-slate-300 bg-white focus:outline-none focus:border-[#0F2E23] cursor-pointer shadow-2xs"
                                       >
                                         <option value="Submitted">Submitted (New)</option>
                                         <option value="Under Review">Under Review</option>
@@ -856,7 +1135,7 @@ const AccountDashboard = () => {
 
                                     <a
                                       href={`tel:${app.applicantPhone}`}
-                                      className="py-1.5 px-3 bg-[#7c56dc] hover:bg-[#6842c8] text-white rounded-lg font-bold text-xs inline-flex items-center gap-1.5 transition shadow-xs cursor-pointer"
+                                      className="py-1.5 px-3 bg-[#0F2E23] hover:bg-[#163f30] text-[#d4af37] hover:text-white rounded-lg font-bold text-xs inline-flex items-center gap-1.5 transition shadow-xs cursor-pointer"
                                     >
                                       <Phone size={13} />
                                       <span>Call Applicant</span>
@@ -876,8 +1155,8 @@ const AccountDashboard = () => {
                   })}
                 </div>
               ) : (
-                <div className="p-4 lg:p-10 border border-dashed border-purple-200 rounded-2xl text-center space-y-3 bg-purple-50/20">
-                  <div className="w-14 h-14 bg-purple-100 text-[#7c56dc] rounded-full flex items-center justify-center mx-auto">
+                <div className="p-4 lg:p-10 border border-dashed border-[#d4af37]/40 rounded-2xl text-center space-y-3 bg-[#fdfaf2] shadow-sm">
+                  <div className="w-14 h-14 bg-[#f8efcd] text-[#0F2E23] rounded-full flex items-center justify-center mx-auto border border-[#e6c968]">
                     <ShieldCheck size={28} />
                   </div>
                   <h3 className="font-serif text-base font-bold text-slate-800">You Haven't Listed Any Pets For Adoption Yet</h3>
@@ -887,7 +1166,7 @@ const AccountDashboard = () => {
                   <div className="pt-2">
                     <Link
                       to="/adopt"
-                      className="px-5 py-2.5 bg-[#7c56dc] hover:bg-[#6842c8] text-white rounded-xl text-xs font-bold shadow-md transition inline-flex items-center gap-1.5"
+                      className="px-5 py-2.5 bg-[#0F2E23] text-[#d4af37] hover:text-white hover:bg-[#163f30] rounded-xl text-xs font-bold shadow transition inline-flex items-center gap-1.5"
                     >
                       <Plus size={14} />
                       <span>Post Pet For Free Adoption</span>
@@ -957,8 +1236,8 @@ const AccountDashboard = () => {
                   ))}
                 </div>
               ) : (
-                <div className="p-4 lg:p-10 border border-dashed border-blue-200 rounded-2xl text-center space-y-3 bg-blue-50/30 shadow-sm">
-                  <div className="w-14 h-14 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mx-auto border border-blue-200">
+                <div className="p-4 lg:p-10 border border-dashed border-[#d4af37]/40 rounded-2xl text-center space-y-3 bg-[#fdfaf2] shadow-sm">
+                  <div className="w-14 h-14 bg-[#f8efcd] text-[#0F2E23] rounded-full flex items-center justify-center mx-auto border border-[#e6c968]">
                     <ClipboardList size={24} />
                   </div>
                   <h3 className="font-serif text-lg font-bold text-gray-800">No Prescriptions Uploaded</h3>
@@ -968,7 +1247,7 @@ const AccountDashboard = () => {
                   <div className="pt-3">
                     <Link
                       to="/pharmacy"
-                      className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold shadow transition inline-flex items-center gap-1.5"
+                      className="px-5 py-2.5 bg-[#0F2E23] text-[#d4af37] hover:text-white hover:bg-[#163f30] rounded-xl text-xs font-bold shadow transition inline-flex items-center gap-1.5"
                     >
                       <Plus size={14} />
                       <span>Visit Pharmacy</span>
@@ -984,27 +1263,29 @@ const AccountDashboard = () => {
              ========================================================================= */}
           {activeTab === 'addresses' && (
             <div className="space-y-6">
-              <div className="flex justify-between items-center border-b border-beige pb-2">
-                <h2 className="font-serif text-lg font-bold text-primary">Shipping Addresses</h2>
+              <div className="flex justify-between items-center border-b border-beige pb-3">
+                <h2 className="font-serif text-lg font-bold text-primary">
+                  Shipping Addresses
+                </h2>
                 <button
                   onClick={() => setShowAddressForm(!showAddressForm)}
-                  className="px-3 py-1.5 bg-primary text-white font-bold tracking-widest text-[10px] hover:bg-accent hover:text-primary transition uppercase flex items-center gap-1 cursor-pointer rounded"
+                  className="px-3.5 py-2 bg-[#0F2E23] hover:bg-[#163f30] text-[#d4af37] hover:text-white rounded-lg text-xs font-bold transition flex items-center gap-1.5 shadow-sm cursor-pointer"
                 >
-                  <Plus size={12} /> {showAddressForm ? 'CLOSE FORM' : 'ADD NEW'}
+                  <Plus size={14} /> <span>{showAddressForm ? 'Close Form' : 'Add New Address'}</span>
                 </button>
               </div>
 
               {/* Address Addition Form */}
               {showAddressForm && (
-                <form onSubmit={handleAddAddress} className="border border-beige p-5 space-y-4 bg-secondary rounded-xl">
-                  <h3 className="font-serif text-sm font-semibold text-primary">New Shipping Address</h3>
+                <form onSubmit={handleAddAddress} className="border border-[#e6c968]/60 p-5 space-y-4 bg-[#fdfaf2] rounded-2xl shadow-xs">
+                  <h3 className="font-serif text-sm font-bold text-[#0F2E23]">New Shipping Address</h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <input
                       type="text"
                       placeholder="Receiver Name"
                       value={addrName}
                       onChange={(e) => setAddrName(e.target.value)}
-                      className="px-3 py-2 border border-beige text-xs bg-white focus:outline-none focus:border-primary rounded"
+                      className="px-3 py-2 border border-beige text-xs bg-white focus:outline-none focus:border-primary rounded-lg"
                       required
                     />
                     <input
@@ -1013,7 +1294,7 @@ const AccountDashboard = () => {
                       maxLength={10}
                       value={addrPhone}
                       onChange={(e) => setAddrPhone(e.target.value.replace(/\D/g, '').slice(0, 10))}
-                      className="px-3 py-2 border border-beige text-xs bg-white focus:outline-none focus:border-primary rounded"
+                      className="px-3 py-2 border border-beige text-xs bg-white focus:outline-none focus:border-primary rounded-lg"
                       required
                     />
                   </div>
@@ -1022,7 +1303,7 @@ const AccountDashboard = () => {
                     placeholder="Street Address"
                     value={addrStreet}
                     onChange={(e) => setAddrStreet(e.target.value)}
-                    className="w-full px-3 py-2 border border-beige text-xs bg-white focus:outline-none focus:border-primary rounded"
+                    className="w-full px-3 py-2 border border-beige text-xs bg-white focus:outline-none focus:border-primary rounded-lg"
                     required
                   />
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -1031,7 +1312,7 @@ const AccountDashboard = () => {
                       placeholder="City"
                       value={addrCity}
                       onChange={(e) => setAddrCity(e.target.value)}
-                      className="px-3 py-2 border border-beige text-xs bg-white focus:outline-none focus:border-primary rounded"
+                      className="px-3 py-2 border border-beige text-xs bg-white focus:outline-none focus:border-primary rounded-lg"
                       required
                     />
                     <input
@@ -1039,7 +1320,7 @@ const AccountDashboard = () => {
                       placeholder="State"
                       value={addrState}
                       onChange={(e) => setAddrState(e.target.value)}
-                      className="px-3 py-2 border border-beige text-xs bg-white focus:outline-none focus:border-primary rounded"
+                      className="px-3 py-2 border border-beige text-xs bg-white focus:outline-none focus:border-primary rounded-lg"
                       required
                     />
                     <input
@@ -1048,11 +1329,11 @@ const AccountDashboard = () => {
                       maxLength={6}
                       value={addrZip}
                       onChange={(e) => setAddrZip(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                      className="px-3 py-2 border border-beige text-xs bg-white focus:outline-none focus:border-primary rounded"
+                      className="px-3 py-2 border border-beige text-xs bg-white focus:outline-none focus:border-primary rounded-lg"
                       required
                     />
                   </div>
-                  <button type="submit" className="w-full btn-premium py-2 text-xs">
+                  <button type="submit" className="w-full py-2.5 bg-[#0F2E23] text-[#d4af37] hover:text-white hover:bg-[#163f30] font-bold text-xs rounded-xl transition shadow cursor-pointer">
                     SAVE ADDRESS
                   </button>
                 </form>
@@ -1062,19 +1343,24 @@ const AccountDashboard = () => {
               {user.addresses && user.addresses.length > 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {user.addresses.map((a) => (
-                    <div key={a._id} className="border border-beige p-5 text-xs flex justify-between items-start rounded-xl">
-                      <div className="space-y-1">
-                        <p className="font-bold text-primary">
-                          {a.name} 
-                          {a.isDefault && <span className="ml-2 bg-accent/20 text-primary border border-accent/30 text-[9px] px-1.5 py-0.5 uppercase font-bold rounded">Default</span>}
-                        </p>
-                        <p className="text-gray-500">{a.streetAddress}</p>
-                        <p className="text-gray-500">{a.city}, {a.state} - {a.postalCode}</p>
-                        <p className="text-gray-400">Phone: {a.phone}</p>
+                    <div key={a._id} className="border border-[#e6c968]/50 p-5 text-xs flex justify-between items-start rounded-2xl bg-white shadow-xs hover:border-[#d4af37] transition">
+                      <div className="flex items-start gap-3">
+                        <div className="w-9 h-9 bg-[#f8efcd] text-[#0F2E23] rounded-full flex items-center justify-center border border-[#e6c968] shrink-0 mt-0.5">
+                          <MapPin size={16} />
+                        </div>
+                        <div className="space-y-1">
+                          <p className="font-bold text-primary flex items-center gap-2">
+                            <span>{a.name}</span> 
+                            {a.isDefault && <span className="bg-[#f8efcd] text-[#0F2E23] border border-[#e6c968] text-[9px] px-1.5 py-0.5 uppercase font-bold rounded">Default</span>}
+                          </p>
+                          <p className="text-gray-500">{a.streetAddress}</p>
+                          <p className="text-gray-500">{a.city}, {a.state} - {a.postalCode}</p>
+                          <p className="text-gray-400">Phone: {a.phone}</p>
+                        </div>
                       </div>
                       <button
                         onClick={() => handleRemoveAddress(a._id)}
-                        className="text-gray-400 hover:text-red-500 p-1 cursor-pointer"
+                        className="text-gray-400 hover:text-red-500 p-1 cursor-pointer transition"
                         title="Delete Address"
                       >
                         <Trash2 size={16} />
@@ -1083,18 +1369,18 @@ const AccountDashboard = () => {
                   ))}
                 </div>
               ) : (
-                <div className="p-4 lg:p-10 border border-dashed border-gray-200 rounded-2xl text-center space-y-3 bg-gray-50/50 shadow-sm">
-                  <div className="w-14 h-14 bg-gray-200 text-gray-600 rounded-full flex items-center justify-center mx-auto border border-gray-300">
+                <div className="p-4 lg:p-10 border border-dashed border-[#d4af37]/40 rounded-2xl text-center space-y-3 bg-[#fdfaf2] shadow-sm">
+                  <div className="w-14 h-14 bg-[#f8efcd] text-[#0F2E23] rounded-full flex items-center justify-center mx-auto border border-[#e6c968]">
                     <MapPin size={24} />
                   </div>
-                  <h3 className="font-serif text-lg font-bold text-gray-800">No Addresses Saved</h3>
+                  <h3 className="font-serif text-lg font-bold text-[#0F2E23]">No Addresses Saved</h3>
                   <p className="text-xs text-gray-500 max-w-md mx-auto leading-relaxed">
                     You haven't added any shipping addresses yet. Add one now for a faster checkout experience on your next order.
                   </p>
                   <div className="pt-3">
                     <button
                       onClick={() => setShowAddressForm(true)}
-                      className="px-5 py-2.5 bg-[#0F2E23] text-white hover:bg-[#163f30] rounded-xl text-xs font-bold shadow transition inline-flex items-center gap-1.5 cursor-pointer"
+                      className="px-5 py-2.5 bg-[#0F2E23] text-[#d4af37] hover:text-white hover:bg-[#163f30] rounded-xl text-xs font-bold shadow transition inline-flex items-center gap-1.5 cursor-pointer"
                     >
                       <Plus size={14} />
                       <span>Add New Address</span>
@@ -1113,6 +1399,94 @@ const AccountDashboard = () => {
               <h2 className="font-serif text-lg font-bold text-primary border-b border-beige pb-2">
                 Profile Details
               </h2>
+
+              {/* Active Service Pass / Membership Section in Profile */}
+              {membership ? (
+                <div className={`rounded-2xl p-4 sm:p-5 border text-white relative transition-all ${
+                  membership.tier === 'VIP' || membership.basePrice === 499
+                    ? 'bg-[#0F2E23] border-[#D4AF37]/90 shadow-[0_4px_18px_rgba(212,175,55,0.18)]'
+                    : 'bg-[#0F2E23] border-[#D4AF37]/60 shadow-sm'
+                }`}>
+                  <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-[#D4AF37]/25">
+                    <div className="flex items-center gap-2.5 flex-wrap">
+                      <span className={`text-[10px] sm:text-[10.5px] font-black uppercase tracking-wider px-3 py-1 rounded-full shadow-xs ${
+                        membership.tier === 'VIP' || membership.basePrice === 499
+                          ? 'bg-gradient-to-r from-[#D4AF37] via-[#E8CD69] to-[#B8860B] text-stone-950'
+                          : 'bg-[#D4AF37]/20 text-[#D4AF37] border border-[#D4AF37]/40'
+                      }`}>
+                        {membership.tier === 'VIP' || membership.basePrice === 499 ? 'VIP ELITE MEMBER' : 'STANDARD MEMBER'}
+                      </span>
+                      <span className="text-sm sm:text-base font-bold text-[#F3E5AB]">
+                        {membership.packageName || 'VIP All-Access & Priority Pass'}
+                      </span>
+                    </div>
+
+                    <div className="flex items-center gap-2.5">
+                      <button
+                        type="button"
+                        onClick={() => handleDownloadMembershipBill(membership)}
+                        title="Download Payment Bill"
+                        className="px-3.5 py-1.5 bg-[#D4AF37] hover:bg-[#E8CD69] text-stone-950 font-black rounded-xl text-xs shadow-md transition inline-flex items-center gap-1.5 cursor-pointer active:scale-95"
+                      >
+                        <Download size={13} />
+                        <span>Download Bill</span>
+                      </button>
+                      <span className="text-[10.5px] font-bold text-[#E8CD69] bg-black/35 px-3 py-1.5 rounded-xl border border-[#D4AF37]/35 inline-flex items-center gap-2 shadow-xs">
+                        <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                        ACTIVE
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Clean, well-spaced metadata and perks */}
+                  <div className="flex flex-wrap items-center justify-between gap-x-5 gap-y-2 pt-3 text-xs">
+                    <div className="flex flex-wrap items-center gap-x-3.5 gap-y-1">
+                      <div className="inline-flex items-center gap-1.5">
+                        <span className="text-[9.5px] uppercase font-bold text-[#D4AF37] tracking-wider">Ref:</span>
+                        <span className="font-mono text-white text-xs font-bold">{membership.transactionId || 'TXN-ACTIVE'}</span>
+                      </div>
+                      <span className="text-white/25 hidden sm:inline">•</span>
+                      <div className="inline-flex items-center gap-1.5">
+                        <span className="text-[9.5px] uppercase font-bold text-[#D4AF37] tracking-wider">Validity:</span>
+                        <span className="text-white text-xs font-semibold">1 Year Unlimited</span>
+                      </div>
+                      <span className="text-white/25 hidden sm:inline">•</span>
+                      <div className="inline-flex items-center gap-1.5">
+                        <span className="text-[9.5px] uppercase font-bold text-[#D4AF37] tracking-wider">Payment:</span>
+                        <span className="text-white text-xs font-semibold">{membership.paymentMethod || 'UPI'}</span>
+                      </div>
+                    </div>
+
+                    <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-white/90 text-[11.5px] font-medium">
+                      <span className="flex items-center gap-1.5"><span className="text-[#D4AF37] font-black text-xs">✓</span> Direct phone & chat</span>
+                      <span className="flex items-center gap-1.5"><span className="text-[#D4AF37] font-black text-xs">✓</span> Verified background credentials</span>
+                      <span className="flex items-center gap-1.5"><span className="text-[#D4AF37] font-black text-xs">✓</span> All services nationwide</span>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                /* NO ACTIVE MEMBERSHIP CARD */
+                <div className="rounded-xl border border-dashed border-beige bg-amber-50/40 p-3.5 sm:p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs">
+                  <div>
+                    <h3 className="font-bold text-primary font-serif text-sm flex items-center gap-1.5">
+                      <Sparkles size={15} className="text-amber-500" />
+                      <span>Service Access Membership</span>
+                    </h3>
+                    <p className="text-gray-500 text-xs mt-0.5">
+                      No active pass. Choose Standard Pass (₹199 + GST) or VIP Pass (₹499 + GST) to unlock direct provider access.
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => window.dispatchEvent(new CustomEvent('open-service-access-modal', { detail: { serviceType: 'Grooming' } }))}
+                    className="px-3.5 py-1.5 bg-[#0F2E23] hover:bg-[#164E3D] text-[#D4AF37] font-bold text-xs uppercase tracking-wider rounded-lg transition cursor-pointer shrink-0"
+                  >
+                    Get Access Pass
+                  </button>
+                </div>
+              )}
+
+
               
               <form onSubmit={handleUpdateProfile} className="space-y-6 max-w-md">
                 
@@ -1168,19 +1542,147 @@ const AccountDashboard = () => {
                   />
                 </div>
 
-                <div className="space-y-1">
-                  <label className="text-xs text-gray-500 font-semibold block">New Password (leave empty to keep current)</label>
-                  <input
-                    type="password"
-                    placeholder="••••••••"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="w-full px-3 py-2 border border-beige text-xs focus:outline-none focus:border-primary rounded"
-                  />
+                {/* Password Change Section */}
+                <div className="pt-4 border-t border-beige/80 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs font-bold text-primary uppercase tracking-wider flex items-center gap-1.5">
+                      <KeyRound size={14} className="text-[#D4AF37]" /> Change Password
+                    </label>
+                    <span className="text-[11px] text-gray-400 font-normal">
+                      Leave blank to keep existing password
+                    </span>
+                  </div>
+
+                  {/* 1. Current Password */}
+                  <div className="space-y-1">
+                    <label className="text-xs text-gray-600 font-semibold flex items-center justify-between">
+                      <span>Current Password</span>
+                      {currentPassword && (
+                        <span className="text-[10px] text-gray-400">Required to change password</span>
+                      )}
+                    </label>
+                    <div className="relative">
+                      <input
+                        type={showCurrentPassword ? 'text' : 'password'}
+                        placeholder="Current Password *"
+                        value={currentPassword}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setCurrentPassword(val);
+                          if (newPassword) {
+                            setNewPasswordError(validateNewPassword(newPassword, val));
+                          }
+                        }}
+                        className="w-full pl-3 pr-10 py-2.5 border rounded-xl text-xs md:text-sm focus:outline-none transition border-slate-200 focus:border-[#15559c] focus:ring-2 focus:ring-blue-100 bg-slate-50/50 hover:bg-white font-medium"
+                        autoComplete="current-password"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-[#15559c] transition p-1 cursor-pointer"
+                        title={showCurrentPassword ? 'Hide Password' : 'View Password'}
+                      >
+                        {showCurrentPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* 2. New Password */}
+                  <div className="space-y-1">
+                    <label className="text-xs text-slate-700 font-semibold flex items-center justify-between">
+                      <span>New Password</span>
+                    </label>
+                    <div className="relative">
+                      <input
+                        type={showNewPassword ? 'text' : 'password'}
+                        maxLength={10}
+                        placeholder="Password *"
+                        value={newPassword}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setNewPassword(val);
+                          setNewPasswordError(validateNewPassword(val, currentPassword));
+                        }}
+                        className={`w-full pl-3 pr-10 py-2.5 border rounded-xl text-xs md:text-sm focus:outline-none transition bg-white ${
+                          newPasswordError
+                            ? 'border-red-500 ring-2 ring-red-100 text-red-900'
+                            : 'border-slate-200 focus:border-[#15559c] focus:ring-2 focus:ring-blue-100'
+                        }`}
+                        autoComplete="new-password"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowNewPassword(!showNewPassword)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-[#15559c] transition p-1 cursor-pointer"
+                        title={showNewPassword ? 'Hide Password' : 'View Password'}
+                      >
+                        {showNewPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                      </button>
+                    </div>
+                    {newPasswordError && (
+                      <p className="text-[10px] font-bold text-red-500 pl-1 leading-tight">{newPasswordError}</p>
+                    )}
+
+                    {/* Password Rules Badge */}
+                    <div className="bg-blue-50/60 p-2.5 rounded-lg text-[10px] text-[#0f3d6b] font-medium space-y-0.5 border border-blue-100">
+                      <span className="font-bold text-[#15559c] block">Password Rules (Max 10 chars):</span>
+                      <p>• At least 1 Capital (A-Z), 1 Small (a-z), 1 Number (0-9), & 1 Special char (!@#$%^&*)</p>
+                    </div>
+                  </div>
+
+                  {/* 3. Re-enter New Password */}
+                  <div className="space-y-1">
+                    <label className="text-xs text-gray-600 font-semibold flex items-center justify-between">
+                      <span>Re-enter New Password</span>
+                      {confirmPassword.length > 0 && (
+                        <span className={`text-[10px] font-bold flex items-center gap-1 ${confirmPassword === newPassword ? "text-emerald-600" : "text-amber-600"}`}>
+                          {confirmPassword === newPassword ? (
+                            <>✓ Passwords match</>
+                          ) : (
+                            <>⚠️ Passwords do not match</>
+                          )}
+                        </span>
+                      )}
+                    </label>
+                    <div className="relative">
+                      <input
+                        type={showConfirmPassword ? 'text' : 'password'}
+                        maxLength={10}
+                        placeholder="Re-enter your new password"
+                        value={confirmPassword}
+                        onChange={(e) => setConfirmPassword(e.target.value)}
+                        className={`w-full pl-3 pr-10 py-2 border text-xs focus:outline-none rounded bg-white transition ${
+                          confirmPassword && confirmPassword !== newPassword
+                            ? "border-amber-400 focus:border-amber-500"
+                            : "border-beige focus:border-primary"
+                        }`}
+                        autoComplete="new-password"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                        className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-primary transition p-0.5 cursor-pointer"
+                        aria-label={showConfirmPassword ? 'Hide confirmed password' : 'Show confirmed password'}
+                      >
+                        {showConfirmPassword ? <EyeOff size={15} /> : <Eye size={15} />}
+                      </button>
+                    </div>
+                  </div>
                 </div>
 
-                <button type="submit" className="btn-premium py-2 text-xs">
-                  UPDATE DETAILS
+                <button
+                  type="submit"
+                  disabled={isUpdatingProfile}
+                  className="btn-premium py-2 text-xs flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
+                >
+                  {isUpdatingProfile ? (
+                    <>
+                      <div className="w-3.5 h-3.5 border-2 border-[#D4AF37] border-t-transparent rounded-full animate-spin" />
+                      UPDATING DETAILS...
+                    </>
+                  ) : (
+                    'UPDATE DETAILS'
+                  )}
                 </button>
               </form>
             </div>
@@ -1193,8 +1695,7 @@ const AccountDashboard = () => {
             <div className="space-y-6">
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-beige pb-4">
                 <div>
-                  <h2 className="font-serif text-lg font-bold text-primary flex items-center gap-2">
-                    <Truck size={20} className="text-emerald-700" />
+                  <h2 className="font-serif text-lg font-bold text-primary">
                     My Pet Relocation Enquiries & Quotations ({userTransportEnquiries.length})
                   </h2>
                   <p className="text-xs text-gray-500 mt-0.5">
@@ -1204,27 +1705,31 @@ const AccountDashboard = () => {
 
                 <Link
                   to="/transport"
-                  className="px-3.5 py-1.5 bg-[#0F2E23] text-[#D4AF37] hover:text-white text-xs font-bold rounded-xl transition shadow flex items-center gap-1.5"
+                  className="px-3.5 py-2 bg-[#0F2E23] hover:bg-[#163f30] text-[#d4af37] hover:text-white rounded-lg text-xs font-bold transition flex items-center gap-1.5 shadow-sm"
                 >
-                  <Plus size={14} /> New Relocation Request
+                  <Plus size={14} />
+                  <span>New Relocation Request</span>
                 </Link>
               </div>
 
               {userTransportEnquiries.length === 0 ? (
-                <div className="text-center py-6 lg:py-12 space-y-4 border border-beige p-8 rounded-2xl">
-                  <div className="w-14 h-14 rounded-full bg-emerald-50 text-[#0F2E23] flex items-center justify-center mx-auto text-2xl">
-                    🚐
+                <div className="p-4 lg:p-10 border border-dashed border-[#d4af37]/40 rounded-2xl text-center space-y-3 bg-[#fdfaf2] shadow-sm">
+                  <div className="w-14 h-14 bg-[#f8efcd] text-[#0F2E23] rounded-full flex items-center justify-center mx-auto border border-[#e6c968]">
+                    <Truck size={24} />
                   </div>
-                  <h3 className="text-sm font-bold text-gray-800">No Relocation Enquiries Submitted Yet</h3>
-                  <p className="text-xs text-gray-500 max-w-sm mx-auto">
-                    Planning to move your dog, cat, or bird across cities? Submit a quick enquiry to get customized quotes.
+                  <h3 className="font-serif text-lg font-bold text-[#0F2E23]">No Relocation Enquiries Submitted Yet</h3>
+                  <p className="text-xs text-gray-500 max-w-md mx-auto leading-relaxed">
+                    Planning to move your dog, cat, or bird across cities? Submit a quick enquiry to get customized quotes from verified pet transporters.
                   </p>
-                  <Link
-                    to="/transport"
-                    className="inline-block bg-[#0F2E23] text-white text-xs font-bold px-5 py-2.5 rounded-xl transition hover:bg-[#163e30]"
-                  >
-                    Explore Pet Transport Services
-                  </Link>
+                  <div className="pt-3">
+                    <Link
+                      to="/transport"
+                      className="px-5 py-2.5 bg-[#0F2E23] text-[#d4af37] hover:text-white hover:bg-[#163f30] rounded-xl text-xs font-bold shadow transition inline-flex items-center gap-1.5"
+                    >
+                      <Sparkles size={14} />
+                      <span>Explore Pet Transport Services</span>
+                    </Link>
+                  </div>
                 </div>
               ) : (
                 <div className="space-y-4">
@@ -1237,15 +1742,20 @@ const AccountDashboard = () => {
                       >
                         {/* Header & Status */}
                         <div className="flex flex-wrap items-start justify-between gap-3 border-b border-beige/60 pb-3">
-                          <div className="space-y-1">
-                            <div className="flex items-center gap-2">
-                              <span className="text-sm font-bold text-primary font-serif">{enq.providerName}</span>
-                              <span className="text-[10px] font-bold uppercase tracking-wider bg-gray-100 text-gray-700 px-2 py-0.5 rounded">
-                                ID: {enq.id}
-                              </span>
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 bg-[#f8efcd] text-[#0F2E23] rounded-full flex items-center justify-center border border-[#e6c968] shrink-0">
+                              <Truck size={18} />
                             </div>
-                            <div className="text-xs text-gray-500 font-medium">
-                              Submitted on: {new Date(enq.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+                            <div className="space-y-0.5">
+                              <div className="flex items-center gap-2">
+                                <span className="text-sm font-bold text-primary font-serif">{enq.providerName}</span>
+                                <span className="font-mono text-xs font-bold text-slate-700 bg-slate-100 px-2 py-0.5 rounded-md">
+                                  ID: {enq.id}
+                                </span>
+                              </div>
+                              <div className="text-xs text-gray-500 font-medium">
+                                Submitted on: {new Date(enq.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+                              </div>
                             </div>
                           </div>
 
@@ -1360,6 +1870,89 @@ const AccountDashboard = () => {
         onConfirm={handleConfirmLogout}
         userName={user?.name}
       />
+
+      {/* Payment Bill / Tax Invoice Modal */}
+      {showBillModal && membership && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-7 shadow-2xl space-y-4 animate-in fade-in zoom-in-95 duration-200 text-slate-800 relative">
+            <div className="flex items-start justify-between border-b border-slate-100 pb-3">
+              <div className="flex items-center gap-3">
+                <img src="/logo.png" alt="Josh Pets Hub" className="h-10 w-auto object-contain" />
+                <div>
+                  <div className="text-xl font-black text-[#0F2E23] tracking-wide">
+                    JOSH PETS <span className="text-[#D4AF37]">HUB</span>
+                  </div>
+                  <p className="text-[10px] text-slate-400 uppercase tracking-wider font-bold">Official Payment Bill & Tax Invoice</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowBillModal(false)}
+                className="text-slate-400 hover:text-slate-700 p-1.5 rounded-full hover:bg-slate-100 transition cursor-pointer"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <div className="bg-slate-50 border border-slate-200/80 rounded-2xl p-4 sm:p-5 space-y-3.5 text-xs">
+              <div className="flex items-center justify-between pb-2 border-b border-slate-200/60">
+                <span className="text-slate-500 font-bold uppercase text-[10px] tracking-wider">Invoice / Txn ID</span>
+                <span className="font-mono font-black text-slate-900 bg-white px-2 py-0.5 rounded border border-slate-200">
+                  {membership.transactionId || 'TXN_PET_69033320'}
+                </span>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3 pb-2 border-b border-slate-200/60">
+                <div>
+                  <span className="text-slate-400 font-extrabold uppercase text-[9px] tracking-wider block">Billed To</span>
+                  <strong className="text-slate-900 block text-xs">{user?.name}</strong>
+                  <span className="text-slate-500 text-[11px] block">{user?.email}</span>
+                </div>
+                <div className="text-right">
+                  <span className="text-slate-400 font-extrabold uppercase text-[9px] tracking-wider block">Payment Date</span>
+                  <strong className="text-slate-900 block text-xs">
+                    {membership.activatedAt ? new Date(membership.activatedAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+                  </strong>
+                  <span className="text-emerald-600 font-bold text-[10px]">● Paid via {membership.paymentMethod || 'UPI'}</span>
+                </div>
+              </div>
+
+              <div className="space-y-1.5 pb-2 border-b border-slate-200/60">
+                <div className="flex justify-between items-center text-slate-700">
+                  <span className="font-bold">{membership.packageName || (membership.tier === 'VIP' ? 'VIP All-Access & Priority Pass' : 'Standard Service Access Pass')}</span>
+                  <span className="font-bold">₹{(membership.basePrice || (membership.tier === 'VIP' ? 499 : 199)).toFixed(2)}</span>
+                </div>
+                <div className="flex justify-between items-center text-[11px] text-slate-500">
+                  <span>CGST (9%)</span>
+                  <span>₹{((membership.basePrice || (membership.tier === 'VIP' ? 499 : 199)) * 0.09).toFixed(2)}</span>
+                </div>
+                <div className="flex justify-between items-center text-[11px] text-slate-500">
+                  <span>SGST (9%)</span>
+                  <span>₹{((membership.basePrice || (membership.tier === 'VIP' ? 499 : 199)) * 0.09).toFixed(2)}</span>
+                </div>
+              </div>
+
+              <div className="flex justify-between items-center text-sm font-black text-[#0F2E23] pt-1">
+                <span>Total Amount Paid</span>
+                <span className="text-base text-emerald-700">
+                  ₹{((membership.basePrice || (membership.tier === 'VIP' ? 499 : 199)) * 1.18).toFixed(2)}
+                </span>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-between pt-2 gap-2">
+              <span className="text-[10px] text-slate-400 font-medium">GSTIN: 29AABCU9603R1ZM</span>
+              <button
+                type="button"
+                onClick={() => handleDownloadMembershipBill(membership)}
+                className="px-4 py-2 bg-[#0F2E23] hover:bg-[#163f30] text-[#D4AF37] rounded-xl text-xs font-black uppercase tracking-wider transition flex items-center gap-1.5 cursor-pointer active:scale-95"
+              >
+                <Download size={13} />
+                <span>Download Bill</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
     </div>
   );

@@ -226,24 +226,7 @@ const CookieConsent = () => {
         </div>
       )}
 
-      {/* 2. FLOATING MANAGE COOKIES BUTTON */}
-      {!showBanner && !showModal && (
-        <button
-          type="button"
-          onClick={() => {
-            const current = getCookieConsent() || DEFAULT_COOKIE_PREFERENCES;
-            setPreferences(current);
-            setShowModal(true);
-          }}
-          className="fixed bottom-4 left-4 sm:bottom-6 sm:left-6 z-[2147483647] bg-[#0F2E23] hover:bg-[#153f31] text-white p-3 rounded-full shadow-2xl border border-white/20 transition-all duration-300 hover:scale-110 active:scale-95 flex items-center justify-center cursor-pointer group"
-          title="Manage Cookie Preferences"
-          aria-label="Manage Cookie Preferences"
-        >
-          <Cookie size={20} className="text-white group-hover:text-[#fde047] transition-colors" />
-        </button>
-      )}
-
-      {/* 3. PREFERENCES MODAL */}
+      {/* 2. PREFERENCES MODAL */}
       {showModal && (
         <div 
           style={{ zIndex: 2147483647, position: 'fixed' }}

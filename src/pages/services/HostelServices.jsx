@@ -1,18 +1,18 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
-import { 
-  Sparkles, Search, MapPin, Phone, MessageSquare, Star, ShieldCheck, 
-  Calendar, Clock, CircleCheck, ChevronRight, X, SlidersHorizontal, 
-  RefreshCw, Check, ArrowRight, Heart, Award, Home, 
+import {
+  Sparkles, Search, MapPin, Phone, MessageSquare, Star, ShieldCheck,
+  Calendar, Clock, CircleCheck, ChevronRight, X, SlidersHorizontal,
+  RefreshCw, Check, ArrowRight, Heart, Award, Home,
   ShieldAlert, UserCheck, Video, Moon, Sun, Trees, ChevronDown
 } from 'lucide-react';
 import toast from 'react-hot-toast';
-import { 
+import {
   HOSTEL_OFFERINGS,
-  HOSTEL_AMENITIES, 
-  getStoredHostelProviders, 
-  saveHostelBooking 
+  HOSTEL_AMENITIES,
+  getStoredHostelProviders,
+  saveHostelBooking
 } from '../../data/hostelData.js';
 import { INDIAN_STATES_CITIES } from '../../data/adoptionPetsData.js';
 import ServiceAccessLock, { isServicePathLockedForUser } from '../../components/ui/ServiceAccessLock.jsx';
@@ -166,7 +166,7 @@ const HostelServices = () => {
       // 7. Search Keyword
       if (searchKeyword.trim()) {
         const query = searchKeyword.toLowerCase();
-        const matchesKeyword = 
+        const matchesKeyword =
           p.name.toLowerCase().includes(query) ||
           p.area.toLowerCase().includes(query) ||
           p.city.toLowerCase().includes(query) ||
@@ -187,17 +187,24 @@ const HostelServices = () => {
       return 0; // recommended
     });
   }, [
-    providers, selectedPetType, selectedState, selectedCity, 
+    providers, selectedPetType, selectedState, selectedCity,
     selectedAmenity, priceRange, selectedStayType, sortBy, searchKeyword
   ]);
 
   // Open Booking & Service Access Modal for a hostel
   const handleOpenBookingModal = (provider, pkg = null) => {
+    setSelectedProvider(provider);
+    if (pkg) setSelectedPackage(pkg);
     handleServiceAction({
       isAuthenticated,
       serviceType: 'Hostel',
       provider,
-      action: 'book'
+      action: 'book',
+      onAuthorized: () => {
+        setSelectedProvider(provider);
+        if (pkg) setSelectedPackage(pkg);
+        setShowBookingModal(true);
+      }
     });
   };
 
@@ -270,7 +277,7 @@ const HostelServices = () => {
       isAuthenticated,
       serviceType: 'Hostel',
       provider,
-      action: 'visit'
+      action: 'whatsapp'
     });
   };
 
@@ -291,9 +298,9 @@ const HostelServices = () => {
       {/* =========================================================================
           1. RADIANT HERO BANNER WITH SEARCH FILTER BAR (Screenshot 1 Match)
          ========================================================================= */}
-      <ScrollReveal variant="fade" className="relative bg-gradient-to-r from-[#ffc83b] via-[#febc2e] to-[#ffb11b] text-slate-900 pt-8 pb-12 px-4 md:px-8 shadow-sm border-b border-amber-300">
+      <ScrollReveal variant="fade" className="relative bg-[#FAC52E] text-slate-900 pt-8 pb-12 px-4 md:px-8 shadow-sm border-b border-[#E0B025]">
         <div className="max-w-7xl mx-auto">
-          
+
           {/* Breadcrumb Navigation */}
           <div className="flex items-center gap-1.5 text-xs text-slate-800/80 mb-6 font-medium">
             <Link to="/" className="hover:text-black transition">Home</Link>
@@ -304,7 +311,7 @@ const HostelServices = () => {
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
-            
+
             {/* Left Content Column */}
             <div className="lg:col-span-8 space-y-4">
               <span className="italic font-serif text-lg md:text-xl text-[#6b3ba6] font-semibold tracking-wide block">
@@ -322,7 +329,7 @@ const HostelServices = () => {
               {/* Search Filter Bar */}
               <div className="pt-4 max-w-3xl">
                 <div className="bg-white p-2.5 rounded-2xl shadow-xl border border-amber-200/80 grid grid-cols-1 sm:grid-cols-12 gap-2.5">
-                  
+
                   {/* Pet Type Select */}
                   <div className="sm:col-span-3">
                     <label className="text-[10px] uppercase font-extrabold text-slate-400 block px-2">Pet Type</label>
@@ -433,22 +440,19 @@ const HostelServices = () => {
               <button
                 key={offering.id}
                 onClick={() => handleSelectOffering(offering.id)}
-                className={`p-3.5 rounded-2xl border text-center transition-all cursor-pointer flex flex-col items-center justify-between gap-2.5 relative group ${
-                  isActive
+                className={`p-3.5 rounded-2xl border text-center transition-all cursor-pointer flex flex-col items-center justify-between gap-2.5 relative group ${isActive
                     ? 'bg-[#7c56dc] text-white border-[#7c56dc] shadow-lg shadow-purple-900/20 scale-105 ring-2 ring-purple-300'
                     : 'bg-white text-slate-800 border-slate-200 hover:border-[#7c56dc] hover:shadow-md hover:-translate-y-0.5'
-                }`}
+                  }`}
               >
                 {/* Result count bubble */}
-                <span className={`absolute top-2 right-2 text-[9px] font-bold px-1.5 py-0.2 rounded-full ${
-                  isActive ? 'bg-white/20 text-white' : 'bg-purple-50 text-[#7c56dc]'
-                }`}>
+                <span className={`absolute top-2 right-2 text-[9px] font-bold px-1.5 py-0.2 rounded-full ${isActive ? 'bg-white/20 text-white' : 'bg-purple-50 text-[#7c56dc]'
+                  }`}>
                   {count}
                 </span>
 
-                <div className={`w-11 h-11 rounded-xl flex items-center justify-center text-xl transition ${
-                  isActive ? 'bg-white/20' : 'bg-purple-50 group-hover:bg-purple-100/70'
-                }`}>
+                <div className={`w-11 h-11 rounded-xl flex items-center justify-center text-xl transition ${isActive ? 'bg-white/20' : 'bg-purple-50 group-hover:bg-purple-100/70'
+                  }`}>
                   {offering.icon}
                 </div>
                 <span className="text-xs font-extrabold leading-tight">
@@ -465,7 +469,7 @@ const HostelServices = () => {
           3. SERVICE PROVIDERS CATALOG & ADVANCED FILTER SECTION (Brought to Top)
          ========================================================================= */}
       <ScrollReveal variant="fade" id="hostels-catalog" className="max-w-7xl mx-auto px-4 md:px-8 pt-4 pb-16 space-y-8 scroll-mt-20">
-        
+
         {/* Section Title & Quick Stats */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-purple-100 pb-4">
           <div>
@@ -499,7 +503,7 @@ const HostelServices = () => {
           <div className="flex items-center gap-3">
             <button
               onClick={handleResetFilters}
-              className="text-xs font-bold text-slate-500 hover:text-[#7c56dc] transition flex items-center gap-1 cursor-pointer"
+              className="text-xs font-bold text-slate-500 hover:text-amber-700 transition flex items-center gap-1 cursor-pointer"
             >
               <RefreshCw size={12} /> Reset All
             </button>
@@ -507,25 +511,25 @@ const HostelServices = () => {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-          
+
           {/* =====================================================================
               LEFT FILTER PANEL (With Top Search & Separate Scrollbar)
              ===================================================================== */}
-          <aside className="lg:col-span-3 bg-white p-5 rounded-3xl border border-purple-100 shadow-sm sticky top-24 max-h-[calc(100vh-120px)] flex flex-col">
-            
+          <aside className="lg:col-span-3 bg-white p-5 rounded-3xl border border-amber-100/80 shadow-sm sticky top-24 max-h-[calc(100vh-120px)] flex flex-col">
+
             {/* Fixed Filter Header */}
             <div className="flex justify-between items-center border-b border-slate-100 pb-3 mb-3 shrink-0">
               <span className="text-xs font-extrabold uppercase tracking-wider text-slate-900 flex items-center gap-1.5">
-                <SlidersHorizontal size={14} className="text-[#7c56dc]" />
+                <SlidersHorizontal size={14} className="text-amber-600" />
                 <span>Filters</span>
               </span>
               <div className="flex items-center gap-2">
-                <span className="text-[10px] font-bold bg-purple-50 text-[#7c56dc] px-2 py-0.5 rounded-full border border-purple-100">
+                <span className="text-[10px] font-bold bg-amber-50 text-amber-800 px-2 py-0.5 rounded-full border border-amber-200/60">
                   {filteredProviders.length} Results
                 </span>
                 <button
                   onClick={handleResetFilters}
-                  className="text-[10px] font-bold text-slate-400 hover:text-[#7c56dc] transition flex items-center gap-0.5 cursor-pointer"
+                  className="text-[10px] font-bold text-slate-400 hover:text-amber-700 transition flex items-center gap-0.5 cursor-pointer"
                   title="Reset All Filters"
                 >
                   <RefreshCw size={10} /> Reset
@@ -535,7 +539,7 @@ const HostelServices = () => {
 
             {/* Dedicated Scrollable Filter Container with Separate Scrollbar */}
             <div className="overflow-y-auto pr-1.5 space-y-5 flex-1 custom-scrollbar">
-              
+
               {/* 1. TOP SEARCH BAR */}
               <div className="space-y-1.5">
                 <div className="flex justify-between items-center">
@@ -557,7 +561,7 @@ const HostelServices = () => {
                     placeholder="Search by name, area, resort..."
                     value={searchKeyword}
                     onChange={(e) => setSearchKeyword(e.target.value)}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-8 pr-3 py-2 text-xs font-medium text-slate-800 focus:outline-none focus:border-[#7c56dc] focus:ring-1 focus:ring-purple-200 transition"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-8 pr-3 py-2 text-xs font-medium text-slate-800 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-200 transition"
                   />
                   <Search size={13} className="absolute left-2.5 top-2.5 text-slate-400" />
                 </div>
@@ -586,19 +590,17 @@ const HostelServices = () => {
                       <button
                         key={off.id}
                         onClick={() => setSelectedAmenity(isSel ? 'all' : off.id)}
-                        className={`flex items-center justify-between w-full py-1.5 px-2.5 rounded-xl font-semibold text-left transition cursor-pointer ${
-                          isSel
-                            ? 'bg-[#7c56dc] text-white font-bold shadow-xs'
-                            : 'text-slate-600 hover:bg-purple-50 hover:text-[#7c56dc]'
-                        }`}
+                        className={`flex items-center justify-between w-full py-1.5 px-2.5 rounded-xl font-semibold text-left transition cursor-pointer ${isSel
+                            ? 'bg-amber-100 text-amber-900 font-bold shadow-xs'
+                            : 'text-slate-600 hover:bg-amber-50/60 hover:text-amber-900'
+                          }`}
                       >
                         <div className="flex items-center gap-1.5 truncate">
                           <span>{off.icon}</span>
                           <span className="truncate">{off.name}</span>
                         </div>
-                        <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-bold ${
-                          isSel ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-500'
-                        }`}>
+                        <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-bold ${isSel ? 'bg-amber-200/80 text-amber-900' : 'bg-slate-100 text-slate-500'
+                          }`}>
                           {count}
                         </span>
                       </button>
@@ -627,11 +629,10 @@ const HostelServices = () => {
                     <button
                       key={tier.id}
                       onClick={() => setPriceRange(tier.id)}
-                      className={`flex items-center justify-between w-full py-2 px-3 rounded-xl font-semibold text-left transition cursor-pointer ${
-                        priceRange === tier.id
-                          ? 'bg-[#7c56dc] text-white font-bold shadow-xs'
-                          : 'text-slate-600 hover:bg-purple-50 hover:text-[#7c56dc]'
-                      }`}
+                      className={`flex items-center justify-between w-full py-2 px-3 rounded-xl font-semibold text-left transition cursor-pointer ${priceRange === tier.id
+                          ? 'bg-amber-100 text-amber-900 font-bold'
+                          : 'text-slate-600 hover:bg-slate-50'
+                        }`}
                     >
                       <span>{tier.label}</span>
                       {priceRange === tier.id && <Check size={12} />}
@@ -650,11 +651,10 @@ const HostelServices = () => {
                     <button
                       key={type}
                       onClick={() => setSelectedStayType(type)}
-                      className={`flex items-center justify-between w-full py-1.5 px-3 rounded-xl font-semibold text-left transition cursor-pointer ${
-                        selectedStayType === type
+                      className={`flex items-center justify-between w-full py-1.5 px-3 rounded-xl font-semibold text-left transition cursor-pointer ${selectedStayType === type
                           ? 'bg-amber-100 text-amber-900 font-bold'
                           : 'text-slate-600 hover:bg-slate-50'
-                      }`}
+                        }`}
                     >
                       <span>{type}</span>
                       {selectedStayType === type && <Check size={12} />}
@@ -673,11 +673,10 @@ const HostelServices = () => {
                     <button
                       key={pt}
                       onClick={() => handlePetTypeChange(pt)}
-                      className={`py-1.5 px-2 rounded-xl font-bold text-center transition cursor-pointer ${
-                        selectedPetType === pt
+                      className={`py-1.5 px-2 rounded-xl font-bold text-center transition cursor-pointer ${selectedPetType === pt
                           ? 'bg-[#7c56dc] text-white shadow-xs'
                           : 'bg-slate-50 text-slate-600 hover:bg-purple-50'
-                      }`}
+                        }`}
                     >
                       {pt}
                     </button>
@@ -714,14 +713,14 @@ const HostelServices = () => {
               RIGHT SERVICE PROVIDERS LIST
              ===================================================================== */}
           <div className="lg:col-span-9 space-y-6">
-            
+
             {filteredProviders.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {filteredProviders.map((provider) => {
                   const targetAmenityName = HOSTEL_OFFERINGS.find(o => o.id === selectedAmenity)?.name;
                   const featuredPkg = getFeaturedPackageForOffering(provider, selectedAmenity);
                   const effectivePrice = featuredPkg ? featuredPkg.price : (provider.discountPrice || provider.pricePerNight);
-                  
+
                   return (
                     <div
                       key={provider.id}
@@ -729,8 +728,8 @@ const HostelServices = () => {
                     >
                       <div>
                         {/* Provider Header Image & Badges */}
-                        <div 
-                          onClick={() => handleServiceAction({ isAuthenticated, serviceType: 'Hostel', provider, action: 'visit' })}
+                        <div
+                          onClick={() => handleServiceAction({ isAuthenticated, serviceType: 'Hostel', provider, action: 'view_expert_profile' })}
                           className="relative aspect-[16/9] overflow-hidden bg-slate-100 cursor-pointer"
                           title={`Visit ${provider.name} and view packages`}
                         >
@@ -742,7 +741,7 @@ const HostelServices = () => {
                           <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
 
                           {/* Stay Type Badge */}
-                          <div className="absolute top-3 left-3 bg-[#7c56dc] text-white text-[10px] font-extrabold px-3 py-1 rounded-full shadow-md">
+                          <div className="absolute top-3 left-3 bg-white/95 text-emerald-700 text-[10px] font-extrabold px-2.5 py-1 rounded-full shadow-md">
                             {provider.stayType}
                           </div>
 
@@ -766,7 +765,7 @@ const HostelServices = () => {
 
                         {/* Provider Body Details */}
                         <div className="p-5 space-y-4">
-                          
+
                           {/* Rating, Host & Experience */}
                           <div className="flex items-center justify-between text-xs pb-3 border-b border-slate-100">
                             <div className="flex items-center gap-1.5 font-extrabold text-amber-500">
@@ -800,11 +799,10 @@ const HostelServices = () => {
                                 return (
                                   <span
                                     key={idx}
-                                    className={`text-[10px] font-bold px-2.5 py-1 rounded-lg border flex items-center gap-1 transition ${
-                                      isMatched
+                                    className={`text-[10px] font-bold px-2.5 py-1 rounded-lg border flex items-center gap-1 transition ${isMatched
                                         ? 'bg-[#7c56dc] text-white border-[#7c56dc] shadow-xs scale-105 ring-2 ring-purple-200'
                                         : 'bg-purple-50 text-[#7c56dc] border-purple-100'
-                                    }`}
+                                      }`}
                                   >
                                     <span>{isMatched ? '✓' : '✨'}</span>
                                     <span>{amenity}</span>
@@ -816,21 +814,18 @@ const HostelServices = () => {
 
                           {/* Dynamic Stay Package Preview tailored to selected feature */}
                           {featuredPkg && (
-                            <div className={`p-3 rounded-2xl space-y-1 transition ${
-                              selectedAmenity !== 'all'
+                            <div className={`p-3 rounded-2xl space-y-1 transition ${selectedAmenity !== 'all'
                                 ? 'bg-purple-50/90 border border-purple-200/90'
                                 : 'bg-amber-50/70 border border-amber-200/60'
-                            }`}>
+                              }`}>
                               <div className="flex justify-between items-center">
-                                <span className={`text-[10px] font-extrabold uppercase tracking-wide flex items-center gap-1 ${
-                                  selectedAmenity !== 'all' ? 'text-[#7c56dc]' : 'text-amber-900'
-                                }`}>
+                                <span className={`text-[10px] font-extrabold uppercase tracking-wide flex items-center gap-1 ${selectedAmenity !== 'all' ? 'text-[#7c56dc]' : 'text-amber-900'
+                                  }`}>
                                   <span>⭐</span>
                                   <span>{selectedAmenity !== 'all' ? `Matched ${targetAmenityName} Package` : 'Featured Stay Package'}</span>
                                 </span>
-                                <span className={`text-xs font-extrabold ${
-                                  selectedAmenity !== 'all' ? 'text-[#7c56dc]' : 'text-slate-900'
-                                }`}>
+                                <span className={`text-xs font-extrabold ${selectedAmenity !== 'all' ? 'text-[#7c56dc]' : 'text-slate-900'
+                                  }`}>
                                   ₹{featuredPkg.price}/night
                                 </span>
                               </div>
@@ -927,7 +922,7 @@ const HostelServices = () => {
 
         {/* 4 Colorful Stat Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-          
+
           {/* Card 1: Purple */}
           <div className="bg-[#8a68e8] text-white p-8 rounded-3xl shadow-md text-center space-y-2 flex flex-col justify-center transform hover:-translate-y-1 transition duration-200">
             <span className="text-3xl md:text-4xl font-extrabold tracking-tight">250+</span>
@@ -961,7 +956,7 @@ const HostelServices = () => {
          ========================================================================= */}
       <ScrollReveal variant="fade" className="bg-white border-y border-purple-100 py-8 lg:py-16 px-4 md:px-8">
         <div className="max-w-7xl mx-auto space-y-10">
-          
+
           <div className="text-center space-y-2 max-w-2xl mx-auto">
             <h2 className="text-2xl md:text-3xl font-extrabold text-slate-900 font-sans">
               Your Pet Feels Safest
@@ -973,7 +968,7 @@ const HostelServices = () => {
 
           {/* 3 Real Life Hostel Photo Cards */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            
+
             {/* Photo 1 */}
             <div className="aspect-[4/3] rounded-3xl overflow-hidden shadow-lg border border-purple-100 bg-slate-100 group">
               <img
@@ -995,7 +990,7 @@ const HostelServices = () => {
             {/* Photo 3 */}
             <div className="aspect-[4/3] rounded-3xl overflow-hidden shadow-lg border border-purple-100 bg-slate-100 group">
               <img
-                src="https://images.unsplash.com/photo-1544568100-eba616a6ce76?q=80&w=800&auto=format&fit=crop"
+                src="https://images.unsplash.com/photo-1543466835-00a7907e9de1?q=80&w=800&auto=format&fit=crop"
                 alt="Loving Caretaker Outdoors"
                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
               />
@@ -1022,7 +1017,7 @@ const HostelServices = () => {
 
         {/* 3 Host Partner Testimonial Blob Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          
+
           {/* Host 1 */}
           <div className="bg-white p-6 rounded-3xl border border-purple-100 shadow-sm hover:shadow-md transition text-center space-y-4 flex flex-col items-center">
             <div className="relative w-28 h-28">
@@ -1086,7 +1081,7 @@ const HostelServices = () => {
          ========================================================================= */}
       <ScrollReveal variant="fade" className="bg-white border-y border-purple-100 py-8 lg:py-16 px-4 md:px-8">
         <div className="max-w-7xl mx-auto text-center space-y-12">
-          
+
           <div className="max-w-2xl mx-auto space-y-2">
             <h2 className="text-2xl md:text-3xl font-extrabold text-slate-900 font-sans">
               Our Quick Easy <span className="text-[#7c56dc]">Process</span>
@@ -1097,7 +1092,7 @@ const HostelServices = () => {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            
+
             {/* Step 1: Get in Touch */}
             <div className="flex flex-col items-center text-center space-y-3 p-4">
               <div className="w-16 h-16 rounded-full bg-[#fec338] text-white flex items-center justify-center text-2xl shadow-md">
@@ -1142,15 +1137,15 @@ const HostelServices = () => {
          ========================================================================= */}
       {showBookingModal && selectedProvider && (
         <div className="fixed inset-0 z-[100] overflow-y-auto bg-black/60 backdrop-blur-xs p-2 sm:p-4 flex flex-col items-center justify-start sm:justify-center animate-in fade-in duration-150">
-          <div 
+          <div
             className="fixed inset-0 bg-transparent"
             onClick={() => setShowBookingModal(false)}
           ></div>
 
           <div className="relative bg-white rounded-3xl shadow-2xl border border-purple-100 w-full max-w-lg overflow-hidden z-10 my-auto max-h-[85vh] sm:max-h-[88vh] flex flex-col min-h-0">
-            
+
             {/* Modal Header */}
-            <div className="bg-gradient-to-r from-[#ffc83b] to-[#f59e0b] p-5 text-slate-950 flex justify-between items-center shrink-0">
+            <div className="bg-[#FAC52E] p-5 text-slate-950 flex justify-between items-center shrink-0">
               <div>
                 <span className="text-[10px] uppercase font-extrabold tracking-wider bg-black/10 px-2 py-0.5 rounded">
                   Reserve Hostel Staycation
@@ -1170,7 +1165,7 @@ const HostelServices = () => {
 
             {/* Modal Scrollable Form */}
             <form onSubmit={handleSubmitBooking} className="p-6 overflow-y-auto space-y-4 flex-1">
-              
+
               {/* Room & Package Selection */}
               <div className="space-y-2">
                 <label className="text-xs font-extrabold text-slate-700">Choose Room Type / Package</label>
@@ -1179,11 +1174,10 @@ const HostelServices = () => {
                     <label
                       key={idx}
                       onClick={() => setSelectedPackage(pkg)}
-                      className={`flex items-start justify-between p-3 rounded-2xl border transition cursor-pointer ${
-                        selectedPackage?.name === pkg.name
+                      className={`flex items-start justify-between p-3 rounded-2xl border transition cursor-pointer ${selectedPackage?.name === pkg.name
                           ? 'border-[#7c56dc] bg-purple-50/60 shadow-xs'
                           : 'border-slate-200 hover:border-slate-300'
-                      }`}
+                        }`}
                     >
                       <div className="flex items-start gap-2.5">
                         <input
@@ -1231,7 +1225,7 @@ const HostelServices = () => {
                     required
                     value={checkOutDate}
                     min={
-                      checkInDate 
+                      checkInDate
                         ? new Date(new Date(checkInDate).getTime() + 86400000).toISOString().split('T')[0]
                         : new Date(Date.now() + 86400000).toISOString().split('T')[0]
                     }

@@ -97,7 +97,15 @@ const Wishlist = () => {
                   onClick={() => navigate(`/product/${product.slug}`)}
                   className="relative aspect-square overflow-hidden bg-gray-50 border-b border-beige cursor-pointer"
                 >
-                  <img src={product.images[0]} alt={product.name} className="w-full h-full object-cover" />
+                  <img 
+                    src={product.images?.[0] || product.image || 'https://images.unsplash.com/photo-1548199973-03cce0bbc87b?q=80&w=800'} 
+                    alt={product.name} 
+                    onError={(e) => {
+                      e.currentTarget.onerror = null;
+                      e.currentTarget.src = 'https://images.unsplash.com/photo-1548199973-03cce0bbc87b?q=80&w=800';
+                    }}
+                    className="w-full h-full object-cover" 
+                  />
                 </div>
 
                 {/* Details */}

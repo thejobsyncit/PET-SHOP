@@ -292,7 +292,7 @@ export const INITIAL_MATING_PETS = [
     vaccinated: true,
     dewormed: true,
     geneticTested: true,
-    image: 'https://images.unsplash.com/photo-1544568100-eba616a6ce76?q=80&w=800&auto=format&fit=crop',
+    image: 'https://images.unsplash.com/photo-1543466835-00a7907e9de1?q=80&w=800&auto=format&fit=crop',
     description: 'Massive 9.5 kg silver-tabby Maine Coon stud with tufted lynx ears, muscular physique, and gentle purr. HCM and SMA clear.',
     sire: 'CH. Silver Shadow of Nordic Kings',
     dam: 'Princess Freya of Wild Whispers',

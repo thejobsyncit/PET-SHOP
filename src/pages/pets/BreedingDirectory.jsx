@@ -302,17 +302,22 @@ const BreedingDirectory = () => {
       isAuthenticated,
       serviceType: 'Breeding',
       provider: { name: `${pet.name} (${pet.parentName})`, phone: pet.parentPhone, city: pet.city, image: pet.image },
-      action: 'visit'
+      action: 'view_expert_profile'
     });
   };
 
   // Open Proposal & Package Access Modal (Requires Login)
   const handleOpenProposal = (pet) => {
+    setSelectedPet(pet);
     handleServiceAction({
       isAuthenticated,
       serviceType: 'Breeding',
       provider: { name: `${pet.name} (${pet.parentName})`, phone: pet.parentPhone, city: pet.city, image: pet.image },
-      action: 'book'
+      action: 'book',
+      onAuthorized: () => {
+        setSelectedPet(pet);
+        setShowProposalModal(true);
+      }
     });
   };
 
@@ -445,7 +450,7 @@ const BreedingDirectory = () => {
       isAuthenticated,
       serviceType: 'Breeding',
       provider: { name: `${pet.name} (${pet.parentName})`, phone: pet.parentPhone, city: pet.city, image: pet.image },
-      action: 'visit'
+      action: 'view_expert_profile'
     });
   };
 
@@ -710,11 +715,11 @@ const BreedingDirectory = () => {
       </ScrollReveal>
 
       {/* ================= 2. MAIN 2-COLUMN SECTION ================= */}
-      <ScrollReveal variant="fade" id="mating-directory-results" className="max-w-7xl mx-auto px-4 md:px-8 py-10">
+      <div id="mating-directory-results" className="max-w-7xl mx-auto px-4 md:px-8 py-10">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
           
           {/* ================= LEFT SIDEBAR: DEDICATED FILTERS ================= */}
-          <aside className="lg:col-span-4 bg-white border border-slate-200 p-4 sm:p-5 rounded-2xl shadow-sm space-y-5 lg:sticky lg:top-24 max-h-[calc(100vh-6.5rem)] overflow-y-auto custom-scrollbar">
+          <aside className="lg:col-span-3 bg-white border border-slate-200 p-4 rounded-2xl shadow-sm space-y-5 lg:sticky lg:top-24 max-h-[calc(100vh-6.5rem)] overflow-y-auto custom-scrollbar">
             
             {/* Header & Reset Button */}
             <div className="flex items-center justify-between pb-3 border-b border-slate-100">
@@ -966,7 +971,7 @@ const BreedingDirectory = () => {
           </aside>
 
           {/* ================= RIGHT MAIN: LIST OF MATING PETS ================= */}
-          <main className="lg:col-span-8 space-y-6">
+          <main className="lg:col-span-9 space-y-6">
             
             {/* Results Header */}
             <div className="bg-white border border-slate-200 p-4 rounded-2xl shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -1137,8 +1142,10 @@ const BreedingDirectory = () => {
                         </div>
 
                         {/* Pink Seeking Mate Box */}
-                        <div className="p-2 bg-rose-50 border border-rose-200 text-rose-950 rounded-xl text-[10.5px] font-medium leading-tight line-clamp-1">
-                          {pet.mateRequirement}
+                        <div className="px-2.5 py-2 bg-rose-50 border border-rose-200 text-rose-950 rounded-xl text-[11px] font-medium leading-snug min-h-[44px] flex items-center overflow-hidden">
+                          <p className="line-clamp-2">
+                            {pet.mateRequirement}
+                          </p>
                         </div>
 
                         {/* Parent Contact Link */}
@@ -1184,7 +1191,7 @@ const BreedingDirectory = () => {
 
           </main>
         </div>
-      </ScrollReveal>
+      </div>
 
       {/* ================= 3. KNOW MORE ABOUT [PET] DETAILS MODAL ================= */}
       {showDetailsModal && selectedPetForDetails && (

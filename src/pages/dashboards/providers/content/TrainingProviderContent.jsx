@@ -31,7 +31,7 @@ const PRESET_TRAINING_IMAGES = [
   { label: 'Puppy Kindergarten & Socialization', url: 'https://images.unsplash.com/photo-1552053831-71594a27632d?q=80&w=800&auto=format&fit=crop' },
   { label: 'Golden Retriever Obedience', url: 'https://images.unsplash.com/photo-1535930891776-0c2dfb7fda1a?q=80&w=800&auto=format&fit=crop' },
   { label: 'Working Dog Agility & Protection', url: 'https://images.unsplash.com/photo-1589924691995-400dc9ecc119?q=80&w=800&auto=format&fit=crop' },
-  { label: 'Coastal Pack & Fun Outdoor Manners', url: 'https://images.unsplash.com/photo-1544568100-eba616a6ce76?q=80&w=800&auto=format&fit=crop' },
+  { label: 'Coastal Pack & Fun Outdoor Manners', url: 'https://images.unsplash.com/photo-1543466835-00a7907e9de1?q=80&w=800&auto=format&fit=crop' },
   { label: 'Positive Clicker & Home Manners', url: 'https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?q=80&w=800&auto=format&fit=crop' }
 ];
 

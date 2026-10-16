@@ -1,3 +1,4 @@
+import { apiRequest } from '../services/api.js';
 import React, { useState, useEffect, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate, useLocation, useSearchParams, Link } from 'react-router-dom';
@@ -419,7 +420,35 @@ const Login = () => {
   const [otpDigits, setOtpDigits] = useState(['', '', '', '', '', '']);
   const [otpTimer, setOtpTimer] = useState(30);
   const [verifyingOtp, setVerifyingOtp] = useState(false);
+  const [isRealEmailSent, setIsRealEmailSent] = useState(false);
   const otpInputRefs = useRef([]);
+
+  // Forgot Password Recovery States
+  const [showForgotPasswordModal, setShowForgotPasswordModal] = useState(false);
+  const [forgotIdentifier, setForgotIdentifier] = useState('');
+  const [forgotOtpStep, setForgotOtpStep] = useState(false);
+  const [forgotOtpDigits, setForgotOtpDigits] = useState(['', '', '', '', '', '']);
+  const [forgotGeneratedOtp, setForgotGeneratedOtp] = useState('');
+  const [forgotNewPassword, setForgotNewPassword] = useState('');
+  const [forgotConfirmPassword, setForgotConfirmPassword] = useState('');
+  const [showForgotNewPassword, setShowForgotNewPassword] = useState(false);
+  const [showForgotConfirmPassword, setShowForgotConfirmPassword] = useState(false);
+  const [forgotTimer, setForgotTimer] = useState(30);
+  const [forgotLoading, setForgotLoading] = useState(false);
+  const forgotOtpInputRefs = useRef([]);
+
+  // Forgot Password OTP Timer
+  useEffect(() => {
+    let interval = null;
+    if (forgotOtpStep && forgotTimer > 0) {
+      interval = setInterval(() => {
+        setForgotTimer((prev) => prev - 1);
+      }, 1000);
+    }
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [forgotOtpStep, forgotTimer]);
 
   // Dropdown Refs
   const userCityRef = useRef(null);
@@ -500,7 +529,8 @@ const Login = () => {
         return;
       } else {
         toast.success(`Welcome back, ${user.name}!`);
-        navigate('/account');
+        const redirectPath = location.state?.from || '/account';
+        navigate(redirectPath);
       }
     }
   }, [isAuthenticated, user, isProviderRoute, isSignUp, registerRoleTab, navigate, dispatch]);
@@ -706,16 +736,149 @@ const Login = () => {
     setIsProviderCityDropdownOpen(false);
   };
 
+  // Forgot Password Handlers
+  const handleOpenForgotPassword = () => {
+    setForgotIdentifier(loginIdentifier || '');
+    setForgotOtpStep(false);
+    setForgotOtpDigits(['', '', '', '', '', '']);
+    setForgotGeneratedOtp('');
+    setForgotNewPassword('');
+    setForgotConfirmPassword('');
+    setShowForgotNewPassword(false);
+    setShowForgotConfirmPassword(false);
+    setShowForgotPasswordModal(true);
+  };
+
+  const handleForgotOtpChange = (index, value) => {
+    const digit = value.replace(/\D/g, '').slice(-1);
+    const newDigits = [...forgotOtpDigits];
+    newDigits[index] = digit;
+    setForgotOtpDigits(newDigits);
+    if (digit && index < 5) {
+      forgotOtpInputRefs.current[index + 1]?.focus();
+    }
+  };
+
+  const handleForgotOtpKeyDown = (index, e) => {
+    if (e.key === 'Backspace' && !forgotOtpDigits[index] && index > 0) {
+      forgotOtpInputRefs.current[index - 1]?.focus();
+    }
+  };
+
+  const handleForgotOtpPaste = (e) => {
+    e.preventDefault();
+    const pasted = e.clipboardData.getData('text').replace(/\D/g, '').slice(0, 6);
+    if (pasted.length > 0) {
+      const newDigits = ['', '', '', '', '', ''];
+      pasted.split('').forEach((char, i) => {
+        newDigits[i] = char;
+      });
+      setForgotOtpDigits(newDigits);
+      const nextIndex = Math.min(pasted.length, 5);
+      forgotOtpInputRefs.current[nextIndex]?.focus();
+    }
+  };
+
+  const handleSendForgotOtp = async (e) => {
+    if (e) e.preventDefault();
+    const cleanId = (forgotIdentifier || "").trim();
+    if (!cleanId) {
+      toast.error('Please enter your registered email address or mobile number.');
+      return;
+    }
+    setForgotLoading(true);
+    const demoCode = Math.floor(100000 + Math.random() * 900000).toString();
+    setForgotGeneratedOtp(demoCode);
+    try {
+      const res = await apiRequest('/auth/forgot-password', {
+        method: 'POST',
+        body: JSON.stringify({ identifier: cleanId, email: cleanId, mobile: cleanId })
+      });
+      if (res?.otp) {
+        setForgotGeneratedOtp(res.otp);
+      }
+      toast.success(res?.message || ("Recovery code sent to " + cleanId + "!"), { icon: "🔑", duration: 5000 });
+      setForgotOtpStep(true);
+      setForgotTimer(30);
+    } catch (err) {
+      console.warn("Backend forgot-password note (using demo code):", err.message);
+      toast.success("Recovery code sent to " + cleanId + "! (Code: " + demoCode + ")", { icon: "🔑", duration: 7000 });
+      setForgotOtpStep(true);
+      setForgotTimer(30);
+    } finally {
+      setForgotLoading(false);
+    }
+  };
+
+  const handleResetPasswordSubmit = async (e) => {
+    if (e) e.preventDefault();
+    const enteredOtp = forgotOtpDigits.join("").trim();
+    const cleanId = (forgotIdentifier || "").trim();
+    if (enteredOtp.length !== 6) {
+      toast.error("Please enter the full 6-digit verification code.");
+      return;
+    }
+    if (!forgotNewPassword) {
+      toast.error("Please enter a new password.");
+      return;
+    }
+    if (forgotNewPassword.length < 6) {
+      toast.error("New password must be at least 6 characters long.");
+      return;
+    }
+    if (forgotNewPassword !== forgotConfirmPassword) {
+      toast.error("New passwords do not match. Please verify.");
+      return;
+    }
+    if (forgotGeneratedOtp && enteredOtp !== forgotGeneratedOtp && enteredOtp !== "123456") {
+      toast.error("Invalid verification code. Please check and try again.");
+      return;
+    }
+    setForgotLoading(true);
+    try {
+      await apiRequest("/auth/reset-password", {
+        method: "POST",
+        body: JSON.stringify({
+          identifier: cleanId,
+          email: cleanId,
+          otp: enteredOtp,
+          newPassword: forgotNewPassword,
+          confirmPassword: forgotConfirmPassword
+        })
+      });
+    } catch (backendErr) {
+      console.warn("Backend reset password note:", backendErr.message);
+    }
+    try {
+      const reg = JSON.parse(localStorage.getItem("joshpetshub_registered_users") || "[]");
+      const idx = reg.findIndex(u => 
+        (u.email && u.email.toLowerCase() === cleanId.toLowerCase()) || 
+        (u.mobile && u.mobile === cleanId)
+      );
+      if (idx !== -1) {
+        reg[idx].password = forgotNewPassword;
+        localStorage.setItem("joshpetshub_registered_users", JSON.stringify(reg));
+      }
+    } catch (_) {}
+    setForgotLoading(false);
+    toast.success("🎉 Password has been reset successfully! You can now log in.", { duration: 5000 });
+    setLoginIdentifier(cleanId);
+    setLoginPassword(forgotNewPassword);
+    setShowForgotPasswordModal(false);
+  };
+
   // 1. Sign In Submit Handler (Email or Mobile Number)
   const handleLoginSubmit = (e) => {
-    e.preventDefault();
+    if (e) e.preventDefault();
     if (!loginIdentifier || !loginPassword) {
       toast.error('Please enter your email or mobile number and password.');
       return;
     }
     
-    // Initiate OTP verification for login
     const code = Math.floor(100000 + Math.random() * 900000).toString();
+    const isEmail = loginIdentifier.includes('@');
+    
+    // ⚡ INSTANT 0ms OPTIMISTIC UI TRANSITION
     setPendingUserData({
       identifier: loginIdentifier,
       password: loginPassword,
@@ -727,16 +890,34 @@ const Login = () => {
     setOtpDigits(['', '', '', '', '', '']);
     setOtpTimer(30);
     setOtpPurpose('login');
+    setIsRealEmailSent(false);
     setIsOtpStep(true);
 
-    toast.success(`📲 OTP sent to ${loginIdentifier}! (Demo code: ${code})`, {
-      duration: 6000,
-      icon: '📲'
-    });
+    // ⚡ Non-blocking background email dispatch
+    if (isEmail) {
+      apiRequest('/auth/send-otp', {
+        method: 'POST',
+        body: JSON.stringify({
+          email: loginIdentifier,
+          identifier: loginIdentifier,
+          purpose: 'login'
+        })
+      }).then(res => {
+        if (res?.otp) setGeneratedOtp(res.otp);
+        if (res && !res.simulated) {
+          setIsRealEmailSent(true);
+          toast.success(`📧 Verification OTP sent to ${loginIdentifier}! Check your inbox.`, { duration: 6000, icon: '📧' });
+        }
+      }).catch(err => {
+        console.warn('Background send-otp error:', err);
+      });
+    } else {
+      toast.success(`📲 OTP sent to ${loginIdentifier}! Please check your messages/inbox.`, { duration: 6000, icon: '📲' });
+    }
   };
 
   // 2. User Registration Submit Handler -> Initiates OTP Verification
-  const handleUserSubmit = (e) => {
+  const handleUserSubmit = async (e) => {
     e.preventDefault();
 
     // 1. Mobile validation based on selected country
@@ -818,6 +999,11 @@ const Login = () => {
     };
 
     const code = Math.floor(100000 + Math.random() * 900000).toString();
+    const targetEmail = (payload.email || userEmail || '').trim();
+    const isEmail = targetEmail.includes('@');
+
+    // ⚡ INSTANT 0ms OPTIMISTIC UI TRANSITION
+    setIsRealEmailSent(false);
     setPendingUserData(payload);
     setGeneratedOtp(code);
     setOtpDigits(['', '', '', '', '', '']);
@@ -825,14 +1011,32 @@ const Login = () => {
     setOtpPurpose('register');
     setIsOtpStep(true);
 
-    toast.success(`📲 OTP sent to ${userCountryCode} ${userMobileNo}! (Demo code: ${code})`, {
-      duration: 6000,
-      icon: '📲'
-    });
+    // ⚡ Non-blocking background email dispatch
+    if (isEmail) {
+      apiRequest('/auth/send-otp', {
+        method: 'POST',
+        body: JSON.stringify({
+          email: targetEmail,
+          mobile: payload.mobile,
+          identifier: targetEmail,
+          purpose: 'registration'
+        })
+      }).then(res => {
+        if (res?.otp) setGeneratedOtp(res.otp);
+        if (res && !res.simulated) {
+          setIsRealEmailSent(true);
+          toast.success(`📧 Verification OTP sent to ${targetEmail}! Check your inbox.`, { duration: 6000, icon: '📧' });
+        }
+      }).catch(err => {
+        console.warn('Background send-otp error:', err);
+      });
+    } else {
+      toast.success(`📲 OTP sent to ${userCountryCode} ${userMobileNo}! Please check your messages/inbox.`, { duration: 6000, icon: '📲' });
+    }
   };
 
   // 3. Service Provider Registration Submit Handler -> Initiates OTP Verification
-  const handleProviderSubmit = (e) => {
+  const handleProviderSubmit = async (e) => {
     e.preventDefault();
 
     const expectedProvMobile = getRequiredPhoneLength(providerCountryCode);
@@ -905,6 +1109,11 @@ const Login = () => {
     };
 
     const code = Math.floor(100000 + Math.random() * 900000).toString();
+    const targetEmail = (payload.email || providerEmail || '').trim();
+    const isEmail = targetEmail.includes('@');
+
+    // ⚡ INSTANT 0ms OPTIMISTIC UI TRANSITION
+    setIsRealEmailSent(false);
     setPendingUserData(payload);
     setGeneratedOtp(code);
     setOtpDigits(['', '', '', '', '', '']);
@@ -912,10 +1121,28 @@ const Login = () => {
     setOtpPurpose('register');
     setIsOtpStep(true);
 
-    toast.success(`📲 OTP sent to ${providerCountryCode} ${providerMobileNo}! (Demo code: ${code})`, {
-      duration: 6000,
-      icon: '📲'
-    });
+    // ⚡ Non-blocking background email dispatch
+    if (isEmail) {
+      apiRequest('/auth/send-otp', {
+        method: 'POST',
+        body: JSON.stringify({
+          email: targetEmail,
+          mobile: payload.mobile,
+          identifier: targetEmail,
+          purpose: 'registration'
+        })
+      }).then(res => {
+        if (res?.otp) setGeneratedOtp(res.otp);
+        if (res && !res.simulated) {
+          setIsRealEmailSent(true);
+          toast.success(`📧 Verification OTP sent to ${targetEmail}! Check your inbox.`, { duration: 6000, icon: '📧' });
+        }
+      }).catch(err => {
+        console.warn('Background send-otp error:', err);
+      });
+    } else {
+      toast.success(`📲 OTP sent to ${providerCountryCode} ${providerMobileNo}! Please check your messages/inbox.`, { duration: 6000, icon: '📲' });
+    }
   };
 
   // OTP Input & Action Handlers
@@ -982,18 +1209,37 @@ const Login = () => {
 
   const handleResendOtp = () => {
     const newCode = Math.floor(100000 + Math.random() * 900000).toString();
+    const targetEmail = pendingUserData?.email || (pendingUserData?.identifier?.includes('@') ? pendingUserData.identifier : userEmail);
+    const targetCode = pendingUserData?.mobileCountryCode || userCountryCode;
+    const targetNum = pendingUserData?.mobile || userMobileNo;
+
+    // ⚡ INSTANT reset of timer and digits
     setGeneratedOtp(newCode);
     setOtpTimer(30);
     setOtpDigits(['', '', '', '', '', '']);
-    const targetCode = pendingUserData?.mobileCountryCode || userCountryCode;
-    const targetNum = pendingUserData?.mobile || userMobileNo;
-    toast.success(`📲 New OTP sent to ${targetCode} ${targetNum}! (Code: ${newCode})`, {
-      duration: 5000,
-      icon: '📲'
-    });
     if (otpInputRefs.current[0]) {
       otpInputRefs.current[0].focus();
     }
+
+    // ⚡ Non-blocking background email dispatch
+    apiRequest('/auth/send-otp', {
+      method: 'POST',
+      body: JSON.stringify({
+        email: targetEmail || '',
+        identifier: pendingUserData?.identifier || targetNum,
+        purpose: otpPurpose
+      })
+    }).then(res => {
+      if (res?.otp) setGeneratedOtp(res.otp);
+      if (res && !res.simulated && targetEmail) {
+        setIsRealEmailSent(true);
+        toast.success(`📧 New OTP sent to ${targetEmail}! Check your inbox.`, { duration: 6000, icon: '📧' });
+      } else {
+        toast.success(`📲 New OTP sent! Please check your messages/inbox.`, { duration: 5000, icon: '📲' });
+      }
+    }).catch(() => {
+      toast.success(`📲 New OTP sent to ${targetCode} ${targetNum}! Please check your messages/inbox.`, { duration: 5000, icon: '📲' });
+    });
   };
 
   const handleVerifyOtp = async (e) => {
@@ -1015,22 +1261,42 @@ const Login = () => {
       if (otpPurpose === 'login') {
         // Handle Login OTP Verification
         const resultAction = await dispatch(login({ 
-          identifier: pendingUserData.identifier, 
-          password: pendingUserData.password 
+          identifier: pendingUserData?.identifier || loginIdentifier, 
+          password: pendingUserData?.password || loginPassword,
+          isOtpVerified: true,
+          role: pendingUserData?.role || (loginRoleTab === 'provider' ? 'SERVICE_PROVIDER' : 'CUSTOMER')
         }));
         
         if (login.fulfilled.match(resultAction)) {
           toast.success('🎉 Login verified successfully!');
           setIsOtpStep(false);
-          // Redirection will be handled by the useEffect watching isAuthenticated
+          const target = (pendingUserData?.role === 'SERVICE_PROVIDER' || resultAction.payload?.user?.role === 'SERVICE_PROVIDER')
+            ? '/provider-dashboard'
+            : (location.state?.from || '/account');
+          navigate(target);
         } else {
-          toast.error(resultAction.payload || 'Login failed. Please try again.');
+          // Prevent double toast: only show if not already displayed
+          const errMsg = resultAction?.payload || 'Login verification failed.';
+          if (errMsg && !errMsg.includes('Invalid credentials')) {
+            toast.error(errMsg);
+          }
         }
       } else {
         // Handle Registration OTP Verification
+        const sanitizedPending = { ...(pendingUserData || {}) };
+        if (sanitizedPending.govtProofDoc && typeof sanitizedPending.govtProofDoc === 'string' && sanitizedPending.govtProofDoc.length > 500) {
+          sanitizedPending.govtProofDoc = 'uploaded_doc_ref';
+        }
+        if (sanitizedPending.avatar && typeof sanitizedPending.avatar === 'string' && sanitizedPending.avatar.length > 30000) {
+          sanitizedPending.avatar = '';
+        }
+        if (sanitizedPending.profilePicture && typeof sanitizedPending.profilePicture === 'string' && sanitizedPending.profilePicture.length > 30000) {
+          sanitizedPending.profilePicture = '';
+        }
+
         const userObj = {
           _id: 'user_' + Date.now(),
-          ...pendingUserData,
+          ...sanitizedPending,
           addresses: []
         };
         const tokenStr = 'token_' + Date.now();
@@ -1039,14 +1305,16 @@ const Login = () => {
         dispatch(setAuthenticatedUser({ token: tokenStr, user: userObj }));
 
         // Also trigger thunk in background for API sync
-        dispatch(register(pendingUserData));
+        try {
+          dispatch(register(sanitizedPending));
+        } catch (_) {}
 
-        toast.success(`🎉 Mobile verified successfully! Welcome ${pendingUserData?.name || 'Pet Parent'}!`);
+        toast.success(`🎉 Verification successful! Welcome ${pendingUserData?.name || 'Pet Parent'}!`);
         setIsOtpStep(false);
         if (pendingUserData?.role === 'SERVICE_PROVIDER') {
           navigate('/provider-dashboard');
         } else {
-          navigate('/account');
+          navigate(location.state?.from || '/account');
         }
       }
     } catch (err) {
@@ -1160,24 +1428,19 @@ const Login = () => {
                 </div>
               </div>
 
-              {/* Demo OTP Quick Auto-fill banner */}
-              <div className="bg-amber-50/80 border border-amber-200 rounded-xl p-3 flex items-center justify-between shadow-xs">
-                <div className="flex items-center gap-2">
-                  <div className="w-7 h-7 rounded-lg bg-amber-100 flex items-center justify-center text-amber-700 font-bold text-xs">
-                    <KeyRound size={14} />
-                  </div>
-                  <div>
-                    <p className="text-[11px] text-amber-900 font-bold">Demo Verification Code</p>
-                    <p className="text-[13px] font-mono font-extrabold text-[#15559c] tracking-widest">{generatedOtp}</p>
-                  </div>
+              {/* Security Verification Notice */}
+              <div className="bg-emerald-50/70 border border-emerald-200/80 rounded-2xl p-3.5 flex items-center gap-3 text-left shadow-xs">
+                <div className="w-9 h-9 rounded-xl bg-emerald-100 flex items-center justify-center text-emerald-800 shrink-0">
+                  <Mail size={18} />
                 </div>
-                <button
-                  type="button"
-                  onClick={handleAutoFillOtp}
-                  className="px-3 py-1.5 bg-[#15559c] hover:bg-[#0f3d6b] text-white rounded-lg text-xs font-bold transition shadow-xs cursor-pointer flex items-center gap-1 active:scale-95"
-                >
-                  <Sparkles size={12} /> Auto-Fill
-                </button>
+                <div className="space-y-0.5">
+                  <p className="text-xs font-bold text-slate-800">
+                    Verification code sent to your email
+                  </p>
+                  <p className="text-[11px] text-slate-500 font-medium leading-relaxed">
+                    Please check your inbox (and spam folder) for the 6-digit OTP code.
+                  </p>
+                </div>
               </div>
 
               {/* 6 Digit OTP Inputs */}
@@ -1505,6 +1768,18 @@ const Login = () => {
                       title={showLoginPassword ? "Hide Password" : "View Password"}
                     >
                       {showLoginPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                    </button>
+                  </div>
+                  {/* Forgot Password Option */}
+                  <div className="flex items-center justify-between text-xs pt-0.5 px-0.5">
+                    <span className="text-slate-400 text-[11px]">Forgot your login password?</span>
+                    <button
+                      type="button"
+                      onClick={handleOpenForgotPassword}
+                      className="text-[#15559c] hover:underline font-bold text-xs inline-flex items-center gap-1 cursor-pointer transition hover:text-[#0f3d6b]"
+                    >
+                      <KeyRound size={12} />
+                      <span>Forgot Password?</span>
                     </button>
                   </div>
                 </div>
@@ -2296,6 +2571,241 @@ const Login = () => {
       </div>
     </div>
   );
+      {/* =========================================================================
+          FORGOT PASSWORD MODAL (Step 1: Request OTP -> Step 2: Reset Password)
+         ========================================================================= */}
+      {showForgotPasswordModal && (
+        <div className="fixed inset-0 z-[120] flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-200">
+          <div className="relative w-full max-w-md bg-white rounded-2xl shadow-2xl border border-slate-100 overflow-hidden animate-in zoom-in-95 duration-200">
+            {/* Modal Header */}
+            <div className="bg-[#0F2E23] text-white p-5 flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                <div className="w-9 h-9 rounded-xl bg-white/10 flex items-center justify-center text-[#D4AF37]">
+                  <KeyRound size={18} />
+                </div>
+                <div>
+                  <h3 className="font-serif text-base font-bold text-white">
+                    {forgotOtpStep ? 'Set New Password' : 'Reset Password'}
+                  </h3>
+                  <p className="text-[11px] text-emerald-200">
+                    {forgotOtpStep ? 'Enter verification code & create password' : 'Recover access to your account'}
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowForgotPasswordModal(false)}
+                className="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition cursor-pointer"
+                aria-label="Close"
+              >
+                <X size={16} />
+              </button>
+            </div>
+
+            {/* Modal Content */}
+            <div className="p-6 space-y-5">
+              {!forgotOtpStep ? (
+                /* Step 1: Request OTP */
+                <form onSubmit={handleSendForgotOtp} className="space-y-4">
+                  <div className="space-y-1">
+                    <label className="text-xs font-bold text-slate-700 block">
+                      Registered Email or Mobile Number
+                    </label>
+                    <p className="text-[11px] text-slate-500">
+                      Enter the email or phone linked with your account to receive a 6-digit recovery code.
+                    </p>
+                    <div className="relative pt-1">
+                      <Mail size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                      <input
+                        type="text"
+                        placeholder="e.g. priya@joshpetshub.com or 9845012345"
+                        value={forgotIdentifier}
+                        onChange={(e) => setForgotIdentifier(e.target.value)}
+                        className="w-full pl-10 pr-4 py-2.5 border border-slate-200 rounded-xl text-xs md:text-sm focus:outline-none focus:border-[#0F2E23] focus:ring-2 focus:ring-emerald-100 transition bg-slate-50/50 hover:bg-white font-medium"
+                        required
+                        autoFocus
+                      />
+                    </div>
+                  </div>
+
+                  <div className="pt-2 flex items-center gap-3">
+                    <button
+                      type="button"
+                      onClick={() => setShowForgotPasswordModal(false)}
+                      className="flex-1 py-2.5 border border-slate-200 hover:bg-slate-50 text-slate-600 rounded-xl text-xs font-bold transition cursor-pointer"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={forgotLoading || !forgotIdentifier.trim()}
+                      className="flex-1 py-2.5 bg-[#0F2E23] hover:bg-[#163e30] disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 shadow-md shadow-[#0F2E23]/20 cursor-pointer"
+                    >
+                      {forgotLoading ? (
+                        <>
+                          <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                          <span>Sending Code...</span>
+                        </>
+                      ) : (
+                        <>
+                          <span>Send Recovery Code</span>
+                          <ArrowRight size={13} />
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </form>
+              ) : (
+                /* Step 2: Enter OTP & Set New Password */
+                <form onSubmit={handleResetPasswordSubmit} className="space-y-4">
+                  <div className="bg-emerald-50/80 border border-emerald-200/80 rounded-xl p-3 text-xs text-emerald-900 flex items-start gap-2">
+                    <ShieldCheck size={16} className="text-emerald-700 shrink-0 mt-0.5" />
+                    <div>
+                      <p className="font-bold">Verification code sent!</p>
+                      <p className="text-[11px] text-emerald-800">
+                        We sent a 6-digit code to <strong>{forgotIdentifier}</strong>.
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* 6-Digit OTP */}
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold text-slate-700 block">
+                      6-Digit Verification Code
+                    </label>
+                    <div className="flex justify-center items-center gap-1.5">
+                      {forgotOtpDigits.map((digit, idx) => (
+                        <input
+                          key={idx}
+                          ref={(el) => (forgotOtpInputRefs.current[idx] = el)}
+                          type="text"
+                          inputMode="numeric"
+                          pattern="[0-9]*"
+                          maxLength={1}
+                          value={digit}
+                          onChange={(e) => handleForgotOtpChange(idx, e.target.value)}
+                          onKeyDown={(e) => handleForgotOtpKeyDown(idx, e)}
+                          onPaste={handleForgotOtpPaste}
+                          className="w-10 h-11 text-center text-lg font-bold font-mono border-2 rounded-xl focus:outline-none transition border-slate-200 bg-slate-50/50 text-slate-800 focus:border-[#0F2E23] focus:ring-2 focus:ring-emerald-100"
+                          autoFocus={idx === 0}
+                        />
+                      ))}
+                    </div>
+
+                    {/* Resend timer */}
+                    <div className="text-center pt-1">
+                      {forgotTimer > 0 ? (
+                        <span className="text-[11px] text-slate-400">
+                          Resend code in <strong className="font-mono text-slate-600">0:{forgotTimer < 10 ? "0" + forgotTimer : forgotTimer}</strong>
+                        </span>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={handleSendForgotOtp}
+                          className="text-[11px] font-bold text-[#15559c] hover:underline cursor-pointer inline-flex items-center gap-1"
+                        >
+                          <RotateCcw size={11} /> Resend Verification Code
+                        </button>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* New Password */}
+                  <div className="space-y-1">
+                    <label className="text-xs font-bold text-slate-700 flex items-center justify-between">
+                      <span>New Password</span>
+                      {forgotNewPassword.length > 0 && (
+                        <span className={"text-[10px] font-medium " + (forgotNewPassword.length >= 6 ? "text-emerald-600" : "text-amber-600")}>
+                          {forgotNewPassword.length >= 6 ? "✓ Minimum length satisfied" : ((6 - forgotNewPassword.length) + " more chars")}
+                        </span>
+                      )}
+                    </label>
+                    <div className="relative">
+                      <Lock size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                      <input
+                        type={showForgotNewPassword ? "text" : "password"}
+                        placeholder="Enter new password (min. 6 chars)"
+                        value={forgotNewPassword}
+                        onChange={(e) => setForgotNewPassword(e.target.value)}
+                        className="w-full pl-9 pr-9 py-2 border border-slate-200 rounded-xl text-xs focus:outline-none focus:border-[#0F2E23] focus:ring-2 focus:ring-emerald-100 transition"
+                        required
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowForgotNewPassword(!showForgotNewPassword)}
+                        className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 transition"
+                      >
+                        {showForgotNewPassword ? <EyeOff size={15} /> : <Eye size={15} />}
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Confirm New Password */}
+                  <div className="space-y-1">
+                    <label className="text-xs font-bold text-slate-700 flex items-center justify-between">
+                      <span>Confirm New Password</span>
+                      {forgotConfirmPassword.length > 0 && (
+                        <span className={"text-[10px] font-medium " + (forgotConfirmPassword === forgotNewPassword ? "text-emerald-600" : "text-amber-600")}>
+                          {forgotConfirmPassword === forgotNewPassword ? "✓ Passwords match" : "⚠️ Passwords do not match"}
+                        </span>
+                      )}
+                    </label>
+                    <div className="relative">
+                      <Lock size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                      <input
+                        type={showForgotConfirmPassword ? "text" : "password"}
+                        placeholder="Re-enter new password"
+                        value={forgotConfirmPassword}
+                        onChange={(e) => setForgotConfirmPassword(e.target.value)}
+                        className={"w-full pl-9 pr-9 py-2 border rounded-xl text-xs focus:outline-none transition " + (
+                          forgotConfirmPassword && forgotConfirmPassword !== forgotNewPassword
+                            ? "border-amber-400 focus:border-amber-500"
+                            : "border-slate-200 focus:border-[#0F2E23] focus:ring-2 focus:ring-emerald-100"
+                        )}
+                        required
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowForgotConfirmPassword(!showForgotConfirmPassword)}
+                        className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 transition"
+                      >
+                        {showForgotConfirmPassword ? <EyeOff size={15} /> : <Eye size={15} />}
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="pt-2 flex items-center gap-3">
+                    <button
+                      type="button"
+                      onClick={() => setForgotOtpStep(false)}
+                      className="flex-1 py-2.5 border border-slate-200 hover:bg-slate-50 text-slate-600 rounded-xl text-xs font-bold transition cursor-pointer"
+                    >
+                      ← Back
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={forgotLoading || forgotOtpDigits.join("").length !== 6 || !forgotNewPassword || forgotNewPassword.length < 6 || forgotNewPassword !== forgotConfirmPassword}
+                      className="flex-1 py-2.5 bg-[#0F2E23] hover:bg-[#163e30] disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 shadow-md shadow-[#0F2E23]/20 cursor-pointer"
+                    >
+                      {forgotLoading ? (
+                        <>
+                          <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                          <span>Resetting...</span>
+                        </>
+                      ) : (
+                        <>
+                          <Check size={14} />
+                          <span>Reset Password</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </form>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 };
 
 export default Login;

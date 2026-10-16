@@ -116,7 +116,7 @@ export const DEMO_PROVIDER_PERSONAS = [
     pincode: '560035',
     bio: 'Spacious 2-acre green resort with temperature-controlled private suites, swimming splash pool, 24/7 live CCTV access for parents, and freshly cooked meals.',
     avatar: 'https://images.unsplash.com/photo-1633332755192-727a05c4013d?q=80&w=800&auto=format&fit=crop',
-    coverImage: 'https://images.unsplash.com/photo-1544568100-eba616a6ce76?q=80&w=800&auto=format&fit=crop',
+    coverImage: 'https://images.unsplash.com/photo-1543466835-00a7907e9de1?q=80&w=800&auto=format&fit=crop',
     isOnline: true,
     acceptingEmergency: true,
     operatingHours: {

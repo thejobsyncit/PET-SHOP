@@ -3,6 +3,30 @@ import { useNavigate, Link } from 'react-router-dom';
 import { Search, X, Sparkles, ArrowRight, Flame, ShieldCheck, PawPrint } from 'lucide-react';
 import { apiRequest } from '../../services/api.js';
 import WalkingDogOnLine from '../widgets/WalkingDogOnLine.jsx';
+import AnimatedDepartmentIcon from '../widgets/AnimatedDepartmentIcon.jsx';
+
+const DepartmentCard = ({ dept, onClick }) => {
+  const [isHovered, setIsHovered] = useState(false);
+
+  return (
+    <button
+      onClick={onClick}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+      className="group relative p-3.5 bg-white hover:bg-gradient-to-br hover:from-white hover:via-amber-50/50 hover:to-yellow-50/60 border border-amber-200/80 hover:border-[#D4AF37] rounded-xl text-left transition-all duration-200 hover:-translate-y-1 hover:shadow-md cursor-pointer shadow-xs overflow-visible"
+    >
+      <div className="mb-2">
+        <AnimatedDepartmentIcon type={dept.id} isHovered={isHovered} />
+      </div>
+      <h4 className="font-serif text-sm font-bold text-stone-900 group-hover:text-[#B8860B] transition-colors">
+        {dept.name}
+      </h4>
+      <p className="text-[10px] text-stone-500 mt-0.5 line-clamp-1">
+        {dept.desc}
+      </p>
+    </button>
+  );
+};
 
 const SearchOverlay = ({ isOpen, onClose }) => {
   const [query, setQuery] = useState('');
@@ -81,14 +105,14 @@ const SearchOverlay = ({ isOpen, onClose }) => {
     { label: 'Orthopedic Dog Bed', icon: '🦮' },
   ];
 
-  // Original Animal Departments in White & Gold Theme
+  // Animal Departments with Animated Vector Companion Icons
   const departments = [
-    { name: 'Dogs', icon: '🐕', desc: 'Nutrition, Toys & Wellness', path: '/shop?petType=dogs' },
-    { name: 'Cats', icon: '🐈', desc: 'Kibble, Scratchers & Litter', path: '/shop?petType=cats' },
-    { name: 'Birds', icon: '🦜', desc: 'Avian Seeds, Cages & Toys', path: '/shop?petType=birds' },
-    { name: 'Reptiles', icon: '🦎', desc: 'Terrariums, Heat & Diet', path: '/shop?petType=reptiles' },
-    { name: 'Fish & Aquatic', icon: '🐠', desc: 'Aquariums, Filters & Feed', path: '/shop?petType=fish' },
-    { name: 'Veterinary Rx', icon: '🩺', desc: 'Supplements & Doctors', path: '/pharmacy' },
+    { id: 'dogs', name: 'Dogs', desc: 'Nutrition, Toys & Wellness', path: '/shop?petType=dogs' },
+    { id: 'cats', name: 'Cats', desc: 'Kibble, Scratchers & Litter', path: '/shop?petType=cats' },
+    { id: 'birds', name: 'Birds', desc: 'Avian Seeds, Cages & Toys', path: '/shop?petType=birds' },
+    { id: 'reptiles', name: 'Reptiles', desc: 'Terrariums, Heat & Diet', path: '/shop?petType=reptiles' },
+    { id: 'fish', name: 'Fish & Aquatic', desc: 'Aquariums, Filters & Feed', path: '/shop?petType=fish' },
+    { id: 'veterinary', name: 'Veterinary Rx', desc: 'Supplements & Doctors', path: '/pharmacy' },
   ];
 
   return (
@@ -153,20 +177,20 @@ const SearchOverlay = ({ isOpen, onClose }) => {
       </div>
 
       {/* Main Search Content Area */}
-      <div className="relative z-10 max-w-4xl mx-auto w-full px-6 flex-grow flex flex-col justify-start pt-8 md:pt-14 pb-16">
+      <div className="relative z-10 max-w-4xl mx-auto w-full px-6 flex-grow flex flex-col justify-start pt-16 md:pt-20 pb-16">
         
         {/* =========================================================================
-            SEARCH BAR AREA WITH ANIMATED COMPANION ON GOLDEN LINE
+            SEARCH BAR AREA WITH ANIMATED COMPANION ON TOP GOLDEN LINE
            ========================================================================= */}
         <div className="relative mb-12">
           
           {/* Luxury White & Gold Signature Search Bar */}
           <form
             onSubmit={handleSearchSubmit}
-            className="relative group flex items-center bg-white hover:bg-white focus-within:bg-white rounded-2xl border-2 border-[#D4AF37] focus-within:border-[#B8860B] transition-all duration-200 shadow-[0_10px_35px_rgba(212,175,55,0.18)] hover:shadow-[0_14px_45px_rgba(212,175,55,0.25)] focus-within:ring-4 focus-within:ring-amber-200/50 px-5 md:px-7 pt-3.5 pb-5 md:pt-4 md:pb-6 min-h-[72px] overflow-visible"
+            className="relative group flex items-center bg-white hover:bg-white focus-within:bg-white rounded-2xl border-2 border-[#D4AF37] focus-within:border-[#B8860B] transition-all duration-200 shadow-[0_10px_35px_rgba(212,175,55,0.18)] hover:shadow-[0_14px_45px_rgba(212,175,55,0.25)] focus-within:ring-4 focus-within:ring-amber-200/50 px-5 md:px-7 py-3.5 md:py-4 min-h-[64px] overflow-visible"
           >
             {/* Search Icon */}
-            <div className="mr-3.5 text-[#B8860B] flex items-center justify-center relative z-20 shrink-0 mb-1.5">
+            <div className="mr-3.5 text-[#B8860B] flex items-center justify-center relative z-20 shrink-0">
               <Search size={26} className="transition-transform duration-200 group-focus-within:scale-110" />
             </div>
 
@@ -177,14 +201,14 @@ const SearchOverlay = ({ isOpen, onClose }) => {
               placeholder="Search premium pet food, treats, breeds, toys, vet care..."
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              className="w-full bg-transparent text-base md:text-xl font-sans font-medium text-stone-900 placeholder-stone-400 focus:outline-none tracking-wide relative z-20 mb-1.5"
+              className="w-full bg-transparent text-base md:text-xl font-sans font-medium text-stone-900 placeholder-stone-400 focus:outline-none tracking-wide relative z-20"
             />
 
-            {/* Walking Companion on the golden baseline */}
+            {/* Walking Companion perched on the top golden border */}
             <WalkingDogOnLine isSearching={query.trim().length > 0} />
 
             {/* Right Action Icons */}
-            <div className="flex items-center gap-2 ml-3 relative z-20 shrink-0 mt-1 md:mt-1.5">
+            <div className="flex items-center gap-2 ml-3 relative z-20 shrink-0">
               {query && (
                 <button
                   type="button"
@@ -362,8 +386,7 @@ const SearchOverlay = ({ isOpen, onClose }) => {
 
             {/* Departments Grid Column (Original Departments in White & Gold) */}
             <div className="lg:col-span-7 space-y-4">
-              <div className="flex items-center gap-2">
-                <Sparkles size={18} className="text-[#C59B27]" />
+              <div className="flex items-center">
                 <h3 className="font-serif text-sm font-bold tracking-widest uppercase text-stone-900">
                   Shop by Department
                 </h3>
@@ -371,24 +394,14 @@ const SearchOverlay = ({ isOpen, onClose }) => {
 
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                 {departments.map((dept) => (
-                  <button
-                    key={dept.name}
+                  <DepartmentCard
+                    key={dept.id}
+                    dept={dept}
                     onClick={() => {
                       onClose();
                       navigate(dept.path);
                     }}
-                    className="group p-3.5 bg-white hover:bg-gradient-to-br hover:from-white hover:via-amber-50/50 hover:to-yellow-50/60 border border-amber-200/80 hover:border-[#D4AF37] rounded-xl text-left transition-all duration-200 hover:-translate-y-1 hover:shadow-md cursor-pointer shadow-xs"
-                  >
-                    <div className="text-2xl mb-2 group-hover:scale-110 transition-transform">
-                      {dept.icon}
-                    </div>
-                    <h4 className="font-serif text-sm font-bold text-stone-900 group-hover:text-[#B8860B] transition-colors">
-                      {dept.name}
-                    </h4>
-                    <p className="text-[10px] text-stone-500 mt-0.5 line-clamp-1">
-                      {dept.desc}
-                    </p>
-                  </button>
+                  />
                 ))}
               </div>
             </div>
