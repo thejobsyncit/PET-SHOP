@@ -358,6 +358,7 @@ const Login = () => {
   // Login Form States (Supports both Email and Mobile Number)
   const [loginIdentifier, setLoginIdentifier] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
+  const [loginError, setLoginError] = useState('');
 
   // Password Visibility Toggle States
   const [showLoginPassword, setShowLoginPassword] = useState(false);
@@ -870,8 +871,9 @@ const Login = () => {
   // 1. Sign In Submit Handler (Email or Mobile Number)
   const handleLoginSubmit = async (e) => {
     if (e) e.preventDefault();
+    setLoginError('');
     if (!loginIdentifier || !loginPassword) {
-      toast.error('Please enter your email or mobile number and password.');
+      setLoginError('Please enter your email or mobile number and password.');
       return;
     }
     
@@ -891,7 +893,7 @@ const Login = () => {
       });
 
       if (!res.success) {
-        toast.error(res.message || 'Invalid credentials. Please register first.');
+        setLoginError(res.message || 'Invalid email or password. Please register if you do not have an account.');
         setVerifyingOtp(false);
         return;
       }
@@ -923,7 +925,7 @@ const Login = () => {
       }
     } catch (err) {
       console.error('Login submit check error:', err);
-      toast.error(err.message || 'Account not found or password incorrect. Please register first.');
+      setLoginError(err.message || 'Invalid email or password. Please register if you do not have an account.');
     } finally {
       setVerifyingOtp(false);
     }
@@ -1749,7 +1751,10 @@ const Login = () => {
                       type="text"
                       placeholder={loginRoleTab === 'provider' ? "Provider Email or Registered Mobile *" : "Email Address or Mobile Number *"}
                       value={loginIdentifier}
-                      onChange={(e) => setLoginIdentifier(e.target.value)}
+                      onChange={(e) => {
+                        setLoginIdentifier(e.target.value);
+                        if (loginError) setLoginError('');
+                      }}
                       className={`w-full pl-10 pr-4 py-2.5 border rounded-xl text-xs md:text-sm focus:outline-none transition bg-slate-50/50 hover:bg-white font-medium ${
                         loginRoleTab === 'provider'
                           ? 'border-slate-200 focus:border-[#0F2E23] focus:ring-2 focus:ring-emerald-100'
@@ -1766,7 +1771,10 @@ const Login = () => {
                       type={showLoginPassword ? "text" : "password"}
                       placeholder="Password *"
                       value={loginPassword}
-                      onChange={(e) => setLoginPassword(e.target.value)}
+                      onChange={(e) => {
+                        setLoginPassword(e.target.value);
+                        if (loginError) setLoginError('');
+                      }}
                       className={`w-full pl-10 pr-10 py-2.5 border rounded-xl text-xs md:text-sm focus:outline-none transition bg-slate-50/50 hover:bg-white font-medium ${
                         loginRoleTab === 'provider'
                           ? 'border-slate-200 focus:border-[#0F2E23] focus:ring-2 focus:ring-emerald-100'
@@ -1795,16 +1803,24 @@ const Login = () => {
                       <span>Forgot Password?</span>
                     </button>
                   </div>
+
+                  {/* Inline Error Display */}
+                  {loginError && (
+                    <div className="p-2.5 rounded-xl bg-red-50/90 border border-red-200 text-red-700 text-xs flex items-start gap-2 animate-fadeIn shadow-xs">
+                      <AlertCircle size={15} className="shrink-0 mt-0.5 text-red-500" />
+                      <span className="font-semibold leading-relaxed">{loginError}</span>
+                    </div>
+                  )}
                 </div>
 
                 <button
                   type="submit"
-                  disabled={loading}
+                  disabled={loading || verifyingOtp}
                   className="w-full py-3 text-white font-bold text-xs uppercase tracking-wider rounded-xl shadow-lg bg-[#0F2E23] hover:bg-[#163e30] shadow-[#0F2E23]/20 active:scale-95 transition cursor-pointer flex items-center justify-center gap-2"
                 >
                   <span>
-                    {loading
-                      ? 'LOGGING IN...'
+                    {(loading || verifyingOtp)
+                      ? 'VERIFYING...'
                       : loginRoleTab === 'provider'
                       ? 'LOGIN TO PROVIDER DASHBOARD'
                       : 'LOGIN TO USER DASHBOARD'}
