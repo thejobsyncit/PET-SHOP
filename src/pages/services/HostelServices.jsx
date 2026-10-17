@@ -5,7 +5,8 @@ import {
   Sparkles, Search, MapPin, Phone, MessageSquare, Star, ShieldCheck,
   Calendar, Clock, CircleCheck, ChevronRight, X, SlidersHorizontal,
   RefreshCw, Check, ArrowRight, Heart, Award, Home,
-  ShieldAlert, UserCheck, Video, Moon, Sun, Trees, ChevronDown
+  ShieldAlert, UserCheck, Video, Moon, Sun, Trees, ChevronDown,
+  LayoutGrid, Snowflake, Camera, Stethoscope, Smartphone, UtensilsCrossed, Waves
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import {
@@ -14,6 +15,18 @@ import {
   getStoredHostelProviders,
   saveHostelBooking
 } from '../../data/hostelData.js';
+
+// Professional Lucide Icon & Color Mapping for Hostel Offerings
+const OFFERING_ICON_MAP = {
+  'all': { icon: LayoutGrid, color: 'text-violet-600', bg: 'bg-violet-50' },
+  'ac-rooms': { icon: Snowflake, color: 'text-sky-600', bg: 'bg-sky-50' },
+  'cctv': { icon: Camera, color: 'text-rose-600', bg: 'bg-rose-50' },
+  'lawn': { icon: Trees, color: 'text-emerald-600', bg: 'bg-emerald-50' },
+  'vet-on-call': { icon: Stethoscope, color: 'text-teal-600', bg: 'bg-teal-50' },
+  'video-updates': { icon: Smartphone, color: 'text-indigo-600', bg: 'bg-indigo-50' },
+  'home-cooked-meals': { icon: UtensilsCrossed, color: 'text-amber-600', bg: 'bg-amber-50' },
+  'swimming-pool': { icon: Waves, color: 'text-blue-600', bg: 'bg-blue-50' }
+};
 import { INDIAN_STATES_CITIES } from '../../data/adoptionPetsData.js';
 import ServiceAccessLock, { isServicePathLockedForUser } from '../../components/ui/ServiceAccessLock.jsx';
 
@@ -436,6 +449,9 @@ const HostelServices = () => {
           {HOSTEL_OFFERINGS.map((offering) => {
             const isActive = selectedAmenity === offering.id;
             const count = offeringCounts[offering.id] ?? 0;
+            const iconConfig = OFFERING_ICON_MAP[offering.id] || { icon: LayoutGrid, color: 'text-violet-600', bg: 'bg-violet-50' };
+            const IconComponent = iconConfig.icon;
+
             return (
               <button
                 key={offering.id}
@@ -446,15 +462,20 @@ const HostelServices = () => {
                   }`}
               >
                 {/* Result count bubble */}
-                <span className={`absolute top-2 right-2 text-[9px] font-bold px-1.5 py-0.2 rounded-full ${isActive ? 'bg-white/20 text-white' : 'bg-purple-50 text-[#7c56dc]'
+                <span className={`absolute top-2 right-2 text-[9px] font-bold px-1.5 py-0.5 rounded-full transition-colors ${isActive ? 'bg-white/25 text-white' : 'bg-slate-100 text-slate-600 group-hover:bg-purple-100 group-hover:text-[#7c56dc]'
                   }`}>
                   {count}
                 </span>
 
-                <div className={`w-11 h-11 rounded-xl flex items-center justify-center text-xl transition ${isActive ? 'bg-white/20' : 'bg-purple-50 group-hover:bg-purple-100/70'
-                  }`}>
-                  {offering.icon}
+                {/* Professional Vector Icon Container */}
+                <div className={`w-11 h-11 rounded-xl flex items-center justify-center transition-all duration-200 ${
+                  isActive
+                    ? 'bg-white/20 text-white shadow-inner'
+                    : `${iconConfig.bg} ${iconConfig.color} group-hover:scale-110 shadow-xs`
+                }`}>
+                  <IconComponent size={20} strokeWidth={2.2} />
                 </div>
+
                 <span className="text-xs font-extrabold leading-tight">
                   {offering.name}
                 </span>
