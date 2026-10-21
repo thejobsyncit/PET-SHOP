@@ -244,9 +244,13 @@ const GroomingServices = () => {
     <div className="min-h-screen bg-[#faf8fc] text-slate-800 pb-24">
 
       {/* =========================================================================
-          1. RADIANT HERO BANNER WITH SEARCH FILTER BAR (Screenshot 1 Match)
+          1. RADIANT HERO BANNER WITH SEARCH FILTER BAR (135deg Metallic Gold Theme)
          ========================================================================= */}
-      <section className="relative bg-[#FAC52E] text-slate-900 pt-8 pb-12 px-4 md:px-8 shadow-sm border-b border-[#E0B025]">
+      <ScrollReveal
+        variant="fade"
+        style={{ background: 'linear-gradient(135deg, #d4af37 0%, #fef08a 50%, #b89228 100%)' }}
+        className="relative text-slate-900 pt-8 pb-12 px-4 md:px-8 shadow-md border-b border-[#B89228]"
+      >
         <div className="max-w-7xl mx-auto">
           
           {/* Breadcrumb Navigation */}
@@ -340,7 +344,7 @@ const GroomingServices = () => {
                         const el = document.getElementById('providers-catalog');
                         if (el) el.scrollIntoView({ behavior: 'smooth' });
                       }}
-                      className="w-full bg-primary hover:bg-[#6842c2] text-white font-extrabold py-2.5 px-4 rounded-xl text-xs shadow-md transition-all flex items-center justify-center gap-1.5 cursor-pointer active:scale-95"
+                      className="w-full bg-primary hover:bg-primary-light text-white font-extrabold py-2.5 px-4 rounded-xl text-xs shadow-md shadow-primary/25 transition-all flex items-center justify-center gap-1.5 cursor-pointer active:scale-95"
                     >
                       <Search size={14} />
                       <span>Search</span>
@@ -360,10 +364,12 @@ const GroomingServices = () => {
                   alt="Groomed Happy Dog"
                   className="w-full h-full object-cover rounded-3xl shadow-2xl border-4 border-white/80 filter drop-shadow-xl"
                 />
-                <div className="absolute -bottom-3 -left-3 bg-white px-4 py-2 rounded-2xl shadow-lg border border-amber-200 flex items-center gap-2">
-                  <span className="text-xl">✂️</span>
+                <div className="absolute -bottom-3 -left-3 bg-white px-4 py-2.5 rounded-2xl shadow-lg border border-amber-200 flex items-center gap-2.5">
+                  <div className="w-9 h-9 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center border border-amber-200/80 shrink-0">
+                    <ShieldCheck size={20} className="text-amber-600" />
+                  </div>
                   <div>
-                    <p className="text-[10px] font-extrabold text-slate-400 uppercase">Verified Care</p>
+                    <p className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">Verified Groomers</p>
                     <p className="text-xs font-extrabold text-slate-800">100% Gentle Grooming</p>
                   </div>
                 </div>
@@ -373,7 +379,7 @@ const GroomingServices = () => {
           </div>
 
         </div>
-      </section>
+      </ScrollReveal>
 
 
       {/* =========================================================================
