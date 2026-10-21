@@ -264,7 +264,7 @@ const SearchOverlay = ({ isOpen, onClose }) => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   {results.map((product) => (
                     <div
-                      key={product._id}
+                      key={product._id || product.id}
                       onClick={() => handleProductClick(product.slug)}
                       className="group flex items-center gap-4 p-3.5 bg-white hover:bg-gradient-to-r hover:from-white hover:to-amber-50/50 border border-amber-200/80 hover:border-[#D4AF37] rounded-2xl transition-all duration-200 cursor-pointer shadow-sm hover:shadow-md hover:-translate-y-0.5"
                     >

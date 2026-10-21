@@ -227,7 +227,7 @@ const Home = () => {
             ) : tabProducts.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-1 md:grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 {tabProducts.map((product) => (
-                  <ProductCard key={product._id} product={product} />
+                  <ProductCard key={product._id || product.id} product={product} />
                 ))}
               </div>
             ) : (
@@ -257,7 +257,7 @@ const Home = () => {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-1 md:grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               {bestSellers.map((product) => (
-                <ProductCard key={product._id} product={product} />
+                <ProductCard key={product._id || product.id} product={product} />
               ))}
             </div>
           )}

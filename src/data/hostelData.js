@@ -1,14 +1,14 @@
 // Pet Hostel & Boarding Service Providers Dataset & Persistent Storage Helpers
 
 export const HOSTEL_OFFERINGS = [
-  { id: 'all', name: 'All Features', icon: '🐾', desc: 'Browse all verified pet hostels & resorts' },
-  { id: 'ac-rooms', name: 'AC Suites', icon: '❄️', desc: 'Climate-controlled private rooms & suites' },
-  { id: 'cctv', name: '24/7 CCTV Live Stream', icon: '📹', desc: 'Live mobile video streaming for pet parents' },
-  { id: 'lawn', name: 'Outdoor Lawn & Play Area', icon: '🌳', desc: 'Green lawns, agility tracks & open spaces' },
-  { id: 'vet-on-call', name: 'Vet On Call', icon: '🩺', desc: '24/7 emergency medical & vet supervision' },
-  { id: 'video-updates', name: 'Daily Video Updates', icon: '📱', desc: 'Daily WhatsApp photos & video updates' },
-  { id: 'home-cooked-meals', name: 'Customized Meals', icon: '🍲', desc: 'Fresh home-cooked diet & medical meals' },
-  { id: 'swimming-pool', name: 'Pet Pool / Splash Zone', icon: '🏊', desc: 'Supervised pet pool & splash play zones' }
+  { id: 'all', name: 'All Features', icon: '🐾', iconName: 'PawPrint', desc: 'Browse all verified pet hostels & resorts' },
+  { id: 'ac-rooms', name: 'AC Suites', icon: '❄️', iconName: 'Snowflake', desc: 'Climate-controlled private rooms & suites' },
+  { id: 'cctv', name: '24/7 CCTV Live Stream', icon: '📹', iconName: 'Video', desc: 'Live mobile video streaming for pet parents' },
+  { id: 'lawn', name: 'Outdoor Lawn & Play Area', icon: '🌳', iconName: 'Trees', desc: 'Green lawns, agility tracks & open spaces' },
+  { id: 'vet-on-call', name: 'Vet On Call', icon: '🩺', iconName: 'Stethoscope', desc: '24/7 emergency medical & vet supervision' },
+  { id: 'video-updates', name: 'Daily Video Updates', icon: '📱', iconName: 'Smartphone', desc: 'Daily WhatsApp photos & video updates' },
+  { id: 'home-cooked-meals', name: 'Customized Meals', icon: '🍲', iconName: 'Utensils', desc: 'Fresh home-cooked diet & medical meals' },
+  { id: 'swimming-pool', name: 'Pet Pool / Splash Zone', icon: '🏊', iconName: 'Waves', desc: 'Supervised pet pool & splash play zones' }
 ];
 
 export const HOSTEL_AMENITIES = HOSTEL_OFFERINGS;

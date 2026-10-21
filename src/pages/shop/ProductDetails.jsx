@@ -19,7 +19,8 @@ const ProductDetails = () => {
 
   const { currentProduct: product, detailLoading: loading, items: products } = useSelector((state) => state.products);
   const wishlistItems = useSelector((state) => state.wishlist.items);
-  const isWishlisted = product && wishlistItems.some(item => item._id === product._id);
+  const productId = product ? (product._id || product.id) : null;
+  const isWishlisted = productId && wishlistItems.some(item => (item._id || item.id) === productId);
 
   const [activeImage, setActiveImage] = useState(0);
   const [activeTab, setActiveTab] = useState('description');
@@ -45,7 +46,7 @@ const ProductDetails = () => {
       // Load product recommendations
       dispatch(fetchProducts({ petType: product.petType, limit: 8 }));
       // Load product reviews
-      loadReviews(product._id);
+      loadReviews(product._id || product.id);
       // Reset image index
       setActiveImage(0);
       setQuantity(1);
@@ -66,26 +67,39 @@ const ProductDetails = () => {
     }
   };
 
-  const handleToggleWishlist = () => {
-    dispatch(toggleWishlistAPI(product));
-    if (isWishlisted) {
-      toast.success('Removed from wishlist');
+  const handleToggleWishlist = async () => {
+    const result = await dispatch(toggleWishlistAPI(product));
+    if (toggleWishlistAPI.fulfilled.match(result)) {
+      const updatedList = result.payload?.wishlist || [];
+      const currentId = product._id || product.id;
+      const nowInWishlist = updatedList.some(item => (item._id || item.id) === currentId);
+      if (nowInWishlist) {
+        toast.success('Added to wishlist');
+      } else {
+        toast.success('Removed from wishlist');
+      }
     } else {
-      toast.success('Added to wishlist');
+      toast.error('Could not update wishlist.');
     }
   };
 
-  const handleAddToCart = () => {
-    if (product.requiresPrescription) {
+  const handleAddToCart = async () => {
+    if (product.requiresPrescription || product.requires_prescription) {
       toast('Prescription verification needed. Order will process under Rx Review status.', { icon: '📝' });
     }
-    dispatch(addToCartAPI({ product, quantity }));
-    toast.success('Added to cart!');
+    const result = await dispatch(addToCartAPI({ product, quantity }));
+    if (addToCartAPI.fulfilled.match(result)) {
+      toast.success('Added to cart!');
+    } else {
+      toast.error('Could not add to cart.');
+    }
   };
 
-  const handleBuyNow = () => {
-    dispatch(addToCartAPI({ product, quantity }));
-    navigate('/checkout');
+  const handleBuyNow = async () => {
+    const result = await dispatch(addToCartAPI({ product, quantity }));
+    if (addToCartAPI.fulfilled.match(result)) {
+      navigate('/checkout');
+    }
   };
 
   const handleReviewSubmit = async (e) => {
@@ -107,7 +121,7 @@ const ProductDetails = () => {
       const data = await apiRequest('/reviews', {
         method: 'POST',
         body: JSON.stringify({
-          productId: product._id,
+          productId: product._id || product.id,
           rating: reviewRating,
           title: reviewTitle,
           comment: reviewComment
@@ -119,7 +133,7 @@ const ProductDetails = () => {
         setReviewTitle('');
         setReviewComment('');
         // Reload reviews
-        loadReviews(product._id);
+        loadReviews(product._id || product.id);
       }
     } catch (error) {
       toast.error(error.message || 'Already reviewed this product.');
@@ -138,8 +152,9 @@ const ProductDetails = () => {
   }
 
   // Filter recommendations
-  const recommendedItems = products.filter(p => p._id !== product._id).slice(0, 4);
-  const frequentlyBoughtTogether = products.filter(p => p._id !== product._id).slice(4, 6);
+  const currentPId = product._id || product.id;
+  const recommendedItems = products.filter(p => (p._id || p.id) !== currentPId).slice(0, 4);
+  const frequentlyBoughtTogether = products.filter(p => (p._id || p.id) !== currentPId).slice(4, 6);
 
   return (
     <div className="pb-20 space-y-16">

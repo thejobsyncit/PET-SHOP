@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
-import { updateProfile } from '../../../store/slices/authSlice.js';
+import { updateProfile, logout } from '../../../store/slices/authSlice.js';
 import {
   PawPrint, Calendar, Star, TrendingUp, DollarSign, Clock, MapPin, 
   MessageSquare, Plus, Search, ChevronRight, Phone, ShieldCheck, Mail, Heart, Settings,
@@ -688,10 +688,11 @@ const PetSellerDashboard = ({
         <div className="p-6 border-t border-slate-100 bg-slate-50/50 mt-auto">
           <button
             onClick={() => {
+              dispatch(logout());
               toast.success('Logged out successfully');
               navigate('/');
             }}
-            className="w-full bg-white border border-rose-200 text-rose-600 hover:bg-rose-50 hover:border-rose-300 text-xs font-black uppercase tracking-widest rounded-xl px-4 py-3 flex items-center justify-center gap-2 shadow-sm transition-all"
+            className="w-full bg-white border border-rose-200 text-rose-600 hover:bg-rose-50 hover:border-rose-300 text-xs font-black uppercase tracking-widest rounded-xl px-4 py-3 flex items-center justify-center gap-2 shadow-sm transition-all cursor-pointer"
           >
             <LogOut size={16} /> Logout
           </button>
@@ -716,12 +717,26 @@ const PetSellerDashboard = ({
             </p>
           </div>
           
-          <button
-            onClick={handleAddNew}
-            className="px-6 py-3 bg-[#ffd000] hover:bg-[#ffdf4d] text-[#0F2E23] text-xs font-black uppercase tracking-wider rounded-xl shadow-sm hover:shadow-md transition-all cursor-pointer flex items-center gap-2"
-          >
-            <Plus size={16} /> Post New Pet Listing
-          </button>
+          <div className="flex items-center gap-2.5 w-full sm:w-auto justify-between sm:justify-start">
+            <button
+              onClick={handleAddNew}
+              className="px-6 py-3 bg-[#ffd000] hover:bg-[#ffdf4d] text-[#0F2E23] text-xs font-black uppercase tracking-wider rounded-xl shadow-sm hover:shadow-md transition-all cursor-pointer flex items-center gap-2"
+            >
+              <Plus size={16} /> Post New Pet Listing
+            </button>
+            <button
+              onClick={() => {
+                dispatch(logout());
+                toast.success('Logged out successfully');
+                navigate('/');
+              }}
+              className="lg:hidden px-3.5 py-3 bg-white border border-rose-200 text-rose-600 hover:bg-rose-50 text-xs font-black uppercase tracking-wider rounded-xl shadow-sm flex items-center justify-center gap-1.5 transition cursor-pointer"
+              title="Logout"
+            >
+              <LogOut size={16} />
+              <span className="text-[11px]">Logout</span>
+            </button>
+          </div>
         </div>
 
         {/* 
@@ -1010,15 +1025,25 @@ const PetSellerDashboard = ({
                         <p className="text-center text-slate-400 text-xs font-bold animate-pulse py-10">Loading conversation...</p>
                       ) : chatMessages.length > 0 ? (
                         chatMessages.map((m, index) => {
-                          const isSoloTesting = chatMessages.every(msg => (msg.sender?._id || msg.sender) === (chatMessages[0].sender?._id || chatMessages[0].sender));
-                          const isMe = isSoloTesting ? (index % 2 !== 0) : ((m.sender?._id || m.sender).toString() === user?._id?.toString());
+                          const myId = (user?._id || user?.id || '').toString();
+                          const msgSenderId = (m.sender?._id || m.sender?.id || (typeof m.sender === 'string' ? m.sender : '') || '').toString();
+                          const isMe = Boolean(
+                            (myId && msgSenderId && myId === msgSenderId) ||
+                            (user?.email && m.sender?.email && user.email.toLowerCase() === m.sender.email.toLowerCase()) ||
+                            m.sender === 'provider' ||
+                            (user?.name && m.sender?.name && user.name.toLowerCase() === m.sender.name.toLowerCase())
+                          );
                           
                           return (
-                            <div key={m._id} className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
-                              <div className={`max-w-md p-3.5 text-xs shadow-sm rounded-2xl ${isMe ? 'bg-[#0F2E23] text-[#FAF9F5] rounded-br-none shadow-md' : 'bg-white border border-slate-200 text-slate-700 rounded-bl-none shadow-sm'}`}>
-                                <p className="leading-relaxed">{m.messageText}</p>
+                            <div key={m._id || index} className={`flex w-full ${isMe ? 'justify-end' : 'justify-start'}`}>
+                              <div className={`max-w-[85%] sm:max-w-md p-3.5 text-xs shadow-sm rounded-2xl ${
+                                isMe 
+                                  ? 'bg-[#0F2E23] text-[#FAF9F5] rounded-br-none shadow-md ml-auto' 
+                                  : 'bg-white border border-slate-200 text-slate-700 rounded-bl-none shadow-sm mr-auto'
+                              }`}>
+                                <p className="leading-relaxed whitespace-pre-wrap">{m.messageText}</p>
                                 <span className={`block text-[9px] text-right mt-1 font-bold ${isMe ? 'text-[#ffd000]' : 'text-slate-400'}`}>
-                                  {new Date(m.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                  {m.createdAt ? new Date(m.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Just now'}
                                 </span>
                               </div>
                             </div>

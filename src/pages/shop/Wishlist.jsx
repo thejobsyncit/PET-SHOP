@@ -1,9 +1,9 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { Heart, ShoppingBag, Trash2, Share2 } from 'lucide-react';
 import { addToCartAPI } from '../../store/slices/cartSlice.js';
-import { toggleWishlistAPI } from '../../store/slices/wishlistSlice.js';
+import { fetchWishlist, toggleWishlistAPI } from '../../store/slices/wishlistSlice.js';
 import toast from 'react-hot-toast';
 
 const Wishlist = () => {
@@ -11,19 +11,27 @@ const Wishlist = () => {
   const dispatch = useDispatch();
   const { items, loading } = useSelector((state) => state.wishlist);
 
-  const handleRemove = (product) => {
-    dispatch(toggleWishlistAPI(product));
+  useEffect(() => {
+    dispatch(fetchWishlist());
+  }, [dispatch]);
+
+  const handleRemove = async (product) => {
+    await dispatch(toggleWishlistAPI(product));
     toast.success('Removed from wishlist');
   };
 
-  const handleAddToCart = (product) => {
-    if (product.requiresPrescription) {
+  const handleAddToCart = async (product) => {
+    if (product.requiresPrescription || product.requires_prescription) {
       toast('Prescription required! Redirecting to details...', { icon: '📝' });
-      navigate(`/product/${product.slug}`);
+      navigate(product.slug ? `/product/${product.slug}` : '/shop');
       return;
     }
-    dispatch(addToCartAPI({ product, quantity: 1 }));
-    toast.success('Added to cart!');
+    const result = await dispatch(addToCartAPI({ product, quantity: 1 }));
+    if (addToCartAPI.fulfilled.match(result)) {
+      toast.success('Added to cart!');
+    } else {
+      toast.error('Could not add to cart.');
+    }
   };
 
   const handleShareWishlist = () => {
@@ -39,7 +47,9 @@ const Wishlist = () => {
       <div className="flex flex-col sm:flex-row justify-between items-center border-b border-beige pb-6 gap-4">
         <div>
           <span className="text-[10px] uppercase tracking-widest text-accent font-bold">SAVED COLLECTION</span>
-          <h1 className="font-serif text-2xl md:text-3xl text-primary font-medium mt-1">My Wishlist</h1>
+          <h1 className="font-serif text-2xl md:text-3xl text-primary font-medium mt-1">
+            My Wishlist {items.length > 0 ? `(${items.length})` : ''}
+          </h1>
         </div>
         
         {items.length > 0 && (
@@ -77,10 +87,11 @@ const Wishlist = () => {
       ) : (
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
           {items.map((product) => {
-            const productPrice = product.discountPrice || product.price;
+            const pId = product._id || product.id;
+            const productPrice = product.discountPrice ?? product.discount_price ?? product.price;
             return (
               <div 
-                key={product._id}
+                key={pId}
                 className="card-premium relative bg-white flex flex-col justify-between h-[380px]"
               >
                 {/* Remove Button */}

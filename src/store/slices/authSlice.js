@@ -112,10 +112,26 @@ const getInitialUser = () => {
 // Async Thunks
 export const register = createAsyncThunk('auth/register', async (userData, thunkAPI) => {
   const candidateEmail = (userData.email || '').trim().toLowerCase();
+  const SYSTEM_DEMO_EMAILS = [
+    'dr.ramesh@joshpetshub.com',
+    'velvetfur@joshpetshub.com',
+    'happypaws@joshpetshub.com',
+    'royalpaws@joshpetshub.com',
+    'adopt@joshpetshub.com',
+    'swiftpaws@joshpetshub.com',
+    'safepet@joshpetshub.com',
+    'clevercanines@joshpetshub.com',
+    'pawinsure@joshpetshub.com',
+    'elitebreed@joshpetshub.com',
+    'priya@joshpetshub.com',
+    'admin@joshpetshub.com',
+    'superadmin@joshpetshub.com'
+  ];
+
   try {
     const existing = JSON.parse(localStorage.getItem('joshpetshub_registered_users') || '[]');
-    const isDuplicate = Array.isArray(existing) && existing.some(u => u?.email?.trim().toLowerCase() === candidateEmail);
-    if (isDuplicate) {
+    const isDuplicate = Array.isArray(existing) && existing.some(u => (u?.email || '').trim().toLowerCase() === candidateEmail);
+    if (candidateEmail && (isDuplicate || SYSTEM_DEMO_EMAILS.includes(candidateEmail))) {
       return thunkAPI.rejectWithValue('An account with this email address already exists. Please login instead.');
     }
   } catch (e) {}
@@ -128,9 +144,27 @@ export const register = createAsyncThunk('auth/register', async (userData, thunk
     safeSetItem('joshpetshub_token', data.token);
     if (data.user) {
       safeSetItem('joshpetshub_user', JSON.stringify(sanitizeUserForStorage(data.user)));
+      try {
+        const existing = JSON.parse(localStorage.getItem('joshpetshub_registered_users') || '[]');
+        const filtered = existing.filter(u => (u?.email || '').trim().toLowerCase() !== candidateEmail);
+        filtered.push(data.user);
+        safeSetItem('joshpetshub_registered_users', JSON.stringify(filtered));
+      } catch (e) {}
     }
     return data;
   } catch (error) {
+    const errMsg = (error?.message || '').toLowerCase();
+    // If backend returned duplicate error or rejection, NEVER fall back to creating simulated user!
+    if (
+      errMsg.includes('already exists') ||
+      errMsg.includes('already registered') ||
+      errMsg.includes('exists') ||
+      errMsg.includes('please log in') ||
+      errMsg.includes('email')
+    ) {
+      return thunkAPI.rejectWithValue(error.message || 'An account with this email address already exists. Please login instead.');
+    }
+
     // Fallback: create simulated user session for offline / client demo
     const simulatedUser = {
       _id: 'user_' + Date.now(),
@@ -160,7 +194,7 @@ export const register = createAsyncThunk('auth/register', async (userData, thunk
 
     try {
       const existing = JSON.parse(localStorage.getItem('joshpetshub_registered_users') || '[]');
-      const filtered = existing.filter(u => u.email !== simulatedUser.email && u.mobile !== simulatedUser.mobile);
+      const filtered = existing.filter(u => (u?.email || '').trim().toLowerCase() !== candidateEmail && u.mobile !== simulatedUser.mobile);
       filtered.push(simulatedUser);
       safeSetItem('joshpetshub_registered_users', JSON.stringify(filtered));
     } catch (e) {}
@@ -496,16 +530,21 @@ export const updateProfile = createAsyncThunk('auth/updateProfile', async (profi
           { email: 'happypaws@joshpetshub.com', password: 'Pass@1234' },
           { email: 'royalpaws@joshpetshub.com', password: 'Pass@1234' },
           { email: 'adopt@joshpetshub.com', password: 'Pass@1234' },
+          { email: 'swiftpaws@joshpetshub.com', password: 'Pass@1234' },
+          { email: 'safepet@joshpetshub.com', password: 'Pass@1234' },
+          { email: 'clevercanines@joshpetshub.com', password: 'Pass@1234' },
+          { email: 'pawinsure@joshpetshub.com', password: 'Pass@1234' },
+          { email: 'elitebreed@joshpetshub.com', password: 'Pass@1234' },
           { email: 'priya@joshpetshub.com', password: 'Pass@1234' },
           { email: 'admin@joshpetshub.com', password: 'Admin@123' },
           { email: 'superadmin@joshpetshub.com', password: 'SuperAdmin@123' }
         ];
         const registered = JSON.parse(localStorage.getItem('joshpetshub_registered_users') || '[]');
-        const localMatchedUser = registered.find(u => u._id === saved._id || (u.email && saved.email && u.email.toLowerCase() === saved.email.toLowerCase()));
+        const localMatchedUser = registered.find(u => u._id === saved._id || (u.email && saved.email && u.email.toLowerCase() === saved.email.toLowerCase()) || (u.mobile && saved.mobile && u.mobile === saved.mobile));
         const demoMatched = DEMO_ACCOUNTS.find(d => saved.email && d.email.toLowerCase() === saved.email.toLowerCase());
-        const storedLocalPassword = localMatchedUser?.password || saved.password || demoMatched?.password;
-        if (storedLocalPassword && storedLocalPassword !== profileData.currentPassword) {
-          return thunkAPI.rejectWithValue('Current password is incorrect. Please try again.');
+        const storedLocalPassword = localMatchedUser?.password || saved.password || demoMatched?.password || (saved.role === 'ADMIN' ? 'Admin@123' : saved.role === 'SUPERADMIN' ? 'SuperAdmin@123' : 'Pass@1234');
+        if (storedLocalPassword && !storedLocalPassword.startsWith('$2') && storedLocalPassword !== profileData.currentPassword) {
+          return thunkAPI.rejectWithValue('Current password does not match what is in the database. Please try again.');
         }
       } catch (err) {}
     }
@@ -587,8 +626,8 @@ export const updateProfile = createAsyncThunk('auth/updateProfile', async (profi
         }
       } catch (backendError) {
         console.warn('[authSlice] Backend sync note (using local persistence):', backendError?.message);
-        if (isPasswordChangeRequested && !token.startsWith('token_') && (backendError?.status === 400 || backendError?.status === 401)) {
-          return thunkAPI.rejectWithValue(backendError?.message || 'Password update failed.');
+        if (isPasswordChangeRequested && (backendError?.status === 400 || backendError?.status === 401 || (backendError?.message && backendError.message.toLowerCase().includes('password')))) {
+          return thunkAPI.rejectWithValue(backendError?.message || 'Current password does not match what is in the database.');
         }
       }
     }
@@ -697,7 +736,8 @@ const authSlice = createSlice({
 
       try {
         const existing = JSON.parse(localStorage.getItem('joshpetshub_registered_users') || '[]');
-        const filtered = existing.filter((u) => u.email !== user.email && u.mobile !== user.mobile);
+        const cleanUserEmail = (user.email || '').trim().toLowerCase();
+        const filtered = existing.filter((u) => (u.email || '').trim().toLowerCase() !== cleanUserEmail && u.mobile !== user.mobile);
         filtered.push(user);
         safeSetItem('joshpetshub_registered_users', JSON.stringify(filtered));
       } catch (e) {}

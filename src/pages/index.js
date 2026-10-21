@@ -7,6 +7,7 @@ export { default as Home } from './Home.jsx';
 export { default as About } from './About.jsx';
 export { default as Contact } from './Contact.jsx';
 export { default as Login } from './Login.jsx';
+export { default as ForgotPassword } from './ForgotPassword.jsx';
 export { default as ChatConsole } from './ChatConsole.jsx';
 export { default as NotFound } from './NotFound.jsx';
 
@@ -29,6 +30,7 @@ export { default as VeterinaryServices } from './services/VeterinaryServices.jsx
 
 // Pet Hub, Adoption & Breeding
 export { default as PetClassifieds } from './pets/PetClassifieds.jsx';
+export { default as PetClassifiedDetail } from './pets/PetClassifiedDetail.jsx';
 export { default as AdoptionShelter } from './pets/AdoptionShelter.jsx';
 export { default as AdoptionPetDetail } from './pets/AdoptionPetDetail.jsx';
 export { default as BreedingDirectory } from './pets/BreedingDirectory.jsx';

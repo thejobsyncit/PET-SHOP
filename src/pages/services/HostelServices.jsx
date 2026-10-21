@@ -6,7 +6,7 @@ import {
   Calendar, Clock, CircleCheck, ChevronRight, X, SlidersHorizontal,
   RefreshCw, Check, ArrowRight, Heart, Award, Home,
   ShieldAlert, UserCheck, Video, Moon, Sun, Trees, ChevronDown,
-  LayoutGrid, Snowflake, Camera, Stethoscope, Smartphone, UtensilsCrossed, Waves
+  PawPrint, Snowflake, Stethoscope, Smartphone, Utensils, Waves
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import {
@@ -15,24 +15,152 @@ import {
   getStoredHostelProviders,
   saveHostelBooking
 } from '../../data/hostelData.js';
-
-// Professional Lucide Icon & Color Mapping for Hostel Offerings
-const OFFERING_ICON_MAP = {
-  'all': { icon: LayoutGrid, color: 'text-violet-600', bg: 'bg-violet-50' },
-  'ac-rooms': { icon: Snowflake, color: 'text-sky-600', bg: 'bg-sky-50' },
-  'cctv': { icon: Camera, color: 'text-rose-600', bg: 'bg-rose-50' },
-  'lawn': { icon: Trees, color: 'text-emerald-600', bg: 'bg-emerald-50' },
-  'vet-on-call': { icon: Stethoscope, color: 'text-teal-600', bg: 'bg-teal-50' },
-  'video-updates': { icon: Smartphone, color: 'text-indigo-600', bg: 'bg-indigo-50' },
-  'home-cooked-meals': { icon: UtensilsCrossed, color: 'text-amber-600', bg: 'bg-amber-50' },
-  'swimming-pool': { icon: Waves, color: 'text-blue-600', bg: 'bg-blue-50' }
-};
 import { INDIAN_STATES_CITIES } from '../../data/adoptionPetsData.js';
 import ServiceAccessLock, { isServicePathLockedForUser } from '../../components/ui/ServiceAccessLock.jsx';
 
 import ScrollReveal from '../../components/ui/ScrollReveal.jsx';
 import PetBreedDropdown from '../../components/ui/PetBreedDropdown.jsx';
 import { handleServiceAction } from '../../components/widgets/ServicePackageAccessModal.jsx';
+
+// =========================================================================
+// Modern Minimalist Linear Outline Icons (Pet Hospitality Vector Set)
+// Styled to match clean, rounded-corner 2px outline aesthetic from reference
+// =========================================================================
+
+// 1. Clean Outline Paw (All Features)
+const LinePawIcon = ({ size = 24, className = '' }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <path d="M12 11c-2.8 0-5 2-5 4.5 0 2.2 1.6 3.5 3.5 3.5.7 0 1.1-.3 1.5-.3s.8.3 1.5.3c1.9 0 3.5-1.3 3.5-3.5 0-2.5-2.2-4.5-5-4.5z" />
+    <circle cx="5" cy="9.5" r="1.8" />
+    <circle cx="9.5" cy="5.5" r="1.8" />
+    <circle cx="14.5" cy="5.5" r="1.8" />
+    <circle cx="19" cy="9.5" r="1.8" />
+  </svg>
+);
+
+// 2. Clean Outline Doghouse / Pet Chalet (AC Suites)
+const LineDoghouseIcon = ({ size = 24, className = '' }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <path d="M3 10.5l9-7 9 7V20a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V10.5z" />
+    <path d="M9.5 22v-5.5a2.5 2.5 0 0 1 5 0V22" />
+    <circle cx="12" cy="8.5" r="1.3" />
+  </svg>
+);
+
+// 3. Clean Outline CCTV Security Camera with Live Wave (24/7 CCTV Live Stream)
+const LineCctvIcon = ({ size = 24, className = '' }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <path d="M3 13l10-4.2a2 2 0 0 1 2.5 1.1l1.1 2.6a2 2 0 0 1-1.1 2.5L5.5 19.2a2 2 0 0 1-2.5-1.1L1.9 15.5a2 2 0 0 1 1.1-2.5z" />
+    <circle cx="15.5" cy="11" r="1" fill="currentColor" />
+    <path d="M2 21h5" />
+    <path d="M4.5 17.5v3.5" />
+    <path d="M19 5.5a5 5 0 0 1 3 3" />
+    <path d="M16.5 7.5a2.5 2.5 0 0 1 1.5 1.5" />
+  </svg>
+);
+
+// 4. Clean Outline Park Trees / Lawn (Outdoor Lawn & Play Area)
+const LineLawnIcon = ({ size = 24, className = '' }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <path d="M10 11v10" />
+    <path d="M14 15v6" />
+    <path d="M4 14a4 4 0 0 1 6-3.5 4.5 4.5 0 0 1 8.5 1 3.5 3.5 0 0 1 1.5 6.5H4a4 4 0 0 1 0-4z" />
+    <path d="M2 21h20" />
+  </svg>
+);
+
+// 5. Clean Outline Stethoscope with Medical Heart (Vet On Call)
+const LineStethoscopeIcon = ({ size = 24, className = '' }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <path d="M5 4v4a5 5 0 0 0 10 0V4" />
+    <path d="M10 13v2.5a4.5 4.5 0 0 0 4.5 4.5H16.5" />
+    <circle cx="19" cy="20" r="2.5" />
+    <circle cx="5" cy="3.5" r="1" fill="currentColor" />
+    <circle cx="15" cy="3.5" r="1" fill="currentColor" />
+  </svg>
+);
+
+// 6. Clean Outline Smartphone with Live Video Feed (Daily Video Updates)
+const LineVideoUpdatesIcon = ({ size = 24, className = '' }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <rect x="5" y="2" width="14" height="20" rx="3" />
+    <circle cx="12" cy="5.5" r="1" fill="currentColor" />
+    <polygon points="10,10.5 15.5,13.5 10,16.5" fill="currentColor" stroke="none" />
+  </svg>
+);
+
+// 7. Clean Outline Pet Food Bowl with Heart (Customized Meals)
+const LineFoodBowlIcon = ({ size = 24, className = '' }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <path d="M3 11h18l-1.8 8.2a2 2 0 0 1-2 1.8H6.8a2 2 0 0 1-2-1.8L3 11z" />
+    <path d="M7 11a5 5 0 0 1 10 0" />
+    <path d="M12 14.5c-.5-.6-1.4-.7-2-.1-.5.5-.4 1.4.1 1.9l1.9 1.7 1.9-1.7c.5-.5.6-1.4.1-1.9-.6-.6-1.5-.5-2 .1z" fill="currentColor" stroke="none" />
+  </svg>
+);
+
+// 8. Clean Outline Splash Water Waves & Pool (Pet Pool / Splash Zone)
+const LinePetPoolIcon = ({ size = 24, className = '' }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <path d="M2 12.5c2.5 0 3.5-1.5 6-1.5s3.5 1.5 6 1.5 3.5-1.5 6-1.5 3.5 1.5 6 1.5" />
+    <path d="M2 17.5c2.5 0 3.5-1.5 6-1.5s3.5 1.5 6 1.5 3.5-1.5 6-1.5 3.5 1.5 6 1.5" />
+    <circle cx="6.5" cy="5.5" r="1.3" fill="currentColor" stroke="none" />
+    <circle cx="12" cy="3.5" r="1.5" fill="currentColor" stroke="none" />
+    <circle cx="17.5" cy="5.5" r="1.3" fill="currentColor" stroke="none" />
+  </svg>
+);
+
+// Professional Vector Icon Renderer for Hostel Features & Amenities
+const renderOfferingIcon = (offeringId, { size = 24, className = '', isActive = false } = {}) => {
+  const baseClasses = `transition-transform duration-200 ${className}`;
+  switch (offeringId) {
+    case 'all':
+      return <LinePawIcon size={size} className={`${baseClasses} ${isActive ? 'text-slate-950' : 'text-amber-700'}`} />;
+    case 'ac-rooms':
+      return <LineDoghouseIcon size={size} className={`${baseClasses} ${isActive ? 'text-slate-950' : 'text-amber-700'}`} />;
+    case 'cctv':
+      return <LineCctvIcon size={size} className={`${baseClasses} ${isActive ? 'text-slate-950' : 'text-indigo-700'}`} />;
+    case 'lawn':
+      return <LineLawnIcon size={size} className={`${baseClasses} ${isActive ? 'text-slate-950' : 'text-emerald-700'}`} />;
+    case 'vet-on-call':
+      return <LineStethoscopeIcon size={size} className={`${baseClasses} ${isActive ? 'text-slate-950' : 'text-rose-700'}`} />;
+    case 'video-updates':
+      return <LineVideoUpdatesIcon size={size} className={`${baseClasses} ${isActive ? 'text-slate-950' : 'text-purple-700'}`} />;
+    case 'home-cooked-meals':
+      return <LineFoodBowlIcon size={size} className={`${baseClasses} ${isActive ? 'text-slate-950' : 'text-orange-700'}`} />;
+    case 'swimming-pool':
+      return <LinePetPoolIcon size={size} className={`${baseClasses} ${isActive ? 'text-slate-950' : 'text-teal-700'}`} />;
+    default:
+      return <LinePawIcon size={size} className={`${baseClasses} ${isActive ? 'text-slate-950' : 'text-amber-700'}`} />;
+  }
+};
+
+// Distinct Luxury Color Styling per Offering Container
+const getOfferingColorTheme = (offeringId, isActive) => {
+  if (isActive) {
+    return 'bg-white/85 text-slate-950 shadow-sm border border-white/90 backdrop-blur-xs';
+  }
+  switch (offeringId) {
+    case 'all':
+      return 'bg-amber-50 text-amber-700 border border-amber-200/80 group-hover:bg-amber-100 group-hover:border-amber-300';
+    case 'ac-rooms':
+      return 'bg-amber-50 text-amber-800 border border-amber-200/80 group-hover:bg-amber-100 group-hover:border-amber-300';
+    case 'cctv':
+      return 'bg-indigo-50 text-indigo-700 border border-indigo-200/80 group-hover:bg-indigo-100 group-hover:border-indigo-300';
+    case 'lawn':
+      return 'bg-emerald-50 text-emerald-700 border border-emerald-200/80 group-hover:bg-emerald-100 group-hover:border-emerald-300';
+    case 'vet-on-call':
+      return 'bg-rose-50 text-rose-700 border border-rose-200/80 group-hover:bg-rose-100 group-hover:border-rose-300';
+    case 'video-updates':
+      return 'bg-purple-50 text-purple-700 border border-purple-200/80 group-hover:bg-purple-100 group-hover:border-purple-300';
+    case 'home-cooked-meals':
+      return 'bg-orange-50 text-orange-700 border border-orange-200/80 group-hover:bg-orange-100 group-hover:border-orange-300';
+    case 'swimming-pool':
+      return 'bg-teal-50 text-teal-700 border border-teal-200/80 group-hover:bg-teal-100 group-hover:border-teal-300';
+    default:
+      return 'bg-amber-50 text-amber-700 border border-amber-200/80 group-hover:bg-amber-100 group-hover:border-amber-300';
+  }
+};
+
 const HostelServices = () => {
   const navigate = useNavigate();
   const { isAuthenticated, user } = useSelector((state) => state.auth);
@@ -309,9 +437,13 @@ const HostelServices = () => {
     <div className="min-h-screen bg-[#faf8fc] text-slate-800 pb-24">
 
       {/* =========================================================================
-          1. RADIANT HERO BANNER WITH SEARCH FILTER BAR (Screenshot 1 Match)
+          1. RADIANT HERO BANNER WITH SEARCH FILTER BAR (135deg Metallic Gold Theme)
          ========================================================================= */}
-      <ScrollReveal variant="fade" className="relative bg-[#FAC52E] text-slate-900 pt-8 pb-12 px-4 md:px-8 shadow-sm border-b border-[#E0B025]">
+      <ScrollReveal
+        variant="fade"
+        style={{ background: 'linear-gradient(135deg, #d4af37 0%, #fef08a 50%, #b89228 100%)' }}
+        className="relative text-slate-900 pt-8 pb-12 px-4 md:px-8 shadow-md border-b border-[#B89228]"
+      >
         <div className="max-w-7xl mx-auto">
 
           {/* Breadcrumb Navigation */}
@@ -349,7 +481,7 @@ const HostelServices = () => {
                     <select
                       value={selectedPetType}
                       onChange={(e) => handlePetTypeChange(e.target.value)}
-                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-800 focus:outline-none focus:border-[#7c56dc]"
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-800 focus:outline-none focus:border-primary"
                     >
                       <option value="All">All Pets</option>
                       <option value="Dogs">Dogs</option>
@@ -363,7 +495,7 @@ const HostelServices = () => {
                     <select
                       value={selectedState}
                       onChange={handleStateChange}
-                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-800 focus:outline-none focus:border-[#7c56dc]"
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-800 focus:outline-none focus:border-primary"
                     >
                       {Object.keys(INDIAN_STATES_CITIES).map((st) => (
                         <option key={st} value={st}>{st}</option>
@@ -377,7 +509,7 @@ const HostelServices = () => {
                     <select
                       value={selectedCity}
                       onChange={(e) => setSelectedCity(e.target.value)}
-                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-800 focus:outline-none focus:border-[#7c56dc]"
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-800 focus:outline-none focus:border-primary"
                     >
                       {availableCities.map((ct) => (
                         <option key={ct} value={ct}>{ct}</option>
@@ -392,7 +524,7 @@ const HostelServices = () => {
                         const el = document.getElementById('hostels-catalog');
                         if (el) el.scrollIntoView({ behavior: 'smooth' });
                       }}
-                      className="w-full bg-[#7c56dc] hover:bg-[#6842c2] text-white font-extrabold py-2.5 px-4 rounded-xl text-xs shadow-md transition-all flex items-center justify-center gap-1.5 cursor-pointer active:scale-95"
+                      className="w-full bg-primary hover:bg-primary-light text-white font-extrabold py-2.5 px-4 rounded-xl text-xs shadow-md shadow-primary/25 transition-all flex items-center justify-center gap-1.5 cursor-pointer active:scale-95"
                     >
                       <Search size={14} />
                       <span>Search</span>
@@ -412,10 +544,12 @@ const HostelServices = () => {
                   alt="Cozy Pet in Wicker Chair"
                   className="w-full h-full object-cover rounded-3xl shadow-2xl border-4 border-white/80 filter drop-shadow-xl"
                 />
-                <div className="absolute -bottom-3 -left-3 bg-white px-4 py-2 rounded-2xl shadow-lg border border-amber-200 flex items-center gap-2">
-                  <span className="text-xl">🏨</span>
+                <div className="absolute -bottom-3 -left-3 bg-white px-4 py-2.5 rounded-2xl shadow-lg border border-amber-200 flex items-center gap-2.5">
+                  <div className="w-9 h-9 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center border border-amber-200/80 shrink-0">
+                    <ShieldCheck size={20} className="text-amber-600" />
+                  </div>
                   <div>
-                    <p className="text-[10px] font-extrabold text-slate-400 uppercase">Verified Hostels</p>
+                    <p className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">Verified Hostels</p>
                     <p className="text-xs font-extrabold text-slate-800">100% Cage-Free Stay</p>
                   </div>
                 </div>
@@ -433,7 +567,7 @@ const HostelServices = () => {
          ========================================================================= */}
       <ScrollReveal variant="fade" className="max-w-7xl mx-auto px-4 md:px-8 pt-8 pb-4 space-y-6">
         <div className="text-center space-y-2">
-          <span className="text-[10px] uppercase font-extrabold tracking-widest text-[#7c56dc] bg-purple-50 px-3 py-1 rounded-full border border-purple-200">
+          <span className="text-[10px] uppercase font-extrabold tracking-widest text-amber-900 bg-amber-100/80 px-3 py-1 rounded-full border border-amber-300">
             CHOOSE YOUR STAY TYPE
           </span>
           <h2 className="text-2xl md:text-3xl font-extrabold text-slate-900 font-sans">
@@ -449,34 +583,26 @@ const HostelServices = () => {
           {HOSTEL_OFFERINGS.map((offering) => {
             const isActive = selectedAmenity === offering.id;
             const count = offeringCounts[offering.id] ?? 0;
-            const iconConfig = OFFERING_ICON_MAP[offering.id] || { icon: LayoutGrid, color: 'text-violet-600', bg: 'bg-violet-50' };
-            const IconComponent = iconConfig.icon;
-
             return (
               <button
                 key={offering.id}
                 onClick={() => handleSelectOffering(offering.id)}
-                className={`p-3.5 rounded-2xl border text-center transition-all cursor-pointer flex flex-col items-center justify-between gap-2.5 relative group ${isActive
-                    ? 'bg-[#7c56dc] text-white border-[#7c56dc] shadow-lg shadow-purple-900/20 scale-105 ring-2 ring-purple-300'
-                    : 'bg-white text-slate-800 border-slate-200 hover:border-[#7c56dc] hover:shadow-md hover:-translate-y-0.5'
+                style={isActive ? { background: 'linear-gradient(135deg, #d4af37 0%, #fef08a 50%, #b89228 100%)' } : {}}
+                className={`p-3.5 rounded-2xl border text-center transition-all duration-200 cursor-pointer flex flex-col items-center justify-between gap-2.5 relative group ${isActive
+                    ? 'text-slate-950 border-[#b89228] shadow-xl shadow-[#d4af37]/45 scale-105 ring-2 ring-[#fef08a]'
+                    : 'bg-white text-slate-800 border-slate-200/90 hover:border-[#d4af37]/60 hover:shadow-md hover:-translate-y-1'
                   }`}
               >
                 {/* Result count bubble */}
-                <span className={`absolute top-2 right-2 text-[9px] font-bold px-1.5 py-0.5 rounded-full transition-colors ${isActive ? 'bg-white/25 text-white' : 'bg-slate-100 text-slate-600 group-hover:bg-purple-100 group-hover:text-[#7c56dc]'
+                <span className={`absolute top-2.5 right-2.5 text-[9.5px] font-black px-1.5 py-0.5 rounded-full ${isActive ? 'bg-black/20 text-slate-950 border border-black/10' : 'bg-slate-100 text-slate-600 border border-slate-200/80'
                   }`}>
                   {count}
                 </span>
 
-                {/* Professional Vector Icon Container */}
-                <div className={`w-11 h-11 rounded-xl flex items-center justify-center transition-all duration-200 ${
-                  isActive
-                    ? 'bg-white/20 text-white shadow-inner'
-                    : `${iconConfig.bg} ${iconConfig.color} group-hover:scale-110 shadow-xs`
-                }`}>
-                  <IconComponent size={20} strokeWidth={2.2} />
+                <div className={`w-13 h-13 sm:w-14 sm:h-14 rounded-2xl flex items-center justify-center transition-all duration-300 group-hover:scale-110 ${getOfferingColorTheme(offering.id, isActive)}`}>
+                  {renderOfferingIcon(offering.id, { size: 28, isActive })}
                 </div>
-
-                <span className="text-xs font-extrabold leading-tight">
+                <span className={`text-xs font-black leading-tight tracking-tight ${isActive ? 'text-slate-950 drop-shadow-[0_1px_0_rgba(255,255,255,0.4)]' : ''}`}>
                   {offering.name}
                 </span>
               </button>
@@ -499,12 +625,15 @@ const HostelServices = () => {
                 Verified Pet Hostels & Boarding Homes
               </h2>
               {selectedAmenity !== 'all' && (
-                <span className="inline-flex items-center gap-1.5 bg-[#7c56dc] text-white text-xs font-bold px-3 py-1 rounded-full shadow-xs animate-in zoom-in-95 duration-150">
-                  <span>{HOSTEL_OFFERINGS.find(o => o.id === selectedAmenity)?.icon}</span>
+                <span
+                  style={{ background: 'linear-gradient(135deg, #d4af37 0%, #fef08a 50%, #b89228 100%)' }}
+                  className="inline-flex items-center gap-1.5 text-slate-950 text-xs font-black px-3 py-1 rounded-full border border-[#b89228] shadow-md shadow-[#d4af37]/30 animate-in zoom-in-95 duration-150"
+                >
+                  <span className="inline-flex items-center">{renderOfferingIcon(selectedAmenity, { size: 14, isActive: true })}</span>
                   <span>{HOSTEL_OFFERINGS.find(o => o.id === selectedAmenity)?.name}</span>
                   <button
                     onClick={() => setSelectedAmenity('all')}
-                    className="hover:bg-white/20 rounded-full p-0.5 ml-0.5 cursor-pointer"
+                    className="hover:bg-black/15 rounded-full p-0.5 ml-0.5 cursor-pointer text-slate-950"
                     title="Clear facility filter"
                   >
                     <X size={12} />
@@ -513,7 +642,7 @@ const HostelServices = () => {
               )}
             </div>
             <p className="text-xs text-slate-500 font-medium mt-1">
-              Showing <span className="font-bold text-[#7c56dc]">{filteredProviders.length}</span> {
+              Showing <span className="font-bold text-amber-700">{filteredProviders.length}</span> {
                 selectedAmenity !== 'all'
                   ? `verified boarding hostels providing "${HOSTEL_OFFERINGS.find(o => o.id === selectedAmenity)?.name}"`
                   : 'verified boarding resorts & home sitters'
@@ -561,7 +690,7 @@ const HostelServices = () => {
             {/* Dedicated Scrollable Filter Container with Separate Scrollbar */}
             <div className="overflow-y-auto pr-1.5 space-y-5 flex-1 custom-scrollbar">
 
-              {/* 1. TOP SEARCH BAR */}
+              {/* 1. SEARCH HOSTELS (Top Priority Search) */}
               <div className="space-y-1.5">
                 <div className="flex justify-between items-center">
                   <h4 className="text-xs font-extrabold uppercase tracking-wider text-slate-900">
@@ -570,7 +699,7 @@ const HostelServices = () => {
                   {searchKeyword && (
                     <button
                       onClick={() => setSearchKeyword('')}
-                      className="text-[10px] font-bold text-slate-400 hover:text-red-500 transition"
+                      className="text-[10px] font-bold text-slate-400 hover:text-red-500 transition cursor-pointer"
                     >
                       Clear
                     </button>
@@ -588,7 +717,49 @@ const HostelServices = () => {
                 </div>
               </div>
 
-              {/* 2. STAY FEATURES & AMENITIES FILTER */}
+              {/* 2. PET TYPE */}
+              <div className="space-y-2 pt-3 border-t border-slate-100">
+                <h4 className="text-xs font-extrabold uppercase tracking-wider text-slate-900">
+                  Pet Type
+                </h4>
+                <div className="grid grid-cols-3 gap-1.5 text-xs">
+                  {['All', 'Dogs', 'Cats'].map((pt) => (
+                    <button
+                      key={pt}
+                      onClick={() => handlePetTypeChange(pt)}
+                      className={`py-1.5 px-2 rounded-xl font-bold text-center transition cursor-pointer ${selectedPetType === pt
+                          ? 'bg-[#7c56dc] text-white shadow-xs'
+                          : 'bg-slate-50 text-slate-600 hover:bg-purple-50'
+                        }`}
+                    >
+                      {pt}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* 3. SORT BY */}
+              <div className="space-y-2 pt-3 border-t border-slate-100">
+                <span className="text-[11px] font-extrabold uppercase tracking-wider text-slate-600 block">
+                  SORT BY:
+                </span>
+                <div className="relative">
+                  <select
+                    value={sortBy}
+                    onChange={(e) => setSortBy(e.target.value)}
+                    className="w-full bg-white border border-slate-200 hover:border-[#7c56dc] text-xs font-bold text-slate-900 rounded-full px-4 py-2.5 pr-10 shadow-sm transition appearance-none cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#7c56dc]/20"
+                  >
+                    <option value="recommended">Recommended & Verified</option>
+                    <option value="price-low">Price: Low to High</option>
+                    <option value="price-high">Price: High to Low</option>
+                    <option value="rating">Highest Star Ratings</option>
+                    <option value="reviews">Most Reviews & Stays</option>
+                  </select>
+                  <ChevronDown size={16} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-900 pointer-events-none stroke-[2.5]" />
+                </div>
+              </div>
+
+              {/* 4. STAY FEATURES & AMENITIES FILTER */}
               <div className="space-y-2 pt-3 border-t border-slate-100">
                 <div className="flex justify-between items-center">
                   <h4 className="text-xs font-extrabold uppercase tracking-wider text-slate-900">
@@ -611,16 +782,18 @@ const HostelServices = () => {
                       <button
                         key={off.id}
                         onClick={() => setSelectedAmenity(isSel ? 'all' : off.id)}
-                        className={`flex items-center justify-between w-full py-1.5 px-2.5 rounded-xl font-semibold text-left transition cursor-pointer ${isSel
-                            ? 'bg-amber-100 text-amber-900 font-bold shadow-xs'
+                        className={`flex items-center justify-between w-full py-2 px-2.5 rounded-xl font-semibold text-left transition cursor-pointer ${isSel
+                            ? 'bg-amber-100 text-amber-950 font-bold shadow-xs'
                             : 'text-slate-600 hover:bg-amber-50/60 hover:text-amber-900'
                           }`}
                       >
-                        <div className="flex items-center gap-1.5 truncate">
-                          <span>{off.icon}</span>
+                        <div className="flex items-center gap-2 truncate">
+                          <span className={`w-6 h-6 rounded-lg flex items-center justify-center shrink-0 ${isSel ? 'bg-amber-200/80 text-slate-900' : 'bg-slate-100 text-slate-600'}`}>
+                            {renderOfferingIcon(off.id, { size: 13, isActive: isSel })}
+                          </span>
                           <span className="truncate">{off.name}</span>
                         </div>
-                        <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-bold ${isSel ? 'bg-amber-200/80 text-amber-900' : 'bg-slate-100 text-slate-500'
+                        <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-bold ${isSel ? 'bg-amber-200/80 text-amber-900' : 'bg-slate-100 text-slate-500'
                           }`}>
                           {count}
                         </span>
@@ -630,7 +803,7 @@ const HostelServices = () => {
                 </div>
               </div>
 
-              {/* 3. PRICE RANGE FILTER (Per Night) */}
+              {/* 5. PRICE RANGE FILTER (Per Night) */}
               <div className="space-y-2.5 pt-3 border-t border-slate-100">
                 <div className="flex justify-between items-center">
                   <h4 className="text-xs font-extrabold uppercase tracking-wider text-slate-900">
@@ -662,7 +835,7 @@ const HostelServices = () => {
                 </div>
               </div>
 
-              {/* 4. STAY / ROOM TYPE */}
+              {/* 6. STAY / ROOM TYPE */}
               <div className="space-y-2 pt-3 border-t border-slate-100">
                 <h4 className="text-xs font-extrabold uppercase tracking-wider text-slate-900">
                   Stay Type
@@ -681,48 +854,6 @@ const HostelServices = () => {
                       {selectedStayType === type && <Check size={12} />}
                     </button>
                   ))}
-                </div>
-              </div>
-
-              {/* 5. PET TYPE */}
-              <div className="space-y-2 pt-3 border-t border-slate-100">
-                <h4 className="text-xs font-extrabold uppercase tracking-wider text-slate-900">
-                  Pet Type
-                </h4>
-                <div className="grid grid-cols-3 gap-1.5 text-xs">
-                  {['All', 'Dogs', 'Cats'].map((pt) => (
-                    <button
-                      key={pt}
-                      onClick={() => handlePetTypeChange(pt)}
-                      className={`py-1.5 px-2 rounded-xl font-bold text-center transition cursor-pointer ${selectedPetType === pt
-                          ? 'bg-[#7c56dc] text-white shadow-xs'
-                          : 'bg-slate-50 text-slate-600 hover:bg-purple-50'
-                        }`}
-                    >
-                      {pt}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* 6. SORT BY */}
-              <div className="space-y-2 pt-3 border-t border-slate-100">
-                <span className="text-[11px] font-extrabold uppercase tracking-wider text-slate-600 block">
-                  SORT BY:
-                </span>
-                <div className="relative">
-                  <select
-                    value={sortBy}
-                    onChange={(e) => setSortBy(e.target.value)}
-                    className="w-full bg-white border border-slate-200 hover:border-[#7c56dc] text-xs font-bold text-slate-900 rounded-full px-4 py-2.5 pr-10 shadow-sm transition appearance-none cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#7c56dc]/20"
-                  >
-                    <option value="recommended">Recommended & Verified</option>
-                    <option value="price-low">Price: Low to High</option>
-                    <option value="price-high">Price: High to Low</option>
-                    <option value="rating">Highest Star Ratings</option>
-                    <option value="reviews">Most Reviews & Stays</option>
-                  </select>
-                  <ChevronDown size={16} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-900 pointer-events-none stroke-[2.5]" />
                 </div>
               </div>
 
@@ -817,15 +948,19 @@ const HostelServices = () => {
                             <div className="flex flex-wrap gap-1.5">
                               {provider.amenities.map((amenity, idx) => {
                                 const isMatched = selectedAmenity !== 'all' && targetAmenityName === amenity;
+                                const matchedOffering = HOSTEL_OFFERINGS.find(o => o.name === amenity);
                                 return (
                                   <span
                                     key={idx}
-                                    className={`text-[10px] font-bold px-2.5 py-1 rounded-lg border flex items-center gap-1 transition ${isMatched
-                                        ? 'bg-[#7c56dc] text-white border-[#7c56dc] shadow-xs scale-105 ring-2 ring-purple-200'
-                                        : 'bg-purple-50 text-[#7c56dc] border-purple-100'
+                                    style={isMatched ? { background: 'linear-gradient(135deg, #d4af37 0%, #fef08a 50%, #b89228 100%)' } : {}}
+                                    className={`text-[10px] font-bold px-2.5 py-1 rounded-lg border flex items-center gap-1.5 transition ${isMatched
+                                        ? 'text-slate-950 border-[#b89228] shadow-xs scale-105 ring-2 ring-[#fef08a] font-black'
+                                        : 'bg-slate-50 text-slate-700 border-slate-200/80 hover:bg-slate-100'
                                       }`}
                                   >
-                                    <span>{isMatched ? '✓' : '✨'}</span>
+                                    <span className="shrink-0">
+                                      {matchedOffering ? renderOfferingIcon(matchedOffering.id, { size: 12, isActive: isMatched }) : <Check size={11} className="text-emerald-600" />}
+                                    </span>
                                     <span>{amenity}</span>
                                   </span>
                                 );
@@ -836,16 +971,15 @@ const HostelServices = () => {
                           {/* Dynamic Stay Package Preview tailored to selected feature */}
                           {featuredPkg && (
                             <div className={`p-3 rounded-2xl space-y-1 transition ${selectedAmenity !== 'all'
-                                ? 'bg-purple-50/90 border border-purple-200/90'
+                                ? 'bg-amber-50/90 border border-amber-300'
                                 : 'bg-amber-50/70 border border-amber-200/60'
                               }`}>
                               <div className="flex justify-between items-center">
-                                <span className={`text-[10px] font-extrabold uppercase tracking-wide flex items-center gap-1 ${selectedAmenity !== 'all' ? 'text-[#7c56dc]' : 'text-amber-900'
-                                  }`}>
-                                  <span>⭐</span>
+                                <span className="text-[10px] font-extrabold uppercase tracking-wide flex items-center gap-1.5 text-amber-900">
+                                  <Sparkles size={12} className="text-amber-600 shrink-0" />
                                   <span>{selectedAmenity !== 'all' ? `Matched ${targetAmenityName} Package` : 'Featured Stay Package'}</span>
                                 </span>
-                                <span className={`text-xs font-extrabold ${selectedAmenity !== 'all' ? 'text-[#7c56dc]' : 'text-slate-900'
+                                <span className={`text-xs font-extrabold ${selectedAmenity !== 'all' ? 'text-amber-800' : 'text-slate-900'
                                   }`}>
                                   ₹{featuredPkg.price}/night
                                 </span>

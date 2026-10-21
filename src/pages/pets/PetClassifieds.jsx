@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useSelector } from 'react-redux';
-import { Search, MapPin, MessageSquare, ShieldCheck, Tag, Phone, X, Heart, Lock, ShieldAlert, Briefcase, Clock, Syringe, CreditCard, Check, Shield } from 'lucide-react';
+import { Search, MapPin, MessageSquare, ShieldCheck, Tag, Phone, X, Heart, Lock, ShieldAlert, Briefcase, Clock, Syringe, CreditCard, Check, Shield, ChevronRight } from 'lucide-react';
 import { apiRequest } from '../../services/api.js';
 import toast from 'react-hot-toast';
 import { SELLER_PET_BREEDS } from '../dashboards/providers/PetSellerDashboard.jsx';
@@ -377,12 +377,15 @@ const PetClassifieds = () => {
       ) : filteredListings.length > 0 ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
           {filteredListings.map((l) => (
-            <div key={l._id} className="card-premium bg-white flex flex-col justify-between h-full border border-beige shadow-sm hover:shadow-md transition">
-              
+            <div 
+              key={l._id} 
+              onClick={() => navigate(`/pets/${l._id}`)}
+              className="card-premium bg-white flex flex-col justify-between h-full border border-beige shadow-sm hover:shadow-xl transition-all duration-300 cursor-pointer group hover:-translate-y-1"
+            >
               <div>
                 {/* Image */}
                 <div className="aspect-[16/10] sm:aspect-[4/3] overflow-hidden bg-gray-100 border-b border-beige relative">
-                  <img src={l.images[0]} alt={l.title} className="w-full h-full object-cover" loading="lazy" />
+                  <img src={l.images[0]} alt={l.title} className="w-full h-full object-cover group-hover:scale-105 transition duration-500" loading="lazy" />
                   
                   {/* Rehome / Price Tag */}
                   <span className="absolute bottom-2.5 left-2.5 bg-primary text-white text-[10px] sm:text-[11px] font-bold px-2.5 py-1 uppercase tracking-wider shadow-sm">
@@ -427,12 +430,17 @@ const PetClassifieds = () => {
                     <span className="truncate max-w-[60%]">{l.breed}</span>
                     <span className="shrink-0">{l.age}</span>
                   </div>
-                  <h3 className="font-serif text-sm sm:text-base font-semibold text-primary leading-snug line-clamp-1">
+                  <h3 className="font-serif text-sm sm:text-base font-semibold text-primary leading-snug line-clamp-1 group-hover:text-accent transition">
                     {l.title}
                   </h3>
                   <p className="text-[11px] sm:text-xs text-gray-500 leading-relaxed line-clamp-2 sm:line-clamp-3">
                     {l.description}
                   </p>
+
+                  <div className="pt-2 flex items-center gap-1 text-[11px] font-bold text-accent group-hover:translate-x-1 transition duration-300">
+                    <span>View Full Details & Vaccination</span>
+                    <ChevronRight size={13} />
+                  </div>
                 </div>
               </div>
 
@@ -443,18 +451,22 @@ const PetClassifieds = () => {
                   <span className="truncate">{l.location}</span>
                 </div>
 
-                <div className="grid grid-cols-2 gap-2 pt-1 relative z-20">
+                <div className="grid grid-cols-2 gap-2 pt-1 relative z-20" onClick={(e) => e.stopPropagation()}>
                   <a 
                     href={l.status === 'Sold Out' || l.quantity === 0 ? '#' : `tel:${l.contactPhone}`}
                     className={`py-2 border text-[10px] tracking-widest font-bold uppercase text-center flex items-center justify-center gap-1 transition ${l.status === 'Sold Out' || l.quantity === 0 ? 'border-gray-200 text-gray-400 cursor-not-allowed bg-gray-50' : 'border-beige hover:border-primary text-primary'}`}
                     onClick={(e) => {
+                      e.stopPropagation();
                       if (l.status === 'Sold Out' || l.quantity === 0) e.preventDefault();
                     }}
                   >
                     <Phone size={12} /> CALL
                   </a>
                   <button
-                    onClick={() => handleStartChat(l)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleStartChat(l);
+                    }}
                     disabled={l.status === 'Sold Out' || l.quantity === 0}
                     className={`py-2 text-[10px] tracking-widest font-bold uppercase flex items-center justify-center gap-1 transition ${l.status === 'Sold Out' || l.quantity === 0 ? 'bg-gray-200 text-gray-400 cursor-not-allowed' : 'bg-primary text-white hover:bg-accent hover:text-primary cursor-pointer'}`}
                   >
@@ -464,12 +476,15 @@ const PetClassifieds = () => {
                 
                 {/* Buy Action */}
                 {l.status !== 'Sold Out' && l.quantity !== 0 && (
-                  <div className="pt-2">
+                  <div className="pt-2" onClick={(e) => e.stopPropagation()}>
                     <button
-                      onClick={() => handleBuy(l)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleBuy(l);
+                      }}
                       className="w-full py-2 bg-[#ffd000] hover:bg-[#e6bb00] text-[#0F2E23] text-[11px] font-black tracking-widest uppercase rounded-md transition cursor-pointer shadow-sm flex items-center justify-center gap-2"
                     >
-                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></svg>
+                      <CreditCard size={14} />
                       BUY NOW
                     </button>
                   </div>

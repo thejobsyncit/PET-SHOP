@@ -148,6 +148,19 @@ const ServiceBooking = () => {
     }
   };
 
+  const handleBannerCta = () => {
+    if (isAuthenticated) {
+      const el = document.getElementById('services-grid');
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth' });
+      } else {
+        window.scrollTo({ top: 350, behavior: 'smooth' });
+      }
+    } else {
+      window.dispatchEvent(new CustomEvent('open-register-modal', { detail: { tab: 'user' } }));
+    }
+  };
+
   const handleProviderClick = (provider) => {
     const rawCategory = typeof provider === 'string' ? provider : provider.category;
     const categoryKey = rawCategory === 'Dog Walking' ? 'Walking' : rawCategory;
@@ -491,8 +504,9 @@ const ServiceBooking = () => {
               </p>
             </div>
             <button 
-              onClick={() => !isAuthenticated && window.dispatchEvent(new CustomEvent('open-register-modal', { detail: { tab: 'user' } }))}
-              className="relative z-10 shrink-0 bg-[#0f2e23] hover:bg-black text-white font-black py-4 px-4 lg:px-10 rounded-[1.25rem] shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 active:scale-95 text-lg flex items-center gap-2 border border-[#1c4b3a]"
+              id="explore-services-banner-btn"
+              onClick={handleBannerCta}
+              className="relative z-10 shrink-0 bg-[#0f2e23] hover:bg-black text-white font-black py-4 px-4 lg:px-10 rounded-[1.25rem] shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 active:scale-95 text-lg flex items-center gap-2 border border-[#1c4b3a] cursor-pointer"
             >
               {isAuthenticated ? 'Explore Services' : 'Sign Up Now'}
               <Sparkles size={20} className="text-[#fde047]" />

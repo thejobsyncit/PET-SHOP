@@ -356,8 +356,8 @@ const Login = () => {
   const [registerRoleTab, setRegisterRoleTab] = useState(isProviderRoute ? 'provider' : 'user'); // 'user' | 'provider'
 
   // Login Form States (Supports both Email and Mobile Number)
-  const [loginIdentifier, setLoginIdentifier] = useState('');
-  const [loginPassword, setLoginPassword] = useState('');
+  const [loginIdentifier, setLoginIdentifier] = useState(location.state?.prefillIdentifier || '');
+  const [loginPassword, setLoginPassword] = useState(location.state?.prefillPassword || '');
   const [loginError, setLoginError] = useState('');
 
   // Password Visibility Toggle States
@@ -419,7 +419,8 @@ const Login = () => {
   const [otpPurpose, setOtpPurpose] = useState('register'); // 'register' or 'login'
   const [generatedOtp, setGeneratedOtp] = useState('');
   const [otpDigits, setOtpDigits] = useState(['', '', '', '', '', '']);
-  const [otpTimer, setOtpTimer] = useState(30);
+  const [otpTimer, setOtpTimer] = useState(60);
+  const [otpExpiresAt, setOtpExpiresAt] = useState(null);
   const [verifyingOtp, setVerifyingOtp] = useState(false);
   const [isRealEmailSent, setIsRealEmailSent] = useState(false);
   const otpInputRefs = useRef([]);
@@ -434,7 +435,8 @@ const Login = () => {
   const [forgotConfirmPassword, setForgotConfirmPassword] = useState('');
   const [showForgotNewPassword, setShowForgotNewPassword] = useState(false);
   const [showForgotConfirmPassword, setShowForgotConfirmPassword] = useState(false);
-  const [forgotTimer, setForgotTimer] = useState(30);
+  const [forgotTimer, setForgotTimer] = useState(60);
+  const [forgotExpiresAt, setForgotExpiresAt] = useState(null);
   const [forgotLoading, setForgotLoading] = useState(false);
   const forgotOtpInputRefs = useRef([]);
 
@@ -457,11 +459,20 @@ const Login = () => {
 
   const indianStates = Object.keys(INDIAN_STATES_CITIES);
 
-  // Clear errors on tab swap or route change
+  // Clear errors on tab swap or route change, and check for password reset redirect
   useEffect(() => {
     setIsOtpStep(false);
     dispatch(clearAuthError());
-  }, [isSignUp, registerRoleTab, dispatch]);
+    if (location.state?.prefillIdentifier) {
+      setLoginIdentifier(location.state.prefillIdentifier);
+    }
+    if (location.state?.prefillPassword) {
+      setLoginPassword(location.state.prefillPassword);
+    }
+    if (location.state?.resetSuccess) {
+      toast.success('Password reset successfully! Please sign in with your new password.', { duration: 5000 });
+    }
+  }, [isSignUp, registerRoleTab, dispatch, location.state]);
 
   // OTP Countdown timer
   useEffect(() => {
@@ -556,7 +567,13 @@ const Login = () => {
     'pawinsure@joshpetshub.com',
     'elitebreed@joshpetshub.com',
     'priya@joshpetshub.com',
-    'admin@joshpetshub.com'
+    'admin@joshpetshub.com',
+    'superadmin@joshpetshub.com',
+    'customer1@joshpetshub.com',
+    'customer2@joshpetshub.com',
+    'customer3@joshpetshub.com',
+    'customer4@joshpetshub.com',
+    'customer5@joshpetshub.com'
   ];
 
   const checkEmailAlreadyRegistered = (email) => {
@@ -565,13 +582,13 @@ const Login = () => {
     if (EXISTING_SYSTEM_EMAILS.includes(clean)) return true;
     try {
       const list = JSON.parse(localStorage.getItem('joshpetshub_registered_users') || '[]');
-      if (Array.isArray(list) && list.some(u => u?.email?.trim().toLowerCase() === clean)) {
+      if (Array.isArray(list) && list.some(u => (u?.email || '').trim().toLowerCase() === clean)) {
         return true;
       }
     } catch (e) {}
     try {
       const curr = JSON.parse(localStorage.getItem('joshpetshub_user') || 'null');
-      if (curr?.email?.trim().toLowerCase() === clean) {
+      if ((curr?.email || '').trim().toLowerCase() === clean) {
         return true;
       }
     } catch (e) {}
@@ -798,14 +815,16 @@ const Login = () => {
       if (res?.otp) {
         setForgotGeneratedOtp(res.otp);
       }
-      toast.success(res?.message || ("Recovery code sent to " + cleanId + "!"), { icon: "🔑", duration: 5000 });
+      toast.success(res?.message || ("Recovery code sent to " + cleanId + "! (Valid for 1 min)"), { icon: "🔑", duration: 5000 });
       setForgotOtpStep(true);
-      setForgotTimer(30);
+      setForgotTimer(60);
+      setForgotExpiresAt(Date.now() + 60 * 1000);
     } catch (err) {
       console.warn("Backend forgot-password note (using demo code):", err.message);
-      toast.success("Recovery code sent to " + cleanId + "! (Code: " + demoCode + ")", { icon: "🔑", duration: 7000 });
+      toast.success("Recovery code sent to " + cleanId + "! (Code: " + demoCode + ", Valid for 1 min)", { icon: "🔑", duration: 7000 });
       setForgotOtpStep(true);
-      setForgotTimer(30);
+      setForgotTimer(60);
+      setForgotExpiresAt(Date.now() + 60 * 1000);
     } finally {
       setForgotLoading(false);
     }
@@ -819,6 +838,13 @@ const Login = () => {
       toast.error("Please enter the full 6-digit verification code.");
       return;
     }
+
+    const isExpired = (forgotExpiresAt && Date.now() > forgotExpiresAt) || forgotTimer <= 0;
+    if (isExpired) {
+      toast.error("Verification code has expired! Codes are valid for 1 minute only. Please click 'Resend Verification Code' to get a new code.");
+      return;
+    }
+
     if (!forgotNewPassword) {
       toast.error("Please enter a new password.");
       return;
@@ -869,6 +895,7 @@ const Login = () => {
   };
 
   // 1. Sign In Submit Handler (Email or Mobile Number)
+  // 1. Sign In Submit Handler (Email or Mobile Number)
   const handleLoginSubmit = async (e) => {
     if (e) e.preventDefault();
     setLoginError('');
@@ -877,11 +904,74 @@ const Login = () => {
       return;
     }
     
-    const isEmail = loginIdentifier.includes('@');
+    const cleanId = loginIdentifier.trim();
+    const isEmail = cleanId.includes('@');
+
+    // ⚡ Service Provider Direct Login (OTP disabled as requested)
+    const DEMO_PROVIDERS = [
+      'dr.ramesh@joshpetshub.com',
+      'velvetfur@joshpetshub.com',
+      'happypaws@joshpetshub.com',
+      'royalpaws@joshpetshub.com',
+      'adopt@joshpetshub.com',
+      'swiftpaws@joshpetshub.com',
+      'safepet@joshpetshub.com',
+      'clevercanines@joshpetshub.com',
+      'pawinsure@joshpetshub.com',
+      'elitebreed@joshpetshub.com'
+    ];
+
+    const isProviderLogin = (() => {
+      if (loginRoleTab === 'provider') return true;
+      const lower = cleanId.toLowerCase();
+      if (DEMO_PROVIDERS.includes(lower)) return true;
+      try {
+        const reg = JSON.parse(localStorage.getItem('joshpetshub_registered_users') || '[]');
+        return reg.some(u =>
+          ((u.email && u.email.toLowerCase() === lower) || (u.mobile && u.mobile === cleanId)) &&
+          u.role === 'SERVICE_PROVIDER'
+        );
+      } catch (e) {
+        return false;
+      }
+    })();
+
+    if (isProviderLogin) {
+      setVerifyingOtp(true);
+      try {
+        const resultAction = await dispatch(login({
+          identifier: cleanId,
+          password: loginPassword,
+          isOtpVerified: true,
+          role: 'SERVICE_PROVIDER'
+        }));
+
+        if (login.fulfilled.match(resultAction)) {
+          const loggedInUser = resultAction.payload?.user;
+          toast.success(`🎉 Welcome to Provider Dashboard, ${loggedInUser?.name || 'Partner'}!`);
+          navigate('/provider-dashboard');
+          return;
+        } else {
+          const errMsg = resultAction?.payload || 'Invalid service provider credentials. Please check your password.';
+          setLoginError(errMsg);
+          toast.error(errMsg);
+          return;
+        }
+      } catch (err) {
+        console.error('Provider direct login error:', err);
+        const errMsg = err?.message || 'Login failed. Please verify credentials.';
+        setLoginError(errMsg);
+        toast.error(errMsg);
+        return;
+      } finally {
+        setVerifyingOtp(false);
+      }
+    }
+
     setVerifyingOtp(true);
 
     try {
-      // 🔒 Check credentials & send OTP from backend first
+      // 🔒 Regular Pet Parent login with OTP verification
       const res = await apiRequest('/auth/send-otp', {
         method: 'POST',
         body: JSON.stringify({
@@ -903,13 +993,14 @@ const Login = () => {
       setPendingUserData({
         identifier: loginIdentifier,
         password: loginPassword,
-        role: loginRoleTab === 'provider' ? 'SERVICE_PROVIDER' : 'CUSTOMER',
+        role: 'CUSTOMER',
         mobile: loginIdentifier,
         mobileCountryCode: ''
       });
       setGeneratedOtp(receivedOtp);
       setOtpDigits(['', '', '', '', '', '']);
-      setOtpTimer(30);
+      setOtpTimer(60);
+      setOtpExpiresAt(Date.now() + 60 * 1000);
       setOtpPurpose('login');
       setIsRealEmailSent(!res.simulated);
       setIsOtpStep(true);
@@ -1017,36 +1108,48 @@ const Login = () => {
     const targetEmail = (payload.email || userEmail || '').trim();
     const isEmail = targetEmail.includes('@');
 
-    // ⚡ INSTANT 0ms OPTIMISTIC UI TRANSITION
-    setIsRealEmailSent(false);
-    setPendingUserData(payload);
-    setGeneratedOtp(code);
-    setOtpDigits(['', '', '', '', '', '']);
-    setOtpTimer(30);
-    setOtpPurpose('register');
-    setIsOtpStep(true);
-
-    // ⚡ Non-blocking background email dispatch
+    // ⚡ Await send-otp verification to prevent moving to OTP step if email already registered
     if (isEmail) {
-      apiRequest('/auth/send-otp', {
-        method: 'POST',
-        body: JSON.stringify({
-          email: targetEmail,
-          mobile: payload.mobile,
-          identifier: targetEmail,
-          purpose: 'registration'
-        })
-      }).then(res => {
+      try {
+        const res = await apiRequest('/auth/send-otp', {
+          method: 'POST',
+          body: JSON.stringify({
+            email: targetEmail,
+            mobile: payload.mobile,
+            identifier: targetEmail,
+            purpose: 'registration'
+          })
+        });
         if (res?.otp) setGeneratedOtp(res.otp);
         if (res && !res.simulated) {
           setIsRealEmailSent(true);
           toast.success(`📧 Verification OTP sent to ${targetEmail}! Check your inbox.`, { duration: 6000, icon: '📧' });
+        } else {
+          toast.success(`📲 OTP generated for ${targetEmail}!`, { duration: 5000 });
         }
-      }).catch(err => {
-        console.warn('Background send-otp error:', err);
-      });
+        setIsRealEmailSent(Boolean(res && !res.simulated));
+        setPendingUserData(payload);
+        setGeneratedOtp(res?.otp || code);
+        setOtpDigits(['', '', '', '', '', '']);
+        setOtpTimer(60);
+        setOtpExpiresAt(Date.now() + 60 * 1000);
+        setOtpPurpose('register');
+        setIsOtpStep(true);
+      } catch (err) {
+        const errorMsg = err?.message || 'Email registration verification failed.';
+        setUserEmailError(errorMsg);
+        toast.error(errorMsg);
+        return;
+      }
     } else {
-      toast.success(`📲 OTP sent to ${userCountryCode} ${userMobileNo}! Please check your messages/inbox.`, { duration: 6000, icon: '📲' });
+      setPendingUserData(payload);
+      setGeneratedOtp(code);
+      setOtpDigits(['', '', '', '', '', '']);
+      setOtpTimer(60);
+      setOtpExpiresAt(Date.now() + 60 * 1000);
+      setOtpPurpose('register');
+      setIsOtpStep(true);
+      toast.success(`📲 OTP sent to ${userCountryCode} ${userMobileNo}! (Valid for 1 min)`, { duration: 6000, icon: '📲' });
     }
   };
 
@@ -1127,36 +1230,48 @@ const Login = () => {
     const targetEmail = (payload.email || providerEmail || '').trim();
     const isEmail = targetEmail.includes('@');
 
-    // ⚡ INSTANT 0ms OPTIMISTIC UI TRANSITION
-    setIsRealEmailSent(false);
-    setPendingUserData(payload);
-    setGeneratedOtp(code);
-    setOtpDigits(['', '', '', '', '', '']);
-    setOtpTimer(30);
-    setOtpPurpose('register');
-    setIsOtpStep(true);
-
-    // ⚡ Non-blocking background email dispatch
+    // ⚡ Await send-otp verification to prevent moving to OTP step if email already registered
     if (isEmail) {
-      apiRequest('/auth/send-otp', {
-        method: 'POST',
-        body: JSON.stringify({
-          email: targetEmail,
-          mobile: payload.mobile,
-          identifier: targetEmail,
-          purpose: 'registration'
-        })
-      }).then(res => {
+      try {
+        const res = await apiRequest('/auth/send-otp', {
+          method: 'POST',
+          body: JSON.stringify({
+            email: targetEmail,
+            mobile: payload.mobile,
+            identifier: targetEmail,
+            purpose: 'registration'
+          })
+        });
         if (res?.otp) setGeneratedOtp(res.otp);
         if (res && !res.simulated) {
           setIsRealEmailSent(true);
           toast.success(`📧 Verification OTP sent to ${targetEmail}! Check your inbox.`, { duration: 6000, icon: '📧' });
+        } else {
+          toast.success(`📲 OTP generated for ${targetEmail}!`, { duration: 5000 });
         }
-      }).catch(err => {
-        console.warn('Background send-otp error:', err);
-      });
+        setIsRealEmailSent(Boolean(res && !res.simulated));
+        setPendingUserData(payload);
+        setGeneratedOtp(res?.otp || code);
+        setOtpDigits(['', '', '', '', '', '']);
+        setOtpTimer(60);
+        setOtpExpiresAt(Date.now() + 60 * 1000);
+        setOtpPurpose('register');
+        setIsOtpStep(true);
+      } catch (err) {
+        const errorMsg = err?.message || 'Business email registration verification failed.';
+        setProviderEmailError(errorMsg);
+        toast.error(errorMsg);
+        return;
+      }
     } else {
-      toast.success(`📲 OTP sent to ${providerCountryCode} ${providerMobileNo}! Please check your messages/inbox.`, { duration: 6000, icon: '📲' });
+      setPendingUserData(payload);
+      setGeneratedOtp(code);
+      setOtpDigits(['', '', '', '', '', '']);
+      setOtpTimer(60);
+      setOtpExpiresAt(Date.now() + 60 * 1000);
+      setOtpPurpose('register');
+      setIsOtpStep(true);
+      toast.success(`📲 OTP sent to ${providerCountryCode} ${providerMobileNo}! (Valid for 1 min)`, { duration: 6000, icon: '📲' });
     }
   };
 
@@ -1230,7 +1345,8 @@ const Login = () => {
 
     // ⚡ INSTANT reset of timer and digits
     setGeneratedOtp(newCode);
-    setOtpTimer(30);
+    setOtpTimer(60);
+    setOtpExpiresAt(Date.now() + 60 * 1000);
     setOtpDigits(['', '', '', '', '', '']);
     if (otpInputRefs.current[0]) {
       otpInputRefs.current[0].focus();
@@ -1248,12 +1364,12 @@ const Login = () => {
       if (res?.otp) setGeneratedOtp(res.otp);
       if (res && !res.simulated && targetEmail) {
         setIsRealEmailSent(true);
-        toast.success(`📧 New OTP sent to ${targetEmail}! Check your inbox.`, { duration: 6000, icon: '📧' });
+        toast.success(`📧 New OTP sent to ${targetEmail}! (Valid for 1 min)`, { duration: 6000, icon: '📧' });
       } else {
-        toast.success(`📲 New OTP sent! Please check your messages/inbox.`, { duration: 5000, icon: '📲' });
+        toast.success(`📲 New OTP sent! (Valid for 1 min)`, { duration: 5000, icon: '📲' });
       }
     }).catch(() => {
-      toast.success(`📲 New OTP sent to ${targetCode} ${targetNum}! Please check your messages/inbox.`, { duration: 5000, icon: '📲' });
+      toast.success(`📲 New OTP sent to ${targetCode} ${targetNum}! (Valid for 1 min)`, { duration: 5000, icon: '📲' });
     });
   };
 
@@ -1262,6 +1378,13 @@ const Login = () => {
     const entered = otpDigits.join('');
     if (entered.length !== 6) {
       toast.error('Please enter the complete 6-digit OTP code.');
+      return;
+    }
+
+    // 🔒 Strict 1-Minute Expiration Verification
+    const isExpired = (otpExpiresAt && Date.now() > otpExpiresAt) || otpTimer <= 0;
+    if (isExpired) {
+      toast.error('OTP has expired! Verification codes are valid for 1 minute only. Please click "Resend OTP" to generate a new code.');
       return;
     }
 
@@ -1309,27 +1432,19 @@ const Login = () => {
           sanitizedPending.profilePicture = '';
         }
 
-        const userObj = {
-          _id: 'user_' + Date.now(),
-          ...sanitizedPending,
-          addresses: []
-        };
-        const tokenStr = 'token_' + Date.now();
+        const resultAction = await dispatch(register(sanitizedPending));
 
-        // Update Redux authenticated state
-        dispatch(setAuthenticatedUser({ token: tokenStr, user: userObj }));
-
-        // Also trigger thunk in background for API sync
-        try {
-          dispatch(register(sanitizedPending));
-        } catch (_) {}
-
-        toast.success(`🎉 Verification successful! Welcome ${pendingUserData?.name || 'Pet Parent'}!`);
-        setIsOtpStep(false);
-        if (pendingUserData?.role === 'SERVICE_PROVIDER') {
-          navigate('/provider-dashboard');
+        if (register.fulfilled.match(resultAction)) {
+          toast.success(`🎉 Verification successful! Welcome ${pendingUserData?.name || 'Pet Parent'}!`);
+          setIsOtpStep(false);
+          if (pendingUserData?.role === 'SERVICE_PROVIDER' || resultAction.payload?.user?.role === 'SERVICE_PROVIDER') {
+            navigate('/provider-dashboard');
+          } else {
+            navigate(location.state?.from || '/account');
+          }
         } else {
-          navigate(location.state?.from || '/account');
+          const errMsg = resultAction?.payload || 'Registration could not be completed. Email may already be in use.';
+          toast.error(errMsg);
         }
       }
     } catch (err) {
@@ -1491,6 +1606,8 @@ const Login = () => {
                 >
                   {verifyingOtp ? (
                     <span>VERIFYING OTP & OPENING DASHBOARD...</span>
+                  ) : otpTimer <= 0 ? (
+                    <span className="text-red-200 font-bold">OTP EXPIRED - PLEASE REQUEST NEW CODE</span>
                   ) : (
                     <>
                       <CircleCheck size={16} />
@@ -1505,25 +1622,34 @@ const Login = () => {
                   )}
                 </button>
 
-                {/* Resend Timer & Actions */}
+                {/* Resend Timer & 1-Minute Expiration Actions */}
                 <div className="text-center space-y-2 pt-1">
                   {otpTimer > 0 ? (
-                    <p className="text-xs text-slate-500 font-medium">
-                      Didn't receive code? Resend in{' '}
-                      <span className="font-bold text-[#15559c] font-mono">
-                        0:{otpTimer < 10 ? `0${otpTimer}` : otpTimer}
-                      </span>
-                    </p>
+                    <div className="space-y-1">
+                      <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50 border border-blue-200 text-[#15559c] text-xs font-semibold">
+                        <span>⏱️</span>
+                        <span>Code expires in:</span>
+                        <span className="font-bold font-mono text-sm">
+                          0:{otpTimer < 10 ? `0${otpTimer}` : otpTimer}
+                        </span>
+                        <span className="text-[10px] text-slate-400 font-normal">(Valid for 1 min)</span>
+                      </div>
+                    </div>
                   ) : (
-                    <div className="flex items-center justify-center gap-2">
-                      <span className="text-xs text-slate-500 font-medium">Didn't receive code?</span>
-                      <button
-                        type="button"
-                        onClick={handleResendOtp}
-                        className="text-xs font-bold text-[#15559c] hover:underline flex items-center gap-1 cursor-pointer"
-                      >
-                        <RotateCcw size={12} /> Resend OTP
-                      </button>
+                    <div className="space-y-2">
+                      <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs font-bold shadow-xs">
+                        <span>⚠️</span>
+                        <span>OTP has expired (1 min limit reached). This code is no longer valid.</span>
+                      </div>
+                      <div className="flex items-center justify-center gap-2 pt-1">
+                        <button
+                          type="button"
+                          onClick={handleResendOtp}
+                          className="px-4 py-2 bg-[#15559c] hover:bg-[#0f3d6b] text-white text-xs font-bold rounded-xl shadow-md transition flex items-center gap-1.5 cursor-pointer active:scale-95"
+                        >
+                          <RotateCcw size={13} /> Request New OTP
+                        </button>
+                      </div>
                     </div>
                   )}
 
@@ -1792,15 +1918,13 @@ const Login = () => {
                     </button>
                   </div>
                   {/* Forgot Password Option */}
-                  <div className="flex items-center justify-between text-xs pt-0.5 px-0.5">
-                    <span className="text-slate-400 text-[11px]">Forgot your login password?</span>
+                  <div className="flex justify-end text-xs pt-0.5 px-0.5">
                     <button
                       type="button"
-                      onClick={handleOpenForgotPassword}
-                      className="text-[#15559c] hover:underline font-bold text-xs inline-flex items-center gap-1 cursor-pointer transition hover:text-[#0f3d6b]"
+                      onClick={() => navigate('/forgot-password', { state: { identifier: loginIdentifier } })}
+                      className="text-[#15559c] hover:underline font-bold text-xs cursor-pointer transition hover:text-[#0f3d6b]"
                     >
-                      <KeyRound size={12} />
-                      <span>Forgot Password?</span>
+                      Forgot Password?
                     </button>
                   </div>
 
@@ -2015,6 +2139,23 @@ const Login = () => {
                         onChange={(e) => {
                           setUserEmail(e.target.value);
                           if (userEmailError) setUserEmailError('');
+                        }}
+                        onBlur={async () => {
+                          if (userEmail && userEmail.trim()) {
+                            if (checkEmailAlreadyRegistered(userEmail)) {
+                              setUserEmailError('This email is already registered. Please log in or use a different email *');
+                              return;
+                            }
+                            try {
+                              const res = await apiRequest('/auth/check-email', {
+                                method: 'POST',
+                                body: JSON.stringify({ email: userEmail.trim() })
+                              });
+                              if (res?.exists) {
+                                setUserEmailError('This email is already registered. Please log in or use a different email *');
+                              }
+                            } catch (_) {}
+                          }
                         }}
                         className={`w-full px-4 py-2.5 border rounded-xl text-xs md:text-sm focus:outline-none transition font-medium ${
                           userEmailError
@@ -2307,6 +2448,23 @@ const Login = () => {
                         onChange={(e) => {
                           setProviderEmail(e.target.value);
                           if (providerEmailError) setProviderEmailError('');
+                        }}
+                        onBlur={async () => {
+                          if (providerEmail && providerEmail.trim()) {
+                            if (checkEmailAlreadyRegistered(providerEmail)) {
+                              setProviderEmailError('This email is already registered. Please log in or use a different email *');
+                              return;
+                            }
+                            try {
+                              const res = await apiRequest('/auth/check-email', {
+                                method: 'POST',
+                                body: JSON.stringify({ email: providerEmail.trim() })
+                              });
+                              if (res?.exists) {
+                                setProviderEmailError('This email is already registered. Please log in or use a different email *');
+                              }
+                            } catch (_) {}
+                          }
                         }}
                         className={`w-full px-4 py-2.5 border rounded-xl text-xs md:text-sm focus:outline-none transition ${
                           providerEmailError
@@ -2721,20 +2879,33 @@ const Login = () => {
                       ))}
                     </div>
 
-                    {/* Resend timer */}
+                    {/* Resend timer & 1-minute expiration indicator */}
                     <div className="text-center pt-1">
                       {forgotTimer > 0 ? (
-                        <span className="text-[11px] text-slate-400">
-                          Resend code in <strong className="font-mono text-slate-600">0:{forgotTimer < 10 ? "0" + forgotTimer : forgotTimer}</strong>
-                        </span>
+                        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50 border border-blue-200 text-[#15559c] text-xs font-semibold">
+                          <span>⏱️</span>
+                          <span>Code expires in:</span>
+                          <span className="font-bold font-mono text-xs">
+                            0:{forgotTimer < 10 ? "0" + forgotTimer : forgotTimer}
+                          </span>
+                          <span className="text-[10px] text-slate-400 font-normal">(Valid for 1 min)</span>
+                        </div>
                       ) : (
-                        <button
-                          type="button"
-                          onClick={handleSendForgotOtp}
-                          className="text-[11px] font-bold text-[#15559c] hover:underline cursor-pointer inline-flex items-center gap-1"
-                        >
-                          <RotateCcw size={11} /> Resend Verification Code
-                        </button>
+                        <div className="space-y-1.5">
+                          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-red-50 border border-red-200 text-red-700 text-xs font-bold">
+                            <span>⚠️</span>
+                            <span>Code expired (1 min limit). Please request a new code.</span>
+                          </div>
+                          <div>
+                            <button
+                              type="button"
+                              onClick={handleSendForgotOtp}
+                              className="text-xs font-bold text-[#15559c] hover:underline cursor-pointer inline-flex items-center gap-1"
+                            >
+                              <RotateCcw size={12} /> Resend Verification Code
+                            </button>
+                          </div>
+                        </div>
                       )}
                     </div>
                   </div>
@@ -2813,7 +2984,7 @@ const Login = () => {
                     </button>
                     <button
                       type="submit"
-                      disabled={forgotLoading || forgotOtpDigits.join("").length !== 6 || !forgotNewPassword || forgotNewPassword.length < 6 || forgotNewPassword !== forgotConfirmPassword}
+                      disabled={forgotLoading || forgotOtpDigits.join("").length !== 6 || forgotTimer <= 0 || !forgotNewPassword || forgotNewPassword.length < 6 || forgotNewPassword !== forgotConfirmPassword}
                       className="flex-1 py-2.5 bg-[#0F2E23] hover:bg-[#163e30] disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 shadow-md shadow-[#0F2E23]/20 cursor-pointer"
                     >
                       {forgotLoading ? (

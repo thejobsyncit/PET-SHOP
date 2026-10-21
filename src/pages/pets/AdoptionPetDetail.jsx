@@ -4,7 +4,7 @@ import { useSelector } from 'react-redux';
 import {
   Heart, ArrowLeft, MapPin, MessageSquare, ShieldCheck,
   CircleCheck, Check, User, Calendar, Award, Share2, Info, Home,
-  Sparkles, AlertCircle, ArrowRight, Lock, X
+  Sparkles, AlertCircle, ArrowRight, Lock, X, Phone
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import {
@@ -15,6 +15,20 @@ import {
 } from '../../data/adoptionPetsData';
 import FlyingMacawMessenger from '../../components/widgets/FlyingMacawMessenger.jsx';
 import { handleServiceAction } from '../../components/widgets/ServicePackageAccessModal.jsx';
+
+const WhatsAppIcon = ({ className = 'w-4 h-4', size = 18 }) => (
+  <svg
+    viewBox="0 0 24 24"
+    width={size}
+    height={size}
+    stroke="currentColor"
+    fill="currentColor"
+    strokeWidth="0"
+    className={className}
+  >
+    <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L0 24l6.335-1.662c1.746.953 3.71 1.456 5.71 1.457h.006c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z" />
+  </svg>
+);
 
 const AdoptionPetDetail = () => {
   const { id } = useParams();
@@ -72,46 +86,51 @@ const AdoptionPetDetail = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, [id]);
 
-  // Handle "Know More" action: unauthenticated gets register modal, authenticated gets payment/package modal
-  const handleKnowMore = (targetPet) => {
-    if (!isAuthenticated || !user) {
-      toast.error('Please register or log in as a user to view adoption details.', {
-        duration: 4000,
-        icon: '🔒'
-      });
-      window.dispatchEvent(
-        new CustomEvent('open-register-modal', {
-          detail: {
-            tab: 'user',
-            hideProviderTab: true,
-            source: 'adoption-know-more',
-            petName: targetPet?.name
-          }
-        })
-      );
-      return;
-    }
-
+  // Open adoption care package modal
+  const handleOpenCarePackages = (targetPet) => {
+    const p = targetPet || pet;
+    if (!p) return;
     handleServiceAction({
-      isAuthenticated: true,
+      isAuthenticated,
       serviceType: 'Adoption',
       provider: {
-        id: targetPet.id,
-        name: targetPet.name,
-        parentName: targetPet.parentName || targetPet.guardianName || 'Rescue Shelter',
-        breed: targetPet.breed,
-        gender: targetPet.gender,
-        age: targetPet.age,
-        city: targetPet.city,
-        area: targetPet.state,
-        phone: targetPet.parentContact || targetPet.shelterPhone || '+91 98765 43210',
-        image: targetPet.image,
+        id: p.id,
+        name: p.name,
+        parentName: p.parentName || p.guardianName || 'Rescue Shelter',
+        breed: p.breed,
+        gender: p.gender,
+        age: p.age,
+        city: p.city,
+        area: p.state,
+        phone: p.parentContact || p.shelterPhone || '+91 98765 43210',
+        image: p.image,
         rating: 4.9,
         reviews: 42,
-        price: targetPet.fee ? Number(targetPet.fee) : 499
+        price: p.fee ? Number(p.fee) : 499
       },
-      action: 'adopt'
+      action: 'book'
     });
+  };
+
+  // Direct WhatsApp chat connect with pet details
+  const handleWhatsAppChat = (targetPet) => {
+    const p = targetPet || pet;
+    const rawContact = p?.parentContact || p?.shelterPhone || p?.ownerPhone || '+91 98765 43210';
+    let cleanPhone = rawContact.replace(/\D/g, '') || '919876543210';
+    if (cleanPhone.length === 10) {
+      cleanPhone = `91${cleanPhone}`;
+    }
+    const message = encodeURIComponent(
+      `Hi ${p?.parentName || 'Guardian'}, I saw ${p?.name} (${p?.breed}) on Josh Pets Hub and would love to know more details about adopting!`
+    );
+    window.open(`https://wa.me/${cleanPhone}?text=${message}`, '_blank');
+  };
+
+  // Navigate to another pet's detail page
+  const handleKnowMore = (targetPet) => {
+    if (!targetPet?.id) return;
+    navigate(`/adopt/${targetPet.id}`);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   // Load target pet with robust ID and string matching & real-time sync
@@ -564,24 +583,46 @@ const AdoptionPetDetail = () => {
                 </div>
               </div>
 
-              {/* Direct In-App Chat Inquiry Trigger */}
-              <button
-                type="button"
-                onClick={() => setShowInquiryModal(true)}
-                className="w-full py-3.5 px-4 bg-[#7c56dc] hover:bg-[#6842c8] text-white rounded-xl font-bold text-xs shadow-md shadow-purple-600/20 active:scale-95 transition flex items-center justify-center gap-2 cursor-pointer"
-              >
-                <MessageSquare size={16} />
-                <span>💬 Ask Shelter a Question / Start Chat</span>
-              </button>
+              {/* Guardian Direct Actions: Dedicated WhatsApp, Call, In-App Chat */}
+              <div className="space-y-2.5">
+                {/* Dedicated WhatsApp Button */}
+                <button
+                  type="button"
+                  onClick={() => handleWhatsAppChat(pet)}
+                  className="w-full py-3.5 px-4 bg-[#25D366] hover:bg-[#20ba59] text-white rounded-xl font-bold text-xs shadow-md shadow-emerald-500/20 active:scale-95 transition flex items-center justify-center gap-2.5 cursor-pointer"
+                >
+                  <WhatsAppIcon size={18} />
+                  <span>Chat on WhatsApp with Guardian</span>
+                </button>
+
+                <div className="grid grid-cols-2 gap-2">
+                  <a
+                    href={`tel:${(pet.parentContact || pet.shelterPhone || pet.ownerPhone || '+91 98765 43210').replace(/\s+/g, '')}`}
+                    className="py-2.5 px-3 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold text-xs transition flex items-center justify-center gap-1.5"
+                  >
+                    <Phone size={14} className="text-emerald-600" />
+                    <span>Call Guardian</span>
+                  </a>
+
+                  <button
+                    type="button"
+                    onClick={() => setShowInquiryModal(true)}
+                    className="py-2.5 px-3 bg-purple-50 hover:bg-purple-100 text-[#7c56dc] border border-purple-200 rounded-xl font-bold text-xs transition flex items-center justify-center gap-1.5 cursor-pointer"
+                  >
+                    <MessageSquare size={14} />
+                    <span>In-App Chat</span>
+                  </button>
+                </div>
+              </div>
 
               {/* Adoption Package & Payment Pass Trigger */}
               <button
                 type="button"
-                onClick={() => pet && handleKnowMore(pet)}
-                className="w-full py-3 px-4 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white rounded-xl font-bold text-xs shadow-md shadow-amber-500/20 active:scale-95 transition flex items-center justify-center gap-2 cursor-pointer"
+                onClick={() => handleOpenCarePackages(pet)}
+                className="w-full py-2.5 px-4 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white rounded-xl font-bold text-xs shadow-md shadow-amber-500/20 active:scale-95 transition flex items-center justify-center gap-2 cursor-pointer"
               >
-                <Sparkles size={16} />
-                <span>⭐ View Adoption Care Packages & Payment</span>
+                <Sparkles size={15} />
+                <span>⭐ View Adoption Care Packages & Pass</span>
               </button>
 
               {/* Adoption Application Form Section */}
@@ -783,8 +824,11 @@ const AdoptionPetDetail = () => {
                   key={p.id}
                   className="bg-white rounded-2xl border border-purple-100 shadow-sm hover:shadow-md transition overflow-hidden flex flex-col justify-between"
                 >
-                  <div className="aspect-[4/3] overflow-hidden bg-purple-50">
-                    <img src={p.image} alt={p.name} className="w-full h-full object-cover" />
+                  <div
+                    onClick={() => handleKnowMore(p)}
+                    className="aspect-[4/3] overflow-hidden bg-purple-50 cursor-pointer group"
+                  >
+                    <img src={p.image} alt={p.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
                   </div>
                   <div className="p-4 space-y-2">
                     <h4 className="font-bold text-slate-800 text-sm">

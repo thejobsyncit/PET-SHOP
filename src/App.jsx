@@ -21,6 +21,7 @@ const BlogDetail = lazy(() => import('./pages/blog/BlogDetail.jsx'));
 const About = lazy(() => import('./pages/About.jsx'));
 const Contact = lazy(() => import('./pages/Contact.jsx'));
 const Login = lazy(() => import('./pages/Login.jsx'));
+const ForgotPassword = lazy(() => import('./pages/ForgotPassword.jsx'));
 const AdminDashboard = lazy(() => import('./pages/dashboards/AdminDashboard.jsx'));
 const SuperAdminDashboard = lazy(() => import('./pages/dashboards/SuperAdminDashboard.jsx'));
 const ServiceProviderDashboard = lazy(() => import('./pages/dashboards/ServiceProviderDashboard.jsx'));
@@ -28,6 +29,7 @@ const NotFound = lazy(() => import('./pages/NotFound.jsx'));
 
 // India Pet Hub Pillars
 const PetClassifieds = lazy(() => import('./pages/pets/PetClassifieds.jsx'));
+const PetClassifiedDetail = lazy(() => import('./pages/pets/PetClassifiedDetail.jsx'));
 const AdoptionShelter = lazy(() => import('./pages/pets/AdoptionShelter.jsx'));
 const AdoptionPetDetail = lazy(() => import('./pages/pets/AdoptionPetDetail.jsx'));
 const BreedingDirectory = lazy(() => import('./pages/pets/BreedingDirectory.jsx'));
@@ -97,6 +99,7 @@ function App() {
               {/* User Account */}
               <Route path="account" element={<AccountDashboard />} />
               <Route path="login" element={<Login />} />
+              <Route path="forgot-password" element={<ForgotPassword />} />
               <Route path="signup" element={<Login />} />
               <Route path="register" element={<Login />} />
               <Route path="provider-register" element={<Login />} />
@@ -105,6 +108,7 @@ function App() {
               
               {/* India Pet Hub Pillars */}
               <Route path="pets" element={<PetClassifieds />} />
+              <Route path="pets/:id" element={<PetClassifiedDetail />} />
               <Route path="adopt" element={<AdoptionShelter />} />
               <Route path="adopt/:id" element={<AdoptionPetDetail />} />
               <Route path="breeding" element={<BreedingDirectory />} />

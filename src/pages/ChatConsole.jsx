@@ -18,6 +18,7 @@ const ChatConsole = () => {
   const [loadingRooms, setLoadingRooms] = useState(true);
   const [loadingMessages, setLoadingMessages] = useState(false);
   const [showMobileChat, setShowMobileChat] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   const messagesContainerRef = useRef(null);
   const inputRef = useRef(null);
@@ -214,6 +215,26 @@ const ChatConsole = () => {
     }, 50);
   };
 
+  const handleManualRefresh = async () => {
+    if (isRefreshing) return;
+    setIsRefreshing(true);
+    try {
+      const activeId = activeContactRef.current?._id || activeContactRef.current?.id;
+      const tasks = [loadRooms()];
+      if (activeId) {
+        tasks.push(loadMessages(activeId));
+      }
+      await Promise.all(tasks);
+      toast.success('Chat refreshed', { id: 'chat-refresh' });
+    } catch (err) {
+      toast.error('Could not refresh chat', { id: 'chat-refresh' });
+    } finally {
+      setTimeout(() => {
+        setIsRefreshing(false);
+      }, 400);
+    }
+  };
+
   const currentUserId = (user?._id || user?.id || '').toString();
 
   return (
@@ -233,10 +254,14 @@ const ChatConsole = () => {
             ← Back to Pet Classifieds
           </Link>
           <button 
-            onClick={loadRooms}
-            className="p-2 border border-beige hover:border-primary text-xs font-bold uppercase tracking-widest flex items-center gap-1.5 transition rounded-md bg-white shadow-sm cursor-pointer"
+            id="chat-refresh-btn"
+            onClick={handleManualRefresh}
+            disabled={isRefreshing}
+            className="p-2 border border-beige hover:border-primary text-xs font-bold uppercase tracking-widest flex items-center gap-1.5 transition rounded-md bg-white shadow-sm cursor-pointer disabled:opacity-60 active:scale-95"
+            title="Refresh conversations and messages"
           >
-            <RefreshCw size={12} /> REFRESH
+            <RefreshCw size={12} className={isRefreshing ? 'animate-spin text-accent' : ''} /> 
+            {isRefreshing ? 'REFRESHING...' : 'REFRESH'}
           </button>
         </div>
       </div>
@@ -331,11 +356,22 @@ const ChatConsole = () => {
                   </div>
                 </div>
 
-                {listingContext?.title && (
-                  <span className="hidden sm:inline-block text-[10px] bg-white border border-beige px-2.5 py-1 rounded-full text-gray-600 truncate max-w-[200px]">
-                    Listing: {listingContext.title}
-                  </span>
-                )}
+                <div className="flex items-center gap-2">
+                  {listingContext?.title && (
+                    <span className="hidden sm:inline-block text-[10px] bg-white border border-beige px-2.5 py-1 rounded-full text-gray-600 truncate max-w-[200px]">
+                      Listing: {listingContext.title}
+                    </span>
+                  )}
+                  <button 
+                    onClick={handleManualRefresh}
+                    disabled={isRefreshing}
+                    className="p-1.5 text-gray-500 hover:text-primary transition rounded hover:bg-white/80 cursor-pointer disabled:opacity-50"
+                    title="Refresh conversation messages"
+                    aria-label="Refresh conversation"
+                  >
+                    <RefreshCw size={13} className={isRefreshing ? 'animate-spin text-accent' : ''} />
+                  </button>
+                </div>
               </div>
 
               {/* Inquiry Pet Header Banner (if redirected from a listing) */}
@@ -377,24 +413,51 @@ const ChatConsole = () => {
                   <p className="text-xs text-gray-400 text-center py-10">Fetching correspondence history...</p>
                 ) : messages.length > 0 ? (
                   messages.map((m, index) => {
-                    const msgSenderId = (m.sender?._id || m.sender?.id || m.sender || '').toString();
-                    
-                    // Solo demo test visual alternation
-                    const isSoloTesting = messages.every(
-                      (msg) => (msg.sender?._id || msg.sender?.id || msg.sender) === (messages[0].sender?._id || messages[0].sender?.id || messages[0].sender)
-                    );
-                    const isMe = isSoloTesting ? (index % 2 === 0) : (msgSenderId === currentUserId);
+                    const myId = (user?._id || user?.id || '').toString();
+                    const myEmail = (user?.email || '').toLowerCase().trim();
+                    const myName = (user?.name || '').trim().toLowerCase();
+
+                    const msgSenderId = (m.sender?._id || m.sender?.id || (typeof m.sender === 'string' ? m.sender : '') || '').toString();
+                    const msgSenderEmail = (m.sender?.email || '').toLowerCase().trim();
+                    const msgSenderName = (m.sender?.name || (typeof m.sender === 'string' ? m.sender : '') || '').trim().toLowerCase();
+
+                    const contactId = (activeContact?._id || activeContact?.id || '').toString();
+                    const contactEmail = (activeContact?.email || '').toLowerCase().trim();
+                    const contactName = (activeContact?.name || '').trim().toLowerCase();
+
+                    const recipientId = (m.recipient?._id || m.recipient?.id || (typeof m.recipient === 'string' ? m.recipient : '') || '').toString();
+
+                    let isMe = false;
+                    if (myId && msgSenderId && myId === msgSenderId) {
+                      isMe = true;
+                    } else if (myEmail && msgSenderEmail && myEmail === msgSenderEmail) {
+                      isMe = true;
+                    } else if (contactId && msgSenderId && contactId === msgSenderId) {
+                      isMe = false;
+                    } else if (contactEmail && msgSenderEmail && contactEmail === msgSenderEmail) {
+                      isMe = false;
+                    } else if (contactName && msgSenderName && contactName === msgSenderName) {
+                      isMe = false;
+                    } else if (myName && msgSenderName && myName === msgSenderName) {
+                      isMe = true;
+                    } else if (contactId && recipientId && contactId === recipientId) {
+                      isMe = true;
+                    } else if (myId && recipientId && myId === recipientId) {
+                      isMe = false;
+                    } else {
+                      isMe = msgSenderId ? msgSenderId === myId : false;
+                    }
 
                     return (
                       <div 
                         key={m._id || index} 
-                        className={`flex ${isMe ? 'justify-end' : 'justify-start'} animate-in fade-in duration-200`}
+                        className={`flex w-full ${isMe ? 'justify-end' : 'justify-start'} animate-in fade-in duration-200`}
                       >
                         <div 
-                          className={`max-w-md p-3 sm:p-3.5 text-xs shadow-sm rounded-2xl ${
+                          className={`max-w-[85%] sm:max-w-md p-3 sm:p-3.5 text-xs shadow-sm rounded-2xl ${
                             isMe 
-                              ? 'bg-primary text-white rounded-br-xs' 
-                              : 'bg-white text-gray-800 border border-beige rounded-bl-xs'
+                              ? 'bg-primary text-white rounded-br-xs ml-auto shadow-md' 
+                              : 'bg-white text-gray-800 border border-beige rounded-bl-xs mr-auto'
                           }`}
                         >
                           {/* Attached listing snippet if message has listing reference */}

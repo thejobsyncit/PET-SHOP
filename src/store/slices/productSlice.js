@@ -26,6 +26,30 @@ export const fetchProductDetail = createAsyncThunk('products/fetchProductDetail'
   }
 });
 
+export const normalizeProduct = (p) => {
+  if (!p) return null;
+  const price = Number(p.price) || 0;
+  const discountPrice = p.discount_price !== null && p.discount_price !== undefined 
+    ? Number(p.discount_price) 
+    : (p.discountPrice !== null && p.discountPrice !== undefined ? Number(p.discountPrice) : null);
+  const discountPercentage = p.discount_percentage !== undefined 
+    ? Number(p.discount_percentage) 
+    : (discountPrice && price > discountPrice ? Math.round(((price - discountPrice) / price) * 100) : 0);
+
+  return {
+    ...p,
+    _id: p._id || p.id,
+    id: p.id || p._id,
+    price,
+    discountPrice,
+    discountPercentage,
+    isBestSeller: p.is_bestseller ?? p.isBestSeller ?? false,
+    isFeatured: p.is_featured ?? p.isFeatured ?? false,
+    requiresPrescription: p.requires_prescription ?? p.requiresPrescription ?? false,
+    petType: p.pet_type ?? p.petType,
+  };
+};
+
 const initialState = {
   items: [],
   total: 0,
@@ -84,7 +108,7 @@ const productSlice = createSlice({
       })
       .addCase(fetchProducts.fulfilled, (state, action) => {
         state.loading = false;
-        state.items = action.payload.products;
+        state.items = (action.payload.products || []).map(normalizeProduct);
         state.total = action.payload.total;
         state.page = action.payload.page;
         state.pages = action.payload.pages;
@@ -100,7 +124,7 @@ const productSlice = createSlice({
       })
       .addCase(fetchProductDetail.fulfilled, (state, action) => {
         state.detailLoading = false;
-        state.currentProduct = action.payload.product;
+        state.currentProduct = normalizeProduct(action.payload.product);
       })
       .addCase(fetchProductDetail.rejected, (state, action) => {
         state.detailLoading = false;
