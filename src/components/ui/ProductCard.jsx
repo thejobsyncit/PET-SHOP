@@ -130,6 +130,8 @@ const ProductCard = ({ product }) => {
           <img
             src={(hovered && product.images?.[1]) ? product.images[1] : (product.images?.[0] || product.image || 'https://images.unsplash.com/photo-1548199973-03cce0bbc87b?q=80&w=800')}
             alt={product.name}
+            loading="lazy"
+            decoding="async"
             onError={(e) => {
               e.currentTarget.onerror = null;
               e.currentTarget.src = 'https://images.unsplash.com/photo-1548199973-03cce0bbc87b?q=80&w=800';
