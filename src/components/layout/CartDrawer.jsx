@@ -119,10 +119,18 @@ const CartDrawer = ({ isOpen, onClose }) => {
             ) : (
               <div className="space-y-4">
                 {items.map((item) => {
-                  const productPrice = item.product.discountPrice || item.product.price;
+                  const pId = item.product?._id || item.product?.id;
+                  const originalPrice = Number(item.product?.price) || 0;
+                  const productPrice = item.product?.discountPrice !== null && item.product?.discountPrice !== undefined
+                    ? Number(item.product.discountPrice)
+                    : (item.product?.discount_price !== null && item.product?.discount_price !== undefined
+                      ? Number(item.product.discount_price)
+                      : originalPrice);
+                  const hasDiscount = (item.product?.discountPrice || item.product?.discount_price) && productPrice < originalPrice;
+
                   return (
                     <div 
-                      key={item.product._id} 
+                      key={pId} 
                       className="flex bg-white border border-beige p-3 shadow-sm hover:shadow-md transition duration-300"
                     >
                       <img 
@@ -139,14 +147,14 @@ const CartDrawer = ({ isOpen, onClose }) => {
                           <div className="flex justify-between items-start">
                             <div>
                               <span className="text-[10px] uppercase tracking-widest text-accent font-semibold">
-                                {item.product.brand}
+                                {item.product?.brand || 'Josh Pets Hub'}
                               </span>
                               <h4 className="text-xs font-semibold text-primary truncate max-w-[180px]">
-                                {item.product.name}
+                                {item.product?.name || 'Product'}
                               </h4>
                             </div>
                             <button 
-                              onClick={() => handleRemove(item.product._id)}
+                              onClick={() => handleRemove(pId)}
                               className="text-gray-400 hover:text-red-500 cursor-pointer"
                             >
                               <Trash2 size={16} />
@@ -154,9 +162,9 @@ const CartDrawer = ({ isOpen, onClose }) => {
                           </div>
                           <span className="text-xs font-semibold text-primary mt-1 block">
                             ₹{productPrice} 
-                            {item.product.discountPrice && (
+                            {hasDiscount && (
                               <span className="text-[10px] text-gray-400 line-through ml-2 font-normal">
-                                ₹{item.product.price}
+                                ₹{originalPrice}
                               </span>
                             )}
                           </span>
@@ -166,7 +174,7 @@ const CartDrawer = ({ isOpen, onClose }) => {
                         <div className="flex justify-between items-center mt-2">
                           <div className="flex items-center border border-beige">
                             <button 
-                              onClick={() => handleQuantityChange(item.product._id, item.quantity, -1)}
+                              onClick={() => handleQuantityChange(pId, item.quantity, -1)}
                               className="px-2 py-1 text-gray-500 hover:bg-gray-100 cursor-pointer"
                             >
                               <Minus size={12} />
@@ -175,7 +183,7 @@ const CartDrawer = ({ isOpen, onClose }) => {
                               {item.quantity}
                             </span>
                             <button 
-                              onClick={() => handleQuantityChange(item.product._id, item.quantity, 1)}
+                              onClick={() => handleQuantityChange(pId, item.quantity, 1)}
                               className="px-2 py-1 text-gray-500 hover:bg-gray-100 cursor-pointer"
                             >
                               <Plus size={12} />

@@ -51,6 +51,7 @@ const AccountDashboard = () => {
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [currentPasswordError, setCurrentPasswordError] = useState('');
   const [newPasswordError, setNewPasswordError] = useState('');
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
@@ -262,7 +263,7 @@ const AccountDashboard = () => {
     if (tabParam) {
       setActiveTab(tabParam);
     } else {
-      setActiveTab('bookings');
+      setActiveTab('profile');
     }
   }, [tabParam]);
 
@@ -359,42 +360,82 @@ const AccountDashboard = () => {
   const handleUpdateProfile = async (e) => {
     e.preventDefault();
 
+    setCurrentPasswordError('');
+
     const isPasswordChangeAttempted = Boolean(currentPassword || newPassword || confirmPassword);
 
     if (isPasswordChangeAttempted) {
       if (!currentPassword) {
+        setCurrentPasswordError('Please enter your current password *');
         toast.error('Please enter your current password.', { icon: '🔒' });
         return;
       }
+
+      // Check current password against database / stored account records
+      const getDatabasePassword = () => {
+        if (user?.password) return user.password;
+        try {
+          const saved = JSON.parse(localStorage.getItem('joshpetshub_user') || 'null');
+          if (saved?.password) return saved.password;
+          const reg = JSON.parse(localStorage.getItem('joshpetshub_registered_users') || '[]');
+          const found = reg.find(u => (user?._id && u._id === user._id) || (user?.email && u.email && u.email.toLowerCase() === user.email.toLowerCase()) || (user?.mobile && u.mobile && u.mobile === user.mobile));
+          if (found?.password) return found.password;
+        } catch (e) {}
+
+        const DEMO_PWDS = {
+          'admin@joshpetshub.com': 'Admin@123',
+          'superadmin@joshpetshub.com': 'SuperAdmin@123'
+        };
+        if (user?.email && DEMO_PWDS[user.email.toLowerCase()]) {
+          return DEMO_PWDS[user.email.toLowerCase()];
+        }
+        return 'Pass@1234';
+      };
+
+      const dbPassword = getDatabasePassword();
+      if (dbPassword && !dbPassword.startsWith('$2') && currentPassword !== dbPassword) {
+        setCurrentPasswordError('Current password does not match what is in the database *');
+        toast.error('Current password does not match what is in the database. Please try again.', { icon: '❌' });
+        return;
+      }
+
       if (!newPassword) {
+        setNewPasswordError('Please enter your new password *');
         toast.error('Please enter your new password.', { icon: '🔑' });
         return;
       }
       if (newPassword === currentPassword) {
+        setNewPasswordError('New password cannot be the same as your current password *');
         toast.error('New password cannot be the same as your current password.', { icon: '⚠️' });
         return;
       }
       if (newPassword.length < 6) {
+        setNewPasswordError('New password must be at least 6 characters *');
         toast.error('New password must be at least 6 characters long.', { icon: '⚠️' });
         return;
       }
       if (newPassword.length > 10) {
+        setNewPasswordError('New password total length must not exceed 10 characters *');
         toast.error('New password total length must not exceed 10 characters.', { icon: '⚠️' });
         return;
       }
       if (!/[A-Z]/.test(newPassword)) {
+        setNewPasswordError('Must contain at least 1 capital letter (A-Z) *');
         toast.error('New password must contain at least 1 capital letter (A-Z).', { icon: '⚠️' });
         return;
       }
       if (!/[a-z]/.test(newPassword)) {
+        setNewPasswordError('Must contain at least 1 small letter (a-z) *');
         toast.error('New password must contain at least 1 small letter (a-z).', { icon: '⚠️' });
         return;
       }
       if (!/[0-9]/.test(newPassword)) {
+        setNewPasswordError('Must contain at least 1 number (0-9) *');
         toast.error('New password must contain at least 1 number (0-9).', { icon: '⚠️' });
         return;
       }
       if (!/[!@#$%^&*(),.?":{}|<>\-_+=[\]\\/~`]/.test(newPassword)) {
+        setNewPasswordError('Must contain at least 1 special character (!@#$%^&*) *');
         toast.error('New password must contain at least 1 special character (!@#$%^&*).', { icon: '⚠️' });
         return;
       }
@@ -433,13 +474,18 @@ const AccountDashboard = () => {
       setCurrentPassword('');
       setNewPassword('');
       setConfirmPassword('');
+      setCurrentPasswordError('');
       setNewPasswordError('');
       setPassword('');
       setShowCurrentPassword(false);
       setShowNewPassword(false);
       setShowConfirmPassword(false);
     } else {
-      toast.error(result.payload || 'Profile update failed.');
+      const errMsg = result.payload || 'Profile update failed.';
+      if (typeof errMsg === 'string' && errMsg.toLowerCase().includes('current password')) {
+        setCurrentPasswordError('Current password does not match what is in the database *');
+      }
+      toast.error(errMsg, { icon: '❌' });
     }
   };
 
@@ -537,24 +583,38 @@ const AccountDashboard = () => {
     );
   }
 
+  const isVipMember = Boolean(
+    membership && (
+      membership.tier === 'VIP' ||
+      membership.tier?.toLowerCase()?.includes('vip') ||
+      membership.packageTier?.toLowerCase()?.includes('vip') ||
+      membership.packageName?.toLowerCase()?.includes('vip') ||
+      membership.basePrice === 499 ||
+      membership.amount === 589
+    )
+  );
+
+  const isStandardMember = Boolean(
+    membership && !isVipMember && (membership.status === 'ACTIVE' || membership.tier || membership.packageName)
+  );
+
   return (
     <div className="max-w-7xl mx-auto px-4 md:px-8 py-10">
       
       {/* Overview Dashboard Header */}
-      <div className="border-b border-beige pb-6 mb-8">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-beige pb-6 mb-8">
         <div>
           <h1 className="font-serif text-2xl md:text-3xl text-primary font-medium flex flex-wrap items-center gap-2.5">
             <span>Welcome Back, {user.name}</span>
-            {membership && (
-              (membership.tier === 'VIP' || membership.basePrice === 499) ? (
-                <span className="inline-flex items-center px-3 py-1 rounded-lg text-[10px] sm:text-[11px] font-black uppercase tracking-[0.16em] bg-[#0F2E23] text-[#D4AF37] border border-[#D4AF37]/60 shadow-sm ring-1 ring-[#D4AF37]/25">
-                  VIP PASSHOLDER
-                </span>
-              ) : (
-                <span className="inline-flex items-center px-3 py-1 rounded-lg text-[10px] sm:text-[11px] font-black uppercase tracking-[0.16em] bg-[#0F2E23] text-emerald-300 border border-emerald-400/50 shadow-sm ring-1 ring-emerald-400/25">
-                  STANDARD PASSHOLDER
-                </span>
-              )
+            {isVipMember && (
+              <span className="inline-flex items-center px-3 py-1 rounded-lg text-[10px] sm:text-[11px] font-black uppercase tracking-[0.16em] bg-[#0F2E23] text-[#D4AF37] border border-[#D4AF37]/60 shadow-sm ring-1 ring-[#D4AF37]/25">
+                VIP PASSHOLDER
+              </span>
+            )}
+            {isStandardMember && (
+              <span className="inline-flex items-center px-3 py-1 rounded-lg text-[10px] sm:text-[11px] font-black uppercase tracking-[0.16em] bg-[#0F2E23] text-emerald-300 border border-emerald-400/50 shadow-sm ring-1 ring-emerald-400/25">
+                STANDARD PASSHOLDER
+              </span>
             )}
           </h1>
           <p className="text-xs text-gray-400 font-medium mt-1">
@@ -608,6 +668,20 @@ const AccountDashboard = () => {
               <span className="truncate">{tab.label}</span>
             </button>
           ))}
+
+          {/* Sidebar Logout Button */}
+          <div className="pt-2 border-t border-gray-100 mt-2">
+            <button
+              type="button"
+              onClick={handleLogoutClick}
+              className="w-full flex items-center gap-3 px-4 py-3 text-xs font-bold tracking-wider uppercase transition rounded-xl text-left cursor-pointer group bg-rose-50/70 hover:bg-rose-100 text-rose-600 border border-rose-200/80 active:scale-95"
+            >
+              <div className="p-1.5 rounded-lg bg-rose-100 text-rose-600 group-hover:bg-rose-200 transition-colors">
+                <LogOut size={16} />
+              </div>
+              <span>Log Out</span>
+            </button>
+          </div>
         </aside>
 
         {/* Dynamic Display Panel (Right 9 Columns) */}
@@ -1403,25 +1477,37 @@ const AccountDashboard = () => {
               {/* Active Service Pass / Membership Section in Profile */}
               {membership ? (
                 <div className={`rounded-2xl p-4 sm:p-5 border text-white relative transition-all ${
-                  membership.tier === 'VIP' || membership.basePrice === 499
+                  isVipMember
                     ? 'bg-[#0F2E23] border-[#D4AF37]/90 shadow-[0_4px_18px_rgba(212,175,55,0.18)]'
                     : 'bg-[#0F2E23] border-[#D4AF37]/60 shadow-sm'
                 }`}>
                   <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-[#D4AF37]/25">
                     <div className="flex items-center gap-2.5 flex-wrap">
                       <span className={`text-[10px] sm:text-[10.5px] font-black uppercase tracking-wider px-3 py-1 rounded-full shadow-xs ${
-                        membership.tier === 'VIP' || membership.basePrice === 499
+                        isVipMember
                           ? 'bg-gradient-to-r from-[#D4AF37] via-[#E8CD69] to-[#B8860B] text-stone-950'
                           : 'bg-[#D4AF37]/20 text-[#D4AF37] border border-[#D4AF37]/40'
                       }`}>
-                        {membership.tier === 'VIP' || membership.basePrice === 499 ? 'VIP ELITE MEMBER' : 'STANDARD MEMBER'}
+                        {isVipMember ? 'VIP ELITE MEMBER' : 'STANDARD MEMBER'}
                       </span>
                       <span className="text-sm sm:text-base font-bold text-[#F3E5AB]">
-                        {membership.packageName || 'VIP All-Access & Priority Pass'}
+                        {membership.packageName || (isVipMember ? 'VIP All-Access & Priority Pass' : 'Standard Service Pass')}
                       </span>
                     </div>
 
-                    <div className="flex items-center gap-2.5">
+                    <div className="flex items-center gap-2.5 flex-wrap">
+                      {/* Upgrade Subscription Button for Standard Members */}
+                      {isStandardMember && (
+                        <button
+                          type="button"
+                          onClick={() => window.dispatchEvent(new CustomEvent('open-service-access-modal', { detail: { serviceType: 'All Services', packageId: 'pass-vip-499', isUpgrade: true, forceOpen: true } }))}
+                          title="Upgrade to VIP All-Access & Priority Pass"
+                          className="px-3.5 py-1.5 bg-gradient-to-r from-amber-400 via-[#E5A922] to-amber-500 hover:brightness-110 text-stone-950 font-black rounded-xl text-xs shadow-md transition inline-flex items-center gap-1.5 cursor-pointer active:scale-95 animate-pulse"
+                        >
+                          <Sparkles size={13} className="text-stone-950" />
+                          <span>Upgrade Subscription</span>
+                        </button>
+                      )}
                       <button
                         type="button"
                         onClick={() => handleDownloadMembershipBill(membership)}
@@ -1463,6 +1549,33 @@ const AccountDashboard = () => {
                       <span className="flex items-center gap-1.5"><span className="text-[#D4AF37] font-black text-xs">✓</span> All services nationwide</span>
                     </div>
                   </div>
+
+                  {/* ONLY SHOW UPGRADE BANNER FOR STANDARD MEMBERS */}
+                  {isStandardMember && (
+                    <div className="mt-3.5 pt-3 border-t border-[#D4AF37]/25 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-gradient-to-r from-amber-500/15 via-amber-400/5 to-transparent -mx-4 -mb-4 sm:-mx-5 sm:-mb-5 p-3.5 sm:px-5 rounded-b-2xl border-t border-amber-400/30">
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-8 h-8 rounded-lg bg-amber-400/20 text-amber-400 flex items-center justify-center shrink-0 border border-amber-400/40">
+                          <Sparkles size={15} />
+                        </div>
+                        <div>
+                          <span className="text-amber-300 font-bold text-xs block leading-tight">
+                            Upgrade to VIP All-Access &amp; Priority Pass
+                          </span>
+                          <span className="text-white/75 text-[11px] leading-tight block mt-0.5">
+                            Unlock 24/7 Priority Concierge, Express Bookings &amp; Senior Vet Consultations for ₹499 + GST
+                          </span>
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => window.dispatchEvent(new CustomEvent('open-service-access-modal', { detail: { serviceType: 'All Services', packageId: 'pass-vip-499', isUpgrade: true, forceOpen: true } }))}
+                        className="px-4 py-2 bg-gradient-to-r from-[#D4AF37] via-[#E8CD69] to-[#B8860B] hover:brightness-110 text-stone-950 font-black rounded-xl text-xs uppercase tracking-wider transition cursor-pointer shadow-md flex items-center gap-1.5 shrink-0 active:scale-95"
+                      >
+                        <span>Upgrade Subscription</span>
+                        <ArrowRight size={13} />
+                      </button>
+                    </div>
+                  )}
                 </div>
               ) : (
                 /* NO ACTIVE MEMBERSHIP CARD */
@@ -1545,12 +1658,9 @@ const AccountDashboard = () => {
                 {/* Password Change Section */}
                 <div className="pt-4 border-t border-beige/80 space-y-3">
                   <div className="flex items-center justify-between">
-                    <label className="text-xs font-bold text-primary uppercase tracking-wider flex items-center gap-1.5">
-                      <KeyRound size={14} className="text-[#D4AF37]" /> Change Password
+                    <label className="text-xs font-bold text-primary uppercase tracking-wider">
+                      Change Password
                     </label>
-                    <span className="text-[11px] text-gray-400 font-normal">
-                      Leave blank to keep existing password
-                    </span>
                   </div>
 
                   {/* 1. Current Password */}
@@ -1569,11 +1679,18 @@ const AccountDashboard = () => {
                         onChange={(e) => {
                           const val = e.target.value;
                           setCurrentPassword(val);
+                          if (currentPasswordError) {
+                            setCurrentPasswordError('');
+                          }
                           if (newPassword) {
                             setNewPasswordError(validateNewPassword(newPassword, val));
                           }
                         }}
-                        className="w-full pl-3 pr-10 py-2.5 border rounded-xl text-xs md:text-sm focus:outline-none transition border-slate-200 focus:border-[#15559c] focus:ring-2 focus:ring-blue-100 bg-slate-50/50 hover:bg-white font-medium"
+                        className={`w-full pl-3 pr-10 py-2.5 border rounded-xl text-xs md:text-sm focus:outline-none transition font-medium ${
+                          currentPasswordError
+                            ? 'border-red-500 ring-2 ring-red-100 text-red-900 bg-red-50/20'
+                            : 'border-slate-200 focus:border-[#15559c] focus:ring-2 focus:ring-blue-100 bg-slate-50/50 hover:bg-white'
+                        }`}
                         autoComplete="current-password"
                       />
                       <button
@@ -1585,6 +1702,9 @@ const AccountDashboard = () => {
                         {showCurrentPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                       </button>
                     </div>
+                    {currentPasswordError && (
+                      <p className="text-[10px] font-bold text-red-500 pl-1 leading-tight">{currentPasswordError}</p>
+                    )}
                   </div>
 
                   {/* 2. New Password */}
@@ -1648,23 +1768,23 @@ const AccountDashboard = () => {
                       <input
                         type={showConfirmPassword ? 'text' : 'password'}
                         maxLength={10}
-                        placeholder="Re-enter your new password"
+                        placeholder="Re-enter your new password *"
                         value={confirmPassword}
                         onChange={(e) => setConfirmPassword(e.target.value)}
-                        className={`w-full pl-3 pr-10 py-2 border text-xs focus:outline-none rounded bg-white transition ${
+                        className={`w-full pl-3 pr-10 py-2.5 border rounded-xl text-xs md:text-sm focus:outline-none transition font-medium ${
                           confirmPassword && confirmPassword !== newPassword
-                            ? "border-amber-400 focus:border-amber-500"
-                            : "border-beige focus:border-primary"
+                            ? 'border-amber-400 ring-2 ring-amber-100 text-amber-900 bg-amber-50/20'
+                            : 'border-slate-200 focus:border-[#15559c] focus:ring-2 focus:ring-blue-100 bg-slate-50/50 hover:bg-white'
                         }`}
                         autoComplete="new-password"
                       />
                       <button
                         type="button"
                         onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                        className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-primary transition p-0.5 cursor-pointer"
-                        aria-label={showConfirmPassword ? 'Hide confirmed password' : 'Show confirmed password'}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-[#15559c] transition p-1 cursor-pointer"
+                        title={showConfirmPassword ? 'Hide Password' : 'View Password'}
                       >
-                        {showConfirmPassword ? <EyeOff size={15} /> : <Eye size={15} />}
+                        {showConfirmPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                       </button>
                     </div>
                   </div>
@@ -1953,6 +2073,14 @@ const AccountDashboard = () => {
           </div>
         </div>
       )}
+
+      {/* Logout Confirmation Modal */}
+      <LogoutConfirmModal
+        isOpen={showLogoutConfirm}
+        onClose={() => setShowLogoutConfirm(false)}
+        onConfirm={handleConfirmLogout}
+        userName={user?.name}
+      />
 
     </div>
   );

@@ -4,7 +4,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import {
   X, Check, ShieldCheck, Sparkles, CreditCard,
   Lock, ArrowRight, ArrowLeft, CircleCheck,
-  QrCode, Smartphone, Building, ChevronRight, User
+  QrCode, Smartphone, Building, ChevronRight, User, Zap
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { safeSetItem, safeGetItem } from '../../utils/safeStorage.js';
@@ -22,7 +22,7 @@ export const COMMON_SERVICE_PACKAGES = [
     id: 'pass-standard-199',
     title: 'Standard Service Pass',
     tier: 'Standard Access Tier',
-    badge: 'Standard Access',
+    badge: 'POPULAR VALUE',
     isVip: false,
     basePrice: 199,
     gstPercent: 18,
@@ -32,18 +32,26 @@ export const COMMON_SERVICE_PACKAGES = [
     priceSuffix: '+ 18% GST',
     totalPayable: 235,
     taxText: '₹199 base + ₹35.82 (18% GST) = ₹235 total',
-    desc: 'Direct contact pass to verified service specialists across all pet care departments.',
+    desc: 'Essential direct access pass to verified service specialists across all pet care departments.',
     features: [
       'Direct verified provider phone & chat communication',
-      'Verified background clearance credentials',
-      'Standard booking queue scheduling nationwide'
+      'Standard booking queue scheduling with verified partners',
+      'Access to full provider background clearance credentials'
+    ],
+    pros: [
+      'Economical entry pass at just ₹199 + GST',
+      'Direct connection with service professionals'
+    ],
+    cons: [
+      'Standard non-priority scheduling queue',
+      '24/7 dedicated personal concierge not included'
     ]
   },
   {
     id: 'pass-vip-499',
     title: 'VIP All-Access & Priority Pass',
     tier: 'VIP Elite Priority',
-    badge: '⭐ VIP Most Recommended',
+    badge: '★ VIP MOST RECOMMENDED',
     isVip: true,
     basePrice: 499,
     gstPercent: 18,
@@ -53,11 +61,18 @@ export const COMMON_SERVICE_PACKAGES = [
     priceSuffix: '+ 18% GST',
     totalPayable: 589,
     taxText: '₹499 base + ₹89.82 (18% GST) = ₹589 total',
-    desc: 'VIP pass with 24/7 priority concierge, zero cancellation fees, and instant express bookings.',
+    desc: 'All-inclusive VIP pass with 24/7 priority concierge, zero cancellation fees, and instant express bookings across all services.',
     features: [
       '24/7 Priority VIP Concierge & Live Chat support',
-      'Instant express fast-track scheduling with top specialists',
-      'Direct senior vet consults & zero cancellation penalty guarantee'
+      'Instant express fast-track scheduling with top-tier specialists',
+      'Direct video & phone consultations with senior veterinarians/experts'
+    ],
+    pros: [
+      'Top-priority VIP handling across every service department',
+      'Dedicated personal care manager assigned to your pet'
+    ],
+    cons: [
+      'One-time premium tier fee (₹499 + GST)'
     ]
   }
 ];
@@ -276,15 +291,35 @@ const ServicePackageAccessModal = () => {
   const [selectedBank, setSelectedBank] = useState('HDFC Bank');
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
   const [confirmedBooking, setConfirmedBooking] = useState(null);
+  const [isUpgradeFlow, setIsUpgradeFlow] = useState(false);
+
+  const activeMem = getActiveUserMembership(user);
+  const isAlreadyStandard = Boolean(
+    activeMem &&
+    (activeMem.tier === 'STANDARD' || activeMem.basePrice === 199 || activeMem.packageName?.toLowerCase()?.includes('standard')) &&
+    activeMem.tier !== 'VIP' &&
+    activeMem.basePrice !== 499
+  );
 
   // Listen to global open event
   useEffect(() => {
     const handleOpen = (e) => {
-      const isForce = e?.detail?.forceOpen || e?.detail?.isUpgrade;
-      const activeMem = getActiveUserMembership(user);
-      if (activeMem && !isForce) {
-        toast.success(`You already have an active ${activeMem.tier === 'VIP' ? 'VIP All-Access Pass' : 'Standard Service Pass'}! Access is unlocked nationwide.`, {
-          icon: '⭐',
+      const isUpgrade = Boolean(e?.detail?.isUpgrade);
+      const isForce = Boolean(e?.detail?.forceOpen || isUpgrade || e?.detail?.packageId === 'pass-vip-499');
+      const currentMem = getActiveUserMembership(user);
+      const isAlreadyVip = Boolean(
+        currentMem && (
+          currentMem.tier === 'VIP' ||
+          currentMem.basePrice === 499 ||
+          currentMem.totalPaid === 589 ||
+          currentMem.packageName?.toLowerCase()?.includes('vip')
+        )
+      );
+
+      // Only block if already on the highest VIP tier and not forced
+      if (isAlreadyVip && !isForce) {
+        toast.success(`You already have an active VIP All-Access Pass! Access is fully unlocked nationwide.`, {
+          icon: '👑',
           id: 'mem-already-active',
           duration: 3500
         });
@@ -292,7 +327,8 @@ const ServicePackageAccessModal = () => {
         return;
       }
 
-      const type = e?.detail?.serviceType || 'Grooming';
+      setIsUpgradeFlow(isUpgrade);
+      const type = e?.detail?.serviceType || 'All Services';
       const prov = e?.detail?.provider || {
         name: 'Josh Pets Hub Verified Service',
         rating: 4.9,
@@ -305,8 +341,14 @@ const ServicePackageAccessModal = () => {
       setServiceType(type);
       setProvider(prov);
       setPackages(COMMON_SERVICE_PACKAGES);
-      setSelectedPackage(COMMON_SERVICE_PACKAGES[1]); // default to VIP
-      setStep(1);
+      const targetPackageId = e?.detail?.packageId;
+      if (targetPackageId) {
+        const found = COMMON_SERVICE_PACKAGES.find(p => p.id === targetPackageId);
+        setSelectedPackage(found || COMMON_SERVICE_PACKAGES[1]);
+      } else {
+        setSelectedPackage(COMMON_SERVICE_PACKAGES[1]); // default to VIP
+      }
+      setStep(e?.detail?.step || (isUpgrade ? 2 : 1));
       setConfirmedBooking(null);
       setIsOpen(true);
     };
@@ -337,6 +379,7 @@ const ServicePackageAccessModal = () => {
         id: bookingId,
         _id: bookingId,
         serviceType,
+        isUpgrade: isUpgradeFlow,
         providerName: provider?.name || 'Verified Provider',
         providerPhone: provider?.phone || '+91 98765 43210',
         providerLocation: `${provider?.area || 'Central'}, ${provider?.city || 'Bangalore'}`,
@@ -383,6 +426,12 @@ const ServicePackageAccessModal = () => {
       try {
         sessionStorage.setItem('pawora_user_membership', memStr);
         setCookie('pawora_user_membership', memStr, 365);
+        const rawU = localStorage.getItem('joshpetshub_user');
+        if (rawU) {
+          const parsedU = JSON.parse(rawU);
+          parsedU.serviceMembership = membershipRecord;
+          localStorage.setItem('joshpetshub_user', JSON.stringify(parsedU));
+        }
       } catch (_) {}
 
       dispatch(setServiceMembership(membershipRecord));
@@ -407,10 +456,15 @@ const ServicePackageAccessModal = () => {
 
       setConfirmedBooking(bookingRecord);
       setStep(3);
-      toast.success(isVipTier ? '🎉 VIP All-Access Pass Activated!' : '🎉 Standard Service Pass Activated!', {
-        duration: 4000,
-        icon: '✅'
-      });
+      toast.success(
+        isUpgradeFlow || isVipTier
+          ? '🎉 VIP All-Access Pass Activated!'
+          : '🎉 Standard Service Pass Activated!',
+        {
+          duration: 4000,
+          icon: isVipTier ? '👑' : '✅'
+        }
+      );
     } catch (err) {
       toast.error(err.message || 'Payment failed. Please retry.');
     } finally {
@@ -420,6 +474,7 @@ const ServicePackageAccessModal = () => {
 
   const closeModal = () => {
     setIsOpen(false);
+    setIsUpgradeFlow(false);
     setStep(1);
     setConfirmedBooking(null);
   };
@@ -427,125 +482,190 @@ const ServicePackageAccessModal = () => {
   return (
     <div className="fixed inset-0 z-[120] overflow-y-auto bg-black/60 backdrop-blur-sm p-3 sm:p-4 flex items-center justify-center animate-in fade-in duration-150">
       
-      {/* Compact container card */}
+      {/* Container card */}
       <div 
-        className="relative w-full max-w-xl bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden my-auto max-h-[92vh] flex flex-col"
+        className="relative w-full max-w-5xl bg-white rounded-3xl shadow-2xl border border-slate-200 overflow-hidden my-auto max-h-[95vh] flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
         
-        {/* Streamlined Header */}
-        <div className="bg-[#0F2E23] text-white px-4 py-3 sm:px-5 sm:py-3.5 shrink-0 flex items-center justify-between border-b border-emerald-900">
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-amber-400/20 text-amber-400 flex items-center justify-center shrink-0 border border-amber-400/30">
-              <Sparkles size={16} />
+        {/* Dark Green Header matching mockup */}
+        <div className="bg-[#0B2F24] text-white px-5 py-4 sm:px-7 sm:py-5 shrink-0 flex items-start justify-between border-b border-emerald-950">
+          <div className="flex items-start gap-3.5">
+            <div className="w-11 h-11 rounded-xl bg-amber-400/10 text-amber-400 flex items-center justify-center shrink-0 border border-amber-400/30 shadow-xs">
+              <Sparkles size={22} className="text-[#f59e0b]" />
             </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <h2 className="text-sm sm:text-base font-bold text-white font-sans leading-none">
-                  Service Access Pass
-                </h2>
-                <span className="text-[10px] bg-emerald-500/20 text-emerald-300 font-bold px-1.5 py-0.5 rounded border border-emerald-400/30">
-                  Verified Network
+            <div className="space-y-1">
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="inline-flex items-center gap-1 bg-[#D97706] text-slate-950 text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full tracking-wider shadow-xs">
+                  <Zap size={10} className="fill-current text-slate-950" /> {isUpgradeFlow ? 'MEMBERSHIP UPGRADE' : 'ALL-ACCESS PASS'}
+                </span>
+                <span className="inline-flex items-center gap-1 bg-emerald-900/90 text-emerald-300 text-[10px] font-bold px-2.5 py-0.5 rounded-full border border-emerald-600/40">
+                  <ShieldCheck size={11} className="text-emerald-400" /> 100% Verified Network
                 </span>
               </div>
-              <p className="text-[11px] text-emerald-200/80 mt-0.5">
-                Unlock direct phone, chat & booking with verified providers
-              </p>
+              <h2 className="text-xl sm:text-2xl font-bold text-white font-sans tracking-tight leading-snug">
+                {isUpgradeFlow ? 'Upgrade to VIP All-Access & Priority Pass' : 'Service Access Pass'}
+              </h2>
+              {/* Stepper Breadcrumbs */}
+              <div className="flex items-center gap-2 text-xs pt-1 flex-wrap">
+                <div className={`flex items-center gap-1.5 ${step === 1 ? 'text-[#facc15] font-bold' : 'text-emerald-400'}`}>
+                  <span className={`w-4 h-4 rounded-full flex items-center justify-center text-[10px] font-black ${step === 1 ? 'bg-[#facc15] text-[#0B2F24]' : 'bg-emerald-800 text-white'}`}>
+                    1
+                  </span>
+                  <span>1. Compare Packages &amp; Pros/Cons</span>
+                </div>
+                <span className="text-emerald-600 font-bold">&gt;</span>
+                <div className={`flex items-center gap-1.5 ${step === 2 ? 'text-[#facc15] font-bold' : 'text-emerald-400/70 font-semibold'}`}>
+                  <span className={`w-4 h-4 rounded-full flex items-center justify-center text-[10px] font-bold ${step === 2 ? 'bg-[#facc15] text-[#0B2F24]' : 'bg-emerald-900/80 border border-emerald-700/60 text-emerald-300'}`}>
+                    2
+                  </span>
+                  <span>2. Payment Gateway</span>
+                </div>
+                <span className="text-emerald-600 font-bold">&gt;</span>
+                <div className={`flex items-center gap-1.5 ${step === 3 ? 'text-[#facc15] font-bold' : 'text-emerald-400/70 font-semibold'}`}>
+                  <span className={`w-4 h-4 rounded-full flex items-center justify-center text-[10px] font-bold ${step === 3 ? 'bg-[#facc15] text-[#0B2F24]' : 'bg-emerald-900/80 border border-emerald-700/60 text-emerald-300'}`}>
+                    3
+                  </span>
+                  <span>3. Confirmation</span>
+                </div>
+              </div>
             </div>
           </div>
           <button
             onClick={closeModal}
-            className="w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition cursor-pointer shrink-0"
+            className="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition cursor-pointer shrink-0 mt-0.5"
             title="Close"
           >
-            <X size={15} />
+            <X size={16} />
           </button>
         </div>
 
-        {/* Mini Stepper */}
-        <div className="bg-slate-100 px-4 py-1.5 border-b border-slate-200 flex items-center justify-between text-[11px] font-semibold text-slate-500">
-          <span className={step === 1 ? 'text-[#0F2E23] font-bold' : step > 1 ? 'text-emerald-700' : ''}>
-            1. Select Pass
-          </span>
-          <ChevronRight size={12} className="text-slate-400" />
-          <span className={step === 2 ? 'text-[#0F2E23] font-bold' : step > 2 ? 'text-emerald-700' : ''}>
-            2. Payment
-          </span>
-          <ChevronRight size={12} className="text-slate-400" />
-          <span className={step === 3 ? 'text-emerald-700 font-bold' : ''}>
-            3. Confirmation
-          </span>
-        </div>
-
         {/* Body Content */}
-        <div className="p-4 sm:p-5 overflow-y-auto">
+        <div className="p-5 sm:p-6 overflow-y-auto">
           
-          {/* STEP 1: COMPACT TWO-PACKAGE SELECTION */}
+          {/* STEP 1: TWO-PACKAGE COMPARISON */}
           {step === 1 && (
-            <div className="space-y-3.5">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5 items-stretch">
                 {packages.map((pkg, idx) => {
                   const isVip = pkg.isVip || idx === 1;
                   return (
                     <div
                       key={pkg.id || idx}
-                      className={`rounded-xl p-3.5 flex flex-col justify-between border transition relative ${
+                      className={`rounded-2xl p-5 sm:p-6 flex flex-col justify-between transition ${
                         isVip
-                          ? 'border-amber-400 bg-amber-50/30 shadow-sm'
-                          : 'border-slate-200 bg-white hover:border-slate-300'
+                          ? 'border-2 border-[#E5A922] bg-white shadow-sm'
+                          : 'border border-slate-200 bg-white shadow-xs hover:border-slate-300'
                       }`}
                     >
                       <div>
-                        {/* Tier Badge */}
-                        <div className="flex items-center justify-between mb-2">
+                        {/* Top badges row */}
+                        <div className="flex items-center justify-between mb-3">
                           <span
-                            className={`text-[9px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded-full ${
+                            className={`text-[10px] font-bold uppercase tracking-wider px-3 py-1 rounded-full ${
                               isVip
-                                ? 'bg-amber-400 text-slate-950 font-black'
-                                : 'bg-slate-100 text-slate-700'
+                                ? 'bg-[#D97706] text-white shadow-xs flex items-center gap-1 font-black'
+                                : 'bg-blue-50 text-slate-700'
                             }`}
                           >
-                            {isVip ? '⭐ VIP Most Popular' : 'Standard Tier'}
+                            {pkg.badge || (isVip ? '★ VIP MOST RECOMMENDED' : 'POPULAR VALUE')}
+                          </span>
+                          <span className="text-xs text-slate-500 font-medium">
+                            {pkg.tier || (isVip ? 'VIP Elite Priority' : 'Standard Access Tier')}
                           </span>
                         </div>
 
-                        {/* Title & Price */}
-                        <h4 className="text-sm font-bold text-slate-900 font-sans leading-tight">
-                          {pkg.title}
-                        </h4>
-                        
-                        <div className="flex items-baseline gap-1 mt-1.5 mb-2.5 pb-2 border-b border-slate-100">
-                          <span className="text-xl font-black text-[#0F2E23]">
-                            {pkg.priceLabel || `₹${pkg.basePrice}`}
-                          </span>
-                          <span className="text-[10px] text-slate-500 font-medium">
-                            + 18% GST (₹{pkg.totalPayable})
-                          </span>
+                        {/* Title & Price row */}
+                        <div className="flex items-baseline justify-between gap-2 mb-2">
+                          <h3 className="text-lg sm:text-xl font-bold text-slate-900 font-sans">
+                            {pkg.title}
+                          </h3>
+                          <div className="text-right shrink-0">
+                            <span className="text-2xl sm:text-3xl font-black text-slate-900">
+                              {pkg.priceLabel || `₹${pkg.basePrice}`}
+                            </span>
+                            <span className="text-[11px] text-slate-500 font-semibold ml-1">
+                              + 18% GST
+                            </span>
+                          </div>
                         </div>
 
-                        {/* Crisp 3-bullet list */}
-                        <ul className="space-y-1.5 text-xs text-slate-600 mb-3.5">
-                          {(pkg.features || []).slice(0, 3).map((feat, fIdx) => (
-                            <li key={fIdx} className="flex items-start gap-1.5 leading-snug">
-                              <span className={`font-black text-xs shrink-0 ${isVip ? 'text-amber-600' : 'text-emerald-600'}`}>✓</span>
-                              <span className="text-[11px]">{feat}</span>
+                        {/* Description */}
+                        <p className="text-xs text-slate-600 leading-relaxed mb-4">
+                          {pkg.desc}
+                        </p>
+
+                        {/* Included in this tier label */}
+                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-2.5">
+                          INCLUDED IN THIS TIER:
+                        </span>
+
+                        {/* Bullet list */}
+                        <ul className="space-y-2 text-xs text-slate-700 mb-4">
+                          {(pkg.features || []).map((feat, fIdx) => (
+                            <li key={fIdx} className="flex items-start gap-2 leading-snug">
+                              <span className="text-emerald-600 font-black text-xs shrink-0">✓</span>
+                              <span className="text-slate-700 text-xs">{feat}</span>
                             </li>
                           ))}
                         </ul>
+
+                        {/* Pros & Cons split box */}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 my-4">
+                          {/* ADVANTAGES (PROS) */}
+                          <div className="bg-emerald-50/70 border border-emerald-100 rounded-xl p-3 text-[11px] space-y-1.5">
+                            <span className="font-bold text-emerald-800 uppercase tracking-wide text-[10px] block">
+                              ✓ ADVANTAGES (PROS)
+                            </span>
+                            {(pkg.pros || (isVip ? [
+                              'Top-priority VIP handling across every service department',
+                              'Dedicated personal care manager assigned to your pet'
+                            ] : [
+                              'Economical entry pass at just ₹199 + GST',
+                              'Direct connection with service professionals'
+                            ])).map((pro, pIdx) => (
+                              <p key={pIdx} className="text-slate-700 leading-snug">• {pro}</p>
+                            ))}
+                          </div>
+
+                          {/* LIMITATIONS (CONS) */}
+                          <div className="bg-amber-50/60 border border-amber-100 rounded-xl p-3 text-[11px] space-y-1.5">
+                            <span className="font-bold text-amber-800 uppercase tracking-wide text-[10px] block">
+                              ⓘ LIMITATIONS (CONS)
+                            </span>
+                            {(pkg.cons || (isVip ? [
+                              'One-time premium tier fee (₹499 + GST)'
+                            ] : [
+                              'Standard non-priority scheduling queue',
+                              '24/7 dedicated personal concierge not included'
+                            ])).map((con, cIdx) => (
+                              <p key={cIdx} className="text-slate-700 leading-snug">• {con}</p>
+                            ))}
+                          </div>
+                        </div>
                       </div>
 
                       {/* Select Button */}
                       <button
                         type="button"
+                        disabled={isAlreadyStandard && !isVip}
                         onClick={() => handleSelectPackage(pkg)}
-                        className={`w-full py-2 px-3 rounded-lg text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer shadow-xs active:scale-95 ${
-                          isVip
-                            ? 'bg-[#0F2E23] hover:bg-[#164E3D] text-[#D4AF37]'
-                            : 'bg-slate-800 hover:bg-slate-900 text-white'
+                        className={`w-full py-3 px-4 rounded-xl text-xs sm:text-sm font-bold uppercase tracking-wider transition flex items-center justify-center gap-2 shadow-sm active:scale-[0.99] mt-2 ${
+                          isAlreadyStandard && !isVip
+                            ? 'bg-slate-100 text-slate-400 border border-slate-200 cursor-not-allowed'
+                            : isVip
+                            ? 'bg-[#E5A922] hover:bg-[#d69919] text-[#0B2F24] cursor-pointer'
+                            : 'bg-[#0B2F24] hover:bg-[#134637] text-white cursor-pointer'
                         }`}
                       >
-                        <span>Choose {isVip ? 'VIP' : 'Standard'} (₹{pkg.totalPayable})</span>
-                        <ArrowRight size={13} />
+                        <span>
+                          {isAlreadyStandard && !isVip
+                            ? 'Current Active Plan ✓'
+                            : isAlreadyStandard && isVip
+                            ? 'Upgrade to VIP Pass'
+                            : 'SELECT PACKAGE'}
+                        </span>
+                        {(!isAlreadyStandard || isVip) && <ArrowRight size={15} />}
                       </button>
                     </div>
                   );
@@ -572,7 +692,9 @@ const ServicePackageAccessModal = () => {
               {/* Order Summary Pill */}
               <div className="bg-slate-50 rounded-xl p-3 border border-slate-200 flex items-center justify-between text-xs">
                 <div>
-                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Selected Pass</span>
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
+                    {isUpgradeFlow ? 'Upgrading To Pass' : 'Selected Pass'}
+                  </span>
                   <strong className="text-slate-800 text-xs font-bold">{selectedPackage.title}</strong>
                   <span className="text-[11px] text-slate-500 block">Base ₹{selectedPackage.basePrice} + GST ₹{selectedPackage.gstAmount}</span>
                 </div>
@@ -700,12 +822,16 @@ const ServicePackageAccessModal = () => {
                 {isProcessingPayment ? (
                   <>
                     <div className="w-3.5 h-3.5 border-2 border-[#D4AF37] border-t-transparent rounded-full animate-spin" />
-                    <span>Activating Pass...</span>
+                    <span>{isUpgradeFlow ? 'Upgrading Pass...' : 'Activating Pass...'}</span>
                   </>
                 ) : (
                   <>
                     <Lock size={14} />
-                    <span>Pay ₹{selectedPackage.totalPayable || selectedPackage.price} & Activate Pass</span>
+                    <span>
+                      {isUpgradeFlow
+                        ? `Pay ₹${selectedPackage.totalPayable || selectedPackage.price} & Upgrade to VIP`
+                        : `Pay ₹${selectedPackage.totalPayable || selectedPackage.price} & Activate Pass`}
+                    </span>
                   </>
                 )}
               </button>
@@ -725,7 +851,11 @@ const ServicePackageAccessModal = () => {
                   Payment Confirmed
                 </span>
                 <h3 className="text-base font-bold text-slate-900 font-sans mt-1">
-                  {confirmedBooking.packageTier?.includes('VIP') ? '👑 VIP All-Access Pass Activated!' : '🛡️ Standard Service Pass Activated!'}
+                  {confirmedBooking.isUpgrade
+                    ? '👑 VIP All-Access Pass Activated & Upgraded!'
+                    : confirmedBooking.packageTier?.includes('VIP')
+                    ? '👑 VIP All-Access Pass Activated!'
+                    : '🛡️ Standard Service Pass Activated!'}
                 </h3>
                 <p className="text-xs text-slate-500 mt-0.5 max-w-sm mx-auto">
                   Direct provider phone, chat, and verified booking is now unlocked across all pet service pages.

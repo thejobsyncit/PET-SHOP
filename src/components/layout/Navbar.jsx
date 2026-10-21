@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
-import { Search, Heart, ShoppingBag, ShoppingCart, Store, Menu, X, ChevronDown, User, LogOut, MessageSquare, PawPrint, Briefcase, Lock, ShieldAlert, Home, Scissors, Footprints, Truck, GraduationCap, Stethoscope } from 'lucide-react';
+import { Search, Heart, ShoppingBag, ShoppingCart, Store, Menu, X, ChevronDown, User, LogOut, PawPrint, Briefcase, Lock, ShieldAlert, Home, Scissors, Footprints, Truck, GraduationCap, Stethoscope } from 'lucide-react';
 import SearchOverlay from './SearchOverlay.jsx';
 import CartDrawer from './CartDrawer.jsx';
 import { logout } from '../../store/slices/authSlice.js';
@@ -422,18 +422,6 @@ const Navbar = () => {
                 <Search size={18} />
               </button>
 
-              {/* Direct Live Chat Link */}
-              {isAuthenticated && (
-                <Link
-                  to="/chat"
-                  className={`p-1 hover:text-accent-light transition ${isActive('/chat') ? 'text-accent-light' : 'text-white'
-                    }`}
-                  title="Direct Messages / Chat"
-                >
-                  <MessageSquare size={18} />
-                </Link>
-              )}
-
               {/* Wishlist Icon */}
               <Link
                 to="/wishlist"
@@ -462,28 +450,23 @@ const Navbar = () => {
                 )}
               </button>
 
-              {/* Buttons: Log in & Sign up (Dynamic states) */}
-              <div className="hidden lg:flex items-center gap-2.5">
+              {/* Desktop Auth Buttons (lg+) */}
+              <div className="hidden lg:flex items-center gap-3">
                 {isAuthenticated ? (
                   <>
-                    {user?.role === 'SERVICE_PROVIDER' ? (
-                      <Link
-                        to="/provider-dashboard"
-                        className="border border-white/40 hover:bg-white/10 text-white font-bold px-3.5 py-2 text-xs tracking-wider rounded-none uppercase transition"
-                      >
-                        My Dashboard
-                      </Link>
-                    ) : (
-                      <Link
-                        to="/account"
-                        className="border border-white/40 hover:bg-white/10 text-white font-bold px-3.5 py-2 text-xs tracking-wider rounded-none uppercase transition"
-                      >
-                        My Account
-                      </Link>
-                    )}
+                    <Link
+                      to={user?.role === 'SERVICE_PROVIDER' ? '/provider-dashboard' : '/account'}
+                      className={`p-1 text-white hover:text-accent-light transition relative flex items-center justify-center cursor-pointer ${
+                        isActive('/account') || isActive('/provider-dashboard') ? 'text-accent-light' : ''
+                      }`}
+                      title={user?.name ? `${user.name}'s Account` : (user?.role === 'SERVICE_PROVIDER' ? 'My Dashboard' : 'My Account')}
+                      aria-label={user?.role === 'SERVICE_PROVIDER' ? 'My Dashboard' : 'My Account'}
+                    >
+                      <User size={18} />
+                    </Link>
                     <button
                       onClick={handleLogoutClick}
-                      className="bg-accent hover:bg-accent-dark text-white font-bold px-3.5 py-2 text-xs tracking-wider rounded-none uppercase transition cursor-pointer flex items-center gap-1"
+                      className="bg-accent hover:bg-accent-dark text-white font-bold px-3 py-1.5 text-xs tracking-wider rounded-md uppercase transition cursor-pointer flex items-center gap-1"
                     >
                       <LogOut size={14} /> Logout
                     </button>
@@ -506,6 +489,39 @@ const Navbar = () => {
                 )}
               </div>
 
+              {/* Mobile Auth & Logout Controls (< lg) */}
+              <div className="flex lg:hidden items-center gap-1.5 ml-0.5">
+                {isAuthenticated ? (
+                  <>
+                    <Link
+                      to={user?.role === 'SERVICE_PROVIDER' ? '/provider-dashboard' : '/account'}
+                      className="p-1 text-white hover:text-accent-light transition flex items-center justify-center"
+                      title={user?.name ? `${user.name}'s Account` : 'My Account'}
+                      aria-label="My Account"
+                    >
+                      <User size={18} />
+                    </Link>
+                    <button
+                      type="button"
+                      onClick={handleLogoutClick}
+                      className="flex items-center gap-1 px-2 py-1 text-[11px] font-black uppercase tracking-wider bg-rose-600/30 hover:bg-rose-600 text-rose-200 hover:text-white border border-rose-400/40 rounded transition cursor-pointer"
+                      title="Logout"
+                      aria-label="Logout"
+                    >
+                      <LogOut size={13} />
+                      <span className="hidden xs:inline">Logout</span>
+                    </button>
+                  </>
+                ) : (
+                  <Link
+                    to="/login"
+                    className="bg-accent hover:bg-accent-dark text-white font-bold px-2.5 py-1 text-[11px] tracking-wider uppercase rounded transition"
+                  >
+                    Login
+                  </Link>
+                )}
+              </div>
+
             </div>
 
           </div>
@@ -519,7 +535,7 @@ const Navbar = () => {
 
           <div className="relative w-[85%] max-w-sm bg-primary text-white shadow-2xl flex flex-col justify-between p-6 overflow-y-auto">
             <div>
-              <div className="flex justify-between items-center mb-8 border-b border-white/10 pb-4">
+              <div className="flex justify-between items-center mb-6 border-b border-white/10 pb-4">
                 <div className="flex items-center font-extrabold tracking-tight text-xl">
                   {/* J-Animal Logo */}
                   <img 
@@ -540,6 +556,60 @@ const Navbar = () => {
                   <X size={24} />
                 </button>
               </div>
+
+              {/* User Profile Card & Quick Actions in Mobile Drawer Header */}
+              {isAuthenticated ? (
+                <div className="mb-6 p-3.5 rounded-xl bg-white/5 border border-white/10 backdrop-blur-sm">
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="w-10 h-10 rounded-full bg-accent text-primary flex items-center justify-center font-black text-base uppercase shrink-0 shadow-sm">
+                      {user?.name ? user.name.charAt(0) : 'U'}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-bold text-white truncate">{user?.name || 'Account User'}</p>
+                      <p className="text-[11px] text-white/60 truncate">{user?.email}</p>
+                      <span className="inline-block mt-0.5 text-[9px] font-black uppercase tracking-widest text-[#D4AF37]">
+                        {user?.role === 'SERVICE_PROVIDER' ? 'Service Provider' : 'Pet Parent'}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2 pt-2 border-t border-white/10">
+                    <Link
+                      to={user?.role === 'SERVICE_PROVIDER' ? '/provider-dashboard' : '/account'}
+                      onClick={() => setIsMobileMenuOpen(false)}
+                      className="py-2 px-2.5 bg-white/10 hover:bg-white/20 text-white text-[11px] font-bold text-center uppercase tracking-wider rounded-lg transition"
+                    >
+                      {user?.role === 'SERVICE_PROVIDER' ? 'Dashboard' : 'My Account'}
+                    </Link>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsMobileMenuOpen(false);
+                        handleLogoutClick();
+                      }}
+                      className="py-2 px-2.5 bg-rose-600/30 hover:bg-rose-600 text-rose-200 hover:text-white border border-rose-400/40 text-[11px] font-bold uppercase tracking-wider rounded-lg transition flex items-center justify-center gap-1.5 cursor-pointer"
+                    >
+                      <LogOut size={13} /> Logout
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div className="mb-6 grid grid-cols-2 gap-2 p-2.5 rounded-xl bg-white/5 border border-white/10">
+                  <Link
+                    to="/login"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="py-2 bg-accent hover:bg-accent-dark text-white text-[11px] font-bold text-center uppercase tracking-wider rounded-lg transition"
+                  >
+                    Log In
+                  </Link>
+                  <Link
+                    to="/signup"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="py-2 border border-white/30 hover:bg-white/10 text-white text-[11px] font-bold text-center uppercase tracking-wider rounded-lg transition"
+                  >
+                    Sign Up
+                  </Link>
+                </div>
+              )}
 
               {/* Mobile links list */}
               <div className="space-y-1 text-xs font-semibold uppercase tracking-wider">
@@ -627,12 +697,18 @@ const Navbar = () => {
                 </div>
 
                 <Link to="/shop" onClick={() => setIsMobileMenuOpen(false)} className="block py-3 hover:text-accent-light border-b border-white/5">Shop</Link>
+                <Link to="/wishlist" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center justify-between py-3 hover:text-accent-light border-b border-white/5">
+                  <span className="flex items-center gap-2">
+                    <Heart size={15} /> Wishlist
+                  </span>
+                  {wishlistItems.length > 0 && (
+                    <span className="px-2 py-0.5 bg-accent text-primary font-bold text-[10px] rounded-full">
+                      {wishlistItems.length}
+                    </span>
+                  )}
+                </Link>
                 <Link to="/pet-care" onClick={() => setIsMobileMenuOpen(false)} className="block py-3 hover:text-accent-light border-b border-white/5">Blog</Link>
                 <Link to="/contact" onClick={() => setIsMobileMenuOpen(false)} className="block py-3 hover:text-accent-light border-b border-white/5">Contact Us</Link>
-
-                {isAuthenticated && (
-                  <Link to="/chat" onClick={() => setIsMobileMenuOpen(false)} className="block py-2 hover:text-accent-light border-b border-white/5">Direct Messages</Link>
-                )}
               </div>
             </div>
 
@@ -659,10 +735,13 @@ const Navbar = () => {
                     </Link>
                   )}
                   <button
-                    onClick={handleLogoutClick}
-                    className="w-full py-2.5 bg-accent text-white text-xs font-bold uppercase tracking-widest rounded-none cursor-pointer"
+                    onClick={() => {
+                      setIsMobileMenuOpen(false);
+                      handleLogoutClick();
+                    }}
+                    className="w-full py-2.5 bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold uppercase tracking-widest rounded-lg cursor-pointer flex items-center justify-center gap-2 transition"
                   >
-                    LOGOUT
+                    <LogOut size={14} /> LOGOUT
                   </button>
                 </div>
               ) : (

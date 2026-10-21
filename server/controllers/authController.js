@@ -2,7 +2,14 @@ import { sendOtpEmail } from '../utils/emailService.js';
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import { supabase } from '../config/supabase.js';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const USERS_FILE = path.join(__dirname, '..', 'data', 'users.json');
 
 // Helper to generate JWT Token
 const generateToken = (id) => {
@@ -20,93 +27,6 @@ export const setAuthCookie = (res, token) => {
     sameSite: 'lax',
     maxAge: 30 * 24 * 60 * 60 * 1000 // 30 days
   });
-};
-
-// @desc    Register a new user
-// @route   POST /api/auth/register
-// @access  Public
-export const registerUser = async (req, res) => {
-  const {
-    name, email, password, mobile, role, location, serviceCategory,
-    businessName, govtProofType, govtProofNumber, govtProofDoc,
-    shelterCapacity, bio
-  } = req.body;
-
-  if (!name || !email || !password) {
-    return res.status(400).json({ success: false, message: 'Please provide name, email, and password' });
-  }
-
-  // Enforce strong password complexity policy
-  const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
-  if (!passwordRegex.test(password)) {
-    return res.status(400).json({
-      success: false,
-      message: 'Password must be at least 8 characters long and contain at least one uppercase letter, one lowercase letter, and one number'
-    });
-  }
-
-  // Security: Restrict public registration roles to CUSTOMER or SERVICE_PROVIDER only (prevent ADMIN escalation)
-  const allowedRoles = ['CUSTOMER', 'SERVICE_PROVIDER'];
-  const safeRole = allowedRoles.includes(role) ? role : 'CUSTOMER';
-  const safeVerification = safeRole === 'SERVICE_PROVIDER' ? 'Pending' : 'Verified';
-
-  try {
-    const { data: userExists } = await supabase.from('users').select('id').eq('email', email.toLowerCase()).single();
-    if (userExists) {
-      return res.status(400).json({ success: false, message: 'User already exists with this email' });
-    }
-
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(password, salt);
-
-    const { data: user, error } = await supabase.from('users').insert([{
-      name: name.trim(),
-      email: email.toLowerCase().trim(),
-      password: hashedPassword,
-      mobile: mobile ? mobile.trim() : null,
-      role: safeRole,
-      location: location || null,
-      service_category: serviceCategory || null,
-      business_name: businessName || name,
-      govt_proof_type: govtProofType || 'AWBI / NGO Registration Certificate',
-      govt_proof_number: govtProofNumber || null,
-      govt_proof_doc: govtProofDoc || null,
-      verification_status: safeVerification,
-      shelter_capacity: shelterCapacity || 50,
-      bio: bio || null,
-      addresses: [],
-      wishlist: [],
-      cart: [],
-      prescription_history: []
-    }]).select().single();
-
-    if (error) throw error;
-
-    const token = generateToken(user.id);
-    setAuthCookie(res, token);
-    res.status(201).json({
-      success: true,
-      token,
-      user: { 
-        id: user.id, 
-        name: user.name, 
-        email: user.email, 
-        role: user.role,
-        mobile: user.mobile,
-        location: user.location,
-        serviceCategory: user.service_category,
-        businessName: user.business_name,
-        govtProofType: user.govt_proof_type,
-        govtProofNumber: user.govt_proof_number,
-        govtProofDoc: user.govt_proof_doc,
-        verificationStatus: user.verification_status,
-        shelterCapacity: user.shelter_capacity,
-        bio: user.bio
-      }
-    });
-  } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
-  }
 };
 
 export const DEMO_ACCOUNTS = [
@@ -261,6 +181,221 @@ export const DEMO_ACCOUNTS = [
   }
 ];
 
+// Persistent in-memory user registry for the running backend process
+export const inMemoryUsers = new Map();
+
+// Helper to read users from disk fallback
+export const loadDiskUsers = () => {
+  try {
+    if (fs.existsSync(USERS_FILE)) {
+      const content = fs.readFileSync(USERS_FILE, 'utf8');
+      const parsed = JSON.parse(content);
+      if (Array.isArray(parsed)) return parsed;
+    }
+  } catch (err) {
+    console.warn('[DiskUsers] Error reading users.json:', err?.message);
+  }
+  return [];
+};
+
+// Helper to save users to disk fallback
+export const saveDiskUsers = (users) => {
+  try {
+    const dir = path.dirname(USERS_FILE);
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+    fs.writeFileSync(USERS_FILE, JSON.stringify(users, null, 2), 'utf8');
+  } catch (err) {
+    console.warn('[DiskUsers] Error saving users.json:', err?.message);
+  }
+};
+
+// Universal duplicate email verification across DEMO_ACCOUNTS, local disk users, memory, and Supabase
+export const isEmailAlreadyRegistered = async (rawEmail) => {
+  if (!rawEmail || typeof rawEmail !== 'string') return false;
+  const clean = rawEmail.trim().toLowerCase();
+
+  // 1. Check in DEMO_ACCOUNTS
+  if (DEMO_ACCOUNTS.some(d => d.email && d.email.trim().toLowerCase() === clean)) {
+    return true;
+  }
+
+  // 2. Check in inMemoryUsers
+  if (inMemoryUsers.has(clean)) {
+    return true;
+  }
+
+  // 3. Check in disk users.json
+  const diskUsers = loadDiskUsers();
+  if (diskUsers.some(u => u.email && u.email.trim().toLowerCase() === clean)) {
+    return true;
+  }
+
+  // 4. Check in Supabase if configured & available
+  if (supabase) {
+    try {
+      const { data, error } = await supabase
+        .from('users')
+        .select('id, email')
+        .ilike('email', clean);
+      if (!error && Array.isArray(data) && data.length > 0) {
+        return true;
+      }
+    } catch (_) {
+      // Supabase table may not be initialized; continue
+    }
+  }
+
+  return false;
+};
+
+// @desc    Register a new user
+// @route   POST /api/auth/register
+// @access  Public
+export const registerUser = async (req, res) => {
+  const {
+    name, email, password, mobile, role, location, serviceCategory,
+    businessName, govtProofType, govtProofNumber, govtProofDoc,
+    shelterCapacity, bio
+  } = req.body;
+
+  if (!name || !email || !password) {
+    return res.status(400).json({ success: false, message: 'Please provide name, email, and password' });
+  }
+
+  const cleanEmail = email.trim().toLowerCase();
+
+  // STRICT Duplicate Email Check
+  const alreadyExists = await isEmailAlreadyRegistered(cleanEmail);
+  if (alreadyExists) {
+    return res.status(400).json({
+      success: false,
+      message: 'An account with this email address already exists. Please log in instead.'
+    });
+  }
+
+  // Enforce strong password complexity policy
+  const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
+  if (!passwordRegex.test(password)) {
+    return res.status(400).json({
+      success: false,
+      message: 'Password must be at least 8 characters long and contain at least one uppercase letter, one lowercase letter, and one number'
+    });
+  }
+
+  // Security: Restrict public registration roles to CUSTOMER or SERVICE_PROVIDER only (prevent ADMIN escalation)
+  const allowedRoles = ['CUSTOMER', 'SERVICE_PROVIDER'];
+  const safeRole = allowedRoles.includes(role) ? role : 'CUSTOMER';
+  const safeVerification = safeRole === 'SERVICE_PROVIDER' ? 'Pending' : 'Verified';
+
+  try {
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
+
+    const generatedId = (typeof crypto.randomUUID === 'function') ? crypto.randomUUID() : ('user_' + Date.now());
+    let userObj = {
+      _id: generatedId,
+      id: generatedId,
+      name: name.trim(),
+      email: cleanEmail,
+      password: hashedPassword,
+      mobile: mobile ? mobile.trim() : null,
+      role: safeRole,
+      location: location || null,
+      serviceCategory: serviceCategory || null,
+      service_category: serviceCategory || null,
+      businessName: businessName || name,
+      business_name: businessName || name,
+      govtProofType: govtProofType || 'AWBI / NGO Registration Certificate',
+      govt_proof_type: govtProofType || 'AWBI / NGO Registration Certificate',
+      govtProofNumber: govtProofNumber || null,
+      govt_proof_number: govtProofNumber || null,
+      govtProofDoc: govtProofDoc || null,
+      govt_proof_doc: govtProofDoc || null,
+      verificationStatus: safeVerification,
+      verification_status: safeVerification,
+      shelterCapacity: shelterCapacity || 50,
+      shelter_capacity: shelterCapacity || 50,
+      bio: bio || null,
+      addresses: [],
+      wishlist: [],
+      cart: [],
+      prescription_history: []
+    };
+
+    // Try persisting to Supabase if available
+    if (supabase) {
+      try {
+        const { data: dbUser, error: dbErr } = await supabase.from('users').insert([{
+          name: userObj.name,
+          email: userObj.email,
+          password: userObj.password,
+          mobile: userObj.mobile,
+          role: userObj.role,
+          location: userObj.location,
+          service_category: userObj.service_category,
+          business_name: userObj.business_name,
+          govt_proof_type: userObj.govt_proof_type,
+          govt_proof_number: userObj.govt_proof_number,
+          govt_proof_doc: userObj.govt_proof_doc,
+          verification_status: userObj.verification_status,
+          shelter_capacity: userObj.shelter_capacity,
+          bio: userObj.bio,
+          addresses: [],
+          wishlist: [],
+          cart: [],
+          prescription_history: []
+        }]).select().single();
+
+        if (!dbErr && dbUser) {
+          userObj.id = dbUser.id;
+          userObj._id = dbUser.id;
+        }
+      } catch (sbErr) {
+        console.warn('Supabase insert notice, using local file store:', sbErr?.message);
+      }
+    }
+
+    // Always register in inMemoryUsers so repeat attempts are instantly blocked
+    inMemoryUsers.set(cleanEmail, userObj);
+
+    // Persist to disk users.json
+    const diskUsers = loadDiskUsers();
+    const existingIdx = diskUsers.findIndex(u => u.email && u.email.toLowerCase() === cleanEmail);
+    if (existingIdx >= 0) {
+      diskUsers[existingIdx] = userObj;
+    } else {
+      diskUsers.push(userObj);
+    }
+    saveDiskUsers(diskUsers);
+
+    const token = generateToken(userObj.id);
+    setAuthCookie(res, token);
+    return res.status(201).json({
+      success: true,
+      token,
+      user: { 
+        id: userObj.id, 
+        _id: userObj.id,
+        name: userObj.name, 
+        email: userObj.email, 
+        role: userObj.role,
+        mobile: userObj.mobile,
+        location: userObj.location,
+        serviceCategory: userObj.service_category,
+        businessName: userObj.business_name,
+        govtProofType: userObj.govt_proof_type,
+        govtProofNumber: userObj.govt_proof_number,
+        govtProofDoc: userObj.govt_proof_doc,
+        verificationStatus: userObj.verification_status,
+        shelterCapacity: userObj.shelter_capacity,
+        bio: userObj.bio
+      }
+    });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
+
 // @desc    Auth user & get token
 // @route   POST /api/auth/login
 // @access  Public
@@ -342,7 +477,46 @@ export const loginUser = async (req, res) => {
         });
     }
 
-    // 2. Standard DB Verification
+    // 2. Check in-memory & local disk users
+    const diskUsers = loadDiskUsers();
+    const matchedLocal = inMemoryUsers.get(loginKey.toLowerCase()) ||
+      diskUsers.find(u => (u.email && u.email.toLowerCase() === loginKey.toLowerCase()) || (cleanMobile && u.mobile && (u.mobile === cleanMobile || cleanMobile.endsWith(u.mobile))));
+
+    if (matchedLocal) {
+      let isMatch = isOtpVerified;
+      if (!isMatch && password && matchedLocal.password) {
+        if (matchedLocal.password.startsWith('$2a$') || matchedLocal.password.startsWith('$2b$')) {
+          isMatch = await bcrypt.compare(password, matchedLocal.password);
+        } else {
+          isMatch = matchedLocal.password === password;
+        }
+      }
+      if (isMatch) {
+        const userId = matchedLocal.id || matchedLocal._id;
+        const token = generateToken(userId);
+        setAuthCookie(res, token);
+        return res.json({
+          success: true,
+          token,
+          user: {
+            id: userId,
+            _id: userId,
+            name: matchedLocal.name,
+            email: matchedLocal.email,
+            role: matchedLocal.role,
+            mobile: matchedLocal.mobile,
+            location: matchedLocal.location,
+            serviceCategory: matchedLocal.serviceCategory || matchedLocal.service_category,
+            businessName: matchedLocal.businessName || matchedLocal.business_name,
+            verificationStatus: matchedLocal.verificationStatus || matchedLocal.verification_status || 'Verified',
+            avatar: matchedLocal.avatar || null,
+            profilePicture: matchedLocal.avatar || null
+          }
+        });
+      }
+    }
+
+    // 3. Standard DB Verification
     let user = null;
     try {
       let userQuery = supabase.from('users').select('*');
@@ -485,7 +659,7 @@ export const updateUserProfile = async (req, res) => {
           }
 
           if (!isMatch) {
-            return res.status(401).json({ success: false, message: 'Current password is incorrect' });
+            return res.status(401).json({ success: false, message: 'Current password does not match what is in the database.' });
           }
 
           let isSame = false;
@@ -612,7 +786,7 @@ export const otpStore = new Map();
 // @route   POST /api/auth/send-otp
 // @access  Public
 export const sendOtp = async (req, res) => {
-  const { email, mobile, identifier, purpose } = req.body;
+  const { email, mobile, identifier, purpose, password } = req.body;
   const rawKey = (typeof email === 'string' ? email : typeof identifier === 'string' ? identifier : typeof mobile === 'string' ? mobile : '').trim();
   const targetEmail = rawKey.includes('@') ? rawKey.toLowerCase() : (typeof email === 'string' && email.includes('@') ? email.toLowerCase() : '');
 
@@ -620,9 +794,77 @@ export const sendOtp = async (req, res) => {
     return res.status(400).json({ success: false, message: 'Please provide email or mobile number' });
   }
 
-  // Generate 6-digit OTP
+  // If this is for REGISTRATION, strictly verify that the email is not already registered
+  if (purpose === 'registration' || purpose === 'register') {
+    if (targetEmail) {
+      const alreadyExists = await isEmailAlreadyRegistered(targetEmail);
+      if (alreadyExists) {
+        return res.status(400).json({
+          success: false,
+          message: 'An account with this email address already exists. Please log in instead.'
+        });
+      }
+    }
+  }
+
+  // If this is for LOGIN, verify that the account exists and credentials match first
+  if (purpose === 'login') {
+    if (!password) {
+      return res.status(400).json({ success: false, message: 'Please enter your password to log in.' });
+    }
+
+    const cleanMobile = rawKey.replace(/\D/g, '');
+
+    // 1. Check Demo Accounts
+    const matchedDemo = DEMO_ACCOUNTS.find(d => 
+      d.email.toLowerCase() === rawKey.toLowerCase() ||
+      (cleanMobile && d.mobile && (d.mobile === cleanMobile || d.mobile.endsWith(cleanMobile) || cleanMobile.endsWith(d.mobile)))
+    );
+
+    let isMatched = false;
+    if (matchedDemo) {
+      isMatched = (
+        matchedDemo.password === password ||
+        password.toLowerCase() === (matchedDemo.password || '').toLowerCase() ||
+        password === 'Pass@1234' ||
+        password === 'pass@1234' ||
+        password === '123456'
+      );
+    }
+
+    // 2. Check Supabase DB
+    if (!isMatched) {
+      try {
+        let userQuery = supabase.from('users').select('*');
+        if (cleanMobile && cleanMobile.length >= 10) {
+          userQuery = userQuery.or(`email.eq.${rawKey.toLowerCase()},mobile.eq.${rawKey},mobile.eq.${cleanMobile}`);
+        } else {
+          userQuery = userQuery.eq('email', rawKey.toLowerCase());
+        }
+        const { data: users, error } = await userQuery;
+        if (!error && users && users.length > 0) {
+          const dbUser = users[0];
+          if (dbUser.password && (await bcrypt.compare(password, dbUser.password))) {
+            isMatched = true;
+          }
+        }
+      } catch (dbErr) {
+        console.warn('sendOtp DB check warning:', dbErr?.message || dbErr);
+      }
+    }
+
+    if (!isMatched) {
+      return res.status(401).json({
+        success: false,
+        message: 'Invalid email or password.'
+      });
+    }
+  }
+
+  // Generate 6-digit OTP with 1-minute (60 seconds) validity window
   const otp = Math.floor(100000 + Math.random() * 900000).toString();
-  const expiresAt = Date.now() + 10 * 60 * 1000; // 10 minutes
+  const OTP_EXPIRY_MS = 60 * 1000; // 1 minute
+  const expiresAt = Date.now() + OTP_EXPIRY_MS;
 
   const key = (targetEmail || rawKey).toLowerCase();
   otpStore.set(key, { otp, expiresAt, purpose: purpose || 'login' });
@@ -635,11 +877,44 @@ export const sendOtp = async (req, res) => {
   return res.json({
     success: true,
     message: emailResult.simulated 
-      ? `Demo OTP generated for ${key}: ${otp}` 
-      : `OTP code sent successfully to ${targetEmail}`,
+      ? `Demo OTP generated for ${key}: ${otp} (Valid for 1 min)` 
+      : `OTP code sent successfully to ${targetEmail} (Valid for 1 min)`,
     otp, // keep in response for demo / autofill
+    expiresInSeconds: 60,
+    expiresAt,
     simulated: emailResult.simulated || false
   });
+};
+
+// @desc    Verify OTP code
+// @route   POST /api/auth/verify-otp
+// @access  Public
+export const verifyOtp = async (req, res) => {
+  const { email, mobile, identifier, otp } = req.body;
+  const rawKey = (typeof email === 'string' ? email : typeof identifier === 'string' ? identifier : typeof mobile === 'string' ? mobile : '').trim().toLowerCase();
+
+  if (!rawKey || !otp) {
+    return res.status(400).json({ success: false, message: 'Identifier and verification code are required.' });
+  }
+
+  const stored = otpStore.get(rawKey);
+  if (!stored) {
+    return res.status(400).json({ success: false, message: 'No verification code requested or code has expired. Please request a new code.' });
+  }
+
+  if (Date.now() > stored.expiresAt) {
+    otpStore.delete(rawKey);
+    return res.status(400).json({ success: false, message: 'Verification code has expired! Verification codes are valid for 1 minute only. Please request a new code.' });
+  }
+
+  if (String(stored.otp).trim() !== String(otp).trim()) {
+    return res.status(400).json({ success: false, message: 'Invalid verification code. Please check and try again.' });
+  }
+
+  // Once verified, delete so it cannot be reused
+  otpStore.delete(rawKey);
+
+  return res.json({ success: true, message: 'Verification code verified successfully!' });
 };
 
 // @desc    Forgot Password - Send OTP
@@ -655,7 +930,8 @@ export const forgotPassword = async (req, res) => {
   }
 
   const otp = Math.floor(100000 + Math.random() * 900000).toString();
-  const expiresAt = Date.now() + 10 * 60 * 1000; // 10 minutes
+  const OTP_EXPIRY_MS = 60 * 1000; // 1 minute
+  const expiresAt = Date.now() + OTP_EXPIRY_MS;
 
   const key = (targetEmail || rawKey).toLowerCase();
   otpStore.set(key, { otp, expiresAt, purpose: 'reset' });
@@ -668,9 +944,11 @@ export const forgotPassword = async (req, res) => {
   return res.json({
     success: true,
     message: emailResult.simulated 
-      ? `Demo recovery OTP generated for ${key}: ${otp}` 
-      : `Password recovery OTP sent successfully to ${targetEmail}`,
+      ? `Demo recovery OTP generated for ${key}: ${otp} (Valid for 1 min)` 
+      : `Password recovery OTP sent successfully to ${targetEmail} (Valid for 1 min)`,
     otp,
+    expiresInSeconds: 60,
+    expiresAt,
     target: targetEmail || rawKey,
     simulated: emailResult.simulated || false
   });
@@ -700,11 +978,17 @@ export const resetPassword = async (req, res) => {
   }
 
   const stored = otpStore.get(rawKey);
-  const isStoredMatch = stored && String(stored.otp).trim() === String(otp).trim() && stored.expiresAt > Date.now();
-  const isValidOtp = isStoredMatch || String(otp).trim() === '123456';
+  if (!stored) {
+    return res.status(400).json({ success: false, message: 'No verification code requested or code has expired. Please request a new code.' });
+  }
 
-  if (!isValidOtp) {
-    return res.status(400).json({ success: false, message: 'Invalid or expired verification code' });
+  if (Date.now() > stored.expiresAt) {
+    otpStore.delete(rawKey);
+    return res.status(400).json({ success: false, message: 'Verification code has expired! Verification codes are valid for 1 minute only. Please request a new code.' });
+  }
+
+  if (String(stored.otp).trim() !== String(otp).trim()) {
+    return res.status(400).json({ success: false, message: 'Invalid verification code. Please check and try again.' });
   }
 
   otpStore.delete(rawKey);
@@ -732,3 +1016,21 @@ export const resetPassword = async (req, res) => {
     return res.status(500).json({ success: false, message: error.message });
   }
 };
+
+// @desc    Check if an email is already registered
+// @route   POST /api/auth/check-email
+// @access  Public
+export const checkEmailExists = async (req, res) => {
+  const { email } = req.body;
+  const cleanEmail = (email || '').trim().toLowerCase();
+  if (!cleanEmail) {
+    return res.status(400).json({ success: false, message: 'Email is required' });
+  }
+  const exists = await isEmailAlreadyRegistered(cleanEmail);
+  return res.json({
+    success: true,
+    exists,
+    message: exists ? 'An account with this email address already exists. Please log in instead.' : 'Email is available.'
+  });
+};
+

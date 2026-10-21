@@ -53,6 +53,50 @@ const HERO_SLIDES = [
   }
 ];
 
+// 2D Vector Cozy Forever Home Icon (Option 1)
+const CozyHomeIcon = ({ className = 'w-6 h-6' }) => (
+  <svg
+    viewBox="0 0 48 48"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    className={className}
+  >
+    {/* Chimney */}
+    <path
+      d="M32 14V8H37V18"
+      stroke="#E07A5F"
+      strokeWidth="3"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    {/* Roof */}
+    <path
+      d="M6 22L24 7L42 22"
+      stroke="#E07A5F"
+      strokeWidth="3.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    {/* House Body */}
+    <path
+      d="M10 21V41C10 42.1046 10.8954 43 12 43H36C37.1046 43 38 42.1046 38 41V21"
+      stroke="#D4A373"
+      strokeWidth="3.2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    {/* Warm Heart */}
+    <path
+      d="M24 33.5C20 30 16 26.5 16 23C16 20 18.5 17.5 21.5 17.5C23 17.5 24 18.5 24 18.5C24 18.5 25 17.5 26.5 17.5C29.5 17.5 32 20 32 23C32 26.5 28 30 24 33.5Z"
+      fill="#F59E0B"
+      stroke="#F59E0B"
+      strokeWidth="1.2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </svg>
+);
+
 const AdoptionShelter = () => {
   const navigate = useNavigate();
   const { isAuthenticated, user } = useSelector((state) => state.auth);
@@ -313,47 +357,10 @@ const AdoptionShelter = () => {
   };
 
   // Handle "Know More About [Pet]" click:
-  // 1. Without login: show the already existing registration/auth popup for this page
-  // 2. If registered & logged in: show the payment / service access modal from other service pages
+  // Directly navigate to the pet's comprehensive details page
   const handleKnowMore = (pet) => {
-    if (!isAuthenticated || !user) {
-      toast.error('Please register or log in as a user to view adoption details.', {
-        duration: 4000,
-        icon: '🔒'
-      });
-      window.dispatchEvent(
-        new CustomEvent('open-register-modal', {
-          detail: {
-            tab: 'user',
-            hideProviderTab: true,
-            source: 'adoption-know-more',
-            petName: pet?.name
-          }
-        })
-      );
-      return;
-    }
-
-    handleServiceAction({
-      isAuthenticated: true,
-      serviceType: 'Adoption',
-      provider: {
-        id: pet.id,
-        name: pet.name,
-        parentName: pet.parentName || pet.guardianName || 'Rescue Shelter',
-        breed: pet.breed,
-        gender: pet.gender,
-        age: pet.age,
-        city: pet.city,
-        area: pet.state,
-        phone: pet.parentContact || pet.shelterPhone || '+91 98765 43210',
-        image: pet.image,
-        rating: 4.9,
-        reviews: 42,
-        price: pet.fee ? Number(pet.fee) : 499
-      },
-      action: 'adopt'
-    });
+    if (!pet?.id) return;
+    navigate(`/adopt/${pet.id}`);
   };
 
   // Auto-fill guardian info if logged in when opening Add Pet modal
@@ -490,7 +497,7 @@ const AdoptionShelter = () => {
             <div className="lg:col-span-7 space-y-5 text-left">
               
               <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm border border-white/20 px-4 py-1.5 rounded-full shadow-lg">
-                <span className="text-white font-bold text-xs tracking-widest uppercase">🐾 PET ADOPTION IN INDIA</span>
+                <span className="text-white font-bold text-xs tracking-widest uppercase">PET ADOPTION IN INDIA</span>
                 <span className="text-[10px] bg-gold text-charcoal font-bold px-2 py-0.5 rounded-full">100% Free Rehoming</span>
               </div>
 
@@ -559,12 +566,14 @@ const AdoptionShelter = () => {
                   </div>
                 </div>
 
-                {/* Cute Hand-drawn Dog House Illustration Badge */}
-                <div className="absolute -top-4 -right-3 bg-white p-3 rounded-2xl shadow-xl border border-beige transform rotate-3 flex items-center gap-2 z-30">
-                  <span className="text-2xl">🏠</span>
+                {/* Option 1: Cozy Forever Home Badge (2D Flat Vector) */}
+                <div className="absolute -top-4 -right-3 bg-white py-2.5 px-3.5 rounded-2xl shadow-xl border border-beige/90 transform rotate-2 hover:rotate-0 transition-transform duration-300 flex items-center gap-3 z-30">
+                  <div className="w-10 h-10 rounded-xl bg-amber-50/90 border border-amber-200/60 flex items-center justify-center shrink-0 shadow-xs">
+                    <CozyHomeIcon className="w-6 h-6" />
+                  </div>
                   <div className="text-left">
-                    <p className="text-[11px] font-bold text-slate-800 leading-tight">Adopt Love</p>
-                    <p className="text-[9px] text-primary font-semibold">Save a Life</p>
+                    <p className="text-[12px] font-extrabold text-slate-900 leading-tight">Adopt Love</p>
+                    <p className="text-[10px] text-primary font-bold tracking-tight">Save a Life</p>
                   </div>
                 </div>
 

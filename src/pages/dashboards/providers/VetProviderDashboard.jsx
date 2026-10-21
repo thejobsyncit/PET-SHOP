@@ -652,6 +652,7 @@ const VetProviderDashboard = ({
         <div className="p-6 border-t border-slate-100 bg-slate-50/50 mt-auto">
           <button
             onClick={() => {
+              dispatch(logout());
               toast.success('Logged out successfully');
               navigate('/');
             }}

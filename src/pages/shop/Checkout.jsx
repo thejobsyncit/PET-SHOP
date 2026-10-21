@@ -42,7 +42,7 @@ const Checkout = () => {
         setPostalCode(def.postalCode || '');
       }
       // Look for latest prescription if any pharmacy items exist
-      const hasRxItems = items.some(i => i.product.requiresPrescription);
+      const hasRxItems = items.some(i => i.product.requiresPrescription || i.product.requires_prescription);
       if (hasRxItems && user.prescriptionHistory && user.prescriptionHistory.length > 0) {
         // Take the latest prescription ID
         setPrescriptionId(user.prescriptionHistory[user.prescriptionHistory.length - 1]);
@@ -80,7 +80,7 @@ const Checkout = () => {
     setPlacingOrder(true);
     
     // Check if prescription required and missing
-    const hasRx = items.some(i => i.product.requiresPrescription);
+    const hasRx = items.some(i => i.product.requiresPrescription || i.product.requires_prescription);
     if (hasRx && !prescriptionId) {
       toast.error('A veterinary prescription is required for pharmacy items. Please upload one first.');
       setPlacingOrder(false);
@@ -89,11 +89,11 @@ const Checkout = () => {
 
     const orderPayload = {
       orderItems: items.map(item => ({
-        product: item.product._id,
+        product: item.product._id || item.product.id,
         name: item.product.name,
-        price: item.product.discountPrice || item.product.price,
+        price: item.product.discountPrice ?? item.product.discount_price ?? item.product.price,
         quantity: item.quantity,
-        image: item.product.images[0]
+        image: item.product.images?.[0] || item.product.image || 'https://images.unsplash.com/photo-1548199973-03cce0bbc87b?q=80&w=800'
       })),
       shippingAddress: {
         name,
@@ -434,18 +434,22 @@ const Checkout = () => {
             
             {/* Products brief list */}
             <div className="space-y-3 max-h-60 overflow-y-auto pr-2">
-              {items.map((item) => (
-                <div key={item.product._id} className="flex gap-3 text-xs">
-                  <img src={item.product.images[0]} alt={item.product.name} className="w-12 h-12 object-cover bg-gray-50 border border-beige" />
-                  <div className="flex-grow">
-                    <p className="font-semibold text-primary truncate max-w-[150px]">{item.product.name}</p>
-                    <p className="text-gray-400">Qty: {item.quantity}</p>
+              {items.map((item, idx) => {
+                const pId = item.product._id || item.product.id || idx;
+                const imgSrc = (item.product.images && item.product.images[0]) || item.product.image || 'https://images.unsplash.com/photo-1548199973-03cce0bbc87b?q=80&w=800';
+                return (
+                  <div key={pId} className="flex gap-3 text-xs">
+                    <img src={imgSrc} alt={item.product.name} className="w-12 h-12 object-cover bg-gray-50 border border-beige" />
+                    <div className="flex-grow">
+                      <p className="font-semibold text-primary truncate max-w-[150px]">{item.product.name}</p>
+                      <p className="text-gray-400">Qty: {item.quantity}</p>
+                    </div>
+                    <span className="font-bold text-primary">
+                      ₹{(item.product.discountPrice || item.product.price) * item.quantity}
+                    </span>
                   </div>
-                  <span className="font-bold text-primary">
-                    ₹{(item.product.discountPrice || item.product.price) * item.quantity}
-                  </span>
-                </div>
-              ))}
+                );
+              })}
             </div>
 
             {/* Calculations summaries */}

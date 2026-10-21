@@ -112,7 +112,7 @@ export const sendOtpEmail = async (toEmail, otp, purpose = 'login') => {
           <div class="content">
             <span class="badge">Security Verification</span>
             <div class="title">${title}</div>
-            <div class="desc">Please use the verification code below to ${actionText} to your account. This code will expire in <strong>10 minutes</strong>.</div>
+            <div class="desc">Please use the verification code below to ${actionText} to your account. This code will expire in <strong>1 minute (60 seconds)</strong>.</div>
             <div class="otp-box">${otp}</div>
             <p style="font-size: 13px; color: #64748b; margin: 0; line-height: 1.5;">If you did not request this verification code, please ignore this email or contact support.</p>
           </div>

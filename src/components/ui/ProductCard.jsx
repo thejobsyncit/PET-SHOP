@@ -15,30 +15,41 @@ const ProductCard = ({ product }) => {
   const [quantity, setQuantity] = useState(1);
   
   const wishlistItems = useSelector((state) => state.wishlist.items);
-  const isWishlisted = wishlistItems.some(item => item._id === product._id);
+  const productId = product._id || product.id;
+  const isWishlisted = wishlistItems.some(item => (item._id || item.id) === productId);
 
-  const handleToggleWishlist = (e) => {
+  const handleToggleWishlist = async (e) => {
     e.stopPropagation();
-    dispatch(toggleWishlistAPI(product));
-    if (isWishlisted) {
-      toast.success('Removed from wishlist');
+    const result = await dispatch(toggleWishlistAPI(product));
+    if (toggleWishlistAPI.fulfilled.match(result)) {
+      const updatedList = result.payload?.wishlist || [];
+      const nowInWishlist = updatedList.some(item => (item._id || item.id) === productId);
+      if (nowInWishlist) {
+        toast.success('Added to wishlist');
+      } else {
+        toast.success('Removed from wishlist');
+      }
     } else {
-      toast.success('Added to wishlist');
+      toast.error('Could not update wishlist.');
     }
   };
 
-  const handleQuickAdd = (e) => {
+  const handleQuickAdd = async (e) => {
     e.stopPropagation();
     if (product.stock === 0) return;
     
-    if (product.requiresPrescription) {
+    if (product.requiresPrescription || product.requires_prescription) {
       toast('Prescription required! Redirecting to detail page...', { icon: '📝' });
       navigate(`/product/${product.slug}`);
       return;
     }
 
-    dispatch(addToCartAPI({ product, quantity: 1 }));
-    toast.success('Added to cart!');
+    const result = await dispatch(addToCartAPI({ product, quantity: 1 }));
+    if (addToCartAPI.fulfilled.match(result)) {
+      toast.success('Added to cart!');
+    } else {
+      toast.error('Could not add to cart.');
+    }
   };
 
   const handleCardClick = () => {
@@ -50,19 +61,23 @@ const ProductCard = ({ product }) => {
     setQuickViewOpen(true);
   };
 
-  const handleQuickViewAddToCart = () => {
-    if (product.requiresPrescription) {
+  const handleQuickViewAddToCart = async () => {
+    if (product.requiresPrescription || product.requires_prescription) {
       setQuickViewOpen(false);
       toast('Prescription required! Redirecting to detail page...', { icon: '📝' });
       navigate(`/product/${product.slug}`);
       return;
     }
-    dispatch(addToCartAPI({ product, quantity }));
+    const result = await dispatch(addToCartAPI({ product, quantity }));
     setQuickViewOpen(false);
-    toast.success('Added to cart!');
+    if (addToCartAPI.fulfilled.match(result)) {
+      toast.success('Added to cart!');
+    } else {
+      toast.error('Could not add to cart.');
+    }
   };
 
-  const discountPrice = product.discountPrice;
+  const discountPrice = product.discountPrice ?? product.discount_price;
   const price = product.price;
 
   return (

@@ -191,3 +191,30 @@ export const DEFAULT_CLASSIFIEDS = [
     createdAt: new Date().toISOString()
   }
 ];
+
+export const getStoredClassifieds = () => {
+  try {
+    const raw = localStorage.getItem('joshpetshub_classified_listings');
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        const customIds = new Set(parsed.map(p => (p._id || p.id)?.toString()));
+        const missingDefaults = DEFAULT_CLASSIFIEDS.filter(d => !customIds.has(d._id));
+        return [...parsed, ...missingDefaults];
+      }
+    }
+  } catch (err) {
+    console.warn('Error reading stored classifieds:', err);
+  }
+  return DEFAULT_CLASSIFIEDS;
+};
+
+export const getPetListingById = (id) => {
+  if (!id) return null;
+  const all = getStoredClassifieds();
+  const searchId = id.toString().trim().toLowerCase();
+  return all.find(p => {
+    const pid = (p._id || p.id || '').toString().trim().toLowerCase();
+    return pid === searchId;
+  }) || null;
+};

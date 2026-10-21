@@ -3,7 +3,6 @@ import { createPortal } from 'react-dom';
 import { 
   Cookie, X, Settings2, Sparkles, Lock, BarChart3, Tag
 } from 'lucide-react';
-import toast from 'react-hot-toast';
 import { 
   getCookieConsent, 
   setCookieConsent, 
@@ -86,10 +85,6 @@ const CookieConsent = () => {
     setPreferences(DEFAULT_COOKIE_PREFERENCES);
     setShowModal(false);
     setShowBanner(true);
-    toast.success('All cookie data and consent history cleared!', {
-      icon: '🧹',
-      duration: 3500
-    });
   };
 
   const logConsentToBackend = async (prefs) => {
@@ -120,10 +115,6 @@ const CookieConsent = () => {
     logConsentToBackend(allConsented);
     setShowBanner(false);
     setShowModal(false);
-    toast.success('All cookies accepted!', {
-      icon: '🍪',
-      duration: 3000
-    });
   };
 
   // Accept Essential Only (Decline Optional)
@@ -139,10 +130,6 @@ const CookieConsent = () => {
     logConsentToBackend(essentialOnly);
     setShowBanner(false);
     setShowModal(false);
-    toast.success('Essential cookies saved.', {
-      icon: '🔒',
-      duration: 3000
-    });
   };
 
   // Save Customized Preferences
@@ -151,10 +138,6 @@ const CookieConsent = () => {
     logConsentToBackend(preferences);
     setShowBanner(false);
     setShowModal(false);
-    toast.success('Cookie preferences updated!', {
-      icon: '✅',
-      duration: 3000
-    });
   };
 
   const toggleCategory = (key) => {

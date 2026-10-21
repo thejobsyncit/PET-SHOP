@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { MessageSquare, Phone, Mail, MapPin, Clock, Send, ChevronDown, Sparkles } from 'lucide-react';
+import { MessageSquare, Mail, MapPin, Clock, Send, ChevronDown, Sparkles } from 'lucide-react';
 import { motion } from 'framer-motion';
 import toast from 'react-hot-toast';
 import { apiRequest } from '../services/api.js';
@@ -86,27 +86,10 @@ const Contact = () => {
                   <h2 className="font-sans text-2xl font-black text-slate-900 tracking-tight">
                     Reach Out Directly
                   </h2>
-                  <p className="text-sm text-slate-500 font-medium mt-2">Get in touch with us via phone, email, or visit our flagship store.</p>
+                  <p className="text-sm text-slate-500 font-medium mt-2">Get in touch with us via email.</p>
                 </div>
 
                 <div className="space-y-4">
-                  <a
-                    href="tel:+919876543210"
-                    className="group flex gap-4 p-4 rounded-2xl hover:bg-amber-50/70 transition-colors border border-transparent hover:border-amber-200 cursor-pointer block"
-                    title="Call Josh Pets Hub Customer Helpline"
-                  >
-                    <div className="bg-amber-100 w-12 h-12 rounded-xl flex items-center justify-center shrink-0 group-hover:scale-110 group-hover:rotate-6 transition-transform duration-300">
-                      <Phone size={20} className="text-amber-600" />
-                    </div>
-                    <div>
-                      <h4 className="font-black text-slate-900 group-hover:text-amber-800 transition-colors flex items-center gap-1.5">
-                        Customer Helpline <span className="text-[10px] text-amber-700 bg-amber-100 px-2 py-0.5 rounded-full font-bold">Call Now</span>
-                      </h4>
-                      <p className="text-sm text-amber-700 font-bold mt-1">+91 98765 43210</p>
-                      <p className="text-xs text-slate-400 mt-0.5">Online Support & Ticket Desk • Mon - Sat (9:00 AM - 6:00 PM IST)</p>
-                    </div>
-                  </a>
-
                   <a
                     href="mailto:care@joshpetshub.com"
                     className="group flex gap-4 p-4 rounded-2xl hover:bg-emerald-50/70 transition-colors border border-transparent hover:border-emerald-200 cursor-pointer block"

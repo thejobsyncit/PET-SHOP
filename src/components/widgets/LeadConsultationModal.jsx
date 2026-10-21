@@ -516,6 +516,46 @@ const LeadConsultationModal = () => {
     setIsProviderCityDropdownOpen(false);
   };
 
+  const EXISTING_SYSTEM_EMAILS = [
+    'dr.ramesh@joshpetshub.com',
+    'velvetfur@joshpetshub.com',
+    'happypaws@joshpetshub.com',
+    'royalpaws@joshpetshub.com',
+    'adopt@joshpetshub.com',
+    'swiftpaws@joshpetshub.com',
+    'safepet@joshpetshub.com',
+    'clevercanines@joshpetshub.com',
+    'pawinsure@joshpetshub.com',
+    'elitebreed@joshpetshub.com',
+    'priya@joshpetshub.com',
+    'admin@joshpetshub.com',
+    'superadmin@joshpetshub.com',
+    'customer1@joshpetshub.com',
+    'customer2@joshpetshub.com',
+    'customer3@joshpetshub.com',
+    'customer4@joshpetshub.com',
+    'customer5@joshpetshub.com'
+  ];
+
+  const checkEmailAlreadyRegistered = (email) => {
+    if (!email) return false;
+    const clean = email.trim().toLowerCase();
+    if (EXISTING_SYSTEM_EMAILS.includes(clean)) return true;
+    try {
+      const list = JSON.parse(localStorage.getItem('joshpetshub_registered_users') || '[]');
+      if (Array.isArray(list) && list.some(u => (u?.email || '').trim().toLowerCase() === clean)) {
+        return true;
+      }
+    } catch (e) {}
+    try {
+      const curr = JSON.parse(localStorage.getItem('joshpetshub_user') || 'null');
+      if ((curr?.email || '').trim().toLowerCase() === clean) {
+        return true;
+      }
+    } catch (e) {}
+    return false;
+  };
+
   // Submit Handler for User Registration
   const handleUserSubmit = async (e) => {
     e.preventDefault();
@@ -563,7 +603,17 @@ const LeadConsultationModal = () => {
     }
     setUserPasswordError('');
 
-    // 5. District / Location validation
+    // 5. Email duplicate validation
+    if (userEmail && userEmail.trim()) {
+      if (checkEmailAlreadyRegistered(userEmail)) {
+        setUserEmailError('This email is already registered. Please log in or use a different email *');
+        toast.error('An account with this email address already exists! Please log in instead.');
+        return;
+      }
+    }
+    setUserEmailError('');
+
+    // 6. District / Location validation
     const finalUserLocationCity = (selectedUserCity || userCitySearch).trim();
     if (!finalUserLocationCity) {
       toast.error('Please select your district / city *');
@@ -587,13 +637,14 @@ const LeadConsultationModal = () => {
       const result = await dispatch(register(payload));
       if (register.fulfilled.match(result)) {
         toast.success(`🎉 Welcome ${userFullName || 'Pet Parent'}! Account registered successfully.`);
+        handleClose();
       } else {
-        toast.success(`🎉 Welcome ${userFullName || 'Pet Parent'}! Details submitted successfully.`);
+        const errorMsg = result?.payload || 'Registration failed. Email may already be registered.';
+        setUserEmailError(errorMsg);
+        toast.error(errorMsg);
       }
-      handleClose();
     } catch (err) {
-      toast.success(`Account registered for ${userMobileNo}!`);
-      handleClose();
+      toast.error(err?.message || 'Registration failed. Please try again.');
     }
   };
 
@@ -631,6 +682,11 @@ const LeadConsultationModal = () => {
       toast.error('Business Email is required for Service Providers!');
       return;
     }
+    if (checkEmailAlreadyRegistered(providerEmail)) {
+      setProviderEmailError('This email is already registered. Please log in or use a different email *');
+      toast.error('An account with this email address already exists! Please log in instead.');
+      return;
+    }
     setProviderEmailError('');
 
     const pwdErr = validatePassword(providerPassword);
@@ -665,13 +721,14 @@ const LeadConsultationModal = () => {
       const result = await dispatch(register(payload));
       if (register.fulfilled.match(result)) {
         toast.success(`🎉 Welcome ${providerBusinessName || 'Partner'}! Service Provider registered successfully.`);
+        handleClose();
       } else {
-        toast.success(`🎉 Partner details submitted successfully.`);
+        const errorMsg = result?.payload || 'Partner registration failed. Email may already be in use.';
+        setProviderEmailError(errorMsg);
+        toast.error(errorMsg);
       }
-      handleClose();
     } catch (err) {
-      toast.success(`Partner registration submitted!`);
-      handleClose();
+      toast.error(err?.message || 'Partner registration failed.');
     }
   };
 

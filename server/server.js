@@ -64,7 +64,6 @@ const allowedOrigins = [
   rawClientUrl,
   'https://www.joshpetshub.com',
   'https://joshpetshub.com',
-  'https://pet-shop-beta.vercel.app',
   process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null,
   'http://localhost:5173',
   'http://localhost:5174',

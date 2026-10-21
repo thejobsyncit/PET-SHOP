@@ -97,6 +97,30 @@ export const getProducts = async (req, res) => {
 
     query = query.range(from, to);
 
+const normalizeProduct = (p) => {
+  if (!p) return null;
+  const price = Number(p.price) || 0;
+  const discountPrice = p.discount_price !== null && p.discount_price !== undefined 
+    ? Number(p.discount_price) 
+    : (p.discountPrice !== null && p.discountPrice !== undefined ? Number(p.discountPrice) : null);
+  const discountPercentage = p.discount_percentage !== undefined 
+    ? Number(p.discount_percentage) 
+    : (discountPrice && price > discountPrice ? Math.round(((price - discountPrice) / price) * 100) : 0);
+
+  return {
+    ...p,
+    _id: p.id || p._id,
+    id: p.id || p._id,
+    price,
+    discountPrice,
+    discountPercentage,
+    isBestSeller: p.is_bestseller ?? p.isBestSeller ?? false,
+    isFeatured: p.is_featured ?? p.isFeatured ?? false,
+    requiresPrescription: p.requires_prescription ?? p.requiresPrescription ?? false,
+    petType: p.pet_type ?? p.petType,
+  };
+};
+
     const { data: dbProducts, count: total, error } = await query;
     
     if (error) throw error;
@@ -107,7 +131,7 @@ export const getProducts = async (req, res) => {
       total: total || 0,
       page: pageNum,
       pages: Math.ceil((total || 0) / limitNum),
-      products: dbProducts || []
+      products: (dbProducts || []).map(normalizeProduct)
     });
 
   } catch (error) {
@@ -126,7 +150,7 @@ export const getProductBySlug = async (req, res) => {
     if (!product) {
       return res.status(404).json({ success: false, message: 'Product not found' });
     }
-    res.json({ success: true, product });
+    res.json({ success: true, product: normalizeProduct(product) });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
@@ -143,7 +167,7 @@ export const getProductById = async (req, res) => {
     if (!product) {
       return res.status(404).json({ success: false, message: 'Product not found' });
     }
-    res.json({ success: true, product });
+    res.json({ success: true, product: normalizeProduct(product) });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }

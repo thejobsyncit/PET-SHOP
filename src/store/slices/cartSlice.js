@@ -3,9 +3,10 @@ import { apiRequest } from '../../services/api.js';
 
 // Helper to calculate totals
 const calculateTotals = (items, appliedCoupon = null) => {
-  const subtotal = items.reduce((acc, item) => {
-    const price = item.product.discountPrice || item.product.price;
-    return acc + (price * item.quantity);
+  const subtotal = (items || []).reduce((acc, item) => {
+    if (!item || !item.product) return acc;
+    const price = item.product.discountPrice ?? item.product.discount_price ?? item.product.price ?? 0;
+    return acc + (Number(price) * (item.quantity || 1));
   }, 0);
 
   // Free shipping threshold = ₹999
@@ -44,23 +45,36 @@ export const fetchCart = createAsyncThunk('cart/fetchCart', async (_, thunkAPI) 
       const localCart = JSON.parse(localStorage.getItem('joshpetshub_cart') || '[]');
       return { cart: localCart };
     }
-    return await apiRequest('/cart');
+    const data = await apiRequest('/cart');
+    if (data?.cart) {
+      localStorage.setItem('joshpetshub_cart', JSON.stringify(data.cart));
+    }
+    return data;
   } catch (error) {
-    return thunkAPI.rejectWithValue(error.message);
+    const localCart = JSON.parse(localStorage.getItem('joshpetshub_cart') || '[]');
+    return { cart: localCart };
   }
 });
 
 export const addToCartAPI = createAsyncThunk('cart/addToCart', async ({ product, quantity = 1 }, thunkAPI) => {
+  const normProduct = {
+    ...product,
+    _id: product?._id || product?.id,
+    id: product?.id || product?._id,
+    discountPrice: product?.discountPrice ?? product?.discount_price ?? null,
+  };
+  const productId = normProduct._id || normProduct.id;
+
   try {
     const token = localStorage.getItem('joshpetshub_token');
     if (!token) {
       // Handle local guest cart
       const localCart = JSON.parse(localStorage.getItem('joshpetshub_cart') || '[]');
-      const existIdx = localCart.findIndex(item => item.product._id === product._id);
+      const existIdx = localCart.findIndex(item => (item.product?._id || item.product?.id) === productId);
       if (existIdx > -1) {
         localCart[existIdx].quantity += quantity;
       } else {
-        localCart.push({ product, quantity });
+        localCart.push({ product: normProduct, quantity });
       }
       localStorage.setItem('joshpetshub_cart', JSON.stringify(localCart));
       return { cart: localCart };
@@ -69,11 +83,34 @@ export const addToCartAPI = createAsyncThunk('cart/addToCart', async ({ product,
     // Authenticated API request
     const data = await apiRequest('/cart', {
       method: 'POST',
-      body: JSON.stringify({ productId: product._id, quantity }),
+      body: JSON.stringify({ productId, quantity }),
     });
-    return data;
+
+    if (data?.cart) {
+      localStorage.setItem('joshpetshub_cart', JSON.stringify(data.cart));
+      return data;
+    }
+
+    const localCart = JSON.parse(localStorage.getItem('joshpetshub_cart') || '[]');
+    const existIdx = localCart.findIndex(item => (item.product?._id || item.product?.id) === productId);
+    if (existIdx > -1) {
+      localCart[existIdx].quantity += quantity;
+    } else {
+      localCart.push({ product: normProduct, quantity });
+    }
+    localStorage.setItem('joshpetshub_cart', JSON.stringify(localCart));
+    return { cart: localCart };
   } catch (error) {
-    return thunkAPI.rejectWithValue(error.message);
+    console.warn('addToCart API failed, falling back to local cart storage:', error);
+    const localCart = JSON.parse(localStorage.getItem('joshpetshub_cart') || '[]');
+    const existIdx = localCart.findIndex(item => (item.product?._id || item.product?.id) === productId);
+    if (existIdx > -1) {
+      localCart[existIdx].quantity += quantity;
+    } else {
+      localCart.push({ product: normProduct, quantity });
+    }
+    localStorage.setItem('joshpetshub_cart', JSON.stringify(localCart));
+    return { cart: localCart };
   }
 });
 
@@ -82,7 +119,7 @@ export const updateCartQuantityAPI = createAsyncThunk('cart/updateQuantity', asy
     const token = localStorage.getItem('joshpetshub_token');
     if (!token) {
       const localCart = JSON.parse(localStorage.getItem('joshpetshub_cart') || '[]');
-      const existIdx = localCart.findIndex(item => item.product._id === productId);
+      const existIdx = localCart.findIndex(item => (item.product?._id || item.product?.id) === productId);
       if (existIdx > -1) {
         localCart[existIdx].quantity = quantity;
       }
@@ -90,12 +127,31 @@ export const updateCartQuantityAPI = createAsyncThunk('cart/updateQuantity', asy
       return { cart: localCart };
     }
 
-    return await apiRequest('/cart', {
+    const data = await apiRequest('/cart', {
       method: 'PUT',
       body: JSON.stringify({ productId, quantity }),
     });
+
+    if (data?.cart) {
+      localStorage.setItem('joshpetshub_cart', JSON.stringify(data.cart));
+      return data;
+    }
+
+    const localCart = JSON.parse(localStorage.getItem('joshpetshub_cart') || '[]');
+    const existIdx = localCart.findIndex(item => (item.product?._id || item.product?.id) === productId);
+    if (existIdx > -1) {
+      localCart[existIdx].quantity = quantity;
+    }
+    localStorage.setItem('joshpetshub_cart', JSON.stringify(localCart));
+    return { cart: localCart };
   } catch (error) {
-    return thunkAPI.rejectWithValue(error.message);
+    const localCart = JSON.parse(localStorage.getItem('joshpetshub_cart') || '[]');
+    const existIdx = localCart.findIndex(item => (item.product?._id || item.product?.id) === productId);
+    if (existIdx > -1) {
+      localCart[existIdx].quantity = quantity;
+    }
+    localStorage.setItem('joshpetshub_cart', JSON.stringify(localCart));
+    return { cart: localCart };
   }
 });
 
@@ -104,31 +160,43 @@ export const removeFromCartAPI = createAsyncThunk('cart/removeFromCart', async (
     const token = localStorage.getItem('joshpetshub_token');
     if (!token) {
       let localCart = JSON.parse(localStorage.getItem('joshpetshub_cart') || '[]');
-      localCart = localCart.filter(item => item.product._id !== productId);
+      localCart = localCart.filter(item => (item.product?._id || item.product?.id) !== productId);
       localStorage.setItem('joshpetshub_cart', JSON.stringify(localCart));
       return { cart: localCart };
     }
 
-    return await apiRequest(`/cart/${productId}`, {
+    const data = await apiRequest(`/cart/${productId}`, {
       method: 'DELETE',
     });
+
+    if (data?.cart) {
+      localStorage.setItem('joshpetshub_cart', JSON.stringify(data.cart));
+      return data;
+    }
+
+    let localCart = JSON.parse(localStorage.getItem('joshpetshub_cart') || '[]');
+    localCart = localCart.filter(item => (item.product?._id || item.product?.id) !== productId);
+    localStorage.setItem('joshpetshub_cart', JSON.stringify(localCart));
+    return { cart: localCart };
   } catch (error) {
-    return thunkAPI.rejectWithValue(error.message);
+    let localCart = JSON.parse(localStorage.getItem('joshpetshub_cart') || '[]');
+    localCart = localCart.filter(item => (item.product?._id || item.product?.id) !== productId);
+    localStorage.setItem('joshpetshub_cart', JSON.stringify(localCart));
+    return { cart: localCart };
   }
 });
 
 export const clearCartAPI = createAsyncThunk('cart/clearCart', async (_, thunkAPI) => {
   try {
     const token = localStorage.getItem('joshpetshub_token');
-    if (!token) {
-      localStorage.removeItem('joshpetshub_cart');
-      return { cart: [] };
+    localStorage.removeItem('joshpetshub_cart');
+    if (token) {
+      await apiRequest('/cart', { method: 'DELETE' });
     }
-    return await apiRequest('/cart', {
-      method: 'DELETE',
-    });
+    return { cart: [] };
   } catch (error) {
-    return thunkAPI.rejectWithValue(error.message);
+    localStorage.removeItem('joshpetshub_cart');
+    return { cart: [] };
   }
 });
 
@@ -177,7 +245,16 @@ const cartSlice = createSlice({
   extraReducers: (builder) => {
     const handleCartFulfilled = (state, action) => {
       state.loading = false;
-      state.items = action.payload.cart || [];
+      const rawCart = action.payload?.cart || [];
+      state.items = rawCart.map(item => ({
+        ...item,
+        product: {
+          ...item.product,
+          _id: item.product?._id || item.product?.id,
+          id: item.product?.id || item.product?._id,
+          discountPrice: item.product?.discountPrice ?? item.product?.discount_price ?? null
+        }
+      }));
       state.pricing = calculateTotals(state.items, state.appliedCoupon);
     };
 
