@@ -30,6 +30,7 @@ export const getCategories = async (req, res) => {
     
     const payload = { success: true, categories: categories || [] };
     categoryCache.set(cacheKey, { timestamp: Date.now(), data: payload });
+    res.setHeader('Cache-Control', 'public, s-maxage=300, stale-while-revalidate=900');
     res.json(payload);
   } catch (error) {
     try {

@@ -149,6 +149,7 @@ const normalizeProduct = (p) => {
     };
 
     productCache.set(cacheKey, { timestamp: Date.now(), data: payload });
+    res.setHeader('Cache-Control', 'public, s-maxage=120, stale-while-revalidate=600');
     res.json(payload);
 
   } catch (error) {
