@@ -8,6 +8,30 @@ export const clearProductCache = () => {
   productCache.clear();
 };
 
+export const normalizeProduct = (p) => {
+  if (!p) return null;
+  const price = Number(p.price) || 0;
+  const discountPrice = p.discount_price !== null && p.discount_price !== undefined 
+    ? Number(p.discount_price) 
+    : (p.discountPrice !== null && p.discountPrice !== undefined ? Number(p.discountPrice) : null);
+  const discountPercentage = p.discount_percentage !== undefined 
+    ? Number(p.discount_percentage) 
+    : (discountPrice && price > discountPrice ? Math.round(((price - discountPrice) / price) * 100) : 0);
+
+  return {
+    ...p,
+    _id: p.id || p._id,
+    id: p.id || p._id,
+    price,
+    discountPrice,
+    discountPercentage,
+    isBestSeller: p.is_bestseller ?? p.isBestSeller ?? false,
+    isFeatured: p.is_featured ?? p.isFeatured ?? false,
+    requiresPrescription: p.requires_prescription ?? p.requiresPrescription ?? false,
+    petType: p.pet_type ?? p.petType,
+  };
+};
+
 // @desc    Get all products (with search, filter, sorting, pagination)
 // @route   GET /api/products
 // @access  Public
@@ -111,30 +135,6 @@ export const getProducts = async (req, res) => {
 
     query = query.range(from, to);
 
-const normalizeProduct = (p) => {
-  if (!p) return null;
-  const price = Number(p.price) || 0;
-  const discountPrice = p.discount_price !== null && p.discount_price !== undefined 
-    ? Number(p.discount_price) 
-    : (p.discountPrice !== null && p.discountPrice !== undefined ? Number(p.discountPrice) : null);
-  const discountPercentage = p.discount_percentage !== undefined 
-    ? Number(p.discount_percentage) 
-    : (discountPrice && price > discountPrice ? Math.round(((price - discountPrice) / price) * 100) : 0);
-
-  return {
-    ...p,
-    _id: p.id || p._id,
-    id: p.id || p._id,
-    price,
-    discountPrice,
-    discountPercentage,
-    isBestSeller: p.is_bestseller ?? p.isBestSeller ?? false,
-    isFeatured: p.is_featured ?? p.isFeatured ?? false,
-    requiresPrescription: p.requires_prescription ?? p.requiresPrescription ?? false,
-    petType: p.pet_type ?? p.petType,
-  };
-};
-
     const { data: dbProducts, count: total, error } = await query;
     
     if (error) throw error;
@@ -163,8 +163,19 @@ const normalizeProduct = (p) => {
 export const getProductBySlug = async (req, res) => {
   try {
     const { slug } = req.params;
-    const { data: product, error } = await supabase.from('products').select('*').eq('slug', slug).single();
+    let { data: product, error } = await supabase.from('products').select('*').eq('slug', slug).maybeSingle();
     if (error) throw error;
+
+    // Fallback: check if slug is an id or case-insensitive match
+    if (!product) {
+      const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(slug);
+      if (isUUID) {
+        const { data: pById, error: idErr } = await supabase.from('products').select('*').eq('id', slug).maybeSingle();
+        if (idErr) throw idErr;
+        product = pById;
+      }
+    }
+
     if (!product) {
       return res.status(404).json({ success: false, message: 'Product not found' });
     }
@@ -180,7 +191,7 @@ export const getProductBySlug = async (req, res) => {
 export const getProductById = async (req, res) => {
   try {
     const { id } = req.params;
-    const { data: product, error } = await supabase.from('products').select('*').eq('id', id).single();
+    const { data: product, error } = await supabase.from('products').select('*').eq('id', id).maybeSingle();
     if (error) throw error;
     if (!product) {
       return res.status(404).json({ success: false, message: 'Product not found' });

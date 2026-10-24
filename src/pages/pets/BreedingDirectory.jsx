@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import {
   Heart,
@@ -24,7 +24,8 @@ import {
   Send,
   Star,
   Info,
-  ChevronDown
+  ChevronDown,
+  ChevronRight
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import {
@@ -458,48 +459,61 @@ const BreedingDirectory = () => {
     <div className="bg-[#FAF9F5] min-h-screen text-slate-800">
       
       {/* ================= 1. CREATIVE & LUXURIOUS HERO SECTION ================= */}
-      <ScrollReveal variant="fade" className="bg-gradient-to-br from-[#F5EEFD] via-[#ECE0FA] to-[#DFCEF5] border-b border-purple-200/80 pt-10 sm:pt-14 pb-12 sm:pb-16 px-4 md:px-8 relative overflow-hidden">
+      <ScrollReveal
+        variant="fade"
+        style={{ background: 'linear-gradient(135deg, #d4af37 0%, #fef08a 50%, #b89228 100%)' }}
+        className="border-b border-[#b89228] pt-10 sm:pt-14 pb-12 sm:pb-16 px-4 md:px-8 relative overflow-hidden text-slate-900"
+      >
         
         {/* Soft Ambient Glows & Decorative Floating Shapes */}
-        <div className="absolute -top-24 -right-24 w-96 h-96 bg-purple-300/30 rounded-full blur-3xl pointer-events-none"></div>
-        <div className="absolute -bottom-20 -left-20 w-80 h-80 bg-pink-300/25 rounded-full blur-3xl pointer-events-none"></div>
-        <div className="absolute top-1/2 left-1/3 w-64 h-64 bg-amber-200/20 rounded-full blur-2xl pointer-events-none"></div>
+        <div className="absolute -top-24 -right-24 w-96 h-96 bg-white/20 rounded-full blur-3xl pointer-events-none"></div>
+        <div className="absolute -bottom-20 -left-20 w-80 h-80 bg-[#b89228]/25 rounded-full blur-3xl pointer-events-none"></div>
+        <div className="absolute top-1/2 left-1/3 w-64 h-64 bg-white/20 rounded-full blur-2xl pointer-events-none"></div>
 
-        <div className="max-w-7xl mx-auto relative z-10 space-y-8">
+        <div className="max-w-7xl mx-auto relative z-10 space-y-6">
           
+          {/* Breadcrumb Navigation */}
+          <div className="flex items-center gap-1.5 text-xs text-slate-800 font-medium">
+            <Link to="/" className="hover:text-black transition">Home</Link>
+            <ChevronRight size={12} />
+            <Link to="/services" className="hover:text-black transition">Pet Services</Link>
+            <ChevronRight size={12} />
+            <span className="font-bold text-slate-950">Pet Mating & Breeding</span>
+          </div>
+
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
             
             {/* Left Content Column */}
             <div className="lg:col-span-7 space-y-4 text-left">
               
               {/* Trust Badge */}
-              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 bg-white/90 backdrop-blur-md border border-purple-200/80 text-[#5B21B6] rounded-full text-[11px] font-extrabold tracking-wider uppercase shadow-xs">
+              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 bg-white/90 backdrop-blur-md border border-[#b89228]/40 text-[#1D3B2E] rounded-full text-[11px] font-extrabold tracking-wider uppercase shadow-xs">
                 <Sparkles size={13} className="text-amber-500 fill-amber-400 animate-spin-slow" />
                 <span>India's #1 Verified Pet Mating & Pedigree Registry</span>
               </div>
 
               {/* Romantic Serif Title */}
-              <h1 className="font-serif text-3xl sm:text-4xl md:text-5xl font-black text-[#26123D] leading-[1.15] tracking-tight">
+              <h1 className="font-serif text-3xl sm:text-4xl md:text-5xl font-black text-slate-950 leading-[1.15] tracking-tight">
                 Paws are matched in heaven <br />
-                <span className="bg-gradient-to-r from-[#6D28D9] via-[#8B5CF6] to-[#D946EF] bg-clip-text text-transparent italic font-serif">
+                <span className="text-[#1D3B2E] italic font-serif">
                   JOSH PETS HUB Matchmaker
                 </span>
               </h1>
 
               {/* Subtitle */}
-              <p className="text-xs sm:text-sm text-slate-700 max-w-xl font-medium leading-relaxed">
+              <p className="text-xs sm:text-sm text-slate-800 max-w-xl font-medium leading-relaxed">
                 Your pet deserves a legacy of love and health. Discover certified studs & queens, review multi-generation pedigrees, and arrange ethical, supervised matings across all major Indian cities.
               </p>
 
               {/* Trust Highlights Pill Strip */}
               <div className="flex flex-wrap items-center gap-2 pt-1">
-                <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-white/80 border border-purple-200 rounded-lg text-[11px] font-bold text-purple-900 shadow-2xs">
-                  <Award size={13} className="text-amber-500" /> 1,500+ KCI Registered Studs
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-white/85 border border-[#b89228]/30 rounded-lg text-[11px] font-bold text-slate-900 shadow-2xs">
+                  <Award size={13} className="text-amber-600" /> 1,500+ KCI Registered Studs
                 </span>
-                <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-white/80 border border-purple-200 rounded-lg text-[11px] font-bold text-purple-900 shadow-2xs">
-                  <ShieldCheck size={13} className="text-emerald-600" /> 100% DNA & Health Verified
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-white/85 border border-[#b89228]/30 rounded-lg text-[11px] font-bold text-slate-900 shadow-2xs">
+                  <ShieldCheck size={13} className="text-emerald-700" /> 100% DNA & Health Verified
                 </span>
-                <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-white/80 border border-purple-200 rounded-lg text-[11px] font-bold text-purple-900 shadow-2xs">
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-white/85 border border-[#b89228]/30 rounded-lg text-[11px] font-bold text-slate-900 shadow-2xs">
                   <Heart size={13} className="text-rose-500 fill-rose-500" /> 3,400+ Joyful Litters
                 </span>
               </div>
@@ -509,13 +523,13 @@ const BreedingDirectory = () => {
                 <button
                   type="button"
                   onClick={handleOpenAddPet}
-                  className="px-6 py-3.5 bg-gradient-to-r from-[#6D28D9] to-[#7C3AED] hover:from-[#5B21B6] hover:to-[#6D28D9] text-white font-bold text-xs uppercase tracking-wider rounded-xl transition flex items-center gap-2 cursor-pointer shadow-lg shadow-purple-900/25 active:scale-95"
+                  className="px-6 py-3.5 btn-footer-green-gold text-white font-bold text-xs uppercase tracking-wider rounded-xl transition flex items-center gap-2 cursor-pointer shadow-lg active:scale-95"
                 >
                   <Plus size={16} /> Register My Pet for Mating
                 </button>
                 <a
                   href="#mating-directory-results"
-                  className="px-6 py-3.5 bg-white hover:bg-slate-50 text-[#2E1A47] border border-purple-200 font-bold text-xs uppercase tracking-wider rounded-xl transition flex items-center gap-2 cursor-pointer shadow-sm hover:border-purple-300"
+                  className="px-6 py-3.5 bg-white hover:bg-stone-50 text-slate-900 border border-[#b89228]/40 font-bold text-xs uppercase tracking-wider rounded-xl transition flex items-center gap-2 cursor-pointer shadow-sm"
                 >
                   <Search size={15} /> Browse Studs & Queens
                 </a>
@@ -534,20 +548,20 @@ const BreedingDirectory = () => {
                     alt="Paws Matched in Heaven"
                     className="w-full h-full object-cover"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-[#200B36]/80 via-transparent to-black/20"></div>
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#0c1e16]/80 via-transparent to-black/20"></div>
 
                   {/* Top Live Match Header */}
                   <div className="absolute top-3 left-3 right-3 flex justify-between items-center text-white">
                     <span className="px-2.5 py-1 bg-black/40 backdrop-blur-md rounded-full text-[10px] font-bold uppercase tracking-wider flex items-center gap-1 border border-white/20">
                       <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span> Live Matchmaking Hub
                     </span>
-                    <span className="px-2.5 py-1 bg-purple-600/80 backdrop-blur-md rounded-full text-[10px] font-bold uppercase tracking-wider border border-purple-400/40">
+                    <span className="px-2.5 py-1 bg-[#1D3B2E]/90 backdrop-blur-md rounded-full text-[10px] font-bold uppercase tracking-wider border border-white/20 text-white shadow-sm">
                       KCI Supervised
                     </span>
                   </div>
 
                   {/* Bottom Couple Preview Tag */}
-                  <div className="absolute bottom-3 left-3 right-3 bg-white/95 backdrop-blur-md p-3 rounded-2xl border border-purple-100 shadow-lg text-slate-800 flex items-center justify-between">
+                  <div className="absolute bottom-3 left-3 right-3 bg-white/95 backdrop-blur-md p-3 rounded-2xl border border-stone-200 shadow-lg text-slate-800 flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <div className="flex -space-x-3">
                         <img
@@ -562,10 +576,10 @@ const BreedingDirectory = () => {
                         />
                       </div>
                       <div>
-                        <div className="text-[11px] font-extrabold text-[#2E1A47] leading-tight">
+                        <div className="text-[11px] font-extrabold text-[#1D3B2E] leading-tight">
                           Thor ♂ & Luna ♀
                         </div>
-                        <span className="text-[9px] text-purple-700 font-bold block">
+                        <span className="text-[9px] text-emerald-800 font-bold block">
                           Purebred Goldens • 99.4% Genetic Match
                         </span>
                       </div>
@@ -579,7 +593,7 @@ const BreedingDirectory = () => {
                 </div>
 
                 {/* Floating Aesthetic Pedigree Score Tag */}
-                <div className="absolute -top-3 -left-3 bg-white text-slate-900 px-3 py-1.5 rounded-xl shadow-lg border border-purple-200 flex items-center gap-2">
+                <div className="absolute -top-3 -left-3 bg-white text-slate-900 px-3 py-1.5 rounded-xl shadow-lg border border-stone-200 flex items-center gap-2">
                   <div className="w-6 h-6 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-[10px]">
                     ✓
                   </div>
@@ -594,86 +608,71 @@ const BreedingDirectory = () => {
           </div>
 
           {/* ================= HERO SEARCH BAR WIDGET ================= */}
-          <div className="bg-white/95 backdrop-blur-md p-4 sm:p-5 rounded-3xl shadow-xl border border-purple-200/80 space-y-3">
+          <div className="bg-white/95 backdrop-blur-md p-4 sm:p-5 rounded-3xl shadow-xl border border-[#b89228]/40 space-y-3">
             <form onSubmit={handleHeroSearch} className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 text-xs items-center">
               
               {/* Breed */}
-              <div>
-                <label className="block text-[10px] font-extrabold text-slate-600 uppercase tracking-wider mb-1">
-                  🐾 Select Breed
-                </label>
-                <div className="relative">
-                  <select
-                    value={heroBreed}
-                    onChange={(e) => setHeroBreed(e.target.value)}
-                    className="w-full p-2.5 bg-slate-50 border border-slate-200 text-xs font-semibold text-slate-800 rounded-xl focus:outline-none focus:border-[#6D28D9] cursor-pointer appearance-none"
-                  >
-                    <option value="All Breeds">All Breeds (Dogs, Cats, Birds)</option>
-                    {[
-                      ...BREEDING_BREEDS_BY_CATEGORY.Dogs.slice(1),
-                      ...BREEDING_BREEDS_BY_CATEGORY.Cats.slice(1),
-                      ...BREEDING_BREEDS_BY_CATEGORY.Birds.slice(1)
-                    ].map((b) => (
-                      <option key={b} value={b}>
-                        {b}
-                      </option>
-                    ))}
-                  </select>
-                  <ChevronDown size={14} className="absolute right-3 top-3 text-slate-400 pointer-events-none" />
-                </div>
+              <div className="relative">
+                <select
+                  value={heroBreed}
+                  onChange={(e) => setHeroBreed(e.target.value)}
+                  aria-label="Select Breed"
+                  className="w-full p-2.5 bg-slate-50 border border-slate-200 text-xs font-semibold text-slate-800 rounded-xl focus:outline-none focus:border-[#1D3B2E] cursor-pointer appearance-none"
+                >
+                  <option value="All Breeds">All Breeds (Dogs, Cats, Birds)</option>
+                  {[
+                    ...BREEDING_BREEDS_BY_CATEGORY.Dogs.slice(1),
+                    ...BREEDING_BREEDS_BY_CATEGORY.Cats.slice(1),
+                    ...BREEDING_BREEDS_BY_CATEGORY.Birds.slice(1)
+                  ].map((b) => (
+                    <option key={b} value={b}>
+                      {b}
+                    </option>
+                  ))}
+                </select>
+                <ChevronDown size={14} className="absolute right-3 top-3 text-slate-400 pointer-events-none" />
               </div>
 
               {/* State */}
-              <div>
-                <label className="block text-[10px] font-extrabold text-slate-600 uppercase tracking-wider mb-1">
-                  📍 State
-                </label>
-                <div className="relative">
-                  <select
-                    value={heroState}
-                    onChange={handleHeroStateChange}
-                    className="w-full p-2.5 bg-slate-50 border border-slate-200 text-xs font-semibold text-slate-800 rounded-xl focus:outline-none focus:border-[#6D28D9] cursor-pointer appearance-none"
-                  >
-                    <option value="All States">All States</option>
-                    {Object.keys(INDIAN_STATES_CITIES).map((st) => (
-                      <option key={st} value={st}>
-                        {st}
-                      </option>
-                    ))}
-                  </select>
-                  <ChevronDown size={14} className="absolute right-3 top-3 text-slate-400 pointer-events-none" />
-                </div>
+              <div className="relative">
+                <select
+                  value={heroState}
+                  onChange={handleHeroStateChange}
+                  aria-label="Select State"
+                  className="w-full p-2.5 bg-slate-50 border border-slate-200 text-xs font-semibold text-slate-800 rounded-xl focus:outline-none focus:border-[#1D3B2E] cursor-pointer appearance-none"
+                >
+                  <option value="All States">All States</option>
+                  {Object.keys(INDIAN_STATES_CITIES).map((st) => (
+                    <option key={st} value={st}>
+                      {st}
+                    </option>
+                  ))}
+                </select>
+                <ChevronDown size={14} className="absolute right-3 top-3 text-slate-400 pointer-events-none" />
               </div>
 
               {/* City */}
-              <div>
-                <label className="block text-[10px] font-extrabold text-slate-600 uppercase tracking-wider mb-1">
-                  🏙️ City
-                </label>
-                <div className="relative">
-                  <select
-                    value={heroCity}
-                    onChange={(e) => setHeroCity(e.target.value)}
-                    className="w-full p-2.5 bg-slate-50 border border-slate-200 text-xs font-semibold text-slate-800 rounded-xl focus:outline-none focus:border-[#6D28D9] cursor-pointer appearance-none"
-                  >
-                    {heroAvailableCities.map((c) => (
-                      <option key={c} value={c}>
-                        {c}
-                      </option>
-                    ))}
-                  </select>
-                  <ChevronDown size={14} className="absolute right-3 top-3 text-slate-400 pointer-events-none" />
-                </div>
+              <div className="relative">
+                <select
+                  value={heroCity}
+                  onChange={(e) => setHeroCity(e.target.value)}
+                  aria-label="Select City"
+                  className="w-full p-2.5 bg-slate-50 border border-slate-200 text-xs font-semibold text-slate-800 rounded-xl focus:outline-none focus:border-[#1D3B2E] cursor-pointer appearance-none"
+                >
+                  {heroAvailableCities.map((c) => (
+                    <option key={c} value={c}>
+                      {c}
+                    </option>
+                  ))}
+                </select>
+                <ChevronDown size={14} className="absolute right-3 top-3 text-slate-400 pointer-events-none" />
               </div>
 
               {/* Search Button */}
-              <div className="sm:col-span-2 md:col-span-1 pt-4 sm:pt-0">
-                <label className="hidden md:block text-[10px] font-bold text-transparent mb-1 select-none">
-                  Find Match
-                </label>
+              <div className="sm:col-span-2 md:col-span-1">
                 <button
                   type="submit"
-                  className="w-full py-2.5 sm:py-3 bg-[#6D28D9] hover:bg-[#5B21B6] text-white font-bold text-xs uppercase tracking-wider rounded-xl transition flex items-center justify-center gap-2 cursor-pointer shadow-md active:scale-95"
+                  className="w-full py-2.5 sm:py-3 btn-footer-green-gold text-white font-bold text-xs uppercase tracking-wider rounded-xl transition flex items-center justify-center gap-2 cursor-pointer shadow-md active:scale-95"
                 >
                   <Sparkles size={14} className="text-amber-300" /> Find Match
                 </button>
@@ -702,7 +701,7 @@ const BreedingDirectory = () => {
                     const el = document.getElementById('mating-directory-results');
                     if (el) el.scrollIntoView({ behavior: 'smooth' });
                   }}
-                  className="px-2.5 py-1 bg-purple-50 hover:bg-purple-100 text-purple-900 border border-purple-200/70 rounded-lg whitespace-nowrap transition cursor-pointer font-medium"
+                  className="px-2.5 py-1 bg-white/80 hover:bg-white text-slate-800 border border-stone-200 rounded-lg whitespace-nowrap transition cursor-pointer font-medium"
                 >
                   {breed}
                 </button>
@@ -719,255 +718,248 @@ const BreedingDirectory = () => {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
           
           {/* ================= LEFT SIDEBAR: DEDICATED FILTERS ================= */}
-          <aside className="lg:col-span-3 bg-white border border-slate-200 p-4 rounded-2xl shadow-sm space-y-5 lg:sticky lg:top-24 max-h-[calc(100vh-6.5rem)] overflow-y-auto custom-scrollbar">
-            
-            {/* Header & Reset Button */}
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-              <div className="flex items-center gap-2">
-                <SlidersHorizontal size={16} className="text-[#6D28D9]" />
-                <h3 className="font-serif font-bold text-base text-[#2E1A47] uppercase tracking-wider">
-                  Filter Options
-                </h3>
+          <aside className="lg:col-span-3">
+            <div className="bg-white rounded-2xl shadow-sm border border-stone-200 overflow-hidden">
+              
+              {/* Header with Title & Reset Button */}
+              <div className="px-4 py-3 border-b border-stone-200 bg-stone-50/70 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <SlidersHorizontal size={14} className="text-[#1D3B2E]" />
+                  <span className="text-xs font-bold uppercase tracking-wider text-slate-800">
+                    Filter Options
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleResetFilters}
+                  className="text-[11px] font-bold text-[#1D3B2E] hover:text-[#0F241C] hover:underline flex items-center gap-1 cursor-pointer"
+                >
+                  <RotateCcw size={11} /> Reset All
+                </button>
               </div>
-              <button
-                type="button"
-                onClick={handleResetFilters}
-                className="text-[11px] font-bold text-slate-500 hover:text-red-600 transition flex items-center gap-1 uppercase tracking-wider cursor-pointer"
-              >
-                <RotateCcw size={12} /> Reset All
-              </button>
-            </div>
 
-            {/* Keyword Search */}
-            <div>
-              <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-                Search Pet / Breed / City
-              </label>
-              <div className="relative">
-                <input
-                  type="text"
-                  placeholder="e.g. Hiroki, Pug, Chennai..."
-                  value={searchKeyword}
-                  onChange={(e) => setSearchKeyword(e.target.value)}
-                  className="w-full pl-8 pr-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-[#6D28D9]"
-                />
-                <Search size={14} className="absolute left-2.5 top-2.5 text-slate-400" />
-              </div>
-            </div>
+              {/* Natural Height Filter Body */}
+              <div className="p-4 space-y-4 text-xs">
 
-            {/* 1. Pet Category */}
-            <div>
-              <label className="block text-[11px] font-bold text-[#6D28D9] uppercase tracking-wider mb-2">
-                Pet Category
-              </label>
-              <div className="space-y-1.5 text-xs">
-                {[
-                  { id: 'Dogs', label: '🐶 Dogs' },
-                  { id: 'Cats', label: '🐱 Cats' },
-                  { id: 'Birds', label: '🦜 Birds' },
-                  { id: 'All', label: '🐾 All Pets' }
-                ].map((item) => (
-                  <label
-                    key={item.id}
-                    className={`flex items-center justify-between p-2 rounded-xl border cursor-pointer transition select-none ${
-                      selectedCategory === item.id
-                        ? 'bg-purple-50 border-purple-300 text-purple-950 font-bold'
-                        : 'bg-slate-50/70 border-slate-200 text-slate-700 hover:bg-slate-100'
-                    }`}
-                  >
-                    <div className="flex items-center gap-2">
-                      <input
-                        type="radio"
-                        name="petCategory"
-                        value={item.id}
-                        checked={selectedCategory === item.id}
-                        onChange={() => {
+                {/* Keyword Search */}
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-bold uppercase text-gray-400 tracking-wider">
+                    Search
+                  </label>
+                  <div className="relative">
+                    <Search size={13} className="absolute left-2.5 top-2.5 text-gray-400" />
+                    <input
+                      type="text"
+                      placeholder="e.g. Hiroki, Pug, Chennai..."
+                      value={searchKeyword}
+                      onChange={(e) => setSearchKeyword(e.target.value)}
+                      className="w-full bg-stone-50 border border-stone-200 text-xs rounded-lg pl-8 pr-2.5 py-1.5 text-slate-800 placeholder-gray-400 focus:outline-none focus:border-[#1D3B2E]"
+                    />
+                  </div>
+                </div>
+
+                {/* 1. Pet Category */}
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-bold uppercase text-gray-400 tracking-wider">
+                    Pet Category
+                  </label>
+                  <div className="space-y-1">
+                    {[
+                      { id: 'Dogs', label: 'Dogs' },
+                      { id: 'Cats', label: 'Cats' },
+                      { id: 'Birds', label: 'Birds' },
+                      { id: 'All', label: 'All Pets' }
+                    ].map((item) => (
+                      <button
+                        key={item.id}
+                        type="button"
+                        onClick={() => {
                           setSelectedCategory(item.id);
                           setSelectedBreed('All Breeds');
                         }}
-                        className="text-[#6D28D9] focus:ring-0 cursor-pointer"
+                        className={`w-full text-left text-[11px] font-semibold px-2.5 py-1.5 rounded-lg transition cursor-pointer flex items-center justify-between ${
+                          selectedCategory === item.id
+                            ? 'bg-[#1D3B2E] text-white font-bold'
+                            : 'text-gray-600 hover:bg-stone-100'
+                        }`}
+                      >
+                        <span>{item.label}</span>
+                        {selectedCategory === item.id && <Check size={12} className="text-white" />}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* 2. Sort By */}
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-bold uppercase text-gray-400 tracking-wider">
+                    Sort By
+                  </label>
+                  <div className="relative">
+                    <select
+                      value={sortBy}
+                      onChange={(e) => setSortBy(e.target.value)}
+                      className="w-full bg-stone-50 border border-stone-200 text-xs rounded-lg px-2.5 py-1.5 text-slate-800 focus:outline-none focus:border-[#1D3B2E] cursor-pointer appearance-none pr-8 font-semibold"
+                    >
+                      <option value="newest">What's New / Recommended</option>
+                      <option value="price-low">Price: Low to High</option>
+                      <option value="price-high">Price: High to Low</option>
+                      <option value="age-low">Age: Youngest First</option>
+                      <option value="age-high">Age: Senior First</option>
+                    </select>
+                    <ChevronDown size={13} className="absolute right-2.5 top-2.5 text-gray-400 pointer-events-none" />
+                  </div>
+                </div>
+
+                {/* 3. Gender */}
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-bold uppercase text-gray-400 tracking-wider">
+                    Gender
+                  </label>
+                  <div className="grid grid-cols-3 gap-1">
+                    {[
+                      { id: 'Any', label: 'All' },
+                      { id: 'Male', label: 'Male ♂' },
+                      { id: 'Female', label: 'Female ♀' }
+                    ].map((g) => (
+                      <button
+                        key={g.id}
+                        type="button"
+                        onClick={() => setSelectedGender(g.id)}
+                        className={`text-[11px] font-semibold px-2 py-1 rounded-md border transition cursor-pointer text-center ${
+                          selectedGender === g.id
+                            ? 'bg-[#1D3B2E] text-white border-[#1D3B2E]'
+                            : 'bg-stone-50 text-gray-600 border-stone-200 hover:border-gray-400'
+                        }`}
+                      >
+                        {g.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* 4. Puppy Quality / Bloodline */}
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-bold uppercase text-gray-400 tracking-wider">
+                    Puppy Quality & Pedigree
+                  </label>
+                  <div className="grid grid-cols-2 gap-1">
+                    {[
+                      { id: 'All', label: 'All Qualities' },
+                      { id: 'Pet Quality', label: 'Pet Quality' },
+                      { id: 'KCI Registered', label: 'KCI Registered' },
+                      { id: 'Champion Bloodline', label: 'Champion Blood' }
+                    ].map((q) => (
+                      <button
+                        key={q.id}
+                        type="button"
+                        onClick={() => setSelectedQuality(q.id)}
+                        className={`text-[11px] font-semibold px-2 py-1 rounded-md border transition cursor-pointer text-center truncate ${
+                          selectedQuality === q.id
+                            ? 'bg-[#1D3B2E] text-white border-[#1D3B2E]'
+                            : 'bg-stone-50 text-gray-600 border-stone-200 hover:border-gray-400'
+                        }`}
+                      >
+                        {q.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* 5. Health & Certification Checklist */}
+                <div className="space-y-1.5 pt-2 border-t border-stone-100">
+                  <label className="text-[10px] font-bold uppercase text-gray-400 tracking-wider">
+                    Health Verification
+                  </label>
+                  <div className="space-y-1.5">
+                    <label className="flex items-center gap-2 cursor-pointer select-none">
+                      <input
+                        type="checkbox"
+                        checked={vaccinatedOnly}
+                        onChange={(e) => setVaccinatedOnly(e.target.checked)}
+                        className="accent-[#1D3B2E] rounded cursor-pointer"
                       />
-                      <span>{item.label}</span>
+                      <span className="text-[11px] font-semibold text-gray-700 flex items-center gap-1.5">
+                        <ShieldCheck size={13} className="text-emerald-700" /> Fully Vaccinated
+                      </span>
+                    </label>
+                    <label className="flex items-center gap-2 cursor-pointer select-none">
+                      <input
+                        type="checkbox"
+                        checked={dewormedOnly}
+                        onChange={(e) => setDewormedOnly(e.target.checked)}
+                        className="accent-[#1D3B2E] rounded cursor-pointer"
+                      />
+                      <span className="text-[11px] font-semibold text-gray-700 flex items-center gap-1.5">
+                        <ShieldCheck size={13} className="text-emerald-700" /> Dewormed Up to Date
+                      </span>
+                    </label>
+                    <label className="flex items-center gap-2 cursor-pointer select-none">
+                      <input
+                        type="checkbox"
+                        checked={geneticTestedOnly}
+                        onChange={(e) => setGeneticTestedOnly(e.target.checked)}
+                        className="accent-[#1D3B2E] rounded cursor-pointer"
+                      />
+                      <span className="text-[11px] font-semibold text-gray-700 flex items-center gap-1.5">
+                        <ShieldCheck size={13} className="text-emerald-700" /> Genetic / Dysplasia Free
+                      </span>
+                    </label>
+                  </div>
+                </div>
+
+                {/* 6. State & City Filter */}
+                <div className="space-y-1.5 pt-2 border-t border-stone-100">
+                  <label className="text-[10px] font-bold uppercase text-gray-400 tracking-wider">
+                    Location Filter
+                  </label>
+                  <div className="space-y-2">
+                    <div className="relative">
+                      <select
+                        value={selectedState}
+                        onChange={handleStateChange}
+                        className="w-full bg-stone-50 border border-stone-200 text-xs rounded-lg px-2.5 py-1.5 text-slate-800 focus:outline-none focus:border-[#1D3B2E] cursor-pointer appearance-none pr-8 font-semibold"
+                      >
+                        <option value="All States">All States</option>
+                        {Object.keys(INDIAN_STATES_CITIES).map((st) => (
+                          <option key={st} value={st}>
+                            {st}
+                          </option>
+                        ))}
+                      </select>
+                      <ChevronDown size={13} className="absolute right-2.5 top-2.5 text-gray-400 pointer-events-none" />
                     </div>
-                  </label>
-                ))}
-              </div>
-            </div>
 
-            {/* 2. Sort By */}
-            <div className="pt-2 border-t border-slate-100">
-              <label className="block text-[11px] font-bold text-[#6D28D9] uppercase tracking-wider mb-2">
-                Sort By
-              </label>
-              <div className="space-y-1.5 text-xs">
-                {[
-                  { id: 'newest', label: "What's New" },
-                  { id: 'price-low', label: 'Price Low to High' },
-                  { id: 'price-high', label: 'Price High to Low' },
-                  { id: 'age-low', label: 'Age Low to High' },
-                  { id: 'age-high', label: 'Age High to Low' }
-                ].map((sortItem) => (
-                  <label
-                    key={sortItem.id}
-                    className={`flex items-center gap-2 p-1.5 rounded-lg cursor-pointer transition select-none text-xs ${
-                      sortBy === sortItem.id ? 'text-[#6D28D9] font-bold' : 'text-slate-600 hover:text-slate-900'
-                    }`}
+                    <div className="relative">
+                      <select
+                        value={selectedCity}
+                        onChange={(e) => setSelectedCity(e.target.value)}
+                        className="w-full bg-stone-50 border border-stone-200 text-xs rounded-lg px-2.5 py-1.5 text-slate-800 focus:outline-none focus:border-[#1D3B2E] cursor-pointer appearance-none pr-8 font-semibold"
+                      >
+                        {availableCities.map((c) => (
+                          <option key={c} value={c}>
+                            {c}
+                          </option>
+                        ))}
+                      </select>
+                      <ChevronDown size={13} className="absolute right-2.5 top-2.5 text-gray-400 pointer-events-none" />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Register Pet CTA Button */}
+                <div className="pt-2 border-t border-stone-100">
+                  <button
+                    type="button"
+                    onClick={handleOpenAddPet}
+                    className="w-full py-2.5 btn-footer-green-gold text-white font-extrabold text-xs uppercase tracking-wider rounded-xl transition flex items-center justify-center gap-1.5 cursor-pointer shadow-md active:scale-95"
                   >
-                    <input
-                      type="radio"
-                      name="matingSort"
-                      value={sortItem.id}
-                      checked={sortBy === sortItem.id}
-                      onChange={() => setSortBy(sortItem.id)}
-                      className="text-[#6D28D9] focus:ring-0 cursor-pointer"
-                    />
-                    <span>{sortItem.label}</span>
-                  </label>
-                ))}
+                    <Plus size={14} /> List Pet for Mating
+                  </button>
+                </div>
+
               </div>
             </div>
-
-            {/* 3. Gender */}
-            <div className="pt-2 border-t border-slate-100">
-              <label className="block text-[11px] font-bold text-[#6D28D9] uppercase tracking-wider mb-2">
-                Gender
-              </label>
-              <div className="space-y-1.5 text-xs">
-                {[
-                  { id: 'Male', label: 'Male (Stud)' },
-                  { id: 'Female', label: 'Female (Queen / Dam)' },
-                  { id: 'Any', label: 'Any' }
-                ].map((g) => (
-                  <label
-                    key={g.id}
-                    className={`flex items-center gap-2 p-1.5 rounded-lg cursor-pointer transition select-none text-xs ${
-                      selectedGender === g.id ? 'text-[#6D28D9] font-bold' : 'text-slate-600 hover:text-slate-900'
-                    }`}
-                  >
-                    <input
-                      type="radio"
-                      name="petGender"
-                      value={g.id}
-                      checked={selectedGender === g.id}
-                      onChange={() => setSelectedGender(g.id)}
-                      className="text-[#6D28D9] focus:ring-0 cursor-pointer"
-                    />
-                    <span>{g.label}</span>
-                  </label>
-                ))}
-              </div>
-            </div>
-
-            {/* 4. Puppy Quality / Bloodline */}
-            <div className="pt-2 border-t border-slate-100">
-              <label className="block text-[11px] font-bold text-[#6D28D9] uppercase tracking-wider mb-2">
-                Puppy Quality
-              </label>
-              <div className="space-y-1.5 text-xs">
-                {[
-                  { id: 'All', label: 'All' },
-                  { id: 'Pet Quality', label: 'Pet Quality' },
-                  { id: 'KCI Registered', label: 'KCI Registered' },
-                  { id: 'Champion Bloodline', label: 'Champion Bloodline' }
-                ].map((q) => (
-                  <label
-                    key={q.id}
-                    className={`flex items-center gap-2 p-1.5 rounded-lg cursor-pointer transition select-none text-xs ${
-                      selectedQuality === q.id ? 'text-[#6D28D9] font-bold' : 'text-slate-600 hover:text-slate-900'
-                    }`}
-                  >
-                    <input
-                      type="radio"
-                      name="petQuality"
-                      value={q.id}
-                      checked={selectedQuality === q.id}
-                      onChange={() => setSelectedQuality(q.id)}
-                      className="text-[#6D28D9] focus:ring-0 cursor-pointer"
-                    />
-                    <span>{q.label}</span>
-                  </label>
-                ))}
-              </div>
-            </div>
-
-            {/* 5. Health & Certification Checklist */}
-            <div className="pt-2 border-t border-slate-100">
-              <label className="block text-[11px] font-bold text-[#6D28D9] uppercase tracking-wider mb-2">
-                Health Certification
-              </label>
-              <div className="space-y-2 text-xs">
-                <label className="flex items-center gap-2 cursor-pointer select-none text-slate-700">
-                  <input
-                    type="checkbox"
-                    checked={vaccinatedOnly}
-                    onChange={(e) => setVaccinatedOnly(e.target.checked)}
-                    className="text-[#6D28D9] rounded focus:ring-0 cursor-pointer"
-                  />
-                  <span>Fully Vaccinated</span>
-                </label>
-                <label className="flex items-center gap-2 cursor-pointer select-none text-slate-700">
-                  <input
-                    type="checkbox"
-                    checked={dewormedOnly}
-                    onChange={(e) => setDewormedOnly(e.target.checked)}
-                    className="text-[#6D28D9] rounded focus:ring-0 cursor-pointer"
-                  />
-                  <span>Dewormed Up to Date</span>
-                </label>
-                <label className="flex items-center gap-2 cursor-pointer select-none text-slate-700">
-                  <input
-                    type="checkbox"
-                    checked={geneticTestedOnly}
-                    onChange={(e) => setGeneticTestedOnly(e.target.checked)}
-                    className="text-[#6D28D9] rounded focus:ring-0 cursor-pointer"
-                  />
-                  <span>Genetic Tested / Dysplasia Free</span>
-                </label>
-              </div>
-            </div>
-
-            {/* 6. State & City Filter */}
-            <div className="pt-2 border-t border-slate-100 space-y-2.5">
-              <label className="block text-[11px] font-bold text-[#6D28D9] uppercase tracking-wider">
-                Location (State & City)
-              </label>
-              <select
-                value={selectedState}
-                onChange={handleStateChange}
-                className="w-full p-2 bg-slate-50 border border-slate-200 text-xs font-semibold rounded-xl focus:outline-none focus:border-[#6D28D9] cursor-pointer"
-              >
-                <option value="All States">All States</option>
-                {Object.keys(INDIAN_STATES_CITIES).map((st) => (
-                  <option key={st} value={st}>
-                    {st}
-                  </option>
-                ))}
-              </select>
-
-              <select
-                value={selectedCity}
-                onChange={(e) => setSelectedCity(e.target.value)}
-                className="w-full p-2 bg-slate-50 border border-slate-200 text-xs font-semibold rounded-xl focus:outline-none focus:border-[#6D28D9] cursor-pointer"
-              >
-                {availableCities.map((c) => (
-                  <option key={c} value={c}>
-                    {c}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {/* Register Pet CTA Button */}
-            <div className="pt-2 border-t border-slate-100">
-              <button
-                type="button"
-                onClick={handleOpenAddPet}
-                className="w-full py-2.5 bg-gradient-to-r from-[#6D28D9] to-[#7C3AED] hover:from-[#5B21B6] hover:to-[#6D28D9] text-white font-bold text-xs uppercase tracking-wider rounded-xl transition flex items-center justify-center gap-1.5 cursor-pointer shadow-md"
-              >
-                <Plus size={14} /> List Pet for Mating
-              </button>
-            </div>
-
           </aside>
 
           {/* ================= RIGHT MAIN: LIST OF MATING PETS ================= */}
@@ -976,7 +968,7 @@ const BreedingDirectory = () => {
             {/* Results Header */}
             <div className="bg-white border border-slate-200 p-4 rounded-2xl shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div>
-                <h2 className="font-serif font-bold text-lg text-[#2E1A47]">
+                <h2 className="font-serif font-bold text-lg text-[#1D3B2E]">
                   Available Mating Pets ({filteredPets.length})
                 </h2>
                 <p className="text-xs text-slate-500 mt-0.5">
@@ -985,7 +977,7 @@ const BreedingDirectory = () => {
               </div>
 
               <div className="flex items-center gap-2">
-                <span className="text-[11px] font-bold text-[#6D28D9] bg-purple-50 px-2.5 py-1 rounded-lg border border-purple-200 flex items-center gap-1">
+                <span className="text-[11px] font-bold text-[#1D3B2E] bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-200 flex items-center gap-1">
                   <ShieldCheck size={13} /> KCI & Pedigree Verified
                 </span>
               </div>
@@ -993,36 +985,36 @@ const BreedingDirectory = () => {
 
             {/* Active Filters Display */}
             {(selectedCategory !== 'Dogs' || selectedBreed !== 'All Breeds' || selectedGender !== 'Any' || selectedQuality !== 'All' || selectedState !== 'All States' || searchKeyword) && (
-              <div className="flex flex-wrap items-center gap-1.5 p-3 bg-purple-50/70 border border-purple-200 rounded-xl">
-                <span className="text-[11px] font-bold text-purple-900 uppercase tracking-wider mr-1">
+              <div className="flex flex-wrap items-center gap-1.5 p-3 bg-emerald-50/60 border border-emerald-200 rounded-xl">
+                <span className="text-[11px] font-bold text-emerald-950 uppercase tracking-wider mr-1">
                   Active Filters:
                 </span>
                 {selectedCategory !== 'All' && (
-                  <span className="inline-flex items-center gap-1 bg-white text-purple-900 border border-purple-300 text-[11px] px-2 py-0.5 rounded">
+                  <span className="inline-flex items-center gap-1 bg-white text-emerald-900 border border-emerald-300 text-[11px] px-2 py-0.5 rounded">
                     Category: {selectedCategory}
                     <X size={12} className="cursor-pointer hover:text-red-500" onClick={() => setSelectedCategory('All')} />
                   </span>
                 )}
                 {selectedBreed !== 'All Breeds' && (
-                  <span className="inline-flex items-center gap-1 bg-white text-purple-900 border border-purple-300 text-[11px] px-2 py-0.5 rounded">
+                  <span className="inline-flex items-center gap-1 bg-white text-emerald-900 border border-emerald-300 text-[11px] px-2 py-0.5 rounded">
                     Breed: {selectedBreed}
                     <X size={12} className="cursor-pointer hover:text-red-500" onClick={() => setSelectedBreed('All Breeds')} />
                   </span>
                 )}
                 {selectedGender !== 'Any' && (
-                  <span className="inline-flex items-center gap-1 bg-white text-purple-900 border border-purple-300 text-[11px] px-2 py-0.5 rounded">
+                  <span className="inline-flex items-center gap-1 bg-white text-emerald-900 border border-emerald-300 text-[11px] px-2 py-0.5 rounded">
                     Gender: {selectedGender}
                     <X size={12} className="cursor-pointer hover:text-red-500" onClick={() => setSelectedGender('Any')} />
                   </span>
                 )}
                 {selectedQuality !== 'All' && (
-                  <span className="inline-flex items-center gap-1 bg-white text-purple-900 border border-purple-300 text-[11px] px-2 py-0.5 rounded">
+                  <span className="inline-flex items-center gap-1 bg-white text-emerald-900 border border-emerald-300 text-[11px] px-2 py-0.5 rounded">
                     Quality: {selectedQuality}
                     <X size={12} className="cursor-pointer hover:text-red-500" onClick={() => setSelectedQuality('All')} />
                   </span>
                 )}
                 {selectedState !== 'All States' && (
-                  <span className="inline-flex items-center gap-1 bg-white text-purple-900 border border-purple-300 text-[11px] px-2 py-0.5 rounded">
+                  <span className="inline-flex items-center gap-1 bg-white text-emerald-900 border border-emerald-300 text-[11px] px-2 py-0.5 rounded">
                     State: {selectedState}
                     <X size={12} className="cursor-pointer hover:text-red-500" onClick={() => setSelectedState('All States')} />
                   </span>
@@ -1040,17 +1032,17 @@ const BreedingDirectory = () => {
             {/* Empty State */}
             {filteredPets.length === 0 ? (
               <div className="bg-white border border-slate-200 rounded-3xl p-4 lg:p-12 text-center space-y-4">
-                <div className="w-16 h-16 bg-purple-50 border border-purple-200 rounded-full flex items-center justify-center mx-auto text-[#6D28D9]">
+                <div className="w-16 h-16 bg-emerald-50 border border-emerald-200 rounded-full flex items-center justify-center mx-auto text-[#1D3B2E]">
                   <Heart size={28} />
                 </div>
-                <h3 className="font-serif font-bold text-xl text-[#2E1A47]">No Matching Mating Profiles Found</h3>
+                <h3 className="font-serif font-bold text-xl text-[#1D3B2E]">No Matching Mating Profiles Found</h3>
                 <p className="text-xs text-slate-500 max-w-md mx-auto">
                   Try adjusting your filters, searching for a different breed, or clearing location constraints to discover more verified studs and queens.
                 </p>
                 <button
                   type="button"
                   onClick={handleResetFilters}
-                  className="px-6 py-2.5 bg-[#6D28D9] text-white text-xs font-bold uppercase tracking-wider rounded-xl hover:bg-[#5B21B6] transition cursor-pointer"
+                  className="px-6 py-2.5 bg-[#1D3B2E] text-white text-xs font-bold uppercase tracking-wider rounded-xl hover:bg-[#152e24] transition cursor-pointer shadow-md"
                 >
                   Reset All Filters
                 </button>
@@ -1080,7 +1072,7 @@ const BreedingDirectory = () => {
                               ? 'bg-amber-500 text-white'
                               : pet.quality === 'KCI Registered'
                               ? 'bg-emerald-600 text-white'
-                              : 'bg-[#6D28D9] text-white'
+                              : 'bg-[#1D3B2E] text-white'
                           }`}>
                             {pet.quality === 'Champion Bloodline' && <Star size={10} className="fill-white" />}
                             {pet.quality === 'KCI Registered' && <ShieldCheck size={11} />}
@@ -1093,7 +1085,7 @@ const BreedingDirectory = () => {
                           <span className="text-[11px] font-extrabold tracking-wide drop-shadow-md">
                             {pet.priceDisplay}
                           </span>
-                          <span className="text-[10px] font-medium text-purple-200">
+                          <span className="text-[10px] font-medium text-emerald-200">
                             {pet.city}
                           </span>
                         </div>
@@ -1105,7 +1097,7 @@ const BreedingDirectory = () => {
                         {/* Title: Hi! My name is: Hiroki */}
                         <div>
                           <div className="text-xs font-semibold text-slate-800">
-                            Hi! My name is: <strong className="text-[#6D28D9] font-serif text-sm">{pet.name}</strong>
+                            Hi! My name is: <strong className="text-[#1D3B2E] font-serif text-sm">{pet.name}</strong>
                           </div>
                         </div>
 
@@ -1134,7 +1126,7 @@ const BreedingDirectory = () => {
                           {pet.temperament.slice(0, 3).map((tag, idx) => (
                             <span
                               key={idx}
-                              className="px-2 py-0.5 bg-purple-50 text-purple-900 border border-purple-200 rounded-md text-[10px] font-medium"
+                              className="px-2 py-0.5 bg-stone-100 text-slate-700 border border-stone-200 rounded-md text-[10px] font-medium"
                             >
                               {tag}
                             </span>
@@ -1153,7 +1145,7 @@ const BreedingDirectory = () => {
                           <button
                             type="button"
                             onClick={() => handleOpenProposal(pet)}
-                            className="text-[#6D28D9] font-bold hover:underline flex items-center gap-1 cursor-pointer"
+                            className="text-[#1D3B2E] font-bold hover:underline flex items-center gap-1 cursor-pointer"
                           >
                             <Phone size={12} /> {pet.name} Parent Contact
                           </button>
@@ -1178,7 +1170,7 @@ const BreedingDirectory = () => {
                       <button
                         type="button"
                         onClick={() => handleOpenDetails(pet)}
-                        className="flex-1 py-2 px-2 bg-[#7C3AED] hover:bg-[#6D28D9] text-white font-bold text-[11px] uppercase tracking-wider rounded-xl transition cursor-pointer text-center truncate shadow-sm"
+                        className="flex-1 py-2 px-2 bg-[#1D3B2E] hover:bg-[#152e24] text-white font-bold text-[11px] uppercase tracking-wider rounded-xl transition cursor-pointer text-center truncate shadow-sm"
                       >
                         Know More About {pet.name}
                       </button>
@@ -1199,9 +1191,9 @@ const BreedingDirectory = () => {
           <div className="relative bg-white text-slate-900 w-full max-w-2xl sm:max-w-3xl my-auto shadow-2xl border border-slate-200 rounded-3xl overflow-hidden flex flex-col min-h-0 max-h-[88vh]">
             
             {/* Modal Header with Branding */}
-            <div className="bg-gradient-to-r from-[#2E1A47] to-[#4C1D95] text-white px-5 sm:px-6 py-4 flex items-center justify-between shrink-0">
+            <div className="bg-gradient-to-r from-[#1D3B2E] to-[#2E5947] text-white px-5 sm:px-6 py-4 flex items-center justify-between shrink-0">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-purple-500/20 border border-purple-400/30 text-white flex items-center justify-center font-bold text-lg shadow">
+                <div className="w-10 h-10 rounded-xl bg-white/10 border border-white/20 text-white flex items-center justify-center font-bold text-lg shadow">
                   🐾
                 </div>
                 <div>
@@ -1213,7 +1205,7 @@ const BreedingDirectory = () => {
                       {selectedPetForDetails.quality}
                     </span>
                   </div>
-                  <p className="text-[11px] text-purple-200">
+                  <p className="text-[11px] text-emerald-100/90">
                     {selectedPetForDetails.breed} • {selectedPetForDetails.gender} • {selectedPetForDetails.age} • {selectedPetForDetails.city}, {selectedPetForDetails.state}
                   </p>
                 </div>
@@ -1232,7 +1224,7 @@ const BreedingDirectory = () => {
             <div className="p-5 sm:p-6 overflow-y-auto flex-1 min-h-0 space-y-5 text-xs custom-scrollbar">
               
               {/* Pet Photo & Summary Banner */}
-              <div className="grid grid-cols-1 sm:grid-cols-12 gap-4 items-center bg-purple-50/50 p-4 rounded-2xl border border-purple-100">
+              <div className="grid grid-cols-1 sm:grid-cols-12 gap-4 items-center bg-stone-50 p-4 rounded-2xl border border-stone-200">
                 <div className="sm:col-span-4 aspect-[4/3] rounded-xl overflow-hidden shadow-sm">
                   <img
                     src={selectedPetForDetails.image}
@@ -1243,8 +1235,8 @@ const BreedingDirectory = () => {
                 <div className="sm:col-span-8 space-y-2">
                   <div className="flex justify-between items-start">
                     <div>
-                      <span className="text-[10px] uppercase font-bold text-purple-700 tracking-wider">Stud / Mating Fee</span>
-                      <div className="text-xl font-extrabold text-[#2E1A47] font-serif">
+                      <span className="text-[10px] uppercase font-bold text-emerald-800 tracking-wider">Stud / Mating Fee</span>
+                      <div className="text-xl font-extrabold text-[#1D3B2E] font-serif">
                         {selectedPetForDetails.priceDisplay}
                       </div>
                     </div>
@@ -1261,7 +1253,7 @@ const BreedingDirectory = () => {
 
                   <div className="flex flex-wrap gap-1.5 pt-1">
                     {selectedPetForDetails.temperament.map((t, idx) => (
-                      <span key={idx} className="bg-white text-purple-900 border border-purple-200 px-2 py-0.5 rounded text-[10px] font-medium">
+                      <span key={idx} className="bg-white text-slate-700 border border-stone-200 px-2 py-0.5 rounded text-[10px] font-medium">
                         ✓ {t}
                       </span>
                     ))}
@@ -1301,11 +1293,11 @@ const BreedingDirectory = () => {
                 </div>
 
                 {/* Terms */}
-                <div className="p-3.5 bg-purple-50/60 border border-purple-200 rounded-2xl space-y-2">
-                  <h4 className="font-bold text-purple-950 uppercase tracking-wider text-[11px] flex items-center gap-1.5">
-                    <Info size={14} className="text-purple-700" /> Mating Terms & Supervised Care
+                <div className="p-3.5 bg-stone-50 border border-stone-200 rounded-2xl space-y-2">
+                  <h4 className="font-bold text-slate-900 uppercase tracking-wider text-[11px] flex items-center gap-1.5">
+                    <Info size={14} className="text-[#1D3B2E]" /> Mating Terms & Supervised Care
                   </h4>
-                  <p className="text-[11px] text-purple-900 leading-relaxed">
+                  <p className="text-[11px] text-slate-700 leading-relaxed">
                     {selectedPetForDetails.matingTerms}
                   </p>
                 </div>
@@ -1353,7 +1345,7 @@ const BreedingDirectory = () => {
                   setShowDetailsModal(false);
                   handleOpenProposal(selectedPetForDetails);
                 }}
-                className="px-5 py-2.5 bg-[#6D28D9] hover:bg-[#5B21B6] text-white font-bold text-xs uppercase tracking-wider rounded-xl transition flex items-center gap-1.5 cursor-pointer shadow-md"
+                className="px-5 py-2.5 bg-[#1D3B2E] hover:bg-[#152e24] text-white font-bold text-xs uppercase tracking-wider rounded-xl transition flex items-center gap-1.5 cursor-pointer shadow-md"
               >
                 <Heart size={14} className="fill-white" /> Send Mating Proposal
               </button>
@@ -1368,12 +1360,12 @@ const BreedingDirectory = () => {
         <div className="fixed inset-0 z-[100] overflow-y-auto bg-black/75 backdrop-blur-xs p-2 sm:p-4 flex flex-col items-center justify-start sm:justify-center animate-in fade-in duration-200">
           <div className="relative bg-white text-slate-900 w-full max-w-lg my-auto shadow-2xl border border-slate-200 rounded-3xl overflow-hidden flex flex-col min-h-0 max-h-[88vh]">
             
-            <div className="bg-gradient-to-r from-[#2E1A47] to-[#6D28D9] text-white px-5 py-4 flex items-center justify-between shrink-0">
+            <div className="bg-gradient-to-r from-[#1D3B2E] to-[#2E5947] text-white px-5 py-4 flex items-center justify-between shrink-0">
               <div>
                 <h3 className="font-serif font-bold text-base text-white">
                   Send Mating Proposal for {selectedPetForDetails.name}
                 </h3>
-                <p className="text-[11px] text-purple-200">
+                <p className="text-[11px] text-emerald-100/90">
                   Guardian: {selectedPetForDetails.parentName} ({selectedPetForDetails.city})
                 </p>
               </div>
@@ -1396,7 +1388,7 @@ const BreedingDirectory = () => {
                   required
                   value={proposalOwnerName}
                   onChange={(e) => setProposalOwnerName(e.target.value)}
-                  className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-[#6D28D9]"
+                  className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-[#1D3B2E]"
                   placeholder="e.g. Ramesh Kumar"
                 />
               </div>
@@ -1410,7 +1402,7 @@ const BreedingDirectory = () => {
                   required
                   value={proposalOwnerPhone}
                   onChange={(e) => setProposalOwnerPhone(e.target.value)}
-                  className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-[#6D28D9]"
+                  className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-[#1D3B2E]"
                   placeholder="e.g. +91 98765 43210"
                 />
               </div>
@@ -1425,7 +1417,7 @@ const BreedingDirectory = () => {
                     required
                     value={proposalPetName}
                     onChange={(e) => setProposalPetName(e.target.value)}
-                    className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-[#6D28D9]"
+                    className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-[#1D3B2E]"
                     placeholder="e.g. Maya"
                   />
                 </div>
@@ -1438,7 +1430,7 @@ const BreedingDirectory = () => {
                     value={proposalPetBreed}
                     onChange={setProposalPetBreed}
                     placeholder={`Select ${selectedPetForDetails?.petCategory || 'Pet'} Breed`}
-                    className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-[#6D28D9] text-xs"
+                    className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-[#1D3B2E] text-xs"
                     allowedCategories={['dogs', 'cats', 'birds']}
                   />
                 </div>
@@ -1452,7 +1444,7 @@ const BreedingDirectory = () => {
                   rows={3}
                   value={proposalMessage}
                   onChange={(e) => setProposalMessage(e.target.value)}
-                  className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-[#6D28D9]"
+                  className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-[#1D3B2E]"
                   placeholder="Describe your pet's heat cycle, vaccination status, or mating terms preference..."
                 />
               </div>
@@ -1460,7 +1452,7 @@ const BreedingDirectory = () => {
               <div className="pt-2">
                 <button
                   type="submit"
-                  className="w-full py-3 bg-[#6D28D9] hover:bg-[#5B21B6] text-white font-bold text-xs uppercase tracking-wider rounded-xl transition cursor-pointer shadow-md flex items-center justify-center gap-1.5"
+                  className="w-full py-3 bg-[#1D3B2E] hover:bg-[#152e24] text-white font-bold text-xs uppercase tracking-wider rounded-xl transition cursor-pointer shadow-md flex items-center justify-center gap-1.5"
                 >
                   <Send size={14} /> Send Mating Proposal
                 </button>
@@ -1476,12 +1468,12 @@ const BreedingDirectory = () => {
         <div className="fixed inset-0 z-[100] overflow-y-auto bg-black/75 backdrop-blur-xs p-2 sm:p-4 flex flex-col items-center justify-start sm:justify-center animate-in fade-in duration-200">
           <div className="relative bg-white text-slate-900 w-full max-w-2xl my-auto shadow-2xl border border-slate-200 rounded-3xl overflow-hidden flex flex-col min-h-0 max-h-[88vh]">
             
-            <div className="bg-gradient-to-r from-[#2E1A47] to-[#6D28D9] text-white px-5 py-4 flex items-center justify-between shrink-0">
+            <div className="bg-gradient-to-r from-[#1D3B2E] to-[#2E5947] text-white px-5 py-4 flex items-center justify-between shrink-0">
               <div>
                 <h3 className="font-serif font-bold text-base text-white">
                   Register Your Pet for Mating & Breeding
                 </h3>
-                <p className="text-[11px] text-purple-200">
+                <p className="text-[11px] text-emerald-100/90">
                   List your stud or queen in India's verified pedigree matchmaking registry
                 </p>
               </div>
@@ -1507,7 +1499,7 @@ const BreedingDirectory = () => {
                     required
                     value={newPetName}
                     onChange={(e) => setNewPetName(e.target.value)}
-                    className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-[#6D28D9]"
+                    className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-[#1D3B2E]"
                     placeholder="e.g. Bruno"
                   />
                 </div>
@@ -1522,7 +1514,7 @@ const BreedingDirectory = () => {
                       setNewPetCategory(e.target.value);
                       setNewBreed('');
                     }}
-                    className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-[#6D28D9]"
+                    className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-[#1D3B2E]"
                   >
                     <option value="Dogs">Dogs</option>
                     <option value="Cats">Cats</option>
@@ -1540,7 +1532,7 @@ const BreedingDirectory = () => {
                     onChange={setNewBreed}
                     required
                     placeholder="Select Breed *"
-                    className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-[#6D28D9] text-xs"
+                    className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-[#1D3B2E] text-xs"
                     allowedCategories={['dogs', 'cats', 'birds']}
                   />
                 </div>
@@ -1555,7 +1547,7 @@ const BreedingDirectory = () => {
                   <select
                     value={newGender}
                     onChange={(e) => setNewGender(e.target.value)}
-                    className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-[#6D28D9]"
+                    className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-[#1D3B2E]"
                   >
                     <option value="Male">Male (Stud)</option>
                     <option value="Female">Female (Dam / Queen)</option>
@@ -1571,7 +1563,7 @@ const BreedingDirectory = () => {
                     required
                     value={newAge}
                     onChange={(e) => setNewAge(e.target.value)}
-                    className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-[#6D28D9]"
+                    className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-[#1D3B2E]"
                     placeholder="e.g. 2.5 Years"
                   />
                 </div>
@@ -1583,7 +1575,7 @@ const BreedingDirectory = () => {
                   <select
                     value={newQuality}
                     onChange={(e) => setNewQuality(e.target.value)}
-                    className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-[#6D28D9]"
+                    className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-[#1D3B2E]"
                   >
                     <option value="Pet Quality">Pet Quality</option>
                     <option value="KCI Registered">KCI Registered</option>
@@ -1602,7 +1594,7 @@ const BreedingDirectory = () => {
                     type="number"
                     value={newPrice}
                     onChange={(e) => setNewPrice(e.target.value)}
-                    className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-[#6D28D9]"
+                    className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-[#1D3B2E]"
                     placeholder="e.g. 8000"
                   />
                 </div>
@@ -1613,7 +1605,7 @@ const BreedingDirectory = () => {
                       type="checkbox"
                       checked={newIsPuppyShare}
                       onChange={(e) => setNewIsPuppyShare(e.target.checked)}
-                      className="text-[#6D28D9] rounded focus:ring-0 cursor-pointer"
+                      className="text-[#1D3B2E] rounded focus:ring-0 cursor-pointer"
                     />
                     <span>Open to Puppy / Kitten Share (Pick of Litter)</span>
                   </label>
@@ -1631,7 +1623,7 @@ const BreedingDirectory = () => {
                     required
                     value={newState}
                     onChange={(e) => setNewState(e.target.value)}
-                    className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-[#6D28D9]"
+                    className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-[#1D3B2E]"
                     placeholder="e.g. Karnataka"
                   />
                 </div>
@@ -1645,7 +1637,7 @@ const BreedingDirectory = () => {
                     required
                     value={newCity}
                     onChange={(e) => setNewCity(e.target.value)}
-                    className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-[#6D28D9]"
+                    className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-[#1D3B2E]"
                     placeholder="e.g. Bangalore"
                   />
                 </div>
@@ -1659,7 +1651,7 @@ const BreedingDirectory = () => {
                     required
                     value={newParentPhone}
                     onChange={(e) => setNewParentPhone(e.target.value)}
-                    className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-[#6D28D9]"
+                    className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-[#1D3B2E]"
                     placeholder="e.g. +91 98765 43210"
                   />
                 </div>
@@ -1675,7 +1667,7 @@ const BreedingDirectory = () => {
                     type="url"
                     value={newImageUrl}
                     onChange={(e) => setNewImageUrl(e.target.value)}
-                    className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-[#6D28D9]"
+                    className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-[#1D3B2E]"
                     placeholder="https://..."
                   />
                 </div>
@@ -1688,7 +1680,7 @@ const BreedingDirectory = () => {
                     type="text"
                     value={newKciNumber}
                     onChange={(e) => setNewKciNumber(e.target.value)}
-                    className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-[#6D28D9]"
+                    className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-[#1D3B2E]"
                     placeholder="e.g. KCI/2024/P-12345"
                   />
                 </div>
@@ -1703,7 +1695,7 @@ const BreedingDirectory = () => {
                   type="text"
                   value={newMateRequirement}
                   onChange={(e) => setNewMateRequirement(e.target.value)}
-                  className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-[#6D28D9]"
+                  className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-[#1D3B2E]"
                   placeholder={`e.g. ${newPetName || 'Pet'} Need a Female ${newBreed || 'Pug'}`}
                 />
               </div>
@@ -1716,7 +1708,7 @@ const BreedingDirectory = () => {
                   rows={2}
                   value={newDescription}
                   onChange={(e) => setNewDescription(e.target.value)}
-                  className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-[#6D28D9]"
+                  className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-[#1D3B2E]"
                   placeholder="Describe your pet's physical features, temperament, champion parent lines..."
                 />
               </div>
@@ -1724,7 +1716,7 @@ const BreedingDirectory = () => {
               <div className="pt-2">
                 <button
                   type="submit"
-                  className="w-full py-3 bg-[#6D28D9] hover:bg-[#5B21B6] text-white font-bold text-xs uppercase tracking-wider rounded-xl transition cursor-pointer shadow-md flex items-center justify-center gap-1.5"
+                  className="w-full py-3 bg-[#1D3B2E] hover:bg-[#152e24] text-white font-bold text-xs uppercase tracking-wider rounded-xl transition cursor-pointer shadow-md flex items-center justify-center gap-1.5"
                 >
                   <Sparkles size={14} /> Submit Mating Profile
                 </button>

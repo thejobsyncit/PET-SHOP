@@ -326,3 +326,87 @@
   -ms-overflow-style: none !important;
   scrollbar-width: none !important;
 }
+
+/* Custom Gold Gradient Palette: 135deg, #d4af37 0%, #fef08a 50%, #b89228 100% */
+.bg-gold-gradient {
+  background: linear-gradient(135deg, #d4af37 0%, #fef08a 50%, #b89228 100%) !important;
+}
+
+.text-gold-gradient {
+  background: linear-gradient(135deg, #d4af37 0%, #b89228 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.btn-adoption-submit,
+.btn-footer-green-gold {
+  background-color: #1D3B2E !important;
+  color: #ffffff !important;
+  transition: all 0.3s ease;
+}
+
+.btn-adoption-submit:hover,
+.btn-footer-green-gold:hover {
+  background: linear-gradient(135deg, #d4af37 0%, #fef08a 50%, #b89228 100%) !important;
+  color: #1a1a1a !important;
+  box-shadow: 0 10px 25px -5px rgba(212, 175, 55, 0.4);
+}
+
+.btn-book-relocation {
+  background-color: #0F2E23 !important;
+  color: #D4AF37 !important;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.btn-book-relocation:hover {
+  background: linear-gradient(135deg, #d4af37 0%, #fef08a 50%, #b89228 100%) !important;
+  color: #0f172a !important;
+  box-shadow: 0 10px 20px -3px rgba(212, 175, 55, 0.45) !important;
+  transform: translateY(-1px);
+}
+
+/* Transportation Mode Card with Gold Gradient Hover */
+.card-transport-mode {
+  transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.card-transport-mode:hover {
+  background: linear-gradient(135deg, #d4af37 0%, #fef08a 50%, #b89228 100%) !important;
+  border-color: #b89228 !important;
+  box-shadow: 0 20px 25px -5px rgba(212, 175, 55, 0.4), 0 8px 10px -6px rgba(212, 175, 55, 0.2) !important;
+}
+
+/* 3D Flip Benefit Card Styles */
+.flip-card {
+  perspective: 1000px;
+}
+
+.flip-card-inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: 250px;
+  transition: transform 0.6s cubic-bezier(0.4, 0.2, 0.2, 1);
+  transform-style: preserve-3d;
+}
+
+.flip-card:hover .flip-card-inner,
+.flip-card.is-flipped .flip-card-inner {
+  transform: rotateY(180deg);
+}
+
+.flip-card-front,
+.flip-card-back {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  border-radius: 1.5rem;
+}
+
+.flip-card-back {
+  transform: rotateY(180deg);
+}
+

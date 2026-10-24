@@ -19,10 +19,14 @@ export const validate = (schema) => (req, res, next) => {
   }
 };
 
+import { validateEmailFormat } from '../utils/emailValidator.js';
+
 // Schema for registration
 export const registerSchema = z.object({
   name: z.string().trim().min(2, 'Name must be at least 2 characters').max(100),
-  email: z.string().trim().email('Invalid email address').max(100),
+  email: z.string().trim().refine(val => validateEmailFormat(val).isValid, {
+    message: 'Invalid email format or unsupported domain extension (e.g. .con is invalid)'
+  }).max(100),
   password: z.string().min(8, 'Password must be at least 8 characters')
     .regex(/[A-Z]/, 'Password must contain at least one uppercase letter')
     .regex(/[a-z]/, 'Password must contain at least one lowercase letter')
@@ -40,12 +44,21 @@ export const loginSchema = z.object({
   email: z.string().optional(),
   identifier: z.string().optional(),
   mobile: z.string().optional(),
-  password: z.string().optional().default(''),
-  isOtpVerified: z.boolean().optional()
+  password: z.string().min(1, 'Password is required'),
+  isOtpVerified: z.boolean().optional(),
+  role: z.string().optional()
 }).passthrough().refine(data => Boolean(data.email || data.identifier || data.mobile), {
   message: 'Email, mobile, or identifier is required',
   path: ['email']
-}).refine(data => Boolean(data.isOtpVerified || (data.password && data.password.trim().length > 0)), {
-  message: 'Password is required when OTP is not verified',
-  path: ['password']
+}).refine(data => {
+  const candidate = (data.email || data.identifier || '').trim();
+  if (candidate.includes('@')) {
+    const res = validateEmailFormat(candidate);
+    return res.isValid;
+  }
+  return true;
+}, {
+  message: 'Invalid email address format or domain extension (e.g. .con is rejected)',
+  path: ['email']
 });
+

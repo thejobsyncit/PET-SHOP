@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useSelector } from 'react-redux';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useNavigate } from 'react-router-dom';
+import toast from 'react-hot-toast';
 import PetSellerDashboard from './providers/PetSellerDashboard.jsx';
 import PetAdoptionDashboard from './providers/PetAdoptionDashboard.jsx';
 import VetProviderDashboard from './providers/VetProviderDashboard.jsx';
@@ -12,23 +13,75 @@ import TrainingProviderDashboard from './providers/TrainingProviderDashboard.jsx
 import InsuranceProviderDashboard from './providers/InsuranceProviderDashboard.jsx';
 import BreedingProviderDashboard from './providers/BreedingProviderDashboard.jsx';
 
+// Helper to normalize and map service category names to canonical dashboard keys
+const getCanonicalServiceKey = (categoryName = '') => {
+  const cat = (categoryName || '').toLowerCase().trim();
+  if (cat.includes('vet')) return 'vet';
+  if (cat.includes('adopt') || cat.includes('shelter')) return 'adoption';
+  if (cat.includes('groom') || cat.includes('spa')) return 'grooming';
+  if (cat.includes('hostel') || cat.includes('board') || cat.includes('resort')) return 'hostel';
+  if (cat.includes('walk') || cat.includes('fitness')) return 'walking';
+  if (cat.includes('transport') || cat.includes('transit') || cat.includes('relocation')) return 'transport';
+  if (cat.includes('train') || cat.includes('behavior')) return 'training';
+  if (cat.includes('insur')) return 'insurance';
+  if (cat.includes('breed') || cat.includes('mating')) return 'breeding';
+  return 'seller';
+};
+
 /**
  * ServiceProviderDashboard
- * Dynamically routes to the correct dashboard based on the provider's service category or query param.
+ * Enforces strict role-based and service-specific authorization.
+ * Only authenticated Service Providers can access dashboards, and each provider
+ * is restricted to their registered, database-validated service category.
  */
 const ServiceProviderDashboard = (props) => {
-  const { user } = useSelector(state => state.auth);
+  const { user, isAuthenticated } = useSelector(state => state.auth);
   const [searchParams] = useSearchParams();
-  const typeParam = (searchParams.get('type') || searchParams.get('category') || '').toLowerCase();
-  const userCat = (user?.serviceCategory || '').toLowerCase();
+  const navigate = useNavigate();
 
-  // Robust safe defaults for provider props
+  const typeParam = (searchParams.get('type') || searchParams.get('category') || '').toLowerCase().trim();
+  const isAdmin = user?.role === 'ADMIN' || user?.role === 'SUPERADMIN';
+  const registeredCategory = user?.serviceCategory || user?.service_category || 'Pet Seller';
+  const authorizedKey = getCanonicalServiceKey(registeredCategory);
+
+  // 1. Role-Based Access Control: Authentication & Provider Role Verification
+  useEffect(() => {
+    if (!isAuthenticated) {
+      toast.error('Please log in with your Service Provider account to access the dashboard.');
+      navigate('/login?role=provider', { replace: true });
+      return;
+    }
+
+    if (user?.role === 'CUSTOMER') {
+      toast.error('Access Denied: Pet Parent accounts cannot access Service Provider dashboards.');
+      navigate('/account', { replace: true });
+      return;
+    }
+
+    // 2. Service-Specific Dashboard Authorization Guard
+    if (!isAdmin && typeParam) {
+      const requestedKey = getCanonicalServiceKey(typeParam);
+      if (requestedKey !== authorizedKey) {
+        toast.error(`Access Restricted: You are authorized for ${registeredCategory}. You cannot access other service dashboards.`);
+      }
+    }
+  }, [isAuthenticated, user?.role, typeParam, authorizedKey, registeredCategory, isAdmin, navigate]);
+
+  if (!isAuthenticated || user?.role === 'CUSTOMER') {
+    return null;
+  }
+
+  // Determine active service dashboard:
+  // Admins may view any dashboard via query param; Providers are strictly locked to their authorized service
+  const activeKey = (isAdmin && typeParam) ? getCanonicalServiceKey(typeParam) : authorizedKey;
+
+  // Safe defaults for provider props
   const defaultProvider = {
     id: user?.id || user?._id || 'provider-default',
     name: user?.businessName || user?.name || 'Service Partner',
     email: user?.email || '',
     phone: user?.mobile || '+91 98765 43210',
-    serviceCategory: user?.serviceCategory || 'Pet Seller',
+    serviceCategory: registeredCategory,
     rating: 4.9,
     reviewsCount: 128,
     avatar: user?.avatar || user?.profilePicture || ''
@@ -41,48 +94,48 @@ const ServiceProviderDashboard = (props) => {
     ...props
   };
 
-  // 1. Pet Adoption
-  if (typeParam === 'adoption' || typeParam === 'shelter' || userCat.includes('adoption') || userCat.includes('shelter')) {
+  // 1. Consult a Vet
+  if (activeKey === 'vet') {
+    return <VetProviderDashboard {...safeProps} />;
+  }
+
+  // 2. Pet Adoption & Shelter
+  if (activeKey === 'adoption') {
     return <PetAdoptionDashboard {...safeProps} />;
   }
 
-  // 2. Consult a Vet
-  if (typeParam === 'vet' || typeParam === 'veterinary' || userCat.includes('vet') || user?.name?.includes('Dr.')) {
-    return <VetProviderDashboard {...safeProps} />;
-  }
-  
-  // 3. Grooming Spa
-  if (typeParam === 'grooming' || typeParam === 'spa' || userCat.includes('grooming') || user?.name?.includes('Grooming')) {
+  // 3. Pet Grooming Spa
+  if (activeKey === 'grooming') {
     return <GroomingProviderDashboard {...safeProps} />;
   }
 
   // 4. Pet Hostel / Boarding
-  if (typeParam === 'hostel' || typeParam === 'boarding' || typeParam === 'resort' || userCat.includes('hostel') || userCat.includes('boarding') || user?.name?.includes('Hostel') || user?.name?.includes('Resort')) {
+  if (activeKey === 'hostel') {
     return <HostelProviderDashboard {...safeProps} />;
   }
 
   // 5. Dog Walking & Fitness
-  if (typeParam === 'walking' || typeParam === 'walker' || userCat.includes('walking') || userCat.includes('fitness')) {
+  if (activeKey === 'walking') {
     return <WalkingProviderDashboard {...safeProps} />;
   }
 
   // 6. Pet Transport & Relocation
-  if (typeParam === 'transport' || typeParam === 'relocation' || userCat.includes('transport') || userCat.includes('relocation') || userCat.includes('ambulance')) {
+  if (activeKey === 'transport') {
     return <TransportProviderDashboard {...safeProps} />;
   }
 
   // 7. Training & Behavior
-  if (typeParam === 'training' || typeParam === 'trainer' || userCat.includes('training') || userCat.includes('behavior')) {
+  if (activeKey === 'training') {
     return <TrainingProviderDashboard {...safeProps} />;
   }
 
   // 8. Pet Insurance
-  if (typeParam === 'insurance' || userCat.includes('insurance')) {
+  if (activeKey === 'insurance') {
     return <InsuranceProviderDashboard {...safeProps} />;
   }
 
   // 9. Mating & Breeding
-  if (typeParam === 'breeding' || typeParam === 'mating' || userCat.includes('breeding') || userCat.includes('mating')) {
+  if (activeKey === 'breeding') {
     return <BreedingProviderDashboard {...safeProps} />;
   }
 

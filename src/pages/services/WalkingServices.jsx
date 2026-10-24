@@ -5,7 +5,7 @@ import {
   Sparkles, Search, MapPin, Phone, MessageSquare, Star, ShieldCheck, 
   Calendar, Clock, CircleCheck, ChevronRight, X, SlidersHorizontal, 
   RefreshCw, Check, ArrowRight, Heart, Award, Footprints, Navigation, 
-  Compass, ShieldAlert, UserCheck, ChevronDown
+  Compass, ShieldAlert, UserCheck, ChevronDown, Dog, Activity, HeartPulse
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { 
@@ -19,6 +19,64 @@ import ServiceAccessLock, { isServicePathLockedForUser } from '../../components/
 import ScrollReveal from '../../components/ui/ScrollReveal.jsx';
 import PetBreedDropdown from '../../components/ui/PetBreedDropdown.jsx';
 import { handleServiceAction } from '../../components/widgets/ServicePackageAccessModal.jsx';
+
+// =========================================================================
+// Professional Lucide Vector Icon Renderer for Pet Walking Formats
+// Industry-standard vector glyphs with consistent 2.2px stroke & proportions
+// =========================================================================
+
+const renderOfferingIcon = (offeringId, { size = 24, className = '', isActive = false } = {}) => {
+  const baseClasses = `transition-transform duration-200 shrink-0 ${className}`;
+  const stroke = 2.2;
+  switch (offeringId) {
+    case 'all':
+      return <Footprints size={size} strokeWidth={stroke} className={`${baseClasses} ${isActive ? 'text-slate-950' : 'text-amber-700'}`} />;
+    case 'solo-walk':
+      return <Dog size={size} strokeWidth={stroke} className={`${baseClasses} ${isActive ? 'text-slate-950' : 'text-amber-700'}`} />;
+    case 'group-stride':
+      return <Activity size={size} strokeWidth={stroke} className={`${baseClasses} ${isActive ? 'text-slate-950' : 'text-indigo-600'}`} />;
+    case 'puppy-care':
+      return <Sparkles size={size} strokeWidth={stroke} className={`${baseClasses} ${isActive ? 'text-slate-950' : 'text-emerald-600'}`} />;
+    case 'senior-stroll':
+      return <HeartPulse size={size} strokeWidth={stroke} className={`${baseClasses} ${isActive ? 'text-slate-950' : 'text-rose-600'}`} />;
+    case 'gps-tracked':
+      return <Navigation size={size} strokeWidth={stroke} className={`${baseClasses} ${isActive ? 'text-slate-950' : 'text-purple-600'}`} />;
+    case 'monthly-pass':
+      return <Calendar size={size} strokeWidth={stroke} className={`${baseClasses} ${isActive ? 'text-slate-950' : 'text-blue-600'}`} />;
+    case 'adventure-trail':
+      return <Compass size={size} strokeWidth={stroke} className={`${baseClasses} ${isActive ? 'text-slate-950' : 'text-teal-600'}`} />;
+    default:
+      return <Footprints size={size} strokeWidth={stroke} className={`${baseClasses} ${isActive ? 'text-slate-950' : 'text-amber-700'}`} />;
+  }
+};
+
+// Distinct Luxury Color Styling per Offering Container
+const getOfferingColorTheme = (offeringId, isActive) => {
+  if (isActive) {
+    return 'bg-white/85 text-slate-950 shadow-sm border border-white/90 backdrop-blur-xs';
+  }
+  switch (offeringId) {
+    case 'all':
+      return 'bg-amber-50 text-amber-700 border border-amber-200/80 group-hover:bg-amber-100 group-hover:border-amber-300';
+    case 'solo-walk':
+      return 'bg-amber-50 text-amber-800 border border-amber-200/80 group-hover:bg-amber-100 group-hover:border-amber-300';
+    case 'group-stride':
+      return 'bg-indigo-50 text-indigo-700 border border-indigo-200/80 group-hover:bg-indigo-100 group-hover:border-indigo-300';
+    case 'puppy-care':
+      return 'bg-emerald-50 text-emerald-700 border border-emerald-200/80 group-hover:bg-emerald-100 group-hover:border-emerald-300';
+    case 'senior-stroll':
+      return 'bg-rose-50 text-rose-700 border border-rose-200/80 group-hover:bg-rose-100 group-hover:border-rose-300';
+    case 'gps-tracked':
+      return 'bg-purple-50 text-purple-700 border border-purple-200/80 group-hover:bg-purple-100 group-hover:border-purple-300';
+    case 'monthly-pass':
+      return 'bg-blue-50 text-blue-700 border border-blue-200/80 group-hover:bg-blue-100 group-hover:border-blue-300';
+    case 'adventure-trail':
+      return 'bg-teal-50 text-teal-700 border border-teal-200/80 group-hover:bg-teal-100 group-hover:border-teal-300';
+    default:
+      return 'bg-amber-50 text-amber-700 border border-amber-200/80 group-hover:bg-amber-100 group-hover:border-amber-300';
+  }
+};
+
 const WalkingServices = () => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -450,7 +508,7 @@ const WalkingServices = () => {
          ========================================================================= */}
       <ScrollReveal variant="fade" className="max-w-7xl mx-auto px-4 md:px-8 pt-8 pb-4 space-y-6">
         <div className="text-center space-y-2">
-          <span className="text-[10px] uppercase font-extrabold tracking-widest text-[#7c56dc] bg-purple-50 px-3 py-1 rounded-full border border-purple-200">
+          <span className="text-[10px] uppercase font-extrabold tracking-widest text-amber-900 bg-amber-100/80 px-3 py-1 rounded-full border border-amber-300">
             CHOOSE YOUR WALK TYPE
           </span>
           <h2 className="text-2xl md:text-3xl font-extrabold text-slate-900 font-sans">
@@ -470,25 +528,24 @@ const WalkingServices = () => {
               <button
                 key={offering.id}
                 onClick={() => handleSelectOffering(offering.id)}
-                className={`p-3.5 rounded-2xl border text-center transition-all cursor-pointer flex flex-col items-center justify-between gap-2.5 relative group ${
+                style={isActive ? { background: 'linear-gradient(135deg, #d4af37 0%, #fef08a 50%, #b89228 100%)' } : {}}
+                className={`p-3.5 rounded-2xl border text-center transition-all duration-200 cursor-pointer flex flex-col items-center justify-between gap-2.5 relative group ${
                   isActive
-                    ? 'bg-[#7c56dc] text-white border-[#7c56dc] shadow-lg shadow-purple-900/20 scale-105 ring-2 ring-purple-300'
-                    : 'bg-white text-slate-800 border-slate-200 hover:border-[#7c56dc] hover:shadow-md hover:-translate-y-0.5'
+                    ? 'text-slate-950 border-[#b89228] shadow-xl shadow-[#d4af37]/45 scale-105 ring-2 ring-[#fef08a]'
+                    : 'bg-white text-slate-800 border-slate-200/90 hover:border-[#d4af37]/60 hover:shadow-md hover:-translate-y-1'
                 }`}
               >
                 {/* Result count bubble */}
-                <span className={`absolute top-2 right-2 text-[9px] font-bold px-1.5 py-0.2 rounded-full ${
-                  isActive ? 'bg-white/20 text-white' : 'bg-purple-50 text-[#7c56dc]'
+                <span className={`absolute top-2.5 right-2.5 text-[9.5px] font-black px-1.5 py-0.5 rounded-full ${
+                  isActive ? 'bg-black/20 text-slate-950 border border-black/10' : 'bg-slate-100 text-slate-600 border border-slate-200/80'
                 }`}>
                   {count}
                 </span>
 
-                <div className={`w-11 h-11 rounded-xl flex items-center justify-center text-xl transition ${
-                  isActive ? 'bg-white/20' : 'bg-purple-50 group-hover:bg-purple-100/70'
-                }`}>
-                  {offering.icon}
+                <div className={`w-13 h-13 sm:w-14 sm:h-14 rounded-2xl flex items-center justify-center transition-all duration-300 group-hover:scale-110 ${getOfferingColorTheme(offering.id, isActive)}`}>
+                  {renderOfferingIcon(offering.id, { size: 28, isActive })}
                 </div>
-                <span className="text-xs font-extrabold leading-tight">
+                <span className={`text-xs font-black leading-tight tracking-tight ${isActive ? 'text-slate-950 drop-shadow-[0_1px_0_rgba(255,255,255,0.4)]' : ''}`}>
                   {offering.name}
                 </span>
               </button>
@@ -504,19 +561,22 @@ const WalkingServices = () => {
       <ScrollReveal variant="fade" id="walkers-catalog" className="max-w-7xl mx-auto px-4 md:px-8 pt-4 pb-16 space-y-8 scroll-mt-20">
         
         {/* Section Title & Quick Stats */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-purple-100 pb-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-4">
           <div>
             <div className="flex flex-wrap items-center gap-2.5">
               <h2 className="text-xl md:text-2xl font-extrabold text-slate-900 font-sans">
                 Verified Dog Walking Service Providers
               </h2>
               {selectedOffering !== 'all' && (
-                <span className="inline-flex items-center gap-1.5 bg-[#7c56dc] text-white text-xs font-bold px-3 py-1 rounded-full shadow-xs animate-in zoom-in-95 duration-150">
-                  <span>{WALKING_OFFERINGS.find(o => o.id === selectedOffering)?.icon}</span>
+                <span
+                  style={{ background: 'linear-gradient(135deg, #d4af37 0%, #fef08a 50%, #b89228 100%)' }}
+                  className="inline-flex items-center gap-1.5 text-slate-950 text-xs font-black px-3 py-1 rounded-full border border-[#b89228] shadow-md shadow-[#d4af37]/30 animate-in zoom-in-95 duration-150"
+                >
+                  <span className="inline-flex items-center">{renderOfferingIcon(selectedOffering, { size: 14, isActive: true })}</span>
                   <span>{WALKING_OFFERINGS.find(o => o.id === selectedOffering)?.name}</span>
                   <button
                     onClick={() => setSelectedOffering('all')}
-                    className="hover:bg-white/20 rounded-full p-0.5 ml-0.5 cursor-pointer"
+                    className="hover:bg-black/15 rounded-full p-0.5 ml-0.5 cursor-pointer text-slate-950"
                     title="Clear walk filter"
                   >
                     <X size={12} />
@@ -525,7 +585,7 @@ const WalkingServices = () => {
               )}
             </div>
             <p className="text-xs text-slate-500 font-medium mt-1">
-              Showing <span className="font-bold text-[#7c56dc]">{filteredProviders.length}</span> {
+              Showing <span className="font-bold text-[#1D3B2E]">{filteredProviders.length}</span> {
                 selectedOffering !== 'all'
                   ? `verified dog walkers specializing in "${WALKING_OFFERINGS.find(o => o.id === selectedOffering)?.name}"`
                   : 'background-checked dog walkers & canine fitness squads'
@@ -536,7 +596,7 @@ const WalkingServices = () => {
           <div className="flex items-center gap-3">
             <button
               onClick={handleResetFilters}
-              className="text-xs font-bold text-slate-500 hover:text-[#7c56dc] transition flex items-center gap-1 cursor-pointer"
+              className="text-xs font-bold text-slate-500 hover:text-[#1D3B2E] transition flex items-center gap-1 cursor-pointer"
             >
               <RefreshCw size={12} /> Reset All
             </button>
@@ -548,21 +608,21 @@ const WalkingServices = () => {
           {/* =====================================================================
               LEFT FILTER PANEL (Screenshot 2 Match)
              ===================================================================== */}
-          <aside className="lg:col-span-3 bg-white p-5 rounded-3xl border border-purple-100 shadow-sm sticky top-24 max-h-[calc(100vh-120px)] flex flex-col">
+          <aside className="lg:col-span-3 bg-white p-5 rounded-3xl border border-[#1D3B2E]/15 shadow-sm sticky top-24 max-h-[calc(100vh-120px)] flex flex-col">
             
             {/* Fixed Filter Header */}
             <div className="flex justify-between items-center border-b border-slate-100 pb-3 mb-3 shrink-0">
               <span className="text-xs font-extrabold uppercase tracking-wider text-slate-900 flex items-center gap-1.5">
-                <SlidersHorizontal size={14} className="text-[#7c56dc]" />
+                <SlidersHorizontal size={14} className="text-[#1D3B2E]" />
                 <span>Filters</span>
               </span>
               <div className="flex items-center gap-2">
-                <span className="text-[10px] font-bold bg-purple-50 text-[#7c56dc] px-2 py-0.5 rounded-full border border-purple-100">
+                <span className="text-[10px] font-bold bg-[#1D3B2E]/10 text-[#1D3B2E] px-2 py-0.5 rounded-full border border-[#1D3B2E]/20">
                   {filteredProviders.length} Walkers
                 </span>
                 <button
                   onClick={handleResetFilters}
-                  className="text-[10px] font-bold text-slate-400 hover:text-[#7c56dc] transition flex items-center gap-0.5 cursor-pointer"
+                  className="text-[10px] font-bold text-slate-400 hover:text-[#1D3B2E] transition flex items-center gap-0.5 cursor-pointer"
                   title="Reset All Filters"
                 >
                   <RefreshCw size={10} /> Reset
@@ -594,7 +654,7 @@ const WalkingServices = () => {
                     placeholder="Search by walker, area, agency..."
                     value={searchKeyword}
                     onChange={(e) => setSearchKeyword(e.target.value)}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-8 pr-3 py-2 text-xs font-medium text-slate-800 focus:outline-none focus:border-[#7c56dc] focus:ring-1 focus:ring-purple-200 transition"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-8 pr-3 py-2 text-xs font-medium text-slate-800 focus:outline-none focus:border-[#1D3B2E] focus:ring-1 focus:ring-[#1D3B2E]/20 transition"
                   />
                   <Search size={13} className="absolute left-2.5 top-2.5 text-slate-400" />
                 </div>
@@ -622,8 +682,8 @@ const WalkingServices = () => {
                       onClick={() => setPriceRange(tier.id)}
                       className={`flex items-center justify-between w-full py-2 px-3 rounded-xl font-semibold text-left transition cursor-pointer ${
                         priceRange === tier.id
-                          ? 'bg-amber-100 text-amber-900 font-bold'
-                          : 'text-slate-600 hover:bg-slate-50'
+                          ? 'bg-[#1D3B2E] text-white font-bold shadow-xs'
+                          : 'text-slate-600 hover:bg-[#1D3B2E]/5 hover:text-[#1D3B2E]'
                       }`}
                     >
                       <span>{tier.label}</span>
@@ -645,8 +705,8 @@ const WalkingServices = () => {
                       onClick={() => setSelectedDogSize(sz)}
                       className={`py-1.5 px-2 rounded-xl font-bold text-center transition cursor-pointer ${
                         selectedDogSize === sz
-                          ? 'bg-[#7c56dc] text-white shadow-xs'
-                          : 'bg-slate-50 text-slate-600 hover:bg-purple-50'
+                          ? 'bg-[#1D3B2E] text-white shadow-xs'
+                          : 'bg-slate-50 text-slate-600 hover:bg-[#1D3B2E]/10 hover:text-[#1D3B2E]'
                       }`}
                     >
                       {sz}
@@ -664,7 +724,7 @@ const WalkingServices = () => {
                   <select
                     value={sortBy}
                     onChange={(e) => setSortBy(e.target.value)}
-                    className="w-full bg-white border border-slate-200 hover:border-[#7c56dc] text-xs font-bold text-slate-900 rounded-full px-4 py-2.5 pr-10 shadow-sm transition appearance-none cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#7c56dc]/20"
+                    className="w-full bg-white border border-slate-200 hover:border-[#1D3B2E] text-xs font-bold text-slate-900 rounded-full px-4 py-2.5 pr-10 shadow-sm transition appearance-none cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#1D3B2E]/20"
                   >
                     <option value="recommended">Recommended & Verified</option>
                     <option value="price-low">Price: Low to High</option>
@@ -767,16 +827,20 @@ const WalkingServices = () => {
                             <div className="flex flex-wrap gap-1.5">
                               {provider.offerings.map((offering, idx) => {
                                 const isMatched = selectedOffering !== 'all' && targetOfferingName === offering;
+                                const matchedOffering = WALKING_OFFERINGS.find(o => o.name === offering);
                                 return (
                                   <span
                                     key={idx}
-                                    className={`text-[10px] font-bold px-2.5 py-1 rounded-lg border flex items-center gap-1 transition ${
+                                    style={isMatched ? { background: 'linear-gradient(135deg, #d4af37 0%, #fef08a 50%, #b89228 100%)' } : {}}
+                                    className={`text-[10px] font-bold px-2.5 py-1 rounded-lg border flex items-center gap-1.5 transition ${
                                       isMatched
-                                        ? 'bg-[#7c56dc] text-white border-[#7c56dc] shadow-xs scale-105 ring-2 ring-purple-200'
-                                        : 'bg-purple-50 text-[#7c56dc] border-purple-100'
+                                        ? 'text-slate-950 border-[#b89228] shadow-xs scale-105 ring-2 ring-[#fef08a] font-black'
+                                        : 'bg-slate-50 text-slate-700 border-slate-200/80 hover:bg-slate-100'
                                     }`}
                                   >
-                                    <span>{isMatched ? '✓' : '🦮'}</span>
+                                    <span className="shrink-0">
+                                      {matchedOffering ? renderOfferingIcon(matchedOffering.id, { size: 12, isActive: isMatched }) : <Check size={11} className="text-emerald-600" />}
+                                    </span>
                                     <span>{offering}</span>
                                   </span>
                                 );
@@ -798,18 +862,18 @@ const WalkingServices = () => {
                           {featuredPkg && (
                             <div className={`p-3 rounded-2xl space-y-1 transition ${
                               selectedOffering !== 'all'
-                                ? 'bg-purple-50/90 border border-purple-200/90'
+                                ? 'bg-[#1D3B2E]/5 border border-[#1D3B2E]/20'
                                 : 'bg-amber-50/70 border border-amber-200/60'
                             }`}>
                               <div className="flex justify-between items-center">
                                 <span className={`text-[10px] font-extrabold uppercase tracking-wide flex items-center gap-1 ${
-                                  selectedOffering !== 'all' ? 'text-[#7c56dc]' : 'text-amber-900'
+                                  selectedOffering !== 'all' ? 'text-[#1D3B2E]' : 'text-amber-900'
                                 }`}>
                                   <span>⭐</span>
                                   <span>{selectedOffering !== 'all' ? `Matched ${targetOfferingName} Plan` : 'Featured Walk Plan'}</span>
                                 </span>
                                 <span className={`text-xs font-extrabold ${
-                                  selectedOffering !== 'all' ? 'text-[#7c56dc]' : 'text-slate-900'
+                                  selectedOffering !== 'all' ? 'text-[#1D3B2E]' : 'text-slate-900'
                                 }`}>
                                   ₹{featuredPkg.price}
                                 </span>
@@ -846,7 +910,7 @@ const WalkingServices = () => {
                         <div className="grid grid-cols-2 gap-2">
                           <button
                             onClick={() => handleOpenBookingModal(provider, featuredPkg)}
-                            className="bg-[#7c56dc] hover:bg-[#6842c2] text-white font-extrabold py-2.5 px-3 rounded-xl text-xs shadow-md transition-all flex items-center justify-center gap-1.5 cursor-pointer active:scale-95"
+                            className="btn-footer-green-gold font-extrabold py-2.5 px-3 rounded-xl text-xs shadow-md transition-all flex items-center justify-center gap-1.5 cursor-pointer active:scale-95"
                           >
                             <Calendar size={13} />
                             <span>Book {selectedOffering !== 'all' ? targetOfferingName : 'Walk'}</span>
@@ -867,8 +931,8 @@ const WalkingServices = () => {
                 })}
               </div>
             ) : (
-              <div className="text-center py-8 lg:py-16 bg-white rounded-3xl border border-purple-100 p-8 space-y-4">
-                <div className="w-16 h-16 bg-purple-50 rounded-full flex items-center justify-center mx-auto text-[#7c56dc]">
+              <div className="text-center py-8 lg:py-16 bg-white rounded-3xl border border-slate-100 p-8 space-y-4">
+                <div className="w-16 h-16 bg-[#1D3B2E]/10 rounded-full flex items-center justify-center mx-auto text-[#1D3B2E]">
                   <Footprints size={28} />
                 </div>
                 <h3 className="text-lg font-extrabold text-slate-900">No Dog Walkers Found</h3>
@@ -877,7 +941,7 @@ const WalkingServices = () => {
                 </p>
                 <button
                   onClick={handleResetFilters}
-                  className="bg-[#7c56dc] text-white font-extrabold px-6 py-2.5 rounded-xl text-xs shadow-md transition hover:bg-[#6842c2]"
+                  className="btn-footer-green-gold font-extrabold px-6 py-2.5 rounded-xl text-xs shadow-md transition"
                 >
                   Reset All Filters
                 </button>
@@ -905,12 +969,12 @@ const WalkingServices = () => {
               <div className="space-y-1 text-xs md:text-sm text-slate-600 font-medium leading-relaxed">
                 <p>Kudos to you for prioritizing your pet's physical and mental wellness!</p>
                 <p>Because regular exercise prevents obesity, destructive anxiety, and behavioral issues.</p>
-                <p className="font-semibold text-[#7c56dc]">And, who doesn't love a happy, tail-wagging pup after a great outdoor walk?</p>
+                <p className="font-semibold text-[#1D3B2E]">And, who doesn't love a happy, tail-wagging pup after a great outdoor walk?</p>
               </div>
             </div>
 
             {/* Photo */}
-            <div className="aspect-[4/3] rounded-3xl overflow-hidden shadow-xl border border-purple-100 bg-slate-100">
+            <div className="aspect-[4/3] rounded-3xl overflow-hidden shadow-xl border border-slate-100 bg-slate-100">
               <img
                 src="https://images.unsplash.com/photo-1535930891776-0c2dfb7fda1a?q=80&w=800&auto=format&fit=crop"
                 alt="Two Happy Dogs Walking in Park"
@@ -974,12 +1038,12 @@ const WalkingServices = () => {
       {/* =========================================================================
           5. "JOSH PETS HUB SAFEWALK 3-STEP GUARANTEE"
          ========================================================================= */}
-      <ScrollReveal variant="fade" className="bg-white border-y border-purple-100 py-8 lg:py-16 px-4 md:px-8">
+      <ScrollReveal variant="fade" className="bg-white border-y border-slate-100 py-8 lg:py-16 px-4 md:px-8">
         <div className="max-w-7xl mx-auto text-center space-y-12">
           
           <div className="max-w-2xl mx-auto space-y-2">
             <h2 className="text-2xl md:text-3xl font-extrabold text-slate-900 font-sans">
-              Safe & Tracked Walks <span className="text-[#7c56dc]">At Josh Pets Hub</span>
+              Safe & Tracked Walks <span className="text-[#1D3B2E]">At Josh Pets Hub</span>
             </h2>
             <p className="text-xs md:text-sm text-slate-500 font-medium">
               You choose your preferred walk schedule, and we assign a certified, background-checked walker for your pet.
@@ -1077,7 +1141,7 @@ const WalkingServices = () => {
                       onClick={() => setSelectedPackage(pkg)}
                       className={`flex items-start justify-between p-3 rounded-2xl border transition cursor-pointer ${
                         selectedPackage?.name === pkg.name
-                          ? 'border-[#7c56dc] bg-purple-50/60 shadow-xs'
+                          ? 'border-[#1D3B2E] bg-[#1D3B2E]/5 shadow-xs'
                           : 'border-slate-200 hover:border-slate-300'
                       }`}
                     >
@@ -1087,7 +1151,7 @@ const WalkingServices = () => {
                           name="walkingPackage"
                           checked={selectedPackage?.name === pkg.name}
                           onChange={() => setSelectedPackage(pkg)}
-                          className="mt-1 text-[#7c56dc] focus:ring-0"
+                          className="mt-1 text-[#1D3B2E] focus:ring-0"
                         />
                         <div>
                           <p className="text-xs font-bold text-slate-900">{pkg.name}</p>
@@ -1097,7 +1161,7 @@ const WalkingServices = () => {
                           </span>
                         </div>
                       </div>
-                      <span className="text-xs font-extrabold text-[#7c56dc] shrink-0">₹{pkg.price}</span>
+                      <span className="text-xs font-extrabold text-[#1D3B2E] shrink-0">₹{pkg.price}</span>
                     </label>
                   ))}
                 </div>
@@ -1113,7 +1177,7 @@ const WalkingServices = () => {
                     value={bookingDate}
                     min={new Date().toISOString().split('T')[0]}
                     onChange={(e) => setBookingDate(e.target.value)}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-medium text-slate-800 focus:outline-none focus:border-[#7c56dc]"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-medium text-slate-800 focus:outline-none focus:border-[#1D3B2E]"
                   />
                 </div>
 
@@ -1122,7 +1186,7 @@ const WalkingServices = () => {
                   <select
                     value={bookingTime}
                     onChange={(e) => setBookingTime(e.target.value)}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-medium text-slate-800 focus:outline-none focus:border-[#7c56dc]"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-medium text-slate-800 focus:outline-none focus:border-[#1D3B2E]"
                   >
                     <option value="06:30 AM - 07:00 AM (Early Sunrise)">06:30 AM - 07:00 AM (Early Sunrise)</option>
                     <option value="07:30 AM - 08:15 AM (Morning Fresh)">07:30 AM - 08:15 AM (Morning Fresh)</option>
@@ -1143,7 +1207,7 @@ const WalkingServices = () => {
                     placeholder="e.g. Dollar / Cooper"
                     value={petName}
                     onChange={(e) => setPetName(e.target.value)}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-medium text-slate-800 focus:outline-none focus:border-[#7c56dc]"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-medium text-slate-800 focus:outline-none focus:border-[#1D3B2E]"
                   />
                 </div>
 
@@ -1155,7 +1219,7 @@ const WalkingServices = () => {
                     onChange={setPetBreed}
                     required
                     placeholder="Select Dog Breed *"
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-medium text-slate-800 focus:outline-none focus:border-[#7c56dc]"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-medium text-slate-800 focus:outline-none focus:border-[#1D3B2E]"
                   />
                 </div>
 
@@ -1164,7 +1228,7 @@ const WalkingServices = () => {
                   <select
                     value={dogSize}
                     onChange={(e) => setDogSize(e.target.value)}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-2 py-2 text-xs font-medium text-slate-800 focus:outline-none focus:border-[#7c56dc]"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-2 py-2 text-xs font-medium text-slate-800 focus:outline-none focus:border-[#1D3B2E]"
                   >
                     <option value="Small">Small (under 10kg)</option>
                     <option value="Medium">Medium (10-25kg)</option>
@@ -1184,7 +1248,7 @@ const WalkingServices = () => {
                     placeholder="e.g. 9876543210"
                     value={ownerPhone}
                     onChange={(e) => setOwnerPhone(e.target.value)}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-medium text-slate-800 focus:outline-none focus:border-[#7c56dc]"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-medium text-slate-800 focus:outline-none focus:border-[#1D3B2E]"
                   />
                 </div>
 
@@ -1195,7 +1259,7 @@ const WalkingServices = () => {
                     placeholder="e.g. Flat 302, Green Avenue"
                     value={pickupAddress}
                     onChange={(e) => setPickupAddress(e.target.value)}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-medium text-slate-800 focus:outline-none focus:border-[#7c56dc]"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-medium text-slate-800 focus:outline-none focus:border-[#1D3B2E]"
                   />
                 </div>
               </div>
@@ -1208,7 +1272,7 @@ const WalkingServices = () => {
                   placeholder="e.g. Friendly with other dogs, pulls slightly, needs water break halfway..."
                   value={specialNotes}
                   onChange={(e) => setSpecialNotes(e.target.value)}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs font-medium text-slate-800 focus:outline-none focus:border-[#7c56dc]"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs font-medium text-slate-800 focus:outline-none focus:border-[#1D3B2E]"
                 ></textarea>
               </div>
 
@@ -1216,7 +1280,7 @@ const WalkingServices = () => {
               <div className="pt-2">
                 <button
                   type="submit"
-                  className="w-full bg-[#7c56dc] hover:bg-[#6842c2] text-white font-extrabold py-3 rounded-2xl text-xs shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-98"
+                  className="w-full btn-footer-green-gold font-extrabold py-3 rounded-2xl text-xs shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-98"
                 >
                   <CircleCheck size={16} />
                   <span>Confirm Walk Booking (₹{selectedPackage?.price || selectedProvider.price})</span>

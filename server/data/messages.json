@@ -160,5 +160,45 @@
     "messageText": "Is this pet still available?",
     "isRead": false,
     "createdAt": "2026-10-03T10:19:23.911Z"
+  },
+  {
+    "_id": "MSG-1792646743781-2367",
+    "sender": {
+      "_id": "superadmin-demo-01",
+      "id": "superadmin-demo-01",
+      "name": "Super Admin",
+      "email": "superadmin@joshpetshub.com"
+    },
+    "recipient": {
+      "_id": "seller-dog-01",
+      "id": "seller-dog-01",
+      "name": "Royal Paws Kennel"
+    },
+    "listingRef": "LIST-DOG-02",
+    "listingTitle": "Golden Retriever Puppies (Heavy Bone Structure)",
+    "listingImage": "https://images.unsplash.com/photo-1552053831-71594a27632d?q=80&w=800&auto=format&fit=crop",
+    "messageText": "Hi, I am interested in Golden Retriever Puppies (Heavy Bone Structure). Is this pet still available?",
+    "isRead": false,
+    "createdAt": "2026-10-22T05:25:43.781Z"
+  },
+  {
+    "_id": "MSG-1792646751706-9615",
+    "sender": {
+      "_id": "superadmin-demo-01",
+      "id": "superadmin-demo-01",
+      "name": "Super Admin",
+      "email": "superadmin@joshpetshub.com"
+    },
+    "recipient": {
+      "_id": "seller-dog-01",
+      "id": "seller-dog-01",
+      "name": "Royal Paws Kennel"
+    },
+    "listingRef": "LIST-DOG-02",
+    "listingTitle": "Golden Retriever Puppies (Heavy Bone Structure)",
+    "listingImage": "https://images.unsplash.com/photo-1552053831-71594a27632d?q=80&w=800&auto=format&fit=crop",
+    "messageText": "hii",
+    "isRead": false,
+    "createdAt": "2026-10-22T05:25:51.706Z"
   }
 ]

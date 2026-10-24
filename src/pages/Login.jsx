@@ -9,6 +9,7 @@ import {
   ChevronDown, MessageSquare, Check, HelpCircle, PawPrint, Upload, X
 } from 'lucide-react';
 import { login, register, setAuthenticatedUser, clearAuthError, logout } from '../store/slices/authSlice.js';
+import { validateEmailFormat } from '../utils/emailValidator.js';
 import toast from 'react-hot-toast';
 
 // Country Dial Codes with flags, ISO standards & national phone number lengths
@@ -225,11 +226,10 @@ const CountryCodePicker = ({ value, onChange, id = 'country-picker' }) => {
                     setIsOpen(false);
                     setSearch('');
                   }}
-                  className={`w-full px-3 py-2 text-left text-xs flex items-center justify-between hover:bg-blue-50 transition cursor-pointer ${
-                    c.code === value && c.iso === selectedItem.iso
+                  className={`w-full px-3 py-2 text-left text-xs flex items-center justify-between hover:bg-blue-50 transition cursor-pointer ${c.code === value && c.iso === selectedItem.iso
                       ? 'bg-blue-50/80 text-[#15559c] font-bold'
                       : 'text-slate-700 font-medium'
-                  }`}
+                    }`}
                 >
                   <div className="flex items-center gap-2 truncate">
                     <span className="text-base shrink-0">{c.flag}</span>
@@ -268,13 +268,12 @@ const HereForDropdown = ({ value, onChange, error }) => {
       {/* Dropdown Closed Trigger Container */}
       <div
         onClick={() => setIsOpen(!isOpen)}
-        className={`w-full px-4 py-2.5 border rounded-xl text-xs md:text-sm bg-white flex items-center justify-between cursor-pointer transition select-none shadow-xs ${
-          error
+        className={`w-full px-4 py-2.5 border rounded-xl text-xs md:text-sm bg-white flex items-center justify-between cursor-pointer transition select-none shadow-xs ${error
             ? 'border-red-500 ring-2 ring-red-100'
             : isOpen
-            ? 'border-[#15559c] ring-2 ring-blue-100'
-            : 'border-slate-300 hover:border-[#15559c]'
-        }`}
+              ? 'border-[#15559c] ring-2 ring-blue-100'
+              : 'border-slate-300 hover:border-[#15559c]'
+          }`}
       >
         <span className={`font-medium ${value ? 'text-slate-800 font-semibold' : 'text-slate-500'}`}>
           {value || "I'm here for"}
@@ -305,11 +304,10 @@ const HereForDropdown = ({ value, onChange, error }) => {
                   onChange(opt);
                   setIsOpen(false);
                 }}
-                className={`px-4 py-2.5 text-xs md:text-sm cursor-pointer transition flex items-center justify-between ${
-                  value === opt
+                className={`px-4 py-2.5 text-xs md:text-sm cursor-pointer transition flex items-center justify-between ${value === opt
                     ? 'bg-blue-50 text-[#15559c] font-bold'
                     : 'text-slate-700 hover:bg-slate-50 hover:text-[#15559c] font-medium'
-                }`}
+                  }`}
               >
                 <span>{opt}</span>
                 {value === opt && <Check size={14} className="text-[#15559c]" />}
@@ -335,18 +333,18 @@ const Login = () => {
   const [searchParams] = useSearchParams();
 
   const queryRole = (searchParams.get('role') || searchParams.get('tab') || searchParams.get('type') || '').toLowerCase();
-  const isProviderRoute = 
-    location.pathname === '/provider-register' || 
-    location.pathname === '/provider/register' || 
+  const isProviderRoute =
+    location.pathname === '/provider-register' ||
+    location.pathname === '/provider/register' ||
     location.pathname === '/partner-register' ||
     queryRole === 'provider';
 
-  const isSignUp = 
-    location.pathname === '/signup' || 
-    location.pathname === '/register' || 
-    location.pathname === '/provider-register' || 
-    location.pathname === '/provider/register' || 
-    location.pathname === '/partner-register' || 
+  const isSignUp =
+    location.pathname === '/signup' ||
+    location.pathname === '/register' ||
+    location.pathname === '/provider-register' ||
+    location.pathname === '/provider/register' ||
+    location.pathname === '/partner-register' ||
     Boolean(queryRole);
 
   const { isAuthenticated, user, error, loading } = useSelector((state) => state.auth);
@@ -585,13 +583,13 @@ const Login = () => {
       if (Array.isArray(list) && list.some(u => (u?.email || '').trim().toLowerCase() === clean)) {
         return true;
       }
-    } catch (e) {}
+    } catch (e) { }
     try {
       const curr = JSON.parse(localStorage.getItem('joshpetshub_user') || 'null');
       if ((curr?.email || '').trim().toLowerCase() === clean) {
         return true;
       }
-    } catch (e) {}
+    } catch (e) { }
     return false;
   };
 
@@ -878,15 +876,15 @@ const Login = () => {
     }
     try {
       const reg = JSON.parse(localStorage.getItem("joshpetshub_registered_users") || "[]");
-      const idx = reg.findIndex(u => 
-        (u.email && u.email.toLowerCase() === cleanId.toLowerCase()) || 
+      const idx = reg.findIndex(u =>
+        (u.email && u.email.toLowerCase() === cleanId.toLowerCase()) ||
         (u.mobile && u.mobile === cleanId)
       );
       if (idx !== -1) {
         reg[idx].password = forgotNewPassword;
         localStorage.setItem("joshpetshub_registered_users", JSON.stringify(reg));
       }
-    } catch (_) {}
+    } catch (_) { }
     setForgotLoading(false);
     toast.success("🎉 Password has been reset successfully! You can now log in.", { duration: 5000 });
     setLoginIdentifier(cleanId);
@@ -903,120 +901,50 @@ const Login = () => {
       setLoginError('Please enter your email or mobile number and password.');
       return;
     }
-    
+
     const cleanId = loginIdentifier.trim();
     const isEmail = cleanId.includes('@');
 
-    // ⚡ Service Provider Direct Login (OTP disabled as requested)
-    const DEMO_PROVIDERS = [
-      'dr.ramesh@joshpetshub.com',
-      'velvetfur@joshpetshub.com',
-      'happypaws@joshpetshub.com',
-      'royalpaws@joshpetshub.com',
-      'adopt@joshpetshub.com',
-      'swiftpaws@joshpetshub.com',
-      'safepet@joshpetshub.com',
-      'clevercanines@joshpetshub.com',
-      'pawinsure@joshpetshub.com',
-      'elitebreed@joshpetshub.com'
-    ];
-
-    const isProviderLogin = (() => {
-      if (loginRoleTab === 'provider') return true;
-      const lower = cleanId.toLowerCase();
-      if (DEMO_PROVIDERS.includes(lower)) return true;
-      try {
-        const reg = JSON.parse(localStorage.getItem('joshpetshub_registered_users') || '[]');
-        return reg.some(u =>
-          ((u.email && u.email.toLowerCase() === lower) || (u.mobile && u.mobile === cleanId)) &&
-          u.role === 'SERVICE_PROVIDER'
-        );
-      } catch (e) {
-        return false;
-      }
-    })();
-
-    if (isProviderLogin) {
-      setVerifyingOtp(true);
-      try {
-        const resultAction = await dispatch(login({
-          identifier: cleanId,
-          password: loginPassword,
-          isOtpVerified: true,
-          role: 'SERVICE_PROVIDER'
-        }));
-
-        if (login.fulfilled.match(resultAction)) {
-          const loggedInUser = resultAction.payload?.user;
-          toast.success(`🎉 Welcome to Provider Dashboard, ${loggedInUser?.name || 'Partner'}!`);
-          navigate('/provider-dashboard');
-          return;
-        } else {
-          const errMsg = resultAction?.payload || 'Invalid service provider credentials. Please check your password.';
-          setLoginError(errMsg);
-          toast.error(errMsg);
-          return;
-        }
-      } catch (err) {
-        console.error('Provider direct login error:', err);
-        const errMsg = err?.message || 'Login failed. Please verify credentials.';
-        setLoginError(errMsg);
-        toast.error(errMsg);
+    // Strict email format validation (frontend & backend consistent)
+    if (isEmail) {
+      const emailValidation = validateEmailFormat(cleanId);
+      if (!emailValidation.isValid) {
+        setLoginError(emailValidation.message);
+        toast.error(emailValidation.message);
         return;
-      } finally {
-        setVerifyingOtp(false);
       }
     }
 
+    const targetRole = loginRoleTab === 'provider' ? 'SERVICE_PROVIDER' : 'CUSTOMER';
     setVerifyingOtp(true);
-
     try {
-      // 🔒 Regular Pet Parent login with OTP verification
-      const res = await apiRequest('/auth/send-otp', {
-        method: 'POST',
-        body: JSON.stringify({
-          email: loginIdentifier,
-          identifier: loginIdentifier,
-          password: loginPassword,
-          purpose: 'login'
-        })
-      });
+      const resultAction = await dispatch(login({
+        identifier: cleanId,
+        password: loginPassword,
+        role: targetRole
+      }));
 
-      if (!res.success) {
-        setLoginError(res.message || 'Invalid email or password.');
-        setVerifyingOtp(false);
+      if (login.fulfilled.match(resultAction)) {
+        const loggedInUser = resultAction.payload?.user;
+        if (targetRole === 'SERVICE_PROVIDER') {
+          toast.success(`🎉 Welcome to Provider Dashboard, ${loggedInUser?.name || 'Partner'}!`);
+          navigate('/provider-dashboard');
+        } else {
+          toast.success(`🎉 Welcome back, ${loggedInUser?.name || 'Pet Parent'}!`);
+          navigate(location.state?.from || '/account');
+        }
+        return;
+      } else {
+        const errMsg = resultAction?.payload || 'Invalid email or password. Please verify your credentials.';
+        setLoginError(errMsg);
+        toast.error(errMsg);
         return;
       }
-
-      const receivedOtp = res.otp || Math.floor(100000 + Math.random() * 900000).toString();
-
-      setPendingUserData({
-        identifier: loginIdentifier,
-        password: loginPassword,
-        role: 'CUSTOMER',
-        mobile: loginIdentifier,
-        mobileCountryCode: ''
-      });
-      setGeneratedOtp(receivedOtp);
-      setOtpDigits(['', '', '', '', '', '']);
-      setOtpTimer(60);
-      setOtpExpiresAt(Date.now() + 60 * 1000);
-      setOtpPurpose('login');
-      setIsRealEmailSent(!res.simulated);
-      setIsOtpStep(true);
-
-      if (isEmail) {
-        if (!res.simulated) {
-          toast.success(`📧 Verification OTP sent to ${loginIdentifier}! Check your inbox.`, { duration: 6000, icon: '📧' });
-        } else {
-          toast.success(`Verification code generated for ${loginIdentifier}!`, { duration: 6000 });
-        }
-      } else {
-        toast.success(`📲 OTP sent to ${loginIdentifier}! Please check your messages.`, { duration: 6000, icon: '📲' });
-      }
     } catch (err) {
-      console.error('Login submit check error:', err);
-      setLoginError(err.message || 'Invalid email or password.');
+      console.error('Login error:', err);
+      const errMsg = err?.message || 'Login failed. Please verify credentials.';
+      setLoginError(errMsg);
+      toast.error(errMsg);
     } finally {
       setVerifyingOtp(false);
     }
@@ -1070,10 +998,10 @@ const Login = () => {
 
     // 5. Email format and duplicate validation (Issue 9)
     if (userEmail && userEmail.trim()) {
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!emailRegex.test(userEmail.trim())) {
-        setUserEmailError('Please enter a valid email address *');
-        toast.error('Please enter a valid email address!');
+      const emailValidation = validateEmailFormat(userEmail.trim());
+      if (!emailValidation.isValid) {
+        setUserEmailError(emailValidation.message + ' *');
+        toast.error(emailValidation.message);
         return;
       }
       if (checkEmailAlreadyRegistered(userEmail)) {
@@ -1182,9 +1110,10 @@ const Login = () => {
     }
     setProviderWhatsappError('');
 
-    if (!providerEmail || !providerEmail.includes('@')) {
-      setProviderEmailError('Business Email is mandatory for Service Providers *');
-      toast.error('Business Email is required for Service Providers!');
+    const provEmailValidation = validateEmailFormat(providerEmail);
+    if (!provEmailValidation.isValid) {
+      setProviderEmailError(provEmailValidation.message + ' *');
+      toast.error(provEmailValidation.message);
       return;
     }
     if (checkEmailAlreadyRegistered(providerEmail)) {
@@ -1398,13 +1327,13 @@ const Login = () => {
     try {
       if (otpPurpose === 'login') {
         // Handle Login OTP Verification
-        const resultAction = await dispatch(login({ 
-          identifier: pendingUserData?.identifier || loginIdentifier, 
+        const resultAction = await dispatch(login({
+          identifier: pendingUserData?.identifier || loginIdentifier,
           password: pendingUserData?.password || loginPassword,
           isOtpVerified: true,
           role: pendingUserData?.role || (loginRoleTab === 'provider' ? 'SERVICE_PROVIDER' : 'CUSTOMER')
         }));
-        
+
         if (login.fulfilled.match(resultAction)) {
           toast.success('🎉 Login verified successfully!');
           setIsOtpStep(false);
@@ -1480,18 +1409,18 @@ const Login = () => {
         {/* Top Header Branding Banner */}
         <div className="bg-[#0F2E23] px-4 sm:px-6 py-5 sm:py-6 text-center text-white relative">
           <div className="flex items-center justify-center gap-1.5 sm:gap-2 mb-1.5 sm:mb-2">
-            <img 
-              src="/logo.png" 
-              alt="JOSH PETS HUB Logo" 
-              className="h-8 sm:h-10 w-auto object-contain" 
+            <img
+              src="/logo.png"
+              alt="JOSH PETS HUB Logo"
+              className="h-8 sm:h-10 w-auto object-contain"
             />
             <span className="text-white drop-shadow-sm flex items-center font-black tracking-tight text-xl sm:text-2xl">
               J
               <div className="relative mx-0.5 flex items-center justify-center bg-white rounded-full w-4.5 h-4.5 sm:w-5 sm:h-5 shadow-xs">
                 <PawPrint size={12} className="text-orange-500 fill-orange-500" />
               </div>
-              SH 
-              <span className="ml-1 sm:ml-1.5 text-white">PETS</span> 
+              SH
+              <span className="ml-1 sm:ml-1.5 text-white">PETS</span>
               <span className="ml-1 sm:ml-1.5 text-white">HUB</span>
             </span>
           </div>
@@ -1588,11 +1517,10 @@ const Login = () => {
                       onChange={(e) => handleOtpChange(idx, e.target.value)}
                       onKeyDown={(e) => handleOtpKeyDown(idx, e)}
                       onPaste={handleOtpPaste}
-                      className={`w-9 h-11 sm:w-11 sm:h-12 md:w-12 md:h-14 text-center text-base sm:text-lg md:text-xl font-bold font-mono border-2 rounded-xl focus:outline-none transition ${
-                        digit
+                      className={`w-9 h-11 sm:w-11 sm:h-12 md:w-12 md:h-14 text-center text-base sm:text-lg md:text-xl font-bold font-mono border-2 rounded-xl focus:outline-none transition ${digit
                           ? 'border-[#15559c] bg-blue-50/30 text-[#15559c] shadow-sm'
                           : 'border-slate-200 bg-slate-50/50 text-slate-800 focus:border-[#15559c] focus:ring-2 focus:ring-blue-100'
-                      }`}
+                        }`}
                       autoFocus={idx === 0}
                     />
                   ))}
@@ -1612,8 +1540,8 @@ const Login = () => {
                     <>
                       <CircleCheck size={16} />
                       <span>
-                        {otpPurpose === 'login' 
-                          ? 'VERIFY LOGIN OTP' 
+                        {otpPurpose === 'login'
+                          ? 'VERIFY LOGIN OTP'
                           : pendingUserData?.role === 'SERVICE_PROVIDER'
                             ? 'VERIFY PARTNER OTP & OPEN DASHBOARD'
                             : 'VERIFY OTP & OPEN DASHBOARD'}
@@ -1670,7 +1598,7 @@ const Login = () => {
                 1. LOGIN FORM WITH 2 ROLES (PET PARENT / USER & SERVICE PROVIDER)
                ========================================================================= */
             <div className="space-y-4">
-              
+
               {/* Login Role Switcher Tabs */}
               <div className="flex bg-slate-100 p-1 rounded-xl border border-slate-200">
                 <button
@@ -1680,11 +1608,10 @@ const Login = () => {
                     setLoginIdentifier('');
                     setLoginPassword('');
                   }}
-                  className={`flex-1 py-2 px-3 text-xs font-bold rounded-lg transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
-                    loginRoleTab === 'user'
+                  className={`flex-1 py-2 px-3 text-xs font-bold rounded-lg transition-all flex items-center justify-center gap-1.5 cursor-pointer ${loginRoleTab === 'user'
                       ? 'bg-white text-[#15559c] shadow-md font-extrabold'
                       : 'text-slate-500 hover:text-slate-800'
-                  }`}
+                    }`}
                 >
                   <User size={14} />
                   <span>Pet Parent / User</span>
@@ -1697,11 +1624,10 @@ const Login = () => {
                     setLoginIdentifier('');
                     setLoginPassword('');
                   }}
-                  className={`flex-1 py-2 px-3 text-xs font-bold rounded-lg transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
-                    loginRoleTab === 'provider'
+                  className={`flex-1 py-2 px-3 text-xs font-bold rounded-lg transition-all flex items-center justify-center gap-1.5 cursor-pointer ${loginRoleTab === 'provider'
                       ? 'bg-[#0F2E23] text-white shadow-md font-extrabold'
                       : 'text-slate-500 hover:text-slate-800'
-                  }`}
+                    }`}
                 >
                   <Briefcase size={14} />
                   <span>Service Provider</span>
@@ -1710,11 +1636,10 @@ const Login = () => {
 
               <form onSubmit={handleLoginSubmit} className="space-y-4">
                 <div className="text-center space-y-1 pb-1">
-                  <span className={`text-[10px] uppercase tracking-widest font-bold px-2.5 py-0.5 rounded-full border ${
-                    loginRoleTab === 'provider'
+                  <span className={`text-[10px] uppercase tracking-widest font-bold px-2.5 py-0.5 rounded-full border ${loginRoleTab === 'provider'
                       ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
                       : 'bg-blue-50 text-[#15559c] border-blue-100'
-                  }`}>
+                    }`}>
                     {loginRoleTab === 'provider' ? '💼 SERVICE PROVIDER PORTAL' : '👤 PET PARENT PORTAL'}
                   </span>
                   <h2 className="font-serif text-lg md:text-xl font-bold text-slate-800 pt-1">
@@ -1846,24 +1771,7 @@ const Login = () => {
                       </button>
                     </div>
                   </div>
-                ) : (
-                  <div className="p-2.5 bg-blue-50/70 border border-blue-200/80 rounded-xl flex items-center justify-between">
-                    <div>
-                      <p className="text-[11px] font-bold text-[#15559c]">Demo User Account:</p>
-                      <p className="text-[10px] text-slate-600">priya@joshpetshub.com • Pass@1234</p>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setLoginIdentifier('priya@joshpetshub.com');
-                        setLoginPassword('Pass@1234');
-                      }}
-                      className="px-2.5 py-1 bg-[#15559c] text-white rounded-lg text-[10px] font-bold hover:bg-[#0f3d6b] transition cursor-pointer"
-                    >
-                      Fill Demo
-                    </button>
-                  </div>
-                )}
+                ) : null}
 
                 <div className="space-y-3">
                   {/* Email or Mobile Number Input */}
@@ -1881,11 +1789,10 @@ const Login = () => {
                         setLoginIdentifier(e.target.value);
                         if (loginError) setLoginError('');
                       }}
-                      className={`w-full pl-10 pr-4 py-2.5 border rounded-xl text-xs md:text-sm focus:outline-none transition bg-slate-50/50 hover:bg-white font-medium ${
-                        loginRoleTab === 'provider'
+                      className={`w-full pl-10 pr-4 py-2.5 border rounded-xl text-xs md:text-sm focus:outline-none transition bg-slate-50/50 hover:bg-white font-medium ${loginRoleTab === 'provider'
                           ? 'border-slate-200 focus:border-[#0F2E23] focus:ring-2 focus:ring-emerald-100'
                           : 'border-slate-200 focus:border-[#15559c] focus:ring-2 focus:ring-blue-100'
-                      }`}
+                        }`}
                       required
                     />
                   </div>
@@ -1901,11 +1808,10 @@ const Login = () => {
                         setLoginPassword(e.target.value);
                         if (loginError) setLoginError('');
                       }}
-                      className={`w-full pl-10 pr-10 py-2.5 border rounded-xl text-xs md:text-sm focus:outline-none transition bg-slate-50/50 hover:bg-white font-medium ${
-                        loginRoleTab === 'provider'
+                      className={`w-full pl-10 pr-10 py-2.5 border rounded-xl text-xs md:text-sm focus:outline-none transition bg-slate-50/50 hover:bg-white font-medium ${loginRoleTab === 'provider'
                           ? 'border-slate-200 focus:border-[#0F2E23] focus:ring-2 focus:ring-emerald-100'
                           : 'border-slate-200 focus:border-[#15559c] focus:ring-2 focus:ring-blue-100'
-                      }`}
+                        }`}
                       required
                     />
                     <button
@@ -1946,8 +1852,8 @@ const Login = () => {
                     {(loading || verifyingOtp)
                       ? 'VERIFYING...'
                       : loginRoleTab === 'provider'
-                      ? 'LOGIN TO PROVIDER DASHBOARD'
-                      : 'LOGIN TO USER DASHBOARD'}
+                        ? 'LOGIN TO PROVIDER DASHBOARD'
+                        : 'LOGIN TO USER DASHBOARD'}
                   </span>
                   <ArrowRight size={14} />
                 </button>
@@ -1973,17 +1879,16 @@ const Login = () => {
                 2. CREATE ACCOUNT WITH 2 SECTIONS (USER / SERVICE PROVIDER)
                ========================================================================= */
             <div className="space-y-4">
-              
+
               {/* Registration Sub-Role Switcher */}
               <div className="flex bg-slate-100 p-1 rounded-xl border border-slate-200">
                 <button
                   type="button"
                   onClick={() => setRegisterRoleTab('user')}
-                  className={`flex-1 py-2 px-3 text-xs font-bold rounded-lg transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
-                    registerRoleTab === 'user'
+                  className={`flex-1 py-2 px-3 text-xs font-bold rounded-lg transition-all flex items-center justify-center gap-1.5 cursor-pointer ${registerRoleTab === 'user'
                       ? 'bg-[#0F2E23] text-white shadow-md font-extrabold'
                       : 'text-slate-500 hover:text-slate-800'
-                  }`}
+                    }`}
                 >
                   <User size={14} />
                   <span>Register as User</span>
@@ -1992,11 +1897,10 @@ const Login = () => {
                 <button
                   type="button"
                   onClick={() => setRegisterRoleTab('provider')}
-                  className={`flex-1 py-2 px-3 text-xs font-bold rounded-lg transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
-                    registerRoleTab === 'provider'
+                  className={`flex-1 py-2 px-3 text-xs font-bold rounded-lg transition-all flex items-center justify-center gap-1.5 cursor-pointer ${registerRoleTab === 'provider'
                       ? 'bg-[#0F2E23] text-white shadow-md font-extrabold'
                       : 'text-slate-500 hover:text-slate-800'
-                  }`}
+                    }`}
                 >
                   <Briefcase size={14} />
                   <span>Service Provider</span>
@@ -2029,11 +1933,10 @@ const Login = () => {
 
                   {/* Mobile No with Country Code Selector & Strict Numbers Validation */}
                   <div className="space-y-1">
-                    <div className={`flex items-stretch border rounded-xl bg-white transition shadow-xs overflow-visible relative ${
-                      userMobileError
+                    <div className={`flex items-stretch border rounded-xl bg-white transition shadow-xs overflow-visible relative ${userMobileError
                         ? 'border-red-500 ring-2 ring-red-100'
                         : 'border-slate-300 focus-within:border-[#15559c] focus-within:ring-2 focus-within:ring-blue-100'
-                    }`}>
+                      }`}>
                       <CountryCodePicker
                         value={userCountryCode}
                         onChange={handleUserCountryChange}
@@ -2082,11 +1985,10 @@ const Login = () => {
                       </label>
                     </div>
 
-                    <div className={`flex items-stretch border rounded-xl bg-white transition shadow-xs overflow-visible relative ${
-                      userWhatsappError
+                    <div className={`flex items-stretch border rounded-xl bg-white transition shadow-xs overflow-visible relative ${userWhatsappError
                         ? 'border-red-500 ring-2 ring-red-100'
                         : 'border-slate-300 focus-within:border-[#15559c] focus-within:ring-2 focus-within:ring-blue-100'
-                    }`}>
+                      }`}>
                       <CountryCodePicker
                         value={userWhatsappCountryCode}
                         onChange={handleUserWhatsappCountryChange}
@@ -2154,14 +2056,13 @@ const Login = () => {
                               if (res?.exists) {
                                 setUserEmailError('This email is already registered. Please log in or use a different email *');
                               }
-                            } catch (_) {}
+                            } catch (_) { }
                           }
                         }}
-                        className={`w-full px-4 py-2.5 border rounded-xl text-xs md:text-sm focus:outline-none transition font-medium ${
-                          userEmailError
+                        className={`w-full px-4 py-2.5 border rounded-xl text-xs md:text-sm focus:outline-none transition font-medium ${userEmailError
                             ? 'border-red-500 ring-2 ring-red-100 bg-red-50/20 text-red-900'
                             : 'border-slate-200 focus:border-[#15559c] focus:ring-2 focus:ring-blue-100 bg-slate-50/50 hover:bg-white'
-                        }`}
+                          }`}
                       />
                       {userEmailError && (
                         <p className="text-[10px] font-bold text-red-500 pl-1 leading-tight flex items-center gap-1">
@@ -2182,11 +2083,10 @@ const Login = () => {
                             setUserPassword(val);
                             setUserPasswordError(validatePassword(val));
                           }}
-                          className={`w-full px-4 py-2.5 border rounded-xl text-xs md:text-sm focus:outline-none transition bg-white pr-10 ${
-                            userPasswordError
+                          className={`w-full px-4 py-2.5 border rounded-xl text-xs md:text-sm focus:outline-none transition bg-white pr-10 ${userPasswordError
                               ? 'border-red-500 ring-2 ring-red-100 text-red-900'
                               : 'border-slate-200 focus:border-[#15559c] focus:ring-2 focus:ring-blue-100'
-                          }`}
+                            }`}
                           required
                         />
                         <button
@@ -2283,11 +2183,10 @@ const Login = () => {
                                     setSelectedUserCity(c);
                                     setIsUserCityDropdownOpen(false);
                                   }}
-                                  className={`px-3 py-2 text-xs cursor-pointer flex items-center justify-between font-medium transition ${
-                                    isSelected
+                                  className={`px-3 py-2 text-xs cursor-pointer flex items-center justify-between font-medium transition ${isSelected
                                       ? 'bg-blue-50 text-[#15559c] font-bold'
                                       : 'text-slate-700 hover:bg-slate-50 hover:text-[#15559c]'
-                                  }`}
+                                    }`}
                                 >
                                   <div className="flex items-center gap-2">
                                     <MapPin size={11} className={isSelected ? 'text-[#15559c]' : 'text-slate-400'} />
@@ -2350,11 +2249,10 @@ const Login = () => {
 
                   {/* Mobile No with Country Code Selector & Strict Numbers Validation */}
                   <div className="space-y-1">
-                    <div className={`flex items-stretch border rounded-xl bg-white transition shadow-xs overflow-visible relative ${
-                      providerMobileError
+                    <div className={`flex items-stretch border rounded-xl bg-white transition shadow-xs overflow-visible relative ${providerMobileError
                         ? 'border-red-500 ring-2 ring-red-100'
                         : 'border-slate-300 focus-within:border-[#15559c] focus-within:ring-2 focus-within:ring-blue-100'
-                    }`}>
+                      }`}>
                       <CountryCodePicker
                         value={providerCountryCode}
                         onChange={handleProviderCountryChange}
@@ -2403,11 +2301,10 @@ const Login = () => {
                       </label>
                     </div>
 
-                    <div className={`flex items-stretch border rounded-xl bg-white transition shadow-xs overflow-visible relative ${
-                      providerWhatsappError
+                    <div className={`flex items-stretch border rounded-xl bg-white transition shadow-xs overflow-visible relative ${providerWhatsappError
                         ? 'border-red-500 ring-2 ring-red-100'
                         : 'border-slate-300 focus-within:border-[#15559c] focus-within:ring-2 focus-within:ring-blue-100'
-                    }`}>
+                      }`}>
                       <CountryCodePicker
                         value={providerWhatsappCountryCode}
                         onChange={handleProviderWhatsappCountryChange}
@@ -2463,14 +2360,13 @@ const Login = () => {
                               if (res?.exists) {
                                 setProviderEmailError('This email is already registered. Please log in or use a different email *');
                               }
-                            } catch (_) {}
+                            } catch (_) { }
                           }
                         }}
-                        className={`w-full px-4 py-2.5 border rounded-xl text-xs md:text-sm focus:outline-none transition ${
-                          providerEmailError
+                        className={`w-full px-4 py-2.5 border rounded-xl text-xs md:text-sm focus:outline-none transition ${providerEmailError
                             ? 'border-red-500 ring-2 ring-red-100 text-red-900'
                             : 'border-slate-200 focus:border-[#15559c] focus:ring-2 focus:ring-blue-100 bg-slate-50/50 hover:bg-white font-medium'
-                        }`}
+                          }`}
                         required
                       />
                       {providerEmailError && (
@@ -2490,11 +2386,10 @@ const Login = () => {
                             setProviderPassword(val);
                             setProviderPasswordError(validatePassword(val));
                           }}
-                          className={`w-full px-4 py-2.5 border rounded-xl text-xs md:text-sm focus:outline-none transition bg-white pr-10 ${
-                            providerPasswordError
+                          className={`w-full px-4 py-2.5 border rounded-xl text-xs md:text-sm focus:outline-none transition bg-white pr-10 ${providerPasswordError
                               ? 'border-red-500 ring-2 ring-red-100 text-red-900'
                               : 'border-slate-200 focus:border-[#15559c] focus:ring-2 focus:ring-blue-100'
-                          }`}
+                            }`}
                           required
                         />
                         <button
@@ -2591,11 +2486,10 @@ const Login = () => {
                                     setSelectedProviderCity(c);
                                     setIsProviderCityDropdownOpen(false);
                                   }}
-                                  className={`px-3 py-2 text-xs cursor-pointer flex items-center justify-between font-medium transition ${
-                                    isSelected
+                                  className={`px-3 py-2 text-xs cursor-pointer flex items-center justify-between font-medium transition ${isSelected
                                       ? 'bg-blue-50 text-[#15559c] font-bold'
                                       : 'text-slate-700 hover:bg-slate-50 hover:text-[#15559c]'
-                                  }`}
+                                    }`}
                                 >
                                   <div className="flex items-center gap-2">
                                     <MapPin size={11} className={isSelected ? 'text-[#15559c]' : 'text-slate-400'} />
@@ -2667,9 +2561,9 @@ const Login = () => {
                           type="text"
                           placeholder={
                             providerCategory === 'Pet Adoption' ? 'e.g. AWBI/KAR/2023/8892' :
-                            providerCategory === 'Consult a Vet' ? 'e.g. VCI-REG-84920' :
-                            providerCategory === 'Pet Transport & Relocation' ? 'e.g. TRP-PERMIT-4921' :
-                            'e.g. REG/LIC/2024/9912'
+                              providerCategory === 'Consult a Vet' ? 'e.g. VCI-REG-84920' :
+                                providerCategory === 'Pet Transport & Relocation' ? 'e.g. TRP-PERMIT-4921' :
+                                  'e.g. REG/LIC/2024/9912'
                           }
                           value={providerGovtProofNumber}
                           onChange={(e) => setProviderGovtProofNumber(e.target.value)}
@@ -2758,254 +2652,256 @@ const Login = () => {
       </div>
     </div>
   );
-      {/* =========================================================================
+  {/* =========================================================================
           FORGOT PASSWORD MODAL (Step 1: Request OTP -> Step 2: Reset Password)
          ========================================================================= */}
-      {showForgotPasswordModal && (
-        <div className="fixed inset-0 z-[120] flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-200">
-          <div className="relative w-full max-w-md bg-white rounded-2xl shadow-2xl border border-slate-100 overflow-hidden animate-in zoom-in-95 duration-200">
-            {/* Modal Header */}
-            <div className="bg-[#0F2E23] text-white p-5 flex items-center justify-between">
-              <div className="flex items-center gap-2.5">
-                <div className="w-9 h-9 rounded-xl bg-white/10 flex items-center justify-center text-[#D4AF37]">
-                  <KeyRound size={18} />
-                </div>
-                <div>
-                  <h3 className="font-serif text-base font-bold text-white">
-                    {forgotOtpStep ? 'Set New Password' : 'Reset Password'}
-                  </h3>
-                  <p className="text-[11px] text-emerald-200">
-                    {forgotOtpStep ? 'Enter verification code & create password' : 'Recover access to your account'}
-                  </p>
-                </div>
+  {
+    showForgotPasswordModal && (
+      <div className="fixed inset-0 z-[120] flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-200">
+        <div className="relative w-full max-w-md bg-white rounded-2xl shadow-2xl border border-slate-100 overflow-hidden animate-in zoom-in-95 duration-200">
+          {/* Modal Header */}
+          <div className="bg-[#0F2E23] text-white p-5 flex items-center justify-between">
+            <div className="flex items-center gap-2.5">
+              <div className="w-9 h-9 rounded-xl bg-white/10 flex items-center justify-center text-[#D4AF37]">
+                <KeyRound size={18} />
               </div>
-              <button
-                type="button"
-                onClick={() => setShowForgotPasswordModal(false)}
-                className="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition cursor-pointer"
-                aria-label="Close"
-              >
-                <X size={16} />
-              </button>
+              <div>
+                <h3 className="font-serif text-base font-bold text-white">
+                  {forgotOtpStep ? 'Set New Password' : 'Reset Password'}
+                </h3>
+                <p className="text-[11px] text-emerald-200">
+                  {forgotOtpStep ? 'Enter verification code & create password' : 'Recover access to your account'}
+                </p>
+              </div>
             </div>
+            <button
+              type="button"
+              onClick={() => setShowForgotPasswordModal(false)}
+              className="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition cursor-pointer"
+              aria-label="Close"
+            >
+              <X size={16} />
+            </button>
+          </div>
 
-            {/* Modal Content */}
-            <div className="p-6 space-y-5">
-              {!forgotOtpStep ? (
-                /* Step 1: Request OTP */
-                <form onSubmit={handleSendForgotOtp} className="space-y-4">
-                  <div className="space-y-1">
-                    <label className="text-xs font-bold text-slate-700 block">
-                      Registered Email or Mobile Number
-                    </label>
-                    <p className="text-[11px] text-slate-500">
-                      Enter the email or phone linked with your account to receive a 6-digit recovery code.
+          {/* Modal Content */}
+          <div className="p-6 space-y-5">
+            {!forgotOtpStep ? (
+              /* Step 1: Request OTP */
+              <form onSubmit={handleSendForgotOtp} className="space-y-4">
+                <div className="space-y-1">
+                  <label className="text-xs font-bold text-slate-700 block">
+                    Registered Email or Mobile Number
+                  </label>
+                  <p className="text-[11px] text-slate-500">
+                    Enter the email or phone linked with your account to receive a 6-digit recovery code.
+                  </p>
+                  <div className="relative pt-1">
+                    <Mail size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                    <input
+                      type="text"
+                      placeholder="e.g. priya@joshpetshub.com or 9845012345"
+                      value={forgotIdentifier}
+                      onChange={(e) => setForgotIdentifier(e.target.value)}
+                      className="w-full pl-10 pr-4 py-2.5 border border-slate-200 rounded-xl text-xs md:text-sm focus:outline-none focus:border-[#0F2E23] focus:ring-2 focus:ring-emerald-100 transition bg-slate-50/50 hover:bg-white font-medium"
+                      required
+                      autoFocus
+                    />
+                  </div>
+                </div>
+
+                <div className="pt-2 flex items-center gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setShowForgotPasswordModal(false)}
+                    className="flex-1 py-2.5 border border-slate-200 hover:bg-slate-50 text-slate-600 rounded-xl text-xs font-bold transition cursor-pointer"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={forgotLoading || !forgotIdentifier.trim()}
+                    className="flex-1 py-2.5 bg-[#0F2E23] hover:bg-[#163e30] disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 shadow-md shadow-[#0F2E23]/20 cursor-pointer"
+                  >
+                    {forgotLoading ? (
+                      <>
+                        <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                        <span>Sending Code...</span>
+                      </>
+                    ) : (
+                      <>
+                        <span>Send Recovery Code</span>
+                        <ArrowRight size={13} />
+                      </>
+                    )}
+                  </button>
+                </div>
+              </form>
+            ) : (
+              /* Step 2: Enter OTP & Set New Password */
+              <form onSubmit={handleResetPasswordSubmit} className="space-y-4">
+                <div className="bg-emerald-50/80 border border-emerald-200/80 rounded-xl p-3 text-xs text-emerald-900 flex items-start gap-2">
+                  <ShieldCheck size={16} className="text-emerald-700 shrink-0 mt-0.5" />
+                  <div>
+                    <p className="font-bold">Verification code sent!</p>
+                    <p className="text-[11px] text-emerald-800">
+                      We sent a 6-digit code to <strong>{forgotIdentifier}</strong>.
                     </p>
-                    <div className="relative pt-1">
-                      <Mail size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                  </div>
+                </div>
+
+                {/* 6-Digit OTP */}
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-slate-700 block">
+                    6-Digit Verification Code
+                  </label>
+                  <div className="flex justify-center items-center gap-1.5">
+                    {forgotOtpDigits.map((digit, idx) => (
                       <input
+                        key={idx}
+                        ref={(el) => (forgotOtpInputRefs.current[idx] = el)}
                         type="text"
-                        placeholder="e.g. priya@joshpetshub.com or 9845012345"
-                        value={forgotIdentifier}
-                        onChange={(e) => setForgotIdentifier(e.target.value)}
-                        className="w-full pl-10 pr-4 py-2.5 border border-slate-200 rounded-xl text-xs md:text-sm focus:outline-none focus:border-[#0F2E23] focus:ring-2 focus:ring-emerald-100 transition bg-slate-50/50 hover:bg-white font-medium"
-                        required
-                        autoFocus
+                        inputMode="numeric"
+                        pattern="[0-9]*"
+                        maxLength={1}
+                        value={digit}
+                        onChange={(e) => handleForgotOtpChange(idx, e.target.value)}
+                        onKeyDown={(e) => handleForgotOtpKeyDown(idx, e)}
+                        onPaste={handleForgotOtpPaste}
+                        className="w-10 h-11 text-center text-lg font-bold font-mono border-2 rounded-xl focus:outline-none transition border-slate-200 bg-slate-50/50 text-slate-800 focus:border-[#0F2E23] focus:ring-2 focus:ring-emerald-100"
+                        autoFocus={idx === 0}
                       />
-                    </div>
+                    ))}
                   </div>
 
-                  <div className="pt-2 flex items-center gap-3">
+                  {/* Resend timer & 1-minute expiration indicator */}
+                  <div className="text-center pt-1">
+                    {forgotTimer > 0 ? (
+                      <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50 border border-blue-200 text-[#15559c] text-xs font-semibold">
+                        <span>⏱️</span>
+                        <span>Code expires in:</span>
+                        <span className="font-bold font-mono text-xs">
+                          0:{forgotTimer < 10 ? "0" + forgotTimer : forgotTimer}
+                        </span>
+                        <span className="text-[10px] text-slate-400 font-normal">(Valid for 1 min)</span>
+                      </div>
+                    ) : (
+                      <div className="space-y-1.5">
+                        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-red-50 border border-red-200 text-red-700 text-xs font-bold">
+                          <span>⚠️</span>
+                          <span>Code expired (1 min limit). Please request a new code.</span>
+                        </div>
+                        <div>
+                          <button
+                            type="button"
+                            onClick={handleSendForgotOtp}
+                            className="text-xs font-bold text-[#15559c] hover:underline cursor-pointer inline-flex items-center gap-1"
+                          >
+                            <RotateCcw size={12} /> Resend Verification Code
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* New Password */}
+                <div className="space-y-1">
+                  <label className="text-xs font-bold text-slate-700 flex items-center justify-between">
+                    <span>New Password</span>
+                    {forgotNewPassword.length > 0 && (
+                      <span className={"text-[10px] font-medium " + (forgotNewPassword.length >= 6 ? "text-emerald-600" : "text-amber-600")}>
+                        {forgotNewPassword.length >= 6 ? "✓ Minimum length satisfied" : ((6 - forgotNewPassword.length) + " more chars")}
+                      </span>
+                    )}
+                  </label>
+                  <div className="relative">
+                    <Lock size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                    <input
+                      type={showForgotNewPassword ? "text" : "password"}
+                      placeholder="Enter new password (min. 6 chars)"
+                      value={forgotNewPassword}
+                      onChange={(e) => setForgotNewPassword(e.target.value)}
+                      className="w-full pl-9 pr-9 py-2 border border-slate-200 rounded-xl text-xs focus:outline-none focus:border-[#0F2E23] focus:ring-2 focus:ring-emerald-100 transition"
+                      required
+                    />
                     <button
                       type="button"
-                      onClick={() => setShowForgotPasswordModal(false)}
-                      className="flex-1 py-2.5 border border-slate-200 hover:bg-slate-50 text-slate-600 rounded-xl text-xs font-bold transition cursor-pointer"
+                      onClick={() => setShowForgotNewPassword(!showForgotNewPassword)}
+                      className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 transition"
                     >
-                      Cancel
-                    </button>
-                    <button
-                      type="submit"
-                      disabled={forgotLoading || !forgotIdentifier.trim()}
-                      className="flex-1 py-2.5 bg-[#0F2E23] hover:bg-[#163e30] disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 shadow-md shadow-[#0F2E23]/20 cursor-pointer"
-                    >
-                      {forgotLoading ? (
-                        <>
-                          <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                          <span>Sending Code...</span>
-                        </>
-                      ) : (
-                        <>
-                          <span>Send Recovery Code</span>
-                          <ArrowRight size={13} />
-                        </>
-                      )}
+                      {showForgotNewPassword ? <EyeOff size={15} /> : <Eye size={15} />}
                     </button>
                   </div>
-                </form>
-              ) : (
-                /* Step 2: Enter OTP & Set New Password */
-                <form onSubmit={handleResetPasswordSubmit} className="space-y-4">
-                  <div className="bg-emerald-50/80 border border-emerald-200/80 rounded-xl p-3 text-xs text-emerald-900 flex items-start gap-2">
-                    <ShieldCheck size={16} className="text-emerald-700 shrink-0 mt-0.5" />
-                    <div>
-                      <p className="font-bold">Verification code sent!</p>
-                      <p className="text-[11px] text-emerald-800">
-                        We sent a 6-digit code to <strong>{forgotIdentifier}</strong>.
-                      </p>
-                    </div>
-                  </div>
+                </div>
 
-                  {/* 6-Digit OTP */}
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-slate-700 block">
-                      6-Digit Verification Code
-                    </label>
-                    <div className="flex justify-center items-center gap-1.5">
-                      {forgotOtpDigits.map((digit, idx) => (
-                        <input
-                          key={idx}
-                          ref={(el) => (forgotOtpInputRefs.current[idx] = el)}
-                          type="text"
-                          inputMode="numeric"
-                          pattern="[0-9]*"
-                          maxLength={1}
-                          value={digit}
-                          onChange={(e) => handleForgotOtpChange(idx, e.target.value)}
-                          onKeyDown={(e) => handleForgotOtpKeyDown(idx, e)}
-                          onPaste={handleForgotOtpPaste}
-                          className="w-10 h-11 text-center text-lg font-bold font-mono border-2 rounded-xl focus:outline-none transition border-slate-200 bg-slate-50/50 text-slate-800 focus:border-[#0F2E23] focus:ring-2 focus:ring-emerald-100"
-                          autoFocus={idx === 0}
-                        />
-                      ))}
-                    </div>
-
-                    {/* Resend timer & 1-minute expiration indicator */}
-                    <div className="text-center pt-1">
-                      {forgotTimer > 0 ? (
-                        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50 border border-blue-200 text-[#15559c] text-xs font-semibold">
-                          <span>⏱️</span>
-                          <span>Code expires in:</span>
-                          <span className="font-bold font-mono text-xs">
-                            0:{forgotTimer < 10 ? "0" + forgotTimer : forgotTimer}
-                          </span>
-                          <span className="text-[10px] text-slate-400 font-normal">(Valid for 1 min)</span>
-                        </div>
-                      ) : (
-                        <div className="space-y-1.5">
-                          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-red-50 border border-red-200 text-red-700 text-xs font-bold">
-                            <span>⚠️</span>
-                            <span>Code expired (1 min limit). Please request a new code.</span>
-                          </div>
-                          <div>
-                            <button
-                              type="button"
-                              onClick={handleSendForgotOtp}
-                              className="text-xs font-bold text-[#15559c] hover:underline cursor-pointer inline-flex items-center gap-1"
-                            >
-                              <RotateCcw size={12} /> Resend Verification Code
-                            </button>
-                          </div>
-                        </div>
+                {/* Confirm New Password */}
+                <div className="space-y-1">
+                  <label className="text-xs font-bold text-slate-700 flex items-center justify-between">
+                    <span>Confirm New Password</span>
+                    {forgotConfirmPassword.length > 0 && (
+                      <span className={"text-[10px] font-medium " + (forgotConfirmPassword === forgotNewPassword ? "text-emerald-600" : "text-amber-600")}>
+                        {forgotConfirmPassword === forgotNewPassword ? "✓ Passwords match" : "⚠️ Passwords do not match"}
+                      </span>
+                    )}
+                  </label>
+                  <div className="relative">
+                    <Lock size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                    <input
+                      type={showForgotConfirmPassword ? "text" : "password"}
+                      placeholder="Re-enter new password"
+                      value={forgotConfirmPassword}
+                      onChange={(e) => setForgotConfirmPassword(e.target.value)}
+                      className={"w-full pl-9 pr-9 py-2 border rounded-xl text-xs focus:outline-none transition " + (
+                        forgotConfirmPassword && forgotConfirmPassword !== forgotNewPassword
+                          ? "border-amber-400 focus:border-amber-500"
+                          : "border-slate-200 focus:border-[#0F2E23] focus:ring-2 focus:ring-emerald-100"
                       )}
-                    </div>
-                  </div>
-
-                  {/* New Password */}
-                  <div className="space-y-1">
-                    <label className="text-xs font-bold text-slate-700 flex items-center justify-between">
-                      <span>New Password</span>
-                      {forgotNewPassword.length > 0 && (
-                        <span className={"text-[10px] font-medium " + (forgotNewPassword.length >= 6 ? "text-emerald-600" : "text-amber-600")}>
-                          {forgotNewPassword.length >= 6 ? "✓ Minimum length satisfied" : ((6 - forgotNewPassword.length) + " more chars")}
-                        </span>
-                      )}
-                    </label>
-                    <div className="relative">
-                      <Lock size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-                      <input
-                        type={showForgotNewPassword ? "text" : "password"}
-                        placeholder="Enter new password (min. 6 chars)"
-                        value={forgotNewPassword}
-                        onChange={(e) => setForgotNewPassword(e.target.value)}
-                        className="w-full pl-9 pr-9 py-2 border border-slate-200 rounded-xl text-xs focus:outline-none focus:border-[#0F2E23] focus:ring-2 focus:ring-emerald-100 transition"
-                        required
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setShowForgotNewPassword(!showForgotNewPassword)}
-                        className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 transition"
-                      >
-                        {showForgotNewPassword ? <EyeOff size={15} /> : <Eye size={15} />}
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* Confirm New Password */}
-                  <div className="space-y-1">
-                    <label className="text-xs font-bold text-slate-700 flex items-center justify-between">
-                      <span>Confirm New Password</span>
-                      {forgotConfirmPassword.length > 0 && (
-                        <span className={"text-[10px] font-medium " + (forgotConfirmPassword === forgotNewPassword ? "text-emerald-600" : "text-amber-600")}>
-                          {forgotConfirmPassword === forgotNewPassword ? "✓ Passwords match" : "⚠️ Passwords do not match"}
-                        </span>
-                      )}
-                    </label>
-                    <div className="relative">
-                      <Lock size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-                      <input
-                        type={showForgotConfirmPassword ? "text" : "password"}
-                        placeholder="Re-enter new password"
-                        value={forgotConfirmPassword}
-                        onChange={(e) => setForgotConfirmPassword(e.target.value)}
-                        className={"w-full pl-9 pr-9 py-2 border rounded-xl text-xs focus:outline-none transition " + (
-                          forgotConfirmPassword && forgotConfirmPassword !== forgotNewPassword
-                            ? "border-amber-400 focus:border-amber-500"
-                            : "border-slate-200 focus:border-[#0F2E23] focus:ring-2 focus:ring-emerald-100"
-                        )}
-                        required
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setShowForgotConfirmPassword(!showForgotConfirmPassword)}
-                        className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 transition"
-                      >
-                        {showForgotConfirmPassword ? <EyeOff size={15} /> : <Eye size={15} />}
-                      </button>
-                    </div>
-                  </div>
-
-                  <div className="pt-2 flex items-center gap-3">
+                      required
+                    />
                     <button
                       type="button"
-                      onClick={() => setForgotOtpStep(false)}
-                      className="flex-1 py-2.5 border border-slate-200 hover:bg-slate-50 text-slate-600 rounded-xl text-xs font-bold transition cursor-pointer"
+                      onClick={() => setShowForgotConfirmPassword(!showForgotConfirmPassword)}
+                      className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 transition"
                     >
-                      ← Back
-                    </button>
-                    <button
-                      type="submit"
-                      disabled={forgotLoading || forgotOtpDigits.join("").length !== 6 || forgotTimer <= 0 || !forgotNewPassword || forgotNewPassword.length < 6 || forgotNewPassword !== forgotConfirmPassword}
-                      className="flex-1 py-2.5 bg-[#0F2E23] hover:bg-[#163e30] disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 shadow-md shadow-[#0F2E23]/20 cursor-pointer"
-                    >
-                      {forgotLoading ? (
-                        <>
-                          <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                          <span>Resetting...</span>
-                        </>
-                      ) : (
-                        <>
-                          <Check size={14} />
-                          <span>Reset Password</span>
-                        </>
-                      )}
+                      {showForgotConfirmPassword ? <EyeOff size={15} /> : <Eye size={15} />}
                     </button>
                   </div>
-                </form>
-              )}
-            </div>
+                </div>
+
+                <div className="pt-2 flex items-center gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setForgotOtpStep(false)}
+                    className="flex-1 py-2.5 border border-slate-200 hover:bg-slate-50 text-slate-600 rounded-xl text-xs font-bold transition cursor-pointer"
+                  >
+                    ← Back
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={forgotLoading || forgotOtpDigits.join("").length !== 6 || forgotTimer <= 0 || !forgotNewPassword || forgotNewPassword.length < 6 || forgotNewPassword !== forgotConfirmPassword}
+                    className="flex-1 py-2.5 bg-[#0F2E23] hover:bg-[#163e30] disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 shadow-md shadow-[#0F2E23]/20 cursor-pointer"
+                  >
+                    {forgotLoading ? (
+                      <>
+                        <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                        <span>Resetting...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Check size={14} />
+                        <span>Reset Password</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+              </form>
+            )}
           </div>
         </div>
-      )}
+      </div>
+    )
+  }
 };
 
 export default Login;

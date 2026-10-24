@@ -371,15 +371,16 @@ const AccountDashboard = () => {
         return;
       }
 
-      // Check current password against database / stored account records
-      const getDatabasePassword = () => {
-        if (user?.password) return user.password;
+      // Check current password against explicitly known stored plain-text password if available
+      const getKnownPassword = () => {
+        if (user?.password && !user.password.startsWith('$2')) return user.password;
         try {
           const saved = JSON.parse(localStorage.getItem('joshpetshub_user') || 'null');
-          if (saved?.password) return saved.password;
+          if (saved?.password && !saved.password.startsWith('$2')) return saved.password;
           const reg = JSON.parse(localStorage.getItem('joshpetshub_registered_users') || '[]');
           const found = reg.find(u => (user?._id && u._id === user._id) || (user?.email && u.email && u.email.toLowerCase() === user.email.toLowerCase()) || (user?.mobile && u.mobile && u.mobile === user.mobile));
-          if (found?.password) return found.password;
+          if (found?.password && !found.password.startsWith('$2')) return found.password;
+          if (found?.password_plain) return found.password_plain;
         } catch (e) {}
 
         const DEMO_PWDS = {
@@ -389,11 +390,11 @@ const AccountDashboard = () => {
         if (user?.email && DEMO_PWDS[user.email.toLowerCase()]) {
           return DEMO_PWDS[user.email.toLowerCase()];
         }
-        return 'Pass@1234';
+        return null;
       };
 
-      const dbPassword = getDatabasePassword();
-      if (dbPassword && !dbPassword.startsWith('$2') && currentPassword !== dbPassword) {
+      const knownPassword = getKnownPassword();
+      if (knownPassword && currentPassword !== knownPassword) {
         setCurrentPasswordError('Current password does not match what is in the database *');
         toast.error('Current password does not match what is in the database. Please try again.', { icon: '❌' });
         return;

@@ -3,15 +3,6 @@ const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api'
 const getHeaders = () => {
   let token = localStorage.getItem('joshpetshub_token');
 
-  if (!token || token === 'undefined' || token === 'null') {
-    try {
-      const savedUser = JSON.parse(localStorage.getItem('joshpetshub_user') || '{}');
-      if (savedUser && (savedUser.role === 'SUPERADMIN' || savedUser.role === 'ADMIN')) {
-        token = 'token_' + Date.now();
-        localStorage.setItem('joshpetshub_token', token);
-      }
-    } catch (e) {}
-  }
 
   const headers = {
     'Content-Type': 'application/json',

@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 import { apiRequest } from '../../services/api.js';
 import { login, logout } from '../../store/slices/authSlice.js';
+import { getStoredMatingPets } from '../../data/breedingData.js';
 import toast from 'react-hot-toast';
 
 const SuperAdminDashboard = () => {
@@ -101,8 +102,8 @@ const SuperAdminDashboard = () => {
   const loadProducts = async () => {
     try {
       const data = await apiRequest('/products?limit=100');
-      if (data.success) {
-        setProductsList(data.products);
+      if (data && data.success) {
+        setProductsList(Array.isArray(data.products) ? data.products : []);
       }
     } catch (err) {
       console.error(err);
@@ -112,8 +113,8 @@ const SuperAdminDashboard = () => {
   const loadOrders = async () => {
     try {
       const data = await apiRequest('/orders');
-      if (data.success) {
-        setOrdersList(data.orders);
+      if (data && data.success) {
+        setOrdersList(Array.isArray(data.orders) ? data.orders : []);
       }
     } catch (err) {
       console.error(err);
@@ -123,8 +124,8 @@ const SuperAdminDashboard = () => {
   const loadPrescriptions = async () => {
     try {
       const data = await apiRequest('/prescriptions');
-      if (data.success) {
-        setPrescriptionsList(data.prescriptions);
+      if (data && data.success) {
+        setPrescriptionsList(Array.isArray(data.prescriptions) ? data.prescriptions : []);
       }
     } catch (err) {
       console.error(err);
@@ -134,23 +135,57 @@ const SuperAdminDashboard = () => {
   const loadAdminMarketplaceData = async () => {
     try {
       const lData = await apiRequest('/listings');
-      if (lData.success) setListingsList(lData.listings);
+      if (lData && lData.success) {
+        setListingsList(Array.isArray(lData.listings) ? lData.listings : (Array.isArray(lData.data) ? lData.data : []));
+      }
 
-      const sData = await apiRequest('/breeding');
-      if (sData.success) setStudsList(sData.studs);
+      let fetchedStuds = [];
+      try {
+        const sData = await apiRequest('/breeding');
+        if (sData && sData.success) {
+          fetchedStuds = Array.isArray(sData.studs) ? sData.studs : (Array.isArray(sData.data) ? sData.data : []);
+        }
+      } catch (err) {
+        console.warn('API /breeding fetch error, using local fallback:', err);
+      }
+
+      // If backend has no studs or fails, merge with stored mating pets from breeding data
+      if (!fetchedStuds || fetchedStuds.length === 0) {
+        try {
+          const localPets = getStoredMatingPets() || [];
+          fetchedStuds = localPets.map((p) => ({
+            _id: p.id,
+            id: p.id,
+            studName: p.name,
+            breed: p.breed,
+            age: p.age,
+            kciNumber: p.kciNumber || (p.kciRegistered ? 'KCI-VERIFIED' : 'Pending KCI'),
+            studFee: p.price || 0,
+            user: { name: p.parentName || 'Verified Breeder' },
+            contactPhone: p.parentPhone || p.whatsappNumber || '+91 98765 43210',
+            isVerified: Boolean(p.isVerified)
+          }));
+        } catch (e) {
+          console.warn('Local mating pets fetch error:', e);
+        }
+      }
+
+      setStudsList(Array.isArray(fetchedStuds) ? fetchedStuds : []);
 
       const bData = await apiRequest('/bookings');
-      if (bData.success) setBookingsList(bData.bookings);
+      if (bData && bData.success) {
+        setBookingsList(Array.isArray(bData.bookings) ? bData.bookings : (Array.isArray(bData.data) ? bData.data : []));
+      }
     } catch (err) {
-      console.error(err);
+      console.error('Error loading admin marketplace data:', err);
     }
   };
 
   const loadUsers = async () => {
     try {
       const data = await apiRequest('/admin/users');
-      if (data.success) {
-        setUsersList(data.users);
+      if (data && data.success) {
+        setUsersList(Array.isArray(data.users) ? data.users : []);
       }
     } catch (err) {
       console.error(err);
@@ -160,8 +195,8 @@ const SuperAdminDashboard = () => {
   const loadEnquiries = async () => {
     try {
       const data = await apiRequest('/enquiries');
-      if (data.success) {
-        setEnquiriesList(data.enquiries);
+      if (data && data.success) {
+        setEnquiriesList(Array.isArray(data.enquiries) ? data.enquiries : []);
       }
     } catch (err) {
       console.error(err);
@@ -171,8 +206,8 @@ const SuperAdminDashboard = () => {
   const loadConsents = async () => {
     try {
       const data = await apiRequest('/cookie-consents');
-      if (data.success) {
-        setConsentsList(data.consents);
+      if (data && data.success) {
+        setConsentsList(Array.isArray(data.consents) ? data.consents : []);
       }
     } catch (err) {
       console.error(err);
@@ -212,14 +247,20 @@ const SuperAdminDashboard = () => {
   };
 
   const handleDeleteConsent = async (consentId) => {
+    if (!consentId || consentId === 'undefined') {
+      toast.error('Unable to delete: Invalid or missing consent ID.');
+      return;
+    }
     if (!window.confirm('Are you sure you want to delete this cookie consent log?')) return;
     try {
       const data = await apiRequest(`/cookie-consents/${consentId}`, {
         method: 'DELETE'
       });
-      if (data.success) {
+      if (data && data.success) {
         toast.success('Cookie consent log removed.');
         loadConsents();
+      } else {
+        throw new Error(data?.message || 'Failed to delete consent');
       }
     } catch (err) {
       toast.error(err.message || 'Failed to delete consent.');
@@ -452,12 +493,28 @@ const SuperAdminDashboard = () => {
         method: 'PUT',
         body: JSON.stringify({ isVerified })
       });
-      if (data.success) {
+      if (data && data.success) {
         toast.success(isVerified ? 'Stud KCI certification approved!' : 'KCI status revoked.');
-        loadAdminMarketplaceData();
+      } else {
+        throw new Error(data?.message || 'Verification update failed');
       }
     } catch (err) {
-      toast.error('Breeding verification failed.');
+      // Local fallback for offline/client state
+      try {
+        const localPets = getStoredMatingPets() || [];
+        const updatedLocal = localPets.map((p) => {
+          if (String(p.id) === String(studId) || String(p._id) === String(studId)) {
+            return { ...p, isVerified };
+          }
+          return p;
+        });
+        localStorage.setItem('joshpetshub_mating_pets_v4', JSON.stringify(updatedLocal));
+        toast.success(isVerified ? 'Stud KCI certification approved!' : 'KCI status revoked.');
+      } catch (e) {
+        toast.error('Breeding verification failed.');
+      }
+    } finally {
+      loadAdminMarketplaceData();
     }
   };
 
@@ -646,10 +703,6 @@ const SuperAdminDashboard = () => {
           </div>
 
           <div className="flex items-center gap-4">
-            <div className="text-[10px] text-gray-500 font-mono bg-white px-3 py-1.5 border border-[#E3EBE5] rounded-md flex items-center gap-2">
-              <span className="font-bold text-primary">Supabase URL:</span>
-              {import.meta.env.VITE_SUPABASE_URL || 'Not Configured'}
-            </div>
             <button
               onClick={() => { 
                 loadStats(); 
@@ -988,7 +1041,7 @@ const SuperAdminDashboard = () => {
             {/* PILLAR TAB 5: CLASSIFIED LISTINGS MODERATION */}
             {activeSection === 'listings' && (
               <div className="space-y-6 animate-in fade-in duration-200">
-                <h2 className="font-serif text-lg font-bold text-primary border-b border-[#E3EBE5] pb-3">Moderate Classified Listings ({listingsList.length})</h2>
+                <h2 className="font-serif text-lg font-bold text-primary border-b border-[#E3EBE5] pb-3">Moderate Classified Listings ({(listingsList || []).length})</h2>
 
                 <div className="card-premium overflow-x-auto">
                   <table className="w-full text-left text-xs border-collapse">
@@ -1060,7 +1113,7 @@ const SuperAdminDashboard = () => {
             {/* PILLAR TAB 6: BREEDERS & STUDS MODERATION */}
             {activeSection === 'studs' && (
               <div className="space-y-6 animate-in fade-in duration-200">
-                <h2 className="font-serif text-lg font-bold text-primary border-b border-[#E3EBE5] pb-3">Verify Breeder KCI Registrations ({studsList.length})</h2>
+                <h2 className="font-serif text-lg font-bold text-primary border-b border-[#E3EBE5] pb-3">Verify Breeder KCI Registrations ({(studsList || []).length})</h2>
 
                 <div className="card-premium overflow-x-auto">
                   <table className="w-full text-left text-xs border-collapse">
@@ -1074,31 +1127,39 @@ const SuperAdminDashboard = () => {
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-[#E3EBE5] text-xs">
-                      {studsList.map((s) => (
-                        <tr key={s._id} className="hover:bg-[#F9FAF9] transition-colors duration-300">
-                          <td className="p-4 space-y-1">
-                            <p className="font-bold text-primary">{s.studName}</p>
-                            <p className="text-[10px] text-gray-400">Breed: {s.breed} • Age: {s.age}</p>
-                          </td>
-                          <td className="p-3 font-semibold text-gray-500 uppercase">{s.kciNumber}</td>
-                          <td className="p-4">
-                            <p className="font-semibold">{s.user?.name}</p>
-                            <p className="text-[10px] text-gray-400">{s.contactPhone}</p>
-                          </td>
-                          <td className="p-3 font-bold text-primary">₹{s.studFee}</td>
-                          <td className="p-4 text-center">
-                            <button
-                              onClick={() => handleVerifyStud(s._id, !s.isVerified)}
-                              className={`px-3 py-1.5 font-bold tracking-widest text-[9px] uppercase transition cursor-pointer ${s.isVerified
-                                  ? 'bg-[#FAFBF9] text-green-700 border border-green-200'
-                                  : 'bg-orange-50 text-orange-700 border border-orange-200'
-                                }`}
-                            >
-                              {s.isVerified ? 'KCI CERTIFIED' : 'PENDING CHECK'}
-                            </button>
+                      {(!studsList || studsList.length === 0) ? (
+                        <tr>
+                          <td colSpan={5} className="p-8 text-center text-gray-400 font-medium">
+                            No breeder or stud listings submitted for verification yet.
                           </td>
                         </tr>
-                      ))}
+                      ) : (
+                        studsList.map((s) => (
+                          <tr key={s._id || s.id} className="hover:bg-[#F9FAF9] transition-colors duration-300">
+                            <td className="p-4 space-y-1">
+                              <p className="font-bold text-primary">{s.studName || s.name || 'Unnamed Stud'}</p>
+                              <p className="text-[10px] text-gray-400">Breed: {s.breed || 'Unknown'} • Age: {s.age || 'N/A'}</p>
+                            </td>
+                            <td className="p-3 font-semibold text-gray-500 uppercase">{s.kciNumber || 'Pending KCI'}</td>
+                            <td className="p-4">
+                              <p className="font-semibold">{s.user?.name || s.parentName || 'Breeder'}</p>
+                              <p className="text-[10px] text-gray-400">{s.contactPhone || s.parentPhone || 'No phone'}</p>
+                            </td>
+                            <td className="p-3 font-bold text-primary">₹{(s.studFee ?? s.price ?? 0).toLocaleString('en-IN')}</td>
+                            <td className="p-4 text-center">
+                              <button
+                                onClick={() => handleVerifyStud(s._id || s.id, !s.isVerified)}
+                                className={`px-3 py-1.5 font-bold tracking-widest text-[9px] uppercase transition cursor-pointer ${s.isVerified
+                                    ? 'bg-[#FAFBF9] text-green-700 border border-green-200'
+                                    : 'bg-orange-50 text-orange-700 border border-orange-200'
+                                  }`}
+                              >
+                                {s.isVerified ? 'KCI CERTIFIED' : 'PENDING CHECK'}
+                              </button>
+                            </td>
+                          </tr>
+                        ))
+                      )}
                     </tbody>
                   </table>
                 </div>
@@ -1108,7 +1169,7 @@ const SuperAdminDashboard = () => {
             {/* PILLAR TAB 7: GLOBAL APPOINTMENTS BOOKINGS */}
             {activeSection === 'bookings' && (
               <div className="space-y-6 animate-in fade-in duration-200">
-                <h2 className="font-serif text-lg font-bold text-primary border-b border-[#E3EBE5] pb-3">Service Appointments & Bookings ({bookingsList.length})</h2>
+                <h2 className="font-serif text-lg font-bold text-primary border-b border-[#E3EBE5] pb-3">Service Appointments & Bookings ({(bookingsList || []).length})</h2>
 
                 <div className="card-premium overflow-x-auto">
                   <table className="w-full text-left text-xs border-collapse">
@@ -1162,7 +1223,7 @@ const SuperAdminDashboard = () => {
             {/* PILLAR TAB 8: REGISTERED USERS MANAGER */}
             {activeSection === 'users' && (
               <div className="space-y-6 animate-in fade-in duration-200">
-                <h2 className="font-serif text-lg font-bold text-primary border-b border-[#E3EBE5] pb-3">Registered Accounts ({usersList.length})</h2>
+                <h2 className="font-serif text-lg font-bold text-primary border-b border-[#E3EBE5] pb-3">Registered Accounts ({(usersList || []).length})</h2>
 
                 <div className="card-premium overflow-x-auto">
                   <table className="w-full text-left text-xs border-collapse">
@@ -1233,7 +1294,7 @@ const SuperAdminDashboard = () => {
             {/* PILLAR TAB 9: CONTACT ENQUIRIES MANAGER */}
             {activeSection === 'enquiries' && (
               <div className="space-y-6 animate-in fade-in duration-200">
-                <h2 className="font-serif text-lg font-bold text-primary border-b border-[#E3EBE5] pb-3">Contact Form Submissions ({enquiriesList.length})</h2>
+                <h2 className="font-serif text-lg font-bold text-primary border-b border-[#E3EBE5] pb-3">Contact Form Submissions ({(enquiriesList || []).length})</h2>
 
                 <div className="card-premium overflow-x-auto">
                   <table className="w-full text-left text-xs border-collapse">
@@ -1270,7 +1331,7 @@ const SuperAdminDashboard = () => {
         {/* PILLAR TAB 10: COOKIE CONSENTS MANAGER */}
         {activeSection === 'consents' && (
           <div className="space-y-6 animate-in fade-in duration-200">
-            <h2 className="font-serif text-lg font-bold text-primary border-b border-[#E3EBE5] pb-3">User Cookie Preferences Logs ({consentsList.length})</h2>
+            <h2 className="font-serif text-lg font-bold text-primary border-b border-[#E3EBE5] pb-3">User Cookie Preferences Logs ({(consentsList || []).length})</h2>
 
             <div className="card-premium overflow-x-auto">
               <table className="w-full text-left text-xs border-collapse">
@@ -1284,11 +1345,13 @@ const SuperAdminDashboard = () => {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[#E3EBE5] text-xs">
-                  {consentsList.map((c) => (
-                    <tr key={c._id || c.sessionId} className="hover:bg-[#F9FAF9] transition-colors duration-300">
+                  {(consentsList || []).map((c) => (
+                    <tr key={c.id || c._id || c.session_id || c.sessionId} className="hover:bg-[#F9FAF9] transition-colors duration-300">
                       <td className="p-4">
-                        <div className="font-bold text-primary truncate max-w-[150px]" title={c.sessionId}>{c.sessionId}</div>
-                        <div className="text-[10px] text-gray-500">{c.ip || 'Unknown IP'}</div>
+                        <div className="font-bold text-primary truncate max-w-[150px]" title={c.session_id || c.sessionId}>
+                          {c.session_id || c.sessionId || 'Session Log'}
+                        </div>
+                        <div className="text-[10px] text-gray-500">{c.ip_address || c.ip || 'Local / Unknown IP'}</div>
                       </td>
                       <td className="p-4 space-y-1">
                         <div className="flex gap-2">
@@ -1300,16 +1363,16 @@ const SuperAdminDashboard = () => {
                           <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold ${c.preferences?.marketing ? 'bg-yellow-100 text-yellow-700' : 'bg-gray-100 text-gray-500'}`}>MARKETING</span>
                         </div>
                       </td>
-                      <td className="p-3 text-gray-600 max-w-[200px] truncate text-[10px]" title={c.userAgent}>
-                        {c.userAgent || 'Unknown'}
+                      <td className="p-3 text-gray-600 max-w-[200px] truncate text-[10px]" title={c.user_agent || c.userAgent}>
+                        {c.user_agent || c.userAgent || 'Web Client'}
                       </td>
                       <td className="p-3 text-right text-gray-400 font-medium">
-                        {new Date(c.createdAt).toLocaleString()}
+                        {(c.created_at || c.createdAt) ? new Date(c.created_at || c.createdAt).toLocaleString() : 'Recent'}
                       </td>
                       <td className="p-3 text-right">
                         <button
-                          onClick={() => handleDeleteConsent(c._id)}
-                          className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-md transition-colors"
+                          onClick={() => handleDeleteConsent(c.id || c._id || c.session_id || c.sessionId)}
+                          className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-md transition-colors cursor-pointer"
                           title="Delete Log"
                         >
                           <Trash size={16} />
@@ -1317,7 +1380,7 @@ const SuperAdminDashboard = () => {
                       </td>
                     </tr>
                   ))}
-                  {consentsList.length === 0 && (
+                  {(!consentsList || consentsList.length === 0) && (
                     <tr>
                       <td colSpan="5" className="p-8 text-center text-gray-400 font-medium">No cookie consent logs found.</td>
                     </tr>

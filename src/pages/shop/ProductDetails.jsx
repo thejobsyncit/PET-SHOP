@@ -17,8 +17,11 @@ const ProductDetails = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  const { currentProduct: product, detailLoading: loading, items: products } = useSelector((state) => state.products);
+  const { currentProduct: productFromStore, detailLoading: loading, items: products } = useSelector((state) => state.products);
   const wishlistItems = useSelector((state) => state.wishlist.items);
+  
+  // Safe fallback to finding product from cached store products or wishlist while detail API request resolves
+  const product = productFromStore || products.find(p => p.slug === slug || (p._id || p.id) === slug) || wishlistItems.find(p => p.slug === slug || (p._id || p.id) === slug);
   const productId = product ? (product._id || product.id) : null;
   const isWishlisted = productId && wishlistItems.some(item => (item._id || item.id) === productId);
 
@@ -35,23 +38,27 @@ const ProductDetails = () => {
   const [submittingReview, setSubmittingReview] = useState(false);
 
   useEffect(() => {
-    dispatch(fetchProductDetail(slug));
+    if (slug) {
+      dispatch(fetchProductDetail(slug));
+    }
     return () => {
       dispatch(clearProductDetail());
     };
   }, [slug, dispatch]);
 
   useEffect(() => {
-    if (product) {
+    if (productId) {
       // Load product recommendations
-      dispatch(fetchProducts({ petType: product.petType, limit: 8 }));
+      if (product?.petType) {
+        dispatch(fetchProducts({ petType: product.petType, limit: 8 }));
+      }
       // Load product reviews
-      loadReviews(product._id || product.id);
+      loadReviews(productId);
       // Reset image index
       setActiveImage(0);
       setQuantity(1);
     }
-  }, [product, dispatch]);
+  }, [productId, dispatch]);
 
   const loadReviews = async (productId) => {
     setReviewsLoading(true);
@@ -84,22 +91,28 @@ const ProductDetails = () => {
   };
 
   const handleAddToCart = async () => {
+    if (!product) return;
     if (product.requiresPrescription || product.requires_prescription) {
       toast('Prescription verification needed. Order will process under Rx Review status.', { icon: '📝' });
     }
-    const result = await dispatch(addToCartAPI({ product, quantity }));
-    if (addToCartAPI.fulfilled.match(result)) {
-      toast.success('Added to cart!');
-    } else {
+    try {
+      const result = await dispatch(addToCartAPI({ product, quantity }));
+      if (addToCartAPI.fulfilled.match(result)) {
+        toast.success('Added to cart!');
+      } else {
+        toast.error('Could not add to cart.');
+      }
+    } catch (err) {
       toast.error('Could not add to cart.');
     }
   };
 
   const handleBuyNow = async () => {
-    const result = await dispatch(addToCartAPI({ product, quantity }));
-    if (addToCartAPI.fulfilled.match(result)) {
-      navigate('/checkout');
-    }
+    if (!product) return;
+    try {
+      await dispatch(addToCartAPI({ product, quantity }));
+    } catch (_) {}
+    navigate('/checkout');
   };
 
   const handleReviewSubmit = async (e) => {
@@ -142,11 +155,35 @@ const ProductDetails = () => {
     }
   };
 
-  if (loading || !product) {
+  if (loading && !product) {
     return (
       <div className="max-w-7xl mx-auto px-4 md:px-8 py-10 lg:py-20 flex flex-col items-center justify-center space-y-4">
         <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-accent"></div>
         <p className="text-xs text-gray-500 font-bold uppercase tracking-wider">Curating product details...</p>
+      </div>
+    );
+  }
+
+  if (!product) {
+    return (
+      <div className="max-w-4xl mx-auto px-4 py-20 text-center space-y-6">
+        <div className="w-16 h-16 bg-red-50 text-red-500 rounded-full flex items-center justify-center mx-auto border border-red-100">
+          <ShieldAlert size={32} />
+        </div>
+        <div className="space-y-2">
+          <h2 className="font-serif text-2xl md:text-3xl font-bold text-primary">Product Not Found</h2>
+          <p className="text-sm text-gray-500 max-w-md mx-auto">
+            The requested product details could not be found or may have been updated.
+          </p>
+        </div>
+        <div className="flex justify-center gap-4">
+          <button
+            onClick={() => navigate('/shop')}
+            className="btn-premium py-2.5 px-6 text-xs uppercase tracking-widest font-bold cursor-pointer"
+          >
+            Return to Shop
+          </button>
+        </div>
       </div>
     );
   }
@@ -551,11 +588,11 @@ const ProductDetails = () => {
                       key={star}
                       type="button"
                       onClick={() => setReviewRating(star)}
-                      className="text-gray-300 hover:text-accent focus:outline-none cursor-pointer"
+                      className="text-gray-300 hover:text-amber-400 focus:outline-none cursor-pointer transition-colors"
                     >
                       <Star 
                         size={20} 
-                        className={star <= reviewRating ? 'fill-accent text-accent' : 'text-gray-300'} 
+                        className={star <= reviewRating ? 'fill-amber-400 text-amber-400' : 'text-gray-300'} 
                       />
                     </button>
                   ))}

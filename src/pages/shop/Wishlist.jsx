@@ -23,13 +23,18 @@ const Wishlist = () => {
   const handleAddToCart = async (product) => {
     if (product.requiresPrescription || product.requires_prescription) {
       toast('Prescription required! Redirecting to details...', { icon: '📝' });
-      navigate(product.slug ? `/product/${product.slug}` : '/shop');
+      const targetSlug = product.slug || product._id || product.id;
+      navigate(targetSlug ? `/product/${targetSlug}` : '/shop');
       return;
     }
-    const result = await dispatch(addToCartAPI({ product, quantity: 1 }));
-    if (addToCartAPI.fulfilled.match(result)) {
-      toast.success('Added to cart!');
-    } else {
+    try {
+      const result = await dispatch(addToCartAPI({ product, quantity: 1 }));
+      if (addToCartAPI.fulfilled.match(result)) {
+        toast.success('Added to cart!');
+      } else {
+        toast.error('Could not add to cart.');
+      }
+    } catch (_) {
       toast.error('Could not add to cart.');
     }
   };
@@ -105,7 +110,10 @@ const Wishlist = () => {
 
                 {/* Image */}
                 <div 
-                  onClick={() => navigate(`/product/${product.slug}`)}
+                  onClick={() => {
+                    const targetSlug = product.slug || product._id || product.id;
+                    navigate(targetSlug ? `/product/${targetSlug}` : '/shop');
+                  }}
                   className="relative aspect-square overflow-hidden bg-gray-50 border-b border-beige cursor-pointer"
                 >
                   <img 
@@ -124,7 +132,10 @@ const Wishlist = () => {
                   <div>
                     <span className="text-[10px] uppercase tracking-widest text-accent font-semibold block">{product.brand}</span>
                     <h4 
-                      onClick={() => navigate(`/product/${product.slug}`)}
+                      onClick={() => {
+                        const targetSlug = product.slug || product._id || product.id;
+                        navigate(targetSlug ? `/product/${targetSlug}` : '/shop');
+                      }}
                       className="font-serif text-xs font-semibold text-primary truncate cursor-pointer hover:text-accent mt-0.5"
                     >
                       {product.name}

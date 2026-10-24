@@ -56,33 +56,57 @@ export const TRAINING_BENEFITS = [
     id: 'organized-home',
     title: 'Your home stays organized',
     desc: 'No more chewed furniture, shoe hoarding, or messy indoor accidents.',
-    bgColor: 'bg-amber-400',
-    textColor: 'text-amber-950',
-    icon: '🏠'
+    iconKey: 'home',
+    category: 'House Manners & Habits',
+    detailedDescription: 'Instill disciplined household boundaries and crate comfort from day one.',
+    points: [
+      'Zero chewed furniture or shoes',
+      '100% reliable potty spot habit',
+      'Quiet doorbell & visitor manners'
+    ],
+    metric: '98% fewer accidents in 14 days'
   },
   {
     id: 'easier-communication',
     title: 'Communication gets easier',
     desc: "Understand your dog's subtle body language, cues, and tail wags effortlessly.",
-    bgColor: 'bg-sky-400',
-    textColor: 'text-sky-950',
-    icon: '👧'
+    iconKey: 'communication',
+    category: 'Canine Body Language',
+    detailedDescription: 'Build seamless 2-way dialogue through positive reinforcement cues and hand signals.',
+    points: [
+      'Instant voice & hand cue recall',
+      'Decode stress & calming signals',
+      'Distraction-proof eye contact'
+    ],
+    metric: '10+ vital life safety cues mastered'
   },
   {
     id: 'stress-free-walks',
     title: 'Walks turn stress-free',
     desc: 'Enjoy relaxed loose-leash neighborhood strolls with zero lunging or pulling.',
-    bgColor: 'bg-pink-300',
-    textColor: 'text-pink-950',
-    icon: '🤲'
+    iconKey: 'walks',
+    category: 'Loose-Leash Manners',
+    detailedDescription: 'Transform chaotic walks into peaceful, loose-leash outdoor adventures.',
+    points: [
+      'Zero pulling, dragging, or lunging',
+      'Curbside auto-sit at road crossings',
+      'Neutral calm around stray dogs'
+    ],
+    metric: 'Enjoy calm 45-min daily strolls'
   },
   {
     id: 'stronger-bond',
     title: 'Your bond gets stronger',
     desc: 'Build deep mutual trust, respect, and a positive reinforcement lifelong connection.',
-    bgColor: 'bg-purple-400',
-    textColor: 'text-purple-950',
-    icon: '🐕'
+    iconKey: 'bond',
+    category: 'Trust & Confidence',
+    detailedDescription: 'Nurture unwavering mutual respect without harsh punishment or fear.',
+    points: [
+      '100% force-free positive methods',
+      'High confidence & low separation anxiety',
+      'Mental enrichment brain games'
+    ],
+    metric: 'Lifelong joyful partnership'
   }
 ];
 

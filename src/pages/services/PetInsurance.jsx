@@ -587,31 +587,10 @@ const PetInsurance = () => {
     });
   };
 
-  // Open Details Modal / Visit Provider
+  // Open Details Modal / Visit Provider Profile
   const handleOpenDetailsModal = (provider) => {
-    if (!isAuthenticated) {
-      toast('Please sign up or log in to view insurance provider details.', {
-        icon: '🔐',
-        duration: 4000
-      });
-      window.dispatchEvent(
-        new CustomEvent('open-register-modal', {
-          detail: {
-            tab: 'user',
-            hideProviderTab: true,
-            source: 'insurance-details',
-            providerName: provider?.name
-          }
-        })
-      );
-      return;
-    }
-    handleServiceAction({
-      isAuthenticated,
-      serviceType: 'Insurance',
-      provider,
-      action: 'view_expert_profile'
-    });
+    setSelectedProviderForDetails(provider);
+    setShowDetailsModal(true);
   };
 
   // Submit Policy Application
@@ -668,63 +647,71 @@ const PetInsurance = () => {
   return (
     <div className="min-h-screen bg-[#FDFBF7] text-slate-800 antialiased font-sans">
       {/* 1. HERO SECTION */}
-      <ScrollReveal variant="fade" className="relative bg-gradient-to-br from-[#0B251C] via-[#0F2E23] to-[#164233] text-white pt-10 pb-16 px-4 md:px-8 border-b border-emerald-900/40">
-        <div className="max-w-7xl mx-auto">
-          {/* Breadcrumbs */}
-          <div className="flex items-center gap-2 text-xs uppercase tracking-widest text-emerald-300/80 mb-6">
-            <Link to="/" className="hover:text-white transition">Home</Link>
+      <ScrollReveal
+        variant="fade"
+        style={{ background: 'linear-gradient(135deg, #d4af37 0%, #fef08a 50%, #b89228 100%)' }}
+        className="relative text-slate-900 pt-6 md:pt-8 pb-10 md:pb-16 px-4 md:px-8 border-b border-[#b89228] shadow-md overflow-hidden"
+      >
+        {/* Subtle Decorative Background Highlights */}
+        <div className="absolute -top-24 -right-24 w-96 h-96 bg-white/20 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute bottom-0 left-12 w-96 h-96 bg-[#b89228]/25 rounded-full blur-3xl pointer-events-none" />
+
+        <div className="max-w-7xl mx-auto relative z-10">
+          {/* Breadcrumb Navigation */}
+          <div className="flex items-center gap-1.5 text-xs text-slate-800/80 mb-6 font-medium">
+            <Link to="/" className="hover:text-black transition">Home</Link>
             <ChevronRight size={12} />
-            <Link to="/services" className="hover:text-white transition">Pet Services</Link>
+            <Link to="/services" className="hover:text-black transition">Pet Services</Link>
             <ChevronRight size={12} />
-            <span className="text-white font-bold">Pet Insurance & Health Cover</span>
+            <span className="font-bold text-slate-900">Pet Insurance</span>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
             {/* Hero Left Content */}
             <div className="lg:col-span-7 space-y-5">
-              <div className="inline-flex items-center gap-2 bg-emerald-500/15 border border-emerald-400/30 px-3.5 py-1.5 rounded-full text-xs font-semibold text-emerald-300 tracking-wider">
-                <ShieldCheck size={15} className="text-emerald-400" />
+              <div className="inline-flex items-center gap-2 bg-[#1D3B2E] text-white border border-[#1D3B2E]/20 px-3.5 py-1.5 rounded-full text-xs font-semibold tracking-wider shadow-sm">
+                <ShieldCheck size={15} className="text-[#fef08a]" />
                 <span>IRDAI Compliant Pet Health & Surgery Plans in India</span>
               </div>
 
-              <h1 className="font-serif text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-white leading-[1.15]">
-                Protect Your Pet’s Life & Health with <span className="text-accent-light italic">360° Cashless</span> Cover
+              <h1 className="font-serif text-3xl sm:text-4xl md:text-5xl font-black tracking-tight text-slate-950 leading-[1.15]">
+                Protect Your Pet’s Life & Health with <span className="text-[#1D3B2E] italic drop-shadow-[0_1px_1px_rgba(255,255,255,0.4)]">360° Cashless</span> Cover
               </h1>
 
-              <p className="text-slate-200 text-sm md:text-base leading-relaxed max-w-2xl font-light">
+              <p className="text-slate-900 text-sm md:text-base leading-relaxed max-w-2xl font-medium">
                 Don’t let unexpected veterinary surgeries, illness hospitalizations, cancer care, or accidental trauma drain your savings. Compare India's top pet health insurance underwriters with direct cashless settlement across 1,500+ clinics.
               </p>
 
               {/* Key Trust Pillars */}
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2">
-                <div className="bg-white/5 backdrop-blur-sm border border-white/10 p-3 rounded-none">
-                  <div className="text-xl font-bold text-accent-light font-serif">98.8%</div>
-                  <div className="text-[11px] text-slate-300 uppercase tracking-wider font-medium">Claim Ratio</div>
+                <div className="bg-[#1D3B2E] text-white p-3 rounded-xl shadow-md border border-emerald-900/30">
+                  <div className="text-xl font-bold text-[#fef08a] font-serif">98.8%</div>
+                  <div className="text-[11px] text-emerald-100 uppercase tracking-wider font-semibold">Claim Ratio</div>
                 </div>
-                <div className="bg-white/5 backdrop-blur-sm border border-white/10 p-3 rounded-none">
-                  <div className="text-xl font-bold text-accent-light font-serif">1,500+</div>
-                  <div className="text-[11px] text-slate-300 uppercase tracking-wider font-medium">Cashless Vets</div>
+                <div className="bg-[#1D3B2E] text-white p-3 rounded-xl shadow-md border border-emerald-900/30">
+                  <div className="text-xl font-bold text-[#fef08a] font-serif">1,500+</div>
+                  <div className="text-[11px] text-emerald-100 uppercase tracking-wider font-semibold">Cashless Vets</div>
                 </div>
-                <div className="bg-white/5 backdrop-blur-sm border border-white/10 p-3 rounded-none">
-                  <div className="text-xl font-bold text-accent-light font-serif">₹5 Lakhs</div>
-                  <div className="text-[11px] text-slate-300 uppercase tracking-wider font-medium">Max Cover</div>
+                <div className="bg-[#1D3B2E] text-white p-3 rounded-xl shadow-md border border-emerald-900/30">
+                  <div className="text-xl font-bold text-[#fef08a] font-serif">₹5 Lakhs</div>
+                  <div className="text-[11px] text-emerald-100 uppercase tracking-wider font-semibold">Max Cover</div>
                 </div>
-                <div className="bg-white/5 backdrop-blur-sm border border-white/10 p-3 rounded-none">
-                  <div className="text-xl font-bold text-accent-light font-serif">&lt; 4 Hours</div>
-                  <div className="text-[11px] text-slate-300 uppercase tracking-wider font-medium">Fast Claims</div>
+                <div className="bg-[#1D3B2E] text-white p-3 rounded-xl shadow-md border border-emerald-900/30">
+                  <div className="text-xl font-bold text-[#fef08a] font-serif">&lt; 4 Hours</div>
+                  <div className="text-[11px] text-emerald-100 uppercase tracking-wider font-semibold">Fast Claims</div>
                 </div>
               </div>
             </div>
 
             {/* Hero Right Quick Quote Calculator */}
             <div className="lg:col-span-5">
-              <div className="bg-white text-slate-900 p-6 shadow-2xl border border-emerald-100 rounded-none relative">
+              <div className="bg-white text-slate-900 p-6 shadow-2xl border border-stone-200 rounded-3xl relative">
                 <div className="flex items-center justify-between pb-3 border-b border-gray-100 mb-4">
                   <div className="flex items-center gap-2">
-                    <Zap className="text-primary" size={18} />
-                    <h3 className="font-serif font-bold text-lg text-primary">Instant Premium Estimator</h3>
+                    <Zap className="text-[#1D3B2E]" size={18} />
+                    <h3 className="font-serif font-bold text-lg text-slate-900">Instant Premium Estimator</h3>
                   </div>
-                  <span className="text-[10px] bg-emerald-50 text-emerald-800 border border-emerald-200 px-2 py-0.5 font-bold uppercase tracking-wider">
+                  <span className="text-[10px] bg-emerald-50 text-emerald-800 border border-emerald-200 px-2 py-0.5 rounded-full font-bold uppercase tracking-wider">
                     Free Quote
                   </span>
                 </div>
@@ -740,9 +727,9 @@ const PetInsurance = () => {
                           key={type}
                           type="button"
                           onClick={() => handleSelectPetSpecies(type)}
-                          className={`py-2 px-1 text-center font-bold tracking-wider text-[11px] border transition cursor-pointer ${
+                          className={`py-2 px-1 text-center font-bold tracking-wider text-[11px] rounded-xl border transition cursor-pointer ${
                             calcPetType === type
-                              ? 'bg-primary text-white border-primary shadow-sm'
+                              ? 'bg-[#1D3B2E] text-white border-[#1D3B2E] shadow-sm'
                               : 'bg-gray-50 text-slate-700 border-gray-200 hover:bg-gray-100'
                           }`}
                         >
@@ -759,7 +746,7 @@ const PetInsurance = () => {
                     <select
                       value={calcAge}
                       onChange={(e) => setCalcAge(e.target.value)}
-                      className="w-full p-2.5 bg-gray-50 border border-gray-200 text-xs font-semibold focus:outline-none focus:border-primary"
+                      className="w-full p-2.5 bg-gray-50 border border-gray-200 text-xs font-semibold rounded-xl focus:outline-none focus:border-[#1D3B2E]"
                     >
                       {calcPetType === 'Dog' && (
                         <>
@@ -797,14 +784,14 @@ const PetInsurance = () => {
                       <label className="block font-bold text-slate-700 uppercase tracking-wider text-[10px]">
                         3. Coverage Type Needed
                       </label>
-                      <span className="text-[10px] text-emerald-800 font-bold bg-emerald-50 px-1.5 py-0.5 border border-emerald-200">
+                      <span className="text-[10px] text-emerald-800 font-bold bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
                         {calcPetType} Specialized
                       </span>
                     </div>
                     <select
                       value={calcCoverNeed}
                       onChange={(e) => setCalcCoverNeed(e.target.value)}
-                      className="w-full p-2.5 bg-gray-50 border border-gray-200 text-xs font-semibold focus:outline-none focus:border-primary"
+                      className="w-full p-2.5 bg-gray-50 border border-gray-200 text-xs font-semibold rounded-xl focus:outline-none focus:border-[#1D3B2E]"
                     >
                       {(SPECIES_COVERAGE_OPTIONS[calcPetType] || SPECIES_COVERAGE_OPTIONS['Dog']).map((opt) => (
                         <option key={opt.id} value={opt.label}>
@@ -817,7 +804,7 @@ const PetInsurance = () => {
                     {(() => {
                       const currentOpt = (SPECIES_COVERAGE_OPTIONS[calcPetType] || []).find((o) => o.label === calcCoverNeed);
                       return currentOpt ? (
-                        <div className="text-[10.5px] text-slate-600 bg-slate-50 p-2 border border-slate-200 mt-1.5 rounded-none leading-relaxed">
+                        <div className="text-[10.5px] text-slate-600 bg-slate-50 p-2 border border-slate-200 mt-1.5 rounded-xl leading-relaxed">
                           <span className="font-bold text-emerald-900">Inclusions:</span> {currentOpt.desc}
                         </div>
                       ) : null;
@@ -826,9 +813,9 @@ const PetInsurance = () => {
 
                   <button
                     type="submit"
-                    className="w-full py-3 bg-primary hover:bg-primary-dark text-white font-bold tracking-widest uppercase transition flex items-center justify-center gap-2 cursor-pointer shadow-md mt-2 text-xs"
+                    className="w-full py-3 bg-[#1D3B2E] hover:bg-[#152e24] text-white font-bold tracking-widest uppercase transition flex items-center justify-center gap-2 cursor-pointer shadow-md mt-2 text-xs rounded-xl active:scale-95"
                   >
-                    <Sparkles size={14} className="text-accent-light" /> Calculate Instant Quote
+                    <Sparkles size={14} className="text-[#fef08a]" /> Calculate Instant Quote
                   </button>
 
                   {calcEstimatedCost && detailedQuote && (
@@ -865,234 +852,239 @@ const PetInsurance = () => {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
           
           {/* ================= LEFT SIDEBAR: FILTERS & FEATURES ================= */}
-          <aside className="lg:col-span-4 bg-white border border-gray-200 p-4 sm:p-5 lg:sticky lg:top-24 shadow-sm space-y-6 max-h-[calc(100vh-6.5rem)] overflow-y-auto custom-scrollbar">
-            {/* Header & Reset Button */}
-            <div className="flex items-center justify-between pb-3 border-b border-gray-100">
-              <div className="flex items-center gap-2">
-                <SlidersHorizontal size={16} className="text-primary" />
-                <h3 className="font-serif font-bold text-base text-primary uppercase tracking-wider">
-                  Filter Plans
-                </h3>
-              </div>
-              <button
-                onClick={handleResetFilters}
-                className="text-[11px] font-bold text-slate-500 hover:text-red-600 transition flex items-center gap-1 uppercase tracking-wider cursor-pointer"
-              >
-                <RotateCcw size={12} /> Reset All
-              </button>
-            </div>
-
-            {/* Keyword Search */}
-            <div>
-              <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-                Search Plan / Insurer
-              </label>
-              <div className="relative">
-                <input
-                  type="text"
-                  placeholder="e.g. Bajaj, Digit, Surgery..."
-                  value={searchKeyword}
-                  onChange={(e) => setSearchKeyword(e.target.value)}
-                  className="w-full pl-8 pr-3 py-2 text-xs bg-gray-50 border border-gray-200 rounded-none focus:outline-none focus:border-primary"
-                />
-                <Search size={14} className="absolute left-2.5 top-3 text-slate-400" />
-              </div>
-            </div>
-
-            {/* Sort By Filter (Inside Filter Sidebar) */}
-            <div>
-              <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-                Sort By
-              </label>
-              <div className="relative">
-                <select
-                  value={sortBy}
-                  onChange={(e) => setSortBy(e.target.value)}
-                  className="w-full px-3 py-2 bg-gray-50 border border-gray-200 text-xs font-semibold text-slate-800 rounded-none focus:outline-none focus:border-primary cursor-pointer appearance-none"
+          <aside className="lg:col-span-3">
+            <div className="bg-white rounded-2xl shadow-sm border border-stone-200 overflow-hidden">
+              
+              {/* Header with Title & Reset Button */}
+              <div className="px-4 py-3 border-b border-stone-200 bg-stone-50/70 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <SlidersHorizontal size={14} className="text-[#1D3B2E]" />
+                  <span className="text-xs font-bold uppercase tracking-wider text-slate-800">
+                    Filter Plans
+                  </span>
+                </div>
+                <button
+                  onClick={handleResetFilters}
+                  className="text-[11px] font-bold text-[#1D3B2E] hover:text-[#0F241C] hover:underline flex items-center gap-1 cursor-pointer"
                 >
-                  <option value="recommended">Recommended / Best Value</option>
-                  <option value="rating">Highest User Rating</option>
-                  <option value="price-asc">Lowest Premium First</option>
-                  <option value="sum-desc">Highest Sum Insured</option>
-                  <option value="claim-speed">Claim Settlement Speed</option>
-                </select>
-                <ChevronDown size={14} className="absolute right-2.5 top-2.5 text-slate-400 pointer-events-none" />
+                  <RotateCcw size={11} /> Reset
+                </button>
               </div>
-            </div>
 
-            {/* Insurance Plan Type */}
-            <div>
-              <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-2">
-                Plan Type
-              </label>
-              <div className="space-y-1.5">
-                {INSURANCE_PLAN_TYPES.map((type) => (
-                  <button
-                    key={type}
-                    type="button"
-                    onClick={() => setSelectedPlanType(type)}
-                    className={`w-full text-left px-2.5 py-1.5 text-xs font-semibold rounded-none border transition flex items-center justify-between cursor-pointer ${
-                      selectedPlanType === type
-                        ? 'bg-primary text-white border-primary'
-                        : 'bg-gray-50/70 text-slate-700 border-gray-100 hover:bg-gray-100'
-                    }`}
-                  >
-                    <span>{type}</span>
-                    {selectedPlanType === type && <Check size={12} className="text-accent-light" />}
-                  </button>
-                ))}
-              </div>
-            </div>
+              {/* Natural Height Filter Body */}
+              <div className="p-4 space-y-4 text-xs">
 
-            {/* Pet Species Covered */}
-            <div>
-              <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-2">
-                Pet Species
-              </label>
-              <div className="grid grid-cols-2 gap-1.5">
-                {PET_SPECIES_OPTIONS.map((species) => (
-                  <button
-                    key={species}
-                    type="button"
-                    onClick={() => setSelectedSpecies(species)}
-                    className={`py-1.5 px-2 text-center text-xs font-semibold rounded-none border transition cursor-pointer ${
-                      selectedSpecies === species
-                        ? 'bg-primary text-white border-primary font-bold'
-                        : 'bg-gray-50 text-slate-700 border-gray-200 hover:bg-gray-100'
-                    }`}
-                  >
-                    {species}
-                  </button>
-                ))}
-              </div>
-            </div>
+                {/* Keyword Search */}
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-bold uppercase text-gray-400 tracking-wider">
+                    Search
+                  </label>
+                  <div className="relative">
+                    <Search size={13} className="absolute left-2.5 top-2.5 text-gray-400" />
+                    <input
+                      type="text"
+                      placeholder="e.g. Bajaj, Digit, Surgery..."
+                      value={searchKeyword}
+                      onChange={(e) => setSearchKeyword(e.target.value)}
+                      className="w-full bg-stone-50 border border-stone-200 text-xs rounded-lg pl-8 pr-2.5 py-1.5 text-slate-800 placeholder-gray-400 focus:outline-none focus:border-[#1D3B2E]"
+                    />
+                  </div>
+                </div>
 
-            {/* FEATURE FILTER CHECKLIST (The Requested Left-Side Feature Filters) */}
-            <div className="pt-2 border-t border-gray-100">
-              <div className="flex items-center justify-between mb-2">
-                <label className="block text-[11px] font-bold text-slate-800 uppercase tracking-wider">
-                  Coverage Features
-                </label>
-                {selectedFeatures.length > 0 && (
-                  <button
-                    onClick={() => setSelectedFeatures([])}
-                    className="text-[10px] text-accent font-bold hover:underline"
-                  >
-                    Clear ({selectedFeatures.length})
-                  </button>
-                )}
-              </div>
-              <p className="text-[11px] text-slate-500 mb-2.5">
-                Select required policy features to filter matching underwriters:
-              </p>
-
-              <div className="space-y-2 max-h-64 overflow-y-auto pr-1">
-                {INSURANCE_FEATURES.map((feature) => {
-                  const isChecked = selectedFeatures.includes(feature.label);
-                  return (
-                    <label
-                      key={feature.id}
-                      onClick={() => handleToggleFeature(feature.label)}
-                      className={`flex items-start gap-2.5 p-2 rounded-none border text-xs cursor-pointer transition select-none ${
-                        isChecked
-                          ? 'bg-emerald-50/70 border-emerald-300 text-emerald-950 font-medium'
-                          : 'bg-gray-50/50 border-gray-100 text-slate-700 hover:bg-gray-100'
-                      }`}
+                {/* Sort By Filter */}
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-bold uppercase text-gray-400 tracking-wider">
+                    Sort By
+                  </label>
+                  <div className="relative">
+                    <select
+                      value={sortBy}
+                      onChange={(e) => setSortBy(e.target.value)}
+                      className="w-full bg-stone-50 border border-stone-200 text-xs rounded-lg px-2.5 py-1.5 text-slate-800 focus:outline-none focus:border-[#1D3B2E] cursor-pointer appearance-none pr-8 font-semibold"
                     >
-                      <input
-                        type="checkbox"
-                        checked={isChecked}
-                        onChange={() => {}}
-                        className="mt-0.5 text-primary rounded-none focus:ring-0 cursor-pointer"
-                      />
-                      <div className="flex-1">
-                        <div className="text-xs font-semibold">{feature.label}</div>
-                        <div className="text-[10px] text-slate-500 leading-tight mt-0.5">
-                          {feature.description}
-                        </div>
-                      </div>
+                      <option value="recommended">Recommended / Best Value</option>
+                      <option value="rating">Highest User Rating</option>
+                      <option value="price-asc">Lowest Premium First</option>
+                      <option value="sum-desc">Highest Sum Insured</option>
+                      <option value="claim-speed">Claim Settlement Speed</option>
+                    </select>
+                    <ChevronDown size={13} className="absolute right-2.5 top-2.5 text-gray-400 pointer-events-none" />
+                  </div>
+                </div>
+
+                {/* Insurance Plan Type */}
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-bold uppercase text-gray-400 tracking-wider">
+                    Plan Type
+                  </label>
+                  <div className="space-y-1">
+                    {INSURANCE_PLAN_TYPES.map((type) => (
+                      <button
+                        key={type}
+                        type="button"
+                        onClick={() => setSelectedPlanType(type)}
+                        className={`w-full text-left text-[11px] font-semibold px-2.5 py-1.5 rounded-lg transition cursor-pointer flex items-center justify-between ${
+                          selectedPlanType === type
+                            ? 'bg-[#1D3B2E] text-white font-bold'
+                            : 'text-gray-600 hover:bg-stone-100'
+                        }`}
+                      >
+                        <span>{type}</span>
+                        {selectedPlanType === type && <Check size={12} className="text-white" />}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Pet Species Covered */}
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-bold uppercase text-gray-400 tracking-wider">
+                    Pet Species
+                  </label>
+                  <div className="grid grid-cols-2 gap-1">
+                    {PET_SPECIES_OPTIONS.map((species) => (
+                      <button
+                        key={species}
+                        type="button"
+                        onClick={() => setSelectedSpecies(species)}
+                        className={`text-[11px] font-semibold px-2 py-1 rounded-md transition cursor-pointer border ${
+                          selectedSpecies === species
+                            ? 'bg-[#1D3B2E] text-white border-[#1D3B2E]'
+                            : 'bg-stone-50 text-gray-600 border-stone-200 hover:border-gray-400'
+                        }`}
+                      >
+                        {species}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Sum Insured Filter */}
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-bold uppercase text-gray-400 tracking-wider">
+                    Sum Insured (Coverage)
+                  </label>
+                  <div className="grid grid-cols-2 gap-1 text-xs">
+                    {[
+                      { id: 'all', label: 'All Limits' },
+                      { id: 'under-100k', label: 'Up to ₹1 Lakh' },
+                      { id: '100k-250k', label: '₹1L – ₹2.5L' },
+                      { id: '250k-plus', label: '₹2.5L+ High Cover' }
+                    ].map((item) => (
+                      <button
+                        key={item.id}
+                        type="button"
+                        onClick={() => setSumInsuredFilter(item.id)}
+                        className={`text-[11px] font-semibold px-2 py-1 rounded-md transition cursor-pointer border ${
+                          sumInsuredFilter === item.id
+                            ? 'bg-[#1D3B2E] text-white border-[#1D3B2E]'
+                            : 'bg-stone-50 text-gray-600 border-stone-200 hover:border-gray-400'
+                        }`}
+                      >
+                        {item.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Budget / Annual Premium */}
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-bold uppercase text-gray-400 tracking-wider">
+                    Annual Premium Budget
+                  </label>
+                  <div className="space-y-1">
+                    {[
+                      { id: 'all', label: 'All Budgets' },
+                      { id: 'under-3k', label: 'Under ₹3,000 / yr (~₹250/mo)' },
+                      { id: '3k-6k', label: '₹3,000 – ₹6,000 / yr' },
+                      { id: '6k-plus', label: '₹6,000+ / yr (Comprehensive)' }
+                    ].map((item) => (
+                      <button
+                        key={item.id}
+                        type="button"
+                        onClick={() => setPriceFilter(item.id)}
+                        className={`w-full text-left text-[11px] font-semibold px-2.5 py-1.5 rounded-lg transition cursor-pointer flex items-center justify-between ${
+                          priceFilter === item.id
+                            ? 'bg-[#1D3B2E] text-white font-bold'
+                            : 'text-gray-600 hover:bg-stone-100'
+                        }`}
+                      >
+                        <span>{item.label}</span>
+                        {priceFilter === item.id && <Check size={12} className="text-white" />}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* FEATURE FILTER CHECKLIST */}
+                <div className="space-y-1.5 pt-2 border-t border-stone-100">
+                  <div className="flex items-center justify-between">
+                    <label className="text-[10px] font-bold uppercase text-gray-400 tracking-wider">
+                      Coverage Features
                     </label>
-                  );
-                })}
-              </div>
-            </div>
+                    {selectedFeatures.length > 0 && (
+                      <button
+                        onClick={() => setSelectedFeatures([])}
+                        className="text-[10px] text-[#1D3B2E] font-bold hover:underline cursor-pointer"
+                      >
+                        Clear ({selectedFeatures.length})
+                      </button>
+                    )}
+                  </div>
 
-            {/* Sum Insured Filter */}
-            <div className="pt-2 border-t border-gray-100">
-              <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-2">
-                Sum Insured (Annual Coverage)
-              </label>
-              <div className="grid grid-cols-2 gap-1.5 text-xs">
-                {[
-                  { id: 'all', label: 'All Limits' },
-                  { id: 'under-100k', label: 'Up to ₹1 Lakh' },
-                  { id: '100k-250k', label: '₹1L - ₹2.5 Lakhs' },
-                  { id: '250k-plus', label: '₹2.5L+ (High Cover)' }
-                ].map((item) => (
-                  <button
-                    key={item.id}
-                    type="button"
-                    onClick={() => setSumInsuredFilter(item.id)}
-                    className={`py-1.5 px-2 text-center font-semibold rounded-none border transition cursor-pointer ${
-                      sumInsuredFilter === item.id
-                        ? 'bg-primary text-white border-primary'
-                        : 'bg-gray-50 text-slate-700 border-gray-200 hover:bg-gray-100'
-                    }`}
-                  >
-                    {item.label}
-                  </button>
-                ))}
-              </div>
-            </div>
+                  <div className="space-y-1.5">
+                    {INSURANCE_FEATURES.map((feature) => {
+                      const isChecked = selectedFeatures.includes(feature.label);
+                      return (
+                        <label
+                          key={feature.id}
+                          onClick={() => handleToggleFeature(feature.label)}
+                          className={`flex items-start gap-2 p-2 rounded-lg border text-[11px] cursor-pointer transition select-none ${
+                            isChecked
+                              ? 'bg-[#1D3B2E]/10 border-[#1D3B2E]/30 text-slate-900 font-semibold'
+                              : 'bg-stone-50 border-stone-200 text-gray-700 hover:bg-stone-100'
+                          }`}
+                        >
+                          <input
+                            type="checkbox"
+                            checked={isChecked}
+                            onChange={() => {}}
+                            className="mt-0.5 accent-[#1D3B2E] cursor-pointer"
+                          />
+                          <div className="flex-1">
+                            <div className="text-[11px] font-bold text-slate-800 leading-tight">{feature.label}</div>
+                            <div className="text-[10px] text-gray-500 leading-tight mt-0.5">
+                              {feature.description}
+                            </div>
+                          </div>
+                        </label>
+                      );
+                    })}
+                  </div>
+                </div>
 
-            {/* Budget / Annual Premium */}
-            <div className="pt-2 border-t border-gray-100">
-              <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-2">
-                Annual Premium Budget
-              </label>
-              <div className="space-y-1.5 text-xs">
-                {[
-                  { id: 'all', label: 'All Budgets' },
-                  { id: 'under-3k', label: 'Under ₹3,000 / yr (~₹250/mo)' },
-                  { id: '3k-6k', label: '₹3,000 - ₹6,000 / yr' },
-                  { id: '6k-plus', label: '₹6,000+ / yr (Comprehensive)' }
-                ].map((item) => (
-                  <button
-                    key={item.id}
-                    type="button"
-                    onClick={() => setPriceFilter(item.id)}
-                    className={`w-full text-left px-2.5 py-1.5 rounded-none border transition flex items-center justify-between cursor-pointer ${
-                      priceFilter === item.id
-                        ? 'bg-primary text-white border-primary font-bold'
-                        : 'bg-gray-50 text-slate-700 border-gray-200 hover:bg-gray-100'
-                    }`}
-                  >
-                    <span>{item.label}</span>
-                    {priceFilter === item.id && <Check size={12} className="text-accent-light" />}
-                  </button>
-                ))}
-              </div>
-            </div>
+                {/* IRDAI Verified Toggle */}
+                <div className="pt-2 border-t border-stone-100">
+                  <label className="flex items-center gap-2 cursor-pointer select-none">
+                    <input
+                      type="checkbox"
+                      checked={verifiedOnly}
+                      onChange={(e) => setVerifiedOnly(e.target.checked)}
+                      className="accent-[#1D3B2E] rounded cursor-pointer"
+                    />
+                    <span className="text-[11px] font-semibold text-gray-700 flex items-center gap-1.5">
+                      <ShieldCheck size={14} className="text-emerald-700" />
+                      IRDAI Verified Underwriters Only
+                    </span>
+                  </label>
+                </div>
 
-            {/* IRDAI Verified Toggle */}
-            <div className="pt-2 border-t border-gray-100">
-              <label className="flex items-center gap-2 cursor-pointer select-none">
-                <input
-                  type="checkbox"
-                  checked={verifiedOnly}
-                  onChange={(e) => setVerifiedOnly(e.target.checked)}
-                  className="rounded-none text-primary focus:ring-0 cursor-pointer"
-                />
-                <span className="text-xs font-bold text-slate-700 flex items-center gap-1">
-                  <ShieldCheck size={14} className="text-emerald-600" />
-                  IRDAI Verified Underwriters Only
-                </span>
-              </label>
+              </div>
             </div>
           </aside>
 
           {/* ================= RIGHT MAIN: LIST OF PET INSURANCE PROVIDERS ================= */}
-          <main className="lg:col-span-8 space-y-6">
+          <main className="lg:col-span-9 space-y-6">
             
             {/* Results Header */}
             <div className="bg-white border border-gray-200 p-4 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -1163,162 +1155,124 @@ const PetInsurance = () => {
                 </button>
               </div>
             ) : (
-              <div className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 {filteredProviders.map((provider) => {
                   const isCompared = comparedProviders.some((p) => p.id === provider.id);
 
                   return (
                     <div
                       key={provider.id}
-                      className="bg-white border border-gray-200 shadow-sm hover:shadow-md transition-all duration-200 rounded-none overflow-hidden"
+                      className="bg-white rounded-2xl border border-stone-200 shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden flex flex-col justify-between group"
                     >
-                      {/* Top Insurer Banner */}
-                      <div className="p-5 md:p-6 border-b border-gray-100 flex flex-col md:flex-row md:items-center justify-between gap-4">
-                        <div className="flex items-start gap-4">
+                      <div>
+                        {/* Clickable Image Banner to Open Profile */}
+                        <div
+                          onClick={() => handleOpenDetailsModal(provider)}
+                          className="relative h-44 overflow-hidden bg-stone-100 cursor-pointer"
+                          title={`View ${provider.name} profile and complete policy details`}
+                        >
                           <img
                             src={provider.logo}
                             alt={provider.name}
-                            className="w-14 h-14 object-cover border border-gray-200 rounded-none shrink-0"
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                           />
-                          <div>
-                            <div className="flex flex-wrap items-center gap-2 mb-1">
-                              <h3 className="font-serif font-bold text-lg text-primary hover:text-accent transition">
-                                {provider.name}
-                              </h3>
-                              {provider.verifiedIrdai && (
-                                <span className="inline-flex items-center gap-1 bg-emerald-50 text-emerald-800 border border-emerald-200 text-[10px] font-bold px-2 py-0.5 uppercase tracking-wider">
-                                  <ShieldCheck size={11} className="text-emerald-600" /> IRDAI Approved
-                                </span>
-                              )}
-                              <span className="text-[10px] bg-gray-100 text-slate-600 px-2 py-0.5 font-bold uppercase tracking-wider">
-                                {provider.category}
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/25 to-transparent" />
+
+                          {/* Top Badges */}
+                          <div className="absolute top-3 left-3 right-3 flex items-center justify-between gap-2">
+                            {provider.verifiedIrdai && (
+                              <span className="inline-flex items-center gap-1 bg-emerald-600/95 backdrop-blur-md text-white text-[10px] font-extrabold px-2.5 py-1 rounded-full uppercase tracking-wider shadow">
+                                <ShieldCheck size={12} /> IRDAI Approved
                               </span>
+                            )}
+                            <div className="flex items-center gap-1 bg-white/95 backdrop-blur-md px-2.5 py-1 rounded-full text-[11px] font-black text-amber-700 shadow ml-auto">
+                              <Star size={12} className="fill-amber-500 text-amber-500" />
+                              <span>{provider.rating}</span>
+                              <span className="text-gray-400 font-normal text-[10px]">({provider.reviewsCount})</span>
                             </div>
-                            <div className="text-xs text-slate-500 font-medium">
-                              Underwritten by <span className="font-bold text-slate-700">{provider.company}</span>
-                            </div>
-                            <div className="text-xs text-emerald-900 font-medium mt-1 italic">
-                              "{provider.tagline}"
-                            </div>
                           </div>
-                        </div>
 
-                        {/* Rating & Fast Stats */}
-                        <div className="flex md:flex-col items-center md:items-end justify-between border-t md:border-t-0 pt-2 md:pt-0 border-gray-100">
-                          <div className="flex items-center gap-1.5 bg-amber-50 px-2.5 py-1 border border-amber-200">
-                            <Star size={14} className="text-amber-500 fill-amber-500" />
-                            <span className="text-xs font-bold text-amber-900">{provider.rating}</span>
-                            <span className="text-[10px] text-amber-700">({provider.reviewsCount} reviews)</span>
-                          </div>
-                          <div className="text-[11px] text-slate-500 mt-1">
-                            Claim Speed: <span className="font-bold text-emerald-800">{provider.avgClaimSpeed}</span>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Middle Matrix: Sum Insured, Claim Ratio, Network Clinics & Pricing */}
-                      <div className="grid grid-cols-2 sm:grid-cols-4 bg-gray-50/70 border-b border-gray-100 divide-x divide-gray-100 text-center p-3">
-                        <div className="p-2">
-                          <div className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">Sum Insured</div>
-                          <div className="font-serif font-bold text-base text-primary mt-0.5">{provider.sumInsured}</div>
-                        </div>
-                        <div className="p-2">
-                          <div className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">Settlement Ratio</div>
-                          <div className="font-serif font-bold text-base text-emerald-700 mt-0.5">{provider.claimSettlementRatio}</div>
-                        </div>
-                        <div className="p-2">
-                          <div className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">Cashless Clinics</div>
-                          <div className="font-serif font-bold text-base text-slate-800 mt-0.5">{provider.cashlessClinicsCount}</div>
-                        </div>
-                        <div className="p-2">
-                          <div className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">Deductible / Co-pay</div>
-                          <div className="text-xs font-bold text-slate-700 mt-1">{provider.deductible} ({provider.coPay})</div>
-                        </div>
-                      </div>
-
-                      {/* Features Badges & Species */}
-                      <div className="p-5 space-y-4">
-                        <div>
-                          <div className="text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-2">
-                            Key Covered Features & Benefits:
-                          </div>
-                          <div className="flex flex-wrap gap-2">
-                            {provider.features.map((feat) => (
-                              <span
-                                key={feat}
-                                className="inline-flex items-center gap-1.5 text-xs bg-emerald-50 text-emerald-900 border border-emerald-200/80 px-2.5 py-1 font-medium"
-                              >
-                                <CheckCircle2 size={13} className="text-emerald-600" />
-                                {feat}
-                              </span>
-                            ))}
-                          </div>
-                        </div>
-
-                        <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-gray-100 text-xs text-slate-600">
-                          <div>
-                            <span className="font-bold text-slate-700">Eligible Pets: </span>
-                            {provider.speciesCovered.join(', ')} ({provider.eligibleAge})
-                          </div>
-                          <div>
-                            <span className="font-bold text-slate-700">Waiting Period: </span>
-                            Accidents: {provider.waitingPeriods.accidents} | Illness: {provider.waitingPeriods.illnesses}
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Footer Actions & Price */}
-                      <div className="bg-[#FAF9F5] p-5 border-t border-gray-200 flex flex-col sm:flex-row items-center justify-between gap-4">
-                        <div>
-                          <div className="text-[10px] uppercase tracking-wider font-bold text-slate-500">
-                            Starting Annual Premium
-                          </div>
-                          <div className="flex items-baseline gap-2">
-                            <span className="font-serif font-bold text-2xl text-primary">
-                              ₹{provider.annualPremium.toLocaleString('en-IN')}
+                          {/* Bottom Category Pill & Claim Speed */}
+                          <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between text-white text-xs">
+                            <span className="bg-white/20 backdrop-blur-md px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider text-amber-200">
+                              {provider.category}
                             </span>
-                            <span className="text-xs text-slate-500">/ year</span>
-                            <span className="text-xs font-semibold text-emerald-700 bg-emerald-100 px-2 py-0.5">
-                              (₹{provider.monthlyPremium}/mo)
+                            <span className="text-[11px] font-semibold text-emerald-200">
+                              ⚡ {provider.avgClaimSpeed}
                             </span>
                           </div>
-                          <span className="text-[10px] text-slate-400">Includes all GST & cashless processing</span>
                         </div>
 
-                        {/* Button Group */}
-                        <div className="flex flex-wrap items-center gap-2.5 w-full sm:w-auto">
-                          {/* Compare Button */}
-                          <button
-                            type="button"
-                            onClick={() => handleToggleCompare(provider)}
-                            className={`px-3 py-2 text-xs font-bold uppercase tracking-wider border transition cursor-pointer flex items-center gap-1.5 ${
-                              isCompared
-                                ? 'bg-emerald-800 text-white border-emerald-800 shadow-xs'
-                                : 'bg-white text-slate-700 border-gray-300 hover:bg-gray-100 hover:border-emerald-700'
-                            }`}
-                            title={isCompared ? 'Remove from comparison' : 'Add to side-by-side comparison'}
+                        {/* Card Body */}
+                        <div className="p-4 space-y-3">
+                          {/* Title & Underwriter - Clickable to open profile */}
+                          <div
+                            onClick={() => handleOpenDetailsModal(provider)}
+                            className="cursor-pointer"
                           >
-                            {isCompared ? <CheckSquare size={14} className="text-[#ffc83b]" /> : <Square size={14} />}
-                            {isCompared ? 'Comparing' : 'Compare'}
-                          </button>
+                            <h3 className="font-serif font-bold text-base text-slate-900 group-hover:text-[#1D3B2E] transition-colors leading-snug">
+                              {provider.name}
+                            </h3>
+                            <p className="text-xs text-slate-500 font-medium mt-1 truncate">
+                              Underwritten by <span className="font-bold text-slate-700">{provider.company}</span>
+                            </p>
+                          </div>
 
-                          {/* Details Modal Trigger */}
+                          {/* Essential Snapshot: Sum Insured & Starting Price */}
+                          <div className="bg-stone-50 border border-stone-200/80 rounded-xl p-2.5 flex items-center justify-between">
+                            <div>
+                              <span className="text-[10px] uppercase font-bold text-gray-400 tracking-wider block">Sum Insured</span>
+                              <span className="font-serif font-bold text-sm text-[#1D3B2E]">{provider.sumInsured}</span>
+                            </div>
+                            <div className="text-right">
+                              <span className="text-[10px] uppercase font-bold text-gray-400 tracking-wider block">Starting From</span>
+                              <div className="flex items-baseline gap-1 justify-end">
+                                <span className="font-serif font-bold text-sm text-slate-900">
+                                  ₹{provider.annualPremium.toLocaleString('en-IN')}
+                                </span>
+                                <span className="text-[10px] text-gray-400">/yr</span>
+                                <span className="text-[10px] font-semibold text-emerald-700 bg-emerald-100/70 px-1.5 py-0.5 rounded">
+                                  ₹{provider.monthlyPremium}/mo
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Card Footer Actions */}
+                      <div className="p-4 pt-0">
+                        <div className="grid grid-cols-2 gap-2 pt-2 border-t border-stone-100">
                           <button
                             type="button"
                             onClick={() => handleOpenDetailsModal(provider)}
-                            className="px-3.5 py-2 bg-white hover:bg-gray-100 text-slate-800 border border-gray-300 text-xs font-bold tracking-wider uppercase transition cursor-pointer"
+                            className="w-full bg-stone-100 hover:bg-stone-200 text-slate-800 font-bold text-xs py-2.5 rounded-xl transition cursor-pointer flex items-center justify-center gap-1.5"
                           >
-                            Policy Details
+                            <Info size={13} className="text-[#1D3B2E]" />
+                            <span>View Profile</span>
                           </button>
 
-                          {/* Instant Apply Button */}
                           <button
                             type="button"
                             onClick={() => handleOpenApplyModal(provider)}
-                            className="px-5 py-2.5 bg-primary hover:bg-primary-dark text-white text-xs font-bold tracking-widest uppercase transition flex items-center gap-1.5 cursor-pointer shadow-sm"
+                            className="w-full btn-footer-green-gold font-extrabold text-xs uppercase tracking-wider py-2.5 rounded-xl transition shadow-md hover:shadow-lg cursor-pointer flex items-center justify-center gap-1 active:scale-95"
                           >
-                            <ShieldCheck size={14} className="text-accent-light" />
-                            Get Covered Now
+                            <ShieldCheck size={13} />
+                            <span>Get Covered</span>
+                          </button>
+                        </div>
+
+                        {/* Quick Compare Option */}
+                        <div className="mt-2.5 flex items-center justify-center">
+                          <button
+                            type="button"
+                            onClick={() => handleToggleCompare(provider)}
+                            className={`text-[11px] font-semibold flex items-center gap-1.5 cursor-pointer transition ${
+                              isCompared ? 'text-emerald-800 font-bold' : 'text-gray-500 hover:text-slate-800'
+                            }`}
+                          >
+                            {isCompared ? <CheckSquare size={13} className="text-emerald-700" /> : <Square size={13} />}
+                            <span>{isCompared ? 'Added to Comparison' : 'Compare Plan'}</span>
                           </button>
                         </div>
                       </div>
@@ -2006,50 +1960,123 @@ const PetInsurance = () => {
         </div>
       )}
 
-      {/* 6. POLICY DETAILS & BROCHURE MODAL */}
+      {/* 6. POLICY DETAILS & PROFILE MODAL */}
       {showDetailsModal && selectedProviderForDetails && (
-        <div className="fixed inset-0 z-[100] overflow-y-auto bg-black/70 backdrop-blur-sm p-2 sm:p-4 flex flex-col items-center justify-start sm:justify-center animate-in fade-in duration-200">
-          <div className="bg-white text-slate-800 w-full max-w-3xl my-auto p-4 sm:p-6 shadow-2xl border border-gray-200 rounded-none relative flex flex-col min-h-0 max-h-[88vh] overflow-y-auto custom-scrollbar">
-            <button
-              onClick={() => setShowDetailsModal(false)}
-              className="absolute right-4 top-4 p-1 text-slate-400 hover:text-red-500 transition cursor-pointer z-20"
-            >
-              <X size={20} />
-            </button>
-
-            <div className="flex items-start gap-4 pb-4 border-b border-gray-200 mb-6">
-              <img
-                src={selectedProviderForDetails.logo}
-                alt={selectedProviderForDetails.name}
-                className="w-14 h-14 object-cover border border-gray-200"
-              />
-              <div>
-                <h3 className="font-serif font-bold text-xl text-primary">
-                  {selectedProviderForDetails.name}
-                </h3>
-                <div className="text-xs text-slate-500 font-medium">
-                  Underwritten by {selectedProviderForDetails.company} • IRDAI Registered
+        <div className="fixed inset-0 z-[100] overflow-y-auto bg-black/75 backdrop-blur-sm p-2 sm:p-4 flex flex-col items-center justify-start sm:justify-center animate-in fade-in duration-200">
+          <div className="bg-white text-slate-800 w-full max-w-3xl my-auto shadow-2xl border border-stone-200 rounded-3xl overflow-hidden flex flex-col min-h-0 max-h-[88vh]">
+            
+            {/* Modal Header with Branding */}
+            <div className="bg-[#1D3B2E] text-white p-5 sm:p-6 flex items-start justify-between shrink-0 relative border-b border-[#152e24]">
+              <div className="flex items-start gap-4">
+                <img
+                  src={selectedProviderForDetails.logo}
+                  alt={selectedProviderForDetails.name}
+                  className="w-16 h-16 object-cover rounded-2xl border-2 border-white/20 shadow-md shrink-0 bg-white"
+                />
+                <div className="space-y-1">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <h3 className="font-serif font-bold text-lg sm:text-xl text-white">
+                      {selectedProviderForDetails.name}
+                    </h3>
+                    {selectedProviderForDetails.verifiedIrdai && (
+                      <span className="inline-flex items-center gap-1 bg-emerald-500/20 text-emerald-300 border border-emerald-400/30 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">
+                        <ShieldCheck size={11} /> IRDAI Approved
+                      </span>
+                    )}
+                    <span className="text-[10px] bg-white/10 text-amber-200 border border-white/15 px-2 py-0.5 rounded-full font-bold uppercase tracking-wider">
+                      {selectedProviderForDetails.category}
+                    </span>
+                  </div>
+                  <div className="text-xs text-emerald-100 font-medium">
+                    Underwritten by <span className="font-bold text-white">{selectedProviderForDetails.company}</span>
+                  </div>
+                  <div className="text-xs text-amber-200 italic font-medium">
+                    "{selectedProviderForDetails.tagline}"
+                  </div>
+                  <div className="flex items-center gap-3 pt-1 text-[11px] text-emerald-200">
+                    <span className="flex items-center gap-1 text-amber-300 font-bold">
+                      <Star size={12} className="fill-amber-400 text-amber-400" />
+                      {selectedProviderForDetails.rating} ({selectedProviderForDetails.reviewsCount} reviews)
+                    </span>
+                    <span>•</span>
+                    <span>Claim Speed: <strong className="text-white">{selectedProviderForDetails.avgClaimSpeed}</strong></span>
+                  </div>
                 </div>
               </div>
+
+              <button
+                onClick={() => setShowDetailsModal(false)}
+                className="text-white/70 hover:text-white p-1.5 rounded-full hover:bg-white/10 cursor-pointer transition shrink-0"
+              >
+                <X size={20} />
+              </button>
             </div>
 
-            <div className="space-y-5 text-xs">
-              {/* Tiers Breakdown */}
+            {/* Scrollable Content Body with ALL Details */}
+            <div className="p-5 sm:p-6 space-y-6 text-xs overflow-y-auto custom-scrollbar flex-1">
+              
+              {/* 1. Key Coverage Matrix */}
               <div>
-                <h4 className="font-bold text-slate-800 uppercase tracking-wider text-[11px] mb-2">
-                  Available Policy Tiers & Inclusions:
+                <h4 className="font-bold text-slate-800 uppercase tracking-wider text-[11px] mb-2 flex items-center gap-1.5">
+                  <Activity size={14} className="text-[#1D3B2E]" />
+                  <span>Key Policy Metrics & Performance:</span>
+                </h4>
+                <div className="grid grid-cols-2 sm:grid-cols-4 bg-stone-50 border border-stone-200 rounded-2xl divide-x divide-stone-200 text-center p-3">
+                  <div className="p-2">
+                    <div className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Sum Insured</div>
+                    <div className="font-serif font-bold text-base text-[#1D3B2E] mt-0.5">{selectedProviderForDetails.sumInsured}</div>
+                  </div>
+                  <div className="p-2">
+                    <div className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Settlement Ratio</div>
+                    <div className="font-serif font-bold text-base text-emerald-700 mt-0.5">{selectedProviderForDetails.claimSettlementRatio}</div>
+                  </div>
+                  <div className="p-2">
+                    <div className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Cashless Clinics</div>
+                    <div className="font-serif font-bold text-base text-slate-800 mt-0.5">{selectedProviderForDetails.cashlessClinicsCount}</div>
+                  </div>
+                  <div className="p-2">
+                    <div className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Deductible / Co-pay</div>
+                    <div className="text-xs font-bold text-slate-700 mt-1">{selectedProviderForDetails.deductible} ({selectedProviderForDetails.coPay})</div>
+                  </div>
+                </div>
+              </div>
+
+              {/* 2. Key Covered Features & Benefits */}
+              <div>
+                <h4 className="font-bold text-slate-800 uppercase tracking-wider text-[11px] mb-2 flex items-center gap-1.5">
+                  <ShieldCheck size={14} className="text-[#1D3B2E]" />
+                  <span>Key Covered Features & Benefits:</span>
+                </h4>
+                <div className="flex flex-wrap gap-2">
+                  {selectedProviderForDetails.features.map((feat) => (
+                    <span
+                      key={feat}
+                      className="inline-flex items-center gap-1.5 text-xs bg-emerald-50 text-emerald-900 border border-emerald-200 px-3 py-1.5 rounded-xl font-medium"
+                    >
+                      <CheckCircle2 size={13} className="text-emerald-600" />
+                      {feat}
+                    </span>
+                  ))}
+                </div>
+              </div>
+
+              {/* 3. Available Policy Tiers & Inclusions */}
+              <div>
+                <h4 className="font-bold text-slate-800 uppercase tracking-wider text-[11px] mb-2 flex items-center gap-1.5">
+                  <Layers size={14} className="text-[#1D3B2E]" />
+                  <span>Available Policy Tiers & Inclusions:</span>
                 </h4>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                   {selectedProviderForDetails.tiers.map((tier) => (
-                    <div key={tier.name} className="p-3 bg-gray-50 border border-gray-200 space-y-2">
-                      <div className="font-bold text-primary text-xs">{tier.name}</div>
+                    <div key={tier.name} className="p-3.5 bg-stone-50 border border-stone-200 rounded-2xl space-y-2">
+                      <div className="font-bold text-[#1D3B2E] text-xs">{tier.name}</div>
                       <div className="font-serif font-bold text-base text-emerald-800">
                         ₹{tier.annualPrice.toLocaleString('en-IN')} <span className="text-[10px] font-normal text-slate-500">/ yr</span>
                       </div>
                       <div className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">
                         Sum Insured: {tier.sumInsured}
                       </div>
-                      <ul className="space-y-1 text-[11px] text-slate-600 pt-2 border-t border-gray-200">
+                      <ul className="space-y-1 text-[11px] text-slate-600 pt-2 border-t border-stone-200">
                         {tier.covers.map((c) => (
                           <li key={c} className="flex items-start gap-1">
                             <Check size={11} className="text-emerald-600 mt-0.5 shrink-0" />
@@ -2062,60 +2089,87 @@ const PetInsurance = () => {
                 </div>
               </div>
 
-              {/* Waiting Periods */}
-              <div>
-                <h4 className="font-bold text-slate-800 uppercase tracking-wider text-[11px] mb-2">
-                  Waiting Periods Table:
-                </h4>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center">
-                  <div className="p-2 bg-emerald-50 border border-emerald-200">
-                    <div className="text-[10px] text-emerald-800 uppercase font-bold">Accidents</div>
-                    <div className="font-bold text-emerald-950 mt-0.5">{selectedProviderForDetails.waitingPeriods.accidents}</div>
+              {/* 4. Eligibility & Waiting Periods */}
+              <div className="space-y-3">
+                <div className="p-3 bg-stone-50 border border-stone-200 rounded-xl flex flex-wrap items-center justify-between gap-2 text-slate-700">
+                  <div>
+                    <span className="font-bold text-slate-900">Eligible Pets: </span>
+                    {selectedProviderForDetails.speciesCovered.join(', ')} ({selectedProviderForDetails.eligibleAge})
                   </div>
-                  <div className="p-2 bg-gray-50 border border-gray-200">
-                    <div className="text-[10px] text-slate-500 uppercase font-bold">General Illnesses</div>
-                    <div className="font-bold text-slate-800 mt-0.5">{selectedProviderForDetails.waitingPeriods.illnesses}</div>
-                  </div>
-                  <div className="p-2 bg-gray-50 border border-gray-200">
-                    <div className="text-[10px] text-slate-500 uppercase font-bold">Hereditary Conditions</div>
-                    <div className="font-bold text-slate-800 mt-0.5">{selectedProviderForDetails.waitingPeriods.hereditary}</div>
-                  </div>
-                  <div className="p-2 bg-gray-50 border border-gray-200">
-                    <div className="text-[10px] text-slate-500 uppercase font-bold">Pre-existing Disease</div>
-                    <div className="font-bold text-slate-800 mt-0.5">{selectedProviderForDetails.waitingPeriods.preExisting}</div>
+                </div>
+
+                <div>
+                  <h4 className="font-bold text-slate-800 uppercase tracking-wider text-[11px] mb-2 flex items-center gap-1.5">
+                    <Clock size={14} className="text-[#1D3B2E]" />
+                    <span>Waiting Periods Table:</span>
+                  </h4>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center">
+                    <div className="p-2.5 bg-emerald-50 border border-emerald-200 rounded-xl">
+                      <div className="text-[10px] text-emerald-800 uppercase font-bold">Accidents</div>
+                      <div className="font-bold text-emerald-950 mt-0.5">{selectedProviderForDetails.waitingPeriods.accidents}</div>
+                    </div>
+                    <div className="p-2.5 bg-stone-50 border border-stone-200 rounded-xl">
+                      <div className="text-[10px] text-slate-500 uppercase font-bold">General Illnesses</div>
+                      <div className="font-bold text-slate-800 mt-0.5">{selectedProviderForDetails.waitingPeriods.illnesses}</div>
+                    </div>
+                    <div className="p-2.5 bg-stone-50 border border-stone-200 rounded-xl">
+                      <div className="text-[10px] text-slate-500 uppercase font-bold">Hereditary Conditions</div>
+                      <div className="font-bold text-slate-800 mt-0.5">{selectedProviderForDetails.waitingPeriods.hereditary}</div>
+                    </div>
+                    <div className="p-2.5 bg-stone-50 border border-stone-200 rounded-xl">
+                      <div className="text-[10px] text-slate-500 uppercase font-bold">Pre-existing Disease</div>
+                      <div className="font-bold text-slate-800 mt-0.5">{selectedProviderForDetails.waitingPeriods.preExisting}</div>
+                    </div>
                   </div>
                 </div>
               </div>
 
-              {/* Exclusions */}
+              {/* 5. Policy Exclusions */}
               <div>
-                <h4 className="font-bold text-slate-800 uppercase tracking-wider text-[11px] mb-1.5">
-                  Standard Policy Exclusions:
+                <h4 className="font-bold text-slate-800 uppercase tracking-wider text-[11px] mb-1.5 flex items-center gap-1.5">
+                  <AlertCircle size={14} className="text-amber-600" />
+                  <span>Standard Policy Exclusions:</span>
                 </h4>
-                <ul className="space-y-1 text-[11px] text-slate-600 list-disc list-inside">
+                <ul className="space-y-1 text-[11px] text-slate-600 list-disc list-inside bg-stone-50 p-3 rounded-xl border border-stone-200">
                   {selectedProviderForDetails.exclusions.map((exc) => (
                     <li key={exc}>{exc}</li>
                   ))}
                 </ul>
               </div>
 
-              {/* Actions */}
-              <div className="flex items-center justify-between pt-4 border-t border-gray-200">
-                <div className="text-xs text-slate-600">
-                  Customer Care: <span className="font-bold text-slate-800">{selectedProviderForDetails.phone}</span>
-                </div>
+            </div>
+
+            {/* Modal Actions Footer */}
+            <div className="p-4 sm:p-5 bg-stone-50 border-t border-stone-200 flex flex-col sm:flex-row items-center justify-between gap-3 shrink-0">
+              <div className="text-xs text-slate-600 flex items-center gap-2">
+                <span>Customer Care: <strong className="text-slate-800">{selectedProviderForDetails.phone}</strong></span>
+                <span>•</span>
+                <span>Starting: <strong className="text-[#1D3B2E] font-serif font-bold text-sm">₹{selectedProviderForDetails.annualPremium.toLocaleString('en-IN')}/yr</strong></span>
+              </div>
+
+              <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
+                <button
+                  type="button"
+                  onClick={() => handleToggleCompare(selectedProviderForDetails)}
+                  className="px-3.5 py-2.5 bg-white text-slate-700 hover:bg-stone-100 border border-stone-300 rounded-xl text-xs font-bold uppercase tracking-wider transition cursor-pointer flex items-center gap-1.5"
+                >
+                  <Scale size={13} />
+                  <span>Compare</span>
+                </button>
+
                 <button
                   onClick={() => {
                     setShowDetailsModal(false);
                     handleOpenApplyModal(selectedProviderForDetails);
                   }}
-                  className="px-6 py-2 bg-primary text-white text-xs font-bold uppercase tracking-widest hover:bg-primary-dark transition cursor-pointer flex items-center gap-1.5 shadow-sm"
+                  className="px-6 py-2.5 btn-footer-green-gold text-white text-xs font-extrabold uppercase tracking-widest rounded-xl transition shadow-md hover:shadow-lg cursor-pointer flex items-center gap-1.5 active:scale-95"
                 >
-                  <ShieldCheck size={14} className="text-accent-light" />
-                  Get Covered Now
+                  <ShieldCheck size={14} />
+                  <span>Get Covered Now</span>
                 </button>
               </div>
             </div>
+
           </div>
         </div>
       )}

@@ -40,20 +40,26 @@ const ProductCard = ({ product }) => {
     
     if (product.requiresPrescription || product.requires_prescription) {
       toast('Prescription required! Redirecting to detail page...', { icon: '📝' });
-      navigate(`/product/${product.slug}`);
+      const targetSlug = product.slug || product._id || product.id;
+      navigate(`/product/${targetSlug}`);
       return;
     }
 
-    const result = await dispatch(addToCartAPI({ product, quantity: 1 }));
-    if (addToCartAPI.fulfilled.match(result)) {
-      toast.success('Added to cart!');
-    } else {
+    try {
+      const result = await dispatch(addToCartAPI({ product, quantity: 1 }));
+      if (addToCartAPI.fulfilled.match(result)) {
+        toast.success('Added to cart!');
+      } else {
+        toast.error('Could not add to cart.');
+      }
+    } catch (_) {
       toast.error('Could not add to cart.');
     }
   };
 
   const handleCardClick = () => {
-    navigate(`/product/${product.slug}`);
+    const targetSlug = product.slug || product._id || product.id;
+    navigate(`/product/${targetSlug}`);
   };
 
   const handleOpenQuickView = (e) => {
@@ -65,14 +71,19 @@ const ProductCard = ({ product }) => {
     if (product.requiresPrescription || product.requires_prescription) {
       setQuickViewOpen(false);
       toast('Prescription required! Redirecting to detail page...', { icon: '📝' });
-      navigate(`/product/${product.slug}`);
+      const targetSlug = product.slug || product._id || product.id;
+      navigate(`/product/${targetSlug}`);
       return;
     }
-    const result = await dispatch(addToCartAPI({ product, quantity }));
     setQuickViewOpen(false);
-    if (addToCartAPI.fulfilled.match(result)) {
-      toast.success('Added to cart!');
-    } else {
+    try {
+      const result = await dispatch(addToCartAPI({ product, quantity }));
+      if (addToCartAPI.fulfilled.match(result)) {
+        toast.success('Added to cart!');
+      } else {
+        toast.error('Could not add to cart.');
+      }
+    } catch (_) {
       toast.error('Could not add to cart.');
     }
   };

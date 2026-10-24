@@ -7,7 +7,12 @@
     "role": "SUPERADMIN",
     "addresses": [],
     "wishlist": [],
-    "cart": []
+    "cart": [
+      {
+        "product": "38f81764-bb98-4f79-b087-106f6ae78cab",
+        "quantity": 1
+      }
+    ]
   },
   {
     "_id": "60d5ec49ad70591244000001",
@@ -198,5 +203,18 @@
       "38f81764-bb98-4f79-b087-106f6ae78cab",
       "9d89de81-d432-44f9-aa86-14b6d567af49"
     ]
+  },
+  {
+    "_id": "superadmin-demo-01",
+    "id": "superadmin-demo-01",
+    "email": "user_superadm@joshpetshub.com",
+    "role": "CUSTOMER",
+    "cart": [
+      {
+        "product": "38f81764-bb98-4f79-b087-106f6ae78cab",
+        "quantity": 1
+      }
+    ],
+    "wishlist": []
   }
 ]
