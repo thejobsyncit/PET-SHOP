@@ -4,18 +4,18 @@
  */
 
 export const VET_SERVICE_MODES = [
-  { id: 'all', label: 'All Modes', icon: '🏥' },
-  { id: 'clinic', label: 'In-Clinic Visit', icon: '🏨' },
-  { id: 'teleconsult', label: '24/7 Video Tele-Consult', icon: '📱' },
-  { id: 'home_visit', label: 'Home Visit Vet', icon: '🏠' },
-  { id: 'emergency', label: '24/7 Emergency & ICU', icon: '🚨' }
+  { id: 'all', label: 'All Modes' },
+  { id: 'clinic', label: 'In-Clinic Visit' },
+  { id: 'teleconsult', label: '24/7 Video Tele-Consult' },
+  { id: 'home_visit', label: 'Home Visit Vet' },
+  { id: 'emergency', label: '24/7 Emergency & ICU' }
 ];
 
 export const VET_PET_CATEGORIES = [
-  { id: 'Dogs', label: '🐶 Dogs' },
-  { id: 'Cats', label: '🐱 Cats' },
-  { id: 'Birds', label: '🦜 Birds' },
-  { id: 'All', label: '🐾 All Pets' }
+  { id: 'Dogs', label: 'Dogs' },
+  { id: 'Cats', label: 'Cats' },
+  { id: 'Birds', label: 'Birds' },
+  { id: 'All', label: 'All Pets' }
 ];
 
 export const VET_SPECIALIZATIONS = [

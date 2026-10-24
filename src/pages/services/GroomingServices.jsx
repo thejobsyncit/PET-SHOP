@@ -3,9 +3,9 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { 
   Sparkles, Search, MapPin, Phone, MessageSquare, Star, ShieldCheck, 
-  Calendar, Clock, CircleCheck, ChevronRight, X, SlidersHorizontal, 
+  Calendar, Clock, CircleCheck, ChevronRight, ChevronDown, X, SlidersHorizontal, 
   RefreshCw, Check, ArrowRight, Heart, Award, Scissors, Bath, 
-  ShieldAlert, UserCheck
+  ShieldAlert, UserCheck, HeartHandshake, SearchCheck, BadgeCheck
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { 
@@ -17,7 +17,56 @@ import { apiRequest } from '../../services/api.js';
 import ScrollReveal from '../../components/ui/ScrollReveal.jsx';
 import ServiceAccessLock, { isServicePathLockedForUser } from '../../components/ui/ServiceAccessLock.jsx';
 import PetBreedDropdown from '../../components/ui/PetBreedDropdown.jsx';
-import { handleServiceAction } from '../../components/widgets/ServicePackageAccessModal.jsx';
+const GROOMING_BENEFITS = [
+  {
+    id: 'hygiene',
+    title: 'Better Hygiene',
+    subtitle: 'Clean pet, fewer germs, fresher cuddles.',
+    image: '/images/services/benefit_hygiene_bath.jpg',
+    detailedDescription: 'Regular professional bathing washes away deep dirt, allergens, and bacteria. Eliminates persistent odors, wards off parasites, and keeps everyday cuddles safe and fresh.',
+    points: [
+      'Eradicates odor & deep grime',
+      'Eliminates ticks & fleas early',
+      'Hypoallergenic coat wash'
+    ]
+  },
+  {
+    id: 'temperature',
+    title: 'Body Temperature',
+    subtitle: 'A trimmed fur helps regulate body heat.',
+    image: '/images/services/benefit_temperature_cat.jpg',
+    detailedDescription: 'Mat-free and well-maintained fur properly insulates pets against harsh summer heat and winter chills. De-shedding and trimming prevent dangerous overheating and heat strokes.',
+    points: [
+      'Natural thermal insulation',
+      'Prevents summer heat strokes',
+      'Comfortable year-round coat'
+    ]
+  },
+  {
+    id: 'shedding',
+    title: 'Shedding and Tangling',
+    subtitle: 'Shiny, tangle-free coat with regular grooming.',
+    image: '/images/services/benefit_shedding_cat.jpg',
+    detailedDescription: 'Thorough brushing removes loose undercoats before they shed onto furniture. Expert dematting prevents painful knots, skin tension, and promotes natural oil distribution.',
+    points: [
+      '90% less hair around the home',
+      'Pain-free knot & mat removal',
+      'Stimulates healthy coat shine'
+    ]
+  },
+  {
+    id: 'disease',
+    title: 'Diseases Detection',
+    subtitle: 'Spot issues early, ensure timely care.',
+    image: '/images/services/benefit_disease_checkup.jpg',
+    detailedDescription: 'Professional groomers inspect skin, ears, paws, and coat during every session. Early detection of lumps, infections, rashes, or inflammation saves lives and prevents vet bills.',
+    points: [
+      'Early skin infection detection',
+      'Ear mite & paw check inspection',
+      'Timely veterinary alerts'
+    ]
+  }
+];
 
 const GroomingServices = () => {
   const navigate = useNavigate();
@@ -244,9 +293,13 @@ const GroomingServices = () => {
     <div className="min-h-screen bg-[#faf8fc] text-slate-800 pb-24">
 
       {/* =========================================================================
-          1. RADIANT HERO BANNER WITH SEARCH FILTER BAR (Screenshot 1 Match)
+          1. RADIANT HERO BANNER WITH SEARCH FILTER BAR (135deg Metallic Gold Theme)
          ========================================================================= */}
-      <section className="relative bg-[#FAC52E] text-slate-900 pt-8 pb-12 px-4 md:px-8 shadow-sm border-b border-[#E0B025]">
+      <ScrollReveal
+        variant="fade"
+        style={{ background: 'linear-gradient(135deg, #d4af37 0%, #fef08a 50%, #b89228 100%)' }}
+        className="relative text-slate-900 pt-8 pb-12 px-4 md:px-8 shadow-md border-b border-[#B89228]"
+      >
         <div className="max-w-7xl mx-auto">
           
           {/* Breadcrumb Navigation */}
@@ -340,7 +393,7 @@ const GroomingServices = () => {
                         const el = document.getElementById('providers-catalog');
                         if (el) el.scrollIntoView({ behavior: 'smooth' });
                       }}
-                      className="w-full bg-primary hover:bg-[#6842c2] text-white font-extrabold py-2.5 px-4 rounded-xl text-xs shadow-md transition-all flex items-center justify-center gap-1.5 cursor-pointer active:scale-95"
+                      className="w-full bg-primary hover:bg-primary-light text-white font-extrabold py-2.5 px-4 rounded-xl text-xs shadow-md shadow-primary/25 transition-all flex items-center justify-center gap-1.5 cursor-pointer active:scale-95"
                     >
                       <Search size={14} />
                       <span>Search</span>
@@ -360,10 +413,12 @@ const GroomingServices = () => {
                   alt="Groomed Happy Dog"
                   className="w-full h-full object-cover rounded-3xl shadow-2xl border-4 border-white/80 filter drop-shadow-xl"
                 />
-                <div className="absolute -bottom-3 -left-3 bg-white px-4 py-2 rounded-2xl shadow-lg border border-amber-200 flex items-center gap-2">
-                  <span className="text-xl">✂️</span>
+                <div className="absolute -bottom-3 -left-3 bg-white px-4 py-2.5 rounded-2xl shadow-lg border border-amber-200 flex items-center gap-2.5">
+                  <div className="w-9 h-9 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center border border-amber-200/80 shrink-0">
+                    <ShieldCheck size={20} className="text-amber-600" />
+                  </div>
                   <div>
-                    <p className="text-[10px] font-extrabold text-slate-400 uppercase">Verified Care</p>
+                    <p className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">Verified Groomers</p>
                     <p className="text-xs font-extrabold text-slate-800">100% Gentle Grooming</p>
                   </div>
                 </div>
@@ -373,7 +428,7 @@ const GroomingServices = () => {
           </div>
 
         </div>
-      </section>
+      </ScrollReveal>
 
 
       {/* =========================================================================
@@ -408,51 +463,81 @@ const GroomingServices = () => {
 
           {/* Right Column: 2x2 Grid of Benefit Cards */}
           <div className="lg:col-span-6 grid grid-cols-1 sm:grid-cols-2 gap-5">
-            
-            {/* 1. Better Hygiene (Yellow Card) */}
-            <div className="bg-[#fec338] text-slate-900 p-6 rounded-3xl shadow-md space-y-3 flex flex-col justify-center transform hover:-translate-y-1 transition duration-200">
-              <div className="w-12 h-12 bg-white/90 rounded-2xl flex items-center justify-center text-2xl shadow-xs">
-                🛁
-              </div>
-              <h3 className="font-extrabold text-lg">Better Hygiene</h3>
-              <p className="text-xs font-medium text-slate-800 leading-relaxed">
-                Clean pet, fewer germs, fresher cuddles.
-              </p>
-            </div>
+            {GROOMING_BENEFITS.map((item) => (
+              <div 
+                key={item.id} 
+                className="flip-card h-[260px] cursor-pointer group"
+                tabIndex={0}
+                onClick={(e) => e.currentTarget.classList.toggle('is-flipped')}
+              >
+                <div className="flip-card-inner">
+                  {/* Front Face: Same cohesive footer green color */}
+                  <div className="flip-card-front bg-[#1D3B2E] text-white p-6 rounded-3xl shadow-lg border border-emerald-800/60 flex flex-col justify-between select-none">
+                    <div className="flex items-start justify-between">
+                      <div className="w-16 h-16 rounded-2xl overflow-hidden shadow-lg border-2 border-[#d4af37]/60 shrink-0 group-hover:scale-105 transition-transform duration-300">
+                        <img 
+                          src={item.image} 
+                          alt={item.title} 
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
 
-            {/* 2. Body Temperature (Cyan/Blue Card) */}
-            <div className="bg-[#00b0f0] text-white p-6 rounded-3xl shadow-md space-y-3 flex flex-col justify-center transform hover:-translate-y-1 transition duration-200">
-              <div className="w-12 h-12 bg-white/20 backdrop-blur-xs rounded-2xl flex items-center justify-center text-2xl shadow-xs">
-                ❄️
-              </div>
-              <h3 className="font-extrabold text-lg">Body Temperature</h3>
-              <p className="text-xs font-medium text-white/95 leading-relaxed">
-                A trimmed fur helps regulate body heat.
-              </p>
-            </div>
+                      <span className="text-[10px] font-bold text-emerald-200/90 bg-white/10 px-2.5 py-1 rounded-full flex items-center gap-1 border border-white/10 self-start shadow-xs">
+                        Flip to reveal ↻
+                      </span>
+                    </div>
 
-            {/* 3. Shedding and Tangling (Pink Card) */}
-            <div className="bg-[#ff85a1] text-white p-6 rounded-3xl shadow-md space-y-3 flex flex-col justify-center transform hover:-translate-y-1 transition duration-200">
-              <div className="w-12 h-12 bg-white/20 backdrop-blur-xs rounded-2xl flex items-center justify-center text-2xl shadow-xs">
-                🪮
-              </div>
-              <h3 className="font-extrabold text-lg">Shedding and Tangling</h3>
-              <p className="text-xs font-medium text-white/95 leading-relaxed">
-                Shiny, tangle-free coat with regular grooming.
-              </p>
-            </div>
+                    <div className="space-y-1.5 my-auto pt-2">
+                      <h3 className="font-extrabold text-lg text-white font-serif">{item.title}</h3>
+                      <p className="text-xs font-medium text-emerald-100/90 leading-relaxed">
+                        {item.subtitle}
+                      </p>
+                    </div>
 
-            {/* 4. Diseases Detection (Purple Card) */}
-            <div className="bg-[#8a68e8] text-white p-6 rounded-3xl shadow-md space-y-3 flex flex-col justify-center transform hover:-translate-y-1 transition duration-200">
-              <div className="w-12 h-12 bg-white/20 backdrop-blur-xs rounded-2xl flex items-center justify-center text-2xl shadow-xs">
-                🩺
-              </div>
-              <h3 className="font-extrabold text-lg">Diseases Detection</h3>
-              <p className="text-xs font-medium text-white/95 leading-relaxed">
-                Spot issues early, ensure timely care.
-              </p>
-            </div>
+                    <div className="pt-2 border-t border-white/10">
+                      <div className="w-10 h-1 rounded-full bg-gradient-to-r from-[#d4af37] to-[#fef08a]" />
+                    </div>
+                  </div>
 
+                  {/* Back Face: Rotates on mouse hover and shows description with gold gradient */}
+                  <div 
+                    style={{ background: 'linear-gradient(135deg, #d4af37 0%, #fef08a 50%, #b89228 100%)' }}
+                    className="flip-card-back text-slate-900 p-5 rounded-3xl shadow-2xl border-2 border-[#b89228] flex flex-col justify-between select-none"
+                  >
+                    <div>
+                      <div className="flex items-center justify-between pb-2 border-b border-black/15 mb-2">
+                        <span className="text-xs font-black tracking-wider uppercase text-slate-950">
+                          {item.title}
+                        </span>
+                        <span className="text-[9px] font-bold text-white bg-[#1D3B2E] px-2.5 py-0.5 rounded-full shadow-xs">
+                          Benefits
+                        </span>
+                      </div>
+
+                      <p className="text-[11px] text-slate-900 leading-relaxed font-semibold mb-2.5">
+                        {item.detailedDescription}
+                      </p>
+
+                      <ul className="space-y-1.5 text-[11px] text-slate-950 font-bold">
+                        {item.points.map((pt, i) => (
+                          <li key={i} className="flex items-center gap-1.5">
+                            <span className="text-[#1D3B2E] text-xs font-black">✓</span>
+                            <span>{pt}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+
+                    <div className="pt-2 border-t border-black/15 flex items-center justify-between text-[10px] text-slate-900 font-bold">
+                      <span>Josh Pets Hub Standard</span>
+                      <span className="bg-[#1D3B2E] text-[#fef08a] px-2 py-0.5 rounded-md font-black text-[9px]">
+                        ★ Essential
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
 
         </div>
@@ -464,49 +549,49 @@ const GroomingServices = () => {
           3. "GROOMING STARTS WITH CARE" (Screenshot 3 Match)
          ========================================================================= */}
       <ScrollReveal variant="slideUp">
-        <section className="bg-white border-y border-beige py-8 lg:py-16 px-4 md:px-8">
-        <div className="max-w-7xl mx-auto text-center space-y-12">
+        <section className="bg-white border-y border-beige py-6 lg:py-10 px-4 md:px-8">
+        <div className="max-w-5xl mx-auto text-center space-y-6 md:space-y-8">
           
-          <div className="max-w-2xl mx-auto space-y-2">
-            <h2 className="text-2xl md:text-3xl font-extrabold text-slate-900 font-sans">
+          <div className="max-w-xl mx-auto space-y-1.5">
+            <h2 className="text-xl md:text-2xl font-extrabold text-slate-900 font-sans">
               Grooming Starts With <span className="text-primary">Care At Josh Pets Hub</span>
             </h2>
-            <p className="text-xs md:text-sm text-slate-500 font-medium">
+            <p className="text-xs text-slate-500 font-medium">
               You choose your preferred time, and we will assign a verified professional groomer for your pet.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
             
             {/* Step 1: Pet-First Approach */}
-            <div className="flex flex-col items-center text-center space-y-3 p-4">
-              <div className="w-16 h-16 rounded-full bg-[#fec338] text-white flex items-center justify-center text-2xl shadow-md">
-                👤
+            <div className="flex flex-col items-center text-center space-y-2.5 p-4 sm:p-5 rounded-2xl bg-slate-50/60 border border-slate-100 hover:border-emerald-200 hover:bg-white hover:shadow-lg transition-all duration-300 group">
+              <div className="w-12 h-12 rounded-full bg-[#1D3B2E] text-[#d4af37] border-2 border-[#d4af37]/40 flex items-center justify-center shadow-md shadow-[#1D3B2E]/20 group-hover:scale-105 group-hover:bg-[#152e24] transition-all duration-300">
+                <HeartHandshake size={22} className="text-[#d4af37] group-hover:scale-105 transition-transform" />
               </div>
-              <h3 className="font-extrabold text-base text-slate-900">Pet-First Approach</h3>
-              <p className="text-xs text-slate-500 font-medium max-w-xs leading-relaxed">
+              <h3 className="font-bold text-sm text-slate-900 group-hover:text-[#1D3B2E] transition-colors">Pet-First Approach</h3>
+              <p className="text-[11px] text-slate-500 font-medium max-w-xs leading-relaxed">
                 The groomer arrives and makes your pet feel safe and relaxed before beginning.
               </p>
             </div>
 
             {/* Step 2: Skin & Coat Assessment */}
-            <div className="flex flex-col items-center text-center space-y-3 p-4">
-              <div className="w-16 h-16 rounded-full bg-[#ff85a1] text-white flex items-center justify-center text-2xl shadow-md">
-                🚪
+            <div className="flex flex-col items-center text-center space-y-2.5 p-4 sm:p-5 rounded-2xl bg-slate-50/60 border border-slate-100 hover:border-emerald-200 hover:bg-white hover:shadow-lg transition-all duration-300 group">
+              <div className="w-12 h-12 rounded-full bg-[#1D3B2E] text-[#d4af37] border-2 border-[#d4af37]/40 flex items-center justify-center shadow-md shadow-[#1D3B2E]/20 group-hover:scale-105 group-hover:bg-[#152e24] transition-all duration-300">
+                <SearchCheck size={22} className="text-[#d4af37] group-hover:scale-105 transition-transform" />
               </div>
-              <h3 className="font-extrabold text-base text-slate-900">Skin & Coat Assessment</h3>
-              <p className="text-xs text-slate-500 font-medium max-w-xs leading-relaxed">
+              <h3 className="font-bold text-sm text-slate-900 group-hover:text-[#1D3B2E] transition-colors">Skin & Coat Assessment</h3>
+              <p className="text-[11px] text-slate-500 font-medium max-w-xs leading-relaxed">
                 The groomer assesses your pet's skin type and coat condition for a tailored grooming session.
               </p>
             </div>
 
             {/* Step 3: Quality Commitment */}
-            <div className="flex flex-col items-center text-center space-y-3 p-4">
-              <div className="w-16 h-16 rounded-full bg-[#8a68e8] text-white flex items-center justify-center text-2xl shadow-md">
-                🏷️
+            <div className="flex flex-col items-center text-center space-y-2.5 p-4 sm:p-5 rounded-2xl bg-slate-50/60 border border-slate-100 hover:border-emerald-200 hover:bg-white hover:shadow-lg transition-all duration-300 group">
+              <div className="w-12 h-12 rounded-full bg-[#1D3B2E] text-[#d4af37] border-2 border-[#d4af37]/40 flex items-center justify-center shadow-md shadow-[#1D3B2E]/20 group-hover:scale-105 group-hover:bg-[#152e24] transition-all duration-300">
+                <BadgeCheck size={22} className="text-[#d4af37] group-hover:scale-105 transition-transform" />
               </div>
-              <h3 className="font-extrabold text-base text-slate-900">Quality Commitment</h3>
-              <p className="text-xs text-slate-500 font-medium max-w-xs leading-relaxed">
+              <h3 className="font-bold text-sm text-slate-900 group-hover:text-[#1D3B2E] transition-colors">Quality Commitment</h3>
+              <p className="text-[11px] text-slate-500 font-medium max-w-xs leading-relaxed">
                 We use only suitable products and commit to delivering top-quality grooming every time.
               </p>
             </div>
@@ -543,18 +628,19 @@ const GroomingServices = () => {
               <button
                 key={offering.id}
                 onClick={() => setSelectedOffering(isActive ? 'all' : offering.id)}
+                style={isActive ? { background: 'linear-gradient(135deg, #d4af37 0%, #fef08a 50%, #b89228 100%)' } : {}}
                 className={`p-4 rounded-2xl border text-center transition-all cursor-pointer flex flex-col items-center justify-between gap-3 ${
                   isActive
-                    ? 'bg-primary text-white border-primary shadow-lg scale-105'
-                    : 'bg-white text-slate-800 border-slate-200 hover:border-primary hover:shadow-md'
+                    ? 'text-slate-950 border-[#b89228] shadow-xl shadow-[#d4af37]/40 scale-105 ring-2 ring-[#fef08a]'
+                    : 'bg-white text-slate-800 border-slate-200 hover:border-[#d4af37]/60 hover:shadow-md'
                 }`}
               >
                 <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-2xl ${
-                  isActive ? 'bg-white/20' : 'bg-sand'
+                  isActive ? 'bg-black/10' : 'bg-sand'
                 }`}>
                   {offering.icon}
                 </div>
-                <span className="text-xs font-extrabold leading-tight">
+                <span className={`text-xs font-extrabold leading-tight ${isActive ? 'text-slate-950 font-black' : ''}`}>
                   {offering.name}
                 </span>
               </button>
@@ -649,7 +735,50 @@ const GroomingServices = () => {
                 </div>
               </div>
 
-              {/* 2. PRICE RANGE FILTER */}
+              {/* 2. PET TYPE (Placed directly below Search as Requested) */}
+              <div className="space-y-2 pt-3 border-t border-slate-100">
+                <span className="text-[11px] font-extrabold uppercase tracking-wider text-slate-900 block">
+                  PET TYPE
+                </span>
+                <div className="grid grid-cols-3 gap-2 text-xs">
+                  {['All', 'Dogs', 'Cats'].map((pt) => (
+                    <button
+                      key={pt}
+                      onClick={() => handlePetTypeChange(pt)}
+                      className={`py-2 px-3 rounded-full font-bold text-center transition cursor-pointer ${
+                        selectedPetType === pt
+                          ? 'bg-[#1D3B2E] text-white shadow-xs'
+                          : 'bg-slate-50 text-slate-700 hover:bg-slate-100'
+                      }`}
+                    >
+                      {pt}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* 3. SORT BY */}
+              <div className="space-y-2 pt-3 border-t border-slate-100">
+                <span className="text-[11px] font-extrabold uppercase tracking-wider text-slate-900 block">
+                  SORT BY
+                </span>
+                <div className="relative">
+                  <select
+                    value={sortBy}
+                    onChange={(e) => setSortBy(e.target.value)}
+                    className="w-full bg-white border border-slate-200 hover:border-primary text-xs font-bold text-slate-900 rounded-full px-4 py-2.5 pr-10 shadow-xs transition appearance-none cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary/20"
+                  >
+                    <option value="recommended">Recommended (Top Rated)</option>
+                    <option value="price-low">Price: Low to High</option>
+                    <option value="price-high">Price: High to Low</option>
+                    <option value="rating">Highest Star Ratings</option>
+                    <option value="reviews">Most Reviews & Bookings</option>
+                  </select>
+                  <ChevronDown size={16} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-900 pointer-events-none stroke-[2.5]" />
+                </div>
+              </div>
+
+              {/* 4. PRICE RANGE FILTER */}
               <div className="space-y-2.5 pt-3 border-t border-slate-100">
                 <div className="flex justify-between items-center">
                   <h4 className="text-xs font-extrabold uppercase tracking-wider text-slate-900">
@@ -682,7 +811,7 @@ const GroomingServices = () => {
                 </div>
               </div>
 
-              {/* 3. SERVICE MODE (Doorstep Van vs Salon Studio vs Home Visit) */}
+              {/* 5. SERVICE MODE (Doorstep Van vs Salon Studio vs Home Visit) */}
               <div className="space-y-2 pt-3 border-t border-slate-100">
                 <h4 className="text-xs font-extrabold uppercase tracking-wider text-slate-900">
                   Service Mode
@@ -702,74 +831,6 @@ const GroomingServices = () => {
                       {selectedServiceMode === mode && <Check size={12} />}
                     </button>
                   ))}
-                </div>
-              </div>
-
-              {/* 4. PET TYPE */}
-              <div className="space-y-2 pt-3 border-t border-slate-100">
-                <h4 className="text-xs font-extrabold uppercase tracking-wider text-slate-900">
-                  Pet Type
-                </h4>
-                <div className="grid grid-cols-3 gap-1.5 text-xs">
-                  {['All', 'Dogs', 'Cats'].map((pt) => (
-                    <button
-                      key={pt}
-                      onClick={() => handlePetTypeChange(pt)}
-                      className={`py-1.5 px-2 rounded-xl font-bold text-center transition cursor-pointer ${
-                        selectedPetType === pt
-                          ? 'bg-primary text-white shadow-xs'
-                          : 'bg-slate-50 text-slate-600 hover:bg-sand'
-                      }`}
-                    >
-                      {pt}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* 5. SORT BY */}
-              <div className="space-y-2 pt-3 border-t border-slate-100">
-                <h4 className="text-xs font-extrabold uppercase tracking-wider text-slate-900">
-                  Sort By
-                </h4>
-                <select
-                  value={sortBy}
-                  onChange={(e) => setSortBy(e.target.value)}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-800 focus:outline-none focus:border-primary"
-                >
-                  <option value="recommended">Recommended (Top Rated)</option>
-                  <option value="price-low">Price: Low to High</option>
-                  <option value="price-high">Price: High to Low</option>
-                  <option value="rating">Highest Star Ratings</option>
-                  <option value="reviews">Most Reviews & Bookings</option>
-                </select>
-              </div>
-
-              {/* 6. LOCATION FILTERS (State & City) */}
-              <div className="space-y-2 pt-3 border-t border-slate-100">
-                <h4 className="text-xs font-extrabold uppercase tracking-wider text-slate-900">
-                  Location
-                </h4>
-                <div className="space-y-1.5">
-                  <select
-                    value={selectedState}
-                    onChange={handleStateChange}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold text-slate-800 focus:outline-none focus:border-primary"
-                  >
-                    {Object.keys(INDIAN_STATES_CITIES).map((st) => (
-                      <option key={st} value={st}>{st}</option>
-                    ))}
-                  </select>
-
-                  <select
-                    value={selectedCity}
-                    onChange={(e) => setSelectedCity(e.target.value)}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold text-slate-800 focus:outline-none focus:border-primary"
-                  >
-                    {availableCities.map((ct) => (
-                      <option key={ct} value={ct}>{ct}</option>
-                    ))}
-                  </select>
                 </div>
               </div>
 
@@ -911,7 +972,7 @@ const GroomingServices = () => {
                         <div className="grid grid-cols-2 gap-2">
                           <button
                             onClick={() => handleOpenBookingModal(provider)}
-                            className="bg-primary hover:bg-[#6842c2] text-white font-extrabold py-2.5 px-3 rounded-xl text-xs shadow-md transition-all flex items-center justify-center gap-1.5 cursor-pointer active:scale-95"
+                            className="btn-footer-green-gold font-extrabold py-2.5 px-3 rounded-xl text-xs shadow-md transition-all flex items-center justify-center gap-1.5 cursor-pointer active:scale-95"
                           >
                             <Calendar size={13} />
                             <span>Book Session</span>
@@ -942,7 +1003,7 @@ const GroomingServices = () => {
                 </p>
                 <button
                   onClick={handleResetFilters}
-                  className="bg-primary text-white font-extrabold px-6 py-2.5 rounded-xl text-xs shadow-md transition hover:bg-[#6842c2]"
+                  className="btn-footer-green-gold font-extrabold px-6 py-2.5 rounded-xl text-xs shadow-md transition"
                 >
                   Reset All Filters
                 </button>
@@ -1110,7 +1171,7 @@ const GroomingServices = () => {
               <div className="pt-2">
                 <button
                   type="submit"
-                  className="w-full bg-primary hover:bg-[#6842c2] text-white font-extrabold py-3 px-4 rounded-xl text-xs shadow-md transition cursor-pointer flex items-center justify-center gap-1.5"
+                  className="w-full btn-footer-green-gold font-extrabold py-3 px-4 rounded-xl text-xs shadow-md transition cursor-pointer flex items-center justify-center gap-1.5"
                 >
                   <CircleCheck size={15} />
                   <span>Confirm Booking (Pay During Grooming: ₹{selectedPackage?.price || selectedProvider.price})</span>

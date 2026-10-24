@@ -49,28 +49,28 @@ export const TRANSPORT_STEPS = [
     title: 'Fill Up the Data',
     desc: 'Tell us about your beloved pet, travel origin, destination, preferred dates, and specific comfort requirements by filling out our quick relocation form.',
     icon: '📋',
-    image: 'https://images.unsplash.com/photo-1517331156700-3c241d2b4d83?q=80&w=800&auto=format&fit=crop'
+    image: '/images/transport/step1_fill_data.jpg'
   },
   {
     step: 'STEP 02',
     title: 'Prepare the Movement',
     desc: 'Our pet relocation coordinator connects with you to design a customized travel plan, crate sizing, vehicle sanitization, and route timeline.',
     icon: '⏱️',
-    image: 'https://images.unsplash.com/photo-1589924691995-400dc9ecc119?q=80&w=800&auto=format&fit=crop'
+    image: '/images/transport/step2_prepare_movement.jpg'
   },
   {
     step: 'STEP 03',
     title: 'Start the Paperwork',
     desc: 'We handle all necessary vet health certifications, vaccination verifications, fit-to-travel permits, and airline/railway authority clearances.',
     icon: '📑',
-    image: 'https://images.unsplash.com/photo-1543466835-00a7907e9de1?q=80&w=800&auto=format&fit=crop'
+    image: '/images/transport/step3_vet_paperwork.jpg'
   },
   {
     step: 'STEP 04',
     title: 'Smooth Delivery',
     desc: 'From doorstep pickup in sanitized climate-controlled vehicles to real-time GPS tracking and safe doorstep delivery with happy reunions.',
     icon: '🚚',
-    image: 'https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?q=80&w=800&auto=format&fit=crop'
+    image: '/images/transport/step4_smooth_delivery.jpg'
   }
 ];
 

@@ -8,9 +8,9 @@ const RatingStars = ({ rating = 5, size = 16, className = '' }) => {
 
   for (let i = 1; i <= 5; i++) {
     if (i <= fullStars) {
-      stars.push(<Star key={i} size={size} className="fill-accent text-accent" />);
+      stars.push(<Star key={i} size={size} className="fill-amber-400 text-amber-400" />);
     } else if (i === fullStars + 1 && hasHalfStar) {
-      stars.push(<StarHalf key={i} size={size} className="fill-accent text-accent" />);
+      stars.push(<StarHalf key={i} size={size} className="fill-amber-400 text-amber-400" />);
     } else {
       stars.push(<Star key={i} size={size} className="text-gray-300" />);
     }

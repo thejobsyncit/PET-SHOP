@@ -41,9 +41,26 @@ export const saveConsent = async (req, res) => {
 // @access  Private/Admin
 export const getConsents = async (req, res) => {
   try {
-    const { data: consents, error } = await supabase.from('cookie_consents').select('*').order('created_at', { ascending: false }).limit(100);
+    const { data: consents, error } = await supabase
+      .from('cookie_consents')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .limit(100);
+
     if (error) throw error;
-    res.status(200).json({ success: true, consents: consents || [] });
+
+    // Normalize for both snake_case and camelCase frontend compatibility
+    const normalized = (consents || []).map((c) => ({
+      ...c,
+      _id: c.id,
+      id: c.id,
+      sessionId: c.session_id || c.sessionId,
+      ip: c.ip_address || c.ip,
+      userAgent: c.user_agent || c.userAgent,
+      createdAt: c.created_at || c.createdAt
+    }));
+
+    res.status(200).json({ success: true, consents: normalized });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
@@ -69,7 +86,22 @@ export const checkConsent = async (req, res) => {
 export const deleteConsent = async (req, res) => {
   try {
     const { id } = req.params;
-    const { error } = await supabase.from('cookie_consents').delete().eq('id', id);
+
+    if (!id || id === 'undefined' || id === 'null') {
+      return res.status(400).json({ success: false, message: 'Invalid or undefined consent ID provided' });
+    }
+
+    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
+    let error;
+
+    if (isUuid) {
+      const result = await supabase.from('cookie_consents').delete().eq('id', id);
+      error = result.error;
+    } else {
+      const result = await supabase.from('cookie_consents').delete().eq('session_id', id);
+      error = result.error;
+    }
+
     if (error) throw error;
     res.status(200).json({ success: true, message: 'Consent log deleted successfully' });
   } catch (error) {

@@ -50,9 +50,22 @@ export const normalizeProduct = (p) => {
   };
 };
 
+const getCachedProducts = () => {
+  try {
+    const cached = localStorage.getItem('joshpetshub_cached_products');
+    if (cached) {
+      const parsed = JSON.parse(cached);
+      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+    }
+  } catch (_) {}
+  return [];
+};
+
+const initialCachedProducts = getCachedProducts();
+
 const initialState = {
-  items: [],
-  total: 0,
+  items: initialCachedProducts,
+  total: initialCachedProducts.length,
   page: 1,
   pages: 1,
   currentProduct: null,
@@ -67,7 +80,7 @@ const initialState = {
     search: '',
     sort: 'date_desc',
   },
-  loading: false,
+  loading: initialCachedProducts.length === 0,
   detailLoading: false,
   error: null,
 };
@@ -103,15 +116,24 @@ const productSlice = createSlice({
     builder
       // Fetch Products list
       .addCase(fetchProducts.pending, (state) => {
-        state.loading = true;
+        // Only trigger visible loading skeleton if we have zero products loaded
+        if (state.items.length === 0) {
+          state.loading = true;
+        }
         state.error = null;
       })
       .addCase(fetchProducts.fulfilled, (state, action) => {
         state.loading = false;
-        state.items = (action.payload.products || []).map(normalizeProduct);
-        state.total = action.payload.total;
-        state.page = action.payload.page;
-        state.pages = action.payload.pages;
+        const normalized = (action.payload.products || []).map(normalizeProduct);
+        state.items = normalized;
+        state.total = action.payload.total ?? normalized.length;
+        state.page = action.payload.page || 1;
+        state.pages = action.payload.pages || 1;
+        try {
+          if (normalized.length > 0 && !state.filters.search && !state.filters.category) {
+            localStorage.setItem('joshpetshub_cached_products', JSON.stringify(normalized.slice(0, 30)));
+          }
+        } catch (_) {}
       })
       .addCase(fetchProducts.rejected, (state, action) => {
         state.loading = false;

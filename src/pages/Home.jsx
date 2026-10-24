@@ -26,6 +26,12 @@ const Home = () => {
       path: '/shop?petType=dogs'
     },
     {
+      title: 'CATS',
+      desc: 'Grain-free wet food, multi-level cat trees, scratchers, premium litter, and calming toys.',
+      img: 'https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?q=80&w=800&auto=format&fit=crop',
+      path: '/shop?petType=cats'
+    },
+    {
       title: 'BIRDS',
       desc: 'Gourmet seed mixes, natural wood perches, wrought-iron cages, and vitamins.',
       img: 'https://images.unsplash.com/photo-1535930891776-0c2dfb7fda1a?q=80&w=800&auto=format&fit=crop',
@@ -151,10 +157,10 @@ const Home = () => {
           <div className="text-center max-w-2xl mx-auto space-y-3">
             <span className="text-[10px] uppercase tracking-widest text-accent font-bold">DISCOVER DEPARTMENTS</span>
             <h2 className="text-2xl md:text-3xl">Shop By Companion Type</h2>
-            <p className="text-xs text-gray-500 leading-relaxed">Explore customized health, diet, and enrichment categories for dogs, birds, reptiles, and aquatics.</p>
+            <p className="text-xs text-gray-500 leading-relaxed">Explore customized health, diet, and enrichment categories for dogs, cats, birds, reptiles, and aquatics.</p>
           </div>
   
-          <div className="grid grid-cols-1 md:grid-cols-1 md:grid-cols-2 lg:grid-cols-1 md:grid-cols-2 md:grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-6">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-5">
             {categoriesList.map((cat, idx) => (
               <div 
                 key={cat.title}
@@ -201,7 +207,7 @@ const Home = () => {
               
               {/* Tab switchers */}
               <div className="flex flex-wrap gap-2 border-b border-beige pb-1 shrink-0">
-                {['dogs', 'birds', 'reptiles', 'fish', 'pharmacy'].map((tab) => (
+                {['dogs', 'cats', 'birds', 'reptiles', 'fish', 'pharmacy'].map((tab) => (
                   <button
                     key={tab}
                     onClick={() => setActiveTab(tab)}

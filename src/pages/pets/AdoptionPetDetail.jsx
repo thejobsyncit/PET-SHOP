@@ -4,7 +4,7 @@ import { useSelector } from 'react-redux';
 import {
   Heart, ArrowLeft, MapPin, MessageSquare, ShieldCheck,
   CircleCheck, Check, User, Calendar, Award, Share2, Info, Home,
-  Sparkles, AlertCircle, ArrowRight, Lock, X, Phone
+  Sparkles, AlertCircle, ArrowRight, Lock, X
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import {
@@ -14,7 +14,6 @@ import {
   saveAdoptionInquiry
 } from '../../data/adoptionPetsData';
 import FlyingMacawMessenger from '../../components/widgets/FlyingMacawMessenger.jsx';
-import { handleServiceAction } from '../../components/widgets/ServicePackageAccessModal.jsx';
 
 const WhatsAppIcon = ({ className = 'w-4 h-4', size = 18 }) => (
   <svg
@@ -85,32 +84,6 @@ const AdoptionPetDetail = () => {
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, [id]);
-
-  // Open adoption care package modal
-  const handleOpenCarePackages = (targetPet) => {
-    const p = targetPet || pet;
-    if (!p) return;
-    handleServiceAction({
-      isAuthenticated,
-      serviceType: 'Adoption',
-      provider: {
-        id: p.id,
-        name: p.name,
-        parentName: p.parentName || p.guardianName || 'Rescue Shelter',
-        breed: p.breed,
-        gender: p.gender,
-        age: p.age,
-        city: p.city,
-        area: p.state,
-        phone: p.parentContact || p.shelterPhone || '+91 98765 43210',
-        image: p.image,
-        rating: 4.9,
-        reviews: 42,
-        price: p.fee ? Number(p.fee) : 499
-      },
-      action: 'book'
-    });
-  };
 
   // Direct WhatsApp chat connect with pet details
   const handleWhatsAppChat = (targetPet) => {
@@ -332,9 +305,9 @@ const AdoptionPetDetail = () => {
 
   if (!pet) {
     return (
-      <div className="min-h-screen bg-[#faf8fc] flex items-center justify-center p-4">
-        <div className="bg-white p-8 rounded-2xl border border-purple-100 shadow-md max-w-md text-center space-y-4">
-          <div className="w-16 h-16 bg-purple-50 rounded-full flex items-center justify-center mx-auto text-[#7c56dc]">
+      <div className="min-h-screen bg-[#fcfbf7] flex items-center justify-center p-4">
+        <div className="bg-white p-8 rounded-2xl border border-amber-200/60 shadow-md max-w-md text-center space-y-4">
+          <div className="w-16 h-16 bg-amber-50 rounded-full flex items-center justify-center mx-auto text-[#b89228]">
             <AlertCircle size={32} />
           </div>
           <h2 className="text-xl font-serif font-bold text-slate-800">Pet Listing Not Found</h2>
@@ -343,7 +316,7 @@ const AdoptionPetDetail = () => {
           </p>
           <Link
             to="/adopt"
-            className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#7c56dc] text-white rounded-xl font-bold text-xs shadow-md transition"
+            className="inline-flex items-center gap-2 px-5 py-2.5 bg-gold-gradient text-slate-900 rounded-xl font-bold text-xs shadow-md hover:brightness-105 transition"
           >
             <ArrowLeft size={16} /> Back to All Adoption Pets
           </Link>
@@ -356,7 +329,7 @@ const AdoptionPetDetail = () => {
   const relatedPets = (pets || []).filter((p) => p && pet && p.id !== pet.id).slice(0, 3);
 
   return (
-    <div className="min-h-screen bg-[#faf8fc] text-slate-800 pb-24 relative overflow-x-hidden">
+    <div className="min-h-screen bg-[#fcfbf7] text-slate-800 pb-24 relative overflow-x-hidden">
 
       {/* Animated Flying Macaw Delivery Messenger */}
       {showFlyingMacaw && (
@@ -367,20 +340,20 @@ const AdoptionPetDetail = () => {
       )}
 
       {/* Top Breadcrumb Navigation */}
-      <div className="bg-white border-b border-purple-100 py-3 px-4 md:px-8">
+      <div className="bg-white border-b border-amber-200/60 py-3 px-4 md:px-8">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-2 text-xs font-medium text-slate-500">
             <Link to="/" className="hover:text-slate-900">Home</Link>
             <span>&gt;</span>
             <Link to="/adopt" className="hover:text-slate-900">Pet Adoption</Link>
             <span>&gt;</span>
-            <span className="text-[#7c56dc] font-bold">{pet.name}</span>
+            <span className="text-[#b89228] font-bold">{pet.name}</span>
           </div>
 
           <button
             type="button"
             onClick={() => navigate('/adopt')}
-            className="text-xs font-bold text-[#7c56dc] hover:underline flex items-center gap-1 cursor-pointer"
+            className="text-xs font-bold text-[#b89228] hover:underline flex items-center gap-1 cursor-pointer"
           >
             <ArrowLeft size={14} /> Back to Pets
           </button>
@@ -397,10 +370,10 @@ const AdoptionPetDetail = () => {
           <div className="lg:col-span-7 space-y-6">
 
             {/* 1. Main Gallery Card */}
-            <div className="bg-white rounded-3xl border border-purple-100 shadow-sm overflow-hidden p-4 space-y-4">
+            <div className="bg-white rounded-3xl border border-amber-200/60 shadow-sm overflow-hidden p-4 space-y-4">
 
               {/* Big High-Res Main Image */}
-              <div className="relative aspect-[16/10] rounded-2xl overflow-hidden bg-purple-50">
+              <div className="relative aspect-[16/10] rounded-2xl overflow-hidden bg-amber-50/50">
                 <img
                   src={selectedImage || pet.image || 'https://images.unsplash.com/photo-1548199973-03cce0bbc87b?q=80&w=800'}
                   alt={pet.name}
@@ -416,7 +389,7 @@ const AdoptionPetDetail = () => {
                   <span className={`${(pet.fee > 0 || pet.price > 0) ? 'bg-[#0F2E23]/90 text-amber-300' : 'bg-emerald-600/90 text-white'} backdrop-blur-xs text-[11px] font-bold px-3 py-1 rounded-full shadow-sm`}>
                     {(pet.fee > 0 || pet.price > 0) ? `₹${pet.fee || pet.price} Adoption Fee` : '100% Free Adoption'}
                   </span>
-                  <span className="bg-[#7c56dc]/90 backdrop-blur-xs text-white text-[11px] font-bold px-3 py-1 rounded-full shadow-sm">
+                  <span className="bg-gold-gradient backdrop-blur-xs text-slate-900 text-[11px] font-extrabold px-3 py-1 rounded-full shadow-sm">
                     {pet.quality}
                   </span>
                 </div>
@@ -445,7 +418,7 @@ const AdoptionPetDetail = () => {
                       key={idx}
                       type="button"
                       onClick={() => setSelectedImage(imgUrl)}
-                      className={`w-20 h-16 rounded-xl overflow-hidden border-2 transition shrink-0 cursor-pointer ${selectedImage === imgUrl ? 'border-[#7c56dc] ring-2 ring-purple-200' : 'border-transparent opacity-70 hover:opacity-100'
+                      className={`w-20 h-16 rounded-xl overflow-hidden border-2 transition shrink-0 cursor-pointer ${selectedImage === imgUrl ? 'border-[#d4af37] ring-2 ring-amber-200' : 'border-transparent opacity-70 hover:opacity-100'
                         }`}
                     >
                       <img 
@@ -465,15 +438,15 @@ const AdoptionPetDetail = () => {
             </div>
 
             {/* 2. Key Attributes Grid Card */}
-            <div className="bg-white rounded-3xl border border-purple-100 shadow-sm p-6 space-y-6">
+            <div className="bg-white rounded-3xl border border-amber-200/60 shadow-sm p-6 space-y-6">
 
               <div className="flex flex-col sm:flex-row sm:items-baseline justify-between border-b border-slate-100 pb-4 gap-2">
                 <div>
                   <h1 className="font-serif text-3xl font-extrabold text-slate-900">
-                    Hi! My name is <span className="text-[#7c56dc]">{pet.name}</span>
+                    Hi! My name is <span className="text-[#b89228]">{pet.name}</span>
                   </h1>
                   <p className="text-xs text-slate-500 font-medium mt-1 flex items-center gap-2">
-                    <MapPin size={14} className="text-[#7c56dc]" />
+                    <MapPin size={14} className="text-[#b89228]" />
                     <span>{pet.city}, {pet.state}</span>
                   </p>
                 </div>
@@ -533,19 +506,19 @@ const AdoptionPetDetail = () => {
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-2.5 p-3 rounded-xl bg-purple-50 border border-purple-150 text-purple-800">
-                    <ShieldCheck size={18} className="text-[#7c56dc] shrink-0" />
+                  <div className="flex items-center gap-2.5 p-3 rounded-xl bg-amber-50/70 border border-amber-200 text-amber-900">
+                    <ShieldCheck size={18} className="text-[#b89228] shrink-0" />
                     <div>
                       <p className="text-xs font-bold">Shelter Verified</p>
-                      <p className="text-[10px] text-[#7c56dc]">Health checked by Vet</p>
+                      <p className="text-[10px] text-[#b89228]">Health checked by Vet</p>
                     </div>
                   </div>
                 </div>
               </div>
 
               {/* Adoption Process Guarantee */}
-              <div className="bg-purple-50/60 p-4 rounded-2xl border border-purple-100 space-y-2 text-xs text-slate-700">
-                <p className="font-bold text-[#7c56dc] flex items-center gap-1.5">
+              <div className="bg-amber-50/50 p-4 rounded-2xl border border-amber-200/60 space-y-2 text-xs text-slate-700">
+                <p className="font-bold text-[#b89228] flex items-center gap-1.5">
                   <Sparkles size={16} /> JOSH PETS HUB Adoption Commitment
                 </p>
                 <p className="text-[11.5px] leading-relaxed text-slate-600">
@@ -564,11 +537,11 @@ const AdoptionPetDetail = () => {
           <div className="lg:col-span-5 space-y-6">
 
             {/* Guardian & Direct Contact Card */}
-            <div className="bg-white rounded-3xl border border-purple-100 shadow-md p-6 space-y-5 sticky top-24">
+            <div className="bg-white rounded-3xl border border-amber-200/60 shadow-md p-6 space-y-5 sticky top-24">
 
               <div className="flex items-center justify-between border-b border-slate-100 pb-3">
                 <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 rounded-full bg-purple-100 flex items-center justify-center text-[#7c56dc] font-bold text-base">
+                  <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#d4af37]/20 via-[#fef08a]/30 to-[#b89228]/20 border border-amber-200 flex items-center justify-center text-[#8c6710] font-bold text-base shadow-xs">
                     {pet.parentName ? pet.parentName.charAt(0) : 'G'}
                   </div>
                   <div>
@@ -579,7 +552,7 @@ const AdoptionPetDetail = () => {
 
                 <div className="text-right">
                   <span className="text-[10px] text-slate-400 font-semibold block">Location</span>
-                  <span className="text-xs font-bold text-[#7c56dc]">{pet.city}</span>
+                  <span className="text-xs font-bold text-[#b89228]">{pet.city}</span>
                 </div>
               </div>
 
@@ -595,41 +568,22 @@ const AdoptionPetDetail = () => {
                   <span>Chat on WhatsApp with Guardian</span>
                 </button>
 
-                <div className="grid grid-cols-2 gap-2">
-                  <a
-                    href={`tel:${(pet.parentContact || pet.shelterPhone || pet.ownerPhone || '+91 98765 43210').replace(/\s+/g, '')}`}
-                    className="py-2.5 px-3 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold text-xs transition flex items-center justify-center gap-1.5"
-                  >
-                    <Phone size={14} className="text-emerald-600" />
-                    <span>Call Guardian</span>
-                  </a>
-
-                  <button
-                    type="button"
-                    onClick={() => setShowInquiryModal(true)}
-                    className="py-2.5 px-3 bg-purple-50 hover:bg-purple-100 text-[#7c56dc] border border-purple-200 rounded-xl font-bold text-xs transition flex items-center justify-center gap-1.5 cursor-pointer"
-                  >
-                    <MessageSquare size={14} />
-                    <span>In-App Chat</span>
-                  </button>
-                </div>
+                {/* In-App Direct Chat */}
+                <button
+                  type="button"
+                  onClick={() => setShowInquiryModal(true)}
+                  className="w-full py-2.5 px-3 bg-gradient-to-r from-amber-50 to-yellow-50 hover:from-amber-100 hover:to-yellow-100 text-[#8c6710] border border-amber-200 hover:border-[#d4af37] rounded-xl font-bold text-xs transition flex items-center justify-center gap-1.5 cursor-pointer shadow-xs"
+                >
+                  <MessageSquare size={14} />
+                  <span>In-App Chat</span>
+                </button>
               </div>
-
-              {/* Adoption Package & Payment Pass Trigger */}
-              <button
-                type="button"
-                onClick={() => handleOpenCarePackages(pet)}
-                className="w-full py-2.5 px-4 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white rounded-xl font-bold text-xs shadow-md shadow-amber-500/20 active:scale-95 transition flex items-center justify-center gap-2 cursor-pointer"
-              >
-                <Sparkles size={15} />
-                <span>⭐ View Adoption Care Packages & Pass</span>
-              </button>
 
               {/* Adoption Application Form Section */}
               <div className="border-t border-slate-100 pt-4 space-y-4">
                 <div>
                   <h3 className="font-serif text-base font-bold text-slate-900 flex items-center gap-1.5">
-                    <Heart size={16} className="text-[#7c56dc]" />
+                    <Heart size={16} className="text-[#b89228]" />
                     <span>Adopt {pet.name}</span>
                   </h3>
                   <p className="text-[11px] text-slate-500">
@@ -639,12 +593,12 @@ const AdoptionPetDetail = () => {
 
                 {/* CASE 1: Current Logged In User is the Owner of this Pet */}
                 {isPetOwner ? (
-                  <div className="p-5 bg-purple-50/80 border-2 border-purple-200 rounded-2xl text-center space-y-3 animate-in fade-in">
-                    <div className="w-12 h-12 bg-purple-100 text-[#7c56dc] rounded-full flex items-center justify-center mx-auto shadow-sm">
+                  <div className="p-5 bg-amber-50/80 border-2 border-amber-200 rounded-2xl text-center space-y-3 animate-in fade-in">
+                    <div className="w-12 h-12 bg-amber-100 text-[#b89228] rounded-full flex items-center justify-center mx-auto shadow-sm">
                       <ShieldCheck size={26} />
                     </div>
                     <div>
-                      <span className="text-[10px] font-extrabold uppercase tracking-wider text-purple-700 bg-purple-100 px-2.5 py-0.5 rounded-full inline-block mb-1">
+                      <span className="text-[10px] font-extrabold uppercase tracking-wider text-amber-800 bg-amber-100 px-2.5 py-0.5 rounded-full inline-block mb-1">
                         Pet Guardian Notice
                       </span>
                       <h4 className="font-bold text-slate-900 text-sm">You are the Guardian of {pet.name}</h4>
@@ -655,7 +609,7 @@ const AdoptionPetDetail = () => {
                     <div className="pt-2">
                       <Link
                         to="/account?tab=adoption-listings"
-                        className="w-full py-2.5 px-4 bg-[#7c56dc] hover:bg-[#6842c8] text-white font-bold text-xs rounded-xl shadow-md shadow-purple-600/20 active:scale-95 transition inline-flex items-center justify-center gap-2"
+                        className="w-full py-2.5 px-4 bg-gold-gradient hover:brightness-105 text-slate-900 font-bold text-xs rounded-xl shadow-md active:scale-95 transition inline-flex items-center justify-center gap-2"
                       >
                         <span>View Received Applications in Dashboard</span>
                         <ArrowRight size={14} />
@@ -690,7 +644,7 @@ const AdoptionPetDetail = () => {
                       <button
                         type="button"
                         onClick={() => setIsSubmitted(false)}
-                        className="text-xs text-[#7c56dc] font-bold hover:underline py-1"
+                        className="text-xs text-[#b89228] font-bold hover:underline py-1"
                       >
                         Edit / Submit New Application
                       </button>
@@ -720,7 +674,7 @@ const AdoptionPetDetail = () => {
                         placeholder="e.g. Rahul Sharma"
                         value={applicantName}
                         onChange={(e) => setApplicantName(e.target.value)}
-                        className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-xs focus:outline-none focus:border-[#7c56dc] focus:ring-2 focus:ring-purple-100 font-medium"
+                        className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-xs focus:outline-none focus:border-[#d4af37] focus:ring-2 focus:ring-amber-200 font-medium"
                         required
                       />
                     </div>
@@ -732,7 +686,7 @@ const AdoptionPetDetail = () => {
                         placeholder="e.g. +91 98765 43210"
                         value={applicantPhone}
                         onChange={(e) => setApplicantPhone(e.target.value)}
-                        className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-xs focus:outline-none focus:border-[#7c56dc] focus:ring-2 focus:ring-purple-100 font-medium"
+                        className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-xs focus:outline-none focus:border-[#d4af37] focus:ring-2 focus:ring-amber-200 font-medium"
                         required
                       />
                     </div>
@@ -743,7 +697,7 @@ const AdoptionPetDetail = () => {
                         <select
                           value={homeType}
                           onChange={(e) => setHomeType(e.target.value)}
-                          className="w-full px-3 py-2.5 border border-slate-200 rounded-xl text-xs focus:outline-none focus:border-[#7c56dc] font-medium bg-slate-50"
+                          className="w-full px-3 py-2.5 border border-slate-200 rounded-xl text-xs focus:outline-none focus:border-[#d4af37] font-medium bg-slate-50"
                         >
                           <option value="Apartment">Apartment</option>
                           <option value="House with Yard">House with Yard</option>
@@ -756,7 +710,7 @@ const AdoptionPetDetail = () => {
                         <select
                           value={hasPetExperience}
                           onChange={(e) => setHasPetExperience(e.target.value)}
-                          className="w-full px-3 py-2.5 border border-slate-200 rounded-xl text-xs focus:outline-none focus:border-[#7c56dc] font-medium bg-slate-50"
+                          className="w-full px-3 py-2.5 border border-slate-200 rounded-xl text-xs focus:outline-none focus:border-[#d4af37] font-medium bg-slate-50"
                         >
                           <option value="Yes">Yes (Had pets before)</option>
                           <option value="First Time">First-time parent</option>
@@ -771,16 +725,16 @@ const AdoptionPetDetail = () => {
                         placeholder="Tell about your daily routine, family, and home environment..."
                         value={adoptionReason}
                         onChange={(e) => setAdoptionReason(e.target.value)}
-                        className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-xs focus:outline-none focus:border-[#7c56dc] focus:ring-2 focus:ring-purple-100 font-medium"
+                        className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-xs focus:outline-none focus:border-[#d4af37] focus:ring-2 focus:ring-amber-200 font-medium"
                         required
                       ></textarea>
                     </div>
 
                     <button
                       type="submit"
-                      className="w-full py-3 bg-[#7c56dc] hover:bg-[#6842c8] text-white font-bold text-xs rounded-xl shadow-lg shadow-purple-600/25 active:scale-95 transition cursor-pointer flex items-center justify-center gap-2"
+                      className="w-full py-3.5 btn-adoption-submit font-bold text-xs rounded-xl shadow-lg shadow-emerald-950/20 active:scale-95 transition-all duration-300 cursor-pointer flex items-center justify-center gap-2 group"
                     >
-                      <Heart size={16} />
+                      <Heart size={16} className="transition-transform group-hover:scale-110" />
                       <span>Submit Adoption Application</span>
                     </button>
 
@@ -800,7 +754,7 @@ const AdoptionPetDetail = () => {
             BOTTOM: Other Pets Looking For A Forever Home
            ========================================================================= */}
         {relatedPets.length > 0 && (
-          <div className="mt-16 pt-8 border-t border-purple-150 space-y-6">
+          <div className="mt-16 pt-8 border-t border-amber-200/60 space-y-6">
             <div className="flex items-center justify-between">
               <div>
                 <h3 className="font-serif text-2xl font-bold text-slate-900">
@@ -812,7 +766,7 @@ const AdoptionPetDetail = () => {
               </div>
               <Link
                 to="/adopt"
-                className="text-xs font-bold text-[#7c56dc] hover:underline flex items-center gap-1"
+                className="text-xs font-bold text-[#b89228] hover:underline flex items-center gap-1"
               >
                 View All Pets &rarr;
               </Link>
@@ -822,23 +776,23 @@ const AdoptionPetDetail = () => {
               {relatedPets.map((p) => (
                 <div
                   key={p.id}
-                  className="bg-white rounded-2xl border border-purple-100 shadow-sm hover:shadow-md transition overflow-hidden flex flex-col justify-between"
+                  className="bg-white rounded-2xl border border-amber-200/60 shadow-sm hover:shadow-md transition overflow-hidden flex flex-col justify-between"
                 >
                   <div
                     onClick={() => handleKnowMore(p)}
-                    className="aspect-[4/3] overflow-hidden bg-purple-50 cursor-pointer group"
+                    className="aspect-[4/3] overflow-hidden bg-amber-50/50 cursor-pointer group"
                   >
                     <img src={p.image} alt={p.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
                   </div>
                   <div className="p-4 space-y-2">
                     <h4 className="font-bold text-slate-800 text-sm">
-                      Hi! My name is: <span className="text-[#7c56dc]">{p.name}</span>
+                      Hi! My name is: <span className="text-[#b89228]">{p.name}</span>
                     </h4>
                     <p className="text-xs text-slate-500">{p.breed} • {p.city}</p>
                     <button
                       type="button"
                       onClick={() => handleKnowMore(p)}
-                      className="w-full text-center py-2 bg-[#7c56dc] hover:bg-[#6842c8] text-white text-xs font-bold rounded-xl transition cursor-pointer"
+                      className="w-full text-center py-2 bg-gold-gradient hover:brightness-105 text-slate-900 text-xs font-bold rounded-xl transition cursor-pointer shadow-sm"
                     >
                       Know More About {p.name}
                     </button>
@@ -855,7 +809,7 @@ const AdoptionPetDetail = () => {
             <div className="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-8 shadow-2xl space-y-5 relative">
               <div className="flex justify-between items-center pb-3 border-b border-slate-100">
                 <div className="flex items-center gap-2.5">
-                  <div className="w-10 h-10 rounded-2xl bg-purple-100 text-[#7c56dc] flex items-center justify-center font-bold">
+                  <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-[#d4af37]/20 via-[#fef08a]/30 to-[#b89228]/20 border border-amber-200 text-[#8c6710] flex items-center justify-center font-bold">
                     <MessageSquare size={20} />
                   </div>
                   <div>
@@ -880,7 +834,7 @@ const AdoptionPetDetail = () => {
                     value={inquirySenderName}
                     onChange={(e) => setInquirySenderName(e.target.value)}
                     placeholder="Enter your full name"
-                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium focus:outline-none focus:border-[#7c56dc]"
+                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium focus:outline-none focus:border-[#d4af37]"
                     required
                   />
                 </div>
@@ -892,7 +846,7 @@ const AdoptionPetDetail = () => {
                     value={inquirySenderPhone}
                     onChange={(e) => setInquirySenderPhone(e.target.value)}
                     placeholder="e.g. 9876543210"
-                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium focus:outline-none focus:border-[#7c56dc]"
+                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium focus:outline-none focus:border-[#d4af37]"
                     required
                   />
                 </div>
@@ -904,7 +858,7 @@ const AdoptionPetDetail = () => {
                     value={inquiryQuestion}
                     onChange={(e) => setInquiryQuestion(e.target.value)}
                     placeholder={`e.g. Hi! Is ${pet.name} friendly around other pets and toddlers? Can we schedule a visit to your sanctuary?`}
-                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium focus:outline-none focus:border-[#7c56dc]"
+                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium focus:outline-none focus:border-[#d4af37]"
                     required
                   />
                 </div>
@@ -919,7 +873,7 @@ const AdoptionPetDetail = () => {
                   </button>
                   <button
                     type="submit"
-                    className="px-5 py-2 bg-[#7c56dc] hover:bg-[#6842c8] text-white rounded-xl text-xs font-bold shadow-md transition cursor-pointer flex items-center gap-1.5"
+                    className="px-5 py-2 bg-gold-gradient hover:brightness-105 text-slate-900 rounded-xl text-xs font-bold shadow-md transition cursor-pointer flex items-center gap-1.5"
                   >
                     <span>Send Message</span>
                     <ArrowRight size={14} />

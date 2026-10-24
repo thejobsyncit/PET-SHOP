@@ -25,13 +25,14 @@ import {
   Flame,
   ArrowRight,
   UserCheck,
-  RotateCcw
+  RotateCcw,
+  Home,
+  MessagesSquare,
+  Footprints
 } from 'lucide-react';
 import {
   TRAINING_TYPES,
   TRAINING_BENEFITS,
-  TRAINING_MODULE_BADGES,
-  THREE_STEP_PROCESS,
   TRAINING_TESTIMONIALS,
   getStoredTrainingProviders,
   saveTrainingBooking,
@@ -42,6 +43,20 @@ import ServiceAccessLock, { isServicePathLockedForUser } from '../../components/
 import ScrollReveal from '../../components/ui/ScrollReveal.jsx';
 import PetBreedDropdown from '../../components/ui/PetBreedDropdown.jsx';
 import { handleServiceAction } from '../../components/widgets/ServicePackageAccessModal.jsx';
+
+const renderBenefitIcon = (iconKey) => {
+  switch (iconKey) {
+    case 'home':
+      return <Home size={26} className="text-[#fef08a]" />;
+    case 'communication':
+      return <MessagesSquare size={26} className="text-[#fef08a]" />;
+    case 'walks':
+      return <Footprints size={26} className="text-[#fef08a]" />;
+    case 'bond':
+    default:
+      return <HeartHandshake size={26} className="text-[#fef08a]" />;
+  }
+};
 
 const PetTraining = () => {
   const navigate = useNavigate();
@@ -365,17 +380,32 @@ const PetTraining = () => {
     <div className="bg-[#FAF9F5] min-h-screen text-slate-800 font-sans pb-24">
 
       {/* 1. HERO BANNER & QUICK SEARCH */}
-      <ScrollReveal variant="fade" className="relative bg-gradient-to-r from-[#F59E0B] via-[#FBBF24] to-[#F59E0B] text-slate-900 pt-28 pb-16 px-4 md:px-8 overflow-hidden shadow-inner">
+      <ScrollReveal
+        variant="fade"
+        style={{ background: 'linear-gradient(135deg, #d4af37 0%, #fef08a 50%, #b89228 100%)' }}
+        className="relative text-slate-900 pt-6 md:pt-8 pb-10 md:pb-12 px-4 md:px-8 overflow-hidden shadow-inner border-b border-[#b89228]"
+      >
         {/* Decorative Ambient Shapes */}
-        <div className="absolute -top-24 -right-24 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute bottom-0 left-12 w-80 h-80 bg-white/20 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute -top-24 -right-24 w-96 h-96 bg-white/20 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute bottom-0 left-12 w-80 h-80 bg-[#b89228]/25 rounded-full blur-3xl pointer-events-none" />
 
-        <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8 items-center relative z-10">
+        <div className="max-w-7xl mx-auto relative z-10">
+          
+          {/* Breadcrumb Navigation */}
+          <div className="flex items-center gap-1.5 text-xs text-slate-800/80 mb-6 font-medium">
+            <Link to="/" className="hover:text-black transition">Home</Link>
+            <ChevronRight size={12} />
+            <Link to="/services" className="hover:text-black transition">Pet Services</Link>
+            <ChevronRight size={12} />
+            <span className="font-bold text-slate-900">Dog Training</span>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
           
           {/* Left Column: Headline & Subtitle */}
           <div className="lg:col-span-7 space-y-4 text-left">
             <div className="inline-block">
-              <span className="text-sm md:text-base font-serif italic text-purple-800 font-bold tracking-wide">
+              <span className="text-sm md:text-base font-serif italic text-[#1D3B2E] font-bold tracking-wide">
                 Pet’s Purrrrrfect Training!
               </span>
             </div>
@@ -392,11 +422,11 @@ const PetTraining = () => {
             {/* Trust Highlights Strip */}
             <div className="pt-1 text-xs md:text-sm font-bold text-slate-950 flex flex-wrap items-center gap-x-2 gap-y-1">
               <span>10000+ Happy Customers</span>
-              <span className="text-purple-700 font-black">•</span>
+              <span className="text-[#1D3B2E] font-black">•</span>
               <span>Affordable</span>
-              <span className="text-purple-700 font-black">•</span>
+              <span className="text-[#1D3B2E] font-black">•</span>
               <span>Professional Trainers</span>
-              <span className="text-purple-700 font-black">•</span>
+              <span className="text-[#1D3B2E] font-black">•</span>
               <span>Force Free Training</span>
             </div>
 
@@ -412,7 +442,7 @@ const PetTraining = () => {
                   <select
                     value={selectedType}
                     onChange={(e) => setSelectedType(e.target.value)}
-                    className="w-full bg-slate-50 border border-gray-200 text-xs font-semibold rounded-xl px-3 py-2 text-slate-800 focus:outline-none focus:border-purple-600"
+                    className="w-full bg-slate-50 border border-gray-200 text-xs font-semibold rounded-xl px-3 py-2 text-slate-800 focus:outline-none focus:border-[#1D3B2E]"
                   >
                     <option value="All">All Training Types</option>
                     <option value="Puppy">Puppy Socialization & Potty</option>
@@ -432,7 +462,7 @@ const PetTraining = () => {
                   <select
                     value={selectedState}
                     onChange={handleStateChange}
-                    className="w-full bg-slate-50 border border-gray-200 text-xs font-semibold rounded-xl px-3 py-2 text-slate-800 focus:outline-none focus:border-purple-600"
+                    className="w-full bg-slate-50 border border-gray-200 text-xs font-semibold rounded-xl px-3 py-2 text-slate-800 focus:outline-none focus:border-[#1D3B2E]"
                   >
                     <option value="All States">All States</option>
                     {Object.keys(INDIAN_STATES_CITIES).map((st) => (
@@ -449,7 +479,7 @@ const PetTraining = () => {
                   <select
                     value={selectedCity}
                     onChange={(e) => setSelectedCity(e.target.value)}
-                    className="w-full bg-slate-50 border border-gray-200 text-xs font-semibold rounded-xl px-3 py-2 text-slate-800 focus:outline-none focus:border-purple-600"
+                    className="w-full bg-slate-50 border border-gray-200 text-xs font-semibold rounded-xl px-3 py-2 text-slate-800 focus:outline-none focus:border-[#1D3B2E]"
                   >
                     {availableCities.map((ct) => (
                       <option key={ct} value={ct}>{ct}</option>
@@ -464,20 +494,13 @@ const PetTraining = () => {
                       const target = document.getElementById('training-catalog');
                       if (target) target.scrollIntoView({ behavior: 'smooth' });
                     }}
-                    className="w-full bg-purple-600 hover:bg-purple-700 text-white font-extrabold text-xs uppercase tracking-wider py-2.5 px-3 rounded-xl flex items-center justify-center gap-1.5 transition-all shadow-md cursor-pointer hover:shadow-lg active:scale-95"
+                    className="w-full bg-[#1D3B2E] hover:bg-[#152e24] text-white font-extrabold text-xs uppercase tracking-wider py-2.5 px-3 rounded-xl flex items-center justify-center gap-1.5 transition-all shadow-md cursor-pointer hover:shadow-lg active:scale-95"
                   >
                     <Search size={14} />
                     <span>Search</span>
                   </button>
                 </div>
 
-              </div>
-
-              {/* Breadcrumb */}
-              <div className="pt-3 text-xs font-medium text-slate-800 flex items-center gap-1.5">
-                <Link to="/" className="hover:underline">Home</Link>
-                <span>&gt;</span>
-                <span className="font-bold text-purple-900">Dog Training</span>
               </div>
             </div>
 
@@ -486,7 +509,7 @@ const PetTraining = () => {
           {/* Right Column: High Five Dog Artwork */}
           <div className="lg:col-span-5 flex justify-center lg:justify-end">
             <div className="relative group max-w-md w-full">
-              <div className="absolute -inset-1.5 bg-gradient-to-r from-purple-600 to-amber-500 rounded-3xl blur-md opacity-40 group-hover:opacity-75 transition duration-500" />
+              <div className="absolute -inset-1.5 bg-gradient-to-r from-[#d4af37] via-[#fef08a] to-[#b89228] rounded-3xl blur-md opacity-50 group-hover:opacity-85 transition duration-500" />
               <div className="relative bg-white/95 rounded-3xl overflow-hidden border border-white/40 shadow-2xl">
                 <img
                   src="/dog_training_hero.jpg"
@@ -497,6 +520,7 @@ const PetTraining = () => {
             </div>
           </div>
 
+          </div>
         </div>
       </ScrollReveal>
 
@@ -529,73 +553,80 @@ const PetTraining = () => {
             </div>
           </div>
 
-          {/* Right: 4 Colorful Cards (Yellow, Sky Blue, Pink, Purple) */}
+          {/* Right: 4 Rotating Flip Cards in Footer Green (#1D3B2E) */}
           <div className="lg:col-span-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
             {TRAINING_BENEFITS.map((benefit) => (
               <div
                 key={benefit.id}
-                className={`${benefit.bgColor} ${benefit.textColor} rounded-3xl p-6 shadow-md hover:shadow-xl transition-all duration-300 flex flex-col justify-between min-h-[160px]`}
+                className="flip-card h-[260px] cursor-pointer group"
+                tabIndex={0}
+                onClick={(e) => e.currentTarget.classList.toggle('is-flipped')}
               >
-                <div className="w-12 h-12 rounded-2xl bg-white/30 backdrop-blur-md flex items-center justify-center text-2xl mb-4 shadow-sm">
-                  {benefit.icon}
-                </div>
-                <div>
-                  <h3 className="text-base font-serif font-bold leading-snug">
-                    {benefit.title}
-                  </h3>
-                  <p className="text-xs mt-1.5 opacity-90 leading-relaxed font-medium">
-                    {benefit.desc}
-                  </p>
-                </div>
-              </div>
-            ))}
-          </div>
+                <div className="flip-card-inner">
+                  {/* Front Face: Footer Green (#1D3B2E) */}
+                  <div className="flip-card-front bg-[#1D3B2E] text-white p-5 rounded-3xl shadow-lg border border-emerald-800/60 flex flex-col justify-between select-none">
+                    <div className="flex items-start justify-between">
+                      <div className="w-14 h-14 rounded-2xl bg-white/10 border border-white/20 backdrop-blur-md flex items-center justify-center shadow-md group-hover:scale-105 transition-transform duration-300">
+                        {renderBenefitIcon(benefit.iconKey)}
+                      </div>
+                      <span className="text-[10px] font-bold text-emerald-200/90 bg-white/10 px-2.5 py-1 rounded-full flex items-center gap-1 border border-white/10 shadow-xs">
+                        Hover to flip ↻
+                      </span>
+                    </div>
 
-        </div>
-      </ScrollReveal>
+                    <div className="space-y-1.5 my-auto pt-1">
+                      <span className="text-[10px] uppercase tracking-wider font-bold text-[#fef08a]">
+                        {benefit.category}
+                      </span>
+                      <h3 className="font-extrabold text-base sm:text-lg text-white font-serif leading-snug">
+                        {benefit.title}
+                      </h3>
+                      <p className="text-xs font-medium text-emerald-100/90 leading-relaxed line-clamp-2">
+                        {benefit.desc}
+                      </p>
+                    </div>
 
-      {/* 3. 4 TRAINING MODULES BADGES & 3-STEP PROCESS */}
-      <ScrollReveal variant="fade" className="bg-white py-8 lg:py-16 border-y border-stone-200">
-        <div className="max-w-7xl mx-auto px-4 md:px-8 space-y-12">
-          
-          <div className="text-center space-y-3 max-w-2xl mx-auto">
-            <p className="text-sm md:text-base font-serif font-medium text-gray-700">
-              Josh Pets Hub offers 100% force-free and fully customized to suit you and your dog’s unique requirements.
-            </p>
-
-            {/* 4 Circular Badges */}
-            <div className="flex flex-wrap items-center justify-center gap-6 pt-4">
-              {TRAINING_MODULE_BADGES.map((b) => (
-                <div key={b.num} className="flex items-center gap-2.5">
-                  <div className={`w-8 h-8 rounded-full ${b.color} text-white font-black text-sm flex items-center justify-center shadow-md`}>
-                    {b.num}
+                    <div className="pt-2 border-t border-white/10">
+                      <div className="w-10 h-1 rounded-full bg-gradient-to-r from-[#d4af37] to-[#fef08a]" />
+                    </div>
                   </div>
-                  <span className="text-sm font-serif font-bold text-slate-900">
-                    {b.title}
-                  </span>
-                </div>
-              ))}
-            </div>
-          </div>
 
-          {/* 3-Step Process Cards */}
-          <div className="pt-6 grid grid-cols-1 md:grid-cols-3 gap-6">
-            {THREE_STEP_PROCESS.map((proc) => (
-              <div
-                key={proc.step}
-                className="bg-[#FAF9F5] rounded-3xl p-6 border border-stone-200 shadow-sm hover:shadow-md transition text-center space-y-3 flex flex-col items-center justify-between"
-              >
-                <div className={`w-14 h-14 rounded-2xl ${proc.color} flex items-center justify-center text-2xl shadow-md`}>
-                  {proc.icon}
-                </div>
-                <h4 className="text-base font-serif font-bold text-slate-900">
-                  {proc.title}
-                </h4>
-                <p className="text-xs text-gray-600 leading-relaxed max-w-xs">
-                  {proc.desc}
-                </p>
-                <div className="pt-2 text-[10px] font-extrabold uppercase tracking-widest text-purple-700">
-                  Step 0{proc.step}
+                  {/* Back Face: Rotates on mouse hover and shows related details */}
+                  <div
+                    style={{ background: 'linear-gradient(135deg, #d4af37 0%, #fef08a 50%, #b89228 100%)' }}
+                    className="flip-card-back text-slate-900 p-5 rounded-3xl shadow-2xl border-2 border-[#b89228] flex flex-col justify-between select-none"
+                  >
+                    <div>
+                      <div className="flex items-center justify-between pb-2 border-b border-black/15 mb-2">
+                        <span className="text-xs font-black tracking-wider uppercase text-slate-950 truncate max-w-[170px]">
+                          {benefit.title}
+                        </span>
+                        <span className="text-[9px] font-bold text-white bg-[#1D3B2E] px-2 py-0.5 rounded-full shadow-xs shrink-0">
+                          {benefit.category}
+                        </span>
+                      </div>
+
+                      <p className="text-[11px] text-slate-900 leading-relaxed font-semibold mb-2">
+                        {benefit.detailedDescription}
+                      </p>
+
+                      <ul className="space-y-1 text-[11px] text-slate-950 font-bold">
+                        {benefit.points?.map((pt, i) => (
+                          <li key={i} className="flex items-start gap-1.5">
+                            <span className="text-[#1D3B2E] text-xs font-black shrink-0 leading-none mt-0.5">✓</span>
+                            <span className="leading-snug">{pt}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+
+                    <div className="pt-2 border-t border-black/15 flex items-center justify-between text-[10px] text-slate-900 font-bold">
+                      <span>Proven Result:</span>
+                      <span className="bg-[#1D3B2E] text-[#fef08a] px-2.5 py-0.5 rounded-md font-black text-[9px] shadow-xs">
+                        {benefit.metric}
+                      </span>
+                    </div>
+                  </div>
                 </div>
               </div>
             ))}
@@ -603,6 +634,8 @@ const PetTraining = () => {
 
         </div>
       </ScrollReveal>
+
+
 
       {/* 4. WHY DO PET PARENTS CHOOSE JOSH PETS HUB? (TESTIMONIALS) */}
       <ScrollReveal variant="slideUp" delay={0.2} className="max-w-7xl mx-auto px-4 md:px-8 py-8 lg:py-16 space-y-10">
@@ -625,7 +658,7 @@ const PetTraining = () => {
                 <div className="w-24 h-24 rounded-full overflow-hidden border-4 border-amber-300 shadow-md">
                   <img src={t.avatar} alt={t.name} className="w-full h-full object-cover" />
                 </div>
-                <div className="absolute -bottom-2 right-0 bg-purple-600 text-white rounded-full p-1 shadow">
+                <div className="absolute -bottom-2 right-0 bg-[#1D3B2E] text-white rounded-full p-1 shadow">
                   <CircleCheck size={14} />
                 </div>
               </div>
@@ -655,14 +688,14 @@ const PetTraining = () => {
         {/* Catalog Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-stone-200 pb-6">
           <div>
-            <div className="inline-flex items-center gap-1.5 text-purple-700 text-xs font-bold uppercase tracking-wider mb-1">
+            <div className="inline-flex items-center gap-1.5 text-[#1D3B2E] text-xs font-bold uppercase tracking-wider mb-1">
               <GraduationCap size={16} /> Certified Behaviorists & Trainers
             </div>
             <h2 className="text-2xl md:text-3xl font-serif font-bold text-slate-900">
               Find Verified Dog Trainers Near You
             </h2>
             <p className="text-xs text-gray-500 mt-1">
-              Showing <span className="font-bold text-purple-800">{filteredProviders.length}</span> verified dog trainers matching your location & requirements
+              Showing <span className="font-bold text-[#1D3B2E]">{filteredProviders.length}</span> verified dog trainers matching your location & requirements
             </p>
           </div>
 
@@ -672,7 +705,7 @@ const PetTraining = () => {
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value)}
-              className="bg-white border border-stone-200 text-xs font-semibold rounded-xl px-3 py-2 text-slate-800 focus:outline-none focus:border-purple-600 shadow-sm"
+              className="bg-white border border-stone-200 text-xs font-semibold rounded-xl px-3 py-2 text-slate-800 focus:outline-none focus:border-[#1D3B2E] shadow-sm"
             >
               <option value="recommended">Recommended & Verified</option>
               <option value="rating">Highest Rated (★ 5.0)</option>
@@ -686,29 +719,29 @@ const PetTraining = () => {
         {/* Catalog Layout: Left Filter + Right Trainer Cards */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
           
-          {/* Left-Side Filter Sidebar with Internal Scrollbar */}
-          <div className="lg:col-span-3 bg-white rounded-2xl border border-stone-200 shadow-sm sticky top-24 overflow-hidden">
+          {/* Left-Side Filter Sidebar */}
+          <div className="lg:col-span-3 bg-white rounded-2xl border border-stone-200 shadow-sm overflow-hidden">
             
-            {/* Sticky Filter Header */}
+            {/* Filter Header */}
             <div className="p-3.5 border-b border-stone-100 bg-stone-50/80 flex items-center justify-between">
               <div className="flex items-center gap-2 text-xs font-serif font-bold text-slate-900">
-                <SlidersHorizontal size={14} className="text-purple-600" />
+                <SlidersHorizontal size={14} className="text-[#1D3B2E]" />
                 <span>Filter Trainers</span>
               </div>
               <button
                 onClick={handleResetFilters}
-                className="text-[11px] font-bold text-purple-700 hover:text-purple-900 hover:underline flex items-center gap-1 cursor-pointer"
+                className="text-[11px] font-bold text-[#1D3B2E] hover:text-[#0F241C] hover:underline flex items-center gap-1 cursor-pointer"
               >
                 <RotateCcw size={11} /> Reset
               </button>
             </div>
 
-            {/* Scrollable Filter Body */}
-            <div className="p-4 space-y-4 max-h-[calc(100vh-140px)] overflow-y-auto custom-scrollbar text-xs">
+            {/* Natural Height Filter Body */}
+            <div className="p-4 space-y-4 text-xs">
               
               {/* Keyword Search */}
               <div className="space-y-1.5">
-                <label className="text-[10px] font-bold uppercase text-gray-400 tracking-wider">Search Keyword</label>
+                <label className="text-[10px] font-bold uppercase text-gray-400 tracking-wider">Search</label>
                 <div className="relative">
                   <Search size={13} className="absolute left-2.5 top-2.5 text-gray-400" />
                   <input
@@ -716,8 +749,28 @@ const PetTraining = () => {
                     placeholder="Trainer name, area, breed..."
                     value={searchKeyword}
                     onChange={(e) => setSearchKeyword(e.target.value)}
-                    className="w-full bg-stone-50 border border-stone-200 text-xs rounded-lg pl-8 pr-2.5 py-1.5 text-slate-800 placeholder-gray-400 focus:outline-none focus:border-purple-600"
+                    className="w-full bg-stone-50 border border-stone-200 text-xs rounded-lg pl-8 pr-2.5 py-1.5 text-slate-800 placeholder-gray-400 focus:outline-none focus:border-[#1D3B2E]"
                   />
+                </div>
+              </div>
+
+              {/* Pet Type Filter */}
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-bold uppercase text-gray-400 tracking-wider">Pet Accepted</label>
+                <div className="grid grid-cols-3 gap-1">
+                  {['All', 'Dogs', 'Puppies', 'Cats'].map((p) => (
+                    <button
+                      key={p}
+                      onClick={() => setSelectedPetType(p)}
+                      className={`text-[11px] font-semibold px-2 py-1 rounded-md transition cursor-pointer border ${
+                        selectedPetType === p
+                          ? 'bg-[#1D3B2E] text-white border-[#1D3B2E]'
+                          : 'bg-stone-50 text-gray-600 border-stone-200 hover:border-gray-400'
+                      }`}
+                    >
+                      {p}
+                    </button>
+                  ))}
                 </div>
               </div>
 
@@ -727,19 +780,19 @@ const PetTraining = () => {
                 <div className="space-y-1">
                   {[
                     { id: 'All', label: 'All Disciplines' },
-                    { id: 'Puppy', label: '🐶 Puppy & Potty Basics' },
-                    { id: 'Obedience', label: '🎓 Basic & Master Obedience' },
-                    { id: 'Aggression', label: '🧠 Behavioral & Anxiety Therapy' },
-                    { id: 'Agility', label: '🎪 Agility & Trick Sports' },
-                    { id: 'Protection', label: '🛡️ Guard & Defense Training' },
-                    { id: 'Show', label: '🏆 KCI Show Ring Stance' }
+                    { id: 'Puppy', label: 'Puppy & Potty Basics' },
+                    { id: 'Obedience', label: 'Basic & Master Obedience' },
+                    { id: 'Aggression', label: 'Behavioral & Anxiety Therapy' },
+                    { id: 'Agility', label: 'Agility & Trick Sports' },
+                    { id: 'Protection', label: 'Guard & Defense Training' },
+                    { id: 'Show', label: 'KCI Show Ring Stance' }
                   ].map((t) => (
                     <button
                       key={t.id}
                       onClick={() => setSelectedType(t.id)}
                       className={`w-full text-left text-[11px] font-semibold px-2.5 py-1.5 rounded-lg transition cursor-pointer flex items-center justify-between ${
                         selectedType === t.id
-                          ? 'bg-purple-600 text-white font-bold'
+                          ? 'bg-[#1D3B2E] text-white font-bold'
                           : 'text-gray-600 hover:bg-stone-100'
                       }`}
                     >
@@ -760,31 +813,11 @@ const PetTraining = () => {
                       onClick={() => setSelectedMode(m)}
                       className={`w-full text-left text-[11px] font-semibold px-2.5 py-1 rounded-md transition cursor-pointer border ${
                         selectedMode === m
-                          ? 'bg-purple-50 text-purple-900 border-purple-300 font-bold'
+                          ? 'bg-[#1D3B2E]/10 text-[#1D3B2E] border-[#1D3B2E]/30 font-bold'
                           : 'bg-stone-50 text-gray-600 border-stone-200 hover:border-gray-400'
                       }`}
                     >
                       {m === 'All' ? 'All Formats' : m}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Pet Type Filter */}
-              <div className="space-y-1.5">
-                <label className="text-[10px] font-bold uppercase text-gray-400 tracking-wider">Pet Accepted</label>
-                <div className="grid grid-cols-3 gap-1">
-                  {['All', 'Dogs', 'Puppies', 'Cats'].map((p) => (
-                    <button
-                      key={p}
-                      onClick={() => setSelectedPetType(p)}
-                      className={`text-[11px] font-semibold px-2 py-1 rounded-md transition cursor-pointer border ${
-                        selectedPetType === p
-                          ? 'bg-purple-600 text-white border-purple-600'
-                          : 'bg-stone-50 text-gray-600 border-stone-200 hover:border-gray-400'
-                      }`}
-                    >
-                      {p}
                     </button>
                   ))}
                 </div>
@@ -806,7 +839,7 @@ const PetTraining = () => {
                         name="priceRange"
                         checked={priceRange === pr.id}
                         onChange={() => setPriceRange(pr.id)}
-                        className="accent-purple-600"
+                        className="accent-[#1D3B2E]"
                       />
                       <span>{pr.label}</span>
                     </label>
@@ -823,7 +856,7 @@ const PetTraining = () => {
                       type="checkbox"
                       checked={verifiedOnly}
                       onChange={(e) => setVerifiedOnly(e.target.checked)}
-                      className="accent-purple-600 rounded"
+                      className="accent-[#1D3B2E] rounded"
                     />
                     <span className="flex items-center gap-1 font-semibold text-emerald-800">
                       <ShieldCheck size={13} className="text-emerald-600" /> Josh Pets Hub Verified Only
@@ -835,10 +868,10 @@ const PetTraining = () => {
                       type="checkbox"
                       checked={forceFreeOnly}
                       onChange={(e) => setForceFreeOnly(e.target.checked)}
-                      className="accent-purple-600 rounded"
+                      className="accent-[#1D3B2E] rounded"
                     />
-                    <span className="flex items-center gap-1 font-semibold text-purple-900">
-                      <Award size={13} className="text-purple-600" /> 100% Force-Free Certified
+                    <span className="flex items-center gap-1 font-semibold text-[#1D3B2E]">
+                      <Award size={13} className="text-[#1D3B2E]" /> 100% Force-Free Certified
                     </span>
                   </label>
                 </div>
@@ -863,7 +896,7 @@ const PetTraining = () => {
                 </p>
                 <button
                   onClick={handleResetFilters}
-                  className="bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold py-2.5 px-6 rounded-xl transition shadow cursor-pointer"
+                  className="bg-[#1D3B2E] hover:bg-[#152e24] text-white text-xs font-bold py-2.5 px-6 rounded-xl transition shadow cursor-pointer"
                 >
                   Reset All Filters
                 </button>
@@ -921,11 +954,11 @@ const PetTraining = () => {
                       <div className="p-5 space-y-3.5">
                         
                         <div>
-                          <h3 className="text-base font-serif font-bold text-slate-900 group-hover:text-purple-700 transition-colors">
+                          <h3 className="text-base font-serif font-bold text-slate-900 group-hover:text-[#1D3B2E] transition-colors">
                             {trainer.name}
                           </h3>
                           <p className="text-[11px] text-gray-500 font-medium flex items-center gap-1 mt-0.5">
-                            <UserCheck size={12} className="text-purple-600" />
+                            <UserCheck size={12} className="text-[#1D3B2E]" />
                             <span>{trainer.leadTrainer}</span>
                           </p>
                         </div>
@@ -935,7 +968,7 @@ const PetTraining = () => {
                           {(Array.isArray(trainer.specialties) ? trainer.specialties : []).map((spec) => (
                             <span
                               key={spec}
-                              className="bg-purple-50 text-purple-900 border border-purple-100 text-[10px] font-bold px-2 py-0.5 rounded-md"
+                              className="bg-[#1D3B2E]/10 text-[#1D3B2E] border border-[#1D3B2E]/20 text-[10px] font-bold px-2 py-0.5 rounded-md"
                             >
                               {spec}
                             </span>
@@ -975,7 +1008,7 @@ const PetTraining = () => {
                       <div className="pt-3 border-t border-stone-100 flex items-center justify-between">
                         <div>
                           <span className="text-[10px] text-gray-400 uppercase font-bold tracking-wider">Per Session</span>
-                          <div className="text-base font-serif font-black text-purple-900">
+                          <div className="text-base font-serif font-black text-[#1D3B2E]">
                             ₹{trainer.pricePerSession}
                             <span className="text-xs font-normal text-gray-500"> / hr</span>
                           </div>
@@ -1000,7 +1033,7 @@ const PetTraining = () => {
 
                         <button
                           onClick={() => handleOpenBookingModal(trainer)}
-                          className="w-full bg-purple-600 hover:bg-purple-700 text-white font-extrabold text-xs uppercase tracking-wider py-2.5 rounded-xl transition shadow-md hover:shadow-lg cursor-pointer flex items-center justify-center gap-1 active:scale-95"
+                          className="w-full btn-footer-green-gold font-extrabold text-xs uppercase tracking-wider py-2.5 rounded-xl transition shadow-md hover:shadow-lg cursor-pointer flex items-center justify-center gap-1 active:scale-95"
                         >
                           <GraduationCap size={14} />
                           <span>Book Session</span>
@@ -1022,14 +1055,14 @@ const PetTraining = () => {
       <ScrollReveal variant="fade" className="max-w-3xl mx-auto px-4 md:px-6 mt-8">
         <div className="bg-white rounded-3xl border border-stone-200 shadow-xl overflow-hidden">
           
-          <div className="bg-gradient-to-r from-purple-700 to-indigo-800 text-white p-5 md:p-6 text-center space-y-1.5">
+          <div className="bg-gradient-to-r from-[#1D3B2E] to-[#2E5947] text-white p-5 md:p-6 text-center space-y-1.5">
             <span className="text-[10px] font-extrabold uppercase tracking-widest text-amber-300 bg-white/10 px-3 py-1 rounded-full border border-white/20">
               Customized Canine Behavioral Support
             </span>
             <h3 className="text-xl md:text-2xl font-serif font-bold">
               Looking for Specialized Training or Behavioral Rehab?
             </h3>
-            <p className="text-xs text-purple-200 max-w-lg mx-auto">
+            <p className="text-xs text-emerald-100 max-w-lg mx-auto">
               Share your dog's age, breed, and specific behavioral goals. Our master trainers will design a custom roadmap.
             </p>
           </div>
@@ -1045,7 +1078,7 @@ const PetTraining = () => {
                   placeholder="e.g. Rahul Sharma"
                   value={bottomFullName}
                   onChange={(e) => setBottomFullName(e.target.value)}
-                  className="w-full bg-stone-50 border border-stone-200 rounded-xl px-3 py-2 text-slate-800 focus:outline-none focus:border-purple-600"
+                  className="w-full bg-stone-50 border border-stone-200 rounded-xl px-3 py-2 text-slate-800 focus:outline-none focus:border-[#1D3B2E]"
                 />
               </div>
 
@@ -1057,7 +1090,7 @@ const PetTraining = () => {
                   placeholder="+91..."
                   value={bottomPhone}
                   onChange={(e) => setBottomPhone(e.target.value)}
-                  className="w-full bg-stone-50 border border-stone-200 rounded-xl px-3 py-2 text-slate-800 focus:outline-none focus:border-purple-600"
+                  className="w-full bg-stone-50 border border-stone-200 rounded-xl px-3 py-2 text-slate-800 focus:outline-none focus:border-[#1D3B2E]"
                 />
               </div>
             </div>
@@ -1071,7 +1104,7 @@ const PetTraining = () => {
                   placeholder="e.g. Mumbai"
                   value={bottomCity}
                   onChange={(e) => setBottomCity(e.target.value)}
-                  className="w-full bg-stone-50 border border-stone-200 rounded-xl px-3 py-2 text-slate-800 focus:outline-none focus:border-purple-600"
+                  className="w-full bg-stone-50 border border-stone-200 rounded-xl px-3 py-2 text-slate-800 focus:outline-none focus:border-[#1D3B2E]"
                 />
               </div>
 
@@ -1083,7 +1116,7 @@ const PetTraining = () => {
                     setBottomPetSpecies(e.target.value);
                     setBottomPetBreed('');
                   }}
-                  className="w-full bg-stone-50 border border-stone-200 rounded-xl px-2.5 py-2 text-slate-800 focus:outline-none focus:border-purple-600 font-medium"
+                  className="w-full bg-stone-50 border border-stone-200 rounded-xl px-2.5 py-2 text-slate-800 focus:outline-none focus:border-[#1D3B2E] font-medium"
                 >
                   <option value="Dog">Dog</option>
                   <option value="Puppy">Puppy (Under 6 mos)</option>
@@ -1099,7 +1132,7 @@ const PetTraining = () => {
                   onChange={setBottomPetBreed}
                   required
                   placeholder="Select Pet Breed *"
-                  className="w-full bg-stone-50 border border-stone-200 rounded-xl px-3 py-2 text-slate-800 focus:outline-none focus:border-purple-600 text-xs"
+                  className="w-full bg-stone-50 border border-stone-200 rounded-xl px-3 py-2 text-slate-800 focus:outline-none focus:border-[#1D3B2E] text-xs"
                 />
               </div>
             </div>
@@ -1110,7 +1143,7 @@ const PetTraining = () => {
                 <select
                   value={bottomTrainingType}
                   onChange={(e) => setBottomTrainingType(e.target.value)}
-                  className="w-full bg-stone-50 border border-stone-200 rounded-xl px-2.5 py-2 text-slate-800 focus:outline-none focus:border-purple-600"
+                  className="w-full bg-stone-50 border border-stone-200 rounded-xl px-2.5 py-2 text-slate-800 focus:outline-none focus:border-[#1D3B2E]"
                 >
                   <option value="Puppy Socialization & Potty Basics">Puppy Socialization & Potty Basics</option>
                   <option value="Basic & Advanced Obedience">Basic & Advanced Obedience</option>
@@ -1126,7 +1159,7 @@ const PetTraining = () => {
                 <select
                   value={bottomPreferredSlot}
                   onChange={(e) => setBottomPreferredSlot(e.target.value)}
-                  className="w-full bg-stone-50 border border-stone-200 rounded-xl px-2.5 py-2 text-slate-800 focus:outline-none focus:border-purple-600"
+                  className="w-full bg-stone-50 border border-stone-200 rounded-xl px-2.5 py-2 text-slate-800 focus:outline-none focus:border-[#1D3B2E]"
                 >
                   <option value="Weekday Morning">Weekday Morning (7 AM - 10 AM)</option>
                   <option value="Weekday Evening">Weekday Evening (4 PM - 7 PM)</option>
@@ -1143,13 +1176,13 @@ const PetTraining = () => {
                 placeholder="e.g. Pulling on leash, barking when door bell rings, chewing furniture, jumping on guests..."
                 value={bottomNotes}
                 onChange={(e) => setBottomNotes(e.target.value)}
-                className="w-full bg-stone-50 border border-stone-200 rounded-xl p-2.5 text-slate-800 focus:outline-none focus:border-purple-600"
+                className="w-full bg-stone-50 border border-stone-200 rounded-xl p-2.5 text-slate-800 focus:outline-none focus:border-[#1D3B2E]"
               />
             </div>
 
             <button
               type="submit"
-              className="w-full bg-purple-600 hover:bg-purple-700 text-white font-extrabold text-xs uppercase tracking-wider py-3 rounded-xl transition shadow-md hover:shadow-lg cursor-pointer flex items-center justify-center gap-2 active:scale-95"
+              className="w-full bg-[#1D3B2E] hover:bg-[#152e24] text-white font-extrabold text-xs uppercase tracking-wider py-3 rounded-xl transition shadow-md hover:shadow-lg cursor-pointer flex items-center justify-center gap-2 active:scale-95"
             >
               <Send size={14} />
               <span>Request Customized Training Consultation</span>
@@ -1166,7 +1199,7 @@ const PetTraining = () => {
           <div className="bg-white w-full max-w-lg rounded-3xl shadow-2xl border border-stone-200 overflow-hidden flex flex-col min-h-0 max-h-[85vh] sm:max-h-[88vh] my-auto animate-in fade-in zoom-in-95">
             
             {/* Sticky Header */}
-            <div className="bg-purple-900 text-white p-4 md:p-5 flex items-center justify-between shrink-0 border-b border-purple-800">
+            <div className="bg-[#1D3B2E] text-white p-4 md:p-5 flex items-center justify-between shrink-0 border-b border-[#152e24]">
               <div>
                 <span className="text-[10px] font-bold text-amber-300 uppercase tracking-wider">Book Training Course</span>
                 <h3 className="text-base md:text-lg font-serif font-bold">{selectedProviderForBooking.name}</h3>
@@ -1183,15 +1216,15 @@ const PetTraining = () => {
             <form onSubmit={handleSubmitBooking} className="p-4 md:p-5 space-y-3 text-xs overflow-y-auto custom-scrollbar flex-1">
               
               {/* Package Selection */}
-              <div className="bg-purple-50 p-3 rounded-xl border border-purple-100 space-y-1">
-                <label className="block text-[10px] font-bold uppercase text-purple-900">Selected Package</label>
+              <div className="bg-[#1D3B2E]/10 p-3 rounded-xl border border-[#1D3B2E]/20 space-y-1">
+                <label className="block text-[10px] font-bold uppercase text-[#1D3B2E]">Selected Package</label>
                 <select
                   value={selectedPackage?.id || ''}
                   onChange={(e) => {
                     const pkg = selectedProviderForBooking.packages.find((p) => p.id === e.target.value);
                     if (pkg) setSelectedPackage(pkg);
                   }}
-                  className="w-full bg-white border border-purple-200 text-xs font-bold rounded-lg px-2.5 py-1.5 text-slate-900"
+                  className="w-full bg-white border border-[#1D3B2E]/30 text-xs font-bold rounded-lg px-2.5 py-1.5 text-slate-900"
                 >
                   {selectedProviderForBooking.packages.map((pkg) => (
                     <option key={pkg.id} value={pkg.id}>
@@ -1213,7 +1246,7 @@ const PetTraining = () => {
                     required
                     value={bookingDate}
                     onChange={(e) => setBookingDate(e.target.value)}
-                    className="w-full bg-stone-50 border border-stone-200 rounded-lg px-2.5 py-1.5 text-slate-800 font-semibold focus:outline-none focus:border-purple-600"
+                    className="w-full bg-stone-50 border border-stone-200 rounded-lg px-2.5 py-1.5 text-slate-800 font-semibold focus:outline-none focus:border-[#1D3B2E]"
                   />
                 </div>
                 <div>
@@ -1221,7 +1254,7 @@ const PetTraining = () => {
                   <select
                     value={bookingTimeSlot}
                     onChange={(e) => setBookingTimeSlot(e.target.value)}
-                    className="w-full bg-stone-50 border border-stone-200 rounded-lg px-2 py-1.5 text-slate-800 focus:outline-none focus:border-purple-600"
+                    className="w-full bg-stone-50 border border-stone-200 rounded-lg px-2 py-1.5 text-slate-800 focus:outline-none focus:border-[#1D3B2E]"
                   >
                     <option value="Morning (7:00 AM - 10:00 AM)">Morning (7:00 AM - 10:00 AM)</option>
                     <option value="Noon (11:00 AM - 2:00 PM)">Noon (11:00 AM - 2:00 PM)</option>
@@ -1240,7 +1273,7 @@ const PetTraining = () => {
                     placeholder="e.g. Bruno"
                     value={bookingPetName}
                     onChange={(e) => setBookingPetName(e.target.value)}
-                    className="w-full bg-stone-50 border border-stone-200 rounded-lg px-2.5 py-1.5 text-slate-800 focus:outline-none focus:border-purple-600"
+                    className="w-full bg-stone-50 border border-stone-200 rounded-lg px-2.5 py-1.5 text-slate-800 focus:outline-none focus:border-[#1D3B2E]"
                   />
                 </div>
                 <div>
@@ -1251,7 +1284,7 @@ const PetTraining = () => {
                     onChange={setBookingPetBreed}
                     required
                     placeholder="Select Breed *"
-                    className="w-full bg-stone-50 border border-stone-200 rounded-lg px-2.5 py-1.5 text-slate-800 focus:outline-none focus:border-purple-600 text-xs"
+                    className="w-full bg-stone-50 border border-stone-200 rounded-lg px-2.5 py-1.5 text-slate-800 focus:outline-none focus:border-[#1D3B2E] text-xs"
                   />
                 </div>
                 <div>
@@ -1261,7 +1294,7 @@ const PetTraining = () => {
                     placeholder="e.g. 5 Months"
                     value={bookingPetAge}
                     onChange={(e) => setBookingPetAge(e.target.value)}
-                    className="w-full bg-stone-50 border border-stone-200 rounded-lg px-2.5 py-1.5 text-slate-800 focus:outline-none focus:border-purple-600"
+                    className="w-full bg-stone-50 border border-stone-200 rounded-lg px-2.5 py-1.5 text-slate-800 focus:outline-none focus:border-[#1D3B2E]"
                   />
                 </div>
               </div>
@@ -1275,7 +1308,7 @@ const PetTraining = () => {
                     required
                     value={bookingAddress}
                     onChange={(e) => setBookingAddress(e.target.value)}
-                    className="w-full bg-stone-50 border border-stone-200 rounded-lg px-2.5 py-1.5 text-slate-800 focus:outline-none focus:border-purple-600"
+                    className="w-full bg-stone-50 border border-stone-200 rounded-lg px-2.5 py-1.5 text-slate-800 focus:outline-none focus:border-[#1D3B2E]"
                   />
                 </div>
                 <div>
@@ -1286,7 +1319,7 @@ const PetTraining = () => {
                     placeholder="+91..."
                     value={bookingOwnerPhone}
                     onChange={(e) => setBookingOwnerPhone(e.target.value)}
-                    className="w-full bg-stone-50 border border-stone-200 rounded-lg px-2.5 py-1.5 text-slate-800 focus:outline-none focus:border-purple-600"
+                    className="w-full bg-stone-50 border border-stone-200 rounded-lg px-2.5 py-1.5 text-slate-800 focus:outline-none focus:border-[#1D3B2E]"
                   />
                 </div>
               </div>
@@ -1298,14 +1331,14 @@ const PetTraining = () => {
                   placeholder="e.g. Biting ankles, toilet training issues, pulling on leash..."
                   value={bookingBehaviorNotes}
                   onChange={(e) => setBookingBehaviorNotes(e.target.value)}
-                  className="w-full bg-stone-50 border border-stone-200 rounded-lg p-2 text-slate-800 focus:outline-none focus:border-purple-600"
+                  className="w-full bg-stone-50 border border-stone-200 rounded-lg p-2 text-slate-800 focus:outline-none focus:border-[#1D3B2E]"
                 />
               </div>
 
               <div className="pt-1">
                 <button
                   type="submit"
-                  className="w-full bg-purple-600 hover:bg-purple-700 text-white font-extrabold text-xs uppercase tracking-wider py-3 rounded-xl transition shadow-md hover:shadow-lg cursor-pointer active:scale-95"
+                  className="w-full btn-footer-green-gold font-extrabold text-xs uppercase tracking-wider py-3 rounded-xl transition shadow-md hover:shadow-lg cursor-pointer active:scale-95"
                 >
                   Confirm Training Reservation
                 </button>
@@ -1322,7 +1355,7 @@ const PetTraining = () => {
           <div className="bg-white w-full max-w-lg rounded-3xl shadow-2xl border border-stone-200 overflow-hidden flex flex-col min-h-0 max-h-[85vh] sm:max-h-[88vh] my-auto animate-in fade-in zoom-in-95">
             
             {/* Sticky Header */}
-            <div className="bg-purple-900 text-white p-4 md:p-5 flex items-center justify-between shrink-0 border-b border-purple-800">
+            <div className="bg-[#1D3B2E] text-white p-4 md:p-5 flex items-center justify-between shrink-0 border-b border-[#152e24]">
               <div>
                 <span className="text-[10px] font-bold text-amber-300 uppercase tracking-wider">Direct Training Enquiry</span>
                 <h3 className="text-base md:text-lg font-serif font-bold">{selectedProviderForEnquiry.name}</h3>
@@ -1346,7 +1379,7 @@ const PetTraining = () => {
                     required
                     value={enqFullName}
                     onChange={(e) => setEnqFullName(e.target.value)}
-                    className="w-full bg-stone-50 border border-stone-200 rounded-lg px-2.5 py-1.5 text-slate-800 focus:outline-none focus:border-purple-600"
+                    className="w-full bg-stone-50 border border-stone-200 rounded-lg px-2.5 py-1.5 text-slate-800 focus:outline-none focus:border-[#1D3B2E]"
                   />
                 </div>
                 <div>
@@ -1356,7 +1389,7 @@ const PetTraining = () => {
                     required
                     value={enqPhone}
                     onChange={(e) => setEnqPhone(e.target.value)}
-                    className="w-full bg-stone-50 border border-stone-200 rounded-lg px-2.5 py-1.5 text-slate-800 focus:outline-none focus:border-purple-600"
+                    className="w-full bg-stone-50 border border-stone-200 rounded-lg px-2.5 py-1.5 text-slate-800 focus:outline-none focus:border-[#1D3B2E]"
                   />
                 </div>
               </div>
@@ -1369,7 +1402,7 @@ const PetTraining = () => {
                     required
                     value={enqCity}
                     onChange={(e) => setEnqCity(e.target.value)}
-                    className="w-full bg-stone-50 border border-stone-200 rounded-lg px-2.5 py-1.5 text-slate-800 focus:outline-none focus:border-purple-600"
+                    className="w-full bg-stone-50 border border-stone-200 rounded-lg px-2.5 py-1.5 text-slate-800 focus:outline-none focus:border-[#1D3B2E]"
                   />
                 </div>
                 <div>
@@ -1380,7 +1413,7 @@ const PetTraining = () => {
                     onChange={setEnqPetBreed}
                     required
                     placeholder="Select Pet Breed *"
-                    className="w-full bg-stone-50 border border-stone-200 rounded-lg px-2.5 py-1.5 text-slate-800 focus:outline-none focus:border-purple-600 text-xs"
+                    className="w-full bg-stone-50 border border-stone-200 rounded-lg px-2.5 py-1.5 text-slate-800 focus:outline-none focus:border-[#1D3B2E] text-xs"
                   />
                 </div>
               </div>
@@ -1393,7 +1426,7 @@ const PetTraining = () => {
                     placeholder="e.g. 8 Months"
                     value={enqPetAge}
                     onChange={(e) => setEnqPetAge(e.target.value)}
-                    className="w-full bg-stone-50 border border-stone-200 rounded-lg px-2.5 py-1.5 text-slate-800 focus:outline-none focus:border-purple-600"
+                    className="w-full bg-stone-50 border border-stone-200 rounded-lg px-2.5 py-1.5 text-slate-800 focus:outline-none focus:border-[#1D3B2E]"
                   />
                 </div>
                 <div>
@@ -1401,7 +1434,7 @@ const PetTraining = () => {
                   <select
                     value={enqTrainingGoal}
                     onChange={(e) => setEnqTrainingGoal(e.target.value)}
-                    className="w-full bg-stone-50 border border-stone-200 rounded-lg px-2 py-1.5 text-slate-800 focus:outline-none focus:border-purple-600"
+                    className="w-full bg-stone-50 border border-stone-200 rounded-lg px-2 py-1.5 text-slate-800 focus:outline-none focus:border-[#1D3B2E]"
                   >
                     <option value="Puppy Potty & Socialization">Puppy Potty & Socialization</option>
                     <option value="Basic Obedience & Manners">Basic Obedience & Manners</option>
@@ -1420,14 +1453,14 @@ const PetTraining = () => {
                   placeholder="Ask about trainer availability, home visit slots, or custom packages..."
                   value={enqNotes}
                   onChange={(e) => setEnqNotes(e.target.value)}
-                  className="w-full bg-stone-50 border border-stone-200 rounded-lg p-2 text-slate-800 focus:outline-none focus:border-purple-600"
+                  className="w-full bg-stone-50 border border-stone-200 rounded-lg p-2 text-slate-800 focus:outline-none focus:border-[#1D3B2E]"
                 />
               </div>
 
               <div className="pt-1">
                 <button
                   type="submit"
-                  className="w-full bg-purple-600 hover:bg-purple-700 text-white font-extrabold text-xs uppercase tracking-wider py-3 rounded-xl transition shadow-md cursor-pointer flex items-center justify-center gap-2 active:scale-95"
+                  className="w-full bg-[#1D3B2E] hover:bg-[#152e24] text-white font-extrabold text-xs uppercase tracking-wider py-3 rounded-xl transition shadow-md cursor-pointer flex items-center justify-center gap-2 active:scale-95"
                 >
                   <Send size={13} />
                   <span>Send Enquiry to {selectedProviderForEnquiry.name.split(' ')[0]}</span>

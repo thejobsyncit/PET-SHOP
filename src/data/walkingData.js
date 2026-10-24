@@ -1,14 +1,14 @@
 // Walking Service Providers Dataset & Persistent Storage Helpers
 
 export const WALKING_OFFERINGS = [
-  { id: 'all', name: 'All Walks', icon: '🐾', desc: 'Browse all verified dog walking formats' },
-  { id: 'solo-walk', name: 'Daily Solo Walk', icon: '🦮', desc: 'Dedicated 1-on-1 walk with undivided walker attention' },
-  { id: 'group-stride', name: 'Group Fitness Stride', icon: '🐕‍🦺', desc: 'Social pack walks for energy burning & play' },
-  { id: 'puppy-care', name: 'Puppy Walk & Potty', icon: '🐶', desc: 'Gentle leash training & potty routine for pups' },
-  { id: 'senior-stroll', name: 'Senior Dog Stroll', icon: '🦥', desc: 'Slow-paced, joint-friendly scenic walks' },
-  { id: 'gps-tracked', name: 'Live GPS Tracked', icon: '📍', desc: 'Real-time route, distance & potty updates' },
-  { id: 'monthly-pass', name: 'Monthly Pass', icon: '📅', desc: 'Daily morning & evening subscription plan' },
-  { id: 'adventure-trail', name: 'Weekend Adventure', icon: '🌲', desc: 'Long park trails, sniffaris & fitness running' }
+  { id: 'all', name: 'All Walks', icon: '🐾', iconName: 'Footprints', desc: 'Browse all verified dog walking formats' },
+  { id: 'solo-walk', name: 'Daily Solo Walk', icon: '🦮', iconName: 'Dog', desc: 'Dedicated 1-on-1 walk with undivided walker attention' },
+  { id: 'group-stride', name: 'Group Fitness Stride', icon: '🐕‍🦺', iconName: 'Activity', desc: 'Social pack walks for energy burning & play' },
+  { id: 'puppy-care', name: 'Puppy Walk & Potty', icon: '🐶', iconName: 'Sparkles', desc: 'Gentle leash training & potty routine for pups' },
+  { id: 'senior-stroll', name: 'Senior Dog Stroll', icon: '🦮', iconName: 'HeartPulse', desc: 'Slow-paced, joint-friendly scenic walks' },
+  { id: 'gps-tracked', name: 'Live GPS Tracked', icon: '📍', iconName: 'Navigation', desc: 'Real-time route, distance & potty updates' },
+  { id: 'monthly-pass', name: 'Monthly Pass', icon: '📅', iconName: 'Calendar', desc: 'Daily morning & evening subscription plan' },
+  { id: 'adventure-trail', name: 'Weekend Adventure', icon: '🌲', iconName: 'Compass', desc: 'Long park trails, sniffaris & fitness running' }
 ];
 
 export const INITIAL_WALKING_PROVIDERS = [

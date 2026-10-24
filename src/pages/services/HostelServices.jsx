@@ -4,9 +4,10 @@ import { useSelector } from 'react-redux';
 import {
   Sparkles, Search, MapPin, Phone, MessageSquare, Star, ShieldCheck,
   Calendar, Clock, CircleCheck, ChevronRight, X, SlidersHorizontal,
-  RefreshCw, Check, ArrowRight, Heart, Award, Home,
+  RefreshCw, Check, ArrowRight, Heart, Award, Home, Hotel,
   ShieldAlert, UserCheck, Video, Moon, Sun, Trees, ChevronDown,
-  PawPrint, Snowflake, Stethoscope, Smartphone, Utensils, Waves
+  PawPrint, Snowflake, Stethoscope, Smartphone, Utensils, UtensilsCrossed,
+  Waves, Cctv
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import {
@@ -23,114 +24,32 @@ import PetBreedDropdown from '../../components/ui/PetBreedDropdown.jsx';
 import { handleServiceAction } from '../../components/widgets/ServicePackageAccessModal.jsx';
 
 // =========================================================================
-// Modern Minimalist Linear Outline Icons (Pet Hospitality Vector Set)
-// Styled to match clean, rounded-corner 2px outline aesthetic from reference
+// Professional Lucide Vector Icon Renderer for Pet Hospitality & Commerce
+// Industry-standard vector glyphs with consistent 2.2px stroke and proportions
 // =========================================================================
 
-// 1. Clean Outline Paw (All Features)
-const LinePawIcon = ({ size = 24, className = '' }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
-    <path d="M12 11c-2.8 0-5 2-5 4.5 0 2.2 1.6 3.5 3.5 3.5.7 0 1.1-.3 1.5-.3s.8.3 1.5.3c1.9 0 3.5-1.3 3.5-3.5 0-2.5-2.2-4.5-5-4.5z" />
-    <circle cx="5" cy="9.5" r="1.8" />
-    <circle cx="9.5" cy="5.5" r="1.8" />
-    <circle cx="14.5" cy="5.5" r="1.8" />
-    <circle cx="19" cy="9.5" r="1.8" />
-  </svg>
-);
-
-// 2. Clean Outline Doghouse / Pet Chalet (AC Suites)
-const LineDoghouseIcon = ({ size = 24, className = '' }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
-    <path d="M3 10.5l9-7 9 7V20a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V10.5z" />
-    <path d="M9.5 22v-5.5a2.5 2.5 0 0 1 5 0V22" />
-    <circle cx="12" cy="8.5" r="1.3" />
-  </svg>
-);
-
-// 3. Clean Outline CCTV Security Camera with Live Wave (24/7 CCTV Live Stream)
-const LineCctvIcon = ({ size = 24, className = '' }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
-    <path d="M3 13l10-4.2a2 2 0 0 1 2.5 1.1l1.1 2.6a2 2 0 0 1-1.1 2.5L5.5 19.2a2 2 0 0 1-2.5-1.1L1.9 15.5a2 2 0 0 1 1.1-2.5z" />
-    <circle cx="15.5" cy="11" r="1" fill="currentColor" />
-    <path d="M2 21h5" />
-    <path d="M4.5 17.5v3.5" />
-    <path d="M19 5.5a5 5 0 0 1 3 3" />
-    <path d="M16.5 7.5a2.5 2.5 0 0 1 1.5 1.5" />
-  </svg>
-);
-
-// 4. Clean Outline Park Trees / Lawn (Outdoor Lawn & Play Area)
-const LineLawnIcon = ({ size = 24, className = '' }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
-    <path d="M10 11v10" />
-    <path d="M14 15v6" />
-    <path d="M4 14a4 4 0 0 1 6-3.5 4.5 4.5 0 0 1 8.5 1 3.5 3.5 0 0 1 1.5 6.5H4a4 4 0 0 1 0-4z" />
-    <path d="M2 21h20" />
-  </svg>
-);
-
-// 5. Clean Outline Stethoscope with Medical Heart (Vet On Call)
-const LineStethoscopeIcon = ({ size = 24, className = '' }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
-    <path d="M5 4v4a5 5 0 0 0 10 0V4" />
-    <path d="M10 13v2.5a4.5 4.5 0 0 0 4.5 4.5H16.5" />
-    <circle cx="19" cy="20" r="2.5" />
-    <circle cx="5" cy="3.5" r="1" fill="currentColor" />
-    <circle cx="15" cy="3.5" r="1" fill="currentColor" />
-  </svg>
-);
-
-// 6. Clean Outline Smartphone with Live Video Feed (Daily Video Updates)
-const LineVideoUpdatesIcon = ({ size = 24, className = '' }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
-    <rect x="5" y="2" width="14" height="20" rx="3" />
-    <circle cx="12" cy="5.5" r="1" fill="currentColor" />
-    <polygon points="10,10.5 15.5,13.5 10,16.5" fill="currentColor" stroke="none" />
-  </svg>
-);
-
-// 7. Clean Outline Pet Food Bowl with Heart (Customized Meals)
-const LineFoodBowlIcon = ({ size = 24, className = '' }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
-    <path d="M3 11h18l-1.8 8.2a2 2 0 0 1-2 1.8H6.8a2 2 0 0 1-2-1.8L3 11z" />
-    <path d="M7 11a5 5 0 0 1 10 0" />
-    <path d="M12 14.5c-.5-.6-1.4-.7-2-.1-.5.5-.4 1.4.1 1.9l1.9 1.7 1.9-1.7c.5-.5.6-1.4.1-1.9-.6-.6-1.5-.5-2 .1z" fill="currentColor" stroke="none" />
-  </svg>
-);
-
-// 8. Clean Outline Splash Water Waves & Pool (Pet Pool / Splash Zone)
-const LinePetPoolIcon = ({ size = 24, className = '' }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
-    <path d="M2 12.5c2.5 0 3.5-1.5 6-1.5s3.5 1.5 6 1.5 3.5-1.5 6-1.5 3.5 1.5 6 1.5" />
-    <path d="M2 17.5c2.5 0 3.5-1.5 6-1.5s3.5 1.5 6 1.5 3.5-1.5 6-1.5 3.5 1.5 6 1.5" />
-    <circle cx="6.5" cy="5.5" r="1.3" fill="currentColor" stroke="none" />
-    <circle cx="12" cy="3.5" r="1.5" fill="currentColor" stroke="none" />
-    <circle cx="17.5" cy="5.5" r="1.3" fill="currentColor" stroke="none" />
-  </svg>
-);
-
-// Professional Vector Icon Renderer for Hostel Features & Amenities
 const renderOfferingIcon = (offeringId, { size = 24, className = '', isActive = false } = {}) => {
-  const baseClasses = `transition-transform duration-200 ${className}`;
+  const baseClasses = `transition-transform duration-200 shrink-0 ${className}`;
+  const stroke = 2.2;
   switch (offeringId) {
     case 'all':
-      return <LinePawIcon size={size} className={`${baseClasses} ${isActive ? 'text-slate-950' : 'text-amber-700'}`} />;
+      return <PawPrint size={size} strokeWidth={stroke} className={`${baseClasses} ${isActive ? 'text-slate-950' : 'text-amber-700'}`} />;
     case 'ac-rooms':
-      return <LineDoghouseIcon size={size} className={`${baseClasses} ${isActive ? 'text-slate-950' : 'text-amber-700'}`} />;
+      return <Hotel size={size} strokeWidth={stroke} className={`${baseClasses} ${isActive ? 'text-slate-950' : 'text-amber-700'}`} />;
     case 'cctv':
-      return <LineCctvIcon size={size} className={`${baseClasses} ${isActive ? 'text-slate-950' : 'text-indigo-700'}`} />;
+      return <Cctv size={size} strokeWidth={stroke} className={`${baseClasses} ${isActive ? 'text-slate-950' : 'text-indigo-600'}`} />;
     case 'lawn':
-      return <LineLawnIcon size={size} className={`${baseClasses} ${isActive ? 'text-slate-950' : 'text-emerald-700'}`} />;
+      return <Trees size={size} strokeWidth={stroke} className={`${baseClasses} ${isActive ? 'text-slate-950' : 'text-emerald-600'}`} />;
     case 'vet-on-call':
-      return <LineStethoscopeIcon size={size} className={`${baseClasses} ${isActive ? 'text-slate-950' : 'text-rose-700'}`} />;
+      return <Stethoscope size={size} strokeWidth={stroke} className={`${baseClasses} ${isActive ? 'text-slate-950' : 'text-rose-600'}`} />;
     case 'video-updates':
-      return <LineVideoUpdatesIcon size={size} className={`${baseClasses} ${isActive ? 'text-slate-950' : 'text-purple-700'}`} />;
+      return <Video size={size} strokeWidth={stroke} className={`${baseClasses} ${isActive ? 'text-slate-950' : 'text-purple-600'}`} />;
     case 'home-cooked-meals':
-      return <LineFoodBowlIcon size={size} className={`${baseClasses} ${isActive ? 'text-slate-950' : 'text-orange-700'}`} />;
+      return <UtensilsCrossed size={size} strokeWidth={stroke} className={`${baseClasses} ${isActive ? 'text-slate-950' : 'text-amber-800'}`} />;
     case 'swimming-pool':
-      return <LinePetPoolIcon size={size} className={`${baseClasses} ${isActive ? 'text-slate-950' : 'text-teal-700'}`} />;
+      return <Waves size={size} strokeWidth={stroke} className={`${baseClasses} ${isActive ? 'text-slate-950' : 'text-teal-600'}`} />;
     default:
-      return <LinePawIcon size={size} className={`${baseClasses} ${isActive ? 'text-slate-950' : 'text-amber-700'}`} />;
+      return <PawPrint size={size} strokeWidth={stroke} className={`${baseClasses} ${isActive ? 'text-slate-950' : 'text-amber-700'}`} />;
   }
 };
 
@@ -728,8 +647,8 @@ const HostelServices = () => {
                       key={pt}
                       onClick={() => handlePetTypeChange(pt)}
                       className={`py-1.5 px-2 rounded-xl font-bold text-center transition cursor-pointer ${selectedPetType === pt
-                          ? 'bg-[#7c56dc] text-white shadow-xs'
-                          : 'bg-slate-50 text-slate-600 hover:bg-purple-50'
+                          ? 'bg-[#1D3B2E] text-white shadow-xs'
+                          : 'bg-slate-50 text-slate-600 hover:bg-slate-100'
                         }`}
                     >
                       {pt}
@@ -1017,7 +936,7 @@ const HostelServices = () => {
                         <div className="grid grid-cols-2 gap-2">
                           <button
                             onClick={() => handleOpenBookingModal(provider, featuredPkg)}
-                            className="bg-[#7c56dc] hover:bg-[#6842c2] text-white font-extrabold py-2.5 px-3 rounded-xl text-xs shadow-md transition-all flex items-center justify-center gap-1.5 cursor-pointer active:scale-95"
+                            className="btn-footer-green-gold font-extrabold py-2.5 px-3 rounded-xl text-xs shadow-md transition-all flex items-center justify-center gap-1.5 cursor-pointer active:scale-95"
                           >
                             <Calendar size={13} />
                             <span>Book {selectedAmenity !== 'all' ? targetAmenityName : 'Stay'}</span>
@@ -1048,7 +967,7 @@ const HostelServices = () => {
                 </p>
                 <button
                   onClick={handleResetFilters}
-                  className="bg-[#7c56dc] text-white font-extrabold px-6 py-2.5 rounded-xl text-xs shadow-md transition hover:bg-[#6842c2]"
+                  className="btn-footer-green-gold font-extrabold px-6 py-2.5 rounded-xl text-xs shadow-md transition"
                 >
                   Reset All Filters
                 </button>
@@ -1461,7 +1380,7 @@ const HostelServices = () => {
               <div className="pt-2">
                 <button
                   type="submit"
-                  className="w-full bg-[#7c56dc] hover:bg-[#6842c2] text-white font-extrabold py-3 px-4 rounded-xl text-xs shadow-md transition cursor-pointer flex items-center justify-center gap-1.5"
+                  className="w-full btn-footer-green-gold font-extrabold py-3 px-4 rounded-xl text-xs shadow-md transition cursor-pointer flex items-center justify-center gap-1.5"
                 >
                   <CircleCheck size={15} />
                   <span>Confirm Stay Reservation (Pay During Check-In)</span>

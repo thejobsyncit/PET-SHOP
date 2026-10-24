@@ -5,7 +5,7 @@ import {
   Sparkles, Search, MapPin, Phone, MessageSquare, Star, ShieldCheck, 
   Calendar, Clock, CircleCheck, ChevronRight, X, SlidersHorizontal, 
   RefreshCw, Check, ArrowRight, Heart, Award, Navigation, 
-  Compass, ShieldAlert, UserCheck, Truck, Plane, Train, Anchor,
+  Compass, ShieldAlert, UserCheck, Truck, Plane, Train, Anchor, Ship,
   Scale, FileText, Send, HelpCircle, Info, ChevronDown, CheckSquare, Square, Plus
 } from 'lucide-react';
 import toast from 'react-hot-toast';
@@ -22,6 +22,23 @@ import ServiceAccessLock, { isServicePathLockedForUser } from '../../components/
 import ScrollReveal from '../../components/ui/ScrollReveal.jsx';
 import PetBreedDropdown from '../../components/ui/PetBreedDropdown.jsx';
 import { handleServiceAction } from '../../components/widgets/ServicePackageAccessModal.jsx';
+
+const renderTransportModeIcon = (modeId) => {
+  const iconProps = { size: 28, className: "transition-transform duration-300 stroke-[2.2]" };
+  switch (modeId) {
+    case 'road':
+      return <Truck {...iconProps} />;
+    case 'rail':
+      return <Train {...iconProps} />;
+    case 'air':
+      return <Plane {...iconProps} />;
+    case 'ship':
+      return <Ship {...iconProps} />;
+    default:
+      return <Navigation {...iconProps} />;
+  }
+};
+
 const PetTransport = () => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -466,29 +483,44 @@ const PetTransport = () => {
     <div className="bg-[#FAF9F5] min-h-screen text-slate-800 font-sans pb-24">
 
       {/* 1. HERO SECTION & QUICK SEARCH BAR */}
-      <ScrollReveal variant="fade" className="relative bg-gradient-to-br from-[#0B1528] via-[#13274F] to-[#0A1931] text-white pt-28 pb-16 px-4 md:px-8 overflow-hidden">
-        {/* Subtle Decorative Background Glowing Orbs */}
-        <div className="absolute -top-24 -right-24 w-96 h-96 bg-amber-400/15 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute bottom-0 left-12 w-96 h-96 bg-sky-500/15 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute top-1/2 left-1/3 w-64 h-64 bg-indigo-500/10 rounded-full blur-2xl pointer-events-none" />
+      <ScrollReveal
+        variant="fade"
+        style={{ background: 'linear-gradient(135deg, #d4af37 0%, #fef08a 50%, #b89228 100%)' }}
+        className="relative text-slate-900 pt-6 md:pt-8 pb-10 md:pb-12 px-4 md:px-8 overflow-hidden border-b border-[#b89228] shadow-md"
+      >
+        {/* Subtle Decorative Background Highlights */}
+        <div className="absolute -top-24 -right-24 w-96 h-96 bg-white/20 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute bottom-0 left-12 w-96 h-96 bg-[#b89228]/25 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute top-1/2 left-1/3 w-64 h-64 bg-white/15 rounded-full blur-2xl pointer-events-none" />
 
-        <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8 items-center relative z-10">
+        <div className="max-w-7xl mx-auto relative z-10">
           
-          {/* Left Column: Heading & Subtitle */}
+          {/* Breadcrumb Navigation */}
+          <div className="flex items-center gap-1.5 text-xs text-slate-800/80 mb-6 font-medium">
+            <Link to="/" className="hover:text-black transition">Home</Link>
+            <ChevronRight size={12} />
+            <Link to="/services" className="hover:text-black transition">Pet Services</Link>
+            <ChevronRight size={12} />
+            <span className="font-bold text-slate-900">Pet Transportation</span>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+            
+            {/* Left Column: Heading & Subtitle */}
           <div className="lg:col-span-7 space-y-4 text-left">
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 bg-white/10 backdrop-blur-md rounded-full border border-white/20 text-xs font-semibold text-amber-300 tracking-wider uppercase shadow-inner">
-              <Truck size={14} className="text-amber-400" />
-              <span>Certified Pan-India Pet Relocation Network</span>
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 bg-[#1D3B2E] text-white rounded-full border border-[#1D3B2E]/20 text-xs font-semibold tracking-wider uppercase shadow-sm">
+              <Truck size={14} className="text-[#fef08a]" />
+              <span className="font-bold">Certified Pan-India Pet Relocation Network</span>
             </div>
 
-            <h1 className="text-3xl md:text-5xl lg:text-6xl font-serif font-bold text-white tracking-tight leading-tight">
+            <h1 className="text-3xl md:text-5xl lg:text-6xl font-serif font-bold text-slate-950 tracking-tight leading-tight">
               We relocate your <br className="hidden sm:inline" />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-300 via-amber-200 to-yellow-400 italic">
+              <span className="text-[#1D3B2E] italic drop-shadow-[0_1px_1px_rgba(255,255,255,0.4)]">
                 furries safely
               </span>
             </h1>
 
-            <p className="text-sm md:text-base text-slate-200 font-normal max-w-xl leading-relaxed">
+            <p className="text-sm md:text-base text-slate-900 font-medium max-w-xl leading-relaxed">
               Stress-free road cabs, Indian Railways 1st AC coupés, and IATA-compliant domestic & international air shipping with 24/7 veterinary oversight.
             </p>
 
@@ -499,7 +531,7 @@ const PetTransport = () => {
                   const target = document.getElementById('types-of-transportation') || document.getElementById('transport-catalog');
                   if (target) target.scrollIntoView({ behavior: 'smooth' });
                 }}
-                className="bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-500 hover:to-amber-600 text-slate-950 text-xs md:text-sm font-extrabold px-5 py-3 rounded-xl transition shadow-lg flex items-center gap-2 cursor-pointer hover:shadow-xl active:scale-95"
+                className="btn-book-relocation text-xs md:text-sm font-extrabold px-5 py-3 rounded-xl transition shadow-lg flex items-center gap-2 cursor-pointer hover:shadow-xl active:scale-95"
               >
                 <Search size={16} />
                 <span>Explore Transporters</span>
@@ -507,12 +539,12 @@ const PetTransport = () => {
 
               <button
                 onClick={() => setShowCompareModal(true)}
-                className="bg-white/15 hover:bg-white/25 text-white border border-white/30 text-xs md:text-sm font-extrabold px-5 py-3 rounded-xl transition backdrop-blur-md flex items-center gap-2 cursor-pointer shadow-md hover:shadow-lg active:scale-95"
+                className="bg-white/90 hover:bg-white text-slate-900 border border-slate-300 text-xs md:text-sm font-extrabold px-5 py-3 rounded-xl transition shadow-md flex items-center gap-2 cursor-pointer hover:shadow-lg active:scale-95"
               >
-                <Scale size={16} className="text-amber-400" />
+                <Scale size={16} className="text-[#b89228]" />
                 <span>Compare Providers</span>
                 <span className={`text-[10px] font-black px-2 py-0.5 rounded-full ${
-                  comparedProviders.length > 0 ? 'bg-amber-400 text-slate-950' : 'bg-white/20 text-white'
+                  comparedProviders.length > 0 ? 'bg-[#1D3B2E] text-white' : 'bg-slate-200 text-slate-800'
                 }`}>
                   {comparedProviders.length}/3
                 </span>
@@ -524,9 +556,9 @@ const PetTransport = () => {
           <div className="lg:col-span-5 flex justify-center lg:justify-end">
             <div className="relative group max-w-md w-full">
               {/* Glowing decorative halo behind image */}
-              <div className="absolute -inset-1.5 bg-gradient-to-r from-amber-400 via-sky-400 to-indigo-500 rounded-3xl blur-md opacity-40 group-hover:opacity-75 transition duration-500" />
+              <div className="absolute -inset-1.5 bg-gradient-to-r from-[#d4af37] via-[#fef08a] to-[#b89228] rounded-3xl blur-md opacity-60 group-hover:opacity-90 transition duration-500" />
               
-              <div className="relative bg-[#0B1528]/95 rounded-3xl overflow-hidden border border-white/20 shadow-2xl backdrop-blur-md">
+              <div className="relative bg-[#0F2E23] rounded-3xl overflow-hidden border border-white/20 shadow-2xl">
                 {/* Real Pet in Travel Crate Photo */}
                 <div className="aspect-[16/10] overflow-hidden relative">
                   <img
@@ -534,15 +566,15 @@ const PetTransport = () => {
                     alt="Happy Golden Retriever dog comfortably seated inside a luxury pet travel crate"
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-[#0B1528] via-transparent to-black/20" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#0F2E23] via-transparent to-black/20" />
                   
                   {/* Floating Tags over image */}
-                  <div className="absolute top-3 left-3 flex items-center gap-1.5 bg-[#0B1528]/85 backdrop-blur-md text-white text-[10px] font-extrabold uppercase tracking-wider px-2.5 py-1 rounded-full border border-white/20 shadow">
-                    <ShieldCheck size={12} className="text-amber-400" />
+                  <div className="absolute top-3 left-3 flex items-center gap-1.5 bg-[#0F2E23]/90 backdrop-blur-md text-white text-[10px] font-extrabold uppercase tracking-wider px-2.5 py-1 rounded-full border border-white/20 shadow">
+                    <ShieldCheck size={12} className="text-[#fef08a]" />
                     <span>IATA-400 Approved Crate</span>
                   </div>
 
-                  <div className="absolute top-3 right-3 flex items-center gap-1 bg-emerald-500 text-white text-[10px] font-extrabold px-2.5 py-1 rounded-full shadow">
+                  <div className="absolute top-3 right-3 flex items-center gap-1 bg-emerald-600 text-white text-[10px] font-extrabold px-2.5 py-1 rounded-full shadow">
                     <span className="w-1.5 h-1.5 rounded-full bg-white animate-ping"></span>
                     <span>Ready for Transit</span>
                   </div>
@@ -551,11 +583,11 @@ const PetTransport = () => {
                 {/* Bottom Details Bar */}
                 <div className="p-4 space-y-2">
                   <div className="flex items-center justify-between text-xs font-semibold text-gray-200">
-                    <span className="flex items-center gap-1.5 text-amber-300">
-                      <ShieldCheck size={14} className="text-amber-400" /> 100% Climate Controlled
+                    <span className="flex items-center gap-1.5 text-[#fef08a]">
+                      <ShieldCheck size={14} className="text-[#d4af37]" /> 100% Climate Controlled
                     </span>
-                    <span className="flex items-center gap-1.5 text-sky-300">
-                      <Navigation size={14} className="text-sky-400" /> Live GPS Tracking
+                    <span className="flex items-center gap-1.5 text-amber-200">
+                      <Navigation size={14} className="text-amber-300" /> Live GPS Tracking
                     </span>
                   </div>
                   <p className="text-[11px] text-slate-300">
@@ -564,6 +596,8 @@ const PetTransport = () => {
                 </div>
               </div>
             </div>
+          </div>
+
           </div>
         </div>
 
@@ -578,7 +612,7 @@ const PetTransport = () => {
               <select
                 value={selectedMode}
                 onChange={(e) => setSelectedMode(e.target.value)}
-                className="w-full bg-slate-50 border border-gray-200 text-xs font-semibold rounded-xl px-3 py-2.5 text-slate-800 focus:outline-none focus:border-[#13274F]"
+                className="w-full bg-slate-50 border border-gray-200 text-xs font-semibold rounded-xl px-3 py-2.5 text-slate-800 focus:outline-none focus:border-[#1D3B2E]"
               >
                 <option value="All">All Modalities (Road, Rail, Air, Ship)</option>
                 <option value="Road">Road (Private AC Pet Cabs)</option>
@@ -596,7 +630,7 @@ const PetTransport = () => {
               <select
                 value={selectedState}
                 onChange={handleStateChange}
-                className="w-full bg-slate-50 border border-gray-200 text-xs font-semibold rounded-xl px-3 py-2.5 text-slate-800 focus:outline-none focus:border-[#13274F]"
+                className="w-full bg-slate-50 border border-gray-200 text-xs font-semibold rounded-xl px-3 py-2.5 text-slate-800 focus:outline-none focus:border-[#1D3B2E]"
               >
                 <option value="All States">All States in India</option>
                 {Object.keys(INDIAN_STATES_CITIES).map((st) => (
@@ -613,7 +647,7 @@ const PetTransport = () => {
               <select
                 value={selectedCity}
                 onChange={(e) => setSelectedCity(e.target.value)}
-                className="w-full bg-slate-50 border border-gray-200 text-xs font-semibold rounded-xl px-3 py-2.5 text-slate-800 focus:outline-none focus:border-[#13274F]"
+                className="w-full bg-slate-50 border border-gray-200 text-xs font-semibold rounded-xl px-3 py-2.5 text-slate-800 focus:outline-none focus:border-[#1D3B2E]"
               >
                 {availableCities.map((ct) => (
                   <option key={ct} value={ct}>{ct}</option>
@@ -628,7 +662,7 @@ const PetTransport = () => {
                   const target = document.getElementById('transport-catalog');
                   if (target) target.scrollIntoView({ behavior: 'smooth' });
                 }}
-                className="w-full bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-slate-950 font-extrabold text-xs uppercase tracking-wider py-3 px-4 rounded-xl flex items-center justify-center gap-2 transition-all shadow-md cursor-pointer hover:shadow-lg active:scale-[0.99]"
+                className="w-full btn-footer-green-gold font-extrabold text-xs uppercase tracking-wider py-3 px-4 rounded-xl flex items-center justify-center gap-2 transition-all shadow-md cursor-pointer hover:shadow-lg active:scale-[0.99]"
               >
                 <Search size={16} />
                 <span>Search Transporters</span>
@@ -666,59 +700,67 @@ const PetTransport = () => {
                       const catalog = document.getElementById('transport-catalog');
                       if (catalog) catalog.scrollIntoView({ behavior: 'smooth' });
                     }}
-                    className={`group relative p-6 rounded-2xl transition-all duration-300 cursor-pointer border flex flex-col justify-between ${
+                    className={`card-transport-mode group relative p-6 rounded-2xl cursor-pointer border flex flex-col justify-between ${
                       isSelected
                         ? 'bg-[#0B1528] text-white border-[#0B1528] shadow-xl scale-[1.02]'
-                        : 'bg-stone-50 hover:bg-[#0B1528] text-slate-800 hover:text-white border-stone-200 hover:border-[#0B1528] hover:shadow-xl'
+                        : 'bg-stone-50 text-slate-800 border-stone-200 hover:shadow-xl'
                     }`}
                   >
                     <div className="space-y-4">
                       <div className="flex items-center justify-between">
-                        <div className="w-14 h-14 rounded-2xl bg-white/90 shadow-md flex items-center justify-center text-3xl group-hover:scale-110 transition-transform">
-                          {mode.icon}
+                        <div className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-all duration-300 shadow-md ${
+                          isSelected
+                            ? 'bg-[#1D3B2E] text-[#fef08a] border border-[#d4af37]/40 shadow-lg group-hover:scale-110 group-hover:bg-[#1D3B2E] group-hover:text-[#fef08a]'
+                            : 'bg-white text-[#1D3B2E] border border-slate-200/80 group-hover:scale-110 group-hover:bg-[#1D3B2E] group-hover:text-[#fef08a] group-hover:border-[#1D3B2E]'
+                        }`}>
+                          {renderTransportModeIcon(mode.id)}
                         </div>
-                        <span className={`text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-md ${
+                        <span className={`text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-md transition-all ${
                           isSelected 
-                            ? 'bg-amber-400 text-slate-950 font-bold' 
-                            : 'bg-[#13274F]/10 text-[#13274F] group-hover:bg-amber-400 group-hover:text-slate-950'
+                            ? 'bg-amber-400 text-slate-950 font-bold group-hover:bg-black/15 group-hover:text-slate-950 group-hover:border group-hover:border-black/20' 
+                            : 'bg-[#13274F]/10 text-[#13274F] group-hover:bg-black/15 group-hover:text-slate-950 group-hover:border group-hover:border-black/20'
                         }`}>
                           {mode.badge}
                         </span>
                       </div>
 
                       <div>
-                        <h3 className="text-lg font-serif font-bold tracking-tight">
+                        <h3 className="text-lg font-serif font-bold tracking-tight transition-colors group-hover:text-slate-950">
                           {mode.name.toUpperCase()}
                         </h3>
-                        <p className={`text-xs mt-1 font-medium ${
-                          isSelected ? 'text-sky-200' : 'text-gray-500 group-hover:text-sky-200'
+                        <p className={`text-xs mt-1 font-medium transition-colors ${
+                          isSelected ? 'text-sky-200 group-hover:text-slate-900 group-hover:font-semibold' : 'text-gray-500 group-hover:text-slate-900 group-hover:font-semibold'
                         }`}>
                           {mode.subtitle}
                         </p>
                       </div>
 
-                      <p className={`text-xs leading-relaxed ${
-                        isSelected ? 'text-gray-200' : 'text-gray-600 group-hover:text-gray-200'
+                      <p className={`text-xs leading-relaxed transition-colors ${
+                        isSelected ? 'text-gray-200 group-hover:text-slate-900 font-normal group-hover:font-medium' : 'text-gray-600 group-hover:text-slate-900 group-hover:font-medium'
                       }`}>
                         {mode.desc}
                       </p>
                     </div>
 
-                    <div className="pt-6 border-t border-black/10 group-hover:border-white/20 mt-4">
+                    <div className="pt-6 border-t border-black/10 group-hover:border-black/20 mt-4 transition-colors">
                       <button
                         type="button"
                         onClick={(e) => {
                           e.stopPropagation();
                           setSelectedMode(mode.name);
-                          toast.success(`Filtered fleet for ${mode.name}!`, { icon: '🚐' });
+                          toast.success(`Filtered fleet for ${mode.name}!`, { icon: '🐾' });
                           const catalog = document.getElementById('transport-catalog');
                           if (catalog) catalog.scrollIntoView({ behavior: 'smooth' });
                         }}
-                        className="w-full flex items-center justify-between text-xs font-bold text-amber-400 hover:text-amber-300 py-1.5 px-2 rounded-lg hover:bg-white/10 transition cursor-pointer"
+                        className={`w-full flex items-center justify-between text-xs font-bold py-1.5 px-2 rounded-lg transition-all cursor-pointer ${
+                          isSelected 
+                            ? 'text-amber-400 group-hover:text-slate-950 group-hover:font-black hover:bg-black/10' 
+                            : 'text-[#13274F] group-hover:text-slate-950 group-hover:font-black hover:bg-black/10'
+                        }`}
                         title={`Filter by ${mode.name}`}
                       >
                         <span>Click to Filter Fleet</span>
-                        <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
+                        <ArrowRight size={14} className="group-hover:translate-x-1.5 transition-transform" />
                       </button>
                     </div>
                   </div>
@@ -763,13 +805,9 @@ const PetTransport = () => {
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/10" />
                   
-                  {/* Floating Step Number & Icon Badge */}
+                  {/* Floating Step Number */}
                   <div className="absolute top-3 left-3 flex items-center gap-1.5 bg-[#0B1528]/80 backdrop-blur-md text-white text-[10px] font-extrabold px-2.5 py-1 rounded-full border border-white/20 shadow">
                     <span className="text-amber-300">{item.step}</span>
-                  </div>
-
-                  <div className="absolute bottom-2.5 right-3 w-8 h-8 rounded-full bg-white/90 backdrop-blur-sm flex items-center justify-center text-sm shadow">
-                    {item.icon}
                   </div>
                 </div>
 
@@ -800,8 +838,8 @@ const PetTransport = () => {
       {/* 4. PROVIDERS CATALOG & LEFT-SIDE FILTERS */}
       <ScrollReveal variant="fade" id="transport-catalog" className="max-w-7xl mx-auto px-4 md:px-8 py-8 lg:py-16 space-y-8">
         
-        {/* Section Header with Comparison Action Controls */}
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-end border-b border-stone-200 pb-6 gap-4">
+        {/* Section Header */}
+        <div className="border-b border-stone-200 pb-6">
           <div>
             <span className="text-[11px] font-extrabold uppercase tracking-widest text-[#0F2E23] bg-emerald-100/70 px-3 py-1 rounded-full">
               Verified Transporter Directory
@@ -812,40 +850,6 @@ const PetTransport = () => {
             <p className="text-xs text-gray-500 mt-1">
               Select up to 3 service providers below to view a detailed side-by-side comparison of per-km rates, base fares, transit modalities, and AC safety standards.
             </p>
-          </div>
-
-          {/* Directory Compare Action Controls */}
-          <div className="flex flex-wrap items-center gap-2.5 shrink-0">
-            <button
-              onClick={() => setShowCompareModal(true)}
-              className="flex items-center gap-2 px-5 py-2.5 rounded-xl font-extrabold text-xs transition shadow-md cursor-pointer border bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-slate-950 border-amber-400 hover:shadow-lg active:scale-95"
-            >
-              <Scale size={16} />
-              <span>Compare Providers</span>
-              <span className="bg-slate-950 text-amber-400 text-[10px] px-2 py-0.5 rounded-full font-black">
-                {comparedProviders.length}/3
-              </span>
-            </button>
-
-            {comparedProviders.length > 0 ? (
-              <button
-                onClick={() => {
-                  setComparedProviders([]);
-                  toast('Comparison list cleared.');
-                }}
-                className="text-xs text-gray-500 hover:text-red-600 font-semibold px-3 py-2 rounded-xl border border-stone-200 hover:border-red-200 bg-stone-50 cursor-pointer transition"
-              >
-                Clear ({comparedProviders.length})
-              </button>
-            ) : (
-              <button
-                onClick={handleQuickCompareTop3}
-                className="text-xs text-[#0F2E23] hover:text-[#13274F] font-semibold px-3 py-2 rounded-xl border border-stone-200 bg-white hover:bg-stone-50 cursor-pointer transition flex items-center gap-1.5 shadow-sm"
-              >
-                <Sparkles size={13} className="text-amber-500" />
-                <span>Quick Compare Top 3</span>
-              </button>
-            )}
           </div>
         </div>
 
@@ -877,23 +881,44 @@ const PetTransport = () => {
               </button>
             </div>
 
-            {/* Keyword Search */}
+            {/* Search */}
             <div className="space-y-1">
-              <label className="text-[10px] font-bold uppercase text-gray-400 tracking-wider">Search Keyword</label>
+              <label className="text-[10px] font-bold uppercase text-gray-400 tracking-wider">Search</label>
               <div className="relative">
                 <input
                   type="text"
                   placeholder="e.g. Mumbai, Air, Innova..."
                   value={searchKeyword}
                   onChange={(e) => setSearchKeyword(e.target.value)}
-                  className="w-full bg-stone-50 border border-stone-200 text-[11px] rounded-lg pl-7 pr-2.5 py-1.5 text-slate-800 focus:outline-none focus:border-[#0F2E23]"
+                  className="w-full bg-stone-50 border border-stone-200 text-[11px] rounded-lg pl-7 pr-2.5 py-1.5 text-slate-800 focus:outline-none focus:border-[#1D3B2E]"
                 />
                 <Search size={12} className="absolute left-2.5 top-2.5 text-gray-400" />
               </div>
             </div>
 
+            {/* SORT BY FILTER (Directly under Search) */}
+            <div className="space-y-1.5 pt-2 border-t border-stone-100">
+              <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-500 block">
+                SORT BY:
+              </span>
+              <div className="relative">
+                <select
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value)}
+                  className="w-full bg-white border border-slate-200 hover:border-[#1D3B2E] text-[11px] font-bold text-slate-900 rounded-full px-3.5 py-2 pr-8 shadow-sm transition appearance-none cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#1D3B2E]/20"
+                >
+                  <option value="recommended">Recommended & Verified</option>
+                  <option value="price-low">Price: Low to High (₹/km)</option>
+                  <option value="price-high">Price: High to Low</option>
+                  <option value="rating">Highest Rating</option>
+                  <option value="reviews">Most Reviews</option>
+                </select>
+                <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-900 pointer-events-none stroke-[2.5]" />
+              </div>
+            </div>
+
             {/* Transport Modality Filter */}
-            <div className="space-y-1.5">
+            <div className="space-y-1.5 pt-2 border-t border-stone-100">
               <label className="text-[10px] font-bold uppercase text-gray-400 tracking-wider">Transport Mode</label>
               <div className="space-y-1">
                 {[
@@ -908,7 +933,7 @@ const PetTransport = () => {
                     onClick={() => setSelectedMode(item.id)}
                     className={`w-full text-left text-[11px] font-semibold px-2.5 py-1.5 rounded-lg transition cursor-pointer flex items-center justify-between ${
                       selectedMode === item.id 
-                        ? 'bg-[#0F2E23] text-white font-bold' 
+                        ? 'bg-[#1D3B2E] text-white font-bold' 
                         : 'text-gray-600 hover:bg-stone-100'
                     }`}
                   >
@@ -929,8 +954,8 @@ const PetTransport = () => {
                     onClick={() => setSelectedPetType(pet)}
                     className={`text-[11px] font-semibold px-2 py-1 rounded-md transition cursor-pointer border ${
                       selectedPetType === pet
-                        ? 'bg-[#0B1528] text-white border-[#0B1528]'
-                        : 'bg-stone-50 text-gray-600 border-stone-200 hover:border-gray-400'
+                        ? 'bg-[#1D3B2E] text-white border-[#1D3B2E] shadow-xs'
+                        : 'bg-stone-50 text-gray-600 border-stone-200 hover:border-[#1D3B2E]/40 hover:text-[#1D3B2E]'
                     }`}
                   >
                     {pet}
@@ -955,7 +980,7 @@ const PetTransport = () => {
                       name="priceRange"
                       checked={priceRange === item.id}
                       onChange={() => setPriceRange(item.id)}
-                      className="accent-[#0F2E23] scale-90"
+                      className="accent-[#1D3B2E] scale-90"
                     />
                     <span>{item.label}</span>
                   </label>
@@ -970,7 +995,7 @@ const PetTransport = () => {
                   type="checkbox"
                   checked={verifiedOnly}
                   onChange={(e) => setVerifiedOnly(e.target.checked)}
-                  className="accent-[#0F2E23] rounded scale-90"
+                  className="accent-[#1D3B2E] rounded scale-90"
                 />
                 <span>Verified Transporters Only</span>
               </label>
@@ -980,31 +1005,10 @@ const PetTransport = () => {
                   type="checkbox"
                   checked={iataOnly}
                   onChange={(e) => setIataOnly(e.target.checked)}
-                  className="accent-[#0F2E23] rounded scale-90"
+                  className="accent-[#1D3B2E] rounded scale-90"
                 />
                 <span>IATA Live Animal Certified</span>
               </label>
-            </div>
-
-            {/* SORT BY FILTER INSIDE SIDEBAR */}
-            <div className="space-y-1.5 pt-2.5 border-t border-stone-100">
-              <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-500 block">
-                SORT BY:
-              </span>
-              <div className="relative">
-                <select
-                  value={sortBy}
-                  onChange={(e) => setSortBy(e.target.value)}
-                  className="w-full bg-white border border-slate-200 hover:border-[#0F2E23] text-[11px] font-bold text-slate-900 rounded-full px-3.5 py-2 pr-8 shadow-sm transition appearance-none cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#0F2E23]/20"
-                >
-                  <option value="recommended">Recommended & Verified</option>
-                  <option value="price-low">Price: Low to High (₹/km)</option>
-                  <option value="price-high">Price: High to Low</option>
-                  <option value="rating">Highest Rating</option>
-                  <option value="reviews">Most Reviews</option>
-                </select>
-                <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-900 pointer-events-none stroke-[2.5]" />
-              </div>
             </div>
 
           </aside>
@@ -1043,13 +1047,13 @@ const PetTransport = () => {
                   <div
                     key={provider.id}
                     className={`bg-white rounded-2xl border transition-all duration-300 p-6 shadow-sm hover:shadow-md flex flex-col md:flex-row gap-6 relative ${
-                      isCompared ? 'border-2 border-amber-400 bg-amber-50/20 ring-4 ring-amber-400/10' : 'border-stone-200'
+                      isCompared ? 'border-2 border-[#1D3B2E] bg-[#1D3B2E]/5 ring-4 ring-[#1D3B2E]/10' : 'border-stone-200'
                     }`}
                   >
                     {/* Active Comparison Slot Floating Tag */}
                     {isCompared && (
-                      <div className="absolute top-3 right-3 bg-amber-400 text-slate-950 text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full flex items-center gap-1 shadow z-10">
-                        <Scale size={11} />
+                      <div className="absolute top-3 right-3 bg-[#1D3B2E] text-white text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full flex items-center gap-1 shadow z-10 border border-[#d4af37]/30">
+                        <Scale size={11} className="text-[#fef08a]" />
                         <span>In Comparison (Slot {comparedIndex + 1}/3)</span>
                       </div>
                     )}
@@ -1149,18 +1153,18 @@ const PetTransport = () => {
                             onClick={() => handleToggleCompare(provider)}
                             className={`text-xs font-bold px-3.5 py-2.5 rounded-xl transition cursor-pointer flex items-center gap-1.5 border shadow-sm ${
                               isCompared
-                                ? 'bg-gradient-to-r from-amber-400 to-amber-500 text-slate-950 border-amber-500 ring-2 ring-amber-400/30'
-                                : 'bg-white hover:bg-amber-50 hover:border-amber-300 text-slate-700 border-stone-200'
+                                ? 'bg-[#1D3B2E] text-white border-[#1D3B2E] ring-2 ring-[#1D3B2E]/20'
+                                : 'bg-white hover:bg-[#1D3B2E]/10 hover:border-[#1D3B2E]/40 text-slate-700 border-stone-200'
                             }`}
                           >
                             {isCompared ? (
                               <>
-                                <CheckSquare size={14} className="text-slate-950" />
+                                <CheckSquare size={14} className="text-[#fef08a]" />
                                 <span>Compared</span>
                               </>
                             ) : (
                               <>
-                                <Scale size={14} className="text-amber-600" />
+                                <Scale size={14} className="text-[#1D3B2E]" />
                                 <span>Add to Compare</span>
                               </>
                             )}
@@ -1176,10 +1180,10 @@ const PetTransport = () => {
 
                           <button
                             onClick={() => handleOpenBookingModal(provider)}
-                            className="bg-[#0F2E23] hover:bg-[#164E3D] text-[#D4AF37] hover:text-white text-xs font-bold px-5 py-2.5 rounded-xl transition shadow-sm cursor-pointer flex items-center gap-1.5"
+                            className="btn-book-relocation text-xs font-bold px-5 py-2.5 rounded-xl shadow-sm cursor-pointer flex items-center gap-1.5 active:scale-95"
                           >
                             <span>Book Relocation</span>
-                            <ChevronRight size={14} />
+                            <ChevronRight size={14} className="stroke-[2.5]" />
                           </button>
                         </div>
                       </div>
@@ -1503,9 +1507,10 @@ const PetTransport = () => {
 
             <button
               onClick={() => setShowCompareModal(true)}
-              className="bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-500 hover:to-amber-600 text-slate-950 text-xs font-extrabold px-5 py-2.5 rounded-xl transition shadow-lg flex items-center gap-2 cursor-pointer hover:shadow-xl active:scale-95"
+              style={{ background: 'linear-gradient(135deg, #d4af37 0%, #fef08a 50%, #b89228 100%)' }}
+              className="text-slate-950 hover:brightness-105 text-xs font-black px-5 py-2.5 rounded-xl transition shadow-lg flex items-center gap-2 cursor-pointer hover:shadow-xl active:scale-95 border border-[#b89228]/50"
             >
-              <Scale size={15} />
+              <Scale size={15} className="text-slate-950" />
               <span>Compare Now ({comparedProviders.length}/3)</span>
             </button>
           </div>
@@ -1579,7 +1584,7 @@ const PetTransport = () => {
                   <div className="flex items-center justify-center gap-3">
                     <button
                       onClick={handleQuickCompareTop3}
-                      className="w-full bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-slate-950 font-extrabold text-xs py-2.5 px-4 rounded-xl shadow cursor-pointer transition flex items-center justify-center gap-1.5"
+                      className="w-full btn-footer-green-gold font-extrabold text-xs py-2.5 px-4 rounded-xl shadow cursor-pointer transition flex items-center justify-center gap-1.5"
                     >
                       <Sparkles size={14} />
                       <span>Compare Top 3 Rated</span>
@@ -1857,7 +1862,7 @@ const PetTransport = () => {
                               setShowCompareModal(false);
                               handleOpenBookingModal(p);
                             }}
-                            className="bg-[#0F2E23] hover:bg-[#164E3D] text-[#D4AF37] text-xs font-bold py-2 px-3 rounded-xl shadow cursor-pointer w-full transition"
+                            className="btn-book-relocation text-xs font-bold py-2 px-3 rounded-xl shadow cursor-pointer w-full transition active:scale-95"
                           >
                             Book {p.name.split(' ')[0]}
                           </button>
@@ -2030,7 +2035,7 @@ const PetTransport = () => {
               <div className="pt-1">
                 <button
                   type="submit"
-                  className="w-full bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-slate-950 font-extrabold text-xs uppercase tracking-wider py-3 rounded-xl transition shadow-md cursor-pointer hover:shadow-lg"
+                  className="w-full btn-footer-green-gold font-extrabold text-xs uppercase tracking-wider py-3 rounded-xl transition shadow-md cursor-pointer hover:shadow-lg"
                 >
                   Confirm Relocation Reservation
                 </button>
@@ -2150,7 +2155,7 @@ const PetTransport = () => {
               <div className="pt-1">
                 <button
                   type="submit"
-                  className="w-full bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-slate-950 font-extrabold text-xs uppercase tracking-wider py-3 rounded-xl transition shadow-md cursor-pointer flex items-center justify-center gap-2"
+                  className="w-full btn-footer-green-gold font-extrabold text-xs uppercase tracking-wider py-3 rounded-xl transition shadow-md cursor-pointer flex items-center justify-center gap-2"
                 >
                   <Send size={13} />
                   <span>Send Enquiry to {selectedProviderForEnquiry.name.split(' ')[0]}</span>

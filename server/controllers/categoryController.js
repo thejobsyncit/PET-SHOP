@@ -1,11 +1,24 @@
 import { supabase } from '../config/supabase.js';
 
+// In-Memory Cache for Categories (5 min TTL)
+const categoryCache = new Map();
+const CACHE_TTL_MS = 5 * 60 * 1000;
+
+export const clearCategoryCache = () => {
+  categoryCache.clear();
+};
+
 // @desc    Get all categories
 // @route   GET /api/categories
 // @access  Public
 export const getCategories = async (req, res) => {
   try {
     const { petType } = req.query;
+    const cacheKey = petType || 'all';
+    const cached = categoryCache.get(cacheKey);
+    if (cached && (Date.now() - cached.timestamp < CACHE_TTL_MS)) {
+      return res.json(cached.data);
+    }
     
     let query = supabase.from('categories').select('*');
     if (petType) {
@@ -15,7 +28,10 @@ export const getCategories = async (req, res) => {
     const { data: categories, error } = await query;
     if (error) throw error;
     
-    res.json({ success: true, categories: categories || [] });
+    const payload = { success: true, categories: categories || [] };
+    categoryCache.set(cacheKey, { timestamp: Date.now(), data: payload });
+    res.setHeader('Cache-Control', 'public, s-maxage=300, stale-while-revalidate=900');
+    res.json(payload);
   } catch (error) {
     try {
       const fs = await import('fs');

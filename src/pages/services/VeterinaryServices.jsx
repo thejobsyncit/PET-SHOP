@@ -12,6 +12,7 @@ import {
   MapPin,
   Search,
   Filter,
+  Check,
   CheckCircle2,
   AlertCircle,
   SlidersHorizontal,
@@ -360,133 +361,129 @@ export default function VeterinaryServices() {
   return (
     <div className="min-h-screen bg-slate-50 text-slate-800 font-sans pb-20">
 
-      {/* ================= 1. HERO SEARCH & MODES SECTION (MATCHING SCREENSHOT 1) ================= */}
-      <ScrollReveal variant="fade" className="relative bg-gradient-to-b from-[#0b3b32] via-[#0f4d42] to-[#0b3b32] text-white pt-10 pb-16 px-4 md:px-8 overflow-hidden">
+      {/* ================= 1. HERO SEARCH & MODES SECTION ================= */}
+      <ScrollReveal
+        variant="fade"
+        style={{ background: 'linear-gradient(135deg, #d4af37 0%, #fef08a 50%, #b89228 100%)' }}
+        className="relative text-slate-900 pt-8 pb-12 px-4 md:px-8 overflow-hidden shadow-inner border-b border-[#b89228]"
+      >
         {/* Ambient Glows */}
-        <div className="absolute top-0 right-1/4 w-96 h-96 bg-teal-400/10 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute bottom-0 left-1/4 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute -top-24 -right-24 w-96 h-96 bg-white/20 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute bottom-0 left-12 w-80 h-80 bg-[#b89228]/25 rounded-full blur-3xl pointer-events-none" />
 
-        <div className="max-w-6xl mx-auto relative z-10 space-y-6 text-center">
+        <div className="max-w-6xl mx-auto relative z-10 space-y-5 text-center">
+
+          {/* Breadcrumb Navigation */}
+          <div className="flex items-center gap-1.5 text-xs text-slate-800/80 font-medium justify-start mb-2">
+            <Link to="/" className="hover:text-black transition">Home</Link>
+            <ChevronRight size={12} />
+            <Link to="/services" className="hover:text-black transition">Pet Services</Link>
+            <ChevronRight size={12} />
+            <span className="font-bold text-slate-900">Veterinary Care</span>
+          </div>
 
           {/* Top Banner Tagline */}
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-teal-900/60 border border-teal-400/30 text-teal-200 text-xs font-semibold tracking-wide italic shadow-sm">
-            <Sparkles size={14} className="text-teal-300 animate-pulse" />
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/70 border border-[#b89228]/40 text-[#1D3B2E] text-xs font-bold tracking-wide italic shadow-xs">
+            <Sparkles size={14} className="text-[#b89228]" />
             Find Vet In Your City • View Details • Book Doctors
           </div>
 
           {/* Hero Main Heading */}
-          <h1 className="text-3xl md:text-5xl font-serif font-bold text-white tracking-tight leading-tight">
-            Consult India's Top <span className="text-teal-300">Veterinary Surgeons</span> & Clinics
+          <h1 className="text-3xl md:text-5xl font-serif font-black text-slate-950 tracking-tight leading-tight">
+            Consult India's Top <span className="text-[#1D3B2E]">Veterinary Surgeons</span> & Clinics
           </h1>
-          <p className="text-sm md:text-base text-teal-100/90 max-w-2xl mx-auto font-light leading-relaxed">
+          <p className="text-sm md:text-base text-slate-900 max-w-2xl mx-auto font-medium leading-relaxed">
             Verified licensed veterinarians, digital prescriptions, home visit doctors, and 24/7 video tele-consultations across 70+ Indian cities.
           </p>
 
-          {/* Service Mode Tabs (VETERINARY & VACCINATION matching Screenshot 1) */}
+          {/* Service Mode Tabs (VETERINARY & VACCINATION) */}
           <div className="flex items-center justify-center gap-3 pt-2">
             <button
               type="button"
               onClick={() => setHeroServiceMode('VETERINARY')}
-              className={`flex flex-col items-center justify-center w-28 sm:w-32 py-3 px-4 rounded-2xl font-bold text-xs uppercase tracking-wider transition-all duration-300 cursor-pointer shadow-md ${
+              className={`flex items-center justify-center py-2.5 px-6 rounded-2xl font-bold text-xs uppercase tracking-wider transition-all duration-300 cursor-pointer shadow-md ${
                 heroServiceMode === 'VETERINARY'
-                  ? 'bg-amber-200 text-amber-950 ring-4 ring-amber-300/40 -translate-y-1'
-                  : 'bg-white/10 hover:bg-white/20 text-white backdrop-blur-md'
+                  ? 'bg-[#1D3B2E] text-white ring-4 ring-[#1D3B2E]/20 -translate-y-0.5'
+                  : 'bg-white/80 hover:bg-white text-slate-800 border border-stone-200'
               }`}
             >
-              <span className="text-2xl mb-1">👩‍⚕️</span>
               <span>Veterinary</span>
             </button>
 
             <button
               type="button"
               onClick={() => setHeroServiceMode('VACCINATION')}
-              className={`flex flex-col items-center justify-center w-28 sm:w-32 py-3 px-4 rounded-2xl font-bold text-xs uppercase tracking-wider transition-all duration-300 cursor-pointer shadow-md ${
+              className={`flex items-center justify-center py-2.5 px-6 rounded-2xl font-bold text-xs uppercase tracking-wider transition-all duration-300 cursor-pointer shadow-md ${
                 heroServiceMode === 'VACCINATION'
-                  ? 'bg-amber-200 text-amber-950 ring-4 ring-amber-300/40 -translate-y-1'
-                  : 'bg-white/10 hover:bg-white/20 text-white backdrop-blur-md'
+                  ? 'bg-[#1D3B2E] text-white ring-4 ring-[#1D3B2E]/20 -translate-y-0.5'
+                  : 'bg-white/80 hover:bg-white text-slate-800 border border-stone-200'
               }`}
             >
-              <span className="text-2xl mb-1">💉</span>
               <span>Vaccination</span>
             </button>
           </div>
 
-          {/* Hero Multi-Select Search Bar (Matching Screenshot 1) */}
-          <div className="bg-white/95 backdrop-blur-md text-slate-800 p-4 sm:p-5 rounded-2xl shadow-2xl border border-teal-100 max-w-4xl mx-auto">
-            <form onSubmit={handleHeroSearch} className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 text-left">
+          {/* Hero Multi-Select Search Bar */}
+          <div className="bg-white/95 backdrop-blur-md text-slate-800 p-4 sm:p-5 rounded-2xl shadow-xl border border-[#b89228]/40 max-w-4xl mx-auto">
+            <form onSubmit={handleHeroSearch} className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 text-xs items-center">
               
               {/* Select State */}
-              <div>
-                <label className="block text-[10px] font-extrabold text-slate-600 uppercase tracking-wider mb-1">
-                  📍 State
-                </label>
-                <div className="relative">
-                  <select
-                    value={heroState}
-                    onChange={handleHeroStateChange}
-                    className="w-full p-2.5 bg-slate-50 border border-slate-200 text-xs font-semibold text-slate-800 rounded-xl focus:outline-none focus:border-[#0f766e] cursor-pointer appearance-none"
-                  >
-                    <option value="All States">-Select State-</option>
-                    {Object.keys(INDIAN_STATES_CITIES).map((st) => (
-                      <option key={st} value={st}>
-                        {st}
-                      </option>
-                    ))}
-                  </select>
-                  <ChevronDown size={14} className="absolute right-3 top-3 text-slate-400 pointer-events-none" />
-                </div>
+              <div className="relative">
+                <select
+                  value={heroState}
+                  onChange={handleHeroStateChange}
+                  aria-label="Select State"
+                  className="w-full p-2.5 bg-slate-50 border border-slate-200 text-xs font-semibold text-slate-800 rounded-xl focus:outline-none focus:border-[#1D3B2E] cursor-pointer appearance-none"
+                >
+                  <option value="All States">-Select State-</option>
+                  {Object.keys(INDIAN_STATES_CITIES).map((st) => (
+                    <option key={st} value={st}>
+                      {st}
+                    </option>
+                  ))}
+                </select>
+                <ChevronDown size={14} className="absolute right-3 top-3 text-slate-400 pointer-events-none" />
               </div>
 
               {/* Select City */}
-              <div>
-                <label className="block text-[10px] font-extrabold text-slate-600 uppercase tracking-wider mb-1">
-                  🏙️ City
-                </label>
-                <div className="relative">
-                  <select
-                    value={heroCity}
-                    onChange={(e) => setHeroCity(e.target.value)}
-                    className="w-full p-2.5 bg-slate-50 border border-slate-200 text-xs font-semibold text-slate-800 rounded-xl focus:outline-none focus:border-[#0f766e] cursor-pointer appearance-none"
-                  >
-                    <option value="All Cities">-Select City-</option>
-                    {heroAvailableCities.filter((c) => c !== 'All Cities').map((c) => (
-                      <option key={c} value={c}>
-                        {c}
-                      </option>
-                    ))}
-                  </select>
-                  <ChevronDown size={14} className="absolute right-3 top-3 text-slate-400 pointer-events-none" />
-                </div>
+              <div className="relative">
+                <select
+                  value={heroCity}
+                  onChange={(e) => setHeroCity(e.target.value)}
+                  aria-label="Select City"
+                  className="w-full p-2.5 bg-slate-50 border border-slate-200 text-xs font-semibold text-slate-800 rounded-xl focus:outline-none focus:border-[#1D3B2E] cursor-pointer appearance-none"
+                >
+                  <option value="All Cities">-Select City-</option>
+                  {heroAvailableCities.filter((c) => c !== 'All Cities').map((c) => (
+                    <option key={c} value={c}>
+                      {c}
+                    </option>
+                  ))}
+                </select>
+                <ChevronDown size={14} className="absolute right-3 top-3 text-slate-400 pointer-events-none" />
               </div>
 
               {/* Select Pet Type */}
-              <div>
-                <label className="block text-[10px] font-extrabold text-slate-600 uppercase tracking-wider mb-1">
-                  🐾 Pet Type
-                </label>
-                <div className="relative">
-                  <select
-                    value={heroPetType}
-                    onChange={(e) => setHeroPetType(e.target.value)}
-                    className="w-full p-2.5 bg-slate-50 border border-slate-200 text-xs font-semibold text-slate-800 rounded-xl focus:outline-none focus:border-[#0f766e] cursor-pointer appearance-none"
-                  >
-                    <option value="All Pets">-Select Pet Type-</option>
-                    <option value="Dogs">Dogs</option>
-                    <option value="Cats">Cats</option>
-                    <option value="Birds">Birds</option>
-                  </select>
-                  <ChevronDown size={14} className="absolute right-3 top-3 text-slate-400 pointer-events-none" />
-                </div>
+              <div className="relative">
+                <select
+                  value={heroPetType}
+                  onChange={(e) => setHeroPetType(e.target.value)}
+                  aria-label="Select Pet Type"
+                  className="w-full p-2.5 bg-slate-50 border border-slate-200 text-xs font-semibold text-slate-800 rounded-xl focus:outline-none focus:border-[#1D3B2E] cursor-pointer appearance-none"
+                >
+                  <option value="All Pets">-Select Pet Type-</option>
+                  <option value="Dogs">Dogs</option>
+                  <option value="Cats">Cats</option>
+                  <option value="Birds">Birds</option>
+                </select>
+                <ChevronDown size={14} className="absolute right-3 top-3 text-slate-400 pointer-events-none" />
               </div>
 
               {/* Search Button */}
-              <div className="sm:col-span-2 md:col-span-1 pt-4 sm:pt-0">
-                <label className="hidden md:block text-[10px] font-bold text-transparent mb-1 select-none">
-                  Search
-                </label>
+              <div>
                 <button
                   type="submit"
-                  className="w-full py-2.5 sm:py-3 bg-[#00838f] hover:bg-[#006064] text-white font-bold text-xs uppercase tracking-wider rounded-xl transition flex items-center justify-center gap-2 cursor-pointer shadow-md active:scale-95"
+                  className="w-full py-2.5 sm:py-3 btn-footer-green-gold text-white font-bold text-xs uppercase tracking-wider rounded-xl transition flex items-center justify-center gap-2 cursor-pointer shadow-md active:scale-95"
                 >
                   <Search size={14} /> Search
                 </button>
@@ -495,19 +492,16 @@ export default function VeterinaryServices() {
             </form>
           </div>
 
-          {/* Trust Highlights (Matching Screenshot 1) */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4 max-w-4xl mx-auto text-xs font-semibold">
-            <div className="flex items-center justify-center gap-2.5 bg-teal-900/40 border border-teal-500/30 p-3 rounded-2xl text-teal-100 shadow-sm">
-              <span className="text-xl">👨‍⚕️</span>
-              <span>GET A <strong className="text-teal-300">BEST DOCTOR</strong> FOR YOUR PET.</span>
+          {/* Trust Highlights */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-2 max-w-4xl mx-auto text-xs font-bold text-slate-900">
+            <div className="flex items-center justify-center gap-2 bg-white/70 border border-[#b89228]/40 p-2.5 rounded-2xl shadow-xs">
+              <span>GET A <strong className="text-[#1D3B2E]">BEST DOCTOR</strong> FOR YOUR PET</span>
             </div>
-            <div className="flex items-center justify-center gap-2.5 bg-teal-900/40 border border-teal-500/30 p-3 rounded-2xl text-teal-100 shadow-sm">
-              <span className="text-xl">🐕</span>
-              <span><strong className="text-teal-300">VACCINATE</strong> YOUR DOG / PET.</span>
+            <div className="flex items-center justify-center gap-2 bg-white/70 border border-[#b89228]/40 p-2.5 rounded-2xl shadow-xs">
+              <span><strong className="text-[#1D3B2E]">VACCINATE</strong> YOUR DOG / PET</span>
             </div>
-            <div className="flex items-center justify-center gap-2.5 bg-teal-900/40 border border-teal-500/30 p-3 rounded-2xl text-teal-100 shadow-sm">
-              <span className="text-xl">🛡️</span>
-              <span><strong className="text-teal-300">70+ TRUSTED VETS</strong> AVAILABLE</span>
+            <div className="flex items-center justify-center gap-2 bg-white/70 border border-[#b89228]/40 p-2.5 rounded-2xl shadow-xs">
+              <span><strong className="text-[#1D3B2E]">70+ TRUSTED VETS</strong> AVAILABLE</span>
             </div>
           </div>
 
@@ -521,7 +515,7 @@ export default function VeterinaryServices() {
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-6 pb-4 border-b border-slate-200">
           <div>
             <h2 className="text-xl sm:text-2xl font-serif font-bold text-slate-900 flex items-center gap-2">
-              <Stethoscope size={22} className="text-[#00838f]" />
+              <Stethoscope size={22} className="text-[#1D3B2E]" />
               Verified Veterinary Doctors & Clinics in India
             </h2>
             <p className="text-xs text-slate-500 mt-0.5">
@@ -531,267 +525,246 @@ export default function VeterinaryServices() {
           
           {/* Quick Helpline Badge */}
           <div className="bg-white border border-slate-200 shadow-sm px-3.5 py-1.5 rounded-full flex items-center gap-2 text-xs text-slate-700 font-semibold shrink-0">
-            <PhoneCall size={14} className="text-[#00838f]" />
+            <PhoneCall size={14} className="text-[#1D3B2E]" />
             <span>Emergency Vet Helpline: <strong>+91 98765 43210</strong></span>
           </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
 
-          {/* ================= LEFT SIDEBAR: DEDICATED SCROLLABLE FILTERS ================= */}
-          <aside className="lg:col-span-4 bg-white border border-slate-200 p-4 sm:p-5 rounded-2xl shadow-sm space-y-5 lg:sticky lg:top-24 max-h-[calc(100vh-6.5rem)] overflow-y-auto custom-scrollbar">
-            
-            {/* Header & Reset Button */}
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-              <div className="flex items-center gap-2">
-                <SlidersHorizontal size={16} className="text-[#00838f]" />
-                <h3 className="font-serif font-bold text-base text-slate-900 uppercase tracking-wider">
-                  Filter Doctors
-                </h3>
-              </div>
-              <button
-                type="button"
-                onClick={handleResetFilters}
-                className="text-[11px] font-bold text-slate-500 hover:text-red-600 transition flex items-center gap-1 uppercase tracking-wider cursor-pointer"
-              >
-                <RotateCcw size={12} /> Reset All
-              </button>
-            </div>
-
-            {/* 1. Keyword Search */}
-            <div>
-              <label className="block text-[11px] font-bold text-[#00838f] uppercase tracking-wider mb-1.5">
-                Search Doctor / Clinic / Area
-              </label>
-              <div className="relative">
-                <input
-                  type="text"
-                  placeholder="e.g. Dr. Rajesh, Indiranagar, Surgery..."
-                  value={searchKeyword}
-                  onChange={(e) => setSearchKeyword(e.target.value)}
-                  className="w-full pl-8 pr-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-[#00838f]"
-                />
-                <Search size={14} className="absolute left-2.5 top-2.5 text-slate-400" />
-              </div>
-            </div>
-
-            {/* 2. Pet Category (Dogs, Cats, Birds, Fish, Reptiles, All Pets) */}
-            <div className="pt-2 border-t border-slate-100">
-              <label className="block text-[11px] font-bold text-[#00838f] uppercase tracking-wider mb-2">
-                Pet Species / Category
-              </label>
-              <div className="space-y-1.5 text-xs">
-                {VET_PET_CATEGORIES.map((item) => (
-                  <label
-                    key={item.id}
-                    className={`flex items-center justify-between p-2 rounded-xl border cursor-pointer transition select-none ${
-                      selectedCategory === item.id
-                        ? 'bg-teal-50 border-teal-300 text-teal-950 font-bold'
-                        : 'bg-slate-50/70 border-slate-200 text-slate-700 hover:bg-slate-100'
-                    }`}
-                  >
-                    <div className="flex items-center gap-2">
-                      <input
-                        type="radio"
-                        name="petCategory"
-                        value={item.id}
-                        checked={selectedCategory === item.id}
-                        onChange={() => setSelectedCategory(item.id)}
-                        className="text-[#00838f] focus:ring-0 cursor-pointer"
-                      />
-                      <span>{item.label}</span>
-                    </div>
-                  </label>
-                ))}
-              </div>
-            </div>
-
-            {/* 3. Consultation Mode */}
-            <div className="pt-2 border-t border-slate-100">
-              <label className="block text-[11px] font-bold text-[#00838f] uppercase tracking-wider mb-2">
-                Consultation Mode
-              </label>
-              <div className="space-y-1.5 text-xs">
-                {VET_SERVICE_MODES.map((mode) => (
-                  <label
-                    key={mode.id}
-                    className={`flex items-center justify-between p-2 rounded-xl border cursor-pointer transition select-none ${
-                      selectedConsultMode === mode.id
-                        ? 'bg-teal-50 border-teal-300 text-teal-950 font-bold'
-                        : 'bg-slate-50/70 border-slate-200 text-slate-700 hover:bg-slate-100'
-                    }`}
-                  >
-                    <div className="flex items-center gap-2">
-                      <input
-                        type="radio"
-                        name="consultMode"
-                        value={mode.id}
-                        checked={selectedConsultMode === mode.id}
-                        onChange={() => setSelectedConsultMode(mode.id)}
-                        className="text-[#00838f] focus:ring-0 cursor-pointer"
-                      />
-                      <span>{mode.icon} {mode.label}</span>
-                    </div>
-                  </label>
-                ))}
-              </div>
-            </div>
-
-            {/* 4. Specialization */}
-            <div className="pt-2 border-t border-slate-100">
-              <label className="block text-[11px] font-bold text-[#00838f] uppercase tracking-wider mb-2">
-                Doctor Specialization
-              </label>
-              <div className="relative">
-                <select
-                  value={selectedSpecialization}
-                  onChange={(e) => setSelectedSpecialization(e.target.value)}
-                  className="w-full p-2 bg-slate-50 border border-slate-200 text-xs font-semibold text-slate-800 rounded-xl focus:outline-none focus:border-[#00838f] cursor-pointer appearance-none"
-                >
-                  {VET_SPECIALIZATIONS.map((spec) => (
-                    <option key={spec} value={spec}>
-                      {spec}
-                    </option>
-                  ))}
-                </select>
-                <ChevronDown size={14} className="absolute right-3 top-2.5 text-slate-400 pointer-events-none" />
-              </div>
-            </div>
-
-            {/* 5. Sort By */}
-            <div className="pt-2 border-t border-slate-100">
-              <label className="block text-[11px] font-bold text-[#00838f] uppercase tracking-wider mb-2">
-                Sort By
-              </label>
-              <div className="space-y-1.5 text-xs">
-                {[
-                  { id: 'recommended', label: '⭐ Recommended / Highest Rated' },
-                  { id: 'price-low', label: '💰 Video Fee: Low to High' },
-                  { id: 'price-high', label: '🏥 Clinic Fee: High to Low' },
-                  { id: 'exp-high', label: '🎓 Experience: High to Low' }
-                ].map((sortItem) => (
-                  <label
-                    key={sortItem.id}
-                    className={`flex items-center gap-2 p-1.5 rounded-lg cursor-pointer transition select-none text-xs ${
-                      sortBy === sortItem.id
-                        ? 'bg-teal-50 text-teal-900 font-bold'
-                        : 'text-slate-600 hover:bg-slate-100'
-                    }`}
-                  >
-                    <input
-                      type="radio"
-                      name="sortBy"
-                      value={sortItem.id}
-                      checked={sortBy === sortItem.id}
-                      onChange={() => setSortBy(sortItem.id)}
-                      className="text-[#00838f] focus:ring-0 cursor-pointer"
-                    />
-                    <span>{sortItem.label}</span>
-                  </label>
-                ))}
-              </div>
-            </div>
-
-            {/* 6. Experience Filter */}
-            <div className="pt-2 border-t border-slate-100">
-              <label className="block text-[11px] font-bold text-[#00838f] uppercase tracking-wider mb-2">
-                Years of Clinical Experience
-              </label>
-              <div className="grid grid-cols-2 gap-1.5 text-xs">
-                {[
-                  { id: 'all', label: 'All Exp.' },
-                  { id: '5plus', label: '5+ Years' },
-                  { id: '10plus', label: '10+ Years' },
-                  { id: '15plus', label: '15+ Years' }
-                ].map((exp) => (
-                  <button
-                    key={exp.id}
-                    type="button"
-                    onClick={() => setSelectedExperience(exp.id)}
-                    className={`py-1.5 px-2 rounded-lg text-xs font-semibold border text-center transition cursor-pointer ${
-                      selectedExperience === exp.id
-                        ? 'bg-[#00838f] text-white border-[#00838f]'
-                        : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100'
-                    }`}
-                  >
-                    {exp.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* 7. Location Filter (State & City) */}
-            <div className="pt-2 border-t border-slate-100 space-y-2">
-              <label className="block text-[11px] font-bold text-[#00838f] uppercase tracking-wider">
-                Doctor Location
-              </label>
-              <div className="relative">
-                <select
-                  value={selectedState}
-                  onChange={handleSidebarStateChange}
-                  className="w-full p-2 bg-slate-50 border border-slate-200 text-xs font-semibold text-slate-800 rounded-xl focus:outline-none focus:border-[#00838f] cursor-pointer appearance-none"
-                >
-                  <option value="All States">All States</option>
-                  {Object.keys(INDIAN_STATES_CITIES).map((st) => (
-                    <option key={st} value={st}>
-                      {st}
-                    </option>
-                  ))}
-                </select>
-                <ChevronDown size={14} className="absolute right-3 top-2.5 text-slate-400 pointer-events-none" />
-              </div>
-
-              <div className="relative">
-                <select
-                  value={selectedCity}
-                  onChange={(e) => setSelectedCity(e.target.value)}
-                  className="w-full p-2 bg-slate-50 border border-slate-200 text-xs font-semibold text-slate-800 rounded-xl focus:outline-none focus:border-[#00838f] cursor-pointer appearance-none"
-                >
-                  {availableCities.map((c) => (
-                    <option key={c} value={c}>
-                      {c}
-                    </option>
-                  ))}
-                </select>
-                <ChevronDown size={14} className="absolute right-3 top-2.5 text-slate-400 pointer-events-none" />
-              </div>
-            </div>
-
-            {/* 8. Quick Feature Toggles */}
-            <div className="pt-2 border-t border-slate-100 space-y-2">
-              <label className="block text-[11px] font-bold text-[#00838f] uppercase tracking-wider">
-                Emergency & Availability
-              </label>
+          {/* ================= LEFT SIDEBAR: STANDARDIZED FILTERS ================= */}
+          <aside className="lg:col-span-3">
+            <div className="bg-white rounded-2xl shadow-sm border border-stone-200 overflow-hidden">
               
-              <label className="flex items-center gap-2 text-xs text-slate-700 cursor-pointer select-none">
-                <input
-                  type="checkbox"
-                  checked={emergencyOnly}
-                  onChange={(e) => setEmergencyOnly(e.target.checked)}
-                  className="rounded text-[#00838f] focus:ring-0 cursor-pointer"
-                />
-                <span>🚨 24/7 Emergency & ICU Ready</span>
-              </label>
+              {/* Header with Title & Reset Button */}
+              <div className="px-4 py-3 border-b border-stone-200 bg-stone-50/70 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <SlidersHorizontal size={14} className="text-[#1D3B2E]" />
+                  <span className="text-xs font-bold uppercase tracking-wider text-slate-800">
+                    Filter Doctors
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleResetFilters}
+                  className="text-[11px] font-bold text-[#1D3B2E] hover:text-[#0F241C] hover:underline flex items-center gap-1 cursor-pointer"
+                >
+                  <RotateCcw size={11} /> Reset
+                </button>
+              </div>
 
-              <label className="flex items-center gap-2 text-xs text-slate-700 cursor-pointer select-none">
-                <input
-                  type="checkbox"
-                  checked={homeVisitOnly}
-                  onChange={(e) => setHomeVisitOnly(e.target.checked)}
-                  className="rounded text-[#00838f] focus:ring-0 cursor-pointer"
-                />
-                <span>🏠 Home Visit Available</span>
-              </label>
+              {/* Filter Body */}
+              <div className="p-4 space-y-4 text-xs">
+
+                {/* Keyword Search */}
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-bold uppercase text-gray-400 tracking-wider">
+                    Search Doctor / Clinic / Area
+                  </label>
+                  <div className="relative">
+                    <Search size={13} className="absolute left-2.5 top-2.5 text-gray-400" />
+                    <input
+                      type="text"
+                      placeholder="e.g. Dr. Rajesh, Indiranagar, Surgery..."
+                      value={searchKeyword}
+                      onChange={(e) => setSearchKeyword(e.target.value)}
+                      className="w-full bg-stone-50 border border-stone-200 text-xs rounded-lg pl-8 pr-2.5 py-1.5 text-slate-800 placeholder-gray-400 focus:outline-none focus:border-[#1D3B2E]"
+                    />
+                  </div>
+                </div>
+
+                {/* Pet Species / Category - No icons */}
+                <div className="space-y-1.5 pt-2 border-t border-stone-100">
+                  <label className="text-[10px] font-bold uppercase text-gray-400 tracking-wider">
+                    Pet Species / Category
+                  </label>
+                  <div className="space-y-1">
+                    {VET_PET_CATEGORIES.map((item) => (
+                      <button
+                        key={item.id}
+                        type="button"
+                        onClick={() => setSelectedCategory(item.id)}
+                        className={`w-full text-left text-[11px] font-semibold px-2.5 py-1.5 rounded-lg transition cursor-pointer flex items-center justify-between ${
+                          selectedCategory === item.id
+                            ? 'bg-[#1D3B2E] text-white font-bold'
+                            : 'text-gray-600 hover:bg-stone-100'
+                        }`}
+                      >
+                        <span>{item.label}</span>
+                        {selectedCategory === item.id && <Check size={12} className="text-white" />}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Consultation Mode - No icons */}
+                <div className="space-y-1.5 pt-2 border-t border-stone-100">
+                  <label className="text-[10px] font-bold uppercase text-gray-400 tracking-wider">
+                    Consultation Mode
+                  </label>
+                  <div className="space-y-1">
+                    {VET_SERVICE_MODES.map((mode) => (
+                      <button
+                        key={mode.id}
+                        type="button"
+                        onClick={() => setSelectedConsultMode(mode.id)}
+                        className={`w-full text-left text-[11px] font-semibold px-2.5 py-1.5 rounded-lg transition cursor-pointer flex items-center justify-between ${
+                          selectedConsultMode === mode.id
+                            ? 'bg-[#1D3B2E] text-white font-bold'
+                            : 'text-gray-600 hover:bg-stone-100'
+                        }`}
+                      >
+                        <span>{mode.label}</span>
+                        {selectedConsultMode === mode.id && <Check size={12} className="text-white" />}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Doctor Specialization */}
+                <div className="space-y-1.5 pt-2 border-t border-stone-100">
+                  <label className="text-[10px] font-bold uppercase text-gray-400 tracking-wider">
+                    Specialization
+                  </label>
+                  <div className="relative">
+                    <select
+                      value={selectedSpecialization}
+                      onChange={(e) => setSelectedSpecialization(e.target.value)}
+                      className="w-full bg-stone-50 border border-stone-200 text-xs rounded-lg px-2.5 py-1.5 text-slate-800 focus:outline-none focus:border-[#1D3B2E] cursor-pointer appearance-none pr-8 font-semibold"
+                    >
+                      {VET_SPECIALIZATIONS.map((spec) => (
+                        <option key={spec} value={spec}>
+                          {spec}
+                        </option>
+                      ))}
+                    </select>
+                    <ChevronDown size={13} className="absolute right-2.5 top-2.5 text-gray-400 pointer-events-none" />
+                  </div>
+                </div>
+
+                {/* Sort By - Clean labels without emoji icons */}
+                <div className="space-y-1.5 pt-2 border-t border-stone-100">
+                  <label className="text-[10px] font-bold uppercase text-gray-400 tracking-wider">
+                    Sort By
+                  </label>
+                  <div className="relative">
+                    <select
+                      value={sortBy}
+                      onChange={(e) => setSortBy(e.target.value)}
+                      className="w-full bg-stone-50 border border-stone-200 text-xs rounded-lg px-2.5 py-1.5 text-slate-800 focus:outline-none focus:border-[#1D3B2E] cursor-pointer appearance-none pr-8 font-semibold"
+                    >
+                      <option value="recommended">Recommended / Highest Rated</option>
+                      <option value="price-low">Video Fee: Low to High</option>
+                      <option value="price-high">Clinic Fee: High to Low</option>
+                      <option value="exp-high">Experience: High to Low</option>
+                    </select>
+                    <ChevronDown size={13} className="absolute right-2.5 top-2.5 text-gray-400 pointer-events-none" />
+                  </div>
+                </div>
+
+                {/* Experience Filter */}
+                <div className="space-y-1.5 pt-2 border-t border-stone-100">
+                  <label className="text-[10px] font-bold uppercase text-gray-400 tracking-wider">
+                    Years of Experience
+                  </label>
+                  <div className="grid grid-cols-2 gap-1.5">
+                    {[
+                      { id: 'all', label: 'All Exp.' },
+                      { id: '5plus', label: '5+ Years' },
+                      { id: '10plus', label: '10+ Years' },
+                      { id: '15plus', label: '15+ Years' }
+                    ].map((exp) => (
+                      <button
+                        key={exp.id}
+                        type="button"
+                        onClick={() => setSelectedExperience(exp.id)}
+                        className={`py-1.5 px-2 rounded-lg text-xs font-semibold border text-center transition cursor-pointer ${
+                          selectedExperience === exp.id
+                            ? 'bg-[#1D3B2E] text-white border-[#1D3B2E]'
+                            : 'bg-stone-50 border-stone-200 text-slate-700 hover:bg-stone-100'
+                        }`}
+                      >
+                        {exp.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Location Filter (State & City) */}
+                <div className="space-y-1.5 pt-2 border-t border-stone-100">
+                  <label className="text-[10px] font-bold uppercase text-gray-400 tracking-wider">
+                    Doctor Location
+                  </label>
+                  <div className="space-y-1.5">
+                    <div className="relative">
+                      <select
+                        value={selectedState}
+                        onChange={handleSidebarStateChange}
+                        className="w-full bg-stone-50 border border-stone-200 text-xs rounded-lg px-2.5 py-1.5 text-slate-800 focus:outline-none focus:border-[#1D3B2E] cursor-pointer appearance-none pr-8 font-semibold"
+                      >
+                        <option value="All States">All States</option>
+                        {Object.keys(INDIAN_STATES_CITIES).map((st) => (
+                          <option key={st} value={st}>
+                            {st}
+                          </option>
+                        ))}
+                      </select>
+                      <ChevronDown size={13} className="absolute right-2.5 top-2.5 text-gray-400 pointer-events-none" />
+                    </div>
+
+                    <div className="relative">
+                      <select
+                        value={selectedCity}
+                        onChange={(e) => setSelectedCity(e.target.value)}
+                        className="w-full bg-stone-50 border border-stone-200 text-xs rounded-lg px-2.5 py-1.5 text-slate-800 focus:outline-none focus:border-[#1D3B2E] cursor-pointer appearance-none pr-8 font-semibold"
+                      >
+                        {availableCities.map((c) => (
+                          <option key={c} value={c}>
+                            {c}
+                          </option>
+                        ))}
+                      </select>
+                      <ChevronDown size={13} className="absolute right-2.5 top-2.5 text-gray-400 pointer-events-none" />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Emergency & Availability - No emoji icons */}
+                <div className="space-y-2 pt-2 border-t border-stone-100">
+                  <label className="text-[10px] font-bold uppercase text-gray-400 tracking-wider block">
+                    Emergency & Availability
+                  </label>
+                  <label className="flex items-center gap-2 text-xs text-slate-700 cursor-pointer select-none">
+                    <input
+                      type="checkbox"
+                      checked={emergencyOnly}
+                      onChange={(e) => setEmergencyOnly(e.target.checked)}
+                      className="rounded text-[#1D3B2E] focus:ring-0 cursor-pointer accent-[#1D3B2E]"
+                    />
+                    <span>24/7 Emergency & ICU Ready</span>
+                  </label>
+
+                  <label className="flex items-center gap-2 text-xs text-slate-700 cursor-pointer select-none">
+                    <input
+                      type="checkbox"
+                      checked={homeVisitOnly}
+                      onChange={(e) => setHomeVisitOnly(e.target.checked)}
+                      className="rounded text-[#1D3B2E] focus:ring-0 cursor-pointer accent-[#1D3B2E]"
+                    />
+                    <span>Home Visit Available</span>
+                  </label>
+                </div>
+
+              </div>
             </div>
-
           </aside>
 
           {/* ================= RIGHT MAIN: DOCTOR & CLINIC CARDS ================= */}
-          <main className="lg:col-span-8">
+          <main className="lg:col-span-9">
             
             {filteredDoctors.length === 0 ? (
-              <div className="bg-white border border-slate-200 rounded-3xl p-4 lg:p-12 text-center space-y-4 shadow-sm">
-                <div className="w-16 h-16 rounded-full bg-teal-50 border border-teal-200 text-[#00838f] flex items-center justify-center mx-auto text-2xl">
+              <div className="bg-white border border-stone-200 rounded-3xl p-4 lg:p-12 text-center space-y-4 shadow-sm">
+                <div className="w-16 h-16 rounded-full bg-emerald-50 border border-emerald-200 text-[#1D3B2E] flex items-center justify-center mx-auto text-2xl">
                   🩺
                 </div>
                 <h3 className="font-serif font-bold text-lg text-slate-900">
@@ -803,7 +776,7 @@ export default function VeterinaryServices() {
                 <button
                   type="button"
                   onClick={handleResetFilters}
-                  className="px-5 py-2.5 bg-[#00838f] hover:bg-[#006064] text-white font-bold text-xs uppercase tracking-wider rounded-xl transition cursor-pointer shadow-md"
+                  className="px-5 py-2.5 bg-[#1D3B2E] hover:bg-[#152e24] text-white font-bold text-xs uppercase tracking-wider rounded-xl transition cursor-pointer shadow-md"
                 >
                   Reset All Filters
                 </button>
@@ -813,7 +786,7 @@ export default function VeterinaryServices() {
                 {filteredDoctors.map((doc) => (
                   <div
                     key={doc.id}
-                    className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-5 shadow-xs hover:shadow-lg transition-all duration-300 flex flex-col justify-between group hover:-translate-y-0.5"
+                    className="bg-white border border-stone-200 rounded-2xl p-4 sm:p-5 shadow-xs hover:shadow-lg transition-all duration-300 flex flex-col justify-between group hover:-translate-y-0.5"
                   >
                     <div>
                       
@@ -823,10 +796,10 @@ export default function VeterinaryServices() {
                           <img
                             src={doc.avatar}
                             alt={doc.name}
-                            className="w-16 h-16 rounded-2xl object-cover border-2 border-teal-100 group-hover:border-teal-400 transition"
+                            className="w-16 h-16 rounded-2xl object-cover border-2 border-stone-200 group-hover:border-emerald-600 transition"
                           />
                           {doc.isVerified && (
-                            <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-teal-600 text-white rounded-full flex items-center justify-center shadow-xs" title="VCI Verified Doctor">
+                            <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-[#1D3B2E] text-white rounded-full flex items-center justify-center shadow-xs" title="VCI Verified Doctor">
                               <CheckCircle2 size={12} />
                             </div>
                           )}
@@ -837,7 +810,7 @@ export default function VeterinaryServices() {
                             <h3 className="font-serif font-bold text-base text-slate-900 truncate">
                               {doc.name}
                             </h3>
-                            <span className="text-[10px] bg-teal-50 text-teal-800 border border-teal-200 px-1.5 py-0.2 rounded font-bold">
+                            <span className="text-[10px] bg-emerald-50 text-emerald-800 border border-emerald-200 px-1.5 py-0.2 rounded font-bold">
                               {doc.experienceDisplay}
                             </span>
                           </div>
@@ -855,7 +828,7 @@ export default function VeterinaryServices() {
                               ({doc.reviewsCount} reviews)
                             </span>
                             <span className="text-slate-300">•</span>
-                            <span className="text-[11px] text-teal-700 font-semibold truncate">
+                            <span className="text-[11px] text-emerald-800 font-semibold truncate">
                               {doc.city}
                             </span>
                           </div>
@@ -863,9 +836,9 @@ export default function VeterinaryServices() {
                       </div>
 
                       {/* Clinic Name & Address */}
-                      <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-100 mb-3 space-y-1">
+                      <div className="bg-stone-50 p-2.5 rounded-xl border border-stone-200/80 mb-3 space-y-1">
                         <div className="flex items-center gap-1.5 text-xs font-bold text-slate-800">
-                          <Building2 size={13} className="text-[#00838f] shrink-0" />
+                          <Building2 size={13} className="text-[#1D3B2E] shrink-0" />
                           <span className="truncate">{doc.clinicName}</span>
                         </div>
                         <div className="flex items-center gap-1.5 text-[11px] text-slate-500">
@@ -879,7 +852,7 @@ export default function VeterinaryServices() {
                         {doc.specializations.map((spec, i) => (
                           <span
                             key={i}
-                            className="text-[10px] bg-teal-50/70 text-teal-900 border border-teal-200/60 px-2 py-0.5 rounded-md font-medium"
+                            className="text-[10px] bg-stone-100 text-slate-700 border border-stone-200 px-2 py-0.5 rounded-md font-medium"
                           >
                             {spec}
                           </span>
@@ -896,25 +869,25 @@ export default function VeterinaryServices() {
                             ₹{doc.videoConsultFee}
                           </span>
                         </div>
-                        <div className="bg-teal-50/70 border border-teal-200/70 p-2 rounded-xl">
-                          <span className="block text-[10px] text-teal-800 font-semibold uppercase">
+                        <div className="bg-stone-50 border border-stone-200 p-2 rounded-xl">
+                          <span className="block text-[10px] text-slate-600 font-semibold uppercase">
                             In-Clinic Visit
                           </span>
-                          <span className="font-bold text-teal-950 text-sm">
+                          <span className="font-bold text-slate-900 text-sm">
                             ₹{doc.inClinicFee}
                           </span>
                         </div>
                       </div>
 
                       {/* Operating Hours & Emergency Availability */}
-                      <div className="flex items-center justify-between text-[11px] text-slate-500 mb-4 pb-3 border-b border-slate-100">
+                      <div className="flex items-center justify-between text-[11px] text-slate-500 mb-4 pb-3 border-b border-stone-100">
                         <span className="flex items-center gap-1">
                           <Clock size={12} className="text-slate-400" />
                           {doc.openTodayTiming}
                         </span>
                         {doc.isEmergencyAvailable && (
                           <span className="text-[10px] font-bold text-red-600 bg-red-50 border border-red-200 px-1.5 py-0.5 rounded">
-                            🚨 24/7 ICU
+                            24/7 ICU
                           </span>
                         )}
                       </div>
@@ -938,7 +911,7 @@ export default function VeterinaryServices() {
                       <button
                         type="button"
                         onClick={() => handleOpenDetails(doc)}
-                        className="px-2.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-[11px] uppercase tracking-wider rounded-xl transition cursor-pointer"
+                        className="px-2.5 py-2 bg-stone-100 hover:bg-stone-200 text-slate-700 font-bold text-[11px] uppercase tracking-wider rounded-xl transition cursor-pointer"
                       >
                         Profile
                       </button>
@@ -947,7 +920,7 @@ export default function VeterinaryServices() {
                       <button
                         type="button"
                         onClick={() => handleOpenBooking(doc)}
-                        className="flex-1 py-2 px-2 bg-[#00838f] hover:bg-[#006064] text-white font-bold text-[11px] uppercase tracking-wider rounded-xl transition cursor-pointer text-center truncate shadow-sm"
+                        className="flex-1 py-2 px-2 bg-[#1D3B2E] hover:bg-[#152e24] text-white font-bold text-[11px] uppercase tracking-wider rounded-xl transition cursor-pointer text-center truncate shadow-sm"
                       >
                         Book Appointment
                       </button>
@@ -975,7 +948,7 @@ export default function VeterinaryServices() {
         </div>
 
         {/* 2-Column Tabs Layout matching Screenshot 3 */}
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-6 bg-white border border-slate-200 rounded-3xl p-5 sm:p-8 shadow-sm">
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-6 bg-white border border-stone-200 rounded-3xl p-5 sm:p-8 shadow-sm">
           
           {/* Left Vertical Tabs List */}
           <div className="md:col-span-4 space-y-2">
@@ -986,15 +959,15 @@ export default function VeterinaryServices() {
                 onClick={() => setActiveClinicalTab(tab.id)}
                 className={`w-full text-left p-3.5 rounded-2xl flex items-center justify-between transition cursor-pointer ${
                   activeClinicalTab === tab.id
-                    ? 'bg-[#00838f] text-white shadow-md font-bold'
-                    : 'bg-slate-50 hover:bg-slate-100 text-slate-700 font-semibold'
+                    ? 'bg-[#1D3B2E] text-white shadow-md font-bold'
+                    : 'bg-stone-50 hover:bg-stone-100 text-slate-700 font-semibold'
                 }`}
               >
                 <div className="flex items-center gap-2.5 text-xs sm:text-sm">
                   <span>🩺</span>
                   <span>{tab.icon}</span>
                 </div>
-                <ChevronRight size={14} className={activeClinicalTab === tab.id ? 'text-teal-200' : 'text-slate-400'} />
+                <ChevronRight size={14} className={activeClinicalTab === tab.id ? 'text-emerald-200' : 'text-slate-400'} />
               </button>
             ))}
           </div>
@@ -1003,9 +976,9 @@ export default function VeterinaryServices() {
           {(() => {
             const currentTab = VET_CLINICAL_TABS.find((t) => t.id === activeClinicalTab) || VET_CLINICAL_TABS[0];
             return (
-              <div className="md:col-span-8 bg-slate-50 p-6 sm:p-8 rounded-2xl border border-slate-100 flex flex-col justify-between space-y-6">
+              <div className="md:col-span-8 bg-stone-50 p-6 sm:p-8 rounded-2xl border border-stone-200/80 flex flex-col justify-between space-y-6">
                 <div>
-                  <h3 className="font-serif font-bold text-xl sm:text-2xl text-[#0f4d42] mb-2">
+                  <h3 className="font-serif font-bold text-xl sm:text-2xl text-[#1D3B2E] mb-2">
                     {currentTab.title}
                   </h3>
                   <p className="text-xs sm:text-sm text-slate-600 leading-relaxed mb-6">
@@ -1017,8 +990,8 @@ export default function VeterinaryServices() {
                   </h4>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                     {currentTab.capabilities.map((cap, i) => (
-                      <div key={i} className="flex items-start gap-2 text-xs text-slate-700 bg-white p-2.5 rounded-xl border border-slate-200/80">
-                        <CheckCircle2 size={14} className="text-teal-600 shrink-0 mt-0.5" />
+                      <div key={i} className="flex items-start gap-2 text-xs text-slate-700 bg-white p-2.5 rounded-xl border border-stone-200/80">
+                        <CheckCircle2 size={14} className="text-[#1D3B2E] shrink-0 mt-0.5" />
                         <span>{cap}</span>
                       </div>
                     ))}
@@ -1026,10 +999,10 @@ export default function VeterinaryServices() {
                 </div>
 
                 {/* Highlights matching Screenshot 3 */}
-                <div className="pt-4 border-t border-slate-200 flex flex-wrap items-center gap-4 text-xs font-bold text-[#00838f]">
+                <div className="pt-4 border-t border-stone-200 flex flex-wrap items-center gap-4 text-xs font-bold text-[#1D3B2E]">
                   {currentTab.highlights.map((h, i) => (
                     <span key={i} className="flex items-center gap-1.5">
-                      <span className="text-teal-600">»</span> {h}
+                      <span className="text-emerald-700">»</span> {h}
                     </span>
                   ))}
                 </div>
@@ -1042,16 +1015,16 @@ export default function VeterinaryServices() {
 
       {/* ================= 6. REASSURANCE SECTION (MATCHING SCREENSHOTS 2 & 4) ================= */}
       <ScrollReveal variant="slideUp" delay={0.2} className="max-w-7xl mx-auto px-4 md:px-8 py-10">
-        <div className="bg-gradient-to-r from-[#0b3b32] to-[#00838f] text-white rounded-3xl p-6 sm:p-4 lg:p-10 shadow-xl grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+        <div className="bg-gradient-to-r from-[#1D3B2E] to-[#152e24] text-white rounded-3xl p-6 sm:p-4 lg:p-10 shadow-xl grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
           
           <div className="lg:col-span-8 space-y-4">
-            <span className="text-xs font-bold uppercase tracking-widest text-teal-300 bg-teal-900/60 px-3 py-1 rounded-full border border-teal-400/30 inline-block">
+            <span className="text-xs font-bold uppercase tracking-widest text-emerald-200 bg-white/10 px-3 py-1 rounded-full border border-white/20 inline-block">
               We've Got Your Pet's Back
             </span>
             <h2 className="text-2xl sm:text-3xl font-serif font-bold text-white">
               Best Veterinary Doctors for Dogs, Cats & Exotic Pets in India
             </h2>
-            <p className="text-xs sm:text-sm text-teal-100 leading-relaxed font-light">
+            <p className="text-xs sm:text-sm text-emerald-100 leading-relaxed font-light">
               Find the best veterinarians, veterinary clinics, and animal hospitals near you. Book instant video consultations or schedule in-clinic visits with licensed BVSc & MVSc certified surgeons.
             </p>
 
@@ -1060,24 +1033,24 @@ export default function VeterinaryServices() {
               <div className="bg-white/10 backdrop-blur-md p-3.5 rounded-2xl border border-white/10">
                 <div className="text-xl mb-1">💳</div>
                 <h4 className="text-xs font-bold text-white mb-0.5">Cashless Payments</h4>
-                <p className="text-[11px] text-teal-200">Zero commission direct payments with digital invoice.</p>
+                <p className="text-[11px] text-emerald-200">Zero commission direct payments with digital invoice.</p>
               </div>
               <div className="bg-white/10 backdrop-blur-md p-3.5 rounded-2xl border border-white/10">
                 <div className="text-xl mb-1">🛡️</div>
                 <h4 className="text-xs font-bold text-white mb-0.5">Josh Pets Hub Vet Guarantee</h4>
-                <p className="text-[11px] text-teal-200">100% verified VCI registration & sterile clinic standards.</p>
+                <p className="text-[11px] text-emerald-200">100% verified VCI registration & sterile clinic standards.</p>
               </div>
               <div className="bg-white/10 backdrop-blur-md p-3.5 rounded-2xl border border-white/10">
                 <div className="text-xl mb-1">📱</div>
                 <h4 className="text-xs font-bold text-white mb-0.5">Instant Tele-Consult</h4>
-                <p className="text-[11px] text-teal-200">24/7 video calls & digital prescriptions in 15 mins.</p>
+                <p className="text-[11px] text-emerald-200">24/7 video calls & digital prescriptions in 15 mins.</p>
               </div>
             </div>
           </div>
 
           <div className="lg:col-span-4 text-center">
             <div className="bg-white text-slate-800 p-6 rounded-2xl shadow-xl space-y-3">
-              <div className="w-12 h-12 bg-teal-50 text-[#00838f] rounded-2xl flex items-center justify-center mx-auto text-2xl font-bold">
+              <div className="w-12 h-12 bg-emerald-50 text-[#1D3B2E] rounded-2xl flex items-center justify-center mx-auto text-2xl font-bold">
                 📞
               </div>
               <h3 className="font-serif font-bold text-base text-slate-900">
@@ -1091,7 +1064,7 @@ export default function VeterinaryServices() {
                   const el = document.getElementById('doctors-list');
                   if (el) el.scrollIntoView({ behavior: 'smooth' });
                 }}
-                className="block w-full py-2.5 bg-[#00838f] hover:bg-[#006064] text-white font-bold text-xs uppercase tracking-wider rounded-xl transition shadow-md cursor-pointer border-0"
+                className="block w-full py-2.5 bg-[#1D3B2E] hover:bg-[#152e24] text-white font-bold text-xs uppercase tracking-wider rounded-xl transition shadow-md cursor-pointer border-0"
               >
                 CONNECT WITH ON-CALL VET
               </button>
@@ -1104,26 +1077,26 @@ export default function VeterinaryServices() {
       {/* ================= 7. DOCTOR PROFILE DETAILS MODAL ================= */}
       {showDoctorModal && selectedDoctorForDetails && (
         <div className="fixed inset-0 z-[100] overflow-y-auto bg-black/75 backdrop-blur-xs p-3 sm:p-4 flex flex-col items-center justify-start sm:justify-center animate-in fade-in duration-200">
-          <div className="relative bg-white text-slate-900 w-full max-w-2xl my-auto shadow-2xl border border-slate-200 rounded-3xl overflow-hidden flex flex-col min-h-0 max-h-[90vh]">
+          <div className="relative bg-white text-slate-900 w-full max-w-2xl my-auto shadow-2xl border border-stone-200 rounded-3xl overflow-hidden flex flex-col min-h-0 max-h-[90vh]">
             
             {/* Modal Header */}
-            <div className="bg-gradient-to-r from-[#0b3b32] to-[#00838f] text-white px-5 py-4 flex items-center justify-between shrink-0">
+            <div className="bg-gradient-to-r from-[#1D3B2E] to-[#2E5947] text-white px-5 py-4 flex items-center justify-between shrink-0">
               <div className="flex items-center gap-3">
                 <img
                   src={selectedDoctorForDetails.avatar}
                   alt={selectedDoctorForDetails.name}
-                  className="w-12 h-12 rounded-xl object-cover border-2 border-teal-300"
+                  className="w-12 h-12 rounded-xl object-cover border-2 border-emerald-300"
                 />
                 <div>
                   <div className="flex items-center gap-2">
                     <h3 className="font-serif font-bold text-base sm:text-lg text-white">
                       {selectedDoctorForDetails.name}
                     </h3>
-                    <span className="text-[10px] bg-teal-900 text-teal-200 px-1.5 py-0.5 rounded font-bold">
+                    <span className="text-[10px] bg-white/20 text-white px-1.5 py-0.5 rounded font-bold">
                       {selectedDoctorForDetails.experienceDisplay}
                     </span>
                   </div>
-                  <p className="text-xs text-teal-200">
+                  <p className="text-xs text-emerald-200">
                     {selectedDoctorForDetails.title} • {selectedDoctorForDetails.city}
                   </p>
                 </div>
@@ -1152,14 +1125,14 @@ export default function VeterinaryServices() {
               </div>
 
               {/* Qualifications & Registration */}
-              <div className="grid grid-cols-2 gap-3 bg-slate-50 p-3 rounded-xl border border-slate-100">
+              <div className="grid grid-cols-2 gap-3 bg-stone-50 p-3 rounded-xl border border-stone-200/80">
                 <div>
                   <span className="block text-[10px] font-bold text-slate-400 uppercase">Degree & Credentials</span>
                   <span className="font-semibold text-slate-800">{selectedDoctorForDetails.degrees}</span>
                 </div>
                 <div>
                   <span className="block text-[10px] font-bold text-slate-400 uppercase">VCI Registration Number</span>
-                  <span className="font-semibold text-teal-800">{selectedDoctorForDetails.vciRegistration}</span>
+                  <span className="font-semibold text-emerald-800">{selectedDoctorForDetails.vciRegistration}</span>
                 </div>
               </div>
 
@@ -1170,8 +1143,8 @@ export default function VeterinaryServices() {
                 </h4>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                   {selectedDoctorForDetails.facilities.map((fac, idx) => (
-                    <div key={idx} className="flex items-center gap-2 p-2 bg-teal-50/60 rounded-lg text-teal-950 font-medium">
-                      <CheckCircle2 size={13} className="text-teal-600 shrink-0" />
+                    <div key={idx} className="flex items-center gap-2 p-2 bg-emerald-50/60 rounded-lg text-emerald-950 font-medium">
+                      <CheckCircle2 size={13} className="text-[#1D3B2E] shrink-0" />
                       <span>{fac}</span>
                     </div>
                   ))}
@@ -1184,15 +1157,15 @@ export default function VeterinaryServices() {
                   Consultation Rates
                 </h4>
                 <div className="grid grid-cols-3 gap-2 text-center">
-                  <div className="p-2.5 bg-slate-50 border border-slate-200 rounded-xl">
+                  <div className="p-2.5 bg-stone-50 border border-stone-200 rounded-xl">
                     <span className="block text-[10px] text-slate-500 font-bold uppercase">Video Call</span>
                     <span className="font-bold text-slate-900 text-sm">₹{selectedDoctorForDetails.videoConsultFee}</span>
                   </div>
-                  <div className="p-2.5 bg-slate-50 border border-slate-200 rounded-xl">
+                  <div className="p-2.5 bg-stone-50 border border-stone-200 rounded-xl">
                     <span className="block text-[10px] text-slate-500 font-bold uppercase">In-Clinic</span>
                     <span className="font-bold text-slate-900 text-sm">₹{selectedDoctorForDetails.inClinicFee}</span>
                   </div>
-                  <div className="p-2.5 bg-slate-50 border border-slate-200 rounded-xl">
+                  <div className="p-2.5 bg-stone-50 border border-stone-200 rounded-xl">
                     <span className="block text-[10px] text-slate-500 font-bold uppercase">Home Visit</span>
                     <span className="font-bold text-slate-900 text-sm">₹{selectedDoctorForDetails.homeVisitFee}</span>
                   </div>
@@ -1202,14 +1175,14 @@ export default function VeterinaryServices() {
             </div>
 
             {/* Modal Footer */}
-            <div className="p-4 border-t border-slate-100 flex items-center justify-end gap-2 bg-slate-50">
+            <div className="p-4 border-t border-stone-100 flex items-center justify-end gap-2 bg-stone-50">
               <button
                 type="button"
                 onClick={() => {
                   setShowDoctorModal(false);
                   handleOpenBooking(selectedDoctorForDetails);
                 }}
-                className="px-5 py-2.5 bg-[#00838f] hover:bg-[#006064] text-white font-bold text-xs uppercase tracking-wider rounded-xl transition cursor-pointer shadow-md"
+                className="px-5 py-2.5 bg-[#1D3B2E] hover:bg-[#152e24] text-white font-bold text-xs uppercase tracking-wider rounded-xl transition cursor-pointer shadow-md"
               >
                 Book Appointment Now
               </button>
@@ -1222,10 +1195,10 @@ export default function VeterinaryServices() {
       {/* ================= 8. BOOK APPOINTMENT MODAL ================= */}
       {showBookingModal && selectedDoctorForBooking && (
         <div className="fixed inset-0 z-[100] overflow-y-auto bg-black/75 backdrop-blur-xs p-3 sm:p-4 flex flex-col items-center justify-start sm:justify-center animate-in fade-in duration-200">
-          <div className="relative bg-white text-slate-900 w-full max-w-lg my-auto shadow-2xl border border-slate-200 rounded-3xl overflow-hidden flex flex-col min-h-0 max-h-[90vh]">
+          <div className="relative bg-white text-slate-900 w-full max-w-lg my-auto shadow-2xl border border-stone-200 rounded-3xl overflow-hidden flex flex-col min-h-0 max-h-[90vh]">
             
             {/* Modal Header */}
-            <div className="bg-[#00838f] text-white px-5 py-4 flex items-center justify-between shrink-0">
+            <div className="bg-[#1D3B2E] text-white px-5 py-4 flex items-center justify-between shrink-0">
               <div className="flex items-center gap-2">
                 <Calendar size={18} />
                 <h3 className="font-serif font-bold text-base text-white">
@@ -1261,12 +1234,12 @@ export default function VeterinaryServices() {
                       onClick={() => setBookingMode(mode.id)}
                       className={`p-2 rounded-xl border text-center transition cursor-pointer ${
                         bookingMode === mode.id
-                          ? 'bg-teal-50 border-teal-500 text-teal-950 font-bold shadow-xs'
-                          : 'bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100'
+                          ? 'bg-emerald-50 border-emerald-600 text-emerald-950 font-bold shadow-xs'
+                          : 'bg-stone-50 border-stone-200 text-slate-600 hover:bg-stone-100'
                       }`}
                     >
                       <span className="block text-xs">{mode.label}</span>
-                      <span className="block text-[11px] font-extrabold text-[#00838f]">₹{mode.fee}</span>
+                      <span className="block text-[11px] font-extrabold text-[#1D3B2E]">₹{mode.fee}</span>
                     </button>
                   ))}
                 </div>
@@ -1283,7 +1256,7 @@ export default function VeterinaryServices() {
                     required
                     value={bookingDate}
                     onChange={(e) => setBookingDate(e.target.value)}
-                    className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-[#00838f]"
+                    className="w-full p-2.5 bg-stone-50 border border-stone-200 rounded-xl focus:outline-none focus:border-[#1D3B2E]"
                   />
                 </div>
                 <div>
@@ -1293,7 +1266,7 @@ export default function VeterinaryServices() {
                   <select
                     value={bookingTimeSlot}
                     onChange={(e) => setBookingTimeSlot(e.target.value)}
-                    className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-[#00838f]"
+                    className="w-full p-2.5 bg-stone-50 border border-stone-200 rounded-xl focus:outline-none focus:border-[#1D3B2E]"
                   >
                     <option value="09:30 AM - 10:00 AM">09:30 AM - 10:00 AM</option>
                     <option value="10:30 AM - 11:00 AM">10:30 AM - 11:00 AM</option>
@@ -1316,7 +1289,7 @@ export default function VeterinaryServices() {
                     required
                     value={petName}
                     onChange={(e) => setPetName(e.target.value)}
-                    className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-[#00838f]"
+                    className="w-full p-2.5 bg-stone-50 border border-stone-200 rounded-xl focus:outline-none focus:border-[#1D3B2E]"
                     placeholder="e.g. Leo"
                   />
                 </div>
@@ -1331,7 +1304,7 @@ export default function VeterinaryServices() {
                       setPetSpecies(e.target.value);
                       setPetBreed('');
                     }}
-                    className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-[#00838f]"
+                    className="w-full p-2.5 bg-stone-50 border border-stone-200 rounded-xl focus:outline-none focus:border-[#1D3B2E]"
                   >
                     <option value="Dogs">Dog</option>
                     <option value="Cats">Cat</option>
@@ -1348,7 +1321,7 @@ export default function VeterinaryServices() {
                     value={petBreed}
                     onChange={setPetBreed}
                     placeholder="Select Breed"
-                    className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-[#00838f] text-xs font-medium text-slate-800"
+                    className="w-full p-2.5 bg-stone-50 border border-stone-200 rounded-xl focus:outline-none focus:border-[#1D3B2E] text-xs font-medium text-slate-800"
                     allowedCategories={['dogs', 'cats', 'birds']}
                   />
                 </div>
@@ -1363,7 +1336,7 @@ export default function VeterinaryServices() {
                   rows={2}
                   value={petSymptoms}
                   onChange={(e) => setPetSymptoms(e.target.value)}
-                  className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-[#00838f]"
+                  className="w-full p-2.5 bg-stone-50 border border-stone-200 rounded-xl focus:outline-none focus:border-[#1D3B2E]"
                   placeholder="e.g. Routine vaccination, vomiting, limp in hind leg..."
                 />
               </div>
@@ -1379,7 +1352,7 @@ export default function VeterinaryServices() {
                     required
                     value={ownerName}
                     onChange={(e) => setOwnerName(e.target.value)}
-                    className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-[#00838f]"
+                    className="w-full p-2.5 bg-stone-50 border border-stone-200 rounded-xl focus:outline-none focus:border-[#1D3B2E]"
                     placeholder="e.g. Rahul Sharma"
                   />
                 </div>
@@ -1392,7 +1365,7 @@ export default function VeterinaryServices() {
                     required
                     value={ownerPhone}
                     onChange={(e) => setOwnerPhone(e.target.value)}
-                    className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-[#00838f]"
+                    className="w-full p-2.5 bg-stone-50 border border-stone-200 rounded-xl focus:outline-none focus:border-[#1D3B2E]"
                     placeholder="e.g. +91 98765 43210"
                   />
                 </div>
@@ -1402,7 +1375,7 @@ export default function VeterinaryServices() {
               <div className="pt-2">
                 <button
                   type="submit"
-                  className="w-full py-3 bg-[#00838f] hover:bg-[#006064] text-white font-bold text-xs uppercase tracking-wider rounded-xl transition cursor-pointer shadow-md flex items-center justify-center gap-1.5"
+                  className="w-full py-3 bg-[#1D3B2E] hover:bg-[#152e24] text-white font-bold text-xs uppercase tracking-wider rounded-xl transition cursor-pointer shadow-md flex items-center justify-center gap-1.5"
                 >
                   <Send size={14} /> Confirm & Reserve Appointment
                 </button>
