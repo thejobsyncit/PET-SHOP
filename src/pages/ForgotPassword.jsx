@@ -195,6 +195,16 @@ const ForgotPassword = () => {
       if (idx !== -1) {
         reg[idx].password = newPassword;
         localStorage.setItem('joshpetshub_registered_users', JSON.stringify(reg));
+      } else {
+        reg.push({
+          _id: 'user_' + Date.now(),
+          id: 'user_' + Date.now(),
+          name: cleanId.split('@')[0],
+          email: cleanId.toLowerCase(),
+          password: newPassword,
+          role: 'CUSTOMER'
+        });
+        localStorage.setItem('joshpetshub_registered_users', JSON.stringify(reg));
       }
     } catch (_) {}
 

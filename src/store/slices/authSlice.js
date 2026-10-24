@@ -180,6 +180,36 @@ export const login = createAsyncThunk('auth/login', async (credentials, thunkAPI
     }
     return data;
   } catch (error) {
+    // If backend login returned invalid credentials, check if user was registered or password-reset in this browser
+    try {
+      const reg = JSON.parse(localStorage.getItem('joshpetshub_registered_users') || '[]');
+      const matchedLocal = reg.find(u => 
+        ((u.email && u.email.toLowerCase() === rawId.toLowerCase()) || (u.mobile && u.mobile === cleanMobile)) &&
+        (u.password === password)
+      );
+
+      if (matchedLocal) {
+        // Automatically sync and register this valid user to the database
+        try {
+          const syncData = await apiRequest('/auth/register', {
+            method: 'POST',
+            body: JSON.stringify({
+              name: matchedLocal.name || rawId.split('@')[0],
+              email: matchedLocal.email || rawId,
+              mobile: matchedLocal.mobile || cleanMobile || '9876543210',
+              password: password,
+              role: matchedLocal.role || role || 'CUSTOMER'
+            })
+          });
+          if (syncData?.token && syncData?.user) {
+            safeSetItem('joshpetshub_token', syncData.token);
+            safeSetItem('joshpetshub_user', JSON.stringify(sanitizeUserForStorage(syncData.user)));
+            return syncData;
+          }
+        } catch (_) {}
+      }
+    } catch (_) {}
+
     return thunkAPI.rejectWithValue(error?.message || 'Invalid email or password.');
   }
 });

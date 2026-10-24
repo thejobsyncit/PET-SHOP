@@ -344,5 +344,20 @@
     "wishlist": [],
     "cart": [],
     "createdAt": "2026-10-24T09:33:47.903Z"
+  },
+  {
+    "_id": "user-pavi-01",
+    "id": "user-pavi-01",
+    "name": "Paviseetha",
+    "email": "paviseetha21@gmail.com",
+    "password": "$2b$10$Swo//A8P0bf9KSWI6aSBkuHIkxGu4LEUUPRDBGXT2R6B6oGq3jpAe",
+    "password_plain": "Pavi@23",
+    "role": "CUSTOMER",
+    "mobile": "9876543210",
+    "location": "Bangalore, Karnataka",
+    "verificationStatus": "Verified",
+    "addresses": [],
+    "wishlist": [],
+    "cart": []
   }
 ]
