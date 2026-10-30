@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams, useLocation } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { 
   Sparkles, Search, MapPin, Phone, MessageSquare, Star, ShieldCheck, 
@@ -41,6 +41,7 @@ const renderTransportModeIcon = (modeId) => {
 
 const PetTransport = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [searchParams, setSearchParams] = useSearchParams();
   const { isAuthenticated, user } = useSelector((state) => state.auth);
 
@@ -86,35 +87,35 @@ const PetTransport = () => {
   const [enqPhone, setEnqPhone] = useState(user?.mobile || '');
   const [enqEmail, setEnqEmail] = useState(user?.email || '');
   const [enqRelocationType, setEnqRelocationType] = useState('Inter-State Relocation');
-  const [enqDepState, setEnqDepState] = useState('Maharashtra');
-  const [enqDepCity, setEnqDepCity] = useState('Mumbai');
-  const [enqDestState, setEnqDestState] = useState('Delhi');
-  const [enqDestCity, setEnqDestCity] = useState('Delhi');
+  const [enqDepState, setEnqDepState] = useState('');
+  const [enqDepCity, setEnqDepCity] = useState('');
+  const [enqDestState, setEnqDestState] = useState('');
+  const [enqDestCity, setEnqDestCity] = useState('');
   const [enqExpectedDate, setEnqExpectedDate] = useState('');
-  const [enqModes, setEnqModes] = useState(['Air Transport', 'Private Car']);
+  const [enqModes, setEnqModes] = useState([]);
   const [enqPetSpecies, setEnqPetSpecies] = useState('Dog');
   const [enqPetBreed, setEnqPetBreed] = useState('');
   const [enqPetGender, setEnqPetGender] = useState('Male');
-  const [enqPetAge, setEnqPetAge] = useState('2 Years');
+  const [enqPetAge, setEnqPetAge] = useState('');
   const [enqVaccination, setEnqVaccination] = useState('Fully Vaccinated & Up to Date');
   const [enqTravelFriendly, setEnqTravelFriendly] = useState('Yes, Very Friendly');
   const [enqNote, setEnqNote] = useState('');
 
-  // Global Bottom Enquiry Form State
+  // Global Bottom Enquiry Form State ("Hey! Still not found what you are looking for?")
   const [globalEnqFullName, setGlobalEnqFullName] = useState(user?.name || '');
-  const [globalEnqPhone, setGlobalEnqPhone] = useState(user?.mobile || '');
+  const [globalEnqPhone, setGlobalEnqPhone] = useState(user?.mobile || user?.phone || '');
   const [globalEnqEmail, setGlobalEnqEmail] = useState(user?.email || '');
   const [globalEnqType, setGlobalEnqType] = useState('Inter-State Relocation');
-  const [globalEnqDepState, setGlobalEnqDepState] = useState('Karnataka');
-  const [globalEnqDepCity, setGlobalEnqDepCity] = useState('Bangalore');
-  const [globalEnqDestState, setGlobalEnqDestState] = useState('Maharashtra');
-  const [globalEnqDestCity, setGlobalEnqDestCity] = useState('Mumbai');
+  const [globalEnqDepState, setGlobalEnqDepState] = useState('');
+  const [globalEnqDepCity, setGlobalEnqDepCity] = useState('');
+  const [globalEnqDestState, setGlobalEnqDestState] = useState('');
+  const [globalEnqDestCity, setGlobalEnqDestCity] = useState('');
   const [globalEnqDate, setGlobalEnqDate] = useState('');
-  const [globalEnqModes, setGlobalEnqModes] = useState(['Air Transport', 'Train / Rail']);
+  const [globalEnqModes, setGlobalEnqModes] = useState([]);
   const [globalEnqPetSpecies, setGlobalEnqPetSpecies] = useState('Dog');
   const [globalEnqPetBreed, setGlobalEnqPetBreed] = useState('');
   const [globalEnqPetGender, setGlobalEnqPetGender] = useState('Male');
-  const [globalEnqPetAge, setGlobalEnqPetAge] = useState('3 Years');
+  const [globalEnqPetAge, setGlobalEnqPetAge] = useState('');
   const [globalEnqVaccination, setGlobalEnqVaccination] = useState('Fully Vaccinated');
   const [globalEnqTravelFriendly, setGlobalEnqTravelFriendly] = useState('Yes, Travel Friendly');
   const [globalEnqNote, setGlobalEnqNote] = useState('');
@@ -129,10 +130,48 @@ const PetTransport = () => {
     return () => window.removeEventListener('transport-providers-updated', handleProvidersUpdated);
   }, []);
 
-  // Scroll to top on mount
+  // Helper to scroll smoothly down to the "Hey! Still not found what you are looking for?" form section
+  const scrollToRelocationForm = () => {
+    const target = document.getElementById('relocation-enquiry-form') || 
+                   document.getElementById('hey-still-not-found-section') || 
+                   document.getElementById('custom-enquiry-form');
+    if (target) {
+      target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      const firstInput = target.querySelector('input');
+      if (firstInput) {
+        setTimeout(() => firstInput.focus(), 600);
+      }
+    }
+  };
+
+  // Scroll or handle deep linking on mount / searchParams change
   useEffect(() => {
-    window.scrollTo(0, 0);
-  }, []);
+    const action = searchParams.get('action');
+    const hash = window.location.hash || location.hash;
+    const isEnquiryTarget = 
+      action === 'new-request' || 
+      action === 'relocation-form' ||
+      hash === '#relocation-enquiry-form' || 
+      hash === '#custom-enquiry-form' || 
+      hash === '#hey-still-not-found-section';
+
+    if (isEnquiryTarget) {
+      scrollToRelocationForm();
+      const t1 = setTimeout(scrollToRelocationForm, 250);
+      const t2 = setTimeout(scrollToRelocationForm, 600);
+      return () => {
+        clearTimeout(t1);
+        clearTimeout(t2);
+      };
+    } else if (hash) {
+      const el = document.querySelector(hash);
+      if (el) {
+        setTimeout(() => el.scrollIntoView({ behavior: 'smooth', block: 'start' }), 250);
+      }
+    } else {
+      window.scrollTo(0, 0);
+    }
+  }, [searchParams, location.hash, location.key]);
 
   // Update available cities when state changes
   const availableCities = useMemo(() => {
@@ -314,32 +353,70 @@ const PetTransport = () => {
       return;
     }
 
+    const origin = (bookingOriginCity || '').trim() || 'Bangalore';
+    const dest = (bookingDestCity || '').trim() || 'Mumbai';
+    const bookingPrice = selectedPackage?.price || selectedProviderForBooking.basePrice || 2499;
+
     const bookingData = {
-      id: 'TRP-' + Date.now().toString().slice(-6),
+      id: 'TRP-BK-' + Math.floor(100000 + Math.random() * 900000),
+      requestType: 'booking',
       providerId: selectedProviderForBooking.id,
       providerName: selectedProviderForBooking.name,
-      leadCoordinator: selectedProviderForBooking.leadCoordinator,
-      packageName: selectedPackage?.name || 'Standard Relocation',
-      packagePrice: selectedPackage?.price || selectedProviderForBooking.basePrice,
-      originCity: bookingOriginCity,
-      destCity: bookingDestCity,
+      leadCoordinator: selectedProviderForBooking.leadCoordinator || 'Logistics Coordinator',
+      packageName: selectedPackage?.name || 'Standard Relocation Service',
+      packagePrice: bookingPrice,
+      totalAmount: bookingPrice,
+      quoteAmount: bookingPrice,
+      originCity: origin,
+      departureCity: origin,
+      destCity: dest,
+      destinationCity: dest,
       bookingDate,
+      expectedDate: bookingDate,
+      travelDate: bookingDate,
       petName: bookingPetName,
       petBreed: bookingPetBreed,
+      petSpecies: 'Dog',
       petWeight: bookingPetWeight,
       crateRequirement: bookingCrateNeeded,
+      travelFriendly: bookingCrateNeeded,
       ownerPhone: bookingOwnerPhone,
+      customerPhone: bookingOwnerPhone,
+      userPhone: bookingOwnerPhone,
+      userId: user?._id || user?.id || 'usr-custom',
+      userName: user?.name || (bookingPetName ? `${bookingPetName}'s Parent` : 'Pet Parent'),
+      customerName: user?.name || (bookingPetName ? `${bookingPetName}'s Parent` : 'Pet Parent'),
+      userEmail: user?.email || '',
+      customerEmail: user?.email || '',
+      preferredModes: [selectedProviderForBooking.name?.includes('Air') ? 'Flight / Air Cargo' : 'Private Car / AC Cab'],
+      relocationType: 'Confirmed Relocation Booking',
       notes: bookingNotes,
+      note: bookingNotes,
       status: 'Confirmed & Route Assigned',
       paymentStatus: 'Advance Pending / Pay on Handover',
+      providerReply: `Relocation booking confirmed for ${bookingPetName}! Assigned coordinator (${selectedProviderForBooking.leadCoordinator || 'Senior Officer'}) will contact you at ${bookingOwnerPhone} prior to ${bookingDate} to coordinate sanitized crate preparation and doorstep pickup.`,
+      coordinatorPhone: selectedProviderForBooking.phone || '+91 98765 43210',
       createdAt: new Date().toISOString()
     };
 
     saveTransportBooking(bookingData);
-    toast.success(`🎉 Relocation booked with ${selectedProviderForBooking.name} for ${bookingPetName}! Coordinator will call you shortly.`, {
-      duration: 5000,
-      icon: '🚐'
-    });
+    toast.success(
+      (t) => (
+        <div className="flex items-center justify-between gap-3 text-xs">
+          <span>🎉 Relocation booked with {selectedProviderForBooking.name} for {bookingPetName}!</span>
+          <button
+            onClick={() => {
+              toast.dismiss(t.id);
+              navigate('/dashboard?tab=transport-enquiries');
+            }}
+            className="underline font-bold text-amber-300 hover:text-white cursor-pointer ml-1"
+          >
+            View in Dashboard →
+          </button>
+        </div>
+      ),
+      { duration: 6000, icon: '🚐' }
+    );
     setShowBookingModal(false);
     // Reset fields
     setBookingPetName('');
@@ -383,8 +460,12 @@ const PetTransport = () => {
       providerName: selectedProviderForEnquiry.name,
       userId: user?._id || user?.id || 'usr-custom',
       userName: enqFullName,
+      customerName: enqFullName,
       userEmail: enqEmail,
+      customerEmail: enqEmail,
       userPhone: enqPhone,
+      customerPhone: enqPhone,
+      ownerPhone: enqPhone,
       relocationType: enqRelocationType,
       departureState: enqDepState,
       departureCity: enqDepCity,
@@ -398,15 +479,77 @@ const PetTransport = () => {
       petAge: enqPetAge,
       vaccinationStatus: enqVaccination,
       travelFriendly: enqTravelFriendly,
-      note: enqNote
+      note: enqNote,
+      requestType: 'enquiry',
+      coordinatorPhone: selectedProviderForEnquiry.phone || '+91 98765 43210'
     };
 
     saveTransportEnquiry(enquiryData);
-    toast.success(`Enquiry submitted to ${selectedProviderForEnquiry.name}! The provider will respond in your dashboard.`, {
-      duration: 5000,
-      icon: '📬'
-    });
+    toast.success(
+      (t) => (
+        <div className="flex items-center justify-between gap-3 text-xs">
+          <span>Enquiry submitted to {selectedProviderForEnquiry.name}!</span>
+          <button
+            onClick={() => {
+              toast.dismiss(t.id);
+              navigate('/dashboard?tab=transport-enquiries');
+            }}
+            className="underline font-bold text-amber-300 hover:text-white cursor-pointer ml-1"
+          >
+            View in Dashboard →
+          </button>
+        </div>
+      ),
+      { duration: 6000, icon: '📬' }
+    );
     setShowEnquiryModal(false);
+
+    // Reset provider enquiry form so old data does not persist
+    setEnqRelocationType('Inter-State Relocation');
+    setEnqDepState('');
+    setEnqDepCity('');
+    setEnqDestState('');
+    setEnqDestCity('');
+    setEnqExpectedDate('');
+    setEnqModes([]);
+    setEnqPetSpecies('Dog');
+    setEnqPetBreed('');
+    setEnqPetGender('Male');
+    setEnqPetAge('');
+    setEnqVaccination('Fully Vaccinated & Up to Date');
+    setEnqTravelFriendly('Yes, Very Friendly');
+    setEnqNote('');
+    if (!user) {
+      setEnqFullName('');
+      setEnqPhone('');
+      setEnqEmail('');
+    }
+  };
+
+  // Reset Global Bottom Enquiry Form ("Hey! Still not found what you are looking for?")
+  const handleResetGlobalEnquiry = () => {
+    setGlobalEnqFullName(user?.name || '');
+    setGlobalEnqPhone(user?.mobile || user?.phone || '');
+    setGlobalEnqEmail(user?.email || '');
+    setGlobalEnqType('Inter-State Relocation');
+    setGlobalEnqDepState('');
+    setGlobalEnqDepCity('');
+    setGlobalEnqDestState('');
+    setGlobalEnqDestCity('');
+    setGlobalEnqDate('');
+    setGlobalEnqModes([]);
+    setGlobalEnqPetSpecies('Dog');
+    setGlobalEnqPetBreed('');
+    setGlobalEnqPetGender('Male');
+    setGlobalEnqPetAge('');
+    setGlobalEnqVaccination('Fully Vaccinated');
+    setGlobalEnqTravelFriendly('Yes, Travel Friendly');
+    setGlobalEnqNote('');
+    if (!user) {
+      setGlobalEnqFullName('');
+      setGlobalEnqPhone('');
+      setGlobalEnqEmail('');
+    }
   };
 
   // Submit Global Bottom Enquiry
@@ -442,8 +585,12 @@ const PetTransport = () => {
       providerName: 'Josh Pets Hub Air & Road Pet Relocators (Central Hub)',
       userId: user?._id || user?.id || 'usr-custom',
       userName: globalEnqFullName,
+      customerName: globalEnqFullName,
       userEmail: globalEnqEmail,
+      customerEmail: globalEnqEmail,
       userPhone: globalEnqPhone,
+      customerPhone: globalEnqPhone,
+      ownerPhone: globalEnqPhone,
       relocationType: globalEnqType,
       departureState: globalEnqDepState,
       departureCity: globalEnqDepCity,
@@ -457,17 +604,32 @@ const PetTransport = () => {
       petAge: globalEnqPetAge,
       vaccinationStatus: globalEnqVaccination,
       travelFriendly: globalEnqTravelFriendly,
-      note: globalEnqNote
+      note: globalEnqNote,
+      requestType: 'enquiry',
+      coordinatorPhone: '+91 98765 43210'
     };
 
     saveTransportEnquiry(enquiryData);
-    toast.success('Your relocation requirements have been dispatched to our certified pet transport network!', {
-      duration: 5000,
-      icon: '🚀'
-    });
+    toast.success(
+      (t) => (
+        <div className="flex items-center justify-between gap-3 text-xs">
+          <span>Relocation enquiry submitted to our certified transport network!</span>
+          <button
+            onClick={() => {
+              toast.dismiss(t.id);
+              navigate('/dashboard?tab=transport-enquiries');
+            }}
+            className="underline font-bold text-amber-300 hover:text-white cursor-pointer ml-1"
+          >
+            View in Dashboard →
+          </button>
+        </div>
+      ),
+      { duration: 6000, icon: '🚀' }
+    );
 
-    // Reset notes
-    setGlobalEnqNote('');
+    // Reset all enquiry fields so previously submitted data does not appear when adding new details
+    handleResetGlobalEnquiry();
   };
 
   // Helper to toggle mode in multiselect checkboxes
@@ -526,6 +688,14 @@ const PetTransport = () => {
 
             {/* Quick Action Buttons including Compare */}
             <div className="flex flex-wrap items-center gap-3 pt-2">
+              <button
+                onClick={scrollToRelocationForm}
+                className="bg-[#0F2E23] hover:bg-[#163f30] text-[#d4af37] hover:text-white text-xs md:text-sm font-extrabold px-5 py-3 rounded-xl transition shadow-lg flex items-center gap-2 cursor-pointer hover:shadow-xl active:scale-95"
+              >
+                <Plus size={16} />
+                <span>New Relocation Request</span>
+              </button>
+
               <button
                 onClick={() => {
                   const target = document.getElementById('types-of-transportation') || document.getElementById('transport-catalog');
@@ -1200,17 +1370,18 @@ const PetTransport = () => {
       </ScrollReveal>
 
       {/* 7. GLOBAL BOTTOM RELOCATION ENQUIRY FORM ("Hey! Still not found what you are looking for?") */}
-      <ScrollReveal variant="fade" className="max-w-3xl mx-auto px-4 md:px-6 py-8">
-        <div className="bg-white rounded-2xl p-5 md:p-7 border border-stone-200 shadow-md space-y-5">
-          
-          <div className="space-y-1.5 border-b border-stone-100 pb-3.5">
-            <h3 className="text-xl md:text-2xl font-serif font-bold text-[#0F2E23]">
-              Hey! Still not found what you are looking for?
-            </h3>
-            <p className="text-xs text-gray-500 leading-relaxed">
-              No worries! Let our certified pet logistics experts come to your rescue. Fill in your travel details below and our coordinator will formulate a custom doorstep relocation quote.
-            </p>
-          </div>
+      <section id="relocation-enquiry-form" className="scroll-mt-24">
+        <ScrollReveal variant="fade" id="custom-enquiry-form" className="max-w-3xl mx-auto px-4 md:px-6 py-8">
+          <div id="hey-still-not-found-section" className="bg-white rounded-2xl p-5 md:p-7 border border-stone-200 shadow-md space-y-5">
+            
+            <div className="space-y-1.5 border-b border-stone-100 pb-3.5">
+              <h3 className="text-xl md:text-2xl font-serif font-bold text-[#0F2E23]">
+                Hey! Still not found what you are looking for?
+              </h3>
+              <p className="text-xs text-gray-500 leading-relaxed">
+                No worries! Let our certified pet logistics experts come to your rescue. Fill in your travel details below and our coordinator will formulate a custom doorstep relocation quote.
+              </p>
+            </div>
 
           <form onSubmit={handleSubmitGlobalEnquiry} className="space-y-4">
             
@@ -1276,7 +1447,7 @@ const PetTransport = () => {
                 <div>
                   <input
                     type="text"
-                    placeholder="Departure State"
+                    placeholder="Departure State (e.g. Karnataka)"
                     value={globalEnqDepState}
                     onChange={(e) => setGlobalEnqDepState(e.target.value)}
                     className="w-full bg-stone-50 border border-stone-200 text-xs rounded-lg px-3 py-2 text-slate-800 focus:outline-none focus:border-[#0F2E23]"
@@ -1285,7 +1456,7 @@ const PetTransport = () => {
                 <div>
                   <input
                     type="text"
-                    placeholder="Departure City"
+                    placeholder="Departure City (e.g. Bangalore)"
                     value={globalEnqDepCity}
                     onChange={(e) => setGlobalEnqDepCity(e.target.value)}
                     className="w-full bg-stone-50 border border-stone-200 text-xs rounded-lg px-3 py-2 text-slate-800 focus:outline-none focus:border-[#0F2E23]"
@@ -1294,7 +1465,7 @@ const PetTransport = () => {
                 <div>
                   <input
                     type="text"
-                    placeholder="Destination State"
+                    placeholder="Destination State (e.g. Maharashtra)"
                     value={globalEnqDestState}
                     onChange={(e) => setGlobalEnqDestState(e.target.value)}
                     className="w-full bg-stone-50 border border-stone-200 text-xs rounded-lg px-3 py-2 text-slate-800 focus:outline-none focus:border-[#0F2E23]"
@@ -1303,7 +1474,7 @@ const PetTransport = () => {
                 <div>
                   <input
                     type="text"
-                    placeholder="Destination City"
+                    placeholder="Destination City (e.g. Mumbai)"
                     value={globalEnqDestCity}
                     onChange={(e) => setGlobalEnqDestCity(e.target.value)}
                     className="w-full bg-stone-50 border border-stone-200 text-xs rounded-lg px-3 py-2 text-slate-800 focus:outline-none focus:border-[#0F2E23]"
@@ -1425,8 +1596,18 @@ const PetTransport = () => {
               />
             </div>
 
-            {/* Submit CTA */}
-            <div className="flex justify-end pt-1">
+            {/* Submit CTA & Clear Form Option */}
+            <div className="flex items-center justify-between pt-1">
+              <button
+                type="button"
+                onClick={handleResetGlobalEnquiry}
+                className="text-xs text-stone-500 hover:text-stone-800 font-semibold transition cursor-pointer px-2.5 py-1.5 rounded-lg hover:bg-stone-100 flex items-center gap-1.5"
+                title="Clear all fields to enter new details"
+              >
+                <RefreshCw size={12} />
+                <span>Clear Form</span>
+              </button>
+
               <button
                 type="submit"
                 className="bg-[#0F2E23] hover:bg-[#164E3D] text-[#D4AF37] hover:text-white font-bold text-xs uppercase tracking-wider py-2.5 px-6 rounded-xl transition shadow flex items-center gap-2 cursor-pointer"
@@ -1440,6 +1621,7 @@ const PetTransport = () => {
 
         </div>
       </ScrollReveal>
+      </section>
 
       {/* 8. DEDICATED FLOATING COMPARISON BAR (Shows when 1 to 3 providers selected) */}
       {comparedProviders.length > 0 && (

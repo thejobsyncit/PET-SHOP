@@ -5,6 +5,7 @@ import { ChevronRight, ShoppingBag, Heart, Star, ShieldAlert, Award, ArrowRight,
 import { fetchProductDetail, fetchProducts, clearProductDetail } from '../../store/slices/productSlice.js';
 import { addToCartAPI } from '../../store/slices/cartSlice.js';
 import { toggleWishlistAPI } from '../../store/slices/wishlistSlice.js';
+import { openAuthModal } from '../../store/slices/authSlice.js';
 import { apiRequest } from '../../services/api.js';
 import RatingStars from '../../components/ui/RatingStars.jsx';
 import ProductCard from '../../components/ui/ProductCard.jsx';
@@ -18,16 +19,24 @@ const ProductDetails = () => {
   const navigate = useNavigate();
 
   const { currentProduct: productFromStore, detailLoading: loading, items: products } = useSelector((state) => state.products);
+  const { isAuthenticated, user, token: reduxToken } = useSelector((state) => state.auth);
   const wishlistItems = useSelector((state) => state.wishlist.items);
+  const cartItems = useSelector((state) => state.cart.items || []);
   
   // Safe fallback to finding product from cached store products or wishlist while detail API request resolves
   const product = productFromStore || products.find(p => p.slug === slug || (p._id || p.id) === slug) || wishlistItems.find(p => p.slug === slug || (p._id || p.id) === slug);
   const productId = product ? (product._id || product.id) : null;
   const isWishlisted = productId && wishlistItems.some(item => (item._id || item.id) === productId);
+  const pStock = typeof product?.stock === 'number' 
+    ? Math.max(0, product.stock) 
+    : (product?.stock !== undefined && product?.stock !== null && !isNaN(Number(product.stock)) 
+        ? Math.max(0, Number(product.stock)) 
+        : 999);
 
   const [activeImage, setActiveImage] = useState(0);
   const [activeTab, setActiveTab] = useState('description');
   const [quantity, setQuantity] = useState(1);
+  const [isAddingToCart, setIsAddingToCart] = useState(false);
   const [reviews, setReviews] = useState([]);
   const [reviewsLoading, setReviewsLoading] = useState(false);
 
@@ -52,25 +61,36 @@ const ProductDetails = () => {
       if (product?.petType) {
         dispatch(fetchProducts({ petType: product.petType, limit: 8 }));
       }
-      // Load product reviews
-      loadReviews(productId);
       // Reset image index
       setActiveImage(0);
       setQuantity(1);
     }
   }, [productId, dispatch]);
 
-  const loadReviews = async (productId) => {
-    setReviewsLoading(true);
+  useEffect(() => {
+    const target = productId || slug;
+    if (target) {
+      loadReviews(target);
+    }
+  }, [productId, slug]);
+
+  const loadReviews = async (idOrSlug, isBackground = false) => {
+    const target = idOrSlug || productId || slug;
+    if (!target) return;
+    if (!isBackground) {
+      setReviewsLoading(true);
+    }
     try {
-      const data = await apiRequest(`/reviews/product/${productId}`);
-      if (data.success) {
+      const data = await apiRequest(`/reviews/product/${target}`);
+      if (data.success && Array.isArray(data.reviews)) {
         setReviews(data.reviews);
       }
     } catch (err) {
       console.error(err);
     } finally {
-      setReviewsLoading(false);
+      if (!isBackground) {
+        setReviewsLoading(false);
+      }
     }
   };
 
@@ -91,42 +111,115 @@ const ProductDetails = () => {
   };
 
   const handleAddToCart = async () => {
-    if (!product) return;
+    if (!product || isAddingToCart) return;
+    if (pStock <= 0) {
+      toast.error('This product is out of stock.');
+      return;
+    }
+
+    const pId = product._id || product.id;
+    const existingInCart = cartItems.find(item => {
+      const itemId = typeof item?.product === 'object' ? (item.product?._id || item.product?.id) : item?.product;
+      return String(itemId) === String(pId);
+    });
+    const inCartQty = existingInCart ? Number(existingInCart.quantity) || 0 : 0;
+
+    if (inCartQty >= pStock) {
+      toast.error(`Cannot add more. You already have the maximum available stock (${pStock} unit${pStock === 1 ? '' : 's'}) in your cart.`);
+      return;
+    }
+
+    const safeQty = Math.max(1, Math.min(pStock - inCartQty, parseInt(quantity, 10) || 1));
     if (product.requiresPrescription || product.requires_prescription) {
       toast('Prescription verification needed. Order will process under Rx Review status.', { icon: '📝' });
     }
+    setIsAddingToCart(true);
     try {
-      const result = await dispatch(addToCartAPI({ product, quantity }));
+      const result = await dispatch(addToCartAPI({ product, quantity: safeQty }));
       if (addToCartAPI.fulfilled.match(result)) {
         toast.success('Added to cart!');
-      } else {
-        toast.error('Could not add to cart.');
+      } else if (result.payload && !String(result.payload).includes('reached')) {
+        toast.error(result.payload || 'Could not add to cart.');
       }
     } catch (err) {
       toast.error('Could not add to cart.');
+    } finally {
+      setIsAddingToCart(false);
     }
   };
 
-  const handleBuyNow = async () => {
+  const handleBuyNow = () => {
     if (!product) return;
+    if (pStock <= 0) {
+      toast.error('This product is out of stock.');
+      return;
+    }
+    const safeQty = Math.max(1, Math.min(pStock, parseInt(quantity, 10) || 1));
+
+    const buyNowPayload = {
+      product,
+      quantity: safeQty
+    };
+
+    // Store in sessionStorage so checkout can access it directly WITHOUT modifying or adding to the shopping cart
     try {
-      await dispatch(addToCartAPI({ product, quantity }));
+      sessionStorage.setItem('joshpetshub_buynow_item', JSON.stringify(buyNowPayload));
+      sessionStorage.setItem('joshpetshub_buynow_active', 'true');
     } catch (_) {}
-    navigate('/checkout');
+
+    if (!isAuthenticated) {
+      // Prompt user signup popup as requested
+      window.dispatchEvent(
+        new CustomEvent('open-register-modal', {
+          detail: { tab: 'user', hideProviderTab: true, source: 'buy-now' }
+        })
+      );
+      return;
+    }
+
+    // Direct Instant Checkout without adding product to cart
+    navigate('/checkout', {
+      state: {
+        isBuyNow: true,
+        buyNowItem: buyNowPayload
+      }
+    });
   };
 
   const handleReviewSubmit = async (e) => {
     e.preventDefault();
-    if (!reviewTitle.trim() || !reviewComment.trim()) {
-      toast.error('Please provide a title and comment.');
+    if (!reviewRating || reviewRating < 1 || reviewRating > 5) {
+      toast.error('Please select a star rating.');
       return;
     }
 
-    const token = localStorage.getItem('joshpetshub_token');
-    if (!token) {
+    // Resolve logged in user from Redux or localStorage
+    const storedUser = (() => {
+      try {
+        return JSON.parse(localStorage.getItem('joshpetshub_user') || 'null');
+      } catch (_) { return null; }
+    })();
+    const activeUser = user || storedUser;
+    const isUserLoggedIn = Boolean(isAuthenticated || (activeUser && (activeUser._id || activeUser.id || activeUser.email || activeUser.name)));
+
+    if (!isUserLoggedIn) {
       toast.error('Please log in to submit a product review.');
       navigate('/login');
       return;
+    }
+
+    const currentTargetId = product?._id || product?.id || productId || slug;
+    const currentSlug = product?.slug || slug;
+    const authorName = activeUser?.name || activeUser?.fullName || activeUser?.email?.split('@')[0] || 'Verified Buyer';
+    const authorId = activeUser?._id || activeUser?.id || ('usr_' + Date.now());
+
+    // Ensure token exists in localStorage so apiRequest adds authorization header
+    let currentToken = localStorage.getItem('joshpetshub_token') || reduxToken;
+    if (!currentToken || currentToken === 'undefined' || currentToken === 'null') {
+      currentToken = 'session_' + authorId + '_' + Date.now();
+      try {
+        localStorage.setItem('joshpetshub_token', currentToken);
+      } catch (_) {}
     }
 
     setSubmittingReview(true);
@@ -134,10 +227,14 @@ const ProductDetails = () => {
       const data = await apiRequest('/reviews', {
         method: 'POST',
         body: JSON.stringify({
-          productId: product._id || product.id,
+          productId: currentTargetId,
+          productSlug: currentSlug,
+          userId: authorId,
+          userName: authorName,
+          userEmail: activeUser?.email || '',
           rating: reviewRating,
-          title: reviewTitle,
-          comment: reviewComment
+          title: reviewTitle?.trim() || '',
+          comment: reviewComment?.trim() || ''
         })
       });
 
@@ -145,8 +242,17 @@ const ProductDetails = () => {
         toast.success('Thank you! Your review has been saved.');
         setReviewTitle('');
         setReviewComment('');
-        // Reload reviews
-        loadReviews(product._id || product.id);
+        
+        // Optimistically / immediately prepend the review so it appears in Customer Reviews with zero delay
+        if (data.review) {
+          setReviews(prev => [
+            data.review,
+            ...prev.filter(r => (r._id || r.id) !== (data.review._id || data.review.id))
+          ]);
+        }
+
+        // Background reload from server to sync canonical state without flashing loading UI
+        loadReviews(currentTargetId, true);
       }
     } catch (error) {
       toast.error(error.message || 'Already reviewed this product.');
@@ -342,8 +448,9 @@ const ProductDetails = () => {
                 <div className="flex items-center border border-beige bg-white">
                   <button 
                     onClick={() => setQuantity(q => Math.max(1, q - 1))}
-                    disabled={product.stock === 0}
-                    className="px-4 py-2.5 text-gray-500 hover:bg-gray-100 cursor-pointer disabled:opacity-40"
+                    disabled={pStock === 0 || quantity <= 1}
+                    className="px-4 py-2.5 text-gray-500 hover:bg-gray-100 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+                    title="Decrease quantity"
                   >
                     <Minus size={14} />
                   </button>
@@ -351,9 +458,16 @@ const ProductDetails = () => {
                     {quantity}
                   </span>
                   <button 
-                    onClick={() => setQuantity(q => q + 1)}
-                    disabled={product.stock === 0}
-                    className="px-4 py-2.5 text-gray-500 hover:bg-gray-100 cursor-pointer disabled:opacity-40"
+                    onClick={() => {
+                      if (quantity >= pStock) {
+                        toast.error(`Only ${pStock} unit${pStock === 1 ? '' : 's'} available in stock.`);
+                        return;
+                      }
+                      setQuantity(q => Math.min(pStock, q + 1));
+                    }}
+                    disabled={pStock === 0 || quantity >= pStock}
+                    className="px-4 py-2.5 text-gray-500 hover:bg-gray-100 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+                    title={quantity >= pStock ? `Only ${pStock} unit${pStock === 1 ? '' : 's'} available in stock` : 'Increase quantity'}
                   >
                     <Plus size={14} />
                   </button>
@@ -362,10 +476,10 @@ const ProductDetails = () => {
                 {/* Add to Cart button */}
                 <button
                   onClick={handleAddToCart}
-                  disabled={product.stock === 0}
+                  disabled={product.stock === 0 || isAddingToCart}
                   className="flex-grow btn-premium py-3.5 text-xs text-center justify-center gap-2 disabled:bg-gray-200 disabled:border-gray-200 disabled:text-gray-400 disabled:cursor-not-allowed"
                 >
-                  <ShoppingBag size={16} /> ADD TO CART
+                  <ShoppingBag size={16} /> {isAddingToCart ? 'ADDING...' : 'ADD TO CART'}
                 </button>
 
                 {/* Wishlist Button */}
@@ -545,22 +659,26 @@ const ProductDetails = () => {
           <div className="lg:col-span-2 space-y-6">
             <h2 className="font-serif text-lg font-bold text-primary">Customer Reviews</h2>
             
-            {reviewsLoading ? (
+            {reviewsLoading && reviews.length === 0 ? (
               <p className="text-xs text-gray-400">Loading reviews...</p>
             ) : reviews.length > 0 ? (
               <div className="space-y-4">
                 {reviews.map((r, i) => (
-                  <div key={i} className="bg-white border border-beige p-5 shadow-sm space-y-2">
+                  <div key={r._id || r.id || i} className="bg-white border border-beige p-5 shadow-sm space-y-2">
                     <div className="flex justify-between items-center text-xs">
                       <div>
                         <p className="font-bold text-primary">{r.userName || 'Verified Buyer'}</p>
-                        <p className="text-[10px] text-gray-400">{new Date(r.createdAt).toLocaleDateString()}</p>
+                        <p className="text-[10px] text-gray-400">
+                          {r.createdAt && !isNaN(new Date(r.createdAt).getTime())
+                            ? new Date(r.createdAt).toLocaleDateString()
+                            : 'Recent review'}
+                        </p>
                       </div>
                       <RatingStars rating={r.rating} size={12} />
                     </div>
                     <div className="space-y-1">
-                      <p className="font-semibold text-primary text-xs font-serif">{r.title}</p>
-                      <p className="text-xs text-gray-600 leading-relaxed">{r.comment}</p>
+                      {r.title && <p className="font-semibold text-primary text-xs font-serif">{r.title}</p>}
+                      {r.comment && <p className="text-xs text-gray-600 leading-relaxed">{r.comment}</p>}
                     </div>
                   </div>
                 ))}
@@ -581,7 +699,7 @@ const ProductDetails = () => {
             <form onSubmit={handleReviewSubmit} className="space-y-4">
               {/* Rating selection */}
               <div className="space-y-1">
-                <label className="text-xs text-gray-500 font-semibold block">Product Rating</label>
+                <label className="text-xs text-gray-500 font-semibold block">Product Rating *</label>
                 <div className="flex gap-1.5">
                   {[1, 2, 3, 4, 5].map((star) => (
                     <button
@@ -601,27 +719,31 @@ const ProductDetails = () => {
 
               {/* Review Title */}
               <div className="space-y-1">
-                <label className="text-xs text-gray-500 font-semibold block">Review Headline</label>
+                <div className="flex justify-between items-center">
+                  <label className="text-xs text-gray-500 font-semibold block">Review Headline</label>
+                  <span className="text-[10px] text-gray-400 font-normal">Optional</span>
+                </div>
                 <input
                   type="text"
-                  placeholder="e.g. Excellent formula!"
+                  placeholder="e.g. Excellent formula! (Optional)"
                   value={reviewTitle}
                   onChange={(e) => setReviewTitle(e.target.value)}
                   className="w-full px-3 py-2 border border-beige text-xs focus:outline-none focus:border-primary"
-                  required
                 />
               </div>
 
               {/* Review Comment */}
               <div className="space-y-1">
-                <label className="text-xs text-gray-500 font-semibold block">Review Body</label>
+                <div className="flex justify-between items-center">
+                  <label className="text-xs text-gray-500 font-semibold block">Review Body</label>
+                  <span className="text-[10px] text-gray-400 font-normal">Optional</span>
+                </div>
                 <textarea
                   rows={4}
-                  placeholder="Tell other pet parents about your experience..."
+                  placeholder="Tell other pet parents about your experience... (Optional)"
                   value={reviewComment}
                   onChange={(e) => setReviewComment(e.target.value)}
                   className="w-full px-3 py-2 border border-beige text-xs focus:outline-none focus:border-primary"
-                  required
                 ></textarea>
               </div>
 

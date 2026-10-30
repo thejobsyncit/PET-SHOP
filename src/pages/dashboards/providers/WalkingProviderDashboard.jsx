@@ -5,13 +5,14 @@ import { logout, updateProfile } from '../../../store/slices/authSlice.js';
 import {
   PawPrint, Calendar, Star, TrendingUp, DollarSign, Clock, MapPin, 
   MessageSquare, Plus, Search, ChevronRight, ChevronLeft, Phone, ShieldCheck, Mail, Heart, Settings,
-  Tag, ShoppingBag, AlertCircle, LayoutDashboard, LogOut, CheckCircle, X, Send, CreditCard, Loader2, Edit3, Check, Stethoscope, FileText, Building, User,
+  Tag, ShoppingBag, AlertCircle, LayoutDashboard, LogOut, CheckCircle, X, Send, CreditCard, Receipt, Loader2, Edit3, Check, Stethoscope, FileText, Building, User,
   Trash2, Clock3, CheckCircle2, Paperclip, Image, Bell, Volume2, VolumeX, Copy, Share2, Camera
 } from 'lucide-react';
 import { apiRequest } from '../../../services/api.js';
 import { getStoredWalkingProviders, getStoredWalkingBookings, saveWalkingProvider } from '../../../data/walkingData.js';
 import { safeSetItem, safeGetItem } from '../../../utils/safeStorage.js';
 import toast from 'react-hot-toast';
+import ProviderProfileSection from '../../../components/dashboards/ProviderProfileSection.jsx';
 
 
 const AppointmentsModule = ({ user }) => {
@@ -1664,12 +1665,15 @@ const WalkingProviderContent = ({ activeTab, user }) => {
 const WalkingProviderDashboard = ({ 
   currentProvider, 
   profiles, 
-  handleToggleOnline 
+  handleToggleOnline,
+  onOpenSubscriptionModal,
+  onOpenPlanDetails,
+  subscription
 }) => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const storedTab = safeGetItem('walkingDashboardTab');
-  const activeTabParam = searchParams.get('tab') || storedTab || 'appointments';
+  const activeTabParam = searchParams.get('tab') || storedTab || 'profile';
   const [activeTab, setActiveTab] = useState(activeTabParam);
 
   const { user } = useSelector(state => state.auth);
@@ -1730,95 +1734,45 @@ const WalkingProviderDashboard = ({
   const displayAvatar = user?.avatar || user?.profilePicture || currentProvider?.avatar || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=800&auto=format&fit=crop';
   const displayName = user?.name || currentProvider?.name || 'Provider';
 
+  const currentSub = subscription || user?.subscription;
+  const isSubActive = Boolean(
+    currentSub &&
+    currentSub.status === 'ACTIVE' &&
+    (!currentSub.expiryDate || new Date(currentSub.expiryDate) > new Date())
+  );
+
+  const navMenuItems = [
+    { id: 'profile', label: 'Walker Profile & Plan', icon: PawPrint },
+    ...(isSubActive ? [{ id: 'plan-details', label: 'Plan Details & Invoice', icon: Receipt }] : []),
+    { id: 'appointments', label: 'Walk Appointments', count: 5, icon: Calendar },
+    { id: 'routes', label: 'Active Routes', count: 3, icon: MapPin },
+    { id: 'messages', label: 'Client Inquiries', count: 2, icon: MessageSquare },
+    { id: 'reviews', label: 'Customer Reviews', extra: '4.9 ★', icon: Heart },
+    { id: 'wallet', label: 'Wallet & Payouts', icon: DollarSign }
+  ];
+
   return (
     <div className="min-h-auto lg:h-screen bg-[#FAF9F5] text-slate-900 font-sans selection:bg-[#0F2E23]/20 selection:text-[#0F2E23] flex flex-col lg:flex-row">
       
       {/* LEFT SIDEBAR */}
       <aside className="w-full lg:w-72 shrink-0 bg-white border-r border-slate-200 relative lg:sticky top-0 lg:top-[104px] h-auto lg:h-[calc(100vh-104px)] flex flex-col justify-between overflow-y-auto z-10 shadow-[4px_0_24px_rgba(0,0,0,0.02)]">
-        <div className="p-6 pt-6 lg:pt-12 space-y-8">
-          
-          <div className="flex flex-col items-center text-center space-y-4">
-            <div className="relative group cursor-pointer">
-              <label htmlFor="sidebar-avatar-upload" className="block relative cursor-pointer">
-                <div className="absolute -inset-1 bg-gradient-to-r from-[#ffd000] to-amber-500 rounded-full blur opacity-40 group-hover:opacity-70 transition duration-1000 group-hover:duration-200"></div>
-                <img 
-                  src={displayAvatar} 
-                  alt={displayName} 
-                  className="relative w-24 h-24 rounded-full object-cover border-4 border-white shadow-lg transition group-hover:opacity-80"
-                />
-                <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition z-10">
-                  <div className="bg-[#0F2E23]/80 p-2 rounded-full text-white">
-                    <Edit3 size={16} />
-                  </div>
-                </div>
-                <div className="absolute bottom-1 right-1 w-5 h-5 bg-white rounded-full flex items-center justify-center shadow-sm z-20">
-                  <span className={`w-3 h-3 rounded-full ${currentProvider?.isOnline ? 'bg-emerald-500' : 'bg-slate-400'}`}></span>
-                </div>
-              </label>
-              <input 
-                type="file" 
-                id="sidebar-avatar-upload" 
-                className="hidden" 
-                accept="image/*"
-                onChange={(e) => {
-                  handleFileChange(e, async (dataUrl) => {
-                    setProfileAvatar(dataUrl);
-                    const result = await dispatch(updateProfile({ name: profileName, avatar: dataUrl, profilePicture: dataUrl }));
-                    if (updateProfile.fulfilled.match(result)) {
-                      toast.success('Profile picture updated successfully!');
-                    }
-                  });
-                }} 
-              />
-            </div>
-            <div className="w-full px-4">
-              {isEditingProfile ? (
-                <form onSubmit={handleUpdateProfile} className="flex items-center gap-2 justify-center mt-2">
-                  <input
-                    type="text"
-                    value={profileName}
-                    onChange={(e) => setProfileName(e.target.value)}
-                    className="w-full text-center text-sm font-black text-[#0F2E23] border-b-2 border-[#ffd000] focus:outline-none bg-transparent"
-                    autoFocus
-                  />
-                  <button type="submit" className="text-emerald-600 hover:text-emerald-700 p-1">
-                    <Check size={16} />
-                  </button>
-                  <button type="button" onClick={() => setIsEditingProfile(false)} className="text-rose-600 hover:text-rose-700 p-1">
-                    <X size={16} />
-                  </button>
-                </form>
-              ) : (
-                <div className="flex items-center justify-center gap-2 mt-2 group/edit cursor-pointer" onClick={() => setIsEditingProfile(true)}>
-                  <h2 className="text-xl font-sans font-black text-[#0F2E23] tracking-tight leading-tight">
-                    {profileName || displayName}
-                  </h2>
-                  <Edit3 size={14} className="text-slate-300 group-hover/edit:text-[#ffd000] transition" />
-                </div>
-              )}
-              <span className="inline-flex mt-2 bg-[#ffd000]/10 text-[#0F2E23] border border-[#ffd000]/30 text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-widest items-center justify-center gap-1 shadow-sm mx-auto">
-                <ShieldCheck size={12} className="text-amber-500" /> Elite Walker
-              </span>
-            </div>
-          </div>
-
-          <nav className="space-y-1.5 pt-4">
+        <div className="p-6 pt-6 space-y-6">
+          <nav className="space-y-1.5">
             <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 px-3">Main Menu</div>
             <ul className="space-y-1">
-              {[
-                { id: 'appointments', label: 'Walk Appointments', count: 5, icon: Calendar },
-                { id: 'routes', label: 'Active Routes', count: 3, icon: MapPin },
-                { id: 'messages', label: 'Client Inquiries', count: 2, icon: MessageSquare },
-                { id: 'reviews', label: 'Customer Reviews', extra: '4.9 ★', icon: Heart },
-                { id: 'wallet', label: 'Wallet & Payouts', icon: DollarSign },
-                { id: 'profile', label: 'Walker Registration & Profile', icon: PawPrint }
-              ].map(item => (
+              {navMenuItems.map(item => (
                 <li key={item.id}>
                   <button
                     onClick={() => {
+                      if (item.id === 'plan-details') {
+                        if (onOpenPlanDetails) {
+                          onOpenPlanDetails();
+                        }
+                      } else {
                         setActiveTab(item.id);
                         setSearchParams({ tab: item.id });
                         safeSetItem('walkingDashboardTab', item.id);
+                      }
                     }}
                     className={`w-full flex items-center justify-between px-4 py-3 rounded-2xl transition-all duration-300 group ${
                       activeTab === item.id 
@@ -1868,90 +1822,100 @@ const WalkingProviderDashboard = ({
       {/* RIGHT MAIN CONTENT */}
       <main className="flex-1 min-w-0 px-6 lg:px-8 pt-12 pb-10 overflow-x-hidden">
         
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
-          <div>
-            <h1 className="text-3xl font-sans font-black text-[#0F2E23] tracking-tight">
-              Walking Provider Dashboard
-            </h1>
-            <p className="text-sm text-slate-500 font-medium mt-1">
-              Manage your dog walking appointments, active routes, and walker profile.
-            </p>
-          </div>
-        </div>
-
-        {/* KPI METRICS */}
-        <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 sm:gap-5 mb-10">
-          
-          <div className="bg-white border border-slate-200 p-5 rounded-2xl hover:border-[#0F2E23]/30 transition duration-300 shadow-sm hover:shadow-md group">
-            <div className="flex justify-between items-center mb-4">
-              <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Total Walk Appointments</span>
-              <div className="w-8 h-8 rounded-lg bg-slate-50 text-slate-400 flex items-center justify-center group-hover:scale-110 transition duration-300 border border-slate-100">
-                <PawPrint size={16} />
+        {activeTab !== 'profile' ? (
+          <>
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
+              <div>
+                <h1 className="text-3xl font-sans font-black text-[#0F2E23] tracking-tight">
+                  Walking Provider Dashboard
+                </h1>
+                <p className="text-sm text-slate-500 font-medium mt-1">
+                  Manage your dog walking appointments, active routes, and walker profile.
+                </p>
               </div>
             </div>
-            <div className="text-3xl font-sans font-black text-[#0F2E23] mb-1">{stats.totalListings}</div>
-            <div className="text-[10px] text-slate-500 font-black uppercase tracking-wider mt-2">All time</div>
-          </div>
 
-          <div className="bg-white border border-slate-200 p-5 rounded-2xl hover:border-emerald-500/50 transition duration-300 shadow-sm hover:shadow-md group relative overflow-hidden">
-            <div className="absolute inset-0 bg-gradient-to-br from-emerald-50/50 to-transparent pointer-events-none"></div>
-            <div className="flex justify-between items-center mb-4 relative z-10">
-              <span className="text-[10px] font-black text-emerald-600 uppercase tracking-widest">Pending Walks</span>
-              <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-500 flex items-center justify-center group-hover:scale-110 transition duration-300 border border-emerald-100">
-                <MapPin size={16} />
+            {/* KPI METRICS */}
+            <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 sm:gap-5 mb-10">
+              <div className="bg-white border border-slate-200 p-5 rounded-2xl hover:border-[#0F2E23]/30 transition duration-300 shadow-sm hover:shadow-md group">
+                <div className="flex justify-between items-center mb-4">
+                  <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Total Walk Appointments</span>
+                  <div className="w-8 h-8 rounded-lg bg-slate-50 text-slate-400 flex items-center justify-center group-hover:scale-110 transition duration-300 border border-slate-100">
+                    <PawPrint size={16} />
+                  </div>
+                </div>
+                <div className="text-3xl font-sans font-black text-[#0F2E23] mb-1">{stats.totalListings}</div>
+                <div className="text-[10px] text-slate-500 font-black uppercase tracking-wider mt-2">All time</div>
+              </div>
+
+              <div className="bg-white border border-slate-200 p-5 rounded-2xl hover:border-emerald-500/50 transition duration-300 shadow-sm hover:shadow-md group relative overflow-hidden">
+                <div className="absolute inset-0 bg-gradient-to-br from-emerald-50/50 to-transparent pointer-events-none"></div>
+                <div className="flex justify-between items-center mb-4 relative z-10">
+                  <span className="text-[10px] font-black text-emerald-600 uppercase tracking-widest">Pending Walks</span>
+                  <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-500 flex items-center justify-center group-hover:scale-110 transition duration-300 border border-emerald-100">
+                    <MapPin size={16} />
+                  </div>
+                </div>
+                <div className="text-3xl font-sans font-black text-[#0F2E23] mb-1 relative z-10">{stats.availableStock}</div>
+                <div className="text-[10px] text-emerald-600 font-black uppercase tracking-wider mt-2 relative z-10">In queue</div>
+              </div>
+
+              <div className="bg-white border border-slate-200 p-5 rounded-2xl hover:border-rose-500/50 transition duration-300 shadow-sm hover:shadow-md group relative overflow-hidden">
+                <div className="absolute inset-0 bg-gradient-to-br from-rose-50/50 to-transparent pointer-events-none"></div>
+                <div className="flex justify-between items-center mb-4 relative z-10">
+                  <span className="text-[10px] font-black text-rose-600 uppercase tracking-widest">Completed Walks</span>
+                  <div className="w-8 h-8 rounded-lg bg-rose-50 text-rose-500 flex items-center justify-center group-hover:scale-110 transition duration-300 border border-rose-100">
+                    <AlertCircle size={16} />
+                  </div>
+                </div>
+                <div className="text-3xl font-sans font-black text-[#0F2E23] mb-1 relative z-10">{stats.soldOutCount}</div>
+                <div className="text-[10px] text-rose-600 font-black uppercase tracking-wider mt-2 relative z-10">Dogs walked</div>
+              </div>
+
+              <div className="bg-white border border-slate-200 p-5 rounded-2xl hover:border-[#ffd000]/80 transition duration-300 shadow-sm hover:shadow-md group relative overflow-hidden">
+                <div className="absolute inset-0 bg-gradient-to-br from-[#ffd000]/10 to-transparent pointer-events-none"></div>
+                <div className="flex justify-between items-center mb-4 relative z-10">
+                  <span className="text-[10px] font-black text-amber-600 uppercase tracking-widest">Total Earnings</span>
+                  <div className="w-8 h-8 rounded-lg bg-amber-50 text-amber-500 flex items-center justify-center group-hover:scale-110 transition duration-300 border border-amber-100">
+                    <DollarSign size={16} />
+                  </div>
+                </div>
+                <div className="flex items-end gap-2 mb-1 relative z-10">
+                  <div className="text-2xl font-sans font-black text-[#0F2E23]">₹{stats.revenue.toLocaleString('en-IN')}</div>
+                </div>
+                <div className="text-[10px] text-amber-600 font-black uppercase tracking-wider mt-2 relative z-10">
+                  {stats.totalOrders} completed bookings
+                </div>
+              </div>
+
+              <div className="bg-white border border-slate-200 p-5 rounded-2xl hover:border-sky-500/50 transition duration-300 shadow-sm hover:shadow-md group relative overflow-hidden">
+                <div className="absolute inset-0 bg-gradient-to-br from-sky-50/50 to-transparent pointer-events-none"></div>
+                <div className="flex justify-between items-center mb-4 relative z-10">
+                  <span className="text-[10px] font-black text-sky-600 uppercase tracking-widest">Discounts Given</span>
+                  <div className="w-8 h-8 rounded-lg bg-sky-50 text-sky-500 flex items-center justify-center group-hover:scale-110 transition duration-300 border border-sky-100">
+                    <Tag size={16} />
+                  </div>
+                </div>
+                <div className="flex items-end gap-2 mb-1 relative z-10">
+                  <div className="text-2xl font-sans font-black text-[#0F2E23]">₹{stats.discounts.toLocaleString('en-IN')}</div>
+                </div>
+                <div className="text-[10px] text-sky-600 font-black uppercase tracking-wider mt-2 relative z-10">Total savings offered</div>
               </div>
             </div>
-            <div className="text-3xl font-sans font-black text-[#0F2E23] mb-1 relative z-10">{stats.availableStock}</div>
-            <div className="text-[10px] text-emerald-600 font-black uppercase tracking-wider mt-2 relative z-10">In queue</div>
-          </div>
-
-          <div className="bg-white border border-slate-200 p-5 rounded-2xl hover:border-rose-500/50 transition duration-300 shadow-sm hover:shadow-md group relative overflow-hidden">
-            <div className="absolute inset-0 bg-gradient-to-br from-rose-50/50 to-transparent pointer-events-none"></div>
-            <div className="flex justify-between items-center mb-4 relative z-10">
-              <span className="text-[10px] font-black text-rose-600 uppercase tracking-widest">Completed Walks</span>
-              <div className="w-8 h-8 rounded-lg bg-rose-50 text-rose-500 flex items-center justify-center group-hover:scale-110 transition duration-300 border border-rose-100">
-                <AlertCircle size={16} />
-              </div>
-            </div>
-            <div className="text-3xl font-sans font-black text-[#0F2E23] mb-1 relative z-10">{stats.soldOutCount}</div>
-            <div className="text-[10px] text-rose-600 font-black uppercase tracking-wider mt-2 relative z-10">Dogs walked</div>
-          </div>
-
-          <div className="bg-white border border-slate-200 p-5 rounded-2xl hover:border-[#ffd000]/80 transition duration-300 shadow-sm hover:shadow-md group relative overflow-hidden">
-             <div className="absolute inset-0 bg-gradient-to-br from-[#ffd000]/10 to-transparent pointer-events-none"></div>
-            <div className="flex justify-between items-center mb-4 relative z-10">
-              <span className="text-[10px] font-black text-amber-600 uppercase tracking-widest">Total Earnings</span>
-              <div className="w-8 h-8 rounded-lg bg-amber-50 text-amber-500 flex items-center justify-center group-hover:scale-110 transition duration-300 border border-amber-100">
-                <DollarSign size={16} />
-              </div>
-            </div>
-            <div className="flex items-end gap-2 mb-1 relative z-10">
-              <div className="text-2xl font-sans font-black text-[#0F2E23]">₹{stats.revenue.toLocaleString('en-IN')}</div>
-            </div>
-            <div className="text-[10px] text-amber-600 font-black uppercase tracking-wider mt-2 relative z-10">
-              {stats.totalOrders} total sessions
-            </div>
-          </div>
-
-          <div className="bg-white border border-slate-200 p-5 rounded-2xl hover:border-sky-500/50 transition duration-300 shadow-sm hover:shadow-md group relative overflow-hidden">
-            <div className="absolute inset-0 bg-gradient-to-br from-sky-50/50 to-transparent pointer-events-none"></div>
-            <div className="flex justify-between items-center mb-4 relative z-10">
-              <span className="text-[10px] font-black text-sky-600 uppercase tracking-widest">Discounts Given</span>
-              <div className="w-8 h-8 rounded-lg bg-sky-50 text-sky-500 flex items-center justify-center group-hover:scale-110 transition duration-300 border border-sky-100">
-                <Tag size={16} />
-              </div>
-            </div>
-            <div className="flex items-end gap-2 mb-1 relative z-10">
-              <div className="text-2xl font-sans font-black text-[#0F2E23]">₹{stats.discounts.toLocaleString('en-IN')}</div>
-            </div>
-            <div className="text-[10px] text-sky-600 font-black uppercase tracking-wider mt-2 relative z-10">Total savings offered</div>
-          </div>
-
-        </div>
+          </>
+        ) : null}
 
         {/* TAB CONTENT */}
         <div className="bg-white rounded-3xl p-8 lg:p-4 lg:p-10 border border-slate-200 min-h-[500px] shadow-sm">
-          <WalkingProviderContent activeTab={activeTab} user={user} />
+          {activeTab === 'profile' ? (
+            <ProviderProfileSection
+              serviceCategory="Dog Walking & Fitness"
+              onOpenSubscriptionModal={onOpenSubscriptionModal}
+              onOpenPlanDetails={onOpenPlanDetails}
+            />
+          ) : (
+            <WalkingProviderContent activeTab={activeTab} user={user} />
+          )}
         </div>
       </main>
 

@@ -22,7 +22,7 @@
     },
     "location": "Bangalore, KA",
     "contactPhone": "+91 94444 33333",
-    "isVerified": true,
+    "isVerified": false,
     "createdAt": "2026-08-27T10:59:20.779Z"
   },
   {
@@ -48,7 +48,7 @@
     },
     "location": "Chennai, Tamil Nadu",
     "contactPhone": "+91 98765 43210",
-    "isVerified": true,
+    "isVerified": false,
     "createdAt": "2026-08-28T14:00:00.000Z"
   },
   {
@@ -100,7 +100,7 @@
     },
     "location": "Bengaluru, Karnataka",
     "contactPhone": "+91 98765 43212",
-    "isVerified": true,
+    "isVerified": false,
     "createdAt": "2026-08-30T10:30:00.000Z"
   },
   {
@@ -152,7 +152,7 @@
     },
     "location": "Hyderabad, Telangana",
     "contactPhone": "+91 98765 43214",
-    "isVerified": true,
+    "isVerified": false,
     "createdAt": "2026-08-31T11:00:00.000Z"
   }
 ]

@@ -5,11 +5,12 @@ import {
   Download, Edit3, HeartPulse, StarHalf, Home, Image as ImageIcon, Scissors, 
   Sparkles, Upload, Store, Trash2, X, Search, Send, ArrowLeft, Eye, 
   CheckCircle, AlertCircle, Phone, MapPin, ShieldCheck, ChevronRight,
-  Wallet, Landmark, ArrowUpRight
+  Wallet, Landmark, ArrowUpRight, Printer
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { safeSetItem, safeGetItem } from '../../../../utils/safeStorage.js';
 import { getStoredHostelBookings } from '../../../../data/hostelData.js';
+import { downloadBill, printBill } from '../../../../utils/billGenerator.js';
 
 // Default Initial Bookings
 const DEFAULT_BOOKINGS = [
@@ -286,6 +287,7 @@ const HostelProviderContent = ({ activeTab }) => {
   const [bookingFilter, setBookingFilter] = useState('all'); // 'all' | 'pending' | 'active' | 'completed'
   const [bookingSearch, setBookingSearch] = useState('');
   const [showAddBookingModal, setShowAddBookingModal] = useState(false);
+  const [selectedBookingForInvoice, setSelectedBookingForInvoice] = useState(null);
   const [newBookingForm, setNewBookingForm] = useState({
     petName: '',
     petBreed: '',
@@ -326,8 +328,8 @@ const HostelProviderContent = ({ activeTab }) => {
   });
   const [selectedInquiryId, setSelectedInquiryId] = useState('inq-1');
   const [messageInput, setMessageInput] = useState('');
-  const [mobileChatView, setMobileChatView] = useState(false);
   const chatMessagesEndRef = useRef(null);
+  const chatContainerRef = useRef(null);
 
   // 6. Kennels & Accommodations Pricing State
   const [kennelsState, setKennelsState] = useState(() => {
@@ -500,10 +502,13 @@ const HostelProviderContent = ({ activeTab }) => {
     }, 500);
   };
 
-  // Auto-scroll chat on new message or conversation switch
+  // Auto-scroll chat on new message or conversation switch without scrolling the window/page
   useEffect(() => {
-    if (activeTab === 'messages') {
-      chatMessagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    if (activeTab === 'messages' && chatContainerRef.current) {
+      chatContainerRef.current.scrollTo({
+        top: chatContainerRef.current.scrollHeight,
+        behavior: 'smooth'
+      });
     }
   }, [inquiries, selectedInquiryId, activeTab]);
 
@@ -565,6 +570,91 @@ const HostelProviderContent = ({ activeTab }) => {
     saveBookingsState(updated);
     const target = bookings.find(b => b.id === bookingId);
     toast.success(`Check-out processed for ${target ? target.petName : 'Guest'}. Bill settled successfully!`);
+  };
+
+  const handlePrintInvoice = (booking) => {
+    if (!booking) return;
+    const total = booking.totalPrice || 0;
+    const base = total / 1.18;
+    const cgst = base * 0.09;
+    const sgst = base * 0.09;
+
+    printBill({
+      invoiceNumber: `INV-${booking.id}`,
+      invoiceTitle: 'BOARDING TAX INVOICE & RECEIPT',
+      invoiceDate: booking.checkOutDate || new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }),
+      statusText: '✓ FULLY PAID & CHECKED OUT',
+      customer: {
+        name: booking.ownerName,
+        phone: booking.ownerPhone,
+        email: `${booking.ownerName.toLowerCase().replace(/\s+/g, '.')}@example.com`,
+        address: `${profile.city || 'Bangalore'}, Karnataka`
+      },
+      payment: {
+        method: 'Online UPI / NetBanking',
+        validity: `${booking.nights || 1} Night(s) Stay (${booking.checkInDate} to ${booking.checkOutDate})`
+      },
+      items: [
+        {
+          name: `Pet Boarding Accommodation - ${booking.kennelType}`,
+          description: `Guest Pet: ${booking.petName} (${booking.petBreed || 'Pet'}). Stay Duration: ${booking.nights || 1} Night(s). Care Notes: ${booking.dietaryNotes || 'Standard boarding care, daily meals & exercise.'}`,
+          quantity: booking.nights || 1,
+          amount: base,
+          sacOrHsn: '998399'
+        }
+      ],
+      totals: {
+        baseAmount: base,
+        cgst: cgst,
+        sgst: sgst,
+        shipping: 0,
+        total: total
+      },
+      notes: `Service Provider: ${profile.name} (${profile.registration || 'Certified Boarding Facility'}). Thank you for trusting ${profile.name} with ${booking.petName}!`
+    });
+  };
+
+  const handleDownloadInvoice = (booking) => {
+    if (!booking) return;
+    const total = booking.totalPrice || 0;
+    const base = total / 1.18;
+    const cgst = base * 0.09;
+    const sgst = base * 0.09;
+
+    downloadBill({
+      invoiceNumber: `INV-${booking.id}`,
+      invoiceTitle: 'BOARDING TAX INVOICE & RECEIPT',
+      invoiceDate: booking.checkOutDate || new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }),
+      statusText: '✓ FULLY PAID & CHECKED OUT',
+      customer: {
+        name: booking.ownerName,
+        phone: booking.ownerPhone,
+        email: `${booking.ownerName.toLowerCase().replace(/\s+/g, '.')}@example.com`,
+        address: `${profile.city || 'Bangalore'}, Karnataka`
+      },
+      payment: {
+        method: 'Online UPI / NetBanking',
+        validity: `${booking.nights || 1} Night(s) Stay (${booking.checkInDate} to ${booking.checkOutDate})`
+      },
+      items: [
+        {
+          name: `Pet Boarding Accommodation - ${booking.kennelType}`,
+          description: `Guest Pet: ${booking.petName} (${booking.petBreed || 'Pet'}). Stay Duration: ${booking.nights || 1} Night(s). Care Notes: ${booking.dietaryNotes || 'Standard boarding care, daily meals & exercise.'}`,
+          quantity: booking.nights || 1,
+          amount: base,
+          sacOrHsn: '998399'
+        }
+      ],
+      totals: {
+        baseAmount: base,
+        cgst: cgst,
+        sgst: sgst,
+        shipping: 0,
+        total: total
+      },
+      notes: `Service Provider: ${profile.name} (${profile.registration || 'Certified Boarding Facility'}). Thank you for trusting ${profile.name} with ${booking.petName}!`
+    });
+    toast.success(`Tax Invoice downloaded for ${booking.petName}!`);
   };
 
   const handleCreateNewBooking = (e) => {
@@ -911,26 +1001,44 @@ const HostelProviderContent = ({ activeTab }) => {
                   {/* Action Buttons */}
                   <div className="flex gap-2 pt-2 border-t border-slate-100">
                     {b.status === 'pending_checkin' && (
-                      <button 
-                        onClick={() => handleCompleteCheckIn(b.id)}
-                        className="flex-1 bg-[#0F2E23] hover:bg-[#163e30] text-white text-[11px] font-black uppercase tracking-widest py-2.5 rounded-xl shadow-sm transition flex items-center justify-center gap-1.5 cursor-pointer"
-                      >
-                        <CheckCircle size={14} /> Complete Check-in
-                      </button>
+                      <>
+                        <button 
+                          onClick={() => handleCompleteCheckIn(b.id)}
+                          className="flex-1 bg-[#0F2E23] hover:bg-[#163e30] text-white text-[11px] font-black uppercase tracking-widest py-2.5 rounded-xl shadow-sm transition flex items-center justify-center gap-1.5 cursor-pointer"
+                        >
+                          <CheckCircle size={14} /> Complete Check-in
+                        </button>
+                        <button
+                          onClick={() => setSelectedBookingForInvoice(b)}
+                          title="View Invoice & Receipt"
+                          className="px-3 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl transition flex items-center justify-center cursor-pointer"
+                        >
+                          <FileText size={14} />
+                        </button>
+                      </>
                     )}
 
                     {b.status === 'checked_in' && (
-                      <button 
-                        onClick={() => handleProcessCheckOut(b.id)}
-                        className="flex-1 bg-white border border-sky-300 text-sky-700 hover:bg-sky-50 text-[11px] font-black uppercase tracking-widest py-2.5 rounded-xl transition flex items-center justify-center gap-1.5 shadow-sm cursor-pointer"
-                      >
-                        <ArrowLeft size={14} className="rotate-180" /> Process Check-out
-                      </button>
+                      <>
+                        <button 
+                          onClick={() => handleProcessCheckOut(b.id)}
+                          className="flex-1 bg-white border border-sky-300 text-sky-700 hover:bg-sky-50 text-[11px] font-black uppercase tracking-widest py-2.5 rounded-xl transition flex items-center justify-center gap-1.5 shadow-sm cursor-pointer"
+                        >
+                          <ArrowLeft size={14} className="rotate-180" /> Process Check-out
+                        </button>
+                        <button
+                          onClick={() => setSelectedBookingForInvoice(b)}
+                          title="View Invoice & Receipt"
+                          className="px-3 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl transition flex items-center justify-center cursor-pointer"
+                        >
+                          <FileText size={14} />
+                        </button>
+                      </>
                     )}
 
                     {b.status === 'checked_out' && (
                       <button 
-                        onClick={() => toast.success(`Invoice #INV-${b.id} sent to ${b.ownerName} (${b.ownerPhone})`)}
+                        onClick={() => setSelectedBookingForInvoice(b)}
                         className="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 text-[11px] font-black uppercase tracking-widest py-2.5 rounded-xl transition flex items-center justify-center gap-1.5 cursor-pointer"
                       >
                         <FileText size={14} /> View Invoice & Receipt
@@ -1071,6 +1179,142 @@ const HostelProviderContent = ({ activeTab }) => {
                     </button>
                   </div>
                 </form>
+              </div>
+            </div>
+          )}
+
+          {/* Official Tax Invoice & Stay Receipt Modal */}
+          {selectedBookingForInvoice && (
+            <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
+              <div className="bg-white rounded-3xl max-w-xl w-full p-6 sm:p-8 shadow-2xl border border-slate-100 relative my-6 animate-fadeIn max-h-[92vh] overflow-y-auto text-slate-800">
+                {/* Modal Header */}
+                <div className="flex items-start justify-between border-b border-slate-100 pb-4">
+                  <div className="flex items-center gap-3">
+                    <img src="/logo.png" alt="Josh Pets Hub" className="h-10 w-auto object-contain" />
+                    <div>
+                      <div className="text-xl font-black text-[#0F2E23] tracking-wide">
+                        JOSH PETS <span className="text-[#D4AF37]">HUB</span>
+                      </div>
+                      <p className="text-[10px] text-slate-400 uppercase tracking-wider font-bold">
+                        Official Boarding Tax Invoice & Receipt
+                      </p>
+                    </div>
+                  </div>
+                  <button 
+                    onClick={() => setSelectedBookingForInvoice(null)}
+                    className="text-slate-400 hover:text-slate-700 p-1.5 rounded-full hover:bg-slate-100 transition cursor-pointer"
+                  >
+                    <X size={20} />
+                  </button>
+                </div>
+
+                {/* Invoice Meta Bar */}
+                <div className="bg-slate-50 border border-slate-200/80 rounded-2xl p-4 sm:p-5 mt-4 space-y-3.5 text-xs">
+                  <div className="flex flex-wrap items-center justify-between gap-2 pb-2.5 border-b border-slate-200/60">
+                    <div>
+                      <span className="text-slate-400 font-extrabold uppercase text-[9px] tracking-wider block">Invoice Number</span>
+                      <span className="font-mono font-black text-slate-900 bg-white px-2.5 py-0.5 rounded border border-slate-200 text-xs">
+                        INV-{selectedBookingForInvoice.id}
+                      </span>
+                    </div>
+                    <div className="text-right">
+                      <span className="text-slate-400 font-extrabold uppercase text-[9px] tracking-wider block">Checkout / Issue Date</span>
+                      <strong className="text-slate-900 text-xs">
+                        {selectedBookingForInvoice.checkOutDate || new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+                      </strong>
+                    </div>
+                  </div>
+
+                  {/* 2-Column Info: Provider & Guest */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pb-2.5 border-b border-slate-200/60">
+                    <div>
+                      <span className="text-slate-400 font-extrabold uppercase text-[9px] tracking-wider block mb-0.5">Boarding Resort</span>
+                      <strong className="text-slate-900 block text-xs">{profile.name}</strong>
+                      <span className="text-slate-500 text-[11px] block">{profile.registration || 'Certified Boarding Facility'}</span>
+                      <span className="text-slate-500 text-[11px] block">{profile.address || `${profile.city}, ${profile.state}`}</span>
+                      <span className="text-emerald-700 text-[10px] font-bold block mt-1">GSTIN: 29AABCU9603R1ZM</span>
+                    </div>
+
+                    <div className="sm:text-right">
+                      <span className="text-slate-400 font-extrabold uppercase text-[9px] tracking-wider block mb-0.5">Billed To (Pet Parent)</span>
+                      <strong className="text-slate-900 block text-xs">{selectedBookingForInvoice.ownerName}</strong>
+                      <span className="text-slate-500 text-[11px] block">{selectedBookingForInvoice.ownerPhone}</span>
+                      <div className="mt-1 bg-white p-2 rounded-xl border border-slate-200 sm:inline-block text-left">
+                        <span className="text-slate-700 font-bold block text-[11px]">🐾 {selectedBookingForInvoice.petName} ({selectedBookingForInvoice.petBreed || 'Pet'})</span>
+                        <span className="text-slate-500 text-[10px] block">{selectedBookingForInvoice.kennelType} • {selectedBookingForInvoice.nights || 1} Night(s)</span>
+                        <span className="text-slate-400 text-[10px] block">{selectedBookingForInvoice.checkInDate} → {selectedBookingForInvoice.checkOutDate}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Line Items Table */}
+                  <div className="space-y-2">
+                    <div className="flex justify-between items-center text-slate-700 font-bold border-b border-slate-200/60 pb-1.5 text-[11px]">
+                      <span>Service Description</span>
+                      <span>Amount</span>
+                    </div>
+                    <div className="flex justify-between items-start text-slate-700">
+                      <div>
+                        <span className="font-bold text-xs block">{selectedBookingForInvoice.kennelType} Stay</span>
+                        <span className="text-[11px] text-slate-500 block">
+                          {selectedBookingForInvoice.nights || 1} Night(s) Accommodation ({selectedBookingForInvoice.checkInDate} to {selectedBookingForInvoice.checkOutDate})
+                        </span>
+                        {selectedBookingForInvoice.dietaryNotes && (
+                          <span className="text-[10px] text-slate-400 block mt-0.5">
+                            Care Routine: {selectedBookingForInvoice.dietaryNotes}
+                          </span>
+                        )}
+                      </div>
+                      <span className="font-bold text-xs">
+                        ₹{((selectedBookingForInvoice.totalPrice || 0) / 1.18).toFixed(2)}
+                      </span>
+                    </div>
+
+                    <div className="flex justify-between items-center text-[11px] text-slate-500 pt-1">
+                      <span>CGST (9%)</span>
+                      <span>₹{(((selectedBookingForInvoice.totalPrice || 0) / 1.18) * 0.09).toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between items-center text-[11px] text-slate-500">
+                      <span>SGST (9%)</span>
+                      <span>₹{(((selectedBookingForInvoice.totalPrice || 0) / 1.18) * 0.09).toFixed(2)}</span>
+                    </div>
+
+                    <div className="flex justify-between items-center text-sm font-black text-[#0F2E23] pt-2 border-t border-slate-200">
+                      <div className="flex items-center gap-1.5">
+                        <span>Total Paid</span>
+                        <span className="text-[10px] font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full">
+                          PAID IN FULL
+                        </span>
+                      </div>
+                      <span className="text-base text-emerald-700 font-black">
+                        ₹{(selectedBookingForInvoice.totalPrice || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Modal Actions */}
+                <div className="flex flex-col sm:flex-row items-center justify-between gap-3 mt-6 pt-4 border-t border-slate-100">
+                  <span className="text-[10px] text-slate-400 font-medium">
+                    Official GST-compliant digital tax invoice & payment receipt
+                  </span>
+                  <div className="flex items-center gap-2 w-full sm:w-auto">
+                    <button 
+                      type="button"
+                      onClick={() => handlePrintInvoice(selectedBookingForInvoice)}
+                      className="flex-1 sm:flex-initial px-4 py-2.5 rounded-xl border border-slate-200 text-slate-700 hover:bg-slate-50 text-xs font-black uppercase tracking-wider flex items-center justify-center gap-1.5 transition cursor-pointer"
+                    >
+                      <Printer size={14} /> Print Receipt
+                    </button>
+                    <button 
+                      type="button"
+                      onClick={() => handleDownloadInvoice(selectedBookingForInvoice)}
+                      className="flex-1 sm:flex-initial px-4 py-2.5 rounded-xl bg-[#0F2E23] hover:bg-[#163e30] text-white text-xs font-black uppercase tracking-wider flex items-center justify-center gap-1.5 shadow-md transition cursor-pointer"
+                    >
+                      <Download size={14} /> Download Bill
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
           )}
@@ -1671,7 +1915,7 @@ const HostelProviderContent = ({ activeTab }) => {
               )}
 
               {/* Chat Messages Body */}
-              <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4">
+              <div ref={chatContainerRef} className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4">
                 {activeInquiry?.messages.map((msg) => {
                   const isProvider = msg.sender === 'provider';
                   return (
@@ -2478,15 +2722,11 @@ const HostelProviderContent = ({ activeTab }) => {
               <h2 className="text-xl font-black text-[#0F2E23]">Resort Registration & Profile</h2>
               <p className="text-sm text-slate-500 font-medium mt-1">Manage your professional details and resort amenities.</p>
             </div>
-            <button 
-              onClick={() => {
-                saveProfileState(profile);
-                toast.success('Resort profile saved successfully!');
-              }}
-              className="px-6 py-2.5 bg-[#0F2E23] hover:bg-[#163e30] text-white rounded-xl text-xs font-black uppercase tracking-widest shadow-md flex items-center gap-2 transition cursor-pointer"
-            >
-              <Save size={16} /> Save & Publish
-            </button>
+            <div className="flex items-center gap-2">
+              <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-bold">
+                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Published & Verified
+              </span>
+            </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -2541,6 +2781,23 @@ const HostelProviderContent = ({ activeTab }) => {
                 <textarea name="bio" value={profile.bio} onChange={handleProfileChange} rows="4" className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm font-medium text-slate-800 focus:outline-none focus:border-emerald-500 transition shadow-sm resize-none" placeholder="Tell pet parents about your boarding facility..."></textarea>
               </div>
             </div>
+          </div>
+
+          {/* Bottom Action - Save & Publish Button placed at the end of the form */}
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-6 border-t border-slate-200">
+            <p className="text-xs text-slate-400 font-medium">
+              All registration changes are published immediately to the public boarding directory.
+            </p>
+            <button 
+              type="button"
+              onClick={() => {
+                saveProfileState(profile);
+                toast.success('Resort profile saved and published successfully!');
+              }}
+              className="w-full sm:w-auto px-8 py-3.5 bg-[#0F2E23] hover:bg-[#163e30] text-white rounded-2xl text-xs font-black uppercase tracking-widest shadow-md hover:shadow-lg flex items-center justify-center gap-2 transition cursor-pointer"
+            >
+              <Save size={18} /> Save & Publish
+            </button>
           </div>
         </div>
       )}

@@ -4,7 +4,8 @@ import { useSelector, useDispatch } from 'react-redux';
 import { Search, Heart, ShoppingBag, ShoppingCart, Store, Menu, X, ChevronDown, User, LogOut, PawPrint, Briefcase, Lock, ShieldAlert, Home, Scissors, Footprints, Truck, GraduationCap, Stethoscope } from 'lucide-react';
 import SearchOverlay from './SearchOverlay.jsx';
 import CartDrawer from './CartDrawer.jsx';
-import { logout } from '../../store/slices/authSlice.js';
+import { logout, openAuthModal } from '../../store/slices/authSlice.js';
+import { openCart, closeCart, setCartOpen } from '../../store/slices/cartSlice.js';
 import { isServicePathLockedForUser } from '../ui/ServiceAccessLock.jsx';
 import toast from 'react-hot-toast';
 import LogoutConfirmModal from '../ui/LogoutConfirmModal.jsx';
@@ -29,6 +30,27 @@ const Navbar = () => {
   const { isAuthenticated, user } = useSelector((state) => state.auth);
   const cartItems = useSelector((state) => state.cart.items);
   const wishlistItems = useSelector((state) => state.wishlist.items);
+
+  const reduxCartOpen = useSelector((state) => state.cart?.isCartOpen);
+
+  useEffect(() => {
+    if (typeof reduxCartOpen === 'boolean') {
+      setIsCartOpen(reduxCartOpen);
+    }
+  }, [reduxCartOpen]);
+
+  useEffect(() => {
+    const handleOpenCart = () => {
+      setIsCartOpen(true);
+      dispatch(setCartOpen(true));
+    };
+    window.addEventListener('open-cart-drawer', handleOpenCart);
+    window.addEventListener('josh_open_cart', handleOpenCart);
+    return () => {
+      window.removeEventListener('open-cart-drawer', handleOpenCart);
+      window.removeEventListener('josh_open_cart', handleOpenCart);
+    };
+  }, [dispatch]);
 
   // Monitor scroll for compact header transitions with RAF and passive listener
   useEffect(() => {
@@ -423,9 +445,20 @@ const Navbar = () => {
               </button>
 
               {/* Wishlist Icon */}
-              <Link
-                to="/wishlist"
-                className="p-1 text-white hover:text-accent-light transition relative"
+              <button
+                type="button"
+                onClick={() => {
+                  if (!isAuthenticated) {
+                    window.dispatchEvent(
+                      new CustomEvent('open-register-modal', {
+                        detail: { tab: 'user', hideProviderTab: true, source: 'wishlist' }
+                      })
+                    );
+                  } else {
+                    navigate('/wishlist');
+                  }
+                }}
+                className="p-1 text-white hover:text-accent-light transition relative cursor-pointer"
                 title="My Wishlist"
               >
                 <Heart size={18} />
@@ -434,11 +467,22 @@ const Navbar = () => {
                     {wishlistItems.length}
                   </span>
                 )}
-              </Link>
+              </button>
 
               {/* Cart Icon (Hidden on mobile since it's in bottom nav) */}
               <button
-                onClick={() => setIsCartOpen(true)}
+                type="button"
+                onClick={() => {
+                  if (!isAuthenticated) {
+                    window.dispatchEvent(
+                      new CustomEvent('open-register-modal', {
+                        detail: { tab: 'user', hideProviderTab: true, source: 'cart' }
+                      })
+                    );
+                  } else {
+                    setIsCartOpen(true);
+                  }
+                }}
                 className="hidden md:block p-1 text-white hover:text-accent-light transition relative cursor-pointer"
                 title="Open Cart"
               >
@@ -697,7 +741,22 @@ const Navbar = () => {
                 </div>
 
                 <Link to="/shop" onClick={() => setIsMobileMenuOpen(false)} className="block py-3 hover:text-accent-light border-b border-white/5">Shop</Link>
-                <Link to="/wishlist" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center justify-between py-3 hover:text-accent-light border-b border-white/5">
+                <button 
+                  type="button"
+                  onClick={() => {
+                    setIsMobileMenuOpen(false);
+                    if (!isAuthenticated) {
+                      window.dispatchEvent(
+                        new CustomEvent('open-register-modal', {
+                          detail: { tab: 'user', hideProviderTab: true, source: 'wishlist-mobile' }
+                        })
+                      );
+                    } else {
+                      navigate('/wishlist');
+                    }
+                  }} 
+                  className="w-full flex items-center justify-between py-3 hover:text-accent-light border-b border-white/5 text-left text-white cursor-pointer"
+                >
                   <span className="flex items-center gap-2">
                     <Heart size={15} /> Wishlist
                   </span>
@@ -706,7 +765,7 @@ const Navbar = () => {
                       {wishlistItems.length}
                     </span>
                   )}
-                </Link>
+                </button>
                 <Link to="/pet-care" onClick={() => setIsMobileMenuOpen(false)} className="block py-3 hover:text-accent-light border-b border-white/5">Blog</Link>
                 <Link to="/contact" onClick={() => setIsMobileMenuOpen(false)} className="block py-3 hover:text-accent-light border-b border-white/5">Contact Us</Link>
               </div>
@@ -782,8 +841,19 @@ const Navbar = () => {
 
           {/* Center Floating Cart Button */}
           <button 
-            onClick={() => setIsCartOpen(true)}
-            className="relative flex flex-col items-center justify-center shrink-0 -mt-8 bg-primary text-white w-[60px] h-[60px] rounded-full shadow-[0_8px_25px_rgba(0,0,0,0.15)] border-[5px] border-white active:scale-95 transition-transform z-50"
+            type="button"
+            onClick={() => {
+              if (!isAuthenticated) {
+                window.dispatchEvent(
+                  new CustomEvent('open-register-modal', {
+                    detail: { tab: 'user', hideProviderTab: true, source: 'cart-mobile' }
+                  })
+                );
+              } else {
+                setIsCartOpen(true);
+              }
+            }}
+            className="relative flex flex-col items-center justify-center shrink-0 -mt-8 bg-primary text-white w-[60px] h-[60px] rounded-full shadow-[0_8px_25px_rgba(0,0,0,0.15)] border-[5px] border-white active:scale-95 transition-transform z-50 cursor-pointer"
           >
             <ShoppingCart size={22} className="relative z-10" />
             {cartItems.length > 0 && (
@@ -820,7 +890,7 @@ const Navbar = () => {
         userName={user?.name}
       />
       <SearchOverlay isOpen={isSearchOpen} onClose={() => setIsSearchOpen(false)} />
-      <CartDrawer isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} />
+      <CartDrawer isOpen={isCartOpen} onClose={() => { setIsCartOpen(false); dispatch(setCartOpen(false)); }} />
     </>
   );
 };

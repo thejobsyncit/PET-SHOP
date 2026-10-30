@@ -31,12 +31,14 @@ import chatRoutes from './routes/chatRoutes.js';
 import enquiryRoutes from './routes/enquiryRoutes.js';
 import paymentRoutes from './routes/paymentRoutes.js';
 import cookieConsentRoutes from './routes/cookieConsentRoutes.js';
+import subscriptionRoutes from './routes/subscriptionRoutes.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Load env vars
-dotenv.config();
+// Load env vars from both server/.env and root .env
+dotenv.config({ path: path.resolve(__dirname, '../.env') });
+dotenv.config({ path: path.resolve(__dirname, '.env'), override: true });
 
 // Production Secrets Gatekeeper: Fail fast if critical secrets are missing in production
 if (process.env.NODE_ENV === 'production') {
@@ -152,6 +154,7 @@ app.use('/api/chats', chatRoutes);
 app.use('/api/enquiries', enquiryRoutes);
 app.use('/api/payments', paymentRoutes);
 app.use('/api/cookie-consents', cookieConsentRoutes);
+app.use('/api/subscriptions', subscriptionRoutes);
 
 // Health check endpoint
 app.get('/health', (req, res) => {
@@ -161,7 +164,7 @@ app.get('/health', (req, res) => {
 // Error handling middleware (MUST be last)
 app.use(errorHandler);
 
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 5001;
 
 const server = app.listen(PORT, '0.0.0.0', () => {
   console.log(`JOSH PETS HUB Express Server running on port ${PORT} [Database: Supabase Backend]`);
@@ -172,4 +175,4 @@ process.on('unhandledRejection', (err) => {
   server.close(() => process.exit(1));
 });
 
-export default app;
+export default app;

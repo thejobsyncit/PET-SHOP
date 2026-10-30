@@ -1198,13 +1198,13 @@ const AdminDashboard = () => {
                     </thead>
                     <tbody className="divide-y divide-[#E3EBE5] text-xs">
                       {enquiriesList.map((e) => (
-                        <tr key={e._id} className="hover:bg-[#FAFBF9] transition">
+                        <tr key={e._id || e.id || e.createdAt} className="hover:bg-[#FAFBF9] transition">
                           <td className="p-3 font-semibold text-primary">{e.name}</td>
                           <td className="p-3 font-semibold text-gray-500">{e.email}</td>
                           <td className="p-3 font-bold text-accent">{e.subject}</td>
                           <td className="p-3 text-gray-600 max-w-sm leading-relaxed">{e.message}</td>
                           <td className="p-3 text-right text-gray-400">
-                            {e.createdAt ? new Date(e.createdAt).toLocaleString() : 'Aug 28, 2026'}
+                            {e.createdAt || e.created_at ? new Date(e.createdAt || e.created_at).toLocaleString() : 'Recent'}
                           </td>
                         </tr>
                       ))}

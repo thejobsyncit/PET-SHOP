@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { Heart, ShoppingBag, Eye, ShieldAlert, Check, X, ClipboardList, Minus, Plus } from 'lucide-react';
 import { addToCartAPI } from '../../store/slices/cartSlice.js';
 import { toggleWishlistAPI } from '../../store/slices/wishlistSlice.js';
+import { openAuthModal } from '../../store/slices/authSlice.js';
 import RatingStars from './RatingStars.jsx';
 import toast from 'react-hot-toast';
 
@@ -13,10 +14,18 @@ const ProductCard = ({ product }) => {
   const [hovered, setHovered] = useState(false);
   const [quickViewOpen, setQuickViewOpen] = useState(false);
   const [quantity, setQuantity] = useState(1);
+  const [isAdding, setIsAdding] = useState(false);
   
+  const { isAuthenticated } = useSelector((state) => state.auth);
   const wishlistItems = useSelector((state) => state.wishlist.items);
+  const cartItems = useSelector((state) => state.cart.items || []);
   const productId = product._id || product.id;
   const isWishlisted = wishlistItems.some(item => (item._id || item.id) === productId);
+  const pStock = typeof product.stock === 'number'
+    ? Math.max(0, product.stock)
+    : (product.stock !== undefined && product.stock !== null && !isNaN(Number(product.stock))
+        ? Math.max(0, Number(product.stock))
+        : 999);
 
   const handleToggleWishlist = async (e) => {
     e.stopPropagation();
@@ -36,7 +45,7 @@ const ProductCard = ({ product }) => {
 
   const handleQuickAdd = async (e) => {
     e.stopPropagation();
-    if (product.stock === 0) return;
+    if (pStock === 0 || isAdding) return;
     
     if (product.requiresPrescription || product.requires_prescription) {
       toast('Prescription required! Redirecting to detail page...', { icon: '📝' });
@@ -45,15 +54,29 @@ const ProductCard = ({ product }) => {
       return;
     }
 
+    const existingInCart = cartItems.find(item => {
+      const itemId = typeof item?.product === 'object' ? (item.product?._id || item.product?.id) : item?.product;
+      return String(itemId) === String(productId);
+    });
+    const currentInCartQty = existingInCart ? Number(existingInCart.quantity) || 0 : 0;
+
+    if (currentInCartQty >= pStock) {
+      toast.error(`Maximum available stock (${pStock} unit${pStock === 1 ? '' : 's'}) already in cart.`);
+      return;
+    }
+
+    setIsAdding(true);
     try {
       const result = await dispatch(addToCartAPI({ product, quantity: 1 }));
       if (addToCartAPI.fulfilled.match(result)) {
         toast.success('Added to cart!');
-      } else {
-        toast.error('Could not add to cart.');
+      } else if (result.payload && !String(result.payload).includes('reached')) {
+        toast.error(result.payload || 'Could not add to cart.');
       }
     } catch (_) {
       toast.error('Could not add to cart.');
+    } finally {
+      setIsAdding(false);
     }
   };
 
@@ -64,10 +87,12 @@ const ProductCard = ({ product }) => {
 
   const handleOpenQuickView = (e) => {
     e.stopPropagation();
+    setQuantity(1);
     setQuickViewOpen(true);
   };
 
   const handleQuickViewAddToCart = async () => {
+    if (isAdding) return;
     if (product.requiresPrescription || product.requires_prescription) {
       setQuickViewOpen(false);
       toast('Prescription required! Redirecting to detail page...', { icon: '📝' });
@@ -75,16 +100,32 @@ const ProductCard = ({ product }) => {
       navigate(`/product/${targetSlug}`);
       return;
     }
+
+    const existingInCart = cartItems.find(item => {
+      const itemId = typeof item?.product === 'object' ? (item.product?._id || item.product?.id) : item?.product;
+      return String(itemId) === String(productId);
+    });
+    const currentInCartQty = existingInCart ? Number(existingInCart.quantity) || 0 : 0;
+
+    if (currentInCartQty >= pStock) {
+      toast.error(`Maximum available stock (${pStock} unit${pStock === 1 ? '' : 's'}) already in cart.`);
+      return;
+    }
+
+    const safeQty = Math.max(1, Math.min(pStock - currentInCartQty, parseInt(quantity, 10) || 1));
     setQuickViewOpen(false);
+    setIsAdding(true);
     try {
-      const result = await dispatch(addToCartAPI({ product, quantity }));
+      const result = await dispatch(addToCartAPI({ product, quantity: safeQty }));
       if (addToCartAPI.fulfilled.match(result)) {
         toast.success('Added to cart!');
-      } else {
-        toast.error('Could not add to cart.');
+      } else if (result.payload && !String(result.payload).includes('reached')) {
+        toast.error(result.payload || 'Could not add to cart.');
       }
     } catch (_) {
       toast.error('Could not add to cart.');
+    } finally {
+      setIsAdding(false);
     }
   };
 
@@ -161,9 +202,9 @@ const ProductCard = ({ product }) => {
             </button>
             <button
               onClick={handleQuickAdd}
-              disabled={product.stock === 0}
+              disabled={product.stock === 0 || isAdding}
               className={`p-3.5 rounded-full shadow-[0_8px_30px_rgb(0,0,0,0.12)] transition-all duration-300 transform translate-y-8 group-hover:translate-y-0 cursor-pointer hover:scale-110 ${
-                product.stock === 0 
+                (product.stock === 0 || isAdding)
                   ? 'bg-gray-200/90 text-gray-400 cursor-not-allowed' 
                   : 'bg-primary/95 text-white hover:bg-primary'
               }`}
@@ -299,7 +340,9 @@ const ProductCard = ({ product }) => {
                 <div className="flex items-center border border-beige">
                   <button 
                     onClick={() => setQuantity(q => Math.max(1, q - 1))}
-                    className="px-3 py-2 text-gray-500 hover:bg-gray-100 cursor-pointer"
+                    disabled={pStock === 0 || quantity <= 1}
+                    className="px-3 py-2 text-gray-500 hover:bg-gray-100 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+                    title="Decrease quantity"
                   >
                     <Minus size={14} />
                   </button>
@@ -307,9 +350,16 @@ const ProductCard = ({ product }) => {
                     {quantity}
                   </span>
                   <button 
-                    onClick={() => setQuantity(q => Math.min(product.stock, q + 1))}
-                    disabled={quantity >= product.stock}
-                    className={`px-3 py-2 ${quantity >= product.stock ? 'text-gray-300 cursor-not-allowed' : 'text-gray-500 hover:bg-gray-100 cursor-pointer'}`}
+                    onClick={() => {
+                      if (quantity >= pStock) {
+                        toast.error(`Only ${pStock} unit${pStock === 1 ? '' : 's'} available in stock.`);
+                        return;
+                      }
+                      setQuantity(q => Math.min(pStock, q + 1));
+                    }}
+                    disabled={pStock === 0 || quantity >= pStock}
+                    className="px-3 py-2 text-gray-500 hover:bg-gray-100 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+                    title={quantity >= pStock ? `Only ${pStock} unit${pStock === 1 ? '' : 's'} available in stock` : 'Increase quantity'}
                   >
                     <Plus size={14} />
                   </button>
@@ -317,10 +367,10 @@ const ProductCard = ({ product }) => {
 
                 <button
                   onClick={handleQuickViewAddToCart}
-                  disabled={product.stock === 0}
-                  className="flex-grow btn-premium py-2.5 text-xs text-center justify-center gap-2"
+                  disabled={pStock === 0 || isAdding}
+                  className="flex-grow btn-premium py-2.5 text-xs text-center justify-center gap-2 disabled:bg-gray-200 disabled:text-gray-400 disabled:cursor-not-allowed"
                 >
-                  <ShoppingBag size={16} /> ADD TO CART
+                  <ShoppingBag size={16} /> {isAdding ? 'ADDING...' : 'ADD TO CART'}
                 </button>
               </div>
             </div>

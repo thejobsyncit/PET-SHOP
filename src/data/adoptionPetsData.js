@@ -857,15 +857,15 @@ export const getGuardianListedPets = (user) => {
   if (!user) return [];
   try {
     const allPets = getStoredAdoptionPets() || [];
-    const userId = String(user._id || user.id || '');
+    const userId = String(user._id || user.id || '').trim();
     const userEmail = String(user.email || '').toLowerCase().trim();
     const userPhoneClean = String(user.mobile || user.phone || '').replace(/\D/g, '');
 
-    return allPets.filter((pet) => {
+    const matchedPets = allPets.filter((pet) => {
       if (!pet) return false;
-      const petOwnerId = String(pet.ownerId || '');
-      const petOwnerEmail = String(pet.ownerEmail || '').toLowerCase().trim();
-      const petOwnerPhone = String(pet.ownerPhone || pet.parentContact || '').replace(/\D/g, '');
+      const petOwnerId = String(pet.ownerId || pet.userId || pet.creatorId || '').trim();
+      const petOwnerEmail = String(pet.ownerEmail || pet.email || '').toLowerCase().trim();
+      const petOwnerPhone = String(pet.ownerPhone || pet.parentContact || pet.mobile || pet.phone || '').replace(/\D/g, '');
 
       const idMatch = userId && petOwnerId && petOwnerId === userId;
       const emailMatch = userEmail && petOwnerEmail && petOwnerEmail === userEmail;
@@ -877,10 +877,136 @@ export const getGuardianListedPets = (user) => {
 
       return idMatch || emailMatch || phoneMatch;
     });
+
+    // Also include any active pets in Free Adoption Registry for this user
+    try {
+      const registry = getFreeAdoptionRegistry() || [];
+      const regMatches = registry.filter((r) => {
+        if (!r) return false;
+        const rId = String(r.userId || '').trim();
+        const rEmail = String(r.userEmail || '').toLowerCase().trim();
+        const rPhone = String(r.userPhone || '').replace(/\D/g, '');
+
+        const idMatch = userId && rId && rId === userId;
+        const emailMatch = userEmail && rEmail && rEmail === userEmail;
+        const phoneMatch = userPhoneClean.length >= 10 && rPhone && (
+          rPhone === userPhoneClean ||
+          rPhone.endsWith(userPhoneClean) ||
+          userPhoneClean.endsWith(rPhone)
+        );
+
+        return idMatch || emailMatch || phoneMatch;
+      });
+
+      regMatches.forEach((reg) => {
+        const alreadyIncluded = matchedPets.some(
+          (p) =>
+            String(p.id) === String(reg.petId) ||
+            String(p.name).toLowerCase().trim() === String(reg.petName).toLowerCase().trim()
+        );
+        if (!alreadyIncluded) {
+          const foundInAll = allPets.find((p) => String(p.id) === String(reg.petId));
+          if (foundInAll) {
+            matchedPets.push(foundInAll);
+          } else {
+            matchedPets.push({
+              id: reg.petId,
+              name: reg.petName,
+              breed: reg.petBreed,
+              image: reg.petImage,
+              city: reg.petCity,
+              createdAt: reg.createdAt,
+              ownerId: reg.userId,
+              ownerEmail: reg.userEmail,
+              ownerPhone: reg.userPhone
+            });
+          }
+        }
+      });
+    } catch (regErr) {
+      console.warn('Registry match check in getGuardianListedPets:', regErr);
+    }
+
+    return matchedPets;
   } catch (e) {
     console.error('Error in getGuardianListedPets:', e);
     return [];
   }
+};
+
+// Check if an application belongs to a specific pet listed by the guardian
+export const isPetApplicantMatch = (app, pet, allGuardianPets = []) => {
+  if (!app || !pet) return false;
+
+  const appPetId = String(app.petId || app.pet_id || app.pet?.id || app.pet?._id || '').trim();
+  const petId = String(pet.id || pet.petId || '').trim();
+  const petMongoId = String(pet._id || '').trim();
+
+  // 1. Direct ID match
+  if (appPetId && (
+    (petId && appPetId === petId) ||
+    (petMongoId && appPetId === petMongoId)
+  )) {
+    return true;
+  }
+
+  // 2. Normalized ID match (e.g. 'adopt_1' vs '1')
+  const cleanAppId = appPetId.replace(/^(adopt_|pet_)/i, '');
+  const cleanPetId = petId.replace(/^(adopt_|pet_)/i, '');
+  const cleanMongoId = petMongoId.replace(/^(adopt_|pet_)/i, '');
+  if (cleanAppId && (
+    (cleanPetId && cleanAppId === cleanPetId) ||
+    (cleanMongoId && cleanAppId === cleanMongoId)
+  )) {
+    return true;
+  }
+
+  // 3. Match by Pet Name (case-insensitive)
+  const appPetName = String(app.petName || app.pet?.name || '').trim().toLowerCase();
+  const petName = String(pet.name || '').trim().toLowerCase();
+  if (appPetName && petName && appPetName === petName) {
+    return true;
+  }
+
+  // 4. If guardian has only 1 listed pet, all applications for this guardian belong to that pet
+  if (allGuardianPets && allGuardianPets.length === 1) {
+    return true;
+  }
+
+  // 5. If guardian has multiple pets, check if this app belongs to another pet
+  if (allGuardianPets && allGuardianPets.length > 1) {
+    const matchesAnotherPet = allGuardianPets.some((other) => {
+      const otherKey = String(other.id || other._id || '');
+      const currentKey = String(pet.id || pet._id || '');
+      if (otherKey === currentKey) return false;
+
+      const otherPetId = String(other.id || other.petId || '').trim();
+      const otherMongoId = String(other._id || '').trim();
+      const cleanOtherPetId = otherPetId.replace(/^(adopt_|pet_)/i, '');
+      const cleanOtherMongoId = otherMongoId.replace(/^(adopt_|pet_)/i, '');
+      const otherPetName = String(other.name || '').trim().toLowerCase();
+
+      const idMatchesOther = Boolean(
+        appPetId && (
+          (otherPetId && appPetId === otherPetId) ||
+          (otherMongoId && appPetId === otherMongoId) ||
+          (cleanOtherPetId && cleanAppId === cleanOtherPetId) ||
+          (cleanOtherMongoId && cleanAppId === cleanOtherMongoId)
+        )
+      );
+
+      const nameMatchesOther = Boolean(appPetName && otherPetName && appPetName === otherPetName);
+
+      return idMatchesOther || nameMatchesOther;
+    });
+
+    if (!matchesAnotherPet) {
+      const isFirstPet = String(allGuardianPets[0]?.id || allGuardianPets[0]?._id) === String(pet.id || pet._id);
+      if (isFirstPet) return true;
+    }
+  }
+
+  return false;
 };
 
 // Get all applications received FOR pets listed by this guardian
@@ -888,19 +1014,40 @@ export const getGuardianAdoptionApplications = (user) => {
   if (!user) return [];
   try {
     const guardianPets = getGuardianListedPets(user) || [];
-    const guardianPetIds = new Set(guardianPets.map((p) => String(p?.id || '')));
+    const guardianPetIds = new Set(
+      guardianPets.flatMap((p) => [
+        String(p?.id || ''),
+        String(p?._id || ''),
+        String(p?.petId || ''),
+        String(p?.id || '').replace(/^(adopt_|pet_)/i, ''),
+        String(p?._id || '').replace(/^(adopt_|pet_)/i, '')
+      ]).filter(Boolean)
+    );
+    const guardianPetNames = new Set(
+      guardianPets.map((p) => String(p?.name || '').trim().toLowerCase()).filter(Boolean)
+    );
 
     const allApps = getStoredAdoptionApplications() || [];
-    const userId = String(user._id || user.id || '');
+    const userId = String(user._id || user.id || '').trim();
     const userEmail = String(user.email || '').toLowerCase().trim();
     const userPhoneClean = String(user.mobile || user.phone || '').replace(/\D/g, '');
 
     return allApps.filter((app) => {
       if (!app) return false;
-      if (app.petId && guardianPetIds.has(String(app.petId))) {
+      const appPetId = String(app.petId || app.pet_id || app.pet?.id || app.pet?._id || '').trim();
+      const cleanAppPetId = appPetId.replace(/^(adopt_|pet_)/i, '');
+      const appPetName = String(app.petName || app.pet?.name || '').trim().toLowerCase();
+
+      // Check if pet ID or Pet Name matches any of guardian's listed pets
+      if (appPetId && (guardianPetIds.has(appPetId) || guardianPetIds.has(cleanAppPetId))) {
         return true;
       }
-      const gId = String(app.guardianId || '');
+      if (appPetName && guardianPetNames.has(appPetName)) {
+        return true;
+      }
+
+      // Check guardian contact or ID match
+      const gId = String(app.guardianId || '').trim();
       const gEmail = String(app.guardianEmail || '').toLowerCase().trim();
       const gPhoneClean = String(app.guardianPhone || '').replace(/\D/g, '');
 

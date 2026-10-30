@@ -81,6 +81,15 @@ const SuperAdminDashboard = () => {
     }
   }, [isAuthenticated, user]);
 
+  useEffect(() => {
+    if (activeSection === 'enquiries') {
+      loadEnquiries();
+    }
+    if (activeSection === 'consents') {
+      loadConsents();
+    }
+  }, [activeSection]);
+
   const loadStats = async () => {
     setLoading(true);
     try {
@@ -196,10 +205,29 @@ const SuperAdminDashboard = () => {
     try {
       const data = await apiRequest('/enquiries');
       if (data && data.success) {
-        setEnquiriesList(Array.isArray(data.enquiries) ? data.enquiries : []);
+        const list = Array.isArray(data.enquiries) ? data.enquiries : [];
+        setEnquiriesList(list);
+        setStats(prev => prev ? { ...prev, enquiriesCount: list.length } : prev);
       }
     } catch (err) {
       console.error(err);
+    }
+  };
+
+  const handleDeleteEnquiry = async (id) => {
+    if (!id) return;
+    if (!window.confirm('Are you sure you want to delete this enquiry?')) return;
+    try {
+      const data = await apiRequest(`/enquiries/${id}`, { method: 'DELETE' });
+      if (data && data.success) {
+        toast.success('Enquiry message removed');
+        setEnquiriesList(prev => prev.filter(e => (e._id || e.id) !== id));
+        setStats(prev => prev ? { ...prev, enquiriesCount: Math.max(0, (prev.enquiriesCount || 1) - 1) } : prev);
+      } else {
+        throw new Error(data?.message || 'Failed to delete');
+      }
+    } catch (err) {
+      toast.error(err.message || 'Failed to delete enquiry');
     }
   };
 
@@ -605,10 +633,10 @@ const SuperAdminDashboard = () => {
 
   // RENDER DYNAMIC EXECUTIVE CONSOLE FOR LOGGED-IN ADMINS WITH VERTICAL SIDEBAR
   return (
-    <div className="min-h-screen bg-[#F4F6F4] flex flex-col lg:flex-row">
+    <div className="min-h-screen lg:h-screen bg-[#F4F6F4] flex flex-col lg:flex-row overflow-hidden">
 
       {/* 1. LEFT SIDEBAR PANEL (Width 250px) */}
-      <aside className="w-full lg:w-64 bg-gradient-to-b from-[#1D3B2E] to-[#0F2E23] text-white flex flex-col shrink-0 border-r border-white/5 shadow-2xl relative z-40">
+      <aside className="w-full lg:w-64 bg-gradient-to-b from-[#1D3B2E] to-[#0F2E23] text-white flex flex-col shrink-0 border-r border-white/5 shadow-2xl relative z-40 lg:h-screen lg:overflow-y-auto">
         
         {/* Logo & Mobile Toggle */}
         <div className="p-4 lg:p-6 border-b border-[#2E5947]/50 flex justify-between items-center">
@@ -682,10 +710,10 @@ const SuperAdminDashboard = () => {
       </aside>
 
       {/* 2. RIGHT VIEW MAIN CONSOLE */}
-      <main className="flex-grow p-4 lg:p-8 overflow-y-auto lg:max-h-screen">
+      <main className="flex-grow flex flex-col h-full min-w-0 overflow-hidden">
 
         {/* Top bar Header */}
-        <div className="sticky top-0 z-30 bg-[#F4F6F4]/90 backdrop-blur-md flex flex-col md:flex-row justify-between items-start md:items-center border-b border-[#E3EBE5] pb-4 pt-4 mb-8 -mx-4 lg:-mx-8 px-4 lg:px-8 -mt-4 lg:-mt-8 shadow-sm gap-4">
+        <div className="shrink-0 bg-[#F4F6F4] border-b border-[#E3EBE5] px-4 lg:px-8 py-5 flex flex-col md:flex-row justify-between items-start md:items-center shadow-xs gap-4 z-20">
           <div>
             <span className="text-[10px] uppercase tracking-widest text-[#7CA085] font-bold block">ADMINISTRATION PORTAL</span>
             <h2 className="font-serif text-3xl text-primary font-bold mt-1">
@@ -720,6 +748,9 @@ const SuperAdminDashboard = () => {
             </button>
           </div>
         </div>
+
+        {/* Scrollable Main Content Area */}
+        <div className="flex-grow p-4 lg:p-8 overflow-y-auto min-h-0">
 
         {loading ? (
           <div className="text-center py-10 lg:py-20">
@@ -1294,104 +1325,165 @@ const SuperAdminDashboard = () => {
             {/* PILLAR TAB 9: CONTACT ENQUIRIES MANAGER */}
             {activeSection === 'enquiries' && (
               <div className="space-y-6 animate-in fade-in duration-200">
-                <h2 className="font-serif text-lg font-bold text-primary border-b border-[#E3EBE5] pb-3">Contact Form Submissions ({(enquiriesList || []).length})</h2>
-
-                <div className="card-premium overflow-x-auto">
-                  <table className="w-full text-left text-xs border-collapse">
-                    <thead>
-                      <tr className="bg-[#F1F6F2] text-primary font-bold border-b border-[#E3EBE5]">
-                        <th className="p-4 uppercase tracking-wider text-[10px]">Sender Name</th>
-                        <th className="p-4 uppercase tracking-wider text-[10px]">Email Address</th>
-                        <th className="p-4 uppercase tracking-wider text-[10px]">Subject</th>
-                        <th className="p-4 uppercase tracking-wider text-[10px]">Message Body</th>
-                        <th className="p-4 uppercase tracking-wider text-[10px] text-right">Date Received</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-[#E3EBE5] text-xs">
-                      {enquiriesList.map((e) => (
-                        <tr key={e._id} className="hover:bg-[#F9FAF9] transition-colors duration-300">
-                          <td className="p-4 font-semibold text-primary">{e.name}</td>
-                          <td className="p-4 font-semibold text-gray-500">{e.email}</td>
-                          <td className="p-3 font-bold text-accent">{e.subject}</td>
-                          <td className="p-3 text-gray-600 max-w-sm leading-relaxed">{e.message}</td>
-                          <td className="p-3 text-right text-gray-400">
-                            {e.createdAt ? new Date(e.createdAt).toLocaleString() : 'Aug 28, 2026'}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                <div className="flex flex-wrap items-center justify-between gap-4 border-b border-[#E3EBE5] pb-3">
+                  <div>
+                    <h2 className="font-serif text-lg font-bold text-primary">Contact Form Submissions ({(enquiriesList || []).length})</h2>
+                    <p className="text-xs text-gray-500 mt-0.5">Real-time incoming customer questions, prescription support messages, and service enquiries.</p>
+                  </div>
+                  <button
+                    onClick={loadEnquiries}
+                    className="btn-secondary-premium !py-1.5 !px-3 !text-[10px] flex items-center gap-1.5 cursor-pointer"
+                    title="Reload latest enquiries"
+                  >
+                    <RefreshCw size={12} /> Refresh Messages
+                  </button>
                 </div>
+
+                {(!enquiriesList || enquiriesList.length === 0) ? (
+                  <div className="p-12 text-center text-gray-500 bg-white rounded-xl border border-dashed border-[#E3EBE5] space-y-2">
+                    <Mail size={36} className="mx-auto text-gray-300" />
+                    <p className="font-bold text-sm text-primary">No Contact Enquiries Received Yet</p>
+                    <p className="text-xs text-gray-400 max-w-sm mx-auto">Customer queries submitted via the "Send a Secure Message" form on the Contact page will be instantly logged here.</p>
+                  </div>
+                ) : (
+                  <div className="card-premium overflow-x-auto">
+                    <table className="w-full text-left text-xs border-collapse">
+                      <thead>
+                        <tr className="bg-[#F1F6F2] text-primary font-bold border-b border-[#E3EBE5]">
+                          <th className="p-4 uppercase tracking-wider text-[10px]">Sender Name</th>
+                          <th className="p-4 uppercase tracking-wider text-[10px]">Contact Details</th>
+                          <th className="p-4 uppercase tracking-wider text-[10px]">Subject</th>
+                          <th className="p-4 uppercase tracking-wider text-[10px]">Message Body</th>
+                          <th className="p-4 uppercase tracking-wider text-[10px]">Date Received</th>
+                          <th className="p-4 uppercase tracking-wider text-[10px] text-right">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-[#E3EBE5] text-xs">
+                        {enquiriesList.map((e) => (
+                          <tr key={e._id || e.id || e.createdAt} className="hover:bg-[#F9FAF9] transition-colors duration-200">
+                            <td className="p-4 font-semibold text-primary whitespace-nowrap">
+                              <div className="font-bold text-slate-900">{e.name}</div>
+                              {e.status && (
+                                <span className="inline-block mt-1 text-[9px] font-extrabold uppercase px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                  {e.status}
+                                </span>
+                              )}
+                            </td>
+                            <td className="p-4 text-gray-600">
+                              <a href={`mailto:${e.email}`} className="font-semibold text-primary hover:underline block">
+                                {e.email}
+                              </a>
+                              {e.phone && <div className="text-[10px] text-gray-400 mt-0.5">{e.phone}</div>}
+                            </td>
+                            <td className="p-3 font-bold text-accent">{e.subject}</td>
+                            <td className="p-3 text-gray-600 max-w-sm leading-relaxed whitespace-pre-wrap">{e.message}</td>
+                            <td className="p-3 text-gray-400 whitespace-nowrap">
+                              {e.createdAt || e.created_at ? new Date(e.createdAt || e.created_at).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' }) : 'Recent'}
+                            </td>
+                            <td className="p-3 text-right whitespace-nowrap">
+                              <div className="flex items-center justify-end gap-2">
+                                <a
+                                  href={`mailto:${e.email}?subject=Re: ${encodeURIComponent(e.subject || 'Josh Pets Hub Support')}`}
+                                  className="px-2.5 py-1 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200 rounded text-[11px] font-bold transition inline-flex items-center gap-1 cursor-pointer"
+                                  title={`Reply to ${e.name} (${e.email})`}
+                                >
+                                  <Mail size={12} /> Reply
+                                </a>
+                                <button
+                                  type="button"
+                                  onClick={() => handleDeleteEnquiry(e._id || e.id)}
+                                  className="p-1 text-red-500 hover:bg-red-50 rounded transition cursor-pointer"
+                                  title="Delete enquiry"
+                                >
+                                  <Trash size={14} />
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* PILLAR TAB 10: COOKIE CONSENTS MANAGER */}
+            {activeSection === 'consents' && (
+              <div className="space-y-6 animate-in fade-in duration-200">
+                <div className="flex justify-between items-center border-b border-[#E3EBE5] pb-3">
+                  <h2 className="font-serif text-lg font-bold text-primary">
+                    User Cookie Preferences Logs ({(consentsList || []).length})
+                  </h2>
+                </div>
+
+                {(!consentsList || consentsList.length === 0) ? (
+                  <div className="p-12 text-center text-gray-500 bg-white rounded-xl border border-dashed border-[#E3EBE5] space-y-2">
+                    <Cookie size={36} className="mx-auto text-gray-300" />
+                    <p className="font-bold text-sm text-primary">No Cookie Consent Logs Found</p>
+                    <p className="text-xs text-gray-400 max-w-sm mx-auto">Consent choices captured when visitors interact with the cookie policy banner will appear here.</p>
+                  </div>
+                ) : (
+                  <div className="bg-white rounded-2xl border border-beige/60 shadow-sm overflow-hidden">
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-left text-xs border-collapse">
+                        <thead>
+                          <tr className="bg-[#F1F6F2] text-primary font-bold border-b border-[#E3EBE5]">
+                            <th className="p-4 uppercase tracking-wider text-[10px]">Session / User IP</th>
+                            <th className="p-4 uppercase tracking-wider text-[10px]">Preferences</th>
+                            <th className="p-4 uppercase tracking-wider text-[10px]">Browser / Agent</th>
+                            <th className="p-4 uppercase tracking-wider text-[10px] text-right">Date Consented</th>
+                            <th className="p-4 uppercase tracking-wider text-[10px] text-right">Actions</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-[#E3EBE5] text-xs">
+                          {(consentsList || []).map((c) => (
+                            <tr key={c.id || c._id || c.session_id || c.sessionId} className="hover:bg-[#F9FAF9] transition-colors duration-300">
+                              <td className="p-4">
+                                <div className="font-bold text-primary truncate max-w-[150px]" title={c.session_id || c.sessionId}>
+                                  {c.session_id || c.sessionId || 'Session Log'}
+                                </div>
+                                <div className="text-[10px] text-gray-500">{c.ip_address || c.ip || 'Local / Unknown IP'}</div>
+                              </td>
+                              <td className="p-4 space-y-1">
+                                <div className="flex gap-2">
+                                  <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold ${c.preferences?.essential ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>ESSENTIAL</span>
+                                  <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold ${c.preferences?.functional ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-500'}`}>FUNCTIONAL</span>
+                                </div>
+                                <div className="flex gap-2">
+                                  <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold ${c.preferences?.analytics ? 'bg-purple-100 text-purple-700' : 'bg-gray-100 text-gray-500'}`}>ANALYTICS</span>
+                                  <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold ${c.preferences?.marketing ? 'bg-yellow-100 text-yellow-700' : 'bg-gray-100 text-gray-500'}`}>MARKETING</span>
+                                </div>
+                              </td>
+                              <td className="p-3 text-gray-600 max-w-[200px] truncate text-[10px]" title={c.user_agent || c.userAgent}>
+                                {c.user_agent || c.userAgent || 'Web Client'}
+                              </td>
+                              <td className="p-3 text-right text-gray-400 font-medium">
+                                {(c.created_at || c.createdAt) ? new Date(c.created_at || c.createdAt).toLocaleString() : 'Recent'}
+                              </td>
+                              <td className="p-3 text-right">
+                                <button
+                                  onClick={() => handleDeleteConsent(c.id || c._id || c.session_id || c.sessionId)}
+                                  className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-md transition-colors cursor-pointer"
+                                  title="Delete Log"
+                                >
+                                  <Trash size={16} />
+                                </button>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
 
           </>
         )}
 
-        {/* PILLAR TAB 10: COOKIE CONSENTS MANAGER */}
-        {activeSection === 'consents' && (
-          <div className="space-y-6 animate-in fade-in duration-200">
-            <h2 className="font-serif text-lg font-bold text-primary border-b border-[#E3EBE5] pb-3">User Cookie Preferences Logs ({(consentsList || []).length})</h2>
-
-            <div className="card-premium overflow-x-auto">
-              <table className="w-full text-left text-xs border-collapse">
-                <thead>
-                  <tr className="bg-[#F1F6F2] text-primary font-bold border-b border-[#E3EBE5]">
-                    <th className="p-4 uppercase tracking-wider text-[10px]">Session / User IP</th>
-                    <th className="p-4 uppercase tracking-wider text-[10px]">Preferences</th>
-                    <th className="p-4 uppercase tracking-wider text-[10px]">Browser / Agent</th>
-                    <th className="p-4 uppercase tracking-wider text-[10px] text-right">Date Consented</th>
-                    <th className="p-4 uppercase tracking-wider text-[10px] text-right">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-[#E3EBE5] text-xs">
-                  {(consentsList || []).map((c) => (
-                    <tr key={c.id || c._id || c.session_id || c.sessionId} className="hover:bg-[#F9FAF9] transition-colors duration-300">
-                      <td className="p-4">
-                        <div className="font-bold text-primary truncate max-w-[150px]" title={c.session_id || c.sessionId}>
-                          {c.session_id || c.sessionId || 'Session Log'}
-                        </div>
-                        <div className="text-[10px] text-gray-500">{c.ip_address || c.ip || 'Local / Unknown IP'}</div>
-                      </td>
-                      <td className="p-4 space-y-1">
-                        <div className="flex gap-2">
-                          <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold ${c.preferences?.essential ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>ESSENTIAL</span>
-                          <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold ${c.preferences?.functional ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-500'}`}>FUNCTIONAL</span>
-                        </div>
-                        <div className="flex gap-2">
-                          <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold ${c.preferences?.analytics ? 'bg-purple-100 text-purple-700' : 'bg-gray-100 text-gray-500'}`}>ANALYTICS</span>
-                          <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold ${c.preferences?.marketing ? 'bg-yellow-100 text-yellow-700' : 'bg-gray-100 text-gray-500'}`}>MARKETING</span>
-                        </div>
-                      </td>
-                      <td className="p-3 text-gray-600 max-w-[200px] truncate text-[10px]" title={c.user_agent || c.userAgent}>
-                        {c.user_agent || c.userAgent || 'Web Client'}
-                      </td>
-                      <td className="p-3 text-right text-gray-400 font-medium">
-                        {(c.created_at || c.createdAt) ? new Date(c.created_at || c.createdAt).toLocaleString() : 'Recent'}
-                      </td>
-                      <td className="p-3 text-right">
-                        <button
-                          onClick={() => handleDeleteConsent(c.id || c._id || c.session_id || c.sessionId)}
-                          className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-md transition-colors cursor-pointer"
-                          title="Delete Log"
-                        >
-                          <Trash size={16} />
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                  {(!consentsList || consentsList.length === 0) && (
-                    <tr>
-                      <td colSpan="5" className="p-8 text-center text-gray-400 font-medium">No cookie consent logs found.</td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        )}
-
-
+        </div>
       </main>
 
       {/* POPUP MODAL: ADD / EDIT PRODUCT */}

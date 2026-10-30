@@ -7,6 +7,57 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const SEED_REVIEWS_FILE = path.join(__dirname, '..', 'data', 'reviews.json');
 const REVIEWS_STATE_FILE = path.join(__dirname, '..', '..', 'server_data', 'reviews_state.json');
+const DISK_PRODUCTS_FILE = path.join(__dirname, '..', 'data', 'products.json');
+
+// Read products from local disk for ID/slug matching
+const loadDiskProducts = () => {
+  try {
+    if (fs.existsSync(DISK_PRODUCTS_FILE)) {
+      const content = fs.readFileSync(DISK_PRODUCTS_FILE, 'utf8');
+      const parsed = JSON.parse(content);
+      if (Array.isArray(parsed)) return parsed;
+    }
+  } catch (_) {}
+  return [];
+};
+
+// Resolve all identifier aliases (id, _id, slug) for a product
+const resolveProductIdentifiers = async (identifier) => {
+  if (!identifier) return new Set();
+  const idStr = String(identifier).trim().toLowerCase();
+  const identifiers = new Set([idStr]);
+
+  // Check disk products
+  try {
+    const products = loadDiskProducts();
+    for (const p of products) {
+      const pId = String(p._id || p.id || '').trim().toLowerCase();
+      const pSlug = String(p.slug || '').trim().toLowerCase();
+      if (pId === idStr || pSlug === idStr) {
+        if (pId) identifiers.add(pId);
+        if (pSlug) identifiers.add(pSlug);
+      }
+    }
+  } catch (_) {}
+
+  // Check Supabase products if connected
+  if (supabase) {
+    try {
+      const { data: pFromDb } = await supabase
+        .from('products')
+        .select('id, slug')
+        .or(`id.eq.${identifier},slug.eq.${identifier}`);
+      if (Array.isArray(pFromDb)) {
+        for (const p of pFromDb) {
+          if (p.id) identifiers.add(String(p.id).trim().toLowerCase());
+          if (p.slug) identifiers.add(String(p.slug).trim().toLowerCase());
+        }
+      }
+    } catch (_) {}
+  }
+
+  return identifiers;
+};
 
 // Read reviews from persistent disk / seed storage
 const loadReviews = () => {
@@ -51,15 +102,18 @@ export const getProductReviews = async (req, res) => {
   const { productId } = req.params;
 
   try {
+    const validIdentifiers = await resolveProductIdentifiers(productId);
+
     // 1. Try fetching from Supabase if table exists
     if (supabase) {
       try {
+        const idList = Array.from(validIdentifiers);
         const { data: dbReviews, error } = await supabase
           .from('reviews')
           .select('*, user:users(name, avatar)')
-          .eq('product_id', productId);
+          .in('product_id', idList);
 
-        if (!error && dbReviews) {
+        if (!error && Array.isArray(dbReviews) && dbReviews.length > 0) {
           return res.json({
             success: true,
             reviews: dbReviews.map(r => ({
@@ -68,8 +122,8 @@ export const getProductReviews = async (req, res) => {
               userName: r.user?.name || r.userName || 'Verified Buyer',
               userAvatar: r.user?.avatar,
               rating: r.rating,
-              title: r.title || 'Verified Review',
-              comment: r.comment,
+              title: r.title || '',
+              comment: r.comment || '',
               createdAt: r.created_at || r.createdAt || new Date().toISOString()
             }))
           });
@@ -79,12 +133,23 @@ export const getProductReviews = async (req, res) => {
 
     // 2. Fallback to local persistent storage
     const allReviews = loadReviews();
-    const cleanId = String(productId);
-    const matching = allReviews.filter(r => 
-      String(r.product || r.product_id || r.productId) === cleanId
-    );
+    const matching = allReviews.filter(r => {
+      const rProd = String(r.product || r.product_id || r.productId || '').trim().toLowerCase();
+      const rSlug = String(r.productSlug || r.slug || '').trim().toLowerCase();
+      return validIdentifiers.has(rProd) || validIdentifiers.has(rSlug);
+    });
 
-    res.json({ success: true, reviews: matching });
+    const sanitizedReviews = matching.map(r => ({
+      ...r,
+      _id: r._id || r.id,
+      id: r.id || r._id,
+      userName: r.userName || r.user_name || 'Verified Buyer',
+      title: r.title || '',
+      comment: r.comment || '',
+      createdAt: r.createdAt || r.created_at || '2026-10-15T10:00:00.000Z'
+    }));
+
+    res.json({ success: true, reviews: sanitizedReviews });
   } catch (error) {
     console.error('[ReviewController] getProductReviews error:', error);
     res.status(500).json({ success: false, message: error.message });
@@ -93,49 +158,69 @@ export const getProductReviews = async (req, res) => {
 
 // @desc    Add a review
 // @route   POST /api/reviews
-// @access  Private
+// @access  Private / Authenticated User
 export const createReview = async (req, res) => {
   try {
-    const { productId, rating, title, comment } = req.body;
-    const userId = req.user?._id || req.user?.id || 'guest-user';
-    const userName = req.user?.name || req.user?.email?.split('@')[0] || 'Verified Buyer';
+    const { productId, productSlug, rating, title, comment, userId: bodyUserId, userName: bodyUserName } = req.body;
+    const userId = req.user?._id || req.user?.id || bodyUserId || 'guest-user';
+    const userName = req.user?.name || bodyUserName || req.user?.email?.split('@')[0] || 'Verified Buyer';
 
-    if (!productId) {
-      return res.status(400).json({ success: false, message: 'Product ID is required' });
+    const targetIdentifier = productId || productSlug;
+    if (!targetIdentifier) {
+      return res.status(400).json({ success: false, message: 'Product ID or slug is required' });
     }
 
-    if (!comment || !comment.trim()) {
-      return res.status(400).json({ success: false, message: 'Review comment is required' });
-    }
+    // Resolve matching product info
+    let resolvedId = productId;
+    let resolvedSlug = productSlug;
+
+    try {
+      const diskProducts = loadDiskProducts();
+      const found = diskProducts.find(p => 
+        String(p._id || p.id) === String(targetIdentifier) || 
+        String(p.slug) === String(targetIdentifier)
+      );
+      if (found) {
+        resolvedId = found._id || found.id || resolvedId;
+        resolvedSlug = found.slug || resolvedSlug;
+      }
+    } catch (_) {}
 
     const reviewId = 'rev_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7);
+    const cleanTitle = typeof title === 'string' ? title.trim() : '';
+    const cleanComment = typeof comment === 'string' ? comment.trim() : '';
+    const cleanRating = Math.max(1, Math.min(5, Number(rating) || 5));
+    const nowIso = new Date().toISOString();
+
     const newReview = {
       _id: reviewId,
       id: reviewId,
       user: userId,
       user_id: userId,
       userName: userName,
-      product: productId,
-      product_id: productId,
-      productId: productId,
-      rating: Number(rating) || 5,
-      title: title?.trim() || 'Verified Purchase',
-      comment: comment.trim(),
+      product: resolvedId || targetIdentifier,
+      product_id: resolvedId || targetIdentifier,
+      productId: resolvedId || targetIdentifier,
+      productSlug: resolvedSlug || '',
+      slug: resolvedSlug || '',
+      rating: cleanRating,
+      title: cleanTitle,
+      comment: cleanComment,
       verifiedPurchase: true,
-      createdAt: new Date().toISOString()
+      createdAt: nowIso
     };
 
-    // 1. Attempt to insert into Supabase if table exists (ignore schema cache / table missing errors)
+    // 1. Attempt to insert into Supabase if table exists
     if (supabase) {
       try {
         await supabase.from('reviews').insert([{
           id: reviewId,
-          product_id: productId,
+          product_id: resolvedId || targetIdentifier,
           user_id: userId,
-          rating: Number(rating) || 5,
-          title: title?.trim() || 'Verified Purchase',
-          comment: comment.trim(),
-          created_at: newReview.createdAt
+          rating: cleanRating,
+          title: cleanTitle || null,
+          comment: cleanComment || null,
+          created_at: nowIso
         }]);
       } catch (e) {
         // Table doesn't exist in Supabase; fallback handled below

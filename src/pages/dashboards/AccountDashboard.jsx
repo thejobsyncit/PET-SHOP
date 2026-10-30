@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { useNavigate, useSearchParams, Link } from 'react-router-dom';
+import { useNavigate, useSearchParams, useLocation, Link } from 'react-router-dom';
 import {
   User, MapPin, ClipboardList, ShoppingBag, Plus, Trash2, CircleCheck,
   ShieldAlert, Clock, LogOut, Heart, ShieldCheck, MessageSquare, Phone,
@@ -22,24 +22,53 @@ import {
 } from '../../data/adoptionPetsData.js';
 import { 
   getUserTransportEnquiries, 
+  getUserTransportBookings,
+  getUserAllRelocationRequests,
   getStoredTransportEnquiries 
 } from '../../data/transportData.js';
+import { getStoredGroomingBookings } from '../../data/groomingData.js';
+import { getVetAppointments } from '../../data/veterinaryData.js';
 import { apiRequest } from '../../services/api.js';
 import toast from 'react-hot-toast';
 import LogoutConfirmModal from '../../components/ui/LogoutConfirmModal.jsx';
 import { getActiveUserMembership } from '../../components/widgets/ServicePackageAccessModal.jsx';
 import { downloadBill } from '../../utils/billGenerator.js';
 
+export const isTransportBooking = (b) => {
+  if (!b) return false;
+  const sType = String(b.serviceType || b.serviceCategory || '').toLowerCase();
+  const pName = String(b.providerName || '').toLowerCase();
+  const idStr = String(b.id || b._id || '').toUpperCase();
+  return (
+    sType.includes('transport') ||
+    sType.includes('relocation') ||
+    pName.includes('relocat') ||
+    pName.includes('transport') ||
+    idStr.startsWith('TRP') ||
+    Boolean(b.relocationType) ||
+    Boolean(b.departureCity) ||
+    Boolean(b.destinationCity)
+  );
+};
+
 const AccountDashboard = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const location = useLocation();
   const [searchParams, setSearchParams] = useSearchParams();
   
   const { user, isAuthenticated, loading } = useSelector((state) => state.auth);
   
   // Navigation Tabs state
-  const tabParam = searchParams.get('tab');
+  const tabParam = searchParams.get('tab') || location.state?.activeTab;
   const [activeTab, setActiveTab] = useState(tabParam || 'profile');
+
+  useEffect(() => {
+    const requested = searchParams.get('tab') || location.state?.activeTab;
+    if (requested && requested !== activeTab) {
+      setActiveTab(requested);
+    }
+  }, [searchParams, location.state]);
 
   // Form Profile State
   const [name, setName] = useState('');
@@ -198,31 +227,59 @@ const AccountDashboard = () => {
 
   const handleDownloadBookingBill = async (booking) => {
     if (!booking) return;
-    const invNo = `BKG-${booking._id?.slice(-8) || Date.now()}`;
-    const invDate = booking.date ? new Date(booking.date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
-    const fee = Number(booking.fee) || 0;
+    const bId = booking.id || booking._id || String(Date.now());
+    const invNo = bId.startsWith('INV-') ? bId : `INV-${bId}`;
+    const rawDate = booking.date || booking.bookingDate || booking.expectedDate || booking.travelDate || booking.createdAt;
+    let invDate = new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+    if (rawDate) {
+      const d = new Date(rawDate);
+      if (!isNaN(d.getTime())) {
+        invDate = d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+      } else {
+        invDate = String(rawDate);
+      }
+    }
+
+    const fee = Number(booking.fee || booking.quoteAmount || booking.packagePrice || booking.totalAmount) || 0;
     const base = Number((fee / 1.18).toFixed(2));
     const cgst = Number((base * 0.09).toFixed(2));
     const sgst = Number((base * 0.09).toFixed(2));
 
+    const isTransport = isTransportBooking(booking) || 
+      booking.serviceType === 'Transport' || 
+      Boolean(booking.relocationType) || 
+      Boolean(booking.departureCity);
+
+    const routeOrLocation = booking.departureCity && booking.destinationCity
+      ? `${booking.departureCity} to ${booking.destinationCity}`
+      : (booking.location || 'Doorstep / Transit Route');
+
+    const petInfo = booking.petName 
+      ? `Pet: ${booking.petName} (${booking.petSpecies || 'Pet'}${booking.petBreed ? ' - ' + booking.petBreed : ''})`
+      : (booking.petSpecies ? `Species: ${booking.petSpecies}` : '');
+
     const success = await downloadBill({
       invoiceNumber: invNo,
-      invoiceTitle: 'SERVICE BOOKING RECEIPT',
+      invoiceTitle: isTransport ? 'PET TRANSPORT & RELOCATION BILL' : 'SERVICE BOOKING RECEIPT',
       invoiceDate: invDate,
-      statusText: booking.paymentStatus === 'Paid' ? '✓ PAYMENT COMPLETED' : 'BOOKING CONFIRMED',
+      statusText: (booking.paymentStatus === 'Paid' || booking.status === 'Confirmed' || booking.status === 'Completed') 
+        ? 'PAYMENT COMPLETED' 
+        : 'BOOKING CONFIRMED',
       customer: {
-        name: user?.name || 'Valued Client',
-        email: user?.email || '',
-        phone: user?.mobile ? `${user?.mobileCountryCode || '+91'} ${user?.mobile}` : '',
+        name: user?.name || booking.userName || booking.customerName || booking.ownerName || 'Valued Client',
+        email: user?.email || booking.userEmail || booking.customerEmail || '',
+        phone: user?.mobile ? `${user?.mobileCountryCode || '+91'} ${user?.mobile}` : (booking.userPhone || booking.customerPhone || ''),
       },
       payment: {
-        method: booking.paymentStatus === 'Paid' ? 'Online / App' : 'Pay on Service',
-        validity: `Service Date: ${invDate} at ${booking.timeSlot || ''}`,
+        method: booking.paymentStatus === 'Paid' ? (booking.transactionId ? `Online (${booking.transactionId})` : 'Online / App') : 'Pay on Service / Verified Escrow',
+        validity: `Travel / Service Date: ${invDate}${booking.timeSlot ? ' at ' + booking.timeSlot : ''}`,
       },
       items: [
         {
-          name: `${booking.serviceType || 'Pet Service'} - Provider: ${booking.providerName || 'Josh Verified Partner'}`,
-          description: `Location: ${booking.location || 'Doorstep / Clinic'}`,
+          name: isTransport 
+            ? `Pet Relocation: ${booking.providerName || 'Josh Pets Hub Air & Road Pet Relocators'}`
+            : `${booking.serviceType || 'Pet Service'} - Provider: ${booking.providerName || 'Josh Verified Partner'}`,
+          description: `${routeOrLocation}${petInfo ? ' | ' + petInfo : ''}`,
           sacOrHsn: '998399',
           amount: base,
         }
@@ -236,7 +293,7 @@ const AccountDashboard = () => {
     });
 
     if (success) {
-      toast.success('Service booking receipt downloaded successfully');
+      toast.success(isTransport ? 'Pet relocation bill (PDF) downloaded successfully' : 'Service receipt (PDF) downloaded successfully');
     }
   };
 
@@ -296,38 +353,239 @@ const AccountDashboard = () => {
   }, [user, activeTab]);
 
   useEffect(() => {
-    const handleEnquiryUpdated = () => {
+    loadTransportData();
+  }, []);
+
+  useEffect(() => {
+    const handleTransportEvent = () => {
       loadTransportData();
     };
-    window.addEventListener('transport-enquiry-updated', handleEnquiryUpdated);
-    window.addEventListener('transport-enquiry-created', handleEnquiryUpdated);
+    window.addEventListener('transport-enquiry-updated', handleTransportEvent);
+    window.addEventListener('transport-enquiry-created', handleTransportEvent);
+    window.addEventListener('transport-booking-created', handleTransportEvent);
+    window.addEventListener('transport-booking-updated', handleTransportEvent);
+    window.addEventListener('transport-relocation-created', handleTransportEvent);
+    window.addEventListener('storage', handleTransportEvent);
     return () => {
-      window.removeEventListener('transport-enquiry-updated', handleEnquiryUpdated);
-      window.removeEventListener('transport-enquiry-created', handleEnquiryUpdated);
+      window.removeEventListener('transport-enquiry-updated', handleTransportEvent);
+      window.removeEventListener('transport-enquiry-created', handleTransportEvent);
+      window.removeEventListener('transport-booking-created', handleTransportEvent);
+      window.removeEventListener('transport-booking-updated', handleTransportEvent);
+      window.removeEventListener('transport-relocation-created', handleTransportEvent);
+      window.removeEventListener('storage', handleTransportEvent);
     };
   }, [user]);
 
-  const loadTransportData = () => {
-    if (user) {
-      const enquiries = getUserTransportEnquiries(user);
-      setUserTransportEnquiries(enquiries);
+  useEffect(() => {
+    const handleBookingEvents = () => {
+      loadUserHistory();
+    };
+    window.addEventListener('service-booking-updated', handleBookingEvents);
+    window.addEventListener('vet-data-updated', handleBookingEvents);
+    window.addEventListener('grooming-booking-created', handleBookingEvents);
+    window.addEventListener('storage', handleBookingEvents);
+    return () => {
+      window.removeEventListener('service-booking-updated', handleBookingEvents);
+      window.removeEventListener('vet-data-updated', handleBookingEvents);
+      window.removeEventListener('grooming-booking-created', handleBookingEvents);
+      window.removeEventListener('storage', handleBookingEvents);
+    };
+  }, [user]);
+
+  const isBookingOwnedByUser = (b, currentUser) => {
+    if (!b || !currentUser) return false;
+    const cId = String(currentUser.id || currentUser._id || '');
+    const cEmail = (currentUser.email || '').toLowerCase().trim();
+    const cPhone = (currentUser.mobile || currentUser.phone) ? String(currentUser.mobile || currentUser.phone).replace(/\D/g, '').slice(-10) : '';
+
+    const bUserId = String(b.userId || b.customerId || b.user?._id || b.user?.id || '');
+    if (cId && bUserId && bUserId === cId) return true;
+
+    const bEmail = (b.userEmail || b.ownerEmail || b.customerEmail || b.email || b.user?.email || '').toLowerCase().trim();
+    if (cEmail && bEmail && bEmail === cEmail) return true;
+
+    const bPhone = (b.ownerPhone || b.userPhone || b.customerPhone || b.phone || b.mobile)
+      ? String(b.ownerPhone || b.userPhone || b.customerPhone || b.phone || b.mobile).replace(/\D/g, '').slice(-10)
+      : '';
+    if (cPhone && cPhone.length >= 10 && bPhone && (bPhone === cPhone || bPhone.endsWith(cPhone) || cPhone.endsWith(bPhone))) {
+      if (bEmail && cEmail && bEmail !== cEmail) return false;
+      return true;
     }
+    return false;
+  };
+
+  const loadTransportData = async () => {
+    const activeUser = user || JSON.parse(localStorage.getItem('joshpetshub_user') || 'null');
+    let localReqs = [];
+    if (activeUser) {
+      localReqs = getUserAllRelocationRequests(activeUser);
+    }
+
+    try {
+      const bookingsData = await apiRequest(`/bookings/my${activeUser?.email ? `?email=${encodeURIComponent(activeUser.email)}` : ''}`);
+      if (bookingsData && bookingsData.success && Array.isArray(bookingsData.bookings)) {
+        const transportBookings = bookingsData.bookings
+          .filter(isTransportBooking)
+          .filter((b) => isBookingOwnedByUser(b, activeUser))
+          .map((b) => {
+            const bId = b._id || b.id || `TRP-${Date.now().toString().slice(-6)}`;
+            const locParts = (b.location || '').split('&').map((s) => s.trim());
+            return {
+              id: bId,
+              _id: bId,
+              requestType: 'booking',
+              providerName: b.providerName || 'Josh Pets Hub Air & Road Pet Relocators',
+              serviceType: b.serviceType || 'Transport',
+              status: b.status || 'Confirmed',
+              departureCity: b.departureCity || locParts[0] || 'Pickup Hub',
+              destinationCity: b.destinationCity || locParts[1] || locParts[0] || 'Drop Destination',
+              location: b.location || `${b.departureCity || 'City'} ➔ ${b.destinationCity || 'City'}`,
+              expectedDate: b.date || b.bookingDate || 'Scheduled Date',
+              bookingDate: b.date || b.bookingDate,
+              timeSlot: b.timeSlot,
+              petName: b.petName || b.petDetails?.name || 'Pet',
+              petSpecies: b.petSpecies || b.petDetails?.species || 'Dog',
+              petBreed: b.petBreed || b.petDetails?.breed || 'Domestic Companion',
+              quoteAmount: b.fee || b.quoteAmount || 0,
+              fee: b.fee || b.quoteAmount || 0,
+              paymentStatus: b.paymentStatus || 'Paid',
+              relocationType: b.relocationType || b.serviceCategory || 'Pet Relocation & Transport',
+              providerReply: b.providerReply || `Booking confirmed! Assigned coordinator (${b.leadCoordinator || 'Logistics Lead'}) will coordinate pre-transit pickup for your pet.`,
+              createdAt: b.createdAt || new Date().toISOString()
+            };
+          });
+
+        const seen = new Set();
+        const combined = [];
+        for (const item of [...transportBookings, ...localReqs]) {
+          const key = item.id || item._id;
+          if (!seen.has(key)) {
+            seen.add(key);
+            combined.push(item);
+          }
+        }
+        setUserTransportEnquiries(combined);
+        return;
+      }
+    } catch (e) {
+      console.warn('Could not fetch online transport bookings:', e);
+    }
+
+    setUserTransportEnquiries(localReqs);
   };
 
   const loadUserHistory = async () => {
     setHistoryLoading(true);
     try {
       const ordersData = await apiRequest('/orders/myorders');
-      if (ordersData.success) {
-        setOrders(ordersData.orders);
+      if (ordersData && ordersData.success) {
+        setOrders(ordersData.orders || []);
       }
       const prescData = await apiRequest('/prescriptions/my');
-      if (prescData.success) {
-        setPrescriptions(prescData.prescriptions);
+      if (prescData && prescData.success) {
+        setPrescriptions(prescData.prescriptions || []);
       }
-      const bookingsData = await apiRequest('/bookings/my');
-      if (bookingsData.success) {
-        setBookings(bookingsData.bookings);
+      const bookingsData = await apiRequest(`/bookings/my${user?.email ? `?email=${encodeURIComponent(user.email)}` : ''}`);
+      let combinedBookings = [];
+      if (bookingsData && bookingsData.success && Array.isArray(bookingsData.bookings)) {
+        combinedBookings = bookingsData.bookings.filter((b) => isBookingOwnedByUser(b, user));
+      }
+
+      // Merge local grooming bookings
+      try {
+        const localGrooming = getStoredGroomingBookings().filter((b) => isBookingOwnedByUser(b, user));
+        const existingIds = new Set(combinedBookings.map(b => b.id || b._id));
+        for (const b of localGrooming) {
+          if (!existingIds.has(b.id || b._id)) {
+            combinedBookings.push(b);
+            existingIds.add(b.id || b._id);
+          }
+        }
+      } catch (e) {
+        console.warn('Error merging local grooming bookings:', e);
+      }
+
+      // Merge local vet consultation bookings
+      try {
+        const localVet = getVetAppointments();
+        const existingIds = new Set(combinedBookings.map(b => b.id || b._id));
+
+        for (const v of localVet) {
+          const vId = v.id || v._id;
+          if (existingIds.has(vId)) continue;
+
+          if (isBookingOwnedByUser(v, user)) {
+            combinedBookings.push(v);
+            existingIds.add(vId);
+          }
+        }
+      } catch (e) {
+        console.warn('Error merging local vet bookings:', e);
+      }
+
+      // Normalize all bookings for guaranteed uniform structure in Service Bookings
+      const normalizedBookings = combinedBookings.map((b) => {
+        const bId = b._id || b.id || `BK-${Date.now().toString().slice(-6)}`;
+        return {
+          ...b,
+          _id: bId,
+          id: bId,
+          serviceType: b.serviceType || (b.doctorName || b.doctorId ? 'Consult a Vet' : 'Pet Service'),
+          providerName: b.providerName || b.doctorName || b.groomerName || 'Josh Verified Partner',
+          location: b.location || b.clinicName || 'Clinic / In-Person',
+          date: b.date || b.bookingDate || b.createdAt || new Date().toISOString(),
+          timeSlot: b.timeSlot || b.bookingTimeSlot || 'Scheduled Slot',
+          fee: Number(b.fee) || 0,
+          paymentStatus: b.paymentStatus || (b.bookingMode === '24/7 Video Tele-Consult' ? 'Paid' : 'Pay at Clinic'),
+          status: b.status || 'Confirmed'
+        };
+      });
+
+      // Filter out pet transport / relocation bookings from general "Service Bookings"
+      const serviceOnlyBookings = normalizedBookings.filter((b) => !isTransportBooking(b));
+      setBookings(serviceOnlyBookings);
+
+      // And ensure transport bookings are mapped into userTransportEnquiries as well!
+      const transportBookings = normalizedBookings.filter(isTransportBooking).map((b) => {
+        const locParts = (b.location || '').split('&').map((s) => s.trim());
+        return {
+          id: b.id || b._id,
+          _id: b._id || b.id,
+          requestType: 'booking',
+          providerName: b.providerName || 'Josh Pets Hub Air & Road Pet Relocators',
+          serviceType: b.serviceType || 'Transport',
+          status: b.status || 'Confirmed',
+          departureCity: b.departureCity || locParts[0] || 'Pickup Hub',
+          destinationCity: b.destinationCity || locParts[1] || locParts[0] || 'Drop Destination',
+          location: b.location || `${b.departureCity || 'City'} ➔ ${b.destinationCity || 'City'}`,
+          expectedDate: b.date || b.bookingDate || 'Scheduled Date',
+          bookingDate: b.date || b.bookingDate,
+          timeSlot: b.timeSlot,
+          petName: b.petName || b.petDetails?.name || 'Pet',
+          petSpecies: b.petSpecies || b.petDetails?.species || 'Dog',
+          petBreed: b.petBreed || b.petDetails?.breed || 'Domestic Companion',
+          quoteAmount: b.fee || 0,
+          fee: b.fee || 0,
+          paymentStatus: b.paymentStatus || 'Paid',
+          relocationType: b.relocationType || 'Pet Relocation & Transport',
+          providerReply: b.providerReply || `Booking confirmed! Assigned coordinator (${b.leadCoordinator || 'Logistics Lead'}) will coordinate pre-transit pickup for your pet.`,
+          createdAt: b.createdAt || new Date().toISOString()
+        };
+      });
+
+      if (transportBookings.length > 0) {
+        setUserTransportEnquiries((prev) => {
+          const seen = new Set();
+          const merged = [];
+          for (const item of [...transportBookings, ...prev]) {
+            const key = item.id || item._id;
+            if (!seen.has(key)) {
+              seen.add(key);
+              merged.push(item);
+            }
+          }
+          return merged;
+        });
       }
     } catch (err) {
       console.error(err);
@@ -702,11 +960,11 @@ const AccountDashboard = () => {
               ) : bookings.length > 0 ? (
                 <div className="space-y-4">
                   {bookings.map((booking) => (
-                    <div key={booking._id} className="border border-beige p-5 text-xs space-y-4 rounded-xl">
+                    <div key={booking._id || booking.id} className="border border-beige p-5 text-xs space-y-4 rounded-xl">
                       <div className="flex flex-wrap justify-between items-center bg-secondary p-3 border-b border-beige gap-2 rounded-lg">
                         <div>
                           <p className="text-gray-400 font-medium">BOOKING ID</p>
-                          <p className="font-bold text-primary">{booking._id}</p>
+                          <p className="font-bold text-primary">{booking._id || booking.id}</p>
                         </div>
                         <div>
                           <p className="text-gray-400 font-medium">SERVICE</p>
@@ -714,7 +972,15 @@ const AccountDashboard = () => {
                         </div>
                         <div>
                           <p className="text-gray-400 font-medium">DATE & TIME</p>
-                          <p className="font-semibold text-primary">{new Date(booking.date).toLocaleDateString()} at {booking.timeSlot}</p>
+                          <p className="font-semibold text-primary">
+                            {(() => {
+                              const d = new Date(booking.date);
+                              if (!isNaN(d.getTime())) {
+                                return d.toLocaleDateString('en-GB');
+                              }
+                              return booking.date || 'Scheduled Date';
+                            })()} at {booking.timeSlot}
+                          </p>
                         </div>
                         <div>
                           <p className="text-gray-400 font-medium">STATUS</p>
@@ -744,12 +1010,34 @@ const AccountDashboard = () => {
                             type="button"
                             onClick={() => handleDownloadBookingBill(booking)}
                             className="px-2.5 py-1 bg-[#0F2E23] hover:bg-[#163f30] text-[#D4AF37] hover:text-white rounded-lg text-[10px] font-bold shadow-xs transition inline-flex items-center gap-1 cursor-pointer active:scale-95"
+                            title="Download official bill in PDF format"
                           >
                             <Download size={10} />
-                            <span>Download Bill</span>
+                            <span>Download Bill (PDF)</span>
                           </button>
                         </div>
                       </div>
+
+                      {/* Pet & Appointment Details Preview */}
+                      {(booking.petName || booking.petDetails?.name || booking.bookingMode) && (
+                        <div className="pt-2.5 border-t border-slate-100 flex flex-wrap items-center gap-3 text-[11px] text-slate-600">
+                          {(booking.petName || booking.petDetails?.name) && (
+                            <span className="font-bold text-[#0F2E23]">
+                              Pet: {booking.petName || booking.petDetails?.name} {booking.petBreed || booking.petDetails?.breed ? `(${booking.petBreed || booking.petDetails?.breed})` : ''}
+                            </span>
+                          )}
+                          {booking.bookingMode && (
+                            <span className="bg-emerald-50 text-emerald-800 border border-emerald-100 px-2 py-0.5 rounded text-[10px] font-bold">
+                              {booking.bookingMode}
+                            </span>
+                          )}
+                          {(booking.petSymptoms || booking.specialNotes) && (
+                            <span className="text-slate-500 truncate max-w-sm">
+                              Note: {booking.petSymptoms || booking.specialNotes}
+                            </span>
+                          )}
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>
@@ -1810,23 +2098,23 @@ const AccountDashboard = () => {
           )}
 
           {/* =========================================================================
-              TAB: PET RELOCATION & TRANSPORT ENQUIRIES
+              TAB: PET RELOCATION & TRANSPORT ENQUIRIES & BOOKINGS
              ========================================================================= */}
           {activeTab === 'transport-enquiries' && (
             <div className="space-y-6">
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-beige pb-4">
                 <div>
                   <h2 className="font-serif text-lg font-bold text-primary">
-                    My Pet Relocation Enquiries & Quotations ({userTransportEnquiries.length})
+                    My Pet Relocation Requests & Bookings ({userTransportEnquiries.length})
                   </h2>
                   <p className="text-xs text-gray-500 mt-0.5">
-                    Track real-time status of your relocation requests, received transporter quotes, and journey schedules.
+                    Track real-time status of your relocation bookings, driver assignments, transporter quotes, and journey schedules.
                   </p>
                 </div>
 
                 <Link
-                  to="/transport"
-                  className="px-3.5 py-2 bg-[#0F2E23] hover:bg-[#163f30] text-[#d4af37] hover:text-white rounded-lg text-xs font-bold transition flex items-center gap-1.5 shadow-sm"
+                  to="/transport?action=new-request#relocation-enquiry-form"
+                  className="px-3.5 py-2 bg-[#0F2E23] hover:bg-[#163f30] text-[#d4af37] hover:text-white rounded-lg text-xs font-bold transition flex items-center gap-1.5 shadow-sm cursor-pointer"
                 >
                   <Plus size={14} />
                   <span>New Relocation Request</span>
@@ -1838,14 +2126,21 @@ const AccountDashboard = () => {
                   <div className="w-14 h-14 bg-[#f8efcd] text-[#0F2E23] rounded-full flex items-center justify-center mx-auto border border-[#e6c968]">
                     <Truck size={24} />
                   </div>
-                  <h3 className="font-serif text-lg font-bold text-[#0F2E23]">No Relocation Enquiries Submitted Yet</h3>
+                  <h3 className="font-serif text-lg font-bold text-[#0F2E23]">No Relocation Requests Submitted Yet</h3>
                   <p className="text-xs text-gray-500 max-w-md mx-auto leading-relaxed">
-                    Planning to move your dog, cat, or bird across cities? Submit a quick enquiry to get customized quotes from verified pet transporters.
+                    Planning to move your dog, cat, or bird across cities? Submit a quick request or book a certified transporter for doorstep relocation.
                   </p>
-                  <div className="pt-3">
+                  <div className="pt-3 flex flex-wrap items-center justify-center gap-3">
+                    <Link
+                      to="/transport?action=new-request#relocation-enquiry-form"
+                      className="px-5 py-2.5 bg-[#0F2E23] text-[#d4af37] hover:text-white hover:bg-[#163f30] rounded-xl text-xs font-bold shadow transition inline-flex items-center gap-1.5 cursor-pointer"
+                    >
+                      <Plus size={14} />
+                      <span>New Relocation Request</span>
+                    </Link>
                     <Link
                       to="/transport"
-                      className="px-5 py-2.5 bg-[#0F2E23] text-[#d4af37] hover:text-white hover:bg-[#163f30] rounded-xl text-xs font-bold shadow transition inline-flex items-center gap-1.5"
+                      className="px-5 py-2.5 bg-white border border-[#d4af37] text-[#0F2E23] hover:bg-stone-50 rounded-xl text-xs font-bold shadow-sm transition inline-flex items-center gap-1.5 cursor-pointer"
                     >
                       <Sparkles size={14} />
                       <span>Explore Pet Transport Services</span>
@@ -1855,7 +2150,10 @@ const AccountDashboard = () => {
               ) : (
                 <div className="space-y-4">
                   {userTransportEnquiries.map((enq) => {
-                    const hasQuote = enq.status === 'Quote Sent' || enq.quoteAmount;
+                    const isBooking = enq.requestType === 'booking' || enq.id?.startsWith('TRP-BK');
+                    const isConfirmed = enq.status === 'Confirmed' || enq.status?.includes('Confirmed');
+                    const hasQuote = isBooking || enq.status === 'Quote Sent' || !!enq.quoteAmount;
+
                     return (
                       <div
                         key={enq.id}
@@ -1868,11 +2166,20 @@ const AccountDashboard = () => {
                               <Truck size={18} />
                             </div>
                             <div className="space-y-0.5">
-                              <div className="flex items-center gap-2">
+                              <div className="flex flex-wrap items-center gap-2">
                                 <span className="text-sm font-bold text-primary font-serif">{enq.providerName}</span>
                                 <span className="font-mono text-xs font-bold text-slate-700 bg-slate-100 px-2 py-0.5 rounded-md">
                                   ID: {enq.id}
                                 </span>
+                                {isBooking ? (
+                                  <span className="bg-emerald-100 text-emerald-800 text-[10px] font-bold px-2 py-0.5 rounded-md border border-emerald-300 flex items-center gap-1">
+                                    <CircleCheck size={11} /> Booked Relocation
+                                  </span>
+                                ) : (
+                                  <span className="bg-blue-100 text-blue-800 text-[10px] font-bold px-2 py-0.5 rounded-md border border-blue-300 flex items-center gap-1">
+                                    <FileText size={11} /> Relocation Request
+                                  </span>
+                                )}
                               </div>
                               <div className="text-xs text-gray-500 font-medium">
                                 Submitted on: {new Date(enq.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
@@ -1880,96 +2187,144 @@ const AccountDashboard = () => {
                             </div>
                           </div>
 
-                          <div className="flex items-center gap-2">
+                          <div className="flex flex-wrap items-center gap-2">
                             <span className={`text-[10px] font-extrabold uppercase tracking-wider px-3 py-1 rounded-full ${
-                              hasQuote
+                              isConfirmed || enq.status === 'Completed'
                                 ? 'bg-emerald-100 text-emerald-800 border border-emerald-300'
-                                : enq.status.includes('Pending') || enq.status === 'Under Review'
+                                : hasQuote
+                                ? 'bg-emerald-100 text-emerald-800 border border-emerald-300'
+                                : enq.status?.includes('Pending') || enq.status === 'Under Review'
                                 ? 'bg-amber-100 text-amber-800 border border-amber-300'
                                 : 'bg-blue-100 text-blue-800 border border-blue-300'
                             }`}>
                               {enq.status}
                             </span>
+                            <button
+                              type="button"
+                              onClick={() => handleDownloadBookingBill(enq)}
+                              className="px-2.5 py-1 bg-[#0F2E23] hover:bg-[#163f30] text-[#D4AF37] hover:text-white rounded-lg text-[10px] font-bold shadow-xs transition inline-flex items-center gap-1 cursor-pointer active:scale-95"
+                              title="Download official bill in PDF format"
+                            >
+                              <Download size={11} />
+                              <span>Download Bill (PDF)</span>
+                            </button>
                           </div>
                         </div>
 
                         {/* Route & Pet Specs */}
                         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 bg-sand/30 p-3.5 rounded-xl border border-beige/70 text-xs">
                           <div>
-                            <span className="text-[10px] font-bold uppercase text-gray-400 block">Route</span>
-                            <strong className="text-gray-800">{enq.departureCity} ➔ {enq.destinationCity}</strong>
-                            <span className="text-[10px] text-gray-500 block">({enq.relocationType})</span>
+                            <span className="text-[10px] font-bold uppercase text-gray-400 block">Route / Hub</span>
+                            <strong className="text-gray-800">
+                              {enq.departureCity && enq.destinationCity && enq.departureCity !== enq.destinationCity
+                                ? `${enq.departureCity} ➔ ${enq.destinationCity}`
+                                : (enq.location || `${enq.departureCity || 'Pickup Hub'} ➔ ${enq.destinationCity || 'Drop Hub'}`)}
+                            </strong>
+                            <span className="text-[10px] text-gray-500 block">({enq.relocationType || enq.packageName || 'Relocation'})</span>
                           </div>
                           <div>
                             <span className="text-[10px] font-bold uppercase text-gray-400 block">Pet</span>
-                            <strong className="text-gray-800">{enq.petBreed} ({enq.petSpecies || 'Dog'})</strong>
-                            <span className="text-[10px] text-gray-500 block">{enq.petGender}, {enq.petAge}</span>
+                            <strong className="text-gray-800">
+                              {enq.petName ? `${enq.petName} (${enq.petBreed || 'Pet'})` : (enq.petBreed || 'Pet')} ({enq.petSpecies || 'Dog'})
+                            </strong>
+                            <span className="text-[10px] text-gray-500 block">
+                              {enq.petGender ? `${enq.petGender}, ` : ''}{enq.petAge || (enq.petWeight ? `${enq.petWeight} kg` : 'Standard Weight')}
+                            </span>
                           </div>
                           <div>
-                            <span className="text-[10px] font-bold uppercase text-gray-400 block">Date</span>
-                            <strong className="text-gray-800">{enq.expectedDate || 'Flexible'}</strong>
-                            <span className="text-[10px] text-gray-500 block">{enq.preferredModes?.join(', ')}</span>
+                            <span className="text-[10px] font-bold uppercase text-gray-400 block">Travel Date</span>
+                            <strong className="text-gray-800">{enq.expectedDate || enq.bookingDate || enq.travelDate || enq.date || 'Flexible'}</strong>
+                            <span className="text-[10px] text-gray-500 block">
+                              {enq.timeSlot ? enq.timeSlot : (Array.isArray(enq.preferredModes) ? enq.preferredModes.join(', ') : (enq.preferredModes || 'AC Cab / Pet Transport'))}
+                            </span>
                           </div>
                           <div>
-                            <span className="text-[10px] font-bold uppercase text-gray-400 block">Vaccination</span>
-                            <strong className="text-gray-800">{enq.vaccinationStatus}</strong>
-                            <span className="text-[10px] text-gray-500 block">{enq.travelFriendly}</span>
+                            <span className="text-[10px] font-bold uppercase text-gray-400 block">Safety & Care</span>
+                            <strong className="text-gray-800">{enq.vaccinationStatus || enq.crateRequirement || 'Sanitized Carrier Included'}</strong>
+                            <span className="text-[10px] text-gray-500 block">{enq.travelFriendly || (enq.crateRequirement ? 'Verified Crate' : 'Travel Friendly')}</span>
                           </div>
                         </div>
 
                         {/* Customer Note */}
-                        {enq.note && (
+                        {(enq.note || enq.notes) && (
                           <div className="text-xs text-gray-600 italic bg-white p-2.5 rounded-lg border border-beige/60">
-                            <strong>My Note:</strong> "{enq.note}"
+                            <strong>My Note:</strong> "{enq.note || enq.notes}"
                           </div>
                         )}
 
-                        {/* Transporter Response / Official Quote */}
-                        {enq.providerReply ? (
+                        {/* Transporter Response / Official Confirmation */}
+                        {enq.providerReply || isBooking || hasQuote ? (
                           <div className="bg-emerald-50 p-4 rounded-xl border border-emerald-200 text-xs space-y-2">
                             <div className="flex items-center justify-between">
                               <div className="flex items-center gap-1.5 font-bold text-emerald-900">
                                 <ShieldCheck size={15} className="text-emerald-700" />
-                                <span>Official Quotation & Travel Plan from Transporter</span>
+                                <span>
+                                  {isBooking ? 'Relocation Booking Confirmed & Coordinator Prepped' : 'Official Quotation & Travel Plan from Transporter'}
+                                </span>
                               </div>
-                              {enq.quoteAmount && (
+                              {(enq.quoteAmount || enq.packagePrice || enq.totalAmount || enq.fee) && (
                                 <span className="text-base font-serif font-extrabold text-[#0F2E23]">
-                                  ₹{enq.quoteAmount.toLocaleString('en-IN')}
+                                  ₹{Number(enq.quoteAmount || enq.packagePrice || enq.totalAmount || enq.fee).toLocaleString('en-IN')}
                                 </span>
                               )}
                             </div>
-                            <p className="text-slate-700">{enq.providerReply}</p>
+                            <p className="text-slate-700">
+                              {enq.providerReply || `Booking confirmed! Assigned coordinator (${enq.leadCoordinator || 'Logistics Lead'}) will coordinate pre-transit pickup for ${enq.petName || 'your pet'}.`}
+                            </p>
 
-                            <div className="pt-2 flex items-center justify-between">
+                            <div className="pt-2 flex flex-wrap items-center justify-between gap-2">
                               <span className="text-[10px] text-emerald-700 font-semibold">
-                                ✓ Sanitized Crate & GPS Updates Included
+                                ✓ Sanitized Crate & Live WhatsApp Updates Included
                               </span>
-                              {enq.coordinatorPhone || import.meta.env?.VITE_WHATSAPP_NUMBER ? (
-                                <a
-                                  href={`https://wa.me/${(enq.coordinatorPhone || import.meta.env.VITE_WHATSAPP_NUMBER).replace(/\D/g, '')}?text=Hello%2C%20I%20received%20quote%20for%20enquiry%20${enq.id}`}
-                                  target="_blank"
-                                  rel="noreferrer"
-                                  className="bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-[11px] uppercase tracking-wider px-3.5 py-1.5 rounded-lg transition inline-flex items-center gap-1"
+                              <div className="flex items-center gap-2">
+                                <button
+                                  type="button"
+                                  onClick={() => handleDownloadBookingBill(enq)}
+                                  className="bg-[#0F2E23] hover:bg-[#163f30] text-[#D4AF37] hover:text-white font-bold text-[11px] uppercase tracking-wider px-3 py-1.5 rounded-lg transition inline-flex items-center gap-1.5 cursor-pointer shadow-xs active:scale-95"
+                                  title="Download official bill in PDF format"
                                 >
-                                  <MessageSquare size={13} /> Confirm with Coordinator
-                                </a>
-                              ) : (
-                                <Link
-                                  to="/contact"
-                                  className="bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-[11px] uppercase tracking-wider px-3.5 py-1.5 rounded-lg transition inline-flex items-center gap-1"
-                                >
-                                  <MessageSquare size={13} /> Contact Support Desk
-                                </Link>
-                              )}
+                                  <Download size={12} />
+                                  <span>Download Bill (PDF)</span>
+                                </button>
+                                {enq.coordinatorPhone || enq.driverPhone || import.meta.env?.VITE_WHATSAPP_NUMBER ? (
+                                  <a
+                                    href={`https://wa.me/${(enq.coordinatorPhone || enq.driverPhone || import.meta.env.VITE_WHATSAPP_NUMBER || '919876543210').replace(/\D/g, '')}?text=Hello%2C%20I%20am%20following%20up%20on%20relocation%20${isBooking ? 'booking' : 'request'}%20${enq.id}`}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    className="bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-[11px] uppercase tracking-wider px-3.5 py-1.5 rounded-lg transition inline-flex items-center gap-1 cursor-pointer"
+                                  >
+                                    <MessageSquare size={13} /> Chat with Coordinator
+                                  </a>
+                                ) : (
+                                  <Link
+                                    to="/contact"
+                                    className="bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-[11px] uppercase tracking-wider px-3.5 py-1.5 rounded-lg transition inline-flex items-center gap-1 cursor-pointer"
+                                  >
+                                    <MessageSquare size={13} /> Contact Support Desk
+                                  </Link>
+                                )}
+                              </div>
                             </div>
                           </div>
                         ) : (
-                          <div className="flex items-center justify-between text-xs text-amber-700 bg-amber-50 p-3 rounded-xl border border-amber-200">
+                          <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-amber-700 bg-amber-50 p-3 rounded-xl border border-amber-200">
                             <span className="flex items-center gap-1.5 font-semibold">
                               <Clock size={14} className="animate-spin text-amber-600" />
                               Transporter is reviewing vehicle availability & formulating your quote.
                             </span>
-                            <span className="text-[10px] text-gray-500 font-medium">Expected in 1-2 hours</span>
+                            <div className="flex items-center gap-2">
+                              <span className="text-[10px] text-gray-500 font-medium">Expected in 1-2 hours</span>
+                              {(enq.fee || enq.quoteAmount) && (
+                                <button
+                                  type="button"
+                                  onClick={() => handleDownloadBookingBill(enq)}
+                                  className="px-2.5 py-1 bg-[#0F2E23] text-[#D4AF37] hover:text-white rounded-md text-[10px] font-bold transition inline-flex items-center gap-1 cursor-pointer"
+                                  title="Download bill in PDF format"
+                                >
+                                  <Download size={10} /> Bill (PDF)
+                                </button>
+                              )}
+                            </div>
                           </div>
                         )}
 

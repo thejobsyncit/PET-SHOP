@@ -4,16 +4,27 @@ import { useNavigate } from 'react-router-dom';
 import { Heart, ShoppingBag, Trash2, Share2 } from 'lucide-react';
 import { addToCartAPI } from '../../store/slices/cartSlice.js';
 import { fetchWishlist, toggleWishlistAPI } from '../../store/slices/wishlistSlice.js';
+import { openAuthModal } from '../../store/slices/authSlice.js';
 import toast from 'react-hot-toast';
 
 const Wishlist = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  const { isAuthenticated } = useSelector((state) => state.auth);
   const { items, loading } = useSelector((state) => state.wishlist);
+  const cartItems = useSelector((state) => state.cart.items || []);
 
   useEffect(() => {
-    dispatch(fetchWishlist());
-  }, [dispatch]);
+    if (!isAuthenticated) {
+      window.dispatchEvent(
+        new CustomEvent('open-register-modal', {
+          detail: { tab: 'user', hideProviderTab: true, source: 'wishlist-page' }
+        })
+      );
+    } else {
+      dispatch(fetchWishlist());
+    }
+  }, [dispatch, isAuthenticated]);
 
   const handleRemove = async (product) => {
     await dispatch(toggleWishlistAPI(product));
@@ -21,6 +32,29 @@ const Wishlist = () => {
   };
 
   const handleAddToCart = async (product) => {
+    const pStock = typeof product.stock === 'number'
+      ? Math.max(0, product.stock)
+      : (product.stock !== undefined && product.stock !== null && !isNaN(Number(product.stock))
+          ? Math.max(0, Number(product.stock))
+          : 999);
+
+    if (pStock <= 0) {
+      toast.error('This product is out of stock.');
+      return;
+    }
+
+    const pId = product._id || product.id;
+    const existingInCart = cartItems.find(item => {
+      const itemId = typeof item?.product === 'object' ? (item.product?._id || item.product?.id) : item?.product;
+      return String(itemId) === String(pId);
+    });
+    const currentInCartQty = existingInCart ? Number(existingInCart.quantity) || 0 : 0;
+
+    if (currentInCartQty >= pStock) {
+      toast.error(`Maximum available stock (${pStock} unit${pStock === 1 ? '' : 's'}) already in cart.`);
+      return;
+    }
+
     if (product.requiresPrescription || product.requires_prescription) {
       toast('Prescription required! Redirecting to details...', { icon: '📝' });
       const targetSlug = product.slug || product._id || product.id;
@@ -31,8 +65,8 @@ const Wishlist = () => {
       const result = await dispatch(addToCartAPI({ product, quantity: 1 }));
       if (addToCartAPI.fulfilled.match(result)) {
         toast.success('Added to cart!');
-      } else {
-        toast.error('Could not add to cart.');
+      } else if (result.payload && !String(result.payload).includes('reached')) {
+        toast.error(result.payload || 'Could not add to cart.');
       }
     } catch (_) {
       toast.error('Could not add to cart.');
@@ -44,6 +78,36 @@ const Wishlist = () => {
     navigator.clipboard.writeText(shareUrl);
     toast.success('Wishlist link copied to clipboard!');
   };
+
+  if (!isAuthenticated) {
+    return (
+      <div className="max-w-xl mx-auto my-16 px-6 py-12 bg-white rounded-2xl border border-slate-200 shadow-xl text-center space-y-5 animate-in fade-in duration-200">
+        <div className="w-16 h-16 mx-auto bg-amber-50 text-amber-600 rounded-2xl flex items-center justify-center border border-amber-200 shadow-inner">
+          <Heart size={32} />
+        </div>
+        <div>
+          <h2 className="text-2xl font-serif font-bold text-primary">Sign in to view your Wishlist</h2>
+          <p className="text-sm text-slate-500 mt-2 max-w-md mx-auto">
+            Log in or create an account to save your favorite products, sync across all your devices, and get alerts on discounts.
+          </p>
+        </div>
+        <div className="pt-2 flex flex-col sm:flex-row gap-3 justify-center">
+          <button
+            onClick={() => window.dispatchEvent(new CustomEvent('open-register-modal', { detail: { tab: 'user', hideProviderTab: true, source: 'wishlist-login' } }))}
+            className="px-6 py-3 bg-[#0F2E23] text-white font-bold text-xs uppercase tracking-wider rounded-xl shadow-md hover:bg-[#163e30] transition cursor-pointer"
+          >
+            Log In
+          </button>
+          <button
+            onClick={() => window.dispatchEvent(new CustomEvent('open-register-modal', { detail: { tab: 'user', hideProviderTab: true, source: 'wishlist-signup' } }))}
+            className="px-6 py-3 bg-white text-slate-700 font-bold text-xs uppercase tracking-wider rounded-xl border border-slate-300 hover:bg-slate-50 transition cursor-pointer"
+          >
+            Create Free Account
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-7xl mx-auto px-4 md:px-8 py-10 space-y-12 pb-20">

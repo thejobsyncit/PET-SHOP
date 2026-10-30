@@ -1,4 +1,11 @@
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import { supabase } from '../config/supabase.js';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const CATEGORIES_FILE = path.join(__dirname, '..', 'data', 'categories.json');
 
 // In-Memory Cache for Categories (5 min TTL)
 const categoryCache = new Map();
@@ -34,14 +41,15 @@ export const getCategories = async (req, res) => {
     res.json(payload);
   } catch (error) {
     try {
-      const fs = await import('fs');
-      const path = await import('path');
-      const raw = fs.readFileSync(path.resolve('server/data/categories.json'), 'utf8');
-      let localCategories = JSON.parse(raw);
-      if (req.query.petType) {
-        localCategories = localCategories.filter(c => c.petType === req.query.petType);
+      if (fs.existsSync(CATEGORIES_FILE)) {
+        const raw = fs.readFileSync(CATEGORIES_FILE, 'utf8');
+        let localCategories = JSON.parse(raw);
+        if (req.query.petType) {
+          localCategories = localCategories.filter(c => c.petType === req.query.petType);
+        }
+        return res.json({ success: true, categories: localCategories });
       }
-      return res.json({ success: true, categories: localCategories });
+      return res.json({ success: true, categories: [] });
     } catch {
       res.status(500).json({ success: false, message: error.message });
     }

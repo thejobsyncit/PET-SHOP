@@ -23,6 +23,12 @@ export const isServicePathLockedForUser = (user, targetPath = '') => {
     return !isAdoptionPath;
   }
 
+  // If user is a Product Seller:
+  if (category === 'product seller' || category.includes('product')) {
+    const isProductSellerAllowed = path === '/shop' || path.startsWith('/shop') || path.startsWith('/product') || path === '/provider-dashboard' || path === '/provider/dashboard' || path === '/account';
+    return !isProductSellerAllowed;
+  }
+
   // If user is a Pet Seller:
   if (category === 'pet seller') {
     const isSellerAllowed = path === '/pets' || path.startsWith('/pets') || path === '/provider-dashboard' || path === '/provider/dashboard' || path === '/account';

@@ -15,15 +15,19 @@ import { DEFAULT_CLASSIFIEDS } from '../../../data/classifiedsData.js';
 export const SELLER_PET_BREEDS = PET_BREEDS_BY_CATEGORY;
 
 import { safeSetItem, safeGetItem } from '../../../utils/safeStorage.js';
+import ProviderProfileSection from '../../../components/dashboards/ProviderProfileSection.jsx';
 
 const PetSellerDashboard = ({ 
   currentProvider, 
   profiles, 
-  handleToggleOnline 
+  handleToggleOnline,
+  onOpenSubscriptionModal,
+  onOpenPlanDetails,
+  subscription
 }) => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
-  const activeTabParam = searchParams.get('tab') || safeGetItem('sellerDashboardTab') || 'inventory';
+  const activeTabParam = searchParams.get('tab') || safeGetItem('sellerDashboardTab') || 'profile';
   const [activeTab, setActiveTab] = useState(activeTabParam);
 
   const { user } = useSelector(state => state.auth);
@@ -590,10 +594,10 @@ const PetSellerDashboard = ({
   };
 
   const navItems = [
+    { id: 'profile', label: 'Profile & Plan', icon: Settings },
     { id: 'inventory', label: 'My Pet Inventory', icon: PawPrint, count: stats.totalListings },
     { id: 'orders', label: 'Sales & Orders', icon: DollarSign, count: stats.totalOrders },
-    { id: 'inquiries', label: 'Buyer Leads', icon: MessageSquare, count: stats.inquiries },
-    { id: 'profile', label: 'Profile', icon: Settings }
+    { id: 'inquiries', label: 'Buyer Leads', icon: MessageSquare, count: stats.inquiries }
   ];
 
   // Fix Profile Avatar - Use actual user's avatar if they are logged in, otherwise fallback
@@ -707,44 +711,46 @@ const PetSellerDashboard = ({
       <main className="flex-1 min-w-0 px-6 lg:px-8 pt-12 pb-10 overflow-x-hidden">
         
         {/* Header Area */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
-          <div>
-            <h1 className="text-3xl font-sans font-black text-[#0F2E23] tracking-tight">
-              Seller Dashboard
-            </h1>
-            <p className="text-sm text-slate-500 font-medium mt-1">
-              Track your pet inventory, sales, and buyer leads in real-time.
-            </p>
-          </div>
-          
-          <div className="flex items-center gap-2.5 w-full sm:w-auto justify-between sm:justify-start">
-            <button
-              onClick={handleAddNew}
-              className="px-6 py-3 bg-[#ffd000] hover:bg-[#ffdf4d] text-[#0F2E23] text-xs font-black uppercase tracking-wider rounded-xl shadow-sm hover:shadow-md transition-all cursor-pointer flex items-center gap-2"
-            >
-              <Plus size={16} /> Post New Pet Listing
-            </button>
-            <button
-              onClick={() => {
-                dispatch(logout());
-                toast.success('Logged out successfully');
-                navigate('/');
-              }}
-              className="lg:hidden px-3.5 py-3 bg-white border border-rose-200 text-rose-600 hover:bg-rose-50 text-xs font-black uppercase tracking-wider rounded-xl shadow-sm flex items-center justify-center gap-1.5 transition cursor-pointer"
-              title="Logout"
-            >
-              <LogOut size={16} />
-              <span className="text-[11px]">Logout</span>
-            </button>
-          </div>
-        </div>
+        {activeTab !== 'profile' ? (
+          <>
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
+              <div>
+                <h1 className="text-3xl font-sans font-black text-[#0F2E23] tracking-tight">
+                  Seller Dashboard
+                </h1>
+                <p className="text-sm text-slate-500 font-medium mt-1">
+                  Track your pet inventory, sales, and buyer leads in real-time.
+                </p>
+              </div>
+              
+              <div className="flex items-center gap-2.5 w-full sm:w-auto justify-between sm:justify-start">
+                <button
+                  onClick={handleAddNew}
+                  className="px-6 py-3 bg-[#ffd000] hover:bg-[#ffdf4d] text-[#0F2E23] text-xs font-black uppercase tracking-wider rounded-xl shadow-sm hover:shadow-md transition-all cursor-pointer flex items-center gap-2"
+                >
+                  <Plus size={16} /> Post New Pet Listing
+                </button>
+                <button
+                  onClick={() => {
+                    dispatch(logout());
+                    toast.success('Logged out successfully');
+                    navigate('/');
+                  }}
+                  className="lg:hidden px-3.5 py-3 bg-white border border-rose-200 text-rose-600 hover:bg-rose-50 text-xs font-black uppercase tracking-wider rounded-xl shadow-sm flex items-center justify-center gap-1.5 transition cursor-pointer"
+                  title="Logout"
+                >
+                  <LogOut size={16} />
+                  <span className="text-[11px]">Logout</span>
+                </button>
+              </div>
+            </div>
 
-        {/* 
-          ========================================================
-          CUSTOM SELLER KPI METRICS
-          ========================================================
-        */}
-        <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 sm:gap-5 mb-10">
+            {/* 
+              ========================================================
+              CUSTOM SELLER KPI METRICS
+              ========================================================
+            */}
+            <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 sm:gap-5 mb-10">
           
           <div className="bg-white border border-slate-200 p-5 rounded-2xl hover:border-[#0F2E23]/30 transition duration-300 shadow-sm hover:shadow-md group">
             <div className="flex justify-between items-center mb-4">
@@ -809,9 +815,10 @@ const PetSellerDashboard = ({
               <div className="text-2xl font-sans font-black text-[#0F2E23]">₹{stats.discounts.toLocaleString('en-IN')}</div>
             </div>
             <div className="text-[10px] text-sky-600 font-black uppercase tracking-wider mt-2 relative z-10">Total savings offered</div>
+            </div>
           </div>
-
-        </div>
+          </>
+        ) : null}
 
         {/* 
           ========================================================
@@ -1115,57 +1122,11 @@ const PetSellerDashboard = ({
             )}
 
           {activeTab === 'profile' && (
-            <div className="space-y-6 animate-in fade-in zoom-in-95 duration-300">
-              <h2 className="text-xl font-sans font-black text-[#0F2E23] flex items-center gap-2">
-                <Settings size={22} className="text-[#ffd000]" /> Seller Profile Settings
-              </h2>
-              
-              <div className="bg-white border border-slate-200 rounded-2xl p-8 shadow-sm max-w-2xl">
-                <form onSubmit={handleUpdateProfile} className="space-y-6">
-                  
-                  <div className="flex flex-col md:flex-row gap-6 items-start">
-                    <div className="shrink-0 flex flex-col items-center gap-3">
-                      <img 
-                        src={profileAvatar || 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?q=80&w=800&auto=format&fit=crop'} 
-                        alt="Profile" 
-                        className="w-24 h-24 rounded-full object-cover border-4 border-slate-100 shadow-sm"
-                      />
-                    </div>
-                    <div className="flex-1 space-y-4 w-full">
-                      <div className="space-y-1.5">
-                        <label className="text-slate-600 font-black text-xs uppercase tracking-wider block">Seller/Brand Name</label>
-                        <input
-                          type="text"
-                          value={profileName}
-                          onChange={(e) => setProfileName(e.target.value)}
-                          className="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-[#0F2E23] focus:ring-1 focus:ring-[#0F2E23] shadow-sm bg-slate-50"
-                          required
-                        />
-                      </div>
-                      
-                      <div className="space-y-1.5">
-                        <label className="text-slate-600 font-black text-xs uppercase tracking-wider block">Profile Image</label>
-                        <input
-                          type="file"
-                          accept="image/*"
-                          onChange={(e) => handleFileChange(e, setProfileAvatar)}
-                          className="w-full px-3 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-[#0F2E23] shadow-sm bg-slate-50 file:mr-2 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-black file:bg-[#0F2E23] file:text-white hover:file:bg-[#163e30]"
-                        />
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="pt-4 border-t border-slate-100 flex justify-end">
-                    <button 
-                      type="submit" 
-                      className="px-6 py-3 bg-[#0F2E23] hover:bg-[#163e30] text-white font-black text-xs uppercase tracking-wider rounded-xl transition shadow-md"
-                    >
-                      Save Profile Changes
-                    </button>
-                  </div>
-                </form>
-              </div>
-            </div>
+            <ProviderProfileSection
+              serviceCategory="Pet Seller"
+              onOpenSubscriptionModal={onOpenSubscriptionModal}
+              onOpenPlanDetails={onOpenPlanDetails}
+            />
           )}
 
         </div>

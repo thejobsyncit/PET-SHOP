@@ -39,7 +39,9 @@ const ScrollReveal = ({
   delay = 0,
   once = true,
   amount = 0,
-  style = {}
+  style = {},
+  id,
+  ...props
 }) => {
   const selectedVariant = variants[variant] || variants.slideUp;
   
@@ -58,12 +60,14 @@ const ScrollReveal = ({
 
   return (
     <motion.div
+      id={id}
       variants={customVariant}
       initial="hidden"
       whileInView="visible"
       viewport={{ once: true, margin: "0px", amount: amount || 0 }}
       className={className}
       style={style}
+      {...props}
     >
       {children}
     </motion.div>

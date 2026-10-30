@@ -6,13 +6,14 @@ import {
   PawPrint, Calendar, Star, TrendingUp, DollarSign, Clock, MapPin, 
   MessageSquare, Plus, Search, ChevronRight, Phone, ShieldCheck, Mail, Heart, Settings,
   Tag, ShoppingBag, AlertCircle, LayoutDashboard, LogOut, CheckCircle, X, Send, CreditCard, Loader2, Edit3, Check, Stethoscope, FileText, Building,
-  Paperclip, Trash2, Upload, Download, VolumeX, Volume2
+  Paperclip, Trash2, Upload, Download, VolumeX, Volume2, Award
 } from 'lucide-react';
 import { apiRequest } from '../../../services/api.js';
 import { getStoredMatingPets, saveMatingPet } from '../../../data/breedingData.js';
 import { safeSetItem, safeGetItem } from '../../../utils/safeStorage.js';
 
 import toast from 'react-hot-toast';
+import ProviderProfileSection from '../../../components/dashboards/ProviderProfileSection.jsx';
 
 
 const ListingsModule = ({ user }) => {
@@ -1198,12 +1199,15 @@ const BreedingProviderContent = ({ activeTab, user }) => {
 const BreedingProviderDashboard = ({ 
   currentProvider, 
   profiles, 
-  handleToggleOnline 
+  handleToggleOnline,
+  onOpenSubscriptionModal,
+  onOpenPlanDetails,
+  subscription
 }) => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const storedTab = safeGetItem('breedingDashboardTab');
-  const activeTabParam = searchParams.get('tab') || storedTab || 'appointments';
+  const activeTabParam = searchParams.get('tab') || storedTab || 'profile';
   const [activeTab, setActiveTab] = useState(activeTabParam);
 
   const { user } = useSelector(state => state.auth);
@@ -1340,12 +1344,12 @@ const BreedingProviderDashboard = ({
             <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 px-3">Main Menu</div>
             <ul className="space-y-1">
               {[
+                { id: 'profile', label: 'Breeder Profile & Plan', icon: Building },
                 { id: 'listings', label: 'Active Studs/Mates', count: 4, icon: PawPrint },
                 { id: 'matches', label: 'Match Requests', count: 3, icon: Heart },
                 { id: 'messages', label: 'Client Inquiries', count: 6, icon: MessageSquare },
                 { id: 'reviews', label: 'Customer Reviews', extra: '4.9 ★', icon: Star },
-                { id: 'wallet', label: 'Wallet & Payouts', icon: DollarSign },
-                { id: 'profile', label: 'Breeder Profile', icon: Building }
+                { id: 'wallet', label: 'Wallet & Payouts', icon: DollarSign }
               ].map(item => (
                 <li key={item.id}>
                   <button
@@ -1402,90 +1406,100 @@ const BreedingProviderDashboard = ({
       {/* RIGHT MAIN CONTENT */}
       <main className="flex-1 min-w-0 px-6 lg:px-8 pt-12 pb-10 overflow-x-hidden">
         
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
-          <div>
-            <h1 className="text-3xl font-sans font-black text-[#0F2E23] tracking-tight">
-              Breeding & Mating Dashboard
-            </h1>
-            <p className="text-sm text-slate-500 font-medium mt-1">
-              Manage your mating listings, stud profiles, and match requests.
-            </p>
-          </div>
-        </div>
-
-        {/* KPI METRICS */}
-        <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 sm:gap-5 mb-10">
-          
-          <div className="bg-white border border-slate-200 p-5 rounded-2xl hover:border-[#0F2E23]/30 transition duration-300 shadow-sm hover:shadow-md group">
-            <div className="flex justify-between items-center mb-4">
-              <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Active Listings</span>
-              <div className="w-8 h-8 rounded-lg bg-slate-50 text-slate-400 flex items-center justify-center group-hover:scale-110 transition duration-300 border border-slate-100">
-                <PawPrint size={16} />
+        {activeTab !== 'profile' ? (
+          <>
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
+              <div>
+                <h1 className="text-3xl font-sans font-black text-[#0F2E23] tracking-tight">
+                  Mating & Breeding Dashboard
+                </h1>
+                <p className="text-sm text-slate-500 font-medium mt-1">
+                  Manage active champion stud listings, pedigree match requests, and breeder profile.
+                </p>
               </div>
             </div>
-            <div className="text-3xl font-sans font-black text-[#0F2E23] mb-1">{stats.totalListings}</div>
-            <div className="text-[10px] text-slate-500 font-black uppercase tracking-wider mt-2">Current</div>
-          </div>
 
-          <div className="bg-white border border-slate-200 p-5 rounded-2xl hover:border-emerald-500/50 transition duration-300 shadow-sm hover:shadow-md group relative overflow-hidden">
-            <div className="absolute inset-0 bg-gradient-to-br from-emerald-50/50 to-transparent pointer-events-none"></div>
-            <div className="flex justify-between items-center mb-4 relative z-10">
-              <span className="text-[10px] font-black text-emerald-600 uppercase tracking-widest">Pending Matches</span>
-              <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-500 flex items-center justify-center group-hover:scale-110 transition duration-300 border border-emerald-100">
-                <Heart size={16} />
+            {/* KPI METRICS */}
+            <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 sm:gap-5 mb-10">
+              <div className="bg-white border border-slate-200 p-5 rounded-2xl hover:border-[#0F2E23]/30 transition duration-300 shadow-sm hover:shadow-md group">
+                <div className="flex justify-between items-center mb-4">
+                  <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Total Stud Profiles</span>
+                  <div className="w-8 h-8 rounded-lg bg-slate-50 text-slate-400 flex items-center justify-center group-hover:scale-110 transition duration-300 border border-slate-100">
+                    <PawPrint size={16} />
+                  </div>
+                </div>
+                <div className="text-3xl font-sans font-black text-[#0F2E23] mb-1">{stats.totalListings}</div>
+                <div className="text-[10px] text-slate-500 font-black uppercase tracking-wider mt-2">All time</div>
+              </div>
+
+              <div className="bg-white border border-slate-200 p-5 rounded-2xl hover:border-emerald-500/50 transition duration-300 shadow-sm hover:shadow-md group relative overflow-hidden">
+                <div className="absolute inset-0 bg-gradient-to-br from-emerald-50/50 to-transparent pointer-events-none"></div>
+                <div className="flex justify-between items-center mb-4 relative z-10">
+                  <span className="text-[10px] font-black text-emerald-600 uppercase tracking-widest">Available for Mating</span>
+                  <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-500 flex items-center justify-center group-hover:scale-110 transition duration-300 border border-emerald-100">
+                    <Heart size={16} />
+                  </div>
+                </div>
+                <div className="text-3xl font-sans font-black text-[#0F2E23] mb-1 relative z-10">{stats.availableStock}</div>
+                <div className="text-[10px] text-emerald-600 font-black uppercase tracking-wider mt-2 relative z-10">Active studs</div>
+              </div>
+
+              <div className="bg-white border border-slate-200 p-5 rounded-2xl hover:border-rose-500/50 transition duration-300 shadow-sm hover:shadow-md group relative overflow-hidden">
+                <div className="absolute inset-0 bg-gradient-to-br from-rose-50/50 to-transparent pointer-events-none"></div>
+                <div className="flex justify-between items-center mb-4 relative z-10">
+                  <span className="text-[10px] font-black text-rose-600 uppercase tracking-widest">Successful Litters</span>
+                  <div className="w-8 h-8 rounded-lg bg-rose-50 text-rose-500 flex items-center justify-center group-hover:scale-110 transition duration-300 border border-rose-100">
+                    <Award size={16} />
+                  </div>
+                </div>
+                <div className="text-3xl font-sans font-black text-[#0F2E23] mb-1 relative z-10">{stats.soldOutCount}</div>
+                <div className="text-[10px] text-rose-600 font-black uppercase tracking-wider mt-2 relative z-10">Verified litters</div>
+              </div>
+
+              <div className="bg-white border border-slate-200 p-5 rounded-2xl hover:border-[#ffd000]/80 transition duration-300 shadow-sm hover:shadow-md group relative overflow-hidden">
+                <div className="absolute inset-0 bg-gradient-to-br from-[#ffd000]/10 to-transparent pointer-events-none"></div>
+                <div className="flex justify-between items-center mb-4 relative z-10">
+                  <span className="text-[10px] font-black text-amber-600 uppercase tracking-widest">Stud Service Revenue</span>
+                  <div className="w-8 h-8 rounded-lg bg-amber-50 text-amber-500 flex items-center justify-center group-hover:scale-110 transition duration-300 border border-amber-100">
+                    <DollarSign size={16} />
+                  </div>
+                </div>
+                <div className="flex items-end gap-2 mb-1 relative z-10">
+                  <div className="text-2xl font-sans font-black text-[#0F2E23]">₹{stats.revenue.toLocaleString('en-IN')}</div>
+                </div>
+                <div className="text-[10px] text-amber-600 font-black uppercase tracking-wider mt-2 relative z-10">
+                  {stats.totalOrders} total sessions
+                </div>
+              </div>
+
+              <div className="bg-white border border-slate-200 p-5 rounded-2xl hover:border-sky-500/50 transition duration-300 shadow-sm hover:shadow-md group relative overflow-hidden">
+                <div className="absolute inset-0 bg-gradient-to-br from-sky-50/50 to-transparent pointer-events-none"></div>
+                <div className="flex justify-between items-center mb-4 relative z-10">
+                  <span className="text-[10px] font-black text-sky-600 uppercase tracking-widest">Discounts Given</span>
+                  <div className="w-8 h-8 rounded-lg bg-sky-50 text-sky-500 flex items-center justify-center group-hover:scale-110 transition duration-300 border border-sky-100">
+                    <Tag size={16} />
+                  </div>
+                </div>
+                <div className="flex items-end gap-2 mb-1 relative z-10">
+                  <div className="text-2xl font-sans font-black text-[#0F2E23]">₹{stats.discounts.toLocaleString('en-IN')}</div>
+                </div>
+                <div className="text-[10px] text-sky-600 font-black uppercase tracking-wider mt-2 relative z-10">Total savings offered</div>
               </div>
             </div>
-            <div className="text-3xl font-sans font-black text-[#0F2E23] mb-1 relative z-10">{stats.availableStock}</div>
-            <div className="text-[10px] text-emerald-600 font-black uppercase tracking-wider mt-2 relative z-10">Awaiting approval</div>
-          </div>
-
-          <div className="bg-white border border-slate-200 p-5 rounded-2xl hover:border-rose-500/50 transition duration-300 shadow-sm hover:shadow-md group relative overflow-hidden">
-            <div className="absolute inset-0 bg-gradient-to-br from-rose-50/50 to-transparent pointer-events-none"></div>
-            <div className="flex justify-between items-center mb-4 relative z-10">
-              <span className="text-[10px] font-black text-rose-600 uppercase tracking-widest">Successful Mates</span>
-              <div className="w-8 h-8 rounded-lg bg-rose-50 text-rose-500 flex items-center justify-center group-hover:scale-110 transition duration-300 border border-rose-100">
-                <CheckCircle size={16} />
-              </div>
-            </div>
-            <div className="text-3xl font-sans font-black text-[#0F2E23] mb-1 relative z-10">{stats.soldOutCount}</div>
-            <div className="text-[10px] text-rose-600 font-black uppercase tracking-wider mt-2 relative z-10">Completed matches</div>
-          </div>
-
-          <div className="bg-white border border-slate-200 p-5 rounded-2xl hover:border-[#ffd000]/80 transition duration-300 shadow-sm hover:shadow-md group relative overflow-hidden">
-             <div className="absolute inset-0 bg-gradient-to-br from-[#ffd000]/10 to-transparent pointer-events-none"></div>
-            <div className="flex justify-between items-center mb-4 relative z-10">
-              <span className="text-[10px] font-black text-amber-600 uppercase tracking-widest">Total Earnings</span>
-              <div className="w-8 h-8 rounded-lg bg-amber-50 text-amber-500 flex items-center justify-center group-hover:scale-110 transition duration-300 border border-amber-100">
-                <DollarSign size={16} />
-              </div>
-            </div>
-            <div className="flex items-end gap-2 mb-1 relative z-10">
-              <div className="text-2xl font-sans font-black text-[#0F2E23]">₹{stats.revenue.toLocaleString('en-IN')}</div>
-            </div>
-            <div className="text-[10px] text-amber-600 font-black uppercase tracking-wider mt-2 relative z-10">
-              {stats.totalOrders} total sessions
-            </div>
-          </div>
-
-          <div className="bg-white border border-slate-200 p-5 rounded-2xl hover:border-sky-500/50 transition duration-300 shadow-sm hover:shadow-md group relative overflow-hidden">
-            <div className="absolute inset-0 bg-gradient-to-br from-sky-50/50 to-transparent pointer-events-none"></div>
-            <div className="flex justify-between items-center mb-4 relative z-10">
-              <span className="text-[10px] font-black text-sky-600 uppercase tracking-widest">Discounts Given</span>
-              <div className="w-8 h-8 rounded-lg bg-sky-50 text-sky-500 flex items-center justify-center group-hover:scale-110 transition duration-300 border border-sky-100">
-                <Tag size={16} />
-              </div>
-            </div>
-            <div className="flex items-end gap-2 mb-1 relative z-10">
-              <div className="text-2xl font-sans font-black text-[#0F2E23]">₹{stats.discounts.toLocaleString('en-IN')}</div>
-            </div>
-            <div className="text-[10px] text-sky-600 font-black uppercase tracking-wider mt-2 relative z-10">Total savings offered</div>
-          </div>
-
-        </div>
+          </>
+        ) : null}
 
         {/* TAB CONTENT */}
         <div className="bg-white rounded-3xl p-8 lg:p-4 lg:p-10 border border-slate-200 min-h-[500px] shadow-sm">
-          <BreedingProviderContent activeTab={activeTab} user={user} />
+          {activeTab === 'profile' ? (
+            <ProviderProfileSection
+              serviceCategory="Mating & Breeding"
+              onOpenSubscriptionModal={onOpenSubscriptionModal}
+              onOpenPlanDetails={onOpenPlanDetails}
+            />
+          ) : (
+            <BreedingProviderContent activeTab={activeTab} user={user} />
+          )}
         </div>
       </main>
 

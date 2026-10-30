@@ -1,18 +1,55 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { useNavigate } from 'react-router-dom';
-import { CreditCard, Truck, CircleCheck, ChevronRight, ShoppingBag, ClipboardList, Download } from 'lucide-react';
-import { clearCartAPI } from '../../store/slices/cartSlice.js';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { CreditCard, Truck, CircleCheck, ChevronRight, ShoppingBag, ClipboardList, Download, Zap } from 'lucide-react';
+import { clearCartAPI, calculateTotals } from '../../store/slices/cartSlice.js';
 import { fetchProducts } from '../../store/slices/productSlice.js';
 import { apiRequest } from '../../services/api.js';
 import { downloadBill } from '../../utils/billGenerator.js';
+import { openAuthModal } from '../../store/slices/authSlice.js';
 import toast from 'react-hot-toast';
 
 const Checkout = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const dispatch = useDispatch();
-  const { items, pricing, appliedCoupon } = useSelector((state) => state.cart);
+  const { items: cartItems, pricing: cartPricing, appliedCoupon } = useSelector((state) => state.cart);
   const { isAuthenticated, user } = useSelector((state) => state.auth);
+
+  // Check if this is a direct "Buy Now" checkout vs standard cart checkout
+  const isBuyNow = Boolean(
+    location.state?.isBuyNow || 
+    location.state?.buyNowItem ||
+    (sessionStorage.getItem('joshpetshub_buynow_active') === 'true' && sessionStorage.getItem('joshpetshub_buynow_item'))
+  );
+
+  const buyNowItem = useMemo(() => {
+    if (location.state?.buyNowItem) {
+      return location.state.buyNowItem;
+    }
+    if (isBuyNow) {
+      try {
+        const saved = sessionStorage.getItem('joshpetshub_buynow_item');
+        if (saved) return JSON.parse(saved);
+      } catch (_) {}
+    }
+    return null;
+  }, [location.state, isBuyNow]);
+
+  // Determine active checkout items and pricing
+  const items = useMemo(() => {
+    if (isBuyNow && buyNowItem?.product) {
+      return [buyNowItem];
+    }
+    return cartItems;
+  }, [isBuyNow, buyNowItem, cartItems]);
+
+  const pricing = useMemo(() => {
+    if (isBuyNow && buyNowItem?.product) {
+      return calculateTotals([buyNowItem], appliedCoupon);
+    }
+    return cartPricing;
+  }, [isBuyNow, buyNowItem, appliedCoupon, cartPricing]);
 
   // Stepper state
   const [step, setStep] = useState(1);
@@ -28,6 +65,16 @@ const Checkout = () => {
   const [prescriptionId, setPrescriptionId] = useState('');
   const [placingOrder, setPlacingOrder] = useState(false);
   const [confirmedOrder, setConfirmedOrder] = useState(null);
+
+  useEffect(() => {
+    if (!isAuthenticated) {
+      window.dispatchEvent(
+        new CustomEvent('open-register-modal', {
+          detail: { tab: 'user', hideProviderTab: true, source: 'checkout-page' }
+        })
+      );
+    }
+  }, [isAuthenticated, dispatch]);
 
   // Load user data if logged in
   useEffect(() => {
@@ -130,7 +177,14 @@ const Checkout = () => {
 
       if (data.success) {
         setConfirmedOrder(data.order);
-        dispatch(clearCartAPI());
+        if (isBuyNow) {
+          try {
+            sessionStorage.removeItem('joshpetshub_buynow_item');
+            sessionStorage.removeItem('joshpetshub_buynow_active');
+          } catch (_) {}
+        } else {
+          dispatch(clearCartAPI());
+        }
         // Sync products stock to reflect purchases immediately
         dispatch(fetchProducts());
         setStep(4);
@@ -148,8 +202,23 @@ const Checkout = () => {
       
       {/* Page Title */}
       <div className="text-center space-y-2">
-        <span className="text-[10px] uppercase tracking-widest text-accent font-bold">SECURE CHECKOUT</span>
-        <h1 className="font-serif text-2xl md:text-3xl text-primary">Checkout Wizard</h1>
+        <span className="text-[10px] uppercase tracking-widest text-accent font-bold flex items-center justify-center gap-1">
+          {isBuyNow ? (
+            <>
+              <Zap size={13} className="text-amber-500 fill-amber-500" /> DIRECT INSTANT CHECKOUT
+            </>
+          ) : (
+            'SECURE CHECKOUT'
+          )}
+        </span>
+        <h1 className="font-serif text-2xl md:text-3xl text-primary">
+          {isBuyNow ? 'Instant Buy Checkout' : 'Checkout Wizard'}
+        </h1>
+        {isBuyNow && (
+          <p className="text-xs text-gray-500 max-w-md mx-auto">
+            Directly purchasing this item without adding it to your shopping cart.
+          </p>
+        )}
       </div>
 
       {/* Stepper Steps Indicators */}
@@ -428,8 +497,13 @@ const Checkout = () => {
 
           {/* Invoice Summary (Right 4 Columns) */}
           <div className="lg:col-span-4 bg-white border border-beige p-6 shadow-sm space-y-6">
-            <h3 className="font-serif text-base font-bold text-primary border-b border-beige pb-3">
-              Order Summary
+            <h3 className="font-serif text-base font-bold text-primary border-b border-beige pb-3 flex items-center justify-between">
+              <span>Order Summary</span>
+              {isBuyNow && (
+                <span className="text-[10px] font-sans font-bold bg-amber-50 text-amber-800 border border-amber-200 px-2 py-0.5 rounded-full uppercase tracking-wider">
+                  Instant Buy
+                </span>
+              )}
             </h3>
             
             {/* Products brief list */}

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { ArrowRight, BookOpen, Clock, Tag, Sparkles } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { apiRequest } from '../../services/api.js';
@@ -105,7 +105,7 @@ const BlogHub = () => {
         ) : blogs.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {blogs.map((blog, index) => (
-              <ScrollReveal key={blog.slug} variant="slideUp" delay={0.1 + (index * 0.1)}>
+              <ScrollReveal key={blog.slug || blog._id} variant="slideUp" delay={0.1 + (index * 0.1)}>
                 <div 
                   onClick={() => navigate(`/pet-care/${blog.slug}`)}
                   className="group relative bg-white rounded-[2rem] border border-slate-100 shadow-lg hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 flex flex-col h-full cursor-pointer overflow-hidden"
@@ -113,13 +113,16 @@ const BlogHub = () => {
                   <div className="aspect-[16/10] overflow-hidden relative">
                     <div className="absolute inset-0 bg-gradient-to-t from-slate-900/60 to-transparent z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                     <img 
-                      src={blog.featuredImage} 
+                      src={blog.featuredImage || blog.featured_image || 'https://images.unsplash.com/photo-1548199973-03cce0bbc87b?auto=format&fit=crop&q=80&w=1200'} 
                       alt={blog.title} 
                       className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ease-out" 
+                      onError={(e) => {
+                        e.currentTarget.src = 'https://images.unsplash.com/photo-1548199973-03cce0bbc87b?auto=format&fit=crop&q=80&w=1200';
+                      }}
                     />
                     <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-md text-[10px] font-black text-[#1c4b3a] px-3 py-1.5 rounded-lg shadow-sm z-20 flex items-center gap-1.5">
                       <Tag size={12} />
-                      {getPetTypeLabel(blog.petType)}
+                      {getPetTypeLabel(blog.petType || blog.pet_type)}
                     </div>
                   </div>
                   
@@ -134,10 +137,20 @@ const BlogHub = () => {
                     </div>
                     
                     <div className="mt-6 pt-6 border-t border-slate-100 flex items-center justify-between text-xs font-bold text-slate-500">
-                      <span className="flex items-center gap-1.5 bg-slate-50 px-3 py-1.5 rounded-md"><Clock size={14} /> {blog.readTime}</span>
-                      <span className="text-[#1c4b3a] flex items-center gap-1.5 group-hover:text-amber-600 transition-colors">
-                        READ ARTICLE <ArrowRight size={14} className="group-hover:translate-x-2 transition-transform duration-300" />
+                      <span className="flex items-center gap-1.5 bg-slate-50 px-3 py-1.5 rounded-md">
+                        <Clock size={14} /> {blog.readTime || blog.read_time || '5 min read'}
                       </span>
+                      <Link
+                        to={`/pet-care/${blog.slug}`}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          navigate(`/pet-care/${blog.slug}`);
+                        }}
+                        className="text-[#1c4b3a] font-black flex items-center gap-1.5 group-hover:text-amber-600 transition-colors"
+                      >
+                        <span>READ ARTICLE</span>
+                        <ArrowRight size={14} className="group-hover:translate-x-2 transition-transform duration-300" />
+                      </Link>
                     </div>
                   </div>
                 </div>

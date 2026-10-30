@@ -4,6 +4,8 @@
  * embedded logo, GST compliance, and instant download/print capabilities.
  */
 
+import { jsPDF } from 'jspdf';
+
 let cachedLogoBase64 = null;
 
 export const getLogoDataUrl = async () => {
@@ -328,27 +330,200 @@ export const generateBillHtml = ({
 };
 
 /**
- * Trigger file download of the official tax invoice bill
+ * Trigger official tax invoice bill download in PDF format
  */
 export const downloadBill = async (billData) => {
   try {
-    const logoUrl = await getLogoDataUrl();
-    const html = generateBillHtml({ ...billData, logoUrl });
     const invNo = billData.invoiceNumber || 'BILL';
-    
-    const blob = new Blob([html], { type: 'text/html' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `JoshPetsHub_Bill_${invNo}.html`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+
+    // 1. Generate standard high-resolution PDF document using jsPDF
+    const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+    const pageWidth = 210;
+    const margin = 14;
+    const contentWidth = pageWidth - (margin * 2);
+
+    // Top decorative banners
+    doc.setFillColor(15, 46, 35); // #0F2E23 Deep Emerald
+    doc.rect(0, 0, pageWidth, 6, 'F');
+    doc.setFillColor(212, 175, 55); // #D4AF37 Gold Accent
+    doc.rect(0, 6, pageWidth, 1.5, 'F');
+
+    let y = 18;
+
+    // Brand Header
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(22);
+    doc.setTextColor(15, 46, 35);
+    doc.text('JOSH PETS HUB', margin, y);
+
+    y += 5.5;
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(8);
+    doc.setTextColor(100, 116, 139);
+    doc.text("India's Premier Verified Pet Care, Veterinary & Relocation Network - Official Tax Invoice", margin, y);
+    y += 4;
+    doc.text('GSTIN: 29AAAAA0000A1Z5 | CIN: U74999KA2024PTC123456 | support@joshpetshub.com', margin, y);
+
+    // Invoice Title Box on Right
+    doc.setFillColor(248, 250, 252);
+    doc.setDrawColor(226, 232, 240);
+    doc.roundedRect(108, 12, 88, 17, 2, 2, 'FD');
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(9);
+    doc.setTextColor(15, 46, 35);
+    doc.text(String(billData.invoiceTitle || 'TAX INVOICE').slice(0, 36), 111, 18);
+    doc.setFontSize(8);
+    const isPaid = String(billData.statusText || '').toLowerCase().includes('paid');
+    doc.setTextColor(isPaid ? 5 : 217, isPaid ? 150 : 119, isPaid ? 105 : 6);
+    doc.text(String(billData.statusText || 'PAYMENT COMPLETED').slice(0, 36), 111, 24);
+
+    y += 11;
+    doc.setDrawColor(226, 232, 240);
+    doc.setLineWidth(0.5);
+    doc.line(margin, y, pageWidth - margin, y);
+
+    // Customer & Invoice Details Cards
+    y += 6;
+    const cardY = y;
+    const colWidth = (contentWidth - 6) / 2;
+
+    // Left Card: Customer Details
+    doc.setFillColor(248, 250, 252);
+    doc.roundedRect(margin, cardY, colWidth, 27, 2, 2, 'FD');
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(8);
+    doc.setTextColor(100, 116, 139);
+    doc.text('BILLED TO (PET PARENT):', margin + 4, cardY + 5.5);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(9.5);
+    doc.setTextColor(15, 23, 42);
+    doc.text(String(billData.customer?.name || 'Valued Client').slice(0, 35), margin + 4, cardY + 11.5);
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(8);
+    doc.setTextColor(71, 85, 105);
+    doc.text('Email: ' + String(billData.customer?.email || 'N/A').slice(0, 38), margin + 4, cardY + 16.5);
+    doc.text('Phone: ' + String(billData.customer?.phone || 'N/A').slice(0, 25), margin + 4, cardY + 21.5);
+
+    // Right Card: Invoice Meta
+    const rightCardX = margin + colWidth + 6;
+    doc.setFillColor(248, 250, 252);
+    doc.roundedRect(rightCardX, cardY, colWidth, 27, 2, 2, 'FD');
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(8);
+    doc.setTextColor(100, 116, 139);
+    doc.text('INVOICE & JOURNEY DETAILS:', rightCardX + 4, cardY + 5.5);
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(8);
+    doc.setTextColor(71, 85, 105);
+    doc.text('Invoice No: ' + String(billData.invoiceNumber || 'N/A').slice(0, 30), rightCardX + 4, cardY + 11.5);
+    doc.text('Date: ' + String(billData.invoiceDate || 'N/A').slice(0, 30), rightCardX + 4, cardY + 16.5);
+    doc.text('Payment: ' + String(billData.payment?.method || 'Online / App').slice(0, 30), rightCardX + 4, cardY + 21.5);
+
+    // Line Items Table Header
+    y = cardY + 33;
+    doc.setFillColor(15, 46, 35);
+    doc.rect(margin, y, contentWidth, 8, 'F');
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(8.5);
+    doc.setTextColor(255, 255, 255);
+    doc.text('Item & Description', margin + 4, y + 5.5);
+    doc.text('SAC / HSN', margin + 115, y + 5.5);
+    doc.text('Amount (INR)', pageWidth - margin - 4, y + 5.5, { align: 'right' });
+
+    y += 8;
+    const items = Array.isArray(billData.items) && billData.items.length > 0 ? billData.items : [{
+      name: 'Pet Relocation / Care Service',
+      description: 'Josh Pets Hub Verified Service',
+      sacOrHsn: '998399',
+      amount: billData.totals?.total || 0
+    }];
+
+    for (const item of items) {
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(8.5);
+      doc.setTextColor(15, 23, 42);
+      doc.text(String(item.name || 'Service Item').slice(0, 60), margin + 4, y + 5.5);
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(7.5);
+      doc.setTextColor(100, 116, 139);
+      if (item.description) {
+        doc.text(String(item.description).slice(0, 75), margin + 4, y + 9.5);
+      }
+      doc.text(String(item.sacOrHsn || '998399'), margin + 115, y + 5.5);
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(9);
+      doc.setTextColor(15, 23, 42);
+      doc.text('Rs. ' + Number(item.amount || 0).toFixed(2), pageWidth - margin - 4, y + 5.5, { align: 'right' });
+      y += item.description ? 13 : 9;
+      doc.setDrawColor(241, 245, 249);
+      doc.line(margin, y, pageWidth - margin, y);
+    }
+
+    // Totals Box
+    y += 5;
+    const totalsX = pageWidth - margin - 75;
+    const totals = billData.totals || {};
+    const baseSubtotal = totals.baseAmount ?? 0;
+    const cgstAmount = totals.cgst ?? (baseSubtotal * 0.09);
+    const sgstAmount = totals.sgst ?? (baseSubtotal * 0.09);
+    const grandTotal = totals.total ?? (baseSubtotal + cgstAmount + sgstAmount);
+
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(8);
+    doc.setTextColor(71, 85, 105);
+    doc.text('Base Subtotal:', totalsX, y);
+    doc.text('Rs. ' + Number(baseSubtotal).toFixed(2), pageWidth - margin - 4, y, { align: 'right' });
+    y += 5;
+    doc.text('CGST (9%):', totalsX, y);
+    doc.text('Rs. ' + Number(cgstAmount).toFixed(2), pageWidth - margin - 4, y, { align: 'right' });
+    y += 5;
+    doc.text('SGST (9%):', totalsX, y);
+    doc.text('Rs. ' + Number(sgstAmount).toFixed(2), pageWidth - margin - 4, y, { align: 'right' });
+    y += 6;
+
+    // Grand Total Highlight Box
+    doc.setFillColor(15, 46, 35);
+    doc.roundedRect(totalsX - 3, y - 4, 78, 9, 1.5, 1.5, 'F');
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(9.5);
+    doc.setTextColor(212, 175, 55); // Gold
+    doc.text('Total Paid:', totalsX, y + 2);
+    doc.text('Rs. ' + Number(grandTotal).toFixed(2), pageWidth - margin - 4, y + 2, { align: 'right' });
+
+    // Footer
+    y += 24;
+    doc.setDrawColor(226, 232, 240);
+    doc.line(margin, y, pageWidth - margin, y);
+    y += 5;
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(7.5);
+    doc.setTextColor(148, 163, 184);
+    doc.text('This is a computer-generated official tax invoice issued by Josh Pets Hub. No physical signature required.', margin, y);
+    doc.text('Authorized Signatory: Josh Pets Hub Pvt Ltd', pageWidth - margin, y, { align: 'right' });
+
+    // Directly triggers the download in PDF format (.pdf)
+    doc.save(`JoshPetsHub_Bill_${invNo}.pdf`);
     return true;
   } catch (err) {
-    console.error('Failed to download bill:', err);
-    return false;
+    console.warn('PDF download failed with jsPDF, trying HTML fallback:', err);
+    try {
+      const logoUrl = await getLogoDataUrl();
+      const html = generateBillHtml({ ...billData, logoUrl });
+      const invNo = billData.invoiceNumber || 'BILL';
+      const blob = new Blob([html], { type: 'text/html' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `JoshPetsHub_Bill_${invNo}.html`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      return true;
+    } catch (e) {
+      console.error('Failed to download bill:', e);
+      return false;
+    }
   }
 };
 

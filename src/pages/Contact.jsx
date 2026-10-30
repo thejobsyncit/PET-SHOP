@@ -1,11 +1,13 @@
-import React, { useState } from 'react';
-import { MessageSquare, Mail, MapPin, Clock, Send, ChevronDown, Sparkles } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { useSelector } from 'react-redux';
+import { MessageSquare, Mail, MapPin, Clock, Send, ChevronDown, Sparkles, CheckCircle2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import toast from 'react-hot-toast';
 import { apiRequest } from '../services/api.js';
 import ScrollReveal from '../components/ui/ScrollReveal.jsx';
 
 const Contact = () => {
+  const { user } = useSelector((state) => state.auth || {});
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [subject, setSubject] = useState('');
@@ -13,20 +15,45 @@ const Contact = () => {
   const [submitting, setSubmitting] = useState(false);
   const [faqOpen, setFaqOpen] = useState(null);
 
+  useEffect(() => {
+    if (user) {
+      if (user.name && !name) setName(user.name);
+      if (user.email && !email) setEmail(user.email);
+    }
+  }, [user]);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!name.trim() || !email.trim() || !subject.trim() || !message.trim()) {
+      toast.error('Please fill in all required fields.');
+      return;
+    }
+
     setSubmitting(true);
     try {
       const data = await apiRequest('/enquiries', {
         method: 'POST',
-        body: JSON.stringify({ name, email, subject, message })
+        body: JSON.stringify({
+          name: name.trim(),
+          email: email.trim(),
+          phone: user?.mobile ? `${user?.mobileCountryCode || '+91'} ${user?.mobile}` : '',
+          subject: subject.trim(),
+          message: message.trim()
+        })
       });
-      if (data.success) {
-        toast.success('Your message has been received! Our support team will respond within 24 hours.');
-        setName('');
-        setEmail('');
+      if (data && data.success) {
+        toast.success('Your message has been received! Our support team will respond within 24 hours.', {
+          icon: '✉️',
+          duration: 4000
+        });
         setSubject('');
         setMessage('');
+        if (!user) {
+          setName('');
+          setEmail('');
+        }
+      } else {
+        throw new Error(data?.message || 'Submission failed');
       }
     } catch (err) {
       toast.error(err.message || 'Submission failed. Please try again.');

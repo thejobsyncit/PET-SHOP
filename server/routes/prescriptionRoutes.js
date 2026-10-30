@@ -21,7 +21,8 @@ router.route('/my')
   .get(getMyPrescriptions);
 
 router.route('/:id')
-  .get(getPrescriptionById);
+  .get(getPrescriptionById)
+  .put(admin, updatePrescriptionStatus);
 
 router.route('/:id/status')
   .put(admin, updatePrescriptionStatus);

@@ -47,14 +47,12 @@ import ServiceAccessLock, { isServicePathLockedForUser } from '../../components/
 import { handleServiceAction } from '../../components/widgets/ServicePackageAccessModal.jsx';
 import ScrollReveal from '../../components/ui/ScrollReveal.jsx';
 import PetBreedDropdown from '../../components/ui/PetBreedDropdown.jsx';
+import { apiRequest } from '../../services/api.js';
 
 export default function VeterinaryServices() {
   const navigate = useNavigate();
   const { isAuthenticated, user } = useSelector((state) => state.auth);
 
-  if (isServicePathLockedForUser(user, '/veterinary')) {
-    return <ServiceAccessLock serviceName="Consult a Vet (Veterinary Care)" attemptedPath="/veterinary" />;
-  }
 
   // Doctors data from safe localStorage
   const [doctors, setDoctors] = useState(() => getStoredVetDoctors());
@@ -85,6 +83,7 @@ export default function VeterinaryServices() {
   // Modals state
   const [selectedDoctorForDetails, setSelectedDoctorForDetails] = useState(null);
   const [showDoctorModal, setShowDoctorModal] = useState(false);
+  const [showEmergencyModal, setShowEmergencyModal] = useState(false);
 
   const [selectedDoctorForBooking, setSelectedDoctorForBooking] = useState(null);
   const [showBookingModal, setShowBookingModal] = useState(false);
@@ -290,7 +289,7 @@ export default function VeterinaryServices() {
   // Open Booking Modal with Auth Verification & Package Access
   const handleOpenBooking = (doc, prefilledMode = 'In-Clinic Visit') => {
     setSelectedDoctorForBooking(doc);
-    setAppointmentMode(prefilledMode);
+    setBookingMode(prefilledMode);
     handleServiceAction({
       isAuthenticated,
       serviceType: 'Veterinary',
@@ -298,14 +297,14 @@ export default function VeterinaryServices() {
       action: 'book',
       onAuthorized: () => {
         setSelectedDoctorForBooking(doc);
-        setAppointmentMode(prefilledMode);
+        setBookingMode(prefilledMode);
         setShowBookingModal(true);
       }
     });
   };
 
   // Handle Appointment Booking Submit
-  const handleBookingSubmit = (e) => {
+  const handleBookingSubmit = async (e) => {
     e.preventDefault();
     if (!isAuthenticated) {
       toast.error('Please log in or register to book a veterinary appointment.');
@@ -321,31 +320,74 @@ export default function VeterinaryServices() {
       return;
     }
 
+    const bookingId = `VET-${Date.now().toString().slice(-6)}`;
+    const consultFee =
+      bookingMode === '24/7 Video Tele-Consult'
+        ? selectedDoctorForBooking.videoConsultFee
+        : bookingMode === 'Home Visit Vet'
+        ? selectedDoctorForBooking.homeVisitFee
+        : selectedDoctorForBooking.inClinicFee;
+
+    const clinicLocation = selectedDoctorForBooking.clinicName 
+      ? `${selectedDoctorForBooking.clinicName}${selectedDoctorForBooking.city ? `, ${selectedDoctorForBooking.city}` : ''}`
+      : (selectedDoctorForBooking.city ? `${selectedDoctorForBooking.city}, ${selectedDoctorForBooking.state || ''}` : 'In-Clinic Clinic / Online');
+
     const appointment = {
-      id: `app-${Date.now()}`,
+      id: bookingId,
+      _id: bookingId,
+      bookingId,
+      serviceType: 'Consult a Vet',
+      serviceCategory: 'Consult a Vet',
       doctorId: selectedDoctorForBooking.id,
       doctorName: selectedDoctorForBooking.name,
-      clinicName: selectedDoctorForBooking.clinicName,
+      providerId: selectedDoctorForBooking.id,
+      providerName: selectedDoctorForBooking.name,
+      clinicName: selectedDoctorForBooking.clinicName || 'Pet Care Clinic',
+      location: clinicLocation,
       bookingMode,
+      date: bookingDate,
       bookingDate,
+      timeSlot: bookingTimeSlot,
       bookingTimeSlot,
-      petName,
+      petName: petName.trim(),
       petSpecies,
-      petBreed,
-      petSymptoms,
-      ownerName,
-      ownerPhone,
+      petBreed: petBreed.trim() || 'Indie / Mixed',
+      petSymptoms: petSymptoms.trim(),
+      petDetails: {
+        name: petName.trim(),
+        type: petSpecies,
+        breed: petBreed.trim() || 'Indie / Mixed',
+        symptoms: petSymptoms.trim()
+      },
+      ownerName: ownerName.trim() || user?.name || 'Pet Parent',
+      ownerPhone: ownerPhone.trim() || user?.mobile || '',
+      ownerEmail: user?.email || '',
+      userId: user?.id || user?._id || '',
+      userEmail: user?.email || '',
+      isUserBooking: true,
       status: 'Confirmed',
-      fee:
-        bookingMode === '24/7 Video Tele-Consult'
-          ? selectedDoctorForBooking.videoConsultFee
-          : bookingMode === 'Home Visit Vet'
-          ? selectedDoctorForBooking.homeVisitFee
-          : selectedDoctorForBooking.inClinicFee,
+      fee: Number(consultFee) || 500,
+      paymentStatus: bookingMode === '24/7 Video Tele-Consult' ? 'Paid' : 'Pay at Clinic',
       createdAt: new Date().toISOString()
     };
 
+    // 1. Save locally for guaranteed client persistence
     saveVetAppointment(appointment);
+
+    // 2. Persist to server backend API
+    try {
+      await apiRequest('/bookings', {
+        method: 'POST',
+        body: JSON.stringify(appointment)
+      });
+    } catch (err) {
+      console.warn('Backend booking sync warning, stored locally:', err);
+    }
+
+    // 3. Dispatch reactive events to update all dashboards in real-time
+    window.dispatchEvent(new CustomEvent('service-booking-updated', { detail: appointment }));
+    window.dispatchEvent(new CustomEvent('vet-data-updated', { detail: { type: 'appointment', action: 'create', appointment } }));
+
     setShowBookingModal(false);
     toast.success(
       `Appointment confirmed with ${selectedDoctorForBooking.name} for ${bookingDate} (${bookingTimeSlot})!`,
@@ -357,6 +399,11 @@ export default function VeterinaryServices() {
     setPetBreed('');
     setPetSymptoms('');
   };
+
+  if (isServicePathLockedForUser(user, '/veterinary')) {
+    return <ServiceAccessLock serviceName="Consult a Vet (Veterinary Care)" attemptedPath="/veterinary" />;
+  }
+
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-800 font-sans pb-20">
@@ -782,7 +829,7 @@ export default function VeterinaryServices() {
                 </button>
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              <div id="doctors-list" className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 {filteredDoctors.map((doc) => (
                   <div
                     key={doc.id}
@@ -1060,10 +1107,8 @@ export default function VeterinaryServices() {
                 Speak directly with an on-call veterinary emergency triage officer.
               </p>
               <button
-                onClick={() => {
-                  const el = document.getElementById('doctors-list');
-                  if (el) el.scrollIntoView({ behavior: 'smooth' });
-                }}
+                type="button"
+                onClick={() => setShowEmergencyModal(true)}
                 className="block w-full py-2.5 bg-[#1D3B2E] hover:bg-[#152e24] text-white font-bold text-xs uppercase tracking-wider rounded-xl transition shadow-md cursor-pointer border-0"
               >
                 CONNECT WITH ON-CALL VET
@@ -1073,6 +1118,189 @@ export default function VeterinaryServices() {
 
         </div>
       </ScrollReveal>
+
+      {/* ================= 6.5 EMERGENCY VET TRIAGE & GUIDANCE MODAL ================= */}
+      {showEmergencyModal && (
+        <div className="fixed inset-0 z-[100] overflow-y-auto bg-black/75 backdrop-blur-xs p-3 sm:p-4 flex flex-col items-center justify-start sm:justify-center animate-in fade-in duration-200">
+          <div className="relative bg-white text-slate-900 w-full max-w-lg my-auto shadow-2xl border border-red-200 rounded-3xl overflow-hidden flex flex-col min-h-0 max-h-[92vh]">
+            
+            {/* Modal Header */}
+            <div className="bg-gradient-to-r from-red-700 via-rose-700 to-[#1D3B2E] text-white px-5 py-4 flex items-center justify-between shrink-0">
+              <div className="flex items-center gap-2.5">
+                <div className="w-9 h-9 bg-white/20 rounded-xl flex items-center justify-center text-white">
+                  <HeartPulse size={20} className="animate-pulse" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h3 className="font-serif font-bold text-base sm:text-lg text-white">
+                      24/7 Emergency Vet Triage
+                    </h3>
+                    <span className="bg-red-500/80 text-white text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full tracking-wider animate-pulse">
+                      LIVE ON-CALL
+                    </span>
+                  </div>
+                  <p className="text-xs text-rose-100">
+                    Immediate medical escalation & emergency guidance for critical pet cases
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowEmergencyModal(false)}
+                className="w-8 h-8 rounded-full bg-white/20 hover:bg-white/30 text-white flex items-center justify-center transition cursor-pointer"
+              >
+                <X size={16} />
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div className="p-5 overflow-y-auto space-y-4 text-xs text-slate-700">
+              
+              {/* Urgent Call Card */}
+              <div className="bg-red-50 border-2 border-red-200 rounded-2xl p-4 flex flex-col sm:flex-row items-center justify-between gap-3">
+                <div className="flex items-center gap-3">
+                  <div className="w-11 h-11 bg-red-600 text-white rounded-xl flex items-center justify-center shrink-0 shadow-sm">
+                    <PhoneCall size={20} className="animate-bounce" />
+                  </div>
+                  <div>
+                    <span className="block text-[11px] font-bold text-red-800 uppercase tracking-wider">
+                      Emergency Vet Hotline (Toll-Free)
+                    </span>
+                    <span className="text-lg font-extrabold text-slate-900 tracking-tight">
+                      +91 98765 43210
+                    </span>
+                    <p className="text-[11px] text-red-700 mt-0.5">
+                      Zero waiting time. Trauma, poisoning, GDV, and oxygen resuscitation.
+                    </p>
+                  </div>
+                </div>
+                <a
+                  href="tel:+919876543210"
+                  className="w-full sm:w-auto px-5 py-2.5 bg-red-600 hover:bg-red-700 text-white font-bold text-xs uppercase tracking-wider rounded-xl transition text-center shadow-md flex items-center justify-center gap-2 shrink-0 cursor-pointer"
+                >
+                  <PhoneCall size={14} /> Call Now
+                </a>
+              </div>
+
+              {/* WhatsApp Emergency Chat Card */}
+              <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-4 flex flex-col sm:flex-row items-center justify-between gap-3">
+                <div className="flex items-center gap-3">
+                  <div className="w-11 h-11 bg-[#25D366] text-white rounded-xl flex items-center justify-center shrink-0 shadow-sm">
+                    <MessageSquare size={20} />
+                  </div>
+                  <div>
+                    <span className="block text-[11px] font-bold text-emerald-900 uppercase tracking-wider">
+                      Instant WhatsApp Triage
+                    </span>
+                    <p className="text-xs text-slate-700 font-medium">
+                      Chat directly with on-duty veterinary triage officers. Share video & symptoms instantly.
+                    </p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const onCallDoc = doctors.find((d) => d.isEmergencyAvailable) || doctors[0];
+                    handleWhatsAppConsult({
+                      ...onCallDoc,
+                      phone: onCallDoc.whatsapp || '919876543210'
+                    });
+                  }}
+                  className="w-full sm:w-auto px-4 py-2.5 bg-[#25D366] hover:bg-[#1EBE5D] text-white font-bold text-xs uppercase tracking-wider rounded-xl transition text-center shadow-md flex items-center justify-center gap-1.5 shrink-0 cursor-pointer"
+                >
+                  <MessageSquare size={14} /> WhatsApp Triage
+                </button>
+              </div>
+
+              {/* Featured On-Call Doctor */}
+              {(() => {
+                const onCallDoc = doctors.find((d) => d.isEmergencyAvailable) || doctors[0];
+                if (!onCallDoc) return null;
+                return (
+                  <div className="bg-stone-50 border border-stone-200 rounded-2xl p-4 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
+                        Duty Emergency Surgeon
+                      </span>
+                      <span className="text-[10px] font-bold text-red-700 bg-red-100 border border-red-200 px-2 py-0.5 rounded-full flex items-center gap-1">
+                        <span className="w-1.5 h-1.5 bg-red-600 rounded-full animate-ping"></span>
+                        Ready for Emergency Consult
+                      </span>
+                    </div>
+                    <div className="flex items-start gap-3">
+                      <img
+                        src={onCallDoc.avatar}
+                        alt={onCallDoc.name}
+                        className="w-14 h-14 rounded-xl object-cover border-2 border-stone-200 shrink-0"
+                      />
+                      <div className="flex-1 min-w-0">
+                        <h4 className="font-bold text-sm text-slate-900 truncate">
+                          {onCallDoc.name}
+                        </h4>
+                        <p className="text-[11px] text-slate-500 truncate">
+                          {onCallDoc.degrees}
+                        </p>
+                        <p className="text-[11px] text-[#1D3B2E] font-medium mt-0.5 truncate">
+                          {onCallDoc.clinicName} • {onCallDoc.city}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2 pt-1">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setShowEmergencyModal(false);
+                          handleOpenBooking(onCallDoc, '24/7 Video Tele-Consult');
+                        }}
+                        className="flex-1 py-2.5 bg-[#1D3B2E] hover:bg-[#152e24] text-white font-bold text-xs uppercase tracking-wider rounded-xl transition shadow-sm flex items-center justify-center gap-1.5 cursor-pointer"
+                      >
+                        <Video size={14} /> Video Call Doctor (₹{onCallDoc.videoConsultFee})
+                      </button>
+                    </div>
+                  </div>
+                );
+              })()}
+
+              {/* Filter All 24/7 Emergency Doctors in Directory */}
+              <div className="pt-2 text-center">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowEmergencyModal(false);
+                    setEmergencyOnly(true);
+                    setSelectedConsultMode('emergency');
+                    setTimeout(() => {
+                      const el = document.getElementById('doctors-list') || document.getElementById('vet-directory-results');
+                      if (el) el.scrollIntoView({ behavior: 'smooth' });
+                    }, 100);
+                    toast.success('Filtered for 24/7 Emergency & ICU Ready veterinarians.');
+                  }}
+                  className="w-full py-2.5 bg-stone-100 hover:bg-stone-200 text-slate-800 font-bold text-xs uppercase tracking-wider rounded-xl transition border border-stone-300 flex items-center justify-center gap-2 cursor-pointer"
+                >
+                  <AlertCircle size={14} className="text-[#1D3B2E]" />
+                  View All 24/7 Emergency Doctors in Directory
+                </button>
+              </div>
+
+            </div>
+
+            {/* Modal Footer */}
+            <div className="bg-stone-50 px-5 py-3 border-t border-stone-200 flex items-center justify-between text-[11px] text-slate-500">
+              <span className="flex items-center gap-1.5">
+                <ShieldCheck size={14} className="text-emerald-700" /> VCI Verified Emergency Protocols
+              </span>
+              <button
+                type="button"
+                onClick={() => setShowEmergencyModal(false)}
+                className="font-bold text-slate-600 hover:text-slate-900 cursor-pointer"
+              >
+                Close
+              </button>
+            </div>
+
+          </div>
+        </div>
+      )}
 
       {/* ================= 7. DOCTOR PROFILE DETAILS MODAL ================= */}
       {showDoctorModal && selectedDoctorForDetails && (

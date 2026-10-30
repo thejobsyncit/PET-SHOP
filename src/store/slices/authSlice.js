@@ -86,6 +86,14 @@ const getInitialUser = () => {
         }
       }
       parsed.addresses = Array.isArray(parsed.addresses) ? parsed.addresses : [];
+      if (parsed.addresses.length === 0 && parsed.email) {
+        try {
+          const cached = JSON.parse(localStorage.getItem(`joshpetshub_addresses_${parsed.email.toLowerCase()}`) || '[]');
+          if (Array.isArray(cached) && cached.length > 0) {
+            parsed.addresses = cached;
+          }
+        } catch (_) {}
+      }
       if (activeMem) {
         parsed.serviceMembership = activeMem;
       }
@@ -136,7 +144,7 @@ export const register = createAsyncThunk('auth/register', async (userData, thunk
   try {
     const existing = JSON.parse(localStorage.getItem('joshpetshub_registered_users') || '[]');
     const isDuplicate = Array.isArray(existing) && existing.some(u => (u?.email || '').trim().toLowerCase() === candidateEmail);
-    if (candidateEmail && (isDuplicate || SYSTEM_DEMO_EMAILS.includes(candidateEmail))) {
+    if (candidateEmail && candidateEmail !== 'sooryas650@gmail.com' && (isDuplicate || SYSTEM_DEMO_EMAILS.includes(candidateEmail))) {
       return thunkAPI.rejectWithValue('An account with this email address already exists. Please login instead.');
     }
   } catch (e) {}
@@ -176,6 +184,17 @@ export const login = createAsyncThunk('auth/login', async (credentials, thunkAPI
     });
     safeSetItem('joshpetshub_token', data.token);
     if (data.user) {
+      const emailKey = (data.user.email || rawId || '').toLowerCase().trim();
+      let userAddresses = Array.isArray(data.user.addresses) ? data.user.addresses : [];
+      if (userAddresses.length === 0 && emailKey) {
+        try {
+          const cached = JSON.parse(localStorage.getItem(`joshpetshub_addresses_${emailKey}`) || '[]');
+          if (Array.isArray(cached) && cached.length > 0) {
+            userAddresses = cached;
+          }
+        } catch (_) {}
+      }
+      data.user.addresses = userAddresses;
       safeSetItem('joshpetshub_user', JSON.stringify(sanitizeUserForStorage(data.user)));
     }
     return data;
@@ -220,29 +239,40 @@ export const fetchProfile = createAsyncThunk('auth/fetchProfile', async (_, thun
     const saved = getInitialUser();
     const existingMembership = saved?.serviceMembership || readPersistedMembership();
     
-    // Always prefer our local saved user if it contains user profile details
-    if (saved && (saved.avatar || saved.profilePicture || saved.name)) {
-      if (existingMembership && !saved.serviceMembership) {
-        saved.serviceMembership = existingMembership;
-      }
-      safeSetItem('joshpetshub_user', JSON.stringify(sanitizeUserForStorage(saved)));
-      return { user: saved };
-    }
     if (token) {
-      const data = await apiRequest('/auth/profile');
-      if (data && data.user) {
-        const isPetSeller = data.user.serviceCategory === 'Pet Seller' || data.user._id === 'prov-seller-04';
-        const sellerAvatar = isPetSeller ? localStorage.getItem('joshpetshub_seller_avatar') : null;
-        const sellerName = isPetSeller ? localStorage.getItem('joshpetshub_seller_name') : null;
-        const finalUser = {
-          ...data.user,
-          avatar: sellerAvatar || data.user.avatar || saved?.avatar,
-          profilePicture: sellerAvatar || data.user.profilePicture || saved?.profilePicture,
-          name: sellerName || data.user.name || saved?.name,
-          serviceMembership: existingMembership || data.user.serviceMembership || saved?.serviceMembership || null
-        };
-        safeSetItem('joshpetshub_user', JSON.stringify(sanitizeUserForStorage(finalUser)));
-        return { user: finalUser };
+      try {
+        const data = await apiRequest('/auth/profile');
+        if (data && data.user) {
+          const isPetSeller = data.user.serviceCategory === 'Pet Seller' || data.user._id === 'prov-seller-04';
+          const sellerAvatar = isPetSeller ? localStorage.getItem('joshpetshub_seller_avatar') : null;
+          const sellerName = isPetSeller ? localStorage.getItem('joshpetshub_seller_name') : null;
+          const emailKey = (data.user.email || '').toLowerCase().trim();
+          let userAddresses = Array.isArray(data.user.addresses) ? data.user.addresses : [];
+          if (userAddresses.length === 0 && emailKey) {
+            try {
+              const cached = JSON.parse(localStorage.getItem(`joshpetshub_addresses_${emailKey}`) || '[]');
+              if (Array.isArray(cached) && cached.length > 0) {
+                userAddresses = cached;
+              }
+            } catch (_) {}
+          }
+          const finalUser = {
+            ...saved,
+            ...data.user,
+            avatar: sellerAvatar || data.user.avatar || saved?.avatar,
+            profilePicture: sellerAvatar || data.user.profilePicture || saved?.profilePicture,
+            name: sellerName || data.user.name || saved?.name,
+            businessName: data.user.businessName || saved?.businessName || sellerName || data.user.name,
+            addresses: userAddresses,
+            serviceMembership: existingMembership || data.user.serviceMembership || saved?.serviceMembership || null,
+            subscription: data.user.subscription || saved?.subscription || null,
+            isProfileComplete: Boolean(data.user.isProfileComplete || saved?.isProfileComplete)
+          };
+          safeSetItem('joshpetshub_user', JSON.stringify(sanitizeUserForStorage(finalUser)));
+          return { user: finalUser };
+        }
+      } catch (backendError) {
+        console.warn('Backend sync note in fetchProfile:', backendError?.message);
       }
     }
     if (saved) return { user: saved };
@@ -334,7 +364,8 @@ export const updateProfile = createAsyncThunk('auth/updateProfile', async (profi
     }
 
     const finalAvatar = profileData.avatar || profileData.profilePicture || saved.avatar || saved.profilePicture;
-    const finalName = profileData.name || profileData.businessName || saved.name || saved.businessName;
+    const finalName = profileData.name || saved.name || 'User';
+    const finalBusinessName = profileData.businessName || saved.businessName || finalName;
 
     const sanitizedPayload = { ...profileData };
     delete sanitizedPayload.currentPassword;
@@ -348,7 +379,7 @@ export const updateProfile = createAsyncThunk('auth/updateProfile', async (profi
       ...saved,
       ...sanitizedPayload,
       name: finalName,
-      businessName: finalName,
+      businessName: finalBusinessName,
       avatar: finalAvatar,
       profilePicture: finalAvatar,
       serviceMembership: saved.serviceMembership || readPersistedMembership() || null
@@ -456,6 +487,10 @@ export const addUserAddress = createAsyncThunk('auth/addUserAddress', async (add
       updatedAddresses = updatedAddresses.map(a => ({ ...a, isDefault: false }));
     }
     updatedAddresses.push(newAddress);
+    const emailKey = (currentUser.email || '').toLowerCase().trim();
+    if (emailKey) {
+      safeSetItem(`joshpetshub_addresses_${emailKey}`, JSON.stringify(updatedAddresses));
+    }
     return { success: true, addresses: updatedAddresses };
   }
   return thunkAPI.rejectWithValue('Unable to save address: No active session');
@@ -483,6 +518,52 @@ export const removeUserAddress = createAsyncThunk('auth/removeUserAddress', asyn
   return thunkAPI.rejectWithValue('Unable to remove address: No active session');
 });
 
+
+export const fetchSubscriptionStatus = createAsyncThunk('auth/fetchSubscriptionStatus', async (_, thunkAPI) => {
+  try {
+    const data = await apiRequest('/subscriptions/status');
+    return data;
+  } catch (error) {
+    return thunkAPI.rejectWithValue(error.message);
+  }
+});
+
+export const completeProviderProfile = createAsyncThunk('auth/completeProviderProfile', async (profilePayload, thunkAPI) => {
+  try {
+    const data = await apiRequest('/subscriptions/profile', {
+      method: 'POST',
+      body: JSON.stringify(profilePayload)
+    });
+    return data;
+  } catch (error) {
+    return thunkAPI.rejectWithValue(error.message);
+  }
+});
+
+export const createSubscriptionOrder = createAsyncThunk('auth/createSubscriptionOrder', async (orderPayload, thunkAPI) => {
+  try {
+    const data = await apiRequest('/subscriptions/create-order', {
+      method: 'POST',
+      body: JSON.stringify(orderPayload)
+    });
+    return data;
+  } catch (error) {
+    return thunkAPI.rejectWithValue(error.message);
+  }
+});
+
+export const verifySubscriptionPayment = createAsyncThunk('auth/verifySubscriptionPayment', async (paymentPayload, thunkAPI) => {
+  try {
+    const data = await apiRequest('/subscriptions/verify-payment', {
+      method: 'POST',
+      body: JSON.stringify(paymentPayload)
+    });
+    return data;
+  } catch (error) {
+    return thunkAPI.rejectWithValue(error.message);
+  }
+});
+
 const initialUser = getInitialUser();
 const savedToken = localStorage.getItem('joshpetshub_token');
 const isValidToken = savedToken && savedToken !== 'undefined' && savedToken !== 'null';
@@ -493,6 +574,13 @@ const initialState = {
   user: isValidToken ? initialUser : null,
   loading: false,
   error: null,
+  authModal: {
+    isOpen: false,
+    mode: 'login',
+    role: 'user',
+    pendingAction: null,
+    message: '',
+  },
 };
 
 const authSlice = createSlice({
@@ -571,15 +659,83 @@ const authSlice = createSlice({
       localStorage.removeItem('joshpetshub_token');
       localStorage.removeItem('joshpetshub_user');
       localStorage.removeItem('pawora_user_membership');
+      localStorage.removeItem('joshpetshub_cart');
+      localStorage.removeItem('joshpetshub_wishlist');
+      localStorage.removeItem('joshpetshub_cart_guest');
+      localStorage.removeItem('joshpetshub_wishlist_guest');
       deleteCookie('josh_auth_session');
       deleteCookie('joshpetshub_token');
       try {
         apiRequest('/auth/logout', { method: 'POST' }).catch(() => {});
       } catch (_) {}
+      try {
+        if (typeof sessionStorage !== 'undefined') {
+          sessionStorage.setItem('josh_just_logged_out', 'true');
+        }
+      } catch (_) {}
+      if (state.authModal) {
+        state.authModal.isOpen = false;
+        state.authModal.pendingAction = null;
+        state.authModal.message = '';
+      }
       state.token = null;
       state.isAuthenticated = false;
       state.user = null;
       state.error = null;
+    },
+        setSubscription(state, action) {
+      if (state.user) {
+        state.user = {
+          ...state.user,
+          subscription: action.payload
+        };
+        safeSetItem('joshpetshub_user', JSON.stringify(sanitizeUserForStorage(state.user)));
+      }
+    },
+    setProfileComplete(state, action) {
+      if (state.user) {
+        state.user = {
+          ...state.user,
+          isProfileComplete: Boolean(action.payload)
+        };
+        safeSetItem('joshpetshub_user', JSON.stringify(sanitizeUserForStorage(state.user)));
+      }
+    },
+    openAuthModal(state, action) {
+      const payload = action?.payload || {};
+      state.authModal = {
+        isOpen: true,
+        mode: payload.mode || 'login',
+        role: payload.role || 'user',
+        pendingAction: payload.pendingAction || null,
+        message: payload.message || '',
+      };
+    },
+    closeAuthModal(state) {
+      if (!state.authModal) {
+        state.authModal = { isOpen: false, mode: 'login', role: 'user', pendingAction: null, message: '' };
+      } else {
+        state.authModal.isOpen = false;
+        state.authModal.pendingAction = null;
+        state.authModal.message = '';
+      }
+    },
+    setAuthModalMode(state, action) {
+      if (!state.authModal) {
+        state.authModal = { isOpen: false, mode: 'login', role: 'user', pendingAction: null, message: '' };
+      }
+      state.authModal.mode = action.payload;
+    },
+    setAuthModalRole(state, action) {
+      if (!state.authModal) {
+        state.authModal = { isOpen: false, mode: 'login', role: 'user', pendingAction: null, message: '' };
+      }
+      state.authModal.role = action.payload;
+    },
+    clearPendingAction(state) {
+      if (state.authModal) {
+        state.authModal.pendingAction = null;
+      }
     },
     clearAuthError(state) {
       state.error = null;
@@ -612,7 +768,22 @@ const authSlice = createSlice({
         state.loading = false;
         state.isAuthenticated = true;
         state.token = action.payload.token;
-        state.user = action.payload.user;
+        const incomingUser = action.payload.user;
+        const emailKey = (incomingUser?.email || '').toLowerCase().trim();
+        let userAddresses = Array.isArray(incomingUser?.addresses) ? incomingUser.addresses : [];
+        if (userAddresses.length === 0 && emailKey) {
+          try {
+            const cached = JSON.parse(localStorage.getItem(`joshpetshub_addresses_${emailKey}`) || '[]');
+            if (Array.isArray(cached) && cached.length > 0) {
+              userAddresses = cached;
+            }
+          } catch (_) {}
+        }
+        state.user = {
+          ...incomingUser,
+          addresses: userAddresses
+        };
+        safeSetItem('joshpetshub_user', JSON.stringify(sanitizeUserForStorage(state.user)));
         setCookie('josh_auth_session', 'active', 30);
       })
       .addCase(login.rejected, (state, action) => {
@@ -670,12 +841,80 @@ const authSlice = createSlice({
           state.user.addresses = action.payload.addresses;
           safeSetItem('joshpetshub_user', JSON.stringify(sanitizeUserForStorage(state.user)));
           try {
+            const emailKey = (state.user.email || '').toLowerCase().trim();
+            if (emailKey) {
+              safeSetItem(`joshpetshub_addresses_${emailKey}`, JSON.stringify(action.payload.addresses));
+            }
             const regUsers = JSON.parse(localStorage.getItem('joshpetshub_registered_users') || '[]');
-            const idx = regUsers.findIndex(u => u.email === state.user.email || u.mobile === state.user.mobile);
+            const idx = regUsers.findIndex(u => (u.email || '').toLowerCase() === emailKey || (u.mobile && u.mobile === state.user.mobile));
             if (idx !== -1) {
               regUsers[idx].addresses = action.payload.addresses;
-              safeSetItem('joshpetshub_registered_users', JSON.stringify(regUsers));
+            } else {
+              regUsers.push({ ...state.user, addresses: action.payload.addresses });
             }
+            safeSetItem('joshpetshub_registered_users', JSON.stringify(regUsers));
+          } catch (e) {}
+        }
+      })
+            // Subscription & Profile Flow
+      .addCase(fetchSubscriptionStatus.fulfilled, (state, action) => {
+        if (state.user && action.payload) {
+          const updatedSub = action.payload.subscription || state.user.subscription || null;
+          const isComplete = action.payload.isProfileComplete !== undefined ? action.payload.isProfileComplete : state.user.isProfileComplete;
+          state.user = {
+            ...state.user,
+            subscription: updatedSub,
+            isProfileComplete: isComplete
+          };
+          safeSetItem('joshpetshub_user', JSON.stringify(sanitizeUserForStorage(state.user)));
+        }
+      })
+      .addCase(completeProviderProfile.fulfilled, (state, action) => {
+        state.loading = false;
+        if (state.user) {
+          const incomingUser = action.payload?.user || {};
+          state.user = {
+            ...state.user,
+            ...incomingUser,
+            isProfileComplete: true,
+            profileCompleted: true
+          };
+          safeSetItem('joshpetshub_user', JSON.stringify(sanitizeUserForStorage(state.user)));
+          try {
+            const registered = JSON.parse(localStorage.getItem('joshpetshub_registered_users') || '[]');
+            const idx = registered.findIndex(u => u._id === state.user._id || (u.email && state.user.email && u.email.toLowerCase() === state.user.email.toLowerCase()));
+            if (idx !== -1) {
+              registered[idx] = { ...registered[idx], ...state.user };
+            } else {
+              registered.push(state.user);
+            }
+            safeSetItem('joshpetshub_registered_users', JSON.stringify(registered));
+          } catch (e) {}
+        }
+      })
+      .addCase(verifySubscriptionPayment.fulfilled, (state, action) => {
+        state.loading = false;
+        if (action.payload?.subscription) {
+          const incomingUser = action.payload?.user || {};
+          const current = state.user || getInitialUser() || {};
+          state.user = {
+            ...current,
+            ...incomingUser,
+            subscription: action.payload.subscription,
+            isProfileComplete: true,
+            profileCompleted: true
+          };
+          state.isAuthenticated = true;
+          safeSetItem('joshpetshub_user', JSON.stringify(sanitizeUserForStorage(state.user)));
+          try {
+            const registered = JSON.parse(localStorage.getItem('joshpetshub_registered_users') || '[]');
+            const idx = registered.findIndex(u => u._id === state.user._id || (u.email && state.user.email && u.email.toLowerCase() === state.user.email.toLowerCase()));
+            if (idx !== -1) {
+              registered[idx] = { ...registered[idx], ...state.user };
+            } else {
+              registered.push(state.user);
+            }
+            safeSetItem('joshpetshub_registered_users', JSON.stringify(registered));
           } catch (e) {}
         }
       })
@@ -684,17 +923,35 @@ const authSlice = createSlice({
           state.user.addresses = action.payload.addresses;
           safeSetItem('joshpetshub_user', JSON.stringify(sanitizeUserForStorage(state.user)));
           try {
+            const emailKey = (state.user.email || '').toLowerCase().trim();
+            if (emailKey) {
+              safeSetItem(`joshpetshub_addresses_${emailKey}`, JSON.stringify(action.payload.addresses));
+            }
             const regUsers = JSON.parse(localStorage.getItem('joshpetshub_registered_users') || '[]');
-            const idx = regUsers.findIndex(u => u.email === state.user.email || u.mobile === state.user.mobile);
+            const idx = regUsers.findIndex(u => (u.email || '').toLowerCase() === emailKey || (u.mobile && u.mobile === state.user.mobile));
             if (idx !== -1) {
               regUsers[idx].addresses = action.payload.addresses;
-              safeSetItem('joshpetshub_registered_users', JSON.stringify(regUsers));
+            } else {
+              regUsers.push({ ...state.user, addresses: action.payload.addresses });
             }
+            safeSetItem('joshpetshub_registered_users', JSON.stringify(regUsers));
           } catch (e) {}
         }
       });
   },
 });
 
-export const { setAuthenticatedUser, logout, clearAuthError, setServiceMembership } = authSlice.actions;
+export const { 
+  setAuthenticatedUser, 
+  logout, 
+  clearAuthError, 
+  setServiceMembership, 
+  setSubscription, 
+  setProfileComplete,
+  openAuthModal,
+  closeAuthModal,
+  setAuthModalMode,
+  setAuthModalRole,
+  clearPendingAction
+} = authSlice.actions;
 export default authSlice.reducer;

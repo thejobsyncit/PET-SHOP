@@ -1,11 +1,27 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { apiRequest } from '../../services/api.js';
 
-// Safe helper to read cart from localStorage
-export const getLocalCart = () => {
+// Helper to determine the active user key for partitioned local storage
+export const getActiveUserKey = () => {
   try {
-    const raw = localStorage.getItem('joshpetshub_cart');
-    if (!raw || raw === 'undefined' || raw === 'null') return [];
+    const raw = localStorage.getItem('joshpetshub_user');
+    if (!raw) return 'guest';
+    const user = JSON.parse(raw);
+    const id = user?._id || user?.id || user?.email;
+    return id ? String(id).trim().toLowerCase() : 'guest';
+  } catch (_) {
+    return 'guest';
+  }
+};
+
+// Safe helper to read cart from localStorage scoped to the active user
+export const getLocalCart = (customKey) => {
+  try {
+    const userKey = customKey || getActiveUserKey();
+    const raw = localStorage.getItem(`joshpetshub_cart_${userKey}`);
+    if (!raw || raw === 'undefined' || raw === 'null') {
+      return [];
+    }
     const parsed = JSON.parse(raw);
     if (Array.isArray(parsed)) return parsed;
     if (parsed && Array.isArray(parsed.cart)) return parsed.cart;
@@ -15,16 +31,27 @@ export const getLocalCart = () => {
   }
 };
 
-// Safe helper to save cart to localStorage
-export const saveLocalCart = (cart) => {
+// Safe helper to save cart to localStorage scoped to the active user
+export const saveLocalCart = (cart, customKey) => {
   try {
+    const userKey = customKey || getActiveUserKey();
     const safeCart = Array.isArray(cart) ? cart : [];
-    localStorage.setItem('joshpetshub_cart', JSON.stringify(safeCart));
+    localStorage.setItem(`joshpetshub_cart_${userKey}`, JSON.stringify(safeCart));
+  } catch (_) {}
+};
+
+// Safe helper to clear local cart for the active user
+export const clearLocalCart = (customKey) => {
+  try {
+    const userKey = customKey || getActiveUserKey();
+    localStorage.removeItem(`joshpetshub_cart_${userKey}`);
+    localStorage.removeItem('joshpetshub_cart'); // Purge legacy un-scoped key
+    localStorage.removeItem('joshpetshub_cart_guest');
   } catch (_) {}
 };
 
 // Helper to calculate totals
-const calculateTotals = (items, appliedCoupon = null) => {
+export const calculateTotals = (items, appliedCoupon = null) => {
   const subtotal = (items || []).reduce((acc, item) => {
     if (!item || !item.product) return acc;
     const price = item.product.discountPrice ?? item.product.discount_price ?? item.product.price ?? 0;
@@ -61,40 +88,25 @@ const calculateTotals = (items, appliedCoupon = null) => {
 
 // Async Thunks
 export const fetchCart = createAsyncThunk('cart/fetchCart', async (_, thunkAPI) => {
-  const localCart = getLocalCart();
   const token = localStorage.getItem('joshpetshub_token');
   const hasToken = token && token !== 'undefined' && token !== 'null';
+  const userKey = getActiveUserKey();
 
-  if (!hasToken) {
-    return { cart: localCart };
+  // If not authenticated or guest session, strictly load guest cart
+  if (!hasToken || userKey === 'guest') {
+    return { cart: getLocalCart('guest') };
   }
 
   try {
+    // Authenticated user: server is authoritative
     const data = await apiRequest('/cart');
     if (data && Array.isArray(data.cart)) {
-      if (data.cart.length > 0) {
-        saveLocalCart(data.cart);
-        return data;
-      }
-      // If server returned empty cart but local has items, sync local items to server
-      if (localCart.length > 0) {
-        for (const item of localCart) {
-          const pId = typeof item?.product === 'object' ? (item.product?._id || item.product?.id) : item?.product;
-          if (pId) {
-            apiRequest('/cart', {
-              method: 'POST',
-              body: JSON.stringify({ productId: pId, quantity: item.quantity || 1 })
-            }).catch(() => {});
-          }
-        }
-        return { cart: localCart };
-      }
-      saveLocalCart([]);
-      return { cart: [] };
+      saveLocalCart(data.cart, userKey);
+      return { cart: data.cart };
     }
-    return { cart: localCart };
+    return { cart: getLocalCart(userKey) };
   } catch (error) {
-    return { cart: localCart };
+    return { cart: getLocalCart(userKey) };
   }
 });
 
@@ -104,52 +116,79 @@ export const addToCartAPI = createAsyncThunk('cart/addToCart', async ({ product,
   }
 
   const safeQuantity = Math.max(1, parseInt(quantity, 10) || 1);
+  const maxStock = typeof product.stock === 'number'
+    ? Math.max(0, product.stock)
+    : (product.stock !== undefined && product.stock !== null && !isNaN(Number(product.stock))
+        ? Math.max(0, Number(product.stock))
+        : 999);
+
+  if (maxStock <= 0) {
+    toast.error('This product is currently out of stock.');
+    return thunkAPI.rejectWithValue('This product is out of stock.');
+  }
+
   const normProduct = {
     ...product,
     _id: product._id || product.id,
     id: product.id || product._id,
+    stock: maxStock,
     price: Number(product.price) || 0,
     discountPrice: product.discountPrice !== null && product.discountPrice !== undefined 
       ? Number(product.discountPrice) 
       : (product.discount_price !== null && product.discount_price !== undefined ? Number(product.discount_price) : null),
   };
   const productId = normProduct._id || normProduct.id;
+  const userKey = getActiveUserKey();
 
-  // Always update local cart first
-  let localCart = getLocalCart();
+  // Optimistically update local cart for this user
+  let localCart = getLocalCart(userKey);
   const existIdx = localCart.findIndex(item => {
     const pId = typeof item?.product === 'object' ? (item.product?._id || item.product?.id) : item?.product;
-    return pId === productId;
+    return String(pId) === String(productId);
   });
 
   if (existIdx > -1) {
     const existing = localCart[existIdx];
+    const currentQty = Number(existing.quantity) || 0;
+    if (currentQty >= maxStock) {
+      toast.error(`Cannot add more. You already have the maximum available stock (${maxStock} unit${maxStock === 1 ? '' : 's'}) in your cart.`);
+      return thunkAPI.rejectWithValue(`Maximum available stock (${maxStock}) reached in cart`);
+    }
+
+    const nextQty = Math.min(maxStock, currentQty + safeQuantity);
+    if (nextQty < currentQty + safeQuantity) {
+      toast.error(`Only ${maxStock} unit${maxStock === 1 ? '' : 's'} available in stock. Cart updated to maximum available quantity.`);
+    }
+
     localCart[existIdx] = {
       ...existing,
       product: { ...(typeof existing.product === 'object' ? existing.product : {}), ...normProduct },
-      quantity: (Number(existing.quantity) || 0) + safeQuantity,
+      quantity: nextQty,
     };
   } else {
-    localCart.push({ product: normProduct, quantity: safeQuantity });
+    const initialQty = Math.min(maxStock, safeQuantity);
+    if (initialQty < safeQuantity) {
+      toast.error(`Only ${maxStock} unit${maxStock === 1 ? '' : 's'} available in stock. Added ${maxStock} to cart.`);
+    }
+    localCart.push({ product: normProduct, quantity: initialQty });
   }
-  saveLocalCart(localCart);
+  saveLocalCart(localCart, userKey);
 
   const token = localStorage.getItem('joshpetshub_token');
   const hasToken = token && token !== 'undefined' && token !== 'null';
-
-  if (!hasToken) {
+  if (!hasToken || userKey === 'guest') {
     return { cart: localCart };
   }
 
   try {
     const data = await apiRequest('/cart', {
       method: 'POST',
-      body: JSON.stringify({ productId, quantity: safeQuantity }),
+      body: JSON.stringify({ productId, quantity: safeQuantity, product: normProduct }),
     });
 
-    if (data && Array.isArray(data.cart) && data.cart.length > 0) {
-      saveLocalCart(data.cart);
-      return data;
+    if (data && Array.isArray(data.cart)) {
+      saveLocalCart(data.cart, userKey);
+      return { cart: data.cart };
     }
     return { cart: localCart };
   } catch (error) {
@@ -159,21 +198,33 @@ export const addToCartAPI = createAsyncThunk('cart/addToCart', async ({ product,
 });
 
 export const updateCartQuantityAPI = createAsyncThunk('cart/updateQuantity', async ({ productId, quantity }, thunkAPI) => {
-  const safeQty = Math.max(1, parseInt(quantity, 10) || 1);
-  let localCart = getLocalCart();
+  let safeQty = Math.max(1, parseInt(quantity, 10) || 1);
+  const userKey = getActiveUserKey();
+  let localCart = getLocalCart(userKey);
   const existIdx = localCart.findIndex(item => {
     const pId = typeof item?.product === 'object' ? (item.product?._id || item.product?.id) : item?.product;
-    return pId === productId;
+    return String(pId) === String(productId);
   });
   if (existIdx > -1) {
+    const item = localCart[existIdx];
+    const maxStock = typeof item?.product?.stock === 'number'
+      ? Math.max(0, item.product.stock)
+      : (item?.product?.stock !== undefined && item?.product?.stock !== null && !isNaN(Number(item.product.stock))
+          ? Math.max(0, Number(item.product.stock))
+          : 999);
+    
+    if (safeQty > maxStock) {
+      toast.error(`Only ${maxStock} unit${maxStock === 1 ? '' : 's'} available in stock.`);
+      safeQty = Math.max(1, maxStock);
+    }
     localCart[existIdx] = { ...localCart[existIdx], quantity: safeQty };
   }
-  saveLocalCart(localCart);
+  saveLocalCart(localCart, userKey);
 
   const token = localStorage.getItem('joshpetshub_token');
   const hasToken = token && token !== 'undefined' && token !== 'null';
 
-  if (!hasToken) {
+  if (!hasToken || userKey === 'guest') {
     return { cart: localCart };
   }
 
@@ -184,8 +235,8 @@ export const updateCartQuantityAPI = createAsyncThunk('cart/updateQuantity', asy
     });
 
     if (data && Array.isArray(data.cart)) {
-      saveLocalCart(data.cart);
-      return data;
+      saveLocalCart(data.cart, userKey);
+      return { cart: data.cart };
     }
     return { cart: localCart };
   } catch (error) {
@@ -194,16 +245,17 @@ export const updateCartQuantityAPI = createAsyncThunk('cart/updateQuantity', asy
 });
 
 export const removeFromCartAPI = createAsyncThunk('cart/removeFromCart', async (productId, thunkAPI) => {
-  let localCart = getLocalCart().filter(item => {
+  const userKey = getActiveUserKey();
+  let localCart = getLocalCart(userKey).filter(item => {
     const pId = typeof item?.product === 'object' ? (item.product?._id || item.product?.id) : item?.product;
-    return pId !== productId;
+    return String(pId) !== String(productId);
   });
-  saveLocalCart(localCart);
+  saveLocalCart(localCart, userKey);
 
   const token = localStorage.getItem('joshpetshub_token');
   const hasToken = token && token !== 'undefined' && token !== 'null';
 
-  if (!hasToken) {
+  if (!hasToken || userKey === 'guest') {
     return { cart: localCart };
   }
 
@@ -213,7 +265,7 @@ export const removeFromCartAPI = createAsyncThunk('cart/removeFromCart', async (
     });
 
     if (data && Array.isArray(data.cart)) {
-      saveLocalCart(data.cart);
+      saveLocalCart(data.cart, userKey);
       return data;
     }
     return { cart: localCart };
@@ -223,12 +275,13 @@ export const removeFromCartAPI = createAsyncThunk('cart/removeFromCart', async (
 });
 
 export const clearCartAPI = createAsyncThunk('cart/clearCart', async (_, thunkAPI) => {
-  saveLocalCart([]);
+  const userKey = getActiveUserKey();
+  saveLocalCart([], userKey);
 
   const token = localStorage.getItem('joshpetshub_token');
   const hasToken = token && token !== 'undefined' && token !== 'null';
 
-  if (hasToken) {
+  if (hasToken && userKey !== 'guest') {
     try {
       await apiRequest('/cart', { method: 'DELETE' });
     } catch (_) {}
@@ -251,7 +304,16 @@ export const applyCouponCode = createAsyncThunk('cart/applyCoupon', async (coupo
   }
 });
 
-const initialCart = getLocalCart();
+const getInitialStateCart = () => {
+  if (typeof window === 'undefined') return [];
+  const token = localStorage.getItem('joshpetshub_token');
+  if (!token) return [];
+  const userKey = getActiveUserKey();
+  if (userKey === 'guest') return [];
+  return getLocalCart(userKey);
+};
+
+const initialCart = getInitialStateCart();
 
 const initialState = {
   items: initialCart.map(item => {
@@ -279,6 +341,7 @@ const initialState = {
   appliedCoupon: null,
   loading: false,
   error: null,
+  isCartOpen: false,
 };
 
 const cartSlice = createSlice({
@@ -293,7 +356,19 @@ const cartSlice = createSlice({
       state.items = [];
       state.appliedCoupon = null;
       state.pricing = calculateTotals([], null);
-      saveLocalCart([]);
+      clearLocalCart();
+    },
+    openCart(state) {
+      state.isCartOpen = true;
+    },
+    closeCart(state) {
+      state.isCartOpen = false;
+    },
+    toggleCart(state) {
+      state.isCartOpen = !state.isCartOpen;
+    },
+    setCartOpen(state, action) {
+      state.isCartOpen = Boolean(action.payload);
     }
   },
   extraReducers: (builder) => {
@@ -350,9 +425,35 @@ const cartSlice = createSlice({
       })
       .addCase(applyCouponCode.rejected, (state, action) => {
         state.error = action.payload;
+      })
+      .addCase('auth/logout', (state) => {
+        state.items = [];
+        state.pricing = calculateTotals([], null);
+        state.appliedCoupon = null;
+        clearLocalCart('guest');
+        localStorage.removeItem('joshpetshub_cart');
+      })
+      .addCase('auth/setAuthenticatedUser', (state, action) => {
+        const u = action.payload?.user;
+        const key = u ? (u._id || u.id || u.email || '').toLowerCase() : 'guest';
+        const cached = getLocalCart(key);
+        state.items = cached;
+        state.pricing = calculateTotals(cached, null);
+      })
+      .addCase('auth/login/fulfilled', (state, action) => {
+        const u = action.payload?.user;
+        const key = u ? (u._id || u.id || u.email || '').toLowerCase() : 'guest';
+        const cached = getLocalCart(key);
+        state.items = cached;
+        state.pricing = calculateTotals(cached, null);
+      })
+      .addCase('auth/register/fulfilled', (state) => {
+        state.items = [];
+        state.pricing = calculateTotals([], null);
+        state.appliedCoupon = null;
       });
   },
 });
 
-export const { removeCoupon, clearCartLocal } = cartSlice.actions;
+export const { removeCoupon, clearCartLocal, openCart, closeCart, toggleCart, setCartOpen } = cartSlice.actions;
 export default cartSlice.reducer;

@@ -5,6 +5,7 @@
 
 // Available Service Categories for Provider Dashboard
 export const SERVICE_CATEGORIES = [
+  { id: 'ProductSeller', name: 'Pet Products & Pet Food Seller', icon: '🛍️', color: 'emerald' },
   { id: 'Adoption', name: 'Pet Adoption & Rescue Shelter', icon: '🏠', color: 'emerald' },
   { id: 'Veterinary', name: 'Veterinary & Healthcare', icon: '🩺', color: 'emerald' },
   { id: 'Grooming', name: 'Pet Grooming & Spa', icon: '✂️', color: 'sky' },

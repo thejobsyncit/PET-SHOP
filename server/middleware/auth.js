@@ -9,21 +9,7 @@ const __dirname = path.dirname(__filename);
 const USERS_FILE = path.join(__dirname, '..', 'data', 'users.json');
 
 const loadUserFromDb = async (userId, userEmail) => {
-  // 1. Check Supabase users table if available
-  if (supabase) {
-    try {
-      if (userId) {
-        const { data: uById, error: errById } = await supabase.from('users').select('*').eq('id', userId).maybeSingle();
-        if (uById && !errById) return uById;
-      }
-      if (userEmail) {
-        const { data: uByEmail, error: errByEmail } = await supabase.from('users').select('*').ilike('email', userEmail).maybeSingle();
-        if (uByEmail && !errByEmail) return uByEmail;
-      }
-    } catch (_) {}
-  }
-
-  // 2. Check persistent users.json
+  // 1. Check persistent users.json first (instant local retrieval, zero network delay)
   try {
     if (fs.existsSync(USERS_FILE)) {
       const raw = fs.readFileSync(USERS_FILE, 'utf8');
@@ -37,6 +23,26 @@ const loadUserFromDb = async (userId, userEmail) => {
       }
     }
   } catch (_) {}
+
+  // 2. Check Supabase users table if available with strict 1.5s timeout fallback
+  if (supabase) {
+    try {
+      const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('Supabase timeout')), 1500));
+      const fetchDb = async () => {
+        if (userId) {
+          const { data: uById, error: errById } = await supabase.from('users').select('*').eq('id', userId).maybeSingle();
+          if (uById && !errById) return uById;
+        }
+        if (userEmail) {
+          const { data: uByEmail, error: errByEmail } = await supabase.from('users').select('*').ilike('email', userEmail).maybeSingle();
+          if (uByEmail && !errByEmail) return uByEmail;
+        }
+        return null;
+      };
+      const result = await Promise.race([fetchDb(), timeoutPromise]);
+      if (result) return result;
+    } catch (_) {}
+  }
 
   return null;
 };
@@ -137,6 +143,25 @@ export const admin = requireRole('ADMIN', 'SUPERADMIN');
 export const customerOnly = requireRole('CUSTOMER');
 export const providerOnly = requireRole('SERVICE_PROVIDER');
 
+export const canManageProducts = (req, res, next) => {
+  if (!req.user) {
+    return res.status(401).json({ success: false, message: 'Authentication required.' });
+  }
+  if (req.user.role === 'ADMIN' || req.user.role === 'SUPERADMIN') {
+    return next();
+  }
+  if (req.user.role === 'SERVICE_PROVIDER') {
+    const cat = (req.user.serviceCategory || '').toLowerCase();
+    if (cat.includes('product') || cat.includes('seller') || cat.includes('store') || cat.includes('shop') || cat === '') {
+      return next();
+    }
+  }
+  return res.status(403).json({
+    success: false,
+    message: 'Access denied: Only Admins and verified Product Sellers can manage products.'
+  });
+};
+
 /**
  * Service-Specific Dashboard & Resource Authorization Middleware.
  * Verifies that the authenticated provider is authorized for the given service category.
@@ -198,6 +223,66 @@ export const optionalAuth = async (req, res, next) => {
       }
     } catch (_) {
       // Ignore invalid token in optional auth
+    }
+  }
+  next();
+};
+
+/**
+ * Require Service Provider to have completed their profile before accessing operational APIs.
+ */
+export const requireProviderProfileComplete = (req, res, next) => {
+  if (!req.user) {
+    return res.status(401).json({ success: false, message: 'Authentication required.' });
+  }
+  if (req.user.role === 'SUPERADMIN' || req.user.role === 'ADMIN') {
+    return next();
+  }
+  if (req.user.role === 'SERVICE_PROVIDER') {
+    const isComplete = Boolean(req.user.isProfileComplete || req.user.profileCompleted);
+    if (!isComplete) {
+      return res.status(403).json({
+        success: false,
+        code: 'PROFILE_INCOMPLETE',
+        message: 'Profile completion required: You must complete and submit your Service Provider Profile before using operational features.'
+      });
+    }
+  }
+  next();
+};
+
+/**
+ * Require Service Provider to have an active, non-expired subscription before accessing operational APIs.
+ */
+export const requireActiveSubscription = (req, res, next) => {
+  if (!req.user) {
+    return res.status(401).json({ success: false, message: 'Authentication required.' });
+  }
+  if (req.user.role === 'SUPERADMIN' || req.user.role === 'ADMIN') {
+    return next();
+  }
+  if (req.user.role === 'SERVICE_PROVIDER') {
+    const isComplete = Boolean(req.user.isProfileComplete || req.user.profileCompleted);
+    if (!isComplete) {
+      return res.status(403).json({
+        success: false,
+        code: 'PROFILE_INCOMPLETE',
+        message: 'Profile completion required: You must complete and submit your Service Provider Profile first.'
+      });
+    }
+
+    const sub = req.user.subscription;
+    const isExpired = sub && sub.expiryDate && new Date(sub.expiryDate) <= new Date();
+    const isActive = sub && sub.status === 'ACTIVE' && !isExpired;
+
+    if (!isActive) {
+      return res.status(403).json({
+        success: false,
+        code: isExpired ? 'SUBSCRIPTION_EXPIRED' : 'SUBSCRIPTION_REQUIRED',
+        message: isExpired
+          ? 'Subscription expired: Your subscription plan has expired. Please renew your plan to continue using operational dashboard features.'
+          : 'Subscription required: An active subscription plan is required to access operational dashboard features.'
+      });
     }
   }
   next();
