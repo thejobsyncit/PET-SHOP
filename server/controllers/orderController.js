@@ -1,4 +1,34 @@
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import { supabase } from '../config/supabase.js';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const ORDERS_FILE = path.join(__dirname, '..', '..', 'server_data', 'orders.json');
+
+export const loadDiskOrders = () => {
+  try {
+    if (fs.existsSync(ORDERS_FILE)) {
+      const content = fs.readFileSync(ORDERS_FILE, 'utf8');
+      const parsed = JSON.parse(content);
+      if (Array.isArray(parsed)) return parsed;
+    }
+  } catch (err) {
+    console.warn('[Orders] Error reading orders.json:', err?.message);
+  }
+  return [];
+};
+
+export const saveDiskOrders = (orders) => {
+  try {
+    const dir = path.dirname(ORDERS_FILE);
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+    fs.writeFileSync(ORDERS_FILE, JSON.stringify(orders, null, 2), 'utf8');
+  } catch (err) {
+    console.warn('[Orders] Error saving orders.json:', err?.message);
+  }
+};
 
 // @desc    Create a new order
 // @route   POST /api/orders
@@ -75,29 +105,60 @@ export const createOrder = async (req, res) => {
       paidAt: null
     };
 
-    const { data: newOrder, error: orderError } = await supabase.from('orders').insert([{
-      user_id: userId,
-      order_items: verifiedItems,
-      shipping_address: shippingAddress,
-      payment_method: paymentMethod,
-      payment_result: paymentDetails,
-      pricing: serverPricing,
-      shipping_status: 'Pending',
-      is_paid: false
-    }]).select().single();
-
-    if (orderError) throw orderError;
-
-    // Update stock
-    for (const item of verifiedItems) {
-      const p = products.find(prod => prod.id === item.product);
-      await supabase.from('products').update({ stock: p.stock - item.quantity }).eq('id', item.product);
+    let newOrder = null;
+    try {
+      const { data: created, error: orderError } = await supabase.from('orders').insert([{
+        user_id: userId,
+        order_items: verifiedItems,
+        shipping_address: shippingAddress,
+        payment_method: paymentMethod,
+        payment_result: paymentDetails,
+        pricing: serverPricing,
+        prescription_id: prescriptionId || null,
+        shipping_status: 'Pending',
+        is_paid: false
+      }]).select().single();
+      if (!orderError && created) newOrder = created;
+    } catch (sbErr) {
+      console.warn('[Orders] Supabase order insert fallback:', sbErr?.message);
     }
 
-    // Clear user cart
-    await supabase.from('users').update({ cart: [] }).eq('id', userId);
+    if (!newOrder) {
+      newOrder = {
+        id: 'ord_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7),
+        user_id: userId,
+        userId: userId,
+        order_items: verifiedItems,
+        orderItems: verifiedItems,
+        shipping_address: shippingAddress,
+        payment_method: paymentMethod,
+        payment_result: paymentDetails,
+        pricing: serverPricing,
+        prescription_id: prescriptionId || null,
+        shipping_status: 'Pending',
+        is_paid: false,
+        created_at: new Date().toISOString()
+      };
+      const existing = loadDiskOrders();
+      saveDiskOrders([newOrder, ...existing]);
+    }
 
-    res.status(201).json({ success: true, order: newOrder });
+    // Try updating stock (best effort)
+    try {
+      if (Array.isArray(products)) {
+        for (const item of verifiedItems) {
+          const p = products.find(prod => prod.id === item.product);
+          if (p) await supabase.from('products').update({ stock: p.stock - item.quantity }).eq('id', item.product);
+        }
+      }
+    } catch {}
+
+    // Clear user cart (best effort)
+    try {
+      await supabase.from('users').update({ cart: [] }).eq('id', userId);
+    } catch {}
+
+    return res.status(201).json({ success: true, order: newOrder });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
@@ -120,6 +181,13 @@ export const getOrderById = async (req, res) => {
       .single();
 
     if (error || !order) {
+      const diskOrder = loadDiskOrders().find(o => String(o.id) === String(id) || String(o._id) === String(id));
+      if (diskOrder) {
+        if (diskOrder.user_id !== requesterId && !isAdmin) {
+          return res.status(403).json({ success: false, message: 'Access denied: You are not authorized to view this order' });
+        }
+        return res.json({ success: true, order: diskOrder });
+      }
       return res.status(404).json({ success: false, message: 'Order not found' });
     }
 
@@ -129,6 +197,10 @@ export const getOrderById = async (req, res) => {
 
     res.json({ success: true, order });
   } catch (error) {
+    const diskOrder = loadDiskOrders().find(o => String(o.id) === String(id) || String(o._id) === String(id));
+    if (diskOrder) {
+      return res.json({ success: true, order: diskOrder });
+    }
     res.status(500).json({ success: false, message: error.message });
   }
 };
@@ -149,7 +221,9 @@ export const getMyOrders = async (req, res) => {
     if (error) throw error;
     res.json({ success: true, orders: orders || [] });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    console.warn('[Orders] Supabase orders fallback:', error?.message);
+    const diskOrders = loadDiskOrders().filter(o => o.user_id === userId || o.userId === userId);
+    return res.json({ success: true, orders: diskOrders });
   }
 };
 
@@ -166,7 +240,9 @@ export const getAllOrders = async (req, res) => {
     if (error) throw error;
     res.json({ success: true, orders: orders || [] });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    console.warn('[Orders] Supabase orders fallback:', error?.message);
+    const diskOrders = loadDiskOrders();
+    return res.json({ success: true, orders: diskOrders });
   }
 };
 

@@ -21,6 +21,7 @@ import {
 } from 'lucide-react';
 import { apiRequest } from '../../../services/api.js';
 import toast from 'react-hot-toast';
+import ProviderProfileSection from '../../../components/dashboards/ProviderProfileSection.jsx';
 import HostelProviderContent from './content/HostelProviderContent.jsx';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { updateProfile, logout } from '../../../store/slices/authSlice.js';
@@ -30,12 +31,15 @@ import { safeSetItem, safeGetItem } from '../../../utils/safeStorage.js';
 const HostelProviderDashboard = ({ 
   currentProvider, 
   profiles, 
-  handleToggleOnline 
+  handleToggleOnline,
+  onOpenSubscriptionModal,
+  onOpenPlanDetails,
+  subscription
 }) => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const storedTab = safeGetItem('hostelDashboardTab');
-  const activeTabParam = searchParams.get('tab') || storedTab || 'bookings';
+  const activeTabParam = searchParams.get('tab') || storedTab || 'profile';
   const [activeTab, setActiveTab] = useState(activeTabParam);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -128,14 +132,14 @@ const HostelProviderDashboard = ({
   };
 
   const navMenuItems = [
+    { id: 'profile', label: 'Resort Profile & Plan', icon: Building },
     { id: 'bookings', label: 'Boarding Bookings', count: 8, icon: Calendar },
     { id: 'rooms', label: 'Kennels & Accommodations', count: 4, icon: Home },
     { id: 'gallery', label: 'Facility Gallery', count: 6, icon: Camera },
     { id: 'messages', label: 'Pet Parent Inquiries', count: 3, icon: MessageSquare },
     { id: 'hours', label: 'Check-in/Out Timings', icon: Clock },
     { id: 'reviews', label: 'Guest Reviews', extra: '4.9 ★', icon: Heart },
-    { id: 'wallet', label: 'Wallet & Payouts', icon: DollarSign },
-    { id: 'profile', label: 'Resort Registration', icon: Building }
+    { id: 'wallet', label: 'Wallet & Payouts', icon: DollarSign }
   ];
 
   return (
@@ -305,78 +309,76 @@ const HostelProviderDashboard = ({
       <main className="flex-1 min-w-0 px-4 sm:px-6 lg:px-8 py-8 lg:py-10 overflow-x-hidden">
         
         {/* Header Area */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
-          <div>
-            <h1 className="text-3xl font-sans font-black text-[#0F2E23] tracking-tight">
-              Pet Hostel & Resort Dashboard
-            </h1>
-            <p className="text-sm text-slate-500 font-medium mt-1">
-              Manage your boarding bookings, kennels, guest check-ins, and parent inquiries.
-            </p>
-          </div>
-        </div>
-
-        {/* 
-          ========================================================
-          CUSTOM HOSTEL KPI METRICS
-          ========================================================
-        */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5 mb-8">
-          
-          <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
-            <div className="flex items-center justify-between mb-3">
-              <span className="text-xs font-black uppercase tracking-widest text-slate-500">Active Bookings</span>
-              <div className="w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center">
-                <Calendar size={14} className="text-slate-400" />
+        {activeTab !== 'profile' ? (
+          <>
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
+              <div>
+                <h1 className="text-3xl font-sans font-black text-[#0F2E23] tracking-tight">
+                  Pet Hostel & Resort Dashboard
+                </h1>
+                <p className="text-sm text-slate-500 font-medium mt-1">
+                  Manage your boarding bookings, kennels, guest check-ins, and parent inquiries.
+                </p>
               </div>
             </div>
-            <div className="flex items-baseline gap-2">
-              <h3 className="text-3xl font-black text-[#0F2E23]">8</h3>
-              <span className="text-xs font-bold text-slate-400">PETS BOARDING NOW</span>
-            </div>
-          </div>
 
-          <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
-            <div className="flex items-center justify-between mb-3">
-              <span className="text-xs font-black uppercase tracking-widest text-emerald-600">Available Kennels</span>
-              <div className="w-8 h-8 rounded-full bg-emerald-50 flex items-center justify-center border border-emerald-100">
-                <Home size={14} className="text-emerald-500" />
+            {/* CUSTOM HOSTEL KPI METRICS */}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5 mb-8">
+              <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
+                <div className="flex items-center justify-between mb-3">
+                  <span className="text-xs font-black uppercase tracking-widest text-slate-500">Active Bookings</span>
+                  <div className="w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center">
+                    <Calendar size={14} className="text-slate-400" />
+                  </div>
+                </div>
+                <div className="flex items-baseline gap-2">
+                  <h3 className="text-3xl font-black text-[#0F2E23]">8</h3>
+                  <span className="text-xs font-bold text-slate-400">PETS BOARDED</span>
+                </div>
+              </div>
+
+              <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
+                <div className="flex items-center justify-between mb-3">
+                  <span className="text-xs font-black uppercase tracking-widest text-slate-500">Kennels Vacant</span>
+                  <div className="w-8 h-8 rounded-full bg-emerald-50 flex items-center justify-center">
+                    <Home size={14} className="text-emerald-500" />
+                  </div>
+                </div>
+                <div className="flex items-baseline gap-2">
+                  <h3 className="text-3xl font-black text-[#0F2E23]">12</h3>
+                  <span className="text-xs font-bold text-emerald-600">AVAILABLE</span>
+                </div>
+              </div>
+
+              <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
+                <div className="flex items-center justify-between mb-3">
+                  <span className="text-xs font-black uppercase tracking-widest text-slate-500">Check-ins Today</span>
+                  <div className="w-8 h-8 rounded-full bg-amber-50 flex items-center justify-center">
+                    <Clock size={14} className="text-amber-500" />
+                  </div>
+                </div>
+                <div className="flex items-baseline gap-2">
+                  <h3 className="text-3xl font-black text-[#0F2E23]">3</h3>
+                  <span className="text-xs font-bold text-amber-600">UPCOMING</span>
+                </div>
+              </div>
+
+              <div className="bg-gradient-to-br from-[#ffd000]/10 to-amber-50 border border-[#ffd000]/30 rounded-2xl p-5 shadow-sm relative overflow-hidden">
+                <div className="absolute top-0 right-0 p-4 opacity-20"><DollarSign size={48} className="text-amber-600" /></div>
+                <div className="flex items-center justify-between mb-3 relative z-10">
+                  <span className="text-xs font-black uppercase tracking-widest text-amber-700">Total Earnings</span>
+                  <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center border border-amber-200">
+                    <DollarSign size={14} className="text-amber-500" />
+                  </div>
+                </div>
+                <div className="flex items-baseline gap-2 relative z-10">
+                  <h3 className="text-3xl font-black text-amber-600">₹24,500</h3>
+                  <span className="text-xs font-bold text-amber-600/70">THIS MONTH</span>
+                </div>
               </div>
             </div>
-            <div className="flex items-baseline gap-2">
-              <h3 className="text-3xl font-black text-emerald-700">12</h3>
-              <span className="text-xs font-bold text-emerald-600/70">SPOTS OPEN TODAY</span>
-            </div>
-          </div>
-
-          <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
-            <div className="flex items-center justify-between mb-3">
-              <span className="text-xs font-black uppercase tracking-widest text-rose-600">Upcoming Check-ins</span>
-              <div className="w-8 h-8 rounded-full bg-rose-50 flex items-center justify-center border border-rose-100">
-                <Clock size={14} className="text-rose-500" />
-              </div>
-            </div>
-            <div className="flex items-baseline gap-2">
-              <h3 className="text-3xl font-black text-rose-700">3</h3>
-              <span className="text-xs font-bold text-rose-600/70">ARRIVING TODAY</span>
-            </div>
-          </div>
-
-          <div className="bg-gradient-to-br from-[#ffd000]/10 to-amber-50 border border-[#ffd000]/30 rounded-2xl p-5 shadow-sm relative overflow-hidden">
-            <div className="absolute top-0 right-0 p-4 opacity-20"><DollarSign size={48} className="text-amber-600" /></div>
-            <div className="flex items-center justify-between mb-3 relative z-10">
-              <span className="text-xs font-black uppercase tracking-widest text-amber-700">Total Earnings</span>
-              <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center border border-amber-200">
-                <DollarSign size={14} className="text-amber-500" />
-              </div>
-            </div>
-            <div className="flex items-baseline gap-2 relative z-10">
-              <h3 className="text-3xl font-black text-amber-600">₹24,500</h3>
-              <span className="text-xs font-bold text-amber-600/70">THIS MONTH</span>
-            </div>
-          </div>
-
-        </div>
+          </>
+        ) : null}
 
         {/* 
           ========================================================
@@ -384,7 +386,15 @@ const HostelProviderDashboard = ({
           ========================================================
         */}
         <div className="bg-white rounded-3xl p-6 sm:p-8 lg:p-10 border border-slate-200 min-h-[500px] shadow-sm">
-          <HostelProviderContent activeTab={activeTab} />
+          {activeTab === 'profile' ? (
+            <ProviderProfileSection
+              serviceCategory="Pet Hostel / Boarding"
+              onOpenSubscriptionModal={onOpenSubscriptionModal}
+              onOpenPlanDetails={onOpenPlanDetails}
+            />
+          ) : (
+            <HostelProviderContent activeTab={activeTab} />
+          )}
         </div>
       </main>
 

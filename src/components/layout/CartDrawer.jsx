@@ -8,20 +8,28 @@ import {
   applyCouponCode, 
   removeCoupon 
 } from '../../store/slices/cartSlice.js';
+import { openAuthModal } from '../../store/slices/authSlice.js';
+import toast from 'react-hot-toast';
 
 const CartDrawer = ({ isOpen, onClose }) => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { items, pricing, appliedCoupon, error } = useSelector((state) => state.cart);
+  const { isAuthenticated } = useSelector((state) => state.auth);
   const [couponCode, setCouponCode] = useState('');
   const [couponMessage, setCouponMessage] = useState('');
 
   if (!isOpen) return null;
 
-  const handleQuantityChange = (productId, currentQty, delta) => {
+  const handleQuantityChange = (productId, currentQty, delta, maxStock = 999) => {
+    const effectiveStock = typeof maxStock === 'number' ? Math.max(1, maxStock) : 999;
+    if (delta > 0 && currentQty >= effectiveStock) {
+      toast.error(`Only ${effectiveStock} unit${effectiveStock === 1 ? '' : 's'} available in stock.`);
+      return;
+    }
     const newQty = currentQty + delta;
     if (newQty >= 1) {
-      dispatch(updateCartQuantityAPI({ productId, quantity: newQty }));
+      dispatch(updateCartQuantityAPI({ productId, quantity: Math.min(effectiveStock, newQty) }));
     }
   };
 
@@ -120,6 +128,11 @@ const CartDrawer = ({ isOpen, onClose }) => {
               <div className="space-y-4">
                 {items.map((item) => {
                   const pId = item.product?._id || item.product?.id;
+                  const pStock = typeof item.product?.stock === 'number'
+                    ? Math.max(0, item.product.stock)
+                    : (item.product?.stock !== undefined && item.product?.stock !== null && !isNaN(Number(item.product.stock))
+                        ? Math.max(0, Number(item.product.stock))
+                        : 999);
                   const originalPrice = Number(item.product?.price) || 0;
                   const productPrice = item.product?.discountPrice !== null && item.product?.discountPrice !== undefined
                     ? Number(item.product.discountPrice)
@@ -174,8 +187,10 @@ const CartDrawer = ({ isOpen, onClose }) => {
                         <div className="flex justify-between items-center mt-2">
                           <div className="flex items-center border border-beige">
                             <button 
-                              onClick={() => handleQuantityChange(pId, item.quantity, -1)}
-                              className="px-2 py-1 text-gray-500 hover:bg-gray-100 cursor-pointer"
+                              onClick={() => handleQuantityChange(pId, item.quantity, -1, pStock)}
+                              disabled={item.quantity <= 1}
+                              className="px-2 py-1 text-gray-500 hover:bg-gray-100 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+                              title="Decrease quantity"
                             >
                               <Minus size={12} />
                             </button>
@@ -183,8 +198,10 @@ const CartDrawer = ({ isOpen, onClose }) => {
                               {item.quantity}
                             </span>
                             <button 
-                              onClick={() => handleQuantityChange(pId, item.quantity, 1)}
-                              className="px-2 py-1 text-gray-500 hover:bg-gray-100 cursor-pointer"
+                              onClick={() => handleQuantityChange(pId, item.quantity, 1, pStock)}
+                              disabled={item.quantity >= pStock}
+                              className="px-2 py-1 text-gray-500 hover:bg-gray-100 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+                              title={item.quantity >= pStock ? `Only ${pStock} unit${pStock === 1 ? '' : 's'} available in stock` : 'Increase quantity'}
                             >
                               <Plus size={12} />
                             </button>
@@ -269,7 +286,19 @@ const CartDrawer = ({ isOpen, onClose }) => {
               <button 
                 onClick={() => {
                   onClose();
-                  navigate('/checkout');
+                  if (!isAuthenticated) {
+                    window.dispatchEvent(
+                      new CustomEvent('open-register-modal', {
+                        detail: { tab: 'user', hideProviderTab: true, source: 'checkout' }
+                      })
+                    );
+                    return;
+                  }
+                  try {
+                    sessionStorage.removeItem('joshpetshub_buynow_item');
+                    sessionStorage.removeItem('joshpetshub_buynow_active');
+                  } catch (_) {}
+                  navigate('/checkout', { state: { isBuyNow: false } });
                 }}
                 className="w-full py-3.5 bg-primary text-white font-medium text-xs tracking-widest hover:bg-primary-light transition duration-300 uppercase cursor-pointer"
               >

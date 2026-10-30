@@ -44,6 +44,74 @@ export const BREEDING_BREEDS_BY_CATEGORY = {
 
 export const INITIAL_MATING_PETS = [
   {
+    id: 'mate-elite-1',
+    name: 'Thor Champion Gold',
+    petCategory: 'Dogs',
+    breed: 'Golden Retriever',
+    gender: 'Male',
+    age: '2.5 Years',
+    ageMonths: 30,
+    quality: 'Show Champion / KCI Certified',
+    price: 15000,
+    priceDisplay: '₹15,000 Stud Fee',
+    isFreeOrShare: false,
+    state: 'Karnataka',
+    city: 'Bangalore',
+    temperament: ['Calm', 'Affectionate', 'Gentle', 'Champion Bloodline'],
+    mateRequirement: 'Looking for a Healthy KCI Certified Female Golden Retriever',
+    parentName: 'Elite Breeds Hub',
+    parentPhone: '9845556677',
+    whatsappNumber: '9845556677',
+    providerEmail: 'elitebreed@joshpetshub.com',
+    isVerified: true,
+    kciRegistered: true,
+    kciNumber: 'KCI/2023/GR-8899',
+    vaccinated: true,
+    dewormed: true,
+    geneticTested: true,
+    status: 'Active',
+    image: 'https://images.unsplash.com/photo-1552053831-71594a27632d?auto=format&fit=crop&q=80&w=800',
+    description: 'Thor is a premier Show Champion line Golden Retriever stud with heavy bone density, rich golden coat, and flawless hip/elbow scores.',
+    sire: 'Intl CH Golden Sun of Bangalore',
+    dam: 'Lady Star of Mysore',
+    matingTerms: '2 supervised tie matings in controlled kennel facility with veterinary support.',
+    createdAt: '2026-08-15T10:00:00.000Z'
+  },
+  {
+    id: 'mate-elite-2',
+    name: 'Zeus of Nilgiri Kennels',
+    petCategory: 'Dogs',
+    breed: 'Siberian Husky',
+    gender: 'Male',
+    age: '3 Years',
+    ageMonths: 36,
+    quality: 'KCI Registered',
+    price: 18000,
+    priceDisplay: '₹18,000 Stud Fee',
+    isFreeOrShare: false,
+    state: 'Karnataka',
+    city: 'Bangalore',
+    temperament: ['Energetic', 'Noble', 'Friendly', 'Social'],
+    mateRequirement: 'Requires healthy purebred Siberian Husky female',
+    parentName: 'Elite Breeds Hub',
+    parentPhone: '9845556677',
+    whatsappNumber: '9845556677',
+    providerEmail: 'elitebreed@joshpetshub.com',
+    isVerified: true,
+    kciRegistered: true,
+    kciNumber: 'KCI/2023/SH-7721',
+    vaccinated: true,
+    dewormed: true,
+    geneticTested: true,
+    status: 'Active',
+    image: 'https://images.unsplash.com/photo-1537151608828-ea2b11777ee8?auto=format&fit=crop&q=80&w=800',
+    description: 'Striking bi-eyed purebred Siberian Husky stud with silver-grey agouti plush coat. Highly active and social temperament.',
+    sire: 'CH Arctic Shadow of Nilgiris',
+    dam: 'Silver Queen of Ooty',
+    matingTerms: 'Indoor climate-controlled mating room with optional AI support.',
+    createdAt: '2026-08-18T10:00:00.000Z'
+  },
+  {
     id: 'mate-1',
     name: 'Hiroki',
     petCategory: 'Dogs',
@@ -440,7 +508,22 @@ export const getStoredMatingPets = () => {
     const saved = localStorage.getItem('joshpetshub_mating_pets_v4');
     if (saved) {
       const parsed = JSON.parse(saved);
-      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        let hasNew = false;
+        const currentIds = new Set(parsed.map(p => String(p.id)));
+        INITIAL_MATING_PETS.forEach(initPet => {
+          if (!currentIds.has(String(initPet.id))) {
+            parsed.unshift(initPet);
+            hasNew = true;
+          }
+        });
+        if (hasNew) {
+          try {
+            localStorage.setItem('joshpetshub_mating_pets_v4', JSON.stringify(parsed));
+          } catch (_) {}
+        }
+        return parsed;
+      }
     }
   } catch (e) {
     console.warn('Could not read mating pets from localStorage', e);
@@ -458,6 +541,24 @@ export const getStoredMatingPets = () => {
 export const saveMatingPet = (newPet) => {
   const current = getStoredMatingPets();
   const updated = [newPet, ...current];
+  try {
+    localStorage.setItem('joshpetshub_mating_pets_v4', JSON.stringify(updated));
+  } catch (e) {
+    console.warn('LocalStorage quota exceeded, updated in-memory', e);
+  }
+  return updated;
+};
+
+export const updateMatingPet = (updatedPet) => {
+  const current = getStoredMatingPets();
+  const index = current.findIndex(p => String(p.id) === String(updatedPet.id));
+  let updated;
+  if (index > -1) {
+    updated = [...current];
+    updated[index] = { ...updated[index], ...updatedPet };
+  } else {
+    updated = [updatedPet, ...current];
+  }
   try {
     localStorage.setItem('joshpetshub_mating_pets_v4', JSON.stringify(updated));
   } catch (e) {

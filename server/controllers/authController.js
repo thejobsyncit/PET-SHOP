@@ -26,14 +26,45 @@ export const sanitizeUser = (user) => {
     name: userObj.name || '',
     email: userObj.email || '',
     role: userObj.role || 'CUSTOMER',
-    mobile: userObj.mobile || '',
+    mobile: userObj.mobile || userObj.phone || '',
+    phone: userObj.mobile || userObj.phone || '',
+    whatsapp: userObj.whatsapp || userObj.whatsappNumber || userObj.mobile || '',
+    whatsappNumber: userObj.whatsapp || userObj.whatsappNumber || userObj.mobile || '',
     location: userObj.location || '',
+    state: userObj.state || '',
+    city: userObj.city || '',
+    address: userObj.address || userObj.streetAddress || userObj.location || '',
+    streetAddress: userObj.address || userObj.streetAddress || userObj.location || '',
     serviceCategory: userObj.serviceCategory || userObj.service_category || '',
-    businessName: userObj.businessName || userObj.business_name || '',
+    businessName: userObj.businessName || userObj.business_name || userObj.name || '',
     verificationStatus: userObj.verificationStatus || userObj.verification_status || 'Verified',
     avatar: userObj.avatar || userObj.profilePicture || null,
     profilePicture: userObj.avatar || userObj.profilePicture || null,
-    addresses: Array.isArray(userObj.addresses) ? userObj.addresses : []
+    isProfileComplete: Boolean(userObj.isProfileComplete || userObj.profileCompleted),
+    profileCompleted: Boolean(userObj.isProfileComplete || userObj.profileCompleted),
+    profileCompletedAt: userObj.profileCompletedAt || null,
+    subscription: userObj.subscription || null,
+    subscriptionHistory: Array.isArray(userObj.subscriptionHistory) ? userObj.subscriptionHistory : [],
+    addresses: Array.isArray(userObj.addresses) ? userObj.addresses : [],
+    // Complete Provider Profile Details
+    govtProofType: userObj.govtProofType || userObj.govt_proof_type || '',
+    govtProofNumber: userObj.govtProofNumber || userObj.govt_proof_number || '',
+    govtProofDoc: userObj.govtProofDoc || null,
+    experienceYears: Number(userObj.experienceYears || userObj.experience) || 1,
+    experience: Number(userObj.experienceYears || userObj.experience) || 1,
+    bio: userObj.bio || '',
+    degrees: userObj.degrees || '',
+    vciRegistration: userObj.vciRegistration || '',
+    certifications: userObj.certifications || '',
+    facilities: Array.isArray(userObj.facilities) ? userObj.facilities : [],
+    capacity: userObj.capacity || userObj.shelterCapacity || null,
+    shelterCapacity: userObj.capacity || userObj.shelterCapacity || null,
+    breedingLicense: userObj.breedingLicense || '',
+    kennelName: userObj.kennelName || '',
+    trainingSpecialization: userObj.trainingSpecialization || '',
+    vehicleTypes: userObj.vehicleTypes || '',
+    emergencyHelpline: userObj.emergencyHelpline || '',
+    profileData: userObj.profileData || null
   };
 };
 
@@ -75,8 +106,19 @@ export const DEMO_ACCOUNTS = [
     password: 'Pass@1234',
     role: 'SERVICE_PROVIDER',
     serviceCategory: 'Consult a Vet',
-    location: 'Koramangala, Bangalore, Karnataka'
-  },
+    location: 'Koramangala, Bangalore, Karnataka',
+    isProfileComplete: true,
+    subscription: {"status":"ACTIVE","planId":"yearly","planName":"Yearly Plan","basePrice":999,"gstRate":0.18,"gstAmount":179.82,"totalAmount":1178.82,"validityMonths":12,"startDate":"2026-10-27T11:20:12.624Z","expiryDate":"2027-10-27T11:20:12.625Z","paymentId":"PAY-DEMO-YEARLY","paidAt":"2026-10-27T11:20:12.625Z"},
+    state: "Karnataka",
+      city: "Bengaluru Urban (Bangalore)",
+      address: "Koramangala, Bangalore, Karnataka",
+      govtProofType: "Veterinary Council of India (VCI) Registration",
+      govtProofNumber: "VCI/KA/2012/0491",
+      bio: "Specialized veterinary medicine and surgical care clinic with 12+ years of surgical experience.",
+      vciRegistration: "VCI/KA/2012/0491",
+      degrees: "BVSc & AH, MVSc (Surgery)",
+      experienceYears: 12,
+    },
   {
     _id: 'prov-groom-02',
     name: 'Velvet Fur Grooming Studio',
@@ -86,8 +128,17 @@ export const DEMO_ACCOUNTS = [
     password: 'Pass@1234',
     role: 'SERVICE_PROVIDER',
     serviceCategory: 'Pet Grooming Spa',
-    location: 'Indiranagar, Bangalore, Karnataka'
-  },
+    location: 'Indiranagar, Bangalore, Karnataka',
+    isProfileComplete: true,
+    subscription: {"status":"ACTIVE","planId":"yearly","planName":"Yearly Plan","basePrice":999,"gstRate":0.18,"gstAmount":179.82,"totalAmount":1178.82,"validityMonths":12,"startDate":"2026-10-27T11:20:12.624Z","expiryDate":"2027-10-27T11:20:12.625Z","paymentId":"PAY-DEMO-YEARLY","paidAt":"2026-10-27T11:20:12.625Z"},
+    state: "Karnataka",
+      city: "Bengaluru Urban (Bangalore)",
+      address: "Indiranagar, Bangalore, Karnataka",
+      govtProofType: "Municipal Trade License",
+      govtProofNumber: "BBMP/TRADE/2023/5549",
+      bio: "Luxury organic grooming spa offering certified breed styling, medicated baths, and soothing coat treatments.",
+      experienceYears: 6,
+    },
   {
     _id: 'prov-hostel-03',
     name: 'Happy Paws Pet Resort',
@@ -97,8 +148,18 @@ export const DEMO_ACCOUNTS = [
     password: 'Pass@1234',
     role: 'SERVICE_PROVIDER',
     serviceCategory: 'Pet Hostel / Boarding',
-    location: 'Sarjapur Road, Bangalore, Karnataka'
-  },
+    location: 'Sarjapur Road, Bangalore, Karnataka',
+    isProfileComplete: true,
+    subscription: {"status":"ACTIVE","planId":"yearly","planName":"Yearly Plan","basePrice":999,"gstRate":0.18,"gstAmount":179.82,"totalAmount":1178.82,"validityMonths":12,"startDate":"2026-10-27T11:20:12.624Z","expiryDate":"2027-10-27T11:20:12.625Z","paymentId":"PAY-DEMO-YEARLY","paidAt":"2026-10-27T11:20:12.625Z"},
+    state: "Karnataka",
+      city: "Bengaluru Urban (Bangalore)",
+      address: "Whitefield, Bangalore, Karnataka",
+      govtProofType: "AWBI Pet Shop Registration Certificate",
+      govtProofNumber: "AWBI/HST/2021/7732",
+      bio: "CCTV-monitored climate-controlled boarding suites, daily outdoor exercise, and 24/7 dedicated veterinary supervision.",
+      capacity: 40,
+      experienceYears: 7,
+    },
   {
     _id: 'prov-seller-04',
     name: 'Royal Paws Elite Pet Sellers',
@@ -108,8 +169,19 @@ export const DEMO_ACCOUNTS = [
     password: 'Pass@1234',
     role: 'SERVICE_PROVIDER',
     serviceCategory: 'Pet Seller',
-    location: 'Indiranagar, Bangalore, Karnataka'
-  },
+    location: 'Indiranagar, Bangalore, Karnataka',
+    isProfileComplete: true,
+    subscription: {"status":"ACTIVE","planId":"yearly","planName":"Yearly Plan","basePrice":999,"gstRate":0.18,"gstAmount":179.82,"totalAmount":1178.82,"validityMonths":12,"startDate":"2026-10-27T11:20:12.624Z","expiryDate":"2027-10-27T11:20:12.625Z","paymentId":"PAY-DEMO-YEARLY","paidAt":"2026-10-27T11:20:12.625Z"},
+    state: "Karnataka",
+      city: "Bengaluru Urban (Bangalore)",
+      address: "HSR Layout, Bangalore, Karnataka",
+      govtProofType: "State Animal Welfare Board (SAWB) Breeder License",
+      govtProofNumber: "SAWB/BRD/2020/9912",
+      bio: "Ethical kennel club registered breeder providing certified vaccinated, dewormed puppies with full lineage documentation.",
+      breedingLicense: "SAWB/BRD/2020/9912",
+      kennelName: "Royal Paws Elite Kennel",
+      experienceYears: 8,
+    },
   {
     _id: 'prov-adopt-05',
     name: 'Hope Animal Sanctuary & Adoption Center',
@@ -119,13 +191,16 @@ export const DEMO_ACCOUNTS = [
     password: 'Pass@1234',
     role: 'SERVICE_PROVIDER',
     serviceCategory: 'Pet Adoption',
-    govtProofType: 'AWBI / Section 8 NGO Certificate',
-    govtProofNumber: 'AWBI/KAR/2023/NGO-88942',
-    govtProofDoc: 'https://images.unsplash.com/photo-1589924691995-400dc9ecc119?q=80&w=800&auto=format&fit=crop',
-    verificationStatus: 'Verified',
-    shelterCapacity: 85,
-    bio: 'Dedicated non-profit rescue sanctuary providing compassionate foster care, medical rehabilitation, and loving forever homes.',
-    location: 'Whitefield, Bangalore, Karnataka'
+    isProfileComplete: true,
+    subscription: {"status":"ACTIVE","planId":"yearly","planName":"Yearly Plan","basePrice":999,"gstRate":0.18,"gstAmount":179.82,"totalAmount":1178.82,"validityMonths":12,"startDate":"2026-10-27T11:20:12.624Z","expiryDate":"2027-10-27T11:20:12.625Z","paymentId":"PAY-DEMO-YEARLY","paidAt":"2026-10-27T11:20:12.625Z"},
+    state: "Karnataka",
+      city: "Bengaluru Urban (Bangalore)",
+      address: "Sarjapur Road, Bangalore, Karnataka",
+      govtProofType: "Section 8 / Trust NGO Animal Welfare Certificate",
+      govtProofNumber: "AWBI/NGO/2019/3321",
+      bio: "Registered non-profit animal rescue shelter dedicated to rescuing, rehabilitating, and rehoming abandoned pets across South India.",
+      capacity: 120,
+    experienceYears: 9
   },
   {
     _id: 'prov-walk-06',
@@ -136,8 +211,17 @@ export const DEMO_ACCOUNTS = [
     password: 'Pass@1234',
     role: 'SERVICE_PROVIDER',
     serviceCategory: 'Pet Walking & Fitness',
-    location: 'Jayanagar, Bangalore, Karnataka'
-  },
+    location: 'Jayanagar, Bangalore, Karnataka',
+    isProfileComplete: true,
+    subscription: {"status":"ACTIVE","planId":"yearly","planName":"Yearly Plan","basePrice":999,"gstRate":0.18,"gstAmount":179.82,"totalAmount":1178.82,"validityMonths":12,"startDate":"2026-10-27T11:20:12.624Z","expiryDate":"2027-10-27T11:20:12.625Z","paymentId":"PAY-DEMO-YEARLY","paidAt":"2026-10-27T11:20:12.625Z"},
+    state: "Karnataka",
+      city: "Bengaluru Urban (Bangalore)",
+      address: "Jayanagar, Bangalore, Karnataka",
+      govtProofType: "AWBI Pet Shop Registration Certificate",
+      govtProofNumber: "AWBI/WLK/2022/8821",
+      bio: "Professional dog walking, canine fitness, and trail adventures with GPS-tracked live routes.",
+      experienceYears: 5,
+    },
   {
     _id: 'prov-trans-07',
     name: 'SafePet Transit',
@@ -147,8 +231,18 @@ export const DEMO_ACCOUNTS = [
     password: 'Pass@1234',
     role: 'SERVICE_PROVIDER',
     serviceCategory: 'Pet Transport & Relocation',
-    location: 'Hebbal, Bangalore, Karnataka'
-  },
+    location: 'Hebbal, Bangalore, Karnataka',
+    isProfileComplete: true,
+    subscription: {"status":"ACTIVE","planId":"yearly","planName":"Yearly Plan","basePrice":999,"gstRate":0.18,"gstAmount":179.82,"totalAmount":1178.82,"validityMonths":12,"startDate":"2026-10-27T11:20:12.624Z","expiryDate":"2027-10-27T11:20:12.625Z","paymentId":"PAY-DEMO-YEARLY","paidAt":"2026-10-27T11:20:12.625Z"},
+    state: "Karnataka",
+      city: "Bengaluru Urban (Bangalore)",
+      address: "Yelahanka, Bangalore, Karnataka",
+      govtProofType: "Municipal Trade License",
+      govtProofNumber: "KA/TRN/2022/4412",
+      bio: "AC-fitted pet transit cabs and IATA-compliant domestic air relocation services with onboard attendants.",
+      vehicleTypes: "AC Van, Climate Ambulance",
+      experienceYears: 4,
+    },
   {
     _id: 'prov-train-08',
     name: 'Clever Canines',
@@ -158,8 +252,18 @@ export const DEMO_ACCOUNTS = [
     password: 'Pass@1234',
     role: 'SERVICE_PROVIDER',
     serviceCategory: 'Pet Training & Behavior',
-    location: 'HSR Layout, Bangalore, Karnataka'
-  },
+    location: 'HSR Layout, Bangalore, Karnataka',
+    isProfileComplete: true,
+    subscription: {"status":"ACTIVE","planId":"yearly","planName":"Yearly Plan","basePrice":999,"gstRate":0.18,"gstAmount":179.82,"totalAmount":1178.82,"validityMonths":12,"startDate":"2026-10-27T11:20:12.624Z","expiryDate":"2027-10-27T11:20:12.625Z","paymentId":"PAY-DEMO-YEARLY","paidAt":"2026-10-27T11:20:12.625Z"},
+    state: "Karnataka",
+      city: "Bengaluru Urban (Bangalore)",
+      address: "BTM Layout, Bangalore, Karnataka",
+      govtProofType: "MSME / Udyam Registration Certificate",
+      govtProofNumber: "UDYAM-KR-03-009182",
+      bio: "Certified positive-reinforcement obedience, puppy socialization, agility training, and behavioral modification.",
+      trainingSpecialization: "Obedience, Behavioral, Guard Dog",
+      experienceYears: 7,
+    },
   {
     _id: 'prov-insure-09',
     name: 'PawProtect Insurance',
@@ -169,8 +273,18 @@ export const DEMO_ACCOUNTS = [
     password: 'Pass@1234',
     role: 'SERVICE_PROVIDER',
     serviceCategory: 'Pet Insurance',
-    location: 'Koramangala, Bangalore, Karnataka'
-  },
+    location: 'Koramangala, Bangalore, Karnataka',
+    isProfileComplete: true,
+    subscription: {"status":"ACTIVE","planId":"yearly","planName":"Yearly Plan","basePrice":999,"gstRate":0.18,"gstAmount":179.82,"totalAmount":1178.82,"validityMonths":12,"startDate":"2026-10-27T11:20:12.624Z","expiryDate":"2027-10-27T11:20:12.625Z","paymentId":"PAY-DEMO-YEARLY","paidAt":"2026-10-27T11:20:12.625Z"},
+    state: "Karnataka",
+      city: "Bengaluru Urban (Bangalore)",
+      address: "MG Road, Bangalore, Karnataka",
+      govtProofType: "GSTIN Registration Certificate",
+      govtProofNumber: "29AABCP1330K1Z2",
+      bio: "Comprehensive veterinary medical insurance coverage, accidental trauma protection, and cashless network claims.",
+      emergencyHelpline: "1800-PET-CARE",
+      experienceYears: 6,
+    },
   {
     _id: 'prov-breed-10',
     name: 'Elite Breeds Hub',
@@ -180,9 +294,42 @@ export const DEMO_ACCOUNTS = [
     password: 'Pass@1234',
     role: 'SERVICE_PROVIDER',
     serviceCategory: 'Pet Mating & Breeding',
-    location: 'Yelahanka, Bangalore, Karnataka'
-  },
-  {
+    location: 'Yelahanka, Bangalore, Karnataka',
+    isProfileComplete: true,
+    subscription: {"status":"ACTIVE","planId":"yearly","planName":"Yearly Plan","basePrice":999,"gstRate":0.18,"gstAmount":179.82,"totalAmount":1178.82,"validityMonths":12,"startDate":"2026-10-27T11:20:12.624Z","expiryDate":"2027-10-27T11:20:12.625Z","paymentId":"PAY-DEMO-YEARLY","paidAt":"2026-10-27T11:20:12.625Z"},
+    state: "Karnataka",
+      city: "Bengaluru Urban (Bangalore)",
+      address: "Hebbal, Bangalore, Karnataka",
+      govtProofType: "State Animal Welfare Board (SAWB) Breeder License",
+      govtProofNumber: "SAWB/BRD/2021/8874",
+      bio: "Champion lineage stud service, DNA health testing, genetic screening, and professional mating assistance.",
+      breedingLicense: "SAWB/BRD/2021/8874",
+      kennelName: "Elite Pedigree Champions",
+      experienceYears: 10,
+    },
+    {
+    _id: 'prov-prod-11',
+    name: 'Josh Pet Store & Supplies',
+    businessName: 'Josh Pet Store & Supplies',
+    email: 'productseller@joshpetshub.com',
+    mobile: '9845667788',
+    password: 'Pass@1234',
+    role: 'SERVICE_PROVIDER',
+    serviceCategory: 'Pet Products & Supplies',
+    location: 'Bangalore, Karnataka',
+    state: 'Karnataka',
+    city: 'Bangalore',
+    address: 'MG Road, Bangalore, Karnataka',
+    govtProofType: 'FSSAI Food & Pet Supply License',
+    govtProofNumber: 'FSSAI-11223344556677',
+    bio: 'Official certified partner seller offering verified premium pet nutrition, veterinary health diets, accessories, and grooming essentials with lightning-fast delivery.',
+    isProfileComplete: true,
+    requiresSubscription: true,
+    profileCompleted: true,
+    subscription: {"status":"ACTIVE","planId":"yearly","planName":"Yearly Plan","basePrice":999,"gstRate":0.18,"gstAmount":179.82,"totalAmount":1178.82,"validityMonths":12,"startDate":"2026-10-27T11:20:12.624Z","expiryDate":"2027-10-27T11:20:12.625Z","paymentId":"PAY-DEMO-YEARLY","paidAt":"2026-10-27T11:20:12.625Z"},
+    experienceYears: 8,
+    },
+{
     _id: 'user-demo-01',
     name: 'Priya Sharma',
     businessName: '',
@@ -192,6 +339,17 @@ export const DEMO_ACCOUNTS = [
     role: 'CUSTOMER',
     serviceCategory: '',
     location: 'Bangalore, Karnataka'
+  },
+  {
+    _id: 'user-customer1-02',
+    name: 'Aarav Sharma',
+    businessName: '',
+    email: 'customer1@joshpetshub.com',
+    mobile: '9876543211',
+    password: 'Pass@1234',
+    role: 'CUSTOMER',
+    serviceCategory: '',
+    location: 'Mumbai, Maharashtra'
   },
   {
     _id: 'user-sooryas650-01',
@@ -261,6 +419,11 @@ export const isEmailAlreadyRegistered = async (rawEmail) => {
   if (!rawEmail || typeof rawEmail !== 'string') return false;
   const clean = rawEmail.trim().toLowerCase();
 
+  // Test account sooryas650@gmail.com is allowed to re-register/test registration freely
+  if (clean === 'sooryas650@gmail.com') {
+    return false;
+  }
+
   // 1. Check in DEMO_ACCOUNTS
   if (DEMO_ACCOUNTS.some(d => d.email && d.email.trim().toLowerCase() === clean)) {
     return true;
@@ -305,8 +468,16 @@ export const registerUser = async (req, res) => {
     shelterCapacity, bio
   } = req.body;
 
-  if (!name || !email || !password) {
-    return res.status(400).json({ success: false, message: 'Please provide name, email, and password' });
+  if (!name || !name.trim()) {
+    return res.status(400).json({ success: false, message: 'Full name is required' });
+  }
+
+  if ((!role || role === 'CUSTOMER') && !/^[a-zA-Z\s]+$/.test(name.trim())) {
+    return res.status(400).json({ success: false, message: 'Full name should contain alphabets only' });
+  }
+
+  if (!email || !password) {
+    return res.status(400).json({ success: false, message: 'Please provide email and password' });
   }
 
   const cleanEmail = email.trim().toLowerCase();
@@ -363,6 +534,10 @@ export const registerUser = async (req, res) => {
       shelterCapacity: shelterCapacity || 50,
       shelter_capacity: shelterCapacity || 50,
       bio: bio || null,
+      isProfileComplete: safeRole === 'CUSTOMER', // Customers do not need provider profile
+      profileCompleted: safeRole === 'CUSTOMER',
+      subscription: null,
+      subscriptionHistory: [],
       addresses: [],
       wishlist: [],
       cart: [],
@@ -431,6 +606,15 @@ export const registerUser = async (req, res) => {
       diskUsers.push(userObj);
     }
     saveDiskUsers(diskUsers);
+
+    // Sync in-memory DEMO_ACCOUNTS if sooryas650@gmail.com registers so login works seamlessly with new credentials
+    const demoAcc = DEMO_ACCOUNTS.find(d => d.email && d.email.toLowerCase() === cleanEmail);
+    if (demoAcc) {
+      demoAcc.password = password;
+      demoAcc.name = userObj.name || demoAcc.name;
+      demoAcc.mobile = userObj.mobile || demoAcc.mobile;
+      demoAcc.location = userObj.location || demoAcc.location;
+    }
 
     const token = generateToken(userObj);
     setAuthCookie(res, token);
@@ -501,6 +685,14 @@ export const loginUser = async (req, res) => {
     // If still not found, check in-memory users
     if (!user) {
       user = inMemoryUsers.get(loginKey.toLowerCase());
+    }
+
+    // If still not found, check DEMO_ACCOUNTS
+    if (!user) {
+      user = DEMO_ACCOUNTS.find(d => 
+        (d.email && d.email.toLowerCase() === loginKey.toLowerCase()) ||
+        (cleanMobile && d.mobile && (d.mobile === cleanMobile || cleanMobile.endsWith(d.mobile) || d.mobile.endsWith(cleanMobile)))
+      );
     }
 
     // 4. Strict Password Hash Verification using bcrypt
@@ -603,7 +795,23 @@ export const loginUser = async (req, res) => {
     const token = generateToken(user);
     setAuthCookie(res, token);
 
-    // 10. Return sanitized user data (never expose password hashes or sensitive internal fields)
+    // 10. Ensure addresses are loaded and return sanitized user data
+    if (user) {
+      const uEmail = (user.email || loginKey || '').toLowerCase();
+      const uId = user._id || user.id;
+      if (!Array.isArray(user.addresses) || user.addresses.length === 0) {
+        const dUser = diskUsers.find(u => (uId && (u._id === uId || u.id === uId)) || (u.email && u.email.toLowerCase() === uEmail));
+        if (dUser && Array.isArray(dUser.addresses) && dUser.addresses.length > 0) {
+          user.addresses = dUser.addresses;
+        } else {
+          const demoUser = DEMO_ACCOUNTS.find(d => (uId && (d._id === uId || d.id === uId)) || (d.email && d.email.toLowerCase() === uEmail));
+          if (demoUser && Array.isArray(demoUser.addresses) && demoUser.addresses.length > 0) {
+            user.addresses = demoUser.addresses;
+          }
+        }
+      }
+    }
+
     return res.json({
       success: true,
       token,
@@ -632,7 +840,42 @@ export const getUserProfile = async (req, res) => {
 // @route   PUT /api/auth/profile
 // @access  Private
 export const updateUserProfile = async (req, res) => {
-  const { name, email, password, newPassword, currentPassword, confirmPassword, avatar, profilePicture, businessName } = req.body;
+  const {
+    name,
+    email,
+    password,
+    newPassword,
+    currentPassword,
+    confirmPassword,
+    avatar,
+    profilePicture,
+    businessName,
+    mobile,
+    phone,
+    whatsapp,
+    whatsappNumber,
+    location,
+    state,
+    city,
+    address,
+    streetAddress,
+    govtProofType,
+    govtProofNumber,
+    govtProofDoc,
+    experienceYears,
+    experience,
+    bio,
+    degrees,
+    vciRegistration,
+    certifications,
+    capacity,
+    shelterCapacity,
+    breedingLicense,
+    kennelName,
+    trainingSpecialization,
+    vehicleTypes,
+    emergencyHelpline
+  } = req.body;
 
   try {
     const userId = req.user?._id || req.user?.id;
@@ -666,8 +909,46 @@ export const updateUserProfile = async (req, res) => {
       let updateData = {};
       if (name) updateData.name = name;
       if (email) updateData.email = email;
-      if (avatar || profilePicture) updateData.avatar = avatar || profilePicture;
-      if (businessName) updateData.business_name = businessName;
+      if (avatar || profilePicture) {
+        updateData.avatar = avatar || profilePicture;
+        updateData.profilePicture = avatar || profilePicture;
+      }
+      if (businessName) updateData.businessName = businessName;
+      if (mobile || phone) {
+        updateData.mobile = (mobile || phone).trim();
+        updateData.phone = (mobile || phone).trim();
+      }
+      if (whatsapp || whatsappNumber) {
+        updateData.whatsapp = (whatsapp || whatsappNumber).trim();
+        updateData.whatsappNumber = (whatsapp || whatsappNumber).trim();
+      }
+      if (location) updateData.location = location.trim();
+      if (state) updateData.state = state.trim();
+      if (city) updateData.city = city.trim();
+      if (address || streetAddress) {
+        updateData.address = (address || streetAddress).trim();
+        updateData.streetAddress = (address || streetAddress).trim();
+      }
+      if (govtProofType) updateData.govtProofType = govtProofType.trim();
+      if (govtProofNumber) updateData.govtProofNumber = govtProofNumber.trim();
+      if (govtProofDoc !== undefined) updateData.govtProofDoc = govtProofDoc;
+      if (experienceYears || experience) {
+        updateData.experienceYears = Number(experienceYears || experience);
+        updateData.experience = Number(experienceYears || experience);
+      }
+      if (bio) updateData.bio = bio.trim();
+      if (degrees !== undefined) updateData.degrees = degrees;
+      if (vciRegistration !== undefined) updateData.vciRegistration = vciRegistration;
+      if (certifications !== undefined) updateData.certifications = certifications;
+      if (capacity || shelterCapacity) {
+        updateData.capacity = capacity || shelterCapacity;
+        updateData.shelterCapacity = capacity || shelterCapacity;
+      }
+      if (breedingLicense !== undefined) updateData.breedingLicense = breedingLicense;
+      if (kennelName !== undefined) updateData.kennelName = kennelName;
+      if (trainingSpecialization !== undefined) updateData.trainingSpecialization = trainingSpecialization;
+      if (vehicleTypes !== undefined) updateData.vehicleTypes = vehicleTypes;
+      if (emergencyHelpline !== undefined) updateData.emergencyHelpline = emergencyHelpline;
       const targetPassword = newPassword || password;
 
       if (targetPassword || currentPassword || confirmPassword) {
@@ -782,17 +1063,11 @@ export const updateUserProfile = async (req, res) => {
         demoUser.password = targetPassword;
       }
 
-      const finalUser = {
-        id: user.id || user._id || userId || 'user_active',
-        _id: user.id || user._id || userId || 'user_active',
-        name: updateData.name || user.name || (targetEmail === 'sooryas650@gmail.com' ? 'Soorya S' : 'User'),
-        email: updateData.email || user.email || targetEmail,
-        role: user.role || 'CUSTOMER',
-        avatar: updateData.avatar || user.avatar || null,
-        profilePicture: updateData.avatar || user.avatar || null,
-        businessName: updateData.business_name || user.businessName || user.business_name || '',
-        addresses: user.addresses || []
-      };
+      const finalUser = sanitizeUser({
+        ...user,
+        ...updatedRecord,
+        ...updateData
+      });
 
       return res.json({
         success: true,
@@ -811,38 +1086,92 @@ export const updateUserProfile = async (req, res) => {
 // @access  Private
 export const addAddress = async (req, res) => {
   const { name, phone, streetAddress, city, state, postalCode, country, isDefault } = req.body;
-  const userId = req.user._id || req.user.id;
+  const userId = req.user?._id || req.user?.id;
+  const userEmail = (req.user?.email || '').toLowerCase().trim();
 
   try {
+    let addresses = Array.isArray(req.user?.addresses) ? [...req.user.addresses] : [];
+
+    // Check disk users (users.json)
+    const dUsers = loadDiskUsers();
+    const diskUserIndex = dUsers.findIndex(u => 
+      (userId && (u._id === userId || u.id === userId)) ||
+      (userEmail && u.email && u.email.toLowerCase() === userEmail)
+    );
+    if (diskUserIndex >= 0 && Array.isArray(dUsers[diskUserIndex].addresses) && dUsers[diskUserIndex].addresses.length > addresses.length) {
+      addresses = [...dUsers[diskUserIndex].addresses];
+    }
+
+    // Check Supabase if available
+    if (supabase && userId) {
+      try {
+        const { data: sbUser } = await supabase.from('users').select('addresses').eq('id', userId).single();
+        if (sbUser && Array.isArray(sbUser.addresses) && sbUser.addresses.length > addresses.length) {
+          addresses = [...sbUser.addresses];
+        }
+      } catch (_) {}
+    }
+
     const newAddress = {
-      _id: crypto.randomUUID(),
-      name,
-      phone,
-      streetAddress,
-      city,
-      state,
-      postalCode,
+      _id: (typeof crypto.randomUUID === 'function') ? crypto.randomUUID() : ('addr_' + Date.now()),
+      name: name ? name.trim() : '',
+      phone: phone ? phone.trim() : '',
+      streetAddress: streetAddress ? streetAddress.trim() : '',
+      city: city ? city.trim() : '',
+      state: state ? state.trim() : '',
+      postalCode: postalCode ? postalCode.trim() : '',
       country: country || 'India',
-      isDefault: isDefault || false
+      isDefault: isDefault ?? (addresses.length === 0)
     };
 
-    const { data: user } = await supabase.from('users').select('addresses').eq('id', userId).single();
-    let addresses = (user && user.addresses) || [];
-    if (isDefault) {
+    if (newAddress.isDefault) {
       addresses = addresses.map(a => ({ ...a, isDefault: false }));
     }
     addresses.push(newAddress);
-    
-    if (user) {
-      const { data: updatedUser, error } = await supabase.from('users').update({ addresses }).eq('id', userId).select('addresses').single();
-      if (!error && updatedUser) {
-        return res.json({ success: true, addresses: updatedUser.addresses });
-      }
+
+    // 1. Update Supabase if available
+    if (supabase && userId) {
+      try {
+        await supabase.from('users').update({ addresses }).eq('id', userId);
+      } catch (_) {}
     }
-    
-    res.json({ success: true, addresses });
+
+    // 2. Persist to disk users (users.json)
+    try {
+      if (diskUserIndex >= 0) {
+        dUsers[diskUserIndex].addresses = addresses;
+        saveDiskUsers(dUsers);
+      } else if (req.user) {
+        dUsers.push({ ...req.user, addresses });
+        saveDiskUsers(dUsers);
+      }
+    } catch (diskErr) {
+      console.warn('Failed to save addresses to users.json:', diskErr?.message);
+    }
+
+    // 3. Persist to DEMO_ACCOUNTS
+    const demoAcc = DEMO_ACCOUNTS.find(d => 
+      (userId && (d._id === userId || d.id === userId)) ||
+      (userEmail && d.email && d.email.toLowerCase() === userEmail)
+    );
+    if (demoAcc) {
+      demoAcc.addresses = addresses;
+    }
+
+    // 4. Persist to inMemoryUsers
+    if (userEmail && inMemoryUsers.has(userEmail)) {
+      const mem = inMemoryUsers.get(userEmail);
+      mem.addresses = addresses;
+      inMemoryUsers.set(userEmail, mem);
+    }
+
+    if (req.user) {
+      req.user.addresses = addresses;
+    }
+
+    return res.json({ success: true, addresses });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    return res.status(500).json({ success: false, message: error.message });
   }
 };
 
@@ -851,23 +1180,69 @@ export const addAddress = async (req, res) => {
 // @access  Private
 export const removeAddress = async (req, res) => {
   const addressId = req.params.addressId;
-  const userId = req.user._id || req.user.id;
+  const userId = req.user?._id || req.user?.id;
+  const userEmail = (req.user?.email || '').toLowerCase().trim();
 
   try {
-    const { data: user } = await supabase.from('users').select('addresses').eq('id', userId).single();
-    let addresses = (user && user.addresses) || [];
-    addresses = addresses.filter(a => a._id !== addressId);
-    
-    if (user) {
-      const { data: updatedUser, error } = await supabase.from('users').update({ addresses }).eq('id', userId).select('addresses').single();
-      if (!error && updatedUser) {
-        return res.json({ success: true, addresses: updatedUser.addresses });
-      }
+    let addresses = Array.isArray(req.user?.addresses) ? [...req.user.addresses] : [];
+
+    const dUsers = loadDiskUsers();
+    const diskUserIndex = dUsers.findIndex(u => 
+      (userId && (u._id === userId || u.id === userId)) ||
+      (userEmail && u.email && u.email.toLowerCase() === userEmail)
+    );
+    if (diskUserIndex >= 0 && Array.isArray(dUsers[diskUserIndex].addresses) && addresses.length === 0) {
+      addresses = [...dUsers[diskUserIndex].addresses];
     }
-    
-    res.json({ success: true, addresses });
+
+    if (supabase && userId) {
+      try {
+        const { data: sbUser } = await supabase.from('users').select('addresses').eq('id', userId).single();
+        if (sbUser && Array.isArray(sbUser.addresses) && addresses.length === 0) {
+          addresses = [...sbUser.addresses];
+        }
+      } catch (_) {}
+    }
+
+    addresses = addresses.filter(a => a._id !== addressId && a.id !== addressId);
+    if (addresses.length > 0 && !addresses.some(a => a.isDefault)) {
+      addresses[0].isDefault = true;
+    }
+
+    if (supabase && userId) {
+      try {
+        await supabase.from('users').update({ addresses }).eq('id', userId);
+      } catch (_) {}
+    }
+
+    try {
+      if (diskUserIndex >= 0) {
+        dUsers[diskUserIndex].addresses = addresses;
+        saveDiskUsers(dUsers);
+      }
+    } catch (_) {}
+
+    const demoAcc = DEMO_ACCOUNTS.find(d => 
+      (userId && (d._id === userId || d.id === userId)) ||
+      (userEmail && d.email && d.email.toLowerCase() === userEmail)
+    );
+    if (demoAcc) {
+      demoAcc.addresses = addresses;
+    }
+
+    if (userEmail && inMemoryUsers.has(userEmail)) {
+      const mem = inMemoryUsers.get(userEmail);
+      mem.addresses = addresses;
+      inMemoryUsers.set(userEmail, mem);
+    }
+
+    if (req.user) {
+      req.user.addresses = addresses;
+    }
+
+    return res.json({ success: true, addresses });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    return res.status(500).json({ success: false, message: error.message });
   }
 };
 
@@ -885,8 +1260,66 @@ export const logoutUser = async (req, res) => {
 };
 
 
-// In-memory OTP storage with 10-minute expiry
+// In-memory OTP storage with persistent disk fallback (10-minute expiry)
 export const otpStore = new Map();
+const OTPS_FILE = path.join(__dirname, '..', 'data', 'otps.json');
+
+const loadDiskOtps = () => {
+  try {
+    if (fs.existsSync(OTPS_FILE)) {
+      const content = fs.readFileSync(OTPS_FILE, 'utf8');
+      const parsed = JSON.parse(content);
+      if (typeof parsed === 'object' && parsed !== null) return parsed;
+    }
+  } catch (_) {}
+  return {};
+};
+
+const saveDiskOtps = (otps) => {
+  try {
+    const dir = path.dirname(OTPS_FILE);
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+    fs.writeFileSync(OTPS_FILE, JSON.stringify(otps, null, 2), 'utf8');
+  } catch (_) {}
+};
+
+export const saveOtpToStore = (key, data) => {
+  if (!key) return;
+  const cleanKey = key.toLowerCase().trim();
+  otpStore.set(cleanKey, data);
+  try {
+    const disk = loadDiskOtps();
+    disk[cleanKey] = data;
+    saveDiskOtps(disk);
+  } catch (_) {}
+};
+
+export const getStoredOtp = (key) => {
+  if (!key) return null;
+  const cleanKey = key.toLowerCase().trim();
+  if (otpStore.has(cleanKey)) {
+    return otpStore.get(cleanKey);
+  }
+  const disk = loadDiskOtps();
+  if (disk[cleanKey]) {
+    otpStore.set(cleanKey, disk[cleanKey]);
+    return disk[cleanKey];
+  }
+  return null;
+};
+
+export const deleteStoredOtp = (key) => {
+  if (!key) return;
+  const cleanKey = key.toLowerCase().trim();
+  otpStore.delete(cleanKey);
+  try {
+    const disk = loadDiskOtps();
+    if (disk[cleanKey]) {
+      delete disk[cleanKey];
+      saveDiskOtps(disk);
+    }
+  } catch (_) {}
+};
 
 // @desc    Send OTP via Email or Mobile
 // @route   POST /api/auth/send-otp
@@ -996,24 +1429,40 @@ export const sendOtp = async (req, res) => {
 
   // Generate 6-digit OTP with 1-minute (60 seconds) validity window
   const otp = Math.floor(100000 + Math.random() * 900000).toString();
-  const OTP_EXPIRY_MS = 60 * 1000; // 1 minute
+  const OTP_EXPIRY_MS = 10 * 60 * 1000; // 10 minutes
   const expiresAt = Date.now() + OTP_EXPIRY_MS;
 
   const key = (targetEmail || rawKey).toLowerCase();
-  otpStore.set(key, { otp, expiresAt, purpose: purpose || 'login' });
+  saveOtpToStore(key, { otp, expiresAt, purpose: purpose || 'login' });
 
-  let emailResult = { success: true, simulated: true };
+  let emailResult = { success: true, simulated: false };
   if (targetEmail) {
-    emailResult = await sendOtpEmail(targetEmail, otp, purpose || 'login');
+    // ⚡ Non-blocking fast-race: Wait up to 500ms for instant confirmation.
+    // If SMTP delivers within 500ms, we get confirmed delivery.
+    // If Gmail takes longer (common on cloud servers), we respond immediately with success
+    // so the client reaches the OTP screen in <500ms while the email finishes in background!
+    const emailPromise = sendOtpEmail(targetEmail, otp, purpose || 'login').catch(err => {
+      console.error('[Async OTP Email] Background dispatch error:', err?.message || err);
+      return { success: false, error: err?.message };
+    });
+
+    const fastRace = await Promise.race([
+      emailPromise,
+      new Promise(resolve => setTimeout(() => resolve({ success: true, pending: true }), 500))
+    ]);
+
+    if (fastRace && !fastRace.pending) {
+      emailResult = fastRace;
+    }
   }
 
   return res.json({
     success: true,
     message: emailResult.simulated 
-      ? `Demo OTP generated for ${key}: ${otp} (Valid for 1 min)` 
-      : `OTP code sent successfully to ${targetEmail} (Valid for 1 min)`,
+      ? `Demo OTP generated for ${key}: ${otp} (Valid for 10 min)` 
+      : `OTP code sent successfully to ${targetEmail} (Valid for 10 min)`,
     otp, // keep in response for demo / autofill
-    expiresInSeconds: 60,
+    expiresInSeconds: 600,
     expiresAt,
     simulated: emailResult.simulated || false
   });
@@ -1030,14 +1479,19 @@ export const verifyOtp = async (req, res) => {
     return res.status(400).json({ success: false, message: 'Identifier and verification code are required.' });
   }
 
-  const stored = otpStore.get(rawKey);
+  // Master demo code always passes
+  if (String(otp).trim() === '123456') {
+    return res.json({ success: true, message: 'Verification code verified successfully!' });
+  }
+
+  const stored = getStoredOtp(rawKey);
   if (!stored) {
     return res.status(400).json({ success: false, message: 'No verification code requested or code has expired. Please request a new code.' });
   }
 
   if (Date.now() > stored.expiresAt) {
-    otpStore.delete(rawKey);
-    return res.status(400).json({ success: false, message: 'Verification code has expired! Verification codes are valid for 1 minute only. Please request a new code.' });
+    deleteStoredOtp(rawKey);
+    return res.status(400).json({ success: false, message: 'Verification code has expired! Verification codes are valid for 10 minutes. Please request a new code.' });
   }
 
   if (String(stored.otp).trim() !== String(otp).trim()) {
@@ -1045,7 +1499,7 @@ export const verifyOtp = async (req, res) => {
   }
 
   // Once verified, delete so it cannot be reused
-  otpStore.delete(rawKey);
+  deleteStoredOtp(rawKey);
 
   return res.json({ success: true, message: 'Verification code verified successfully!' });
 };
@@ -1063,24 +1517,36 @@ export const forgotPassword = async (req, res) => {
   }
 
   const otp = Math.floor(100000 + Math.random() * 900000).toString();
-  const OTP_EXPIRY_MS = 60 * 1000; // 1 minute
+  const OTP_EXPIRY_MS = 10 * 60 * 1000; // 10 minutes
   const expiresAt = Date.now() + OTP_EXPIRY_MS;
 
   const key = (targetEmail || rawKey).toLowerCase();
-  otpStore.set(key, { otp, expiresAt, purpose: 'reset' });
+  saveOtpToStore(key, { otp, expiresAt, purpose: 'reset' });
 
-  let emailResult = { success: true, simulated: true };
+  let emailResult = { success: true, simulated: false };
   if (targetEmail) {
-    emailResult = await sendOtpEmail(targetEmail, otp, 'reset');
+    const emailPromise = sendOtpEmail(targetEmail, otp, 'reset').catch(err => {
+      console.error('[Async Reset OTP Email] Background dispatch error:', err?.message || err);
+      return { success: false, error: err?.message };
+    });
+
+    const fastRace = await Promise.race([
+      emailPromise,
+      new Promise(resolve => setTimeout(() => resolve({ success: true, pending: true }), 500))
+    ]);
+
+    if (fastRace && !fastRace.pending) {
+      emailResult = fastRace;
+    }
   }
 
   return res.json({
     success: true,
     message: emailResult.simulated 
-      ? `Demo recovery OTP generated for ${key}: ${otp} (Valid for 1 min)` 
-      : `Password recovery OTP sent successfully to ${targetEmail} (Valid for 1 min)`,
+      ? `Demo recovery OTP generated for ${key}: ${otp} (Valid for 10 min)` 
+      : `Password recovery OTP sent successfully to ${targetEmail} (Valid for 10 min)`,
     otp,
-    expiresInSeconds: 60,
+    expiresInSeconds: 600,
     expiresAt,
     target: targetEmail || rawKey,
     simulated: emailResult.simulated || false
@@ -1110,14 +1576,14 @@ export const resetPassword = async (req, res) => {
     return res.status(400).json({ success: false, message: 'Passwords do not match' });
   }
 
-  const stored = otpStore.get(rawKey);
+  const stored = getStoredOtp(rawKey);
   if (!stored) {
     return res.status(400).json({ success: false, message: 'No verification code requested or code has expired. Please request a new code.' });
   }
 
   if (Date.now() > stored.expiresAt) {
-    otpStore.delete(rawKey);
-    return res.status(400).json({ success: false, message: 'Verification code has expired! Verification codes are valid for 1 minute only. Please request a new code.' });
+    deleteStoredOtp(rawKey);
+    return res.status(400).json({ success: false, message: 'Verification code has expired! Verification codes are valid for 10 minutes. Please request a new code.' });
   }
 
   const isDemoOtp = (String(otp).trim() === '123456');
@@ -1125,7 +1591,7 @@ export const resetPassword = async (req, res) => {
     return res.status(400).json({ success: false, message: 'Invalid verification code. Please check and try again.' });
   }
 
-  otpStore.delete(rawKey);
+  deleteStoredOtp(rawKey);
 
   try {
     const salt = await bcrypt.genSalt(10);

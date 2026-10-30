@@ -8,6 +8,7 @@ import {
   Tag, LogOut, CheckCircle, X, Edit3, Check, Building, Truck, Menu
 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import ProviderProfileSection from '../../../components/dashboards/ProviderProfileSection.jsx';
 
 import TransportProviderContent from './content/TransportProviderContent.jsx';
 import { safeSetItem, safeGetItem } from '../../../utils/safeStorage.js';
@@ -21,17 +22,20 @@ import {
 const TransportProviderDashboard = ({ 
   currentProvider, 
   profiles, 
-  handleToggleOnline 
+  handleToggleOnline,
+  onOpenSubscriptionModal,
+  onOpenPlanDetails,
+  subscription
 }) => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const { user } = useSelector(state => state.auth);
   const dispatch = useDispatch();
 
-  const validTabs = ['appointments', 'vehicles', 'service', 'messages', 'reviews', 'wallet', 'profile'];
+  const validTabs = ['profile', 'appointments', 'vehicles', 'service', 'messages', 'reviews', 'wallet'];
   const storedTab = safeGetItem('transportDashboardTab');
-  const rawTab = searchParams.get('tab') || storedTab || 'appointments';
-  const activeTabParam = validTabs.includes(rawTab) ? rawTab : 'appointments';
+  const rawTab = searchParams.get('tab') || storedTab || 'profile';
+  const activeTabParam = validTabs.includes(rawTab) ? rawTab : 'profile';
   const [activeTab, setActiveTab] = useState(activeTabParam);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
@@ -134,13 +138,13 @@ const TransportProviderDashboard = ({
   const displayName = user?.name || currentProvider?.name || 'Provider';
 
   const menuItems = [
+    { id: 'profile', label: 'Profile', fullLabel: 'Agency Profile & Plan', icon: Building },
     { id: 'appointments', label: 'Bookings', fullLabel: 'Transport Bookings', count: bookings.length, icon: Calendar },
     { id: 'vehicles', label: 'Vehicles', fullLabel: 'Vehicles & Rates', count: vehicles.length, icon: Tag },
     { id: 'service', label: 'My Service', fullLabel: 'My Transport Service', count: myService ? 1 : 0, extra: myService ? 'Active' : 'Post', icon: Truck },
     { id: 'messages', label: 'Inquiries', fullLabel: 'Client Inquiries', count: inquiries.length, icon: MessageSquare },
     { id: 'reviews', label: 'Reviews', fullLabel: 'Customer Reviews', extra: '4.8 ★', icon: Heart },
-    { id: 'wallet', label: 'Wallet', fullLabel: 'Wallet & Payouts', icon: DollarSign },
-    { id: 'profile', label: 'Profile', fullLabel: 'Agency Profile', icon: Building }
+    { id: 'wallet', label: 'Wallet', fullLabel: 'Wallet & Payouts', icon: DollarSign }
   ];
 
   return (
@@ -529,7 +533,15 @@ const TransportProviderDashboard = ({
 
         {/* TAB CONTENT WRAPPER */}
         <div className="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-6 lg:p-8 border border-slate-200 min-h-[500px] shadow-sm">
-          <TransportProviderContent activeTab={activeTab} user={user} />
+          {activeTab === 'profile' ? (
+            <ProviderProfileSection
+              serviceCategory="Pet Transport & Relocation"
+              onOpenSubscriptionModal={onOpenSubscriptionModal}
+              onOpenPlanDetails={onOpenPlanDetails}
+            />
+          ) : (
+            <TransportProviderContent activeTab={activeTab} user={user} />
+          )}
         </div>
       </main>
 

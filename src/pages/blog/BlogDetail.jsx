@@ -9,32 +9,54 @@ const BlogDetail = () => {
   const navigate = useNavigate();
   const [blog, setBlog] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [faqOpen, setFaqOpen] = useState(null);
 
   useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
     loadArticle();
   }, [slug]);
 
   const loadArticle = async () => {
     setLoading(true);
+    setError(null);
     try {
       const data = await apiRequest(`/blogs/slug/${slug}`);
-      if (data.success) {
+      if (data && data.success && data.blog) {
         setBlog(data.blog);
+      } else {
+        throw new Error(data?.message || 'Article not found');
       }
     } catch (err) {
-      console.error(err);
-      navigate('/pet-care');
+      console.error('Failed to load publication:', err);
+      setError(err.message || 'Article not found');
     } finally {
       setLoading(false);
     }
   };
 
-  if (loading || !blog) {
+  if (loading) {
     return (
-      <div className="max-w-7xl mx-auto px-4 md:px-8 py-10 lg:py-20 flex flex-col items-center justify-center space-y-4">
+      <div className="max-w-7xl mx-auto px-4 md:px-8 py-10 lg:py-20 flex flex-col items-center justify-center space-y-4 min-h-[50vh]">
         <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-accent"></div>
         <p className="text-xs text-gray-500 font-bold uppercase tracking-wider">Loading publication details...</p>
+      </div>
+    );
+  }
+
+  if (error || !blog) {
+    return (
+      <div className="max-w-3xl mx-auto px-4 md:px-8 py-16 text-center space-y-4">
+        <h2 className="font-serif text-2xl font-bold text-primary">Article Not Found</h2>
+        <p className="text-xs text-gray-500">
+          The requested pet care guide could not be located or may have been moved.
+        </p>
+        <Link
+          to="/pet-care"
+          className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#0F2E23] text-[#D4AF37] hover:text-white rounded-xl text-xs font-bold transition shadow-sm"
+        >
+          <span>Browse All Pet Care Articles</span>
+        </Link>
       </div>
     );
   }
@@ -76,7 +98,13 @@ const BlogDetail = () => {
         {/* Metadata info */}
         <div className="flex flex-wrap justify-center items-center gap-6 text-[10px] text-gray-400 font-bold uppercase pt-4 border-t border-b border-beige py-3 max-w-xl mx-auto">
           <div className="flex items-center gap-1.5"><User size={14} className="text-accent" /> {blog.author}</div>
-          <div className="flex items-center gap-1.5"><Calendar size={14} className="text-accent" /> {new Date(blog.publishedDate).toLocaleDateString()}</div>
+          <div className="flex items-center gap-1.5">
+            <Calendar size={14} className="text-accent" />
+            {(() => {
+              const d = new Date(blog.publishedDate || blog.published_date || blog.createdAt);
+              return !isNaN(d.getTime()) ? d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : 'Recent Guide';
+            })()}
+          </div>
           <div className="flex items-center gap-1.5"><Clock size={14} className="text-accent" /> {blog.readTime}</div>
         </div>
       </section>

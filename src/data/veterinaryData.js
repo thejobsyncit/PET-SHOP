@@ -731,9 +731,18 @@ export const INITIAL_VET_APPOINTMENTS = [
 export const saveVetAppointment = (appointment) => {
   try {
     const current = getVetAppointments();
-    const updated = [appointment, ...current];
+    const appId = appointment.id || appointment._id;
+    const existingIndex = current.findIndex(a => (a.id === appId || a._id === appId));
+    let updated;
+    if (existingIndex >= 0) {
+      updated = [...current];
+      updated[existingIndex] = { ...updated[existingIndex], ...appointment };
+    } else {
+      updated = [appointment, ...current];
+    }
     localStorage.setItem('joshpetshub_vet_appointments', JSON.stringify(updated));
     window.dispatchEvent(new CustomEvent('vet-data-updated', { detail: { type: 'appointment', action: 'create', appointment } }));
+    window.dispatchEvent(new CustomEvent('service-booking-updated', { detail: appointment }));
     return updated;
   } catch (e) {
     console.warn('Failed to save vet appointment to localStorage', e);
@@ -763,13 +772,14 @@ export const updateVetAppointmentStatus = (id, newStatus, additionalData = {}) =
   try {
     const current = getVetAppointments();
     const updated = current.map(app => {
-      if (app.id === id) {
+      if (app.id === id || app._id === id) {
         return { ...app, status: newStatus, ...additionalData, updatedAt: new Date().toISOString() };
       }
       return app;
     });
     localStorage.setItem('joshpetshub_vet_appointments', JSON.stringify(updated));
-    window.dispatchEvent(new CustomEvent('vet-data-updated', { detail: { type: 'appointment', action: 'update', id, newStatus } }));
+    window.dispatchEvent(new CustomEvent('vet-data-updated', { detail: { type: 'appointment', action: 'update', id, newStatus, ...additionalData } }));
+    window.dispatchEvent(new CustomEvent('service-booking-updated', { detail: { id, status: newStatus, ...additionalData } }));
     return updated;
   } catch (e) {
     console.warn('Failed to update vet appointment status', e);

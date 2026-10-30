@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import PetBreedDropdown from '../../../../components/ui/PetBreedDropdown.jsx';
+import { apiRequest } from '../../../../services/api.js';
 import { 
   updateVetProfile, 
   getStoredVetDoctors, 
@@ -29,7 +30,7 @@ import {
   VET_SPECIALIZATIONS
 } from '../../../../data/veterinaryData.js';
 
-const VetProviderContent = ({ activeTab }) => {
+const VetProviderContent = ({ activeTab, currentProvider }) => {
   const profilePhotoInputRef = useRef(null);
   const chatAttachmentRef = useRef(null);
 
@@ -163,9 +164,33 @@ const VetProviderContent = ({ activeTab }) => {
   // -------------------------------------------------------------
   // 4. Initial Load & Reactive Listener
   // -------------------------------------------------------------
-  const loadAllData = () => {
-    // Load Appointments
-    const allApps = getVetAppointments();
+  const loadAllData = async () => {
+    // Load Appointments with server sync
+    let allApps = getVetAppointments();
+    try {
+      const res = await apiRequest('/bookings/provider');
+      if (res && res.success && Array.isArray(res.bookings)) {
+        const vetBookings = res.bookings.filter(b => 
+          (b.serviceType && b.serviceType.toLowerCase().includes('vet')) ||
+          (b.serviceCategory && b.serviceCategory.toLowerCase().includes('vet')) ||
+          b.doctorId || b.doctorName
+        );
+        const existingIds = new Set(allApps.map(a => a.id || a._id));
+        let changed = false;
+        for (const vb of vetBookings) {
+          if (!existingIds.has(vb.id || vb._id)) {
+            allApps = [vb, ...allApps];
+            existingIds.add(vb.id || vb._id);
+            changed = true;
+          }
+        }
+        if (changed) {
+          localStorage.setItem('joshpetshub_vet_appointments', JSON.stringify(allApps));
+        }
+      }
+    } catch (e) {
+      console.warn('Error fetching provider bookings in VetProviderContent:', e);
+    }
     setAppointments(allApps);
 
     // Load Services & Fees
@@ -198,7 +223,7 @@ const VetProviderContent = ({ activeTab }) => {
 
     // Load Doctor Profile
     const docs = getStoredVetDoctors();
-    const myDoc = docs.find(d => d.id === profile.id);
+    const myDoc = docs.find(d => d.id === profile.id || (currentProvider?.id && d.id === currentProvider.id));
     if (myDoc) {
       setProfile(myDoc);
     } else {
@@ -214,7 +239,13 @@ const VetProviderContent = ({ activeTab }) => {
     };
 
     window.addEventListener('vet-data-updated', handleDataUpdate);
-    return () => window.removeEventListener('vet-data-updated', handleDataUpdate);
+    window.addEventListener('service-booking-updated', handleDataUpdate);
+    window.addEventListener('storage', handleDataUpdate);
+    return () => {
+      window.removeEventListener('vet-data-updated', handleDataUpdate);
+      window.removeEventListener('service-booking-updated', handleDataUpdate);
+      window.removeEventListener('storage', handleDataUpdate);
+    };
   }, [activeTab]);
 
   // Video call timer
@@ -304,66 +335,118 @@ const VetProviderContent = ({ activeTab }) => {
   // -------------------------------------------------------------
   // 6. Handlers for Appointments Tab
   // -------------------------------------------------------------
-  const handleCompleteAppointment = (appId) => {
-    const target = appointments.find(a => a.id === appId);
+  const handleCompleteAppointment = async (appId) => {
+    const target = appointments.find(a => a.id === appId || a._id === appId);
     const updated = updateVetAppointmentStatus(appId, 'Completed');
     setAppointments(updated);
+    try {
+      await apiRequest(`/bookings/${appId}/status`, {
+        method: 'PATCH',
+        body: JSON.stringify({ status: 'Completed' })
+      });
+    } catch (err) {
+      console.warn('Backend status update warning:', err);
+    }
+    window.dispatchEvent(new CustomEvent('service-booking-updated', { detail: { id: appId, status: 'Completed' } }));
     toast.success(`Completed consultation for ${target?.petName || 'Patient'}!`);
   };
 
   const handleOpenRescheduleModal = (app) => {
     setSelectedAppForReschedule(app);
-    setRescheduleDate(app.bookingDate === 'Today' ? new Date().toISOString().split('T')[0] : app.bookingDate);
-    setRescheduleTimeSlot(app.bookingTimeSlot || '11:00 AM');
+    setRescheduleDate(app.bookingDate === 'Today' ? new Date().toISOString().split('T')[0] : (app.bookingDate || app.date || new Date().toISOString().split('T')[0]));
+    setRescheduleTimeSlot(app.bookingTimeSlot || app.timeSlot || '11:00 AM');
     setRescheduleNote('');
   };
 
-  const handleConfirmReschedule = (e) => {
+  const handleConfirmReschedule = async (e) => {
     e.preventDefault();
     if (!selectedAppForReschedule || !rescheduleDate) {
       toast.error('Please select a valid date for rescheduling');
       return;
     }
-
-    const updated = updateVetAppointmentStatus(selectedAppForReschedule.id, 'Rescheduled', {
+    const targetId = selectedAppForReschedule.id || selectedAppForReschedule._id;
+    const updated = updateVetAppointmentStatus(targetId, 'Rescheduled', {
+      date: rescheduleDate,
       bookingDate: rescheduleDate,
+      timeSlot: rescheduleTimeSlot,
       bookingTimeSlot: rescheduleTimeSlot,
       rescheduleNote: rescheduleNote || 'Rescheduled by Clinic'
     });
 
     setAppointments(updated);
+    try {
+      await apiRequest(`/bookings/${targetId}/status`, {
+        method: 'PATCH',
+        body: JSON.stringify({
+          status: 'Rescheduled',
+          date: rescheduleDate,
+          bookingDate: rescheduleDate,
+          timeSlot: rescheduleTimeSlot,
+          bookingTimeSlot: rescheduleTimeSlot,
+          rescheduleNote: rescheduleNote || 'Rescheduled by Clinic'
+        })
+      });
+    } catch (err) {
+      console.warn('Backend status update warning:', err);
+    }
+    window.dispatchEvent(new CustomEvent('service-booking-updated', {
+      detail: {
+        id: targetId,
+        status: 'Rescheduled',
+        date: rescheduleDate,
+        timeSlot: rescheduleTimeSlot
+      }
+    }));
     setSelectedAppForReschedule(null);
     toast.success(`Rescheduled appointment for ${selectedAppForReschedule.petName} to ${rescheduleDate} (${rescheduleTimeSlot})`);
   };
 
-  const handleCreateWalkInAppointment = (e) => {
+  const handleCreateWalkInAppointment = async (e) => {
     e.preventDefault();
     if (!newApp.petName.trim() || !newApp.ownerName.trim() || !newApp.ownerPhone.trim()) {
       toast.error('Please fill in Pet Name, Owner Name, and Phone number');
       return;
     }
 
+    const bookingId = `VET-${Date.now().toString().slice(-6)}`;
     const appointmentObj = {
-      id: `app-${Date.now()}`,
+      id: bookingId,
+      _id: bookingId,
+      serviceType: 'Consult a Vet',
       doctorId: profile.id,
       doctorName: profile.name,
+      providerId: profile.id,
+      providerName: profile.name,
       clinicName: profile.clinicName,
+      location: profile.clinicName || `${profile.city || ''}, ${profile.state || ''}`,
       petName: newApp.petName.trim(),
       petSpecies: newApp.petSpecies,
       petBreed: newApp.petBreed.trim() || 'Mixed / Indie',
       ownerName: newApp.ownerName.trim(),
       ownerPhone: newApp.ownerPhone.trim(),
+      date: newApp.bookingDate,
       bookingDate: newApp.bookingDate,
+      timeSlot: newApp.bookingTimeSlot,
       bookingTimeSlot: newApp.bookingTimeSlot,
       bookingMode: newApp.bookingMode,
       petSymptoms: newApp.petSymptoms.trim() || 'In-clinic physical examination',
       status: 'In Queue',
       fee: newApp.fee || 800,
+      paymentStatus: 'Pay at Clinic',
       createdAt: new Date().toISOString()
     };
 
     const updated = saveVetAppointment(appointmentObj);
     setAppointments(updated);
+    try {
+      await apiRequest('/bookings', {
+        method: 'POST',
+        body: JSON.stringify(appointmentObj)
+      });
+    } catch (err) {
+      console.warn('Backend walk-in sync warning:', err);
+    }
+    window.dispatchEvent(new CustomEvent('service-booking-updated', { detail: appointmentObj }));
     setShowAddAppModal(false);
     toast.success(`Walk-in appointment created for ${newApp.petName}!`);
     
@@ -895,12 +978,12 @@ const VetProviderContent = ({ activeTab }) => {
           ) : (
             <div className="grid gap-4">
               {filteredAppointments.map((app) => (
-                <div key={app.id} className="bg-white border border-slate-200 rounded-2xl p-5 shadow-xs hover:shadow-md transition flex flex-col md:flex-row md:items-start justify-between gap-4">
+                <div key={app.id || app._id} className="bg-white border border-slate-200 rounded-2xl p-5 shadow-xs hover:shadow-md transition flex flex-col md:flex-row md:items-start justify-between gap-4">
                   <div className="flex-1">
                     <div className="flex items-center gap-3 mb-1">
                       <h3 className="font-black text-[#0F2E23] text-lg">
-                        {app.petName} 
-                        <span className="text-sm font-bold text-slate-500 ml-2">({app.petBreed || app.petSpecies})</span>
+                        {app.petName || app.petDetails?.name || 'Pet Patient'} 
+                        <span className="text-sm font-bold text-slate-500 ml-2">({app.petBreed || app.petDetails?.breed || app.petSpecies || app.petDetails?.type || 'Canine / Feline'})</span>
                       </h3>
                       <span className={`text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full ${
                         app.status === 'Completed' ? 'bg-emerald-100 text-emerald-800' :
@@ -917,14 +1000,19 @@ const VetProviderContent = ({ activeTab }) => {
                     </p>
 
                     <div className="flex flex-wrap gap-2">
+                      {(app.doctorName || app.providerName) && (
+                        <span className="bg-teal-50 text-teal-800 border border-teal-100 px-2.5 py-1 rounded-md text-[10px] font-black uppercase tracking-widest flex items-center gap-1.5">
+                          <Stethoscope size={12}/> {app.doctorName || app.providerName}
+                        </span>
+                      )}
                       <span className="bg-emerald-50 text-emerald-800 border border-emerald-100 px-2.5 py-1 rounded-md text-[10px] font-black uppercase tracking-widest flex items-center gap-1.5">
-                        <Calendar size={12}/> {app.bookingDate}
+                        <Calendar size={12}/> {app.bookingDate || app.date}
                       </span>
                       <span className="bg-amber-50 text-amber-800 border border-amber-100 px-2.5 py-1 rounded-md text-[10px] font-black uppercase tracking-widest flex items-center gap-1.5">
-                        <Clock3 size={12}/> {app.bookingTimeSlot}
+                        <Clock3 size={12}/> {app.bookingTimeSlot || app.timeSlot}
                       </span>
                       <span className="bg-sky-50 text-sky-800 border border-sky-100 px-2.5 py-1 rounded-md text-[10px] font-black uppercase tracking-widest flex items-center gap-1.5">
-                        <Stethoscope size={12}/> {app.bookingMode || 'In-Clinic Visit'}
+                        <Home size={12}/> {app.bookingMode || 'In-Clinic Visit'}
                       </span>
                     </div>
 
@@ -939,7 +1027,7 @@ const VetProviderContent = ({ activeTab }) => {
                     {app.status !== 'Completed' ? (
                       <>
                         <button 
-                          onClick={() => handleCompleteAppointment(app.id)}
+                          onClick={() => handleCompleteAppointment(app.id || app._id)}
                           className="px-4 py-2 bg-emerald-600 text-white text-xs font-black uppercase tracking-widest rounded-xl hover:bg-emerald-700 transition shadow-sm w-full cursor-pointer flex items-center justify-center gap-1.5">
                           <Check size={14}/> Complete
                         </button>

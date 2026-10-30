@@ -7,6 +7,7 @@ import MainLayout from './layouts/MainLayout.jsx';
 import PageLoader from './components/layout/PageLoader.jsx';
 import ScrollToTop from './components/layout/ScrollToTop.jsx';
 import ErrorBoundary from './components/ui/ErrorBoundary.jsx';
+import AuthModal from './components/widgets/AuthModal.jsx';
 
 // Lazy Loaded Route Chunks for Blazing-Fast Page Transitions & Micro Bundle Sizes
 const Home = lazy(() => import('./pages/Home.jsx'));
@@ -49,6 +50,8 @@ function App() {
       <ErrorBoundary>
         <BrowserRouter>
           <ScrollToTop />
+          {/* Global Guest Auth Popup Modal */}
+          <AuthModal />
         {/* Toast Alerts Overlay */}
         <Toaster 
           position="top-right"
@@ -93,6 +96,10 @@ function App() {
               {/* Editorial / Info */}
               <Route path="pet-care" element={<BlogHub />} />
               <Route path="pet-care/:slug" element={<BlogDetail />} />
+              <Route path="blog" element={<BlogHub />} />
+              <Route path="blog/:slug" element={<BlogDetail />} />
+              <Route path="blogs" element={<BlogHub />} />
+              <Route path="blogs/:slug" element={<BlogDetail />} />
               <Route path="about" element={<About />} />
               <Route path="contact" element={<Contact />} />
               
@@ -143,7 +150,11 @@ function App() {
 
             {/* Admin Panels */}
             <Route path="Admin.com" element={<AdminDashboard />} />
+            <Route path="admin" element={<AdminDashboard />} />
+            <Route path="admin/dashboard" element={<AdminDashboard />} />
             <Route path="superadmin.com" element={<SuperAdminDashboard />} />
+            <Route path="superadmin" element={<SuperAdminDashboard />} />
+            <Route path="superadmin/dashboard" element={<SuperAdminDashboard />} />
             
             {/* Fallback 404 */}
             <Route path="*" element={<NotFound />} />

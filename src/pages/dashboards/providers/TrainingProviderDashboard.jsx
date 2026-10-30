@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import { apiRequest } from '../../../services/api.js';
 import toast from 'react-hot-toast';
+import ProviderProfileSection from '../../../components/dashboards/ProviderProfileSection.jsx';
 import TrainingProviderContent from './content/TrainingProviderContent.jsx';
 import { safeSetItem, safeGetItem } from '../../../utils/safeStorage.js';
 import { 
@@ -22,12 +23,15 @@ import {
 const TrainingProviderDashboard = ({ 
   currentProvider, 
   profiles, 
-  handleToggleOnline 
+  handleToggleOnline,
+  onOpenSubscriptionModal,
+  onOpenPlanDetails,
+  subscription
 }) => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const storedTab = safeGetItem('trainingDashboardTab');
-  const activeTabParam = searchParams.get('tab') || storedTab || 'appointments';
+  const activeTabParam = searchParams.get('tab') || storedTab || 'profile';
   const [activeTab, setActiveTab] = useState(activeTabParam);
 
   const { user } = useSelector(state => state.auth);
@@ -199,13 +203,13 @@ const TrainingProviderDashboard = ({
             <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 px-3">Main Menu</div>
             <ul className="space-y-1">
               {[
+                { id: 'profile', label: 'Trainer Profile & Plan', icon: PawPrint },
                 { id: 'appointments', label: 'Training Sessions', count: sessions.length, icon: Calendar },
                 { id: 'courses', label: 'Courses & Pricing', count: courses.length, icon: Tag },
                 { id: 'service', label: 'My Training Service', count: myService ? 1 : 0, extra: myService ? 'Active' : 'Post', icon: GraduationCap },
                 { id: 'messages', label: 'Client Inquiries', count: enquiries.length, icon: MessageSquare },
                 { id: 'reviews', label: 'Customer Reviews', extra: `${stats.rating} ★`, icon: Heart },
-                { id: 'wallet', label: 'Wallet & Payouts', icon: DollarSign },
-                { id: 'profile', label: 'Trainer Profile', icon: PawPrint }
+                { id: 'wallet', label: 'Wallet & Payouts', icon: DollarSign }
               ].map(item => (
                 <li key={item.id}>
                   <button
@@ -262,164 +266,135 @@ const TrainingProviderDashboard = ({
       {/* RIGHT MAIN CONTENT */}
       <main className="flex-1 min-w-0 px-6 lg:px-8 pt-12 pb-10 overflow-x-hidden">
         
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
-          <div>
-            <h1 className="text-3xl font-sans font-black text-[#0F2E23] tracking-tight">
-              Pet Training Dashboard
-            </h1>
-            <p className="text-sm text-slate-500 font-medium mt-1">
-              Manage your training sessions, behavior courses, and client progress.
-            </p>
-          </div>
-        </div>
-
-        {/* SERVICE POSTING ALERT BANNER */}
-        {!myService ? (
-          <div className="mb-8 bg-gradient-to-r from-amber-50 via-amber-100/50 to-emerald-50 border-2 border-dashed border-amber-300 rounded-3xl p-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 shadow-sm">
-            <div className="flex items-center gap-4">
-              <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-emerald-700 to-[#0F2E23] text-[#ffd000] flex items-center justify-center shrink-0 shadow-md">
-                <GraduationCap size={28} />
-              </div>
+        {activeTab !== 'profile' ? (
+          <>
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
               <div>
-                <div className="flex items-center gap-2">
-                  <h3 className="text-base font-black text-[#0F2E23]">
-                    Your Training Service is Not Posted on the Public Directory Yet
-                  </h3>
-                  <span className="bg-amber-500 text-white text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full tracking-wider animate-pulse">
-                    Action Needed
-                  </span>
-                </div>
-                <p className="text-xs text-slate-600 font-medium mt-1 max-w-xl">
-                  Post your training academy, dog behavior programs, and pricing so pet parents can find you and book sessions on the public <strong>Pet Training</strong> page (inside Pet Services).
+                <h1 className="text-3xl font-sans font-black text-[#0F2E23] tracking-tight">
+                  Pet Training Academy Dashboard
+                </h1>
+                <p className="text-sm text-slate-500 font-medium mt-1">
+                  Manage your training sessions, behavior courses, and client progress.
                 </p>
               </div>
             </div>
-            <button
-              onClick={() => {
-                setActiveTab('service');
-                setSearchParams({ tab: 'service' });
-                safeSetItem('trainingDashboardTab', 'service');
-              }}
-              className="bg-[#0F2E23] hover:bg-emerald-900 text-white px-6 py-3 rounded-2xl font-black text-xs uppercase tracking-wider shadow-lg hover:shadow-xl transition flex items-center gap-2 shrink-0 cursor-pointer"
-            >
-              <Plus size={16} className="text-[#ffd000]" />
-              <span>Post Training Service Now</span>
-            </button>
-          </div>
-        ) : (
-          <div className="mb-8 bg-gradient-to-r from-emerald-50 via-teal-50/60 to-emerald-50 border-2 border-emerald-300 rounded-3xl p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-sm">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-2xl bg-emerald-600 text-white flex items-center justify-center shrink-0 shadow-md">
-                <CheckCircle size={24} />
-              </div>
-              <div>
-                <div className="flex items-center gap-2">
-                  <h3 className="text-base font-black text-[#0F2E23]">{myService.name} is Live</h3>
-                  <span className="bg-emerald-600 text-white text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full">
-                    Live on Directory
-                  </span>
+
+            {/* SERVICE POSTING ALERT BANNER */}
+            {!myService ? (
+              <div className="mb-8 bg-gradient-to-r from-amber-50 via-amber-100/50 to-emerald-50 border-2 border-dashed border-amber-300 rounded-3xl p-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 shadow-sm">
+                <div className="flex items-center gap-4">
+                  <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-emerald-700 to-[#0F2E23] text-[#ffd000] flex items-center justify-center shrink-0 shadow-md">
+                    <GraduationCap size={28} />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <h3 className="text-base font-black text-[#0F2E23]">
+                        Your Training Service is Not Posted on the Public Directory Yet
+                      </h3>
+                      <span className="bg-amber-500 text-white text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full tracking-wider animate-pulse">
+                        Action Needed
+                      </span>
+                    </div>
+                    <p className="text-xs text-slate-600 font-medium mt-1 max-w-xl">
+                      Post your training academy, dog behavior programs, and pricing so pet parents can find you and book sessions on the public <strong>Pet Training</strong> page.
+                    </p>
+                  </div>
                 </div>
-                <p className="text-xs text-slate-600 font-medium mt-0.5">
-                  Your training service is published and visible on the public <strong>Pet Training</strong> page in {myService.city}, {myService.state}.
-                </p>
+                <button
+                  onClick={() => {
+                    setActiveTab('service');
+                    setSearchParams({ tab: 'service' });
+                    safeSetItem('trainingDashboardTab', 'service');
+                  }}
+                  className="bg-[#0F2E23] hover:bg-emerald-900 text-white px-6 py-3 rounded-2xl font-black text-xs uppercase tracking-wider shadow-lg hover:shadow-xl transition flex items-center gap-2 shrink-0 cursor-pointer"
+                >
+                  <Plus size={16} className="text-[#ffd000]" />
+                  <span>Post Training Service Now</span>
+                </button>
+              </div>
+            ) : null}
+
+            {/* KPI METRICS */}
+            <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 sm:gap-5 mb-10">
+              <div className="bg-white border border-slate-200 p-5 rounded-2xl hover:border-[#0F2E23]/30 transition duration-300 shadow-sm hover:shadow-md group">
+                <div className="flex justify-between items-center mb-4">
+                  <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Training Sessions</span>
+                  <div className="w-8 h-8 rounded-lg bg-slate-50 text-slate-400 flex items-center justify-center group-hover:scale-110 transition duration-300 border border-slate-100">
+                    <Calendar size={16} />
+                  </div>
+                </div>
+                <div className="text-3xl font-sans font-black text-[#0F2E23] mb-1">{stats.totalSessions}</div>
+                <div className="text-[10px] text-slate-500 font-black uppercase tracking-wider mt-2">All time</div>
+              </div>
+
+              <div className="bg-white border border-slate-200 p-5 rounded-2xl hover:border-emerald-500/50 transition duration-300 shadow-sm hover:shadow-md group relative overflow-hidden">
+                <div className="absolute inset-0 bg-gradient-to-br from-emerald-50/50 to-transparent pointer-events-none"></div>
+                <div className="flex justify-between items-center mb-4 relative z-10">
+                  <span className="text-[10px] font-black text-emerald-600 uppercase tracking-widest">Pending Sessions</span>
+                  <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-500 flex items-center justify-center group-hover:scale-110 transition duration-300 border border-emerald-100">
+                    <Clock size={16} />
+                  </div>
+                </div>
+                <div className="text-3xl font-sans font-black text-[#0F2E23] mb-1 relative z-10">{stats.upcomingSessions}</div>
+                <div className="text-[10px] text-emerald-600 font-black uppercase tracking-wider mt-2 relative z-10">Scheduled</div>
+              </div>
+
+              <div className="bg-white border border-slate-200 p-5 rounded-2xl hover:border-rose-500/50 transition duration-300 shadow-sm hover:shadow-md group relative overflow-hidden">
+                <div className="absolute inset-0 bg-gradient-to-br from-rose-50/50 to-transparent pointer-events-none"></div>
+                <div className="flex justify-between items-center mb-4 relative z-10">
+                  <span className="text-[10px] font-black text-rose-600 uppercase tracking-widest">Clients Enrolled</span>
+                  <div className="w-8 h-8 rounded-lg bg-rose-50 text-rose-500 flex items-center justify-center group-hover:scale-110 transition duration-300 border border-rose-100">
+                    <GraduationCap size={16} />
+                  </div>
+                </div>
+                <div className="text-3xl font-sans font-black text-[#0F2E23] mb-1 relative z-10">{stats.activeStudents}</div>
+                <div className="text-[10px] text-rose-600 font-black uppercase tracking-wider mt-2 relative z-10">Trained dogs</div>
+              </div>
+
+              <div className="bg-white border border-slate-200 p-5 rounded-2xl hover:border-[#ffd000]/80 transition duration-300 shadow-sm hover:shadow-md group relative overflow-hidden">
+                <div className="absolute inset-0 bg-gradient-to-br from-[#ffd000]/10 to-transparent pointer-events-none"></div>
+                <div className="flex justify-between items-center mb-4 relative z-10">
+                  <span className="text-[10px] font-black text-amber-600 uppercase tracking-widest">Total Earnings</span>
+                  <div className="w-8 h-8 rounded-lg bg-amber-50 text-amber-500 flex items-center justify-center group-hover:scale-110 transition duration-300 border border-amber-100">
+                    <DollarSign size={16} />
+                  </div>
+                </div>
+                <div className="flex items-end gap-2 mb-1 relative z-10">
+                  <div className="text-2xl font-sans font-black text-[#0F2E23]">₹{stats.revenue.toLocaleString('en-IN')}</div>
+                </div>
+                <div className="text-[10px] text-amber-600 font-black uppercase tracking-wider mt-2 relative z-10">
+                  {stats.completedSessions} sessions settled
+                </div>
+              </div>
+
+              <div className="bg-white border border-slate-200 p-5 rounded-2xl hover:border-sky-500/50 transition duration-300 shadow-sm hover:shadow-md group relative overflow-hidden">
+                <div className="absolute inset-0 bg-gradient-to-br from-sky-50/50 to-transparent pointer-events-none"></div>
+                <div className="flex justify-between items-center mb-4 relative z-10">
+                  <span className="text-[10px] font-black text-sky-600 uppercase tracking-widest">Active Courses</span>
+                  <div className="w-8 h-8 rounded-lg bg-sky-50 text-sky-500 flex items-center justify-center group-hover:scale-110 transition duration-300 border border-sky-100">
+                    <Tag size={16} />
+                  </div>
+                </div>
+                <div className="flex items-end gap-2 mb-1 relative z-10">
+                  <div className="text-2xl font-sans font-black text-[#0F2E23]">{stats.coursesCount}</div>
+                </div>
+                <div className="text-[10px] text-sky-600 font-black uppercase tracking-wider mt-2 relative z-10">Packages listed</div>
               </div>
             </div>
-            <div className="flex items-center gap-2.5 shrink-0">
-              <button
-                onClick={() => {
-                  setActiveTab('service');
-                  setSearchParams({ tab: 'service' });
-                  safeSetItem('trainingDashboardTab', 'service');
-                }}
-                className="bg-white border border-emerald-300 text-[#0F2E23] hover:bg-emerald-50 px-4 py-2 rounded-xl font-bold text-xs shadow-sm transition flex items-center gap-1.5 cursor-pointer"
-              >
-                <Edit3 size={14} />
-                <span>Edit Service</span>
-              </button>
-              <button
-                onClick={() => navigate('/training')}
-                className="bg-[#0F2E23] hover:bg-emerald-900 text-[#ffd000] hover:text-white px-4 py-2 rounded-xl font-bold text-xs shadow-md transition flex items-center gap-1.5 cursor-pointer"
-              >
-                <ExternalLink size={14} />
-                <span>View on Public Directory</span>
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* KPI METRICS */}
-        <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 sm:gap-5 mb-10">
-          
-          <div className="bg-white border border-slate-200 p-5 rounded-2xl hover:border-[#0F2E23]/30 transition duration-300 shadow-sm hover:shadow-md group">
-            <div className="flex justify-between items-center mb-4">
-              <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Total Training Sessions</span>
-              <div className="w-8 h-8 rounded-lg bg-slate-50 text-slate-400 flex items-center justify-center group-hover:scale-110 transition duration-300 border border-slate-100">
-                <PawPrint size={16} />
-              </div>
-            </div>
-            <div className="text-3xl font-sans font-black text-[#0F2E23] mb-1">{stats.totalSessions}</div>
-            <div className="text-[10px] text-slate-500 font-black uppercase tracking-wider mt-2">All time</div>
-          </div>
-
-          <div className="bg-white border border-slate-200 p-5 rounded-2xl hover:border-emerald-500/50 transition duration-300 shadow-sm hover:shadow-md group relative overflow-hidden">
-            <div className="absolute inset-0 bg-gradient-to-br from-emerald-50/50 to-transparent pointer-events-none"></div>
-            <div className="flex justify-between items-center mb-4 relative z-10">
-              <span className="text-[10px] font-black text-emerald-600 uppercase tracking-widest">Upcoming Sessions</span>
-              <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-500 flex items-center justify-center group-hover:scale-110 transition duration-300 border border-emerald-100">
-                <Clock size={16} />
-              </div>
-            </div>
-            <div className="text-3xl font-sans font-black text-[#0F2E23] mb-1 relative z-10">{stats.scheduledSessions}</div>
-            <div className="text-[10px] text-emerald-600 font-black uppercase tracking-wider mt-2 relative z-10">Scheduled</div>
-          </div>
-
-          <div className="bg-white border border-slate-200 p-5 rounded-2xl hover:border-rose-500/50 transition duration-300 shadow-sm hover:shadow-md group relative overflow-hidden">
-            <div className="absolute inset-0 bg-gradient-to-br from-rose-50/50 to-transparent pointer-events-none"></div>
-            <div className="flex justify-between items-center mb-4 relative z-10">
-              <span className="text-[10px] font-black text-rose-600 uppercase tracking-widest">Completed Sessions</span>
-              <div className="w-8 h-8 rounded-lg bg-rose-50 text-rose-500 flex items-center justify-center group-hover:scale-110 transition duration-300 border border-rose-100">
-                <AlertCircle size={16} />
-              </div>
-            </div>
-            <div className="text-3xl font-sans font-black text-[#0F2E23] mb-1 relative z-10">{stats.completedSessions}</div>
-            <div className="text-[10px] text-rose-600 font-black uppercase tracking-wider mt-2 relative z-10">Pets trained</div>
-          </div>
-
-          <div className="bg-white border border-slate-200 p-5 rounded-2xl hover:border-[#ffd000]/80 transition duration-300 shadow-sm hover:shadow-md group relative overflow-hidden">
-             <div className="absolute inset-0 bg-gradient-to-br from-[#ffd000]/10 to-transparent pointer-events-none"></div>
-            <div className="flex justify-between items-center mb-4 relative z-10">
-              <span className="text-[10px] font-black text-amber-600 uppercase tracking-widest">Total Earnings</span>
-              <div className="w-8 h-8 rounded-lg bg-amber-50 text-amber-500 flex items-center justify-center group-hover:scale-110 transition duration-300 border border-amber-100">
-                <DollarSign size={16} />
-              </div>
-            </div>
-            <div className="flex items-end gap-2 mb-1 relative z-10">
-              <div className="text-2xl font-sans font-black text-[#0F2E23]">₹{stats.revenue.toLocaleString('en-IN')}</div>
-            </div>
-            <div className="text-[10px] text-amber-600 font-black uppercase tracking-wider mt-2 relative z-10">
-              {stats.completedSessions} sessions settled
-            </div>
-          </div>
-
-          <div className="bg-white border border-slate-200 p-5 rounded-2xl hover:border-sky-500/50 transition duration-300 shadow-sm hover:shadow-md group relative overflow-hidden">
-            <div className="absolute inset-0 bg-gradient-to-br from-sky-50/50 to-transparent pointer-events-none"></div>
-            <div className="flex justify-between items-center mb-4 relative z-10">
-              <span className="text-[10px] font-black text-sky-600 uppercase tracking-widest">Active Courses</span>
-              <div className="w-8 h-8 rounded-lg bg-sky-50 text-sky-500 flex items-center justify-center group-hover:scale-110 transition duration-300 border border-sky-100">
-                <Tag size={16} />
-              </div>
-            </div>
-            <div className="flex items-end gap-2 mb-1 relative z-10">
-              <div className="text-2xl font-sans font-black text-[#0F2E23]">{stats.coursesCount}</div>
-            </div>
-            <div className="text-[10px] text-sky-600 font-black uppercase tracking-wider mt-2 relative z-10">Packages listed</div>
-          </div>
-
-        </div>
+          </>
+        ) : null}
 
         {/* TAB CONTENT */}
         <div className="bg-white rounded-3xl p-8 lg:p-4 lg:p-10 border border-slate-200 min-h-[500px] shadow-sm">
-          <TrainingProviderContent activeTab={activeTab} user={user} />
+          {activeTab === 'profile' ? (
+            <ProviderProfileSection
+              serviceCategory="Training & Behavior"
+              onOpenSubscriptionModal={onOpenSubscriptionModal}
+              onOpenPlanDetails={onOpenPlanDetails}
+            />
+          ) : (
+            <TrainingProviderContent activeTab={activeTab} user={user} />
+          )}
         </div>
       </main>
 

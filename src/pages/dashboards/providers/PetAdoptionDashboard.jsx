@@ -13,6 +13,7 @@ import {
 import { logout } from '../../../store/slices/authSlice.js';
 import { apiRequest } from '../../../services/api.js';
 import toast from 'react-hot-toast';
+import ProviderProfileSection from '../../../components/dashboards/ProviderProfileSection.jsx';
 import {
   getStoredAdoptionPets,
   setStoredAdoptionPets,
@@ -32,12 +33,15 @@ import {
 const PetAdoptionDashboard = ({ 
   currentProvider, 
   profiles, 
-  handleToggleOnline 
+  handleToggleOnline,
+  onOpenSubscriptionModal,
+  onOpenPlanDetails,
+  subscription
 }) => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const [searchParams, setSearchParams] = useSearchParams();
-  const activeTabParam = searchParams.get('tab') || 'inventory';
+  const activeTabParam = searchParams.get('tab') || 'profile';
   const [activeTab, setActiveTab] = useState(activeTabParam);
 
   const { user } = useSelector(state => state.auth);
@@ -446,10 +450,10 @@ const PetAdoptionDashboard = ({
 
   // Sidebar Menu Items matching exact layout
   const navItems = [
+    { id: 'profile', label: 'Profile & Plan', icon: Settings },
     { id: 'inventory', label: 'My Pet Inventory', icon: PawPrint, count: stats.availableStock },
     { id: 'applications', label: 'Adoption Applications', icon: FileText, count: stats.pendingApps },
     { id: 'inquiries', label: 'Buyer Leads', icon: MessageSquare, count: inquiries.length },
-    { id: 'profile', label: 'Profile', icon: Settings },
     { id: 'rehomed', label: 'Forever Homes', icon: Home, count: stats.soldOutCount }
   ];
 
@@ -1584,6 +1588,11 @@ const PetAdoptionDashboard = ({
         */}
         {(activeTab === 'profile' || activeTab === 'compliance' || activeTab === 'documents') && (
           <div className="space-y-8 animate-in fade-in duration-200">
+            <ProviderProfileSection
+              serviceCategory="Pet Adoption"
+              onOpenSubscriptionModal={onOpenSubscriptionModal}
+              onOpenPlanDetails={onOpenPlanDetails}
+            />
             
             {/* Header with Verification Score */}
             <div className="bg-white rounded-2xl border border-slate-200 p-6 sm:p-8 shadow-sm space-y-6">

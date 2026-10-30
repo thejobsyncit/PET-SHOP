@@ -1,1 +1,29 @@
-[]
+[
+  {
+    "id": "prsc_1793085086990_70clh",
+    "_id": "prsc_1793085086990_70clh",
+    "user_id": "test_user_1",
+    "userId": "test_user_1",
+    "user": {
+      "id": "test_user_1",
+      "_id": "test_user_1",
+      "name": "Dr Test",
+      "email": "test@example.com"
+    },
+    "file_url": "/uploads/file-123456789.png",
+    "prescriptionFileUrl": "/uploads/file-123456789.png",
+    "notes": "Need heartworm medicine",
+    "customerComments": "Need heartworm medicine",
+    "doctor_name": "Dr. Sharma",
+    "veterinarianName": "Dr. Sharma",
+    "patient_name": "Max",
+    "patientName": "Max",
+    "clinic_name": "Pet Care Clinic",
+    "clinicName": "Pet Care Clinic",
+    "status": "Pending",
+    "remarks": "",
+    "reviewNotes": "",
+    "created_at": "2026-10-27T07:11:26.988Z",
+    "createdAt": "2026-10-27T07:11:26.988Z"
+  }
+]

@@ -31,21 +31,24 @@ const ForgotPassword = () => {
   const [errorMsg, setErrorMsg] = useState('');
   const [timer, setTimer] = useState(60);
   const [otpExpiresAt, setOtpExpiresAt] = useState(null);
+  const [currentTime, setCurrentTime] = useState(Date.now());
 
+  const isExpired = Boolean(otpExpiresAt && currentTime > otpExpiresAt);
   const otpInputRefs = useRef([]);
 
-  // Countdown timer for OTP resend
+  // Countdown timer for OTP resend and expiration check
   useEffect(() => {
     let interval = null;
-    if (step === 2 && timer > 0) {
+    if (step === 2) {
       interval = setInterval(() => {
-        setTimer((prev) => prev - 1);
+        setCurrentTime(Date.now());
+        setTimer((prev) => (prev > 0 ? prev - 1 : 0));
       }, 1000);
     }
     return () => {
       if (interval) clearInterval(interval);
     };
-  }, [step, timer]);
+  }, [step]);
 
   // Handle OTP digit inputs with auto-advance
   const handleOtpChange = (index, value) => {
@@ -109,22 +112,22 @@ const ForgotPassword = () => {
         setGeneratedOtp(res.otp);
       }
 
-      toast.success(res?.message || `Verification code sent to ${cleanId}! (Valid for 1 min)`, {
+      toast.success(res?.message || `Verification code sent to ${cleanId}! (Valid for 10 min)`, {
         icon: '🔑',
         duration: 5000
       });
       setStep(2);
       setTimer(60);
-      setOtpExpiresAt(Date.now() + 60 * 1000);
+      setOtpExpiresAt(Date.now() + 10 * 60 * 1000);
     } catch (err) {
       console.warn('Backend forgot-password notice (using demo code):', err.message);
-      toast.success(`Verification code sent to ${cleanId}! (Code: ${demoCode}, Valid for 1 min)`, {
+      toast.success(`Verification code sent to ${cleanId}! (Code: ${demoCode}, Valid for 10 min)`, {
         icon: '🔑',
         duration: 7000
       });
       setStep(2);
       setTimer(60);
-      setOtpExpiresAt(Date.now() + 60 * 1000);
+      setOtpExpiresAt(Date.now() + 10 * 60 * 1000);
     } finally {
       setLoading(false);
     }
@@ -142,10 +145,9 @@ const ForgotPassword = () => {
       return;
     }
 
-    // Strict 1-minute expiration verification
-    const isExpired = (otpExpiresAt && Date.now() > otpExpiresAt) || timer <= 0;
-    if (isExpired) {
-      const expiredText = 'Verification code has expired! Codes are valid for 1 minute only. Please click "Resend Verification Code" below.';
+    // 10-minute expiration verification
+    if (otpExpiresAt && Date.now() > otpExpiresAt) {
+      const expiredText = 'Verification code has expired! Codes are valid for 10 minutes. Please click "Resend Verification Code" below.';
       setErrorMsg(expiredText);
       toast.error(expiredText);
       return;
@@ -210,6 +212,8 @@ const ForgotPassword = () => {
 
     setLoading(false);
     toast.success('🎉 Password has been reset successfully!');
+    setNewPassword('');
+    setConfirmPassword('');
     setStep(3);
   };
 
@@ -391,20 +395,13 @@ const ForgotPassword = () => {
                   ))}
                 </div>
 
-                {/* Resend Timer & 1-minute expiration notice */}
+                {/* Resend Cooldown & 10-minute expiration notice */}
                 <div className="text-center mt-2.5">
-                  {timer > 0 ? (
-                    <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50 border border-blue-200 text-[#15559c] text-xs font-semibold">
-                      <span>⏱️</span>
-                      <span>Code expires in:</span>
-                      <strong className="font-mono text-xs">0:{timer < 10 ? `0${timer}` : timer}</strong>
-                      <span className="text-[10px] text-slate-400 font-normal">(Valid for 1 min)</span>
-                    </div>
-                  ) : (
+                  {isExpired ? (
                     <div className="space-y-1.5">
                       <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-red-50 border border-red-200 text-red-700 text-xs font-bold">
                         <span>⚠️</span>
-                        <span>Code expired (1 min limit). Please request a new code.</span>
+                        <span>Code expired (10 min limit). Please request a new code.</span>
                       </div>
                       <div>
                         <button
@@ -415,6 +412,29 @@ const ForgotPassword = () => {
                         >
                           <RotateCcw size={12} /> Resend Verification Code
                         </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="space-y-1">
+                      <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-semibold">
+                        <span>⏱️</span>
+                        <span>Code valid for 10 minutes</span>
+                      </div>
+                      <div>
+                        {timer > 0 ? (
+                          <span className="text-xs text-slate-500 font-medium">
+                            Resend code in 0:{timer < 10 ? `0${timer}` : timer}
+                          </span>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={handleRequestOtp}
+                            disabled={loading}
+                            className="text-xs font-bold text-[#0F2E23] hover:underline cursor-pointer inline-flex items-center gap-1.5"
+                          >
+                            <RotateCcw size={12} /> Resend Verification Code
+                          </button>
+                        )}
                       </div>
                     </div>
                   )}
@@ -520,7 +540,7 @@ const ForgotPassword = () => {
                   disabled={
                     loading ||
                     otpDigits.join('').length !== 6 ||
-                    timer <= 0 ||
+                    isExpired ||
                     !newPassword ||
                     newPassword.length < 6 ||
                     newPassword !== confirmPassword
@@ -566,7 +586,6 @@ const ForgotPassword = () => {
                     navigate('/login', {
                       state: {
                         prefillIdentifier: identifier,
-                        prefillPassword: newPassword,
                         resetSuccess: true
                       }
                     })

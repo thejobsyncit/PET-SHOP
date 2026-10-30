@@ -24,6 +24,12 @@ export const getTransporter = () => {
   if (!transporter) {
     transporter = nodemailer.createTransport({
       service: 'gmail',
+      pool: true,
+      maxConnections: 3,
+      maxMessages: 100,
+      connectionTimeout: 4000, // 4s timeout
+      greetingTimeout: 3000,   // 3s greeting
+      socketTimeout: 5000,     // 5s socket
       auth: {
         user,
         pass: pass.replace(/\s+/g, ''), // Strip any spaces from the 16-character app password
@@ -128,7 +134,12 @@ export const sendOtpEmail = async (toEmail, otp, purpose = 'login') => {
   };
 
   try {
-    const info = await mailer.sendMail(mailOptions);
+    // 5-second safe timeout to prevent SMTP from stalling serverless execution
+    const sendPromise = mailer.sendMail(mailOptions);
+    const timeoutPromise = new Promise((_, reject) => 
+      setTimeout(() => reject(new Error('SMTP network timeout after 5s')), 5000)
+    );
+    const info = await Promise.race([sendPromise, timeoutPromise]);
     console.log(`[OTP EMAIL] Sent successfully to ${toEmail}. Message ID: ${info.messageId}`);
     return { success: true, messageId: info.messageId };
   } catch (err) {

@@ -8,30 +8,62 @@ const __dirname = path.dirname(__filename);
 const SEED_USERS_FILE = path.join(__dirname, '..', 'data', 'users.json');
 const USER_STATE_FILE = path.join(__dirname, '..', '..', 'server_data', 'user_state.json');
 
-// Helpers for reading and writing user_state.json fallback (outside server directory to avoid nodemon restarts)
+// Helpers for reading and writing user state (combining seed users.json and server_data/user_state.json)
 const loadDiskUsers = () => {
-  try {
-    if (fs.existsSync(USER_STATE_FILE)) {
-      const content = fs.readFileSync(USER_STATE_FILE, 'utf8');
-      const parsed = JSON.parse(content);
-      if (Array.isArray(parsed)) return parsed;
-    }
-  } catch (err) {
-    console.warn('[CartWishlist] Error reading user_state.json:', err?.message);
-  }
+  const userMap = new Map();
 
-  // Fallback to seed users.json
+  const mergeUser = (u) => {
+    if (!u) return;
+    const key = String(u._id || u.id || (u.email ? u.email.toLowerCase() : ''));
+    if (!key) return;
+
+    let existingKey = key;
+    if (!userMap.has(key) && u.email) {
+      for (const [k, existing] of userMap.entries()) {
+        if (existing.email && existing.email.toLowerCase() === u.email.toLowerCase()) {
+          existingKey = k;
+          break;
+        }
+      }
+    }
+
+    if (userMap.has(existingKey)) {
+      const existing = userMap.get(existingKey);
+      userMap.set(existingKey, {
+        ...existing,
+        ...u,
+        cart: Array.isArray(u.cart) ? u.cart : (existing.cart || []),
+        addresses: (Array.isArray(u.addresses) && u.addresses.length > 0) ? u.addresses : (existing.addresses || []),
+        wishlist: Array.isArray(u.wishlist) ? u.wishlist : (existing.wishlist || [])
+      });
+    } else {
+      userMap.set(key, { ...u });
+    }
+  };
+
+  // 1. Read seed users.json (canonical auth & users store)
   try {
     if (fs.existsSync(SEED_USERS_FILE)) {
       const content = fs.readFileSync(SEED_USERS_FILE, 'utf8');
       const parsed = JSON.parse(content);
-      if (Array.isArray(parsed)) return parsed;
+      if (Array.isArray(parsed)) parsed.forEach(mergeUser);
     }
   } catch (err) {
     console.warn('[CartWishlist] Error reading seed users.json:', err?.message);
   }
 
-  return [];
+  // 2. Read and overlay user_state.json
+  try {
+    if (fs.existsSync(USER_STATE_FILE)) {
+      const content = fs.readFileSync(USER_STATE_FILE, 'utf8');
+      const parsed = JSON.parse(content);
+      if (Array.isArray(parsed)) parsed.forEach(mergeUser);
+    }
+  } catch (err) {
+    console.warn('[CartWishlist] Error reading user_state.json:', err?.message);
+  }
+
+  return Array.from(userMap.values());
 };
 
 const saveDiskUsers = (users) => {
@@ -42,6 +74,29 @@ const saveDiskUsers = (users) => {
   } catch (err) {
     console.warn('[CartWishlist] Error saving user_state.json:', err?.message);
   }
+
+  // Also update SEED_USERS_FILE so authController and auth middleware remain synchronized
+  try {
+    if (fs.existsSync(SEED_USERS_FILE)) {
+      const seedRaw = fs.readFileSync(SEED_USERS_FILE, 'utf8');
+      const seedUsers = JSON.parse(seedRaw);
+      if (Array.isArray(seedUsers)) {
+        let changed = false;
+        users.forEach(u => {
+          const id = String(u._id || u.id);
+          const sIdx = seedUsers.findIndex(su => String(su._id || su.id) === id || (u.email && su.email && su.email.toLowerCase() === u.email.toLowerCase()));
+          if (sIdx > -1) {
+            seedUsers[sIdx].cart = u.cart;
+            seedUsers[sIdx].wishlist = u.wishlist;
+            changed = true;
+          }
+        });
+        if (changed) {
+          fs.writeFileSync(SEED_USERS_FILE, JSON.stringify(seedUsers, null, 2), 'utf8');
+        }
+      }
+    }
+  } catch (_) {}
 };
 
 // In-memory registries for fast session continuity across requests
@@ -49,10 +104,15 @@ const inMemoryWishlists = new Map();
 const inMemoryCarts = new Map();
 
 // Retrieve user record from Supabase or disk users.json
-const getUserData = async (userId) => {
-  const cleanId = String(userId);
+const getUserData = async (userId, userEmail) => {
+  const cleanId = (userId && String(userId) !== 'undefined' && String(userId) !== 'null') ? String(userId) : '';
+  const cleanEmail = (userEmail && typeof userEmail === 'string') ? userEmail.trim().toLowerCase() : '';
 
-  if (supabase) {
+  if (!cleanId && !cleanEmail) {
+    throw new Error('User identity missing');
+  }
+
+  if (supabase && cleanId) {
     try {
       const { data: user, error } = await supabase.from('users').select('*').eq('id', cleanId).single();
       if (!error && user) {
@@ -62,23 +122,30 @@ const getUserData = async (userId) => {
   }
 
   const diskUsers = loadDiskUsers();
-  const diskUser = diskUsers.find(u => String(u._id) === cleanId || String(u.id) === cleanId);
+  const diskUser = diskUsers.find(u => 
+    (cleanId && (String(u._id) === cleanId || String(u.id) === cleanId)) ||
+    (cleanEmail && u.email && u.email.toLowerCase() === cleanEmail)
+  );
+
   if (diskUser) {
-    if (inMemoryWishlists.has(cleanId) && (!diskUser.wishlist || diskUser.wishlist.length === 0)) {
-      diskUser.wishlist = inMemoryWishlists.get(cleanId);
+    const key = cleanId || String(diskUser._id || diskUser.id || cleanEmail);
+    if (inMemoryWishlists.has(key) && (!diskUser.wishlist || diskUser.wishlist.length === 0)) {
+      diskUser.wishlist = inMemoryWishlists.get(key);
     }
-    if (inMemoryCarts.has(cleanId) && (!diskUser.cart || diskUser.cart.length === 0)) {
-      diskUser.cart = inMemoryCarts.get(cleanId);
+    if (inMemoryCarts.has(key) && (!diskUser.cart || diskUser.cart.length === 0)) {
+      diskUser.cart = inMemoryCarts.get(key);
     }
     return { user: diskUser, source: 'disk' };
   }
 
-  const memWishlist = inMemoryWishlists.get(cleanId) || [];
-  const memCart = inMemoryCarts.get(cleanId) || [];
+  const effectiveKey = cleanId || cleanEmail;
+  const memWishlist = inMemoryWishlists.get(effectiveKey) || [];
+  const memCart = inMemoryCarts.get(effectiveKey) || [];
   return {
     user: {
-      _id: cleanId,
-      id: cleanId,
+      _id: effectiveKey,
+      id: effectiveKey,
+      email: cleanEmail,
       cart: memCart,
       wishlist: memWishlist
     },
@@ -87,55 +154,69 @@ const getUserData = async (userId) => {
 };
 
 // Save user cart state
-const saveUserCart = async (userId, cart, userData) => {
-  const cleanId = String(userId);
-  inMemoryCarts.set(cleanId, cart);
+const saveUserCart = async (userId, cart, userData, userEmail) => {
+  const cleanId = (userId && String(userId) !== 'undefined' && String(userId) !== 'null') ? String(userId) : '';
+  const cleanEmail = (userEmail && typeof userEmail === 'string') ? userEmail.trim().toLowerCase() : (userData?.user?.email ? userData.user.email.trim().toLowerCase() : '');
+  const key = cleanId || cleanEmail;
 
-  if (userData?.source === 'supabase' && supabase) {
+  inMemoryCarts.set(key, cart);
+
+  if (userData?.source === 'supabase' && supabase && cleanId) {
     try {
       await supabase.from('users').update({ cart }).eq('id', cleanId);
     } catch (e) {}
   }
 
   const diskUsers = loadDiskUsers();
-  const idx = diskUsers.findIndex(u => String(u._id) === cleanId || String(u.id) === cleanId);
+  const idx = diskUsers.findIndex(u => 
+    (cleanId && (String(u._id) === cleanId || String(u.id) === cleanId)) ||
+    (cleanEmail && u.email && u.email.toLowerCase() === cleanEmail)
+  );
+
   if (idx > -1) {
     diskUsers[idx].cart = cart;
   } else {
     diskUsers.push({
-      _id: cleanId,
-      id: cleanId,
-      email: userData?.user?.email || `user_${cleanId.slice(0, 8)}@joshpetshub.com`,
+      _id: cleanId || key,
+      id: cleanId || key,
+      email: cleanEmail || `user_${key.slice(0, 8)}@joshpetshub.com`,
       role: userData?.user?.role || 'CUSTOMER',
       cart: cart,
-      wishlist: inMemoryWishlists.get(cleanId) || userData?.user?.wishlist || []
+      wishlist: inMemoryWishlists.get(key) || userData?.user?.wishlist || []
     });
   }
   saveDiskUsers(diskUsers);
 };
 
 // Save user wishlist state
-const saveUserWishlist = async (userId, wishlist, userData) => {
-  const cleanId = String(userId);
-  inMemoryWishlists.set(cleanId, wishlist);
+const saveUserWishlist = async (userId, wishlist, userData, userEmail) => {
+  const cleanId = (userId && String(userId) !== 'undefined' && String(userId) !== 'null') ? String(userId) : '';
+  const cleanEmail = (userEmail && typeof userEmail === 'string') ? userEmail.trim().toLowerCase() : (userData?.user?.email ? userData.user.email.trim().toLowerCase() : '');
+  const key = cleanId || cleanEmail;
 
-  if (userData?.source === 'supabase' && supabase) {
+  inMemoryWishlists.set(key, wishlist);
+
+  if (userData?.source === 'supabase' && supabase && cleanId) {
     try {
       await supabase.from('users').update({ wishlist }).eq('id', cleanId);
     } catch (e) {}
   }
 
   const diskUsers = loadDiskUsers();
-  const idx = diskUsers.findIndex(u => String(u._id) === cleanId || String(u.id) === cleanId);
+  const idx = diskUsers.findIndex(u => 
+    (cleanId && (String(u._id) === cleanId || String(u.id) === cleanId)) ||
+    (cleanEmail && u.email && u.email.toLowerCase() === cleanEmail)
+  );
+
   if (idx > -1) {
     diskUsers[idx].wishlist = wishlist;
   } else {
     diskUsers.push({
-      _id: cleanId,
-      id: cleanId,
-      email: userData?.user?.email || `user_${cleanId.slice(0, 8)}@joshpetshub.com`,
+      _id: cleanId || key,
+      id: cleanId || key,
+      email: cleanEmail || `user_${key.slice(0, 8)}@joshpetshub.com`,
       role: userData?.user?.role || 'CUSTOMER',
-      cart: inMemoryCarts.get(cleanId) || userData?.user?.cart || [],
+      cart: inMemoryCarts.get(key) || userData?.user?.cart || [],
       wishlist: wishlist
     });
   }
@@ -159,6 +240,7 @@ const normalizeProduct = (p) => {
     price,
     discountPrice,
     discountPercentage,
+    stock: p.stock !== undefined && p.stock !== null && !isNaN(Number(p.stock)) ? Number(p.stock) : 15,
     isBestSeller: p.is_bestseller ?? p.isBestSeller ?? false,
     isFeatured: p.is_featured ?? p.isFeatured ?? false,
     requiresPrescription: p.requires_prescription ?? p.requiresPrescription ?? false,
@@ -166,20 +248,38 @@ const normalizeProduct = (p) => {
   };
 };
 
-// Populate product details for given product IDs
+// Populate product details for given product IDs (checks Supabase and disk products.json)
 const populateProducts = async (rawProductIds) => {
   const productIds = (rawProductIds || []).filter(Boolean);
   if (productIds.length === 0) return [];
 
+  let foundProducts = [];
   if (supabase) {
     try {
       const { data: products } = await supabase.from('products').select('*').in('id', productIds);
       if (products && products.length > 0) {
-        return products.map(normalizeProduct);
+        foundProducts = products.map(normalizeProduct);
       }
     } catch (e) {}
   }
-  return [];
+
+  // Also check disk products.json
+  try {
+    const productsFile = path.join(__dirname, '..', 'data', 'products.json');
+    if (fs.existsSync(productsFile)) {
+      const raw = fs.readFileSync(productsFile, 'utf8');
+      const allProducts = JSON.parse(raw);
+      if (Array.isArray(allProducts)) {
+        const remainingIds = productIds.filter(id => !foundProducts.some(p => String(p.id) === String(id) || String(p._id) === String(id)));
+        const matched = allProducts.filter(p => remainingIds.includes(String(p._id)) || remainingIds.includes(String(p.id)));
+        foundProducts.push(...matched.map(normalizeProduct));
+      }
+    }
+  } catch (err) {
+    console.warn('[CartWishlist] Error reading products.json:', err?.message);
+  }
+
+  return foundProducts;
 };
 
 // ==========================================
@@ -190,21 +290,40 @@ const populateProducts = async (rawProductIds) => {
 // @route   GET /api/cart
 // @access  Private
 export const getCart = async (req, res) => {
-  const userId = req.user._id || req.user.id;
+  const userId = req.user?._id || req.user?.id;
+  const userEmail = req.user?.email;
+
+  if (!userId && !userEmail) {
+    return res.status(401).json({ success: false, message: 'Unauthorized' });
+  }
 
   try {
-    const userData = await getUserData(userId);
-    const cart = userData?.user?.cart || [];
-    if (cart.length === 0) {
+    const userData = await getUserData(userId, userEmail);
+    const rawCart = userData?.user?.cart || [];
+    if (rawCart.length === 0) {
       return res.json({ success: true, cart: [] });
     }
+
+    // Deduplicate cart rows by productId
+    const cartMap = new Map();
+    for (const item of rawCart) {
+      const pId = typeof item.product === 'object' ? (item.product.id || item.product._id) : item.product;
+      const key = String(pId);
+      if (cartMap.has(key)) {
+        const existing = cartMap.get(key);
+        existing.quantity = Math.max(Number(existing.quantity) || 1, Number(item.quantity) || 1);
+      } else {
+        cartMap.set(key, { ...item, quantity: Number(item.quantity) || 1 });
+      }
+    }
+    const cart = Array.from(cartMap.values());
 
     const productIds = cart.map(item => typeof item.product === 'object' ? (item.product.id || item.product._id) : item.product);
     const products = await populateProducts(productIds);
 
     const populatedCart = cart.map(item => {
       const pId = typeof item.product === 'object' ? (item.product.id || item.product._id) : item.product;
-      const prod = products?.find(p => p.id === pId || p._id === pId);
+      const prod = products?.find(p => String(p.id) === String(pId) || String(p._id) === String(pId));
       return {
         product: prod || (typeof item.product === 'object' ? normalizeProduct(item.product) : { _id: pId, id: pId, name: 'Product', price: 0 }),
         quantity: item.quantity
@@ -222,35 +341,83 @@ export const getCart = async (req, res) => {
 // @route   POST /api/cart
 // @access  Private
 export const addToCart = async (req, res) => {
-  const { productId, quantity = 1 } = req.body;
-  const userId = req.user._id || req.user.id;
+  const { productId, quantity = 1, product: clientProduct } = req.body;
+  const userId = req.user?._id || req.user?.id;
+  const userEmail = req.user?.email;
+
+  if (!userId && !userEmail) {
+    return res.status(401).json({ success: false, message: 'Unauthorized' });
+  }
 
   if (!productId) {
     return res.status(400).json({ success: false, message: 'Product ID is required' });
   }
 
   try {
-    const userData = await getUserData(userId);
-    let cart = userData?.user?.cart || [];
-    const itemIndex = cart.findIndex(item => {
+    const userData = await getUserData(userId, userEmail);
+    let rawCart = Array.isArray(userData?.user?.cart) ? [...userData.user.cart] : [];
+    
+    // Deduplicate cart rows by productId
+    const cartMap = new Map();
+    for (const item of rawCart) {
       const pId = typeof item.product === 'object' ? (item.product.id || item.product._id) : item.product;
-      return pId === productId;
-    });
-
-    if (itemIndex > -1) {
-      cart[itemIndex].quantity += parseInt(quantity, 10);
-    } else {
-      cart.push({ product: productId, quantity: parseInt(quantity, 10) });
+      const key = String(pId);
+      if (cartMap.has(key)) {
+        const existing = cartMap.get(key);
+        existing.quantity = Math.max(Number(existing.quantity) || 1, Number(item.quantity) || 1);
+      } else {
+        cartMap.set(key, { ...item, quantity: Number(item.quantity) || 1 });
+      }
     }
 
-    await saveUserCart(userId, cart, userData);
+    const cleanProductId = String(productId);
+    const parsedQty = Math.max(1, parseInt(quantity, 10) || 1);
 
-    const productIds = cart.map(item => typeof item.product === 'object' ? (item.product.id || item.product._id) : item.product);
+    // Stock verification
+    let availableStock = 999;
+    if (clientProduct && (typeof clientProduct.stock === 'number' || clientProduct.stock !== undefined)) {
+      availableStock = Math.max(0, Number(clientProduct.stock));
+    } else {
+      const dbProds = await populateProducts([cleanProductId]);
+      if (dbProds && dbProds[0] && dbProds[0].stock !== undefined) {
+        availableStock = Math.max(0, Number(dbProds[0].stock));
+      }
+    }
+
+    if (availableStock <= 0) {
+      return res.status(400).json({ success: false, message: 'This product is currently out of stock.' });
+    }
+
+    if (cartMap.has(cleanProductId)) {
+      const existing = cartMap.get(cleanProductId);
+      const currentQty = Number(existing.quantity) || 0;
+      if (currentQty >= availableStock) {
+        return res.status(400).json({
+          success: false,
+          message: `Cannot add more units. You already have the maximum available stock (${availableStock} unit${availableStock === 1 ? '' : 's'}) in your cart.`
+        });
+      }
+      existing.quantity = Math.min(availableStock, currentQty + parsedQty);
+      if (clientProduct && typeof clientProduct === 'object') {
+        existing.product = { ...clientProduct, stock: availableStock };
+      }
+    } else {
+      const initialQty = Math.min(availableStock, parsedQty);
+      cartMap.set(cleanProductId, { 
+        product: clientProduct && typeof clientProduct === 'object' ? { ...clientProduct, stock: availableStock } : productId, 
+        quantity: initialQty 
+      });
+    }
+
+    const updatedCart = Array.from(cartMap.values());
+    await saveUserCart(userId, updatedCart, userData, userEmail);
+
+    const productIds = updatedCart.map(item => typeof item.product === 'object' ? (item.product.id || item.product._id) : item.product);
     const products = await populateProducts(productIds);
     
-    const populatedCart = cart.map(item => {
+    const populatedCart = updatedCart.map(item => {
       const pId = typeof item.product === 'object' ? (item.product.id || item.product._id) : item.product;
-      const prod = products?.find(p => p.id === pId || p._id === pId);
+      const prod = products?.find(p => String(p.id) === String(pId) || String(p._id) === String(pId));
       return {
         product: prod || (typeof item.product === 'object' ? normalizeProduct(item.product) : { _id: pId, id: pId, name: 'Product', price: 0 }),
         quantity: item.quantity
@@ -269,14 +436,19 @@ export const addToCart = async (req, res) => {
 // @access  Private
 export const updateCartQuantity = async (req, res) => {
   const { productId, quantity } = req.body;
-  const userId = req.user._id || req.user.id;
+  const userId = req.user?._id || req.user?.id;
+  const userEmail = req.user?.email;
+
+  if (!userId && !userEmail) {
+    return res.status(401).json({ success: false, message: 'Unauthorized' });
+  }
 
   if (quantity < 1) {
     return res.status(400).json({ success: false, message: 'Quantity must be at least 1' });
   }
 
   try {
-    const userData = await getUserData(userId);
+    const userData = await getUserData(userId, userEmail);
     let cart = userData?.user?.cart || [];
     const itemIndex = cart.findIndex(item => {
       const pId = typeof item.product === 'object' ? (item.product.id || item.product._id) : item.product;
@@ -284,8 +456,21 @@ export const updateCartQuantity = async (req, res) => {
     });
 
     if (itemIndex > -1) {
-      cart[itemIndex].quantity = parseInt(quantity, 10);
-      await saveUserCart(userId, cart, userData);
+      const item = cart[itemIndex];
+      let availableStock = 999;
+      if (typeof item.product === 'object' && item.product.stock !== undefined) {
+        availableStock = Math.max(0, Number(item.product.stock));
+      } else {
+        const dbProds = await populateProducts([productId]);
+        if (dbProds && dbProds[0] && dbProds[0].stock !== undefined) {
+          availableStock = Math.max(0, Number(dbProds[0].stock));
+        }
+      }
+
+      const requestedQty = parseInt(quantity, 10) || 1;
+      const targetQty = Math.min(availableStock, Math.max(1, requestedQty));
+      cart[itemIndex].quantity = targetQty;
+      await saveUserCart(userId, cart, userData, userEmail);
     }
 
     const productIds = cart.map(item => typeof item.product === 'object' ? (item.product.id || item.product._id) : item.product);
@@ -311,17 +496,22 @@ export const updateCartQuantity = async (req, res) => {
 // @access  Private
 export const removeFromCart = async (req, res) => {
   const { productId } = req.params;
-  const userId = req.user._id || req.user.id;
+  const userId = req.user?._id || req.user?.id;
+  const userEmail = req.user?.email;
+
+  if (!userId && !userEmail) {
+    return res.status(401).json({ success: false, message: 'Unauthorized' });
+  }
 
   try {
-    const userData = await getUserData(userId);
+    const userData = await getUserData(userId, userEmail);
     let cart = userData?.user?.cart || [];
     cart = cart.filter(item => {
       const pId = typeof item.product === 'object' ? (item.product.id || item.product._id) : item.product;
       return pId !== productId;
     });
 
-    await saveUserCart(userId, cart, userData);
+    await saveUserCart(userId, cart, userData, userEmail);
 
     const productIds = cart.map(item => typeof item.product === 'object' ? (item.product.id || item.product._id) : item.product);
     const products = await populateProducts(productIds);
@@ -345,11 +535,16 @@ export const removeFromCart = async (req, res) => {
 // @route   DELETE /api/cart
 // @access  Private
 export const clearCart = async (req, res) => {
-  const userId = req.user._id || req.user.id;
+  const userId = req.user?._id || req.user?.id;
+  const userEmail = req.user?.email;
+
+  if (!userId && !userEmail) {
+    return res.status(401).json({ success: false, message: 'Unauthorized' });
+  }
 
   try {
-    const userData = await getUserData(userId);
-    await saveUserCart(userId, [], userData);
+    const userData = await getUserData(userId, userEmail);
+    await saveUserCart(userId, [], userData, userEmail);
     res.json({ success: true, cart: [] });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
@@ -364,10 +559,15 @@ export const clearCart = async (req, res) => {
 // @route   GET /api/wishlist
 // @access  Private
 export const getWishlist = async (req, res) => {
-  const userId = req.user._id || req.user.id;
+  const userId = req.user?._id || req.user?.id;
+  const userEmail = req.user?.email;
+
+  if (!userId && !userEmail) {
+    return res.status(401).json({ success: false, message: 'Unauthorized' });
+  }
 
   try {
-    const userData = await getUserData(userId);
+    const userData = await getUserData(userId, userEmail);
     const rawWishlist = userData?.user?.wishlist || [];
     if (!Array.isArray(rawWishlist) || rawWishlist.length === 0) {
       return res.json({ success: true, wishlist: [] });
@@ -399,14 +599,19 @@ export const getWishlist = async (req, res) => {
 export const toggleWishlist = async (req, res) => {
   const { productId, product } = req.body;
   const targetId = productId || product?._id || product?.id;
-  const userId = req.user._id || req.user.id;
+  const userId = req.user?._id || req.user?.id;
+  const userEmail = req.user?.email;
+
+  if (!userId && !userEmail) {
+    return res.status(401).json({ success: false, message: 'Unauthorized' });
+  }
 
   if (!targetId) {
     return res.status(400).json({ success: false, message: 'Product ID required' });
   }
 
   try {
-    const userData = await getUserData(userId);
+    const userData = await getUserData(userId, userEmail);
     let wishlist = userData?.user?.wishlist || [];
     if (!Array.isArray(wishlist)) wishlist = [];
 
@@ -419,7 +624,7 @@ export const toggleWishlist = async (req, res) => {
       wishlist.push(targetId);
     }
 
-    await saveUserWishlist(userId, wishlist, userData);
+    await saveUserWishlist(userId, wishlist, userData, userEmail);
 
     const productIds = wishlist.map(getId).filter(Boolean);
     const populated = await populateProducts(productIds);

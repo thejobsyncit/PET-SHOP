@@ -1,52 +1,140 @@
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import { supabase } from '../config/supabase.js';
+import { loadDiskEnquiries } from './enquiryController.js';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const USERS_FILE = path.join(__dirname, '..', 'data', 'users.json');
+const ORDERS_SERVER_FILE = path.join(__dirname, '..', '..', 'server_data', 'orders.json');
+const ORDERS_DATA_FILE = path.join(__dirname, '..', 'data', 'orders.json');
+
+const loadDiskUsers = () => {
+  try {
+    if (fs.existsSync(USERS_FILE)) {
+      const content = fs.readFileSync(USERS_FILE, 'utf8');
+      const parsed = JSON.parse(content);
+      if (Array.isArray(parsed)) return parsed;
+    }
+  } catch (_) {}
+  return [];
+};
+
+const saveDiskUsers = (users) => {
+  try {
+    const dir = path.dirname(USERS_FILE);
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+    fs.writeFileSync(USERS_FILE, JSON.stringify(users, null, 2), 'utf8');
+  } catch (_) {}
+};
+
+const loadDiskOrders = () => {
+  try {
+    if (fs.existsSync(ORDERS_SERVER_FILE)) {
+      const parsed = JSON.parse(fs.readFileSync(ORDERS_SERVER_FILE, 'utf8'));
+      if (Array.isArray(parsed)) return parsed;
+    }
+  } catch (_) {}
+  try {
+    if (fs.existsSync(ORDERS_DATA_FILE)) {
+      const parsed = JSON.parse(fs.readFileSync(ORDERS_DATA_FILE, 'utf8'));
+      if (Array.isArray(parsed)) return parsed;
+    }
+  } catch (_) {}
+  return [];
+};
 
 // @desc    Get admin dashboard metrics & charts data
 // @route   GET /api/admin/dashboard
 // @access  Private/Admin
 export const getDashboardStats = async (req, res) => {
   try {
-    if (!supabase) {
-      return res.status(500).json({ success: false, message: 'Supabase client not initialized' });
+    let usersCount = 0;
+    try {
+      const { count, error } = await supabase.from('users').select('*', { count: 'exact', head: true }).eq('role', 'CUSTOMER');
+      if (!error && typeof count === 'number') usersCount = count;
+    } catch (_) {}
+    if (!usersCount) {
+      const diskUsers = loadDiskUsers();
+      usersCount = diskUsers.filter(u => u.role === 'CUSTOMER' || !u.role).length;
     }
 
-    // 1. Fetch basic counts
-    const { count: usersCount } = await supabase.from('users').select('*', { count: 'exact', head: true }).eq('role', 'CUSTOMER');
-    const { count: productsCount } = await supabase.from('products').select('*', { count: 'exact', head: true });
-    const { count: ordersCount } = await supabase.from('orders').select('*', { count: 'exact', head: true });
-    const { count: pendingOrdersCount } = await supabase.from('orders').select('*', { count: 'exact', head: true }).eq('shipping_status', 'Pending');
-    const { count: enquiriesCount } = await supabase.from('enquiries').select('*', { count: 'exact', head: true });
+    let productsCount = 0;
+    try {
+      const { count, error } = await supabase.from('products').select('*', { count: 'exact', head: true });
+      if (!error && typeof count === 'number') productsCount = count;
+    } catch (_) {}
+
+    let ordersCount = 0;
+    let pendingOrdersCount = 0;
+    try {
+      const { count, error } = await supabase.from('orders').select('*', { count: 'exact', head: true });
+      if (!error && typeof count === 'number') ordersCount = count;
+      const { count: pending, error: pErr } = await supabase.from('orders').select('*', { count: 'exact', head: true }).eq('shipping_status', 'Pending');
+      if (!pErr && typeof pending === 'number') pendingOrdersCount = pending;
+    } catch (_) {}
+    if (!ordersCount) {
+      const diskOrders = loadDiskOrders();
+      ordersCount = diskOrders.length;
+      pendingOrdersCount = diskOrders.filter(o => o.orderStatus === 'Processing' || o.shipping_status === 'Pending').length;
+    }
+
+    let enquiriesCount = 0;
+    try {
+      const { count, error } = await supabase.from('enquiries').select('*', { count: 'exact', head: true });
+      if (!error && typeof count === 'number') enquiriesCount = count;
+    } catch (_) {}
+    if (!enquiriesCount) {
+      enquiriesCount = loadDiskEnquiries().length;
+    }
     
-    // Low stock products (approximate without RPC)
-    const { data: allProducts } = await supabase.from('products').select('stock, low_stock_threshold');
-    const lowStockCount = allProducts ? allProducts.filter(p => p.stock <= p.low_stock_threshold).length : 0;
-    
-    // Since we can't do complex agg easily without RPC, let's fetch orders for revenue
-    const { data: allOrders } = await supabase.from('orders').select('pricing, order_items, shipping_status, created_at, users(name, email)').neq('shipping_status', 'Cancelled');
+    // Low stock products
+    let lowStockCount = 0;
+    try {
+      const { data: allProducts } = await supabase.from('products').select('stock, low_stock_threshold');
+      if (allProducts && Array.isArray(allProducts)) {
+        lowStockCount = allProducts.filter(p => p.stock <= (p.low_stock_threshold || 5)).length;
+      }
+    } catch (_) {}
     
     let totalRevenue = 0;
     let soldProductIds = new Set();
-    
-    if (allOrders) {
-      allOrders.forEach(o => {
-        totalRevenue += (o.pricing?.total || 0);
-        if (o.order_items && Array.isArray(o.order_items)) {
-          o.order_items.forEach(item => {
-            if (item.product) soldProductIds.add(item.product);
-          });
-        }
+    let recentOrders = [];
+
+    try {
+      const { data: allOrders } = await supabase.from('orders').select('pricing, order_items, shipping_status, created_at, users(name, email)').neq('shipping_status', 'Cancelled');
+      if (allOrders && Array.isArray(allOrders)) {
+        allOrders.forEach(o => {
+          totalRevenue += (o.pricing?.total || 0);
+          if (o.order_items && Array.isArray(o.order_items)) {
+            o.order_items.forEach(item => {
+              if (item.product) soldProductIds.add(item.product);
+            });
+          }
+        });
+      }
+
+      const { data: recOrders } = await supabase.from('orders')
+        .select('*, user:users(name, email)')
+        .order('created_at', { ascending: false })
+        .limit(5);
+      if (recOrders && Array.isArray(recOrders)) recentOrders = recOrders;
+    } catch (_) {}
+
+    if (totalRevenue === 0) {
+      const diskOrders = loadDiskOrders();
+      diskOrders.forEach(o => {
+        totalRevenue += Number(o.totalPrice || o.pricing?.total || o.totalAmount || 0);
       });
+      if (recentOrders.length === 0) {
+        recentOrders = diskOrders.slice(0, 5);
+      }
     }
 
     const soldProductsCount = soldProductIds.size;
     const unsoldProductsCount = Math.max(0, (productsCount || 0) - soldProductsCount);
 
-    // Recent orders
-    const { data: recentOrders } = await supabase.from('orders')
-      .select('*, user:users(name, email)')
-      .order('created_at', { ascending: false })
-      .limit(5);
-
-    // Mock charts for now to avoid complex SQL grouping
     const chartsData = {
       salesHistory: [
         { month: '2026-03', revenue: 35000, orders: 12 },
@@ -73,7 +161,7 @@ export const getDashboardStats = async (req, res) => {
       ]
     };
 
-    res.json({
+    return res.json({
       success: true,
       stats: {
         usersCount: usersCount || 0,
@@ -91,7 +179,7 @@ export const getDashboardStats = async (req, res) => {
     });
 
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    return res.status(500).json({ success: false, message: error.message });
   }
 };
 
@@ -100,15 +188,29 @@ export const getDashboardStats = async (req, res) => {
 // @access  Private/Admin
 export const getAllUsers = async (req, res) => {
   try {
-    const { data: users, error } = await supabase
-      .from('users')
-      .select('id, name, email, role, mobile, location, verification_status, created_at') // omit password
-      .order('created_at', { ascending: false });
+    if (supabase) {
+      try {
+        const { data: users, error } = await supabase
+          .from('users')
+          .select('id, name, email, role, mobile, location, verification_status, created_at')
+          .order('created_at', { ascending: false });
 
-    if (error) throw error;
-    res.json({ success: true, users: users || [] });
+        if (!error && Array.isArray(users) && users.length > 0) {
+          return res.json({ success: true, users });
+        }
+      } catch (_) {}
+    }
+
+    const diskUsers = loadDiskUsers();
+    const safeUsers = diskUsers.map(({ password, password_plain, ...rest }) => ({
+      ...rest,
+      id: rest.id || rest._id,
+      _id: rest._id || rest.id
+    }));
+
+    return res.json({ success: true, users: safeUsers });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    return res.status(500).json({ success: false, message: error.message });
   }
 };
 
@@ -122,21 +224,36 @@ export const updateUserRole = async (req, res) => {
       return res.status(400).json({ success: false, message: 'Invalid role' });
     }
 
-    const { data: user, error } = await supabase
-      .from('users')
-      .update({ role })
-      .eq('id', req.params.id)
-      .select('id, name, email, role, created_at')
-      .single();
+    const userId = req.params.id;
+    let updatedUser = null;
 
-    if (error) throw error;
-    if (!user) {
+    if (supabase) {
+      try {
+        const { data: user, error } = await supabase
+          .from('users')
+          .update({ role })
+          .eq('id', userId)
+          .select('id, name, email, role, created_at')
+          .single();
+        if (!error && user) updatedUser = user;
+      } catch (_) {}
+    }
+
+    const diskUsers = loadDiskUsers();
+    const idx = diskUsers.findIndex(u => (u.id || u._id) === userId);
+    if (idx !== -1) {
+      diskUsers[idx].role = role;
+      saveDiskUsers(diskUsers);
+      if (!updatedUser) updatedUser = diskUsers[idx];
+    }
+
+    if (!updatedUser) {
       return res.status(404).json({ success: false, message: 'User not found' });
     }
 
-    res.json({ success: true, user });
+    return res.json({ success: true, user: updatedUser });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    return res.status(500).json({ success: false, message: error.message });
   }
 };
 
@@ -145,14 +262,20 @@ export const updateUserRole = async (req, res) => {
 // @access  Private/Admin
 export const deleteUser = async (req, res) => {
   try {
-    const { error } = await supabase
-      .from('users')
-      .delete()
-      .eq('id', req.params.id);
+    const userId = req.params.id;
 
-    if (error) throw error;
-    res.json({ success: true, message: 'User deleted successfully' });
+    if (supabase) {
+      try {
+        await supabase.from('users').delete().eq('id', userId);
+      } catch (_) {}
+    }
+
+    const diskUsers = loadDiskUsers();
+    const updated = diskUsers.filter(u => (u.id || u._id) !== userId);
+    saveDiskUsers(updated);
+
+    return res.json({ success: true, message: 'User deleted successfully' });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    return res.status(500).json({ success: false, message: error.message });
   }
 };

@@ -1,11 +1,34 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { apiRequest } from '../../services/api.js';
 
-// Safe helper to read initial wishlist from localStorage
-const getInitialWishlist = () => {
+// Helper to determine the active user key for partitioned local storage
+export const getActiveWishlistUserKey = () => {
   try {
-    const raw = localStorage.getItem('joshpetshub_wishlist');
-    if (!raw) return [];
+    const raw = localStorage.getItem('joshpetshub_user');
+    if (!raw) return 'guest';
+    const user = JSON.parse(raw);
+    const id = user?._id || user?.id || user?.email;
+    return id ? String(id).trim().toLowerCase() : 'guest';
+  } catch (_) {
+    return 'guest';
+  }
+};
+
+// Safe helper to read initial wishlist from localStorage scoped to active user
+export const getInitialWishlist = (customKey) => {
+  try {
+    const userKey = customKey || getActiveWishlistUserKey();
+    const raw = localStorage.getItem(`joshpetshub_wishlist_${userKey}`);
+    if (!raw) {
+      if (userKey === 'guest') {
+        const legacy = localStorage.getItem('joshpetshub_wishlist');
+        if (legacy && legacy !== 'undefined' && legacy !== 'null') {
+          const parsed = JSON.parse(legacy);
+          if (Array.isArray(parsed)) return parsed;
+        }
+      }
+      return [];
+    }
     const parsed = JSON.parse(raw);
     return Array.isArray(parsed) ? parsed : [];
   } catch (_) {
@@ -13,10 +36,21 @@ const getInitialWishlist = () => {
   }
 };
 
-// Safe helper to write wishlist to localStorage
-const saveLocalWishlist = (items) => {
+// Safe helper to write wishlist to localStorage scoped to active user
+export const saveLocalWishlist = (items, customKey) => {
   try {
-    localStorage.setItem('joshpetshub_wishlist', JSON.stringify(items));
+    const userKey = customKey || getActiveWishlistUserKey();
+    localStorage.setItem(`joshpetshub_wishlist_${userKey}`, JSON.stringify(items));
+  } catch (_) {}
+};
+
+// Safe helper to clear local wishlist for the active user
+export const clearLocalWishlist = (customKey) => {
+  try {
+    const userKey = customKey || getActiveWishlistUserKey();
+    localStorage.removeItem(`joshpetshub_wishlist_${userKey}`);
+    localStorage.removeItem('joshpetshub_wishlist'); // Clear legacy un-scoped key
+    localStorage.removeItem('joshpetshub_wishlist_guest');
   } catch (_) {}
 };
 
@@ -41,64 +75,50 @@ const normalizeWishlistProduct = (p) => {
 
 // Async Thunks
 export const fetchWishlist = createAsyncThunk('wishlist/fetchWishlist', async (_, thunkAPI) => {
-  const localItems = getInitialWishlist();
+  const token = localStorage.getItem('joshpetshub_token');
+  const hasToken = token && token !== 'undefined' && token !== 'null';
+  const userKey = getActiveWishlistUserKey();
+
+  if (!hasToken || userKey === 'guest') {
+    return { wishlist: getInitialWishlist('guest') };
+  }
 
   try {
-    const token = localStorage.getItem('joshpetshub_token');
-    if (!token) {
-      return { wishlist: localItems };
-    }
-
+    // Authenticated user: server is authoritative
     const data = await apiRequest('/wishlist');
     if (data && Array.isArray(data.wishlist)) {
-      if (data.wishlist.length > 0) {
-        saveLocalWishlist(data.wishlist);
-        return { wishlist: data.wishlist };
-      }
-      
-      // If server returned 0 items but local has items, sync local to server
-      if (localItems.length > 0) {
-        for (const item of localItems) {
-          const pId = item._id || item.id;
-          if (pId) {
-            apiRequest('/wishlist', {
-              method: 'POST',
-              body: JSON.stringify({ productId: pId, product: item })
-            }).catch(() => {});
-          }
-        }
-        return { wishlist: localItems };
-      }
-
-      saveLocalWishlist([]);
-      return { wishlist: [] };
+      saveLocalWishlist(data.wishlist, userKey);
+      return { wishlist: data.wishlist };
     }
-
-    return { wishlist: localItems };
+    return { wishlist: getInitialWishlist(userKey) };
   } catch (error) {
-    return { wishlist: localItems };
+    return { wishlist: getInitialWishlist(userKey) };
   }
 });
 
 export const toggleWishlistAPI = createAsyncThunk('wishlist/toggle', async (product, thunkAPI) => {
   const normProduct = normalizeWishlistProduct(product);
+  const userKey = getActiveWishlistUserKey();
+  if (!normProduct) return { wishlist: getInitialWishlist(userKey) };
   const productId = normProduct._id || normProduct.id;
 
   const toggleInLocal = () => {
-    let current = getInitialWishlist();
+    let current = getInitialWishlist(userKey);
     const existIdx = current.findIndex(p => (p._id || p.id) === productId);
     if (existIdx > -1) {
       current = current.filter(p => (p._id || p.id) !== productId);
     } else {
       current.push(normProduct);
     }
-    saveLocalWishlist(current);
+    saveLocalWishlist(current, userKey);
     return current;
   };
 
+  const token = localStorage.getItem('joshpetshub_token');
+  const hasToken = token && token !== 'undefined' && token !== 'null';
+
   try {
-    const token = localStorage.getItem('joshpetshub_token');
-    if (!token) {
+    if (!hasToken || userKey === 'guest') {
       const updated = toggleInLocal();
       return { wishlist: updated };
     }
@@ -109,7 +129,7 @@ export const toggleWishlistAPI = createAsyncThunk('wishlist/toggle', async (prod
     });
 
     if (data && Array.isArray(data.wishlist)) {
-      saveLocalWishlist(data.wishlist);
+      saveLocalWishlist(data.wishlist, userKey);
       return data;
     }
 
@@ -121,8 +141,17 @@ export const toggleWishlistAPI = createAsyncThunk('wishlist/toggle', async (prod
   }
 });
 
+const getInitialStateWishlist = () => {
+  if (typeof window === 'undefined') return [];
+  const token = localStorage.getItem('joshpetshub_token');
+  if (!token) return [];
+  const userKey = getActiveWishlistUserKey();
+  if (userKey === 'guest') return [];
+  return getInitialWishlist(userKey);
+};
+
 const initialState = {
-  items: getInitialWishlist(),
+  items: getInitialStateWishlist(),
   loading: false,
   error: null,
 };
@@ -133,7 +162,7 @@ const wishlistSlice = createSlice({
   reducers: {
     clearWishlistLocal(state) {
       state.items = [];
-      saveLocalWishlist([]);
+      clearLocalWishlist();
     }
   },
   extraReducers: (builder) => {
@@ -151,7 +180,25 @@ const wishlistSlice = createSlice({
         state.loading = false;
         state.error = action.payload;
       })
-      .addCase(toggleWishlistAPI.fulfilled, handleWishlistFulfilled);
+      .addCase(toggleWishlistAPI.fulfilled, handleWishlistFulfilled)
+      .addCase('auth/logout', (state) => {
+        state.items = [];
+        clearLocalWishlist('guest');
+        localStorage.removeItem('joshpetshub_wishlist');
+      })
+      .addCase('auth/setAuthenticatedUser', (state, action) => {
+        const u = action.payload?.user;
+        const key = u ? (u._id || u.id || u.email || '').toLowerCase() : 'guest';
+        state.items = getInitialWishlist(key);
+      })
+      .addCase('auth/login/fulfilled', (state, action) => {
+        const u = action.payload?.user;
+        const key = u ? (u._id || u.id || u.email || '').toLowerCase() : 'guest';
+        state.items = getInitialWishlist(key);
+      })
+      .addCase('auth/register/fulfilled', (state) => {
+        state.items = [];
+      });
   },
 });
 

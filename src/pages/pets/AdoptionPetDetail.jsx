@@ -11,6 +11,8 @@ import {
   getStoredAdoptionPets,
   saveAdoptionApplication,
   getUserAdoptionApplications,
+  getStoredAdoptionApplications,
+  isPetApplicantMatch,
   saveAdoptionInquiry
 } from '../../data/adoptionPetsData';
 import FlyingMacawMessenger from '../../components/widgets/FlyingMacawMessenger.jsx';
@@ -79,6 +81,30 @@ const AdoptionPetDetail = () => {
       (pet.parentContact && user.mobile && pet.parentContact.replace(/\D/g, '') === user.mobile.replace(/\D/g, ''))
     )
   );
+
+  // Calculate received applicants for this pet
+  const [storedApps, setStoredApps] = useState(() => getStoredAdoptionApplications() || []);
+
+  useEffect(() => {
+    const handleSync = () => {
+      setStoredApps(getStoredAdoptionApplications() || []);
+    };
+    window.addEventListener('storage', handleSync);
+    window.addEventListener('adoption-pets-updated', handleSync);
+    return () => {
+      window.removeEventListener('storage', handleSync);
+      window.removeEventListener('adoption-pets-updated', handleSync);
+    };
+  }, []);
+
+  const petApplicants = React.useMemo(() => {
+    if (!pet) return [];
+    try {
+      return (storedApps || []).filter((a) => isPetApplicantMatch(a, pet, pets));
+    } catch (e) {
+      return [];
+    }
+  }, [pet, pets, storedApps]);
 
   // Scroll to top on load
   useEffect(() => {
@@ -392,6 +418,11 @@ const AdoptionPetDetail = () => {
                   <span className="bg-gold-gradient backdrop-blur-xs text-slate-900 text-[11px] font-extrabold px-3 py-1 rounded-full shadow-sm">
                     {pet.quality}
                   </span>
+                  {petApplicants.length > 0 && (
+                    <span className="bg-blue-600/90 backdrop-blur-xs text-white text-[11px] font-bold px-3 py-1 rounded-full shadow-sm flex items-center gap-1">
+                      👥 {petApplicants.length} Applicant{petApplicants.length !== 1 ? 's' : ''}
+                    </span>
+                  )}
                 </div>
 
                 <div className="absolute bottom-4 right-4">
@@ -605,13 +636,21 @@ const AdoptionPetDetail = () => {
                       <p className="text-xs text-slate-600 mt-1 leading-relaxed">
                         You posted this pet for free adoption. As the guardian, you cannot submit an adoption application for your own listing.
                       </p>
+
+                      {/* Applicant Count Highlight Box */}
+                      <div className="p-3 bg-white/95 rounded-xl border border-amber-200 mt-3 flex items-center justify-between shadow-2xs">
+                        <span className="text-xs font-bold text-slate-700">Total Applicants:</span>
+                        <span className="px-3 py-1 bg-blue-50 text-[#15559c] font-extrabold text-xs rounded-full border border-blue-200">
+                          👥 {petApplicants.length} Applicant{petApplicants.length !== 1 ? 's' : ''}
+                        </span>
+                      </div>
                     </div>
                     <div className="pt-2">
                       <Link
                         to="/account?tab=adoption-listings"
                         className="w-full py-2.5 px-4 bg-gold-gradient hover:brightness-105 text-slate-900 font-bold text-xs rounded-xl shadow-md active:scale-95 transition inline-flex items-center justify-center gap-2"
                       >
-                        <span>View Received Applications in Dashboard</span>
+                        <span>View & Manage {petApplicants.length} Applicant{petApplicants.length !== 1 ? 's' : ''} in Dashboard</span>
                         <ArrowRight size={14} />
                       </Link>
                     </div>

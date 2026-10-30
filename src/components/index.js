@@ -26,3 +26,4 @@ export { default as FlyingMacawMessenger } from './widgets/FlyingMacawMessenger.
 export { default as WalkingDogOnLine } from './widgets/WalkingDogOnLine.jsx';
 export { default as AnimatedDepartmentIcon } from './widgets/AnimatedDepartmentIcon.jsx';
 export { default as ServicePackageAccessModal, handleServiceAction, SERVICE_PACKAGES_DATA, hasUserPurchasedPackage, getActiveUserMembership } from './widgets/ServicePackageAccessModal.jsx';
+export { default as AuthModal } from './widgets/AuthModal.jsx';

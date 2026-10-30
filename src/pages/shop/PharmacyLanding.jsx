@@ -32,8 +32,13 @@ const PharmacyLanding = () => {
   const handleFileChange = (e) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
-      const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'application/pdf'];
-      if (!validTypes.includes(file.type)) {
+      const validMimes = ['image/jpeg', 'image/jpg', 'image/png', 'application/pdf', 'application/x-pdf'];
+      const ext = file.name.split('.').pop()?.toLowerCase();
+      const validExts = ['jpg', 'jpeg', 'png', 'pdf'];
+      const isExtValid = validExts.includes(ext);
+      const isMimeValid = !file.type || validMimes.includes(file.type);
+
+      if (!isExtValid && !isMimeValid) {
         toast.error('Only JPG, JPEG, PNG images or PDF documents are accepted.');
         return;
       }
@@ -67,7 +72,7 @@ const PharmacyLanding = () => {
       if (data.success) {
         toast.success('Prescription uploaded successfully!');
         setUploadSuccess(true);
-        setNewPrescId(data.prescription._id);
+        setNewPrescId(data.prescription?._id || data.prescription?.id || ('RX-' + Date.now()));
         // Clear Form
         setPatientName('');
         setVeterinarianName('');

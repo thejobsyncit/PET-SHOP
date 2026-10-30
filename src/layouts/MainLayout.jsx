@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { Outlet } from 'react-router-dom';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import Navbar from '../components/layout/Navbar.jsx';
 import Footer from '../components/layout/Footer.jsx';
 import LeadConsultationModal from '../components/widgets/LeadConsultationModal.jsx';
@@ -13,6 +13,8 @@ import { fetchProfile } from '../store/slices/authSlice.js';
 
 const MainLayout = () => {
   const dispatch = useDispatch();
+  const authUser = useSelector((state) => state.auth?.user);
+  const userIdentifier = authUser?._id || authUser?.id || authUser?.email || 'guest';
 
   useEffect(() => {
     // Purge legacy service pass storage if any
@@ -26,10 +28,13 @@ const MainLayout = () => {
     if (token || user) {
       dispatch(fetchProfile());
     }
-    // Fetch cart and wishlist (synchronizes guest or user state)
+  }, [dispatch]);
+
+  // Whenever the active authenticated user changes (login, logout, switch account), re-fetch their isolated cart and wishlist
+  useEffect(() => {
     dispatch(fetchCart());
     dispatch(fetchWishlist());
-  }, [dispatch]);
+  }, [dispatch, userIdentifier]);
 
   return (
     <div className="min-h-screen flex flex-col bg-secondary">

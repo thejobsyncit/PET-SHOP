@@ -581,12 +581,13 @@ export const deleteProviderTransportService = (serviceId) => {
 export const INITIAL_DEMO_BOOKINGS = [
   {
     id: 'TRP-BK-1082',
+    isDemoSeed: true,
     petName: 'Bruno',
     petSpecies: 'Dog',
     petBreed: 'Labrador Retriever',
     petAge: '3 Years',
     customerName: 'Vikram Malhotra',
-    customerPhone: '+91 98765 43210',
+    customerPhone: '+91 90000 00003',
     customerEmail: 'vikram.m@gmail.com',
     originState: 'Karnataka',
     originCity: 'Bangalore',
@@ -607,12 +608,13 @@ export const INITIAL_DEMO_BOOKINGS = [
   },
   {
     id: 'TRP-BK-1083',
+    isDemoSeed: true,
     petName: 'Bella & Milo',
     petSpecies: 'Cat',
     petBreed: 'Persian & British Shorthair',
     petAge: '2 Years',
     customerName: 'Sunita Rao',
-    customerPhone: '+91 98765 43210',
+    customerPhone: '+91 90000 00004',
     customerEmail: 'sunita.rao@gmail.com',
     originState: 'Karnataka',
     originCity: 'Bangalore',
@@ -633,12 +635,13 @@ export const INITIAL_DEMO_BOOKINGS = [
   },
   {
     id: 'TRP-BK-1080',
+    isDemoSeed: true,
     petName: 'Leo',
     petSpecies: 'Dog',
     petBreed: 'Golden Retriever',
     petAge: '4 Years',
     customerName: 'Aditya Mehta',
-    customerPhone: '+91 98765 43210',
+    customerPhone: '+91 90000 00005',
     customerEmail: 'aditya.m@gmail.com',
     originState: 'Karnataka',
     originCity: 'Bangalore',
@@ -680,14 +683,36 @@ export const saveTransportBooking = (bookingData) => {
   try {
     const current = getStoredTransportBookings();
     const newBooking = {
-      id: 'TRP-BK-' + Math.floor(1000 + Math.random() * 9000),
+      id: bookingData?.id || ('TRP-BK-' + Math.floor(100000 + Math.random() * 900000)),
       createdAt: new Date().toISOString(),
-      status: 'Confirmed',
+      status: 'Confirmed & Route Assigned',
+      requestType: 'booking',
       ...bookingData
     };
     current.unshift(newBooking);
     saveStoredTransportBookings(current);
+
+    // Also mirror to transport enquiries so all relocation views stay unified
+    try {
+      const enqs = getStoredTransportEnquiries();
+      const existingIdx = enqs.findIndex(e => e.id === newBooking.id);
+      if (existingIdx === -1) {
+        enqs.unshift({
+          ...newBooking,
+          requestType: 'booking',
+          departureCity: newBooking.departureCity || newBooking.originCity,
+          destinationCity: newBooking.destinationCity || newBooking.destCity,
+          expectedDate: newBooking.expectedDate || newBooking.bookingDate || newBooking.travelDate,
+          quoteAmount: newBooking.quoteAmount || newBooking.packagePrice || newBooking.totalAmount,
+          relocationType: newBooking.relocationType || 'Confirmed Relocation Booking'
+        });
+        saveStoredTransportEnquiries(enqs);
+      }
+    } catch (_) {}
+
     window.dispatchEvent(new CustomEvent('transport-booking-created', { detail: newBooking }));
+    window.dispatchEvent(new CustomEvent('transport-enquiry-created', { detail: newBooking }));
+    window.dispatchEvent(new CustomEvent('transport-relocation-created', { detail: newBooking }));
     return newBooking;
   } catch (_e) {
     return null;
@@ -846,12 +871,13 @@ export const saveStoredTransportReviews = (reviews) => {
 export const INITIAL_DEMO_ENQUIRIES = [
   {
     id: 'ENQ-TRP-901',
+    isDemoSeed: true,
     providerId: 'TRP-101',
     providerName: 'Josh Pets Hub Air & Road Pet Relocators',
     userId: 'usr-demo-01',
     userName: 'Riya Sen',
     userEmail: 'riya.sen@example.com',
-    userPhone: '+91 98765 43210',
+    userPhone: '+91 90000 00001',
     relocationType: 'Inter-State Relocation',
     departureState: 'Maharashtra',
     departureCity: 'Mumbai',
@@ -874,12 +900,13 @@ export const INITIAL_DEMO_ENQUIRIES = [
   },
   {
     id: 'ENQ-TRP-902',
+    isDemoSeed: true,
     providerId: 'TRP-102',
     providerName: 'SafePaws India Pet Transit Hub',
     userId: 'usr-demo-02',
     userName: 'Anand Kulkarni',
     userEmail: 'anand.k@example.com',
-    userPhone: '+91 98765 43210',
+    userPhone: '+91 90000 00002',
     relocationType: 'Inter-State Relocation',
     departureState: 'Karnataka',
     departureCity: 'Bangalore',
@@ -957,15 +984,117 @@ export const updateTransportEnquiryStatus = (enquiryId, status, providerReply = 
   return null;
 };
 
+const cleanDigits = (p) => (p ? String(p).replace(/\D/g, '').slice(-10) : '');
+
+export const DEMO_SEED_REQUEST_IDS = new Set([
+  'ENQ-TRP-901',
+  'ENQ-TRP-902',
+  'TRP-BK-1082',
+  'TRP-BK-1083',
+  'TRP-BK-1080'
+]);
+
+export const isTransportItemMatchingUser = (item, currentUser) => {
+  if (!item || !currentUser) return false;
+
+  const itemId = item.id || item._id;
+  // Demo seeds must NEVER show up for normal customers (they are provider dashboard showcases)
+  if (item.isDemoSeed || DEMO_SEED_REQUEST_IDS.has(itemId)) {
+    const demoEmail = (item.userEmail || item.customerEmail || '').toLowerCase().trim();
+    const uEmail = (currentUser.email || '').toLowerCase().trim();
+    return Boolean(uEmail && demoEmail && uEmail === demoEmail);
+  }
+
+  const uId = String(currentUser.id || currentUser._id || '');
+  const uEmail = (currentUser.email || '').toLowerCase().trim();
+  const uPhone = cleanDigits(currentUser.mobile || currentUser.phone);
+
+  // 1. By ID match
+  if (uId) {
+    const itemUserId = String(item.userId || item.customerId || item.user?._id || item.user?.id || '');
+    if (itemUserId && itemUserId === uId) return true;
+  }
+
+  // 2. By Email match
+  const itemEmail = (item.userEmail || item.customerEmail || item.ownerEmail || item.email || '').toLowerCase().trim();
+  if (uEmail && itemEmail && itemEmail === uEmail) {
+    return true;
+  }
+
+  // 3. By Phone match (clean 10 digits), but ONLY if there is no conflicting email
+  const itemPhone = cleanDigits(item.userPhone || item.customerPhone || item.ownerPhone || item.mobile);
+  if (uPhone && uPhone.length >= 10 && itemPhone && (itemPhone === uPhone || itemPhone.endsWith(uPhone) || uPhone.endsWith(itemPhone))) {
+    if (itemEmail && uEmail && itemEmail !== uEmail) {
+      return false;
+    }
+    return true;
+  }
+
+  return false;
+};
+
+export const getUserTransportBookings = (user) => {
+  let currentUser = user;
+  if (!currentUser) {
+    try {
+      const stored = localStorage.getItem('joshpetshub_user');
+      if (stored) currentUser = JSON.parse(stored);
+    } catch (_) {}
+  }
+  if (!currentUser) return [];
+
+  const current = getStoredTransportBookings();
+  return current.filter(b => isTransportItemMatchingUser(b, currentUser));
+};
+
+export const getUserAllRelocationRequests = (user) => {
+  let currentUser = user;
+  if (!currentUser) {
+    try {
+      const stored = localStorage.getItem('joshpetshub_user');
+      if (stored) currentUser = JSON.parse(stored);
+    } catch (_) {}
+  }
+  if (!currentUser) return [];
+
+  const storedEnquiries = getStoredTransportEnquiries()
+    .filter(e => isTransportItemMatchingUser(e, currentUser))
+    .map(e => ({
+      ...e,
+      requestType: e.requestType || 'enquiry'
+    }));
+
+  const storedBookings = getStoredTransportBookings()
+    .filter(b => isTransportItemMatchingUser(b, currentUser))
+    .map(b => ({
+      ...b,
+      requestType: 'booking',
+      departureCity: b.departureCity || b.originCity || 'Pickup City',
+      destinationCity: b.destinationCity || b.destCity || 'Drop City',
+      expectedDate: b.expectedDate || b.bookingDate || b.travelDate || 'Scheduled',
+      petSpecies: b.petSpecies || 'Dog',
+      petBreed: b.petBreed || 'Pet',
+      quoteAmount: b.quoteAmount || b.packagePrice || b.totalAmount,
+      relocationType: b.relocationType || b.packageName || 'Confirmed Relocation Booking',
+      providerReply: b.providerReply || `Booking confirmed! Assigned coordinator (${b.leadCoordinator || 'Logistics Lead'}) will coordinate pre-transit pickup.`
+    }));
+
+  const combined = [...storedBookings, ...storedEnquiries];
+  const seen = new Set();
+  const deduped = [];
+  for (const item of combined) {
+    const key = item.id || `${item.createdAt}-${item.providerId}`;
+    if (!seen.has(key)) {
+      seen.add(key);
+      deduped.push(item);
+    }
+  }
+
+  return deduped.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+};
+
 export const getUserTransportEnquiries = (user) => {
-  const current = getStoredTransportEnquiries();
-  if (!user) return [];
-  return current.filter(e => 
-    e.userId === user.id || 
-    e.userId === user._id || 
-    e.userEmail?.toLowerCase() === user.email?.toLowerCase() ||
-    e.userPhone === user.mobile
-  );
+  return getUserAllRelocationRequests(user);
 };
 
 export const getProviderTransportEnquiries = (providerIdOrName) => {

@@ -1,4 +1,34 @@
 import { supabase } from '../config/supabase.js';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const PRODUCTS_FILE = path.join(__dirname, '..', 'data', 'products.json');
+
+export const loadDiskProducts = () => {
+  try {
+    if (fs.existsSync(PRODUCTS_FILE)) {
+      const content = fs.readFileSync(PRODUCTS_FILE, 'utf8');
+      const parsed = JSON.parse(content);
+      if (Array.isArray(parsed)) return parsed;
+    }
+  } catch (err) {
+    console.warn('[DiskProducts] Error reading products.json:', err?.message);
+  }
+  return [];
+};
+
+export const saveDiskProducts = (products) => {
+  try {
+    const dir = path.dirname(PRODUCTS_FILE);
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+    fs.writeFileSync(PRODUCTS_FILE, JSON.stringify(products, null, 2), 'utf8');
+  } catch (err) {
+    console.warn('[DiskProducts] Error saving products.json:', err?.message);
+  }
+};
 
 // High-Performance In-Memory Cache (reduces round-trip Supabase latency from 3500ms down to ~2ms)
 const productCache = new Map();
@@ -137,15 +167,36 @@ export const getProducts = async (req, res) => {
 
     const { data: dbProducts, count: total, error } = await query;
     
-    if (error) throw error;
+    let finalProducts = [];
+    if (!error && Array.isArray(dbProducts)) {
+      finalProducts = dbProducts.map(normalizeProduct);
+    }
+
+    // Merge any products from disk (e.g. newly added by Product Sellers)
+    const disk = loadDiskProducts();
+    if (Array.isArray(disk) && disk.length > 0) {
+      const existingIds = new Set(finalProducts.map(p => String(p.id || p._id)));
+      const existingSlugs = new Set(finalProducts.map(p => p.slug));
+      
+      let extra = disk.filter(p => !existingIds.has(String(p.id || p._id)) && !existingSlugs.has(p.slug));
+      
+      // Apply basic filter to extra disk products if requested
+      if (petType) extra = extra.filter(p => (p.petType || p.pet_type) === petType);
+      if (category) extra = extra.filter(p => (p.category || '').toLowerCase().includes(category.toLowerCase()));
+      if (search) extra = extra.filter(p => (p.name || '').toLowerCase().includes(search.toLowerCase()) || (p.brand || '').toLowerCase().includes(search.toLowerCase()));
+
+      finalProducts = [...extra.map(normalizeProduct), ...finalProducts];
+    }
+
+    const totalCount = (total || 0) + (finalProducts.length > (dbProducts?.length || 0) ? (finalProducts.length - (dbProducts?.length || 0)) : 0);
 
     const payload = {
       success: true,
-      count: dbProducts?.length || 0,
-      total: total || 0,
+      count: finalProducts.length,
+      total: totalCount || finalProducts.length,
       page: pageNum,
-      pages: Math.ceil((total || 0) / limitNum),
-      products: (dbProducts || []).map(normalizeProduct)
+      pages: Math.ceil((totalCount || finalProducts.length) / limitNum) || 1,
+      products: finalProducts
     };
 
     productCache.set(cacheKey, { timestamp: Date.now(), data: payload });
@@ -153,7 +204,16 @@ export const getProducts = async (req, res) => {
     res.json(payload);
 
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    console.warn('[GetProducts] Supabase notice, falling back to disk products:', error?.message);
+    const disk = loadDiskProducts();
+    res.json({
+      success: true,
+      count: disk.length,
+      total: disk.length,
+      page: 1,
+      pages: 1,
+      products: disk.map(normalizeProduct)
+    });
   }
 };
 
@@ -163,17 +223,26 @@ export const getProducts = async (req, res) => {
 export const getProductBySlug = async (req, res) => {
   try {
     const { slug } = req.params;
-    let { data: product, error } = await supabase.from('products').select('*').eq('slug', slug).maybeSingle();
-    if (error) throw error;
+    let product = null;
 
-    // Fallback: check if slug is an id or case-insensitive match
+    if (supabase) {
+      try {
+        let { data: pFromDb, error } = await supabase.from('products').select('*').eq('slug', slug).maybeSingle();
+        if (!error && pFromDb) product = pFromDb;
+        if (!product) {
+          const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(slug);
+          if (isUUID) {
+            const { data: pById } = await supabase.from('products').select('*').eq('id', slug).maybeSingle();
+            if (pById) product = pById;
+          }
+        }
+      } catch (_) {}
+    }
+
+    // Fallback: check disk products.json
     if (!product) {
-      const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(slug);
-      if (isUUID) {
-        const { data: pById, error: idErr } = await supabase.from('products').select('*').eq('id', slug).maybeSingle();
-        if (idErr) throw idErr;
-        product = pById;
-      }
+      const disk = loadDiskProducts();
+      product = disk.find(p => p.slug === slug || (p.id || p._id) === slug);
     }
 
     if (!product) {
@@ -191,8 +260,20 @@ export const getProductBySlug = async (req, res) => {
 export const getProductById = async (req, res) => {
   try {
     const { id } = req.params;
-    const { data: product, error } = await supabase.from('products').select('*').eq('id', id).maybeSingle();
-    if (error) throw error;
+    let product = null;
+
+    if (supabase) {
+      try {
+        const { data: pFromDb } = await supabase.from('products').select('*').eq('id', id).maybeSingle();
+        if (pFromDb) product = pFromDb;
+      } catch (_) {}
+    }
+
+    if (!product) {
+      const disk = loadDiskProducts();
+      product = disk.find(p => (p.id || p._id) === id || p.slug === id);
+    }
+
     if (!product) {
       return res.status(404).json({ success: false, message: 'Product not found' });
     }
@@ -202,35 +283,115 @@ export const getProductById = async (req, res) => {
   }
 };
 
-// @desc    Create a product (Admin only)
+// @desc    Create a product (Admin or Product Seller)
 // @route   POST /api/products
-// @access  Private/Admin
+// @access  Private/Admin/ProductSeller
 export const createProduct = async (req, res) => {
-  const {
+  try {
+    const {
     name, brand, sku, description, longDescription, ingredients, specifications,
     price, discountPrice, stock, images, category, subcategory, petType,
-    isFeatured, isBestSeller, requiresPrescription
+    isFeatured, isBestSeller, requiresPrescription, sellerId, sellerName
   } = req.body;
 
-  const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
-
-  try {
-    const { data: newProduct, error } = await supabase.from('products').insert([{
-      name, slug, brand, sku, description, long_description: longDescription,
-      ingredients: ingredients || [], specifications: specifications || [],
-      price, discount_price: discountPrice, stock, images,
-      category, subcategory, pet_type: petType,
-      is_featured: isFeatured || false,
-      is_bestseller: isBestSeller || false,
-      requires_prescription: requiresPrescription || false
-    }]).select().single();
-
-    if (error) throw error;
-    clearProductCache();
-    res.status(201).json({ success: true, product: newProduct });
-  } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+  if (!name || price === undefined || price === null || price === '') {
+    return res.status(400).json({ success: false, message: 'Product name and price are required.' });
   }
+
+  const generatedId = 'prod_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7);
+  const baseSlug = (name || 'product').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
+  const slug = `${baseSlug}-${Date.now().toString().slice(-4)}`;
+  const resolvedSellerId = sellerId || req.user?._id || req.user?.id || 'seller_prod';
+  const resolvedSellerName = sellerName || req.user?.businessName || req.user?.name || 'Verified Product Seller';
+
+  const productObj = {
+    _id: generatedId,
+    id: generatedId,
+    name: name.trim(),
+    slug,
+    brand: (brand || 'Josh Pets Hub').trim(),
+    sku: sku || `SKU-${Date.now().toString().slice(-6).toUpperCase()}`,
+    description: description || '',
+    long_description: longDescription || description || '',
+    longDescription: longDescription || description || '',
+    ingredients: Array.isArray(ingredients) ? ingredients : (ingredients ? [ingredients] : []),
+    specifications: Array.isArray(specifications) ? specifications : [],
+    price: Number(price) || 0,
+    discount_price: discountPrice ? Number(discountPrice) : null,
+    discountPrice: discountPrice ? Number(discountPrice) : null,
+    stock: stock !== undefined && stock !== null && stock !== '' ? Number(stock) : 15,
+    images: Array.isArray(images) && images.length > 0 
+      ? images 
+      : ['https://images.unsplash.com/photo-1589924691995-400dc9ecc119?q=80&w=800'],
+    category: category || 'Dog Food',
+    subcategory: subcategory || category || 'Dog Food',
+    pet_type: (petType || 'dogs').toLowerCase(),
+    petType: (petType || 'dogs').toLowerCase(),
+    is_featured: Boolean(isFeatured),
+    isFeatured: Boolean(isFeatured),
+    is_bestseller: Boolean(isBestSeller),
+    isBestSeller: Boolean(isBestSeller),
+    requires_prescription: Boolean(requiresPrescription),
+    requiresPrescription: Boolean(requiresPrescription),
+    seller_id: resolvedSellerId,
+    seller_name: resolvedSellerName,
+    sellerId: resolvedSellerId,
+    sellerName: resolvedSellerName,
+    ratings: 5.0,
+    rating: 5.0,
+    review_count: 0,
+    reviewCount: 0,
+    created_at: new Date().toISOString()
+  };
+
+  let savedProduct = productObj;
+
+  // 1. Try Supabase
+  if (supabase) {
+    try {
+      const { data: newDbProduct, error: sbError } = await supabase.from('products').insert([{
+        name: productObj.name,
+        slug: productObj.slug,
+        brand: productObj.brand,
+        sku: productObj.sku,
+        description: productObj.description,
+        long_description: productObj.long_description,
+        ingredients: productObj.ingredients,
+        specifications: productObj.specifications,
+        price: productObj.price,
+        discount_price: productObj.discount_price,
+        stock: productObj.stock,
+        images: productObj.images,
+        category: productObj.category,
+        subcategory: productObj.subcategory,
+        pet_type: productObj.pet_type,
+        is_featured: productObj.is_featured,
+        is_bestseller: productObj.is_bestseller,
+        requires_prescription: productObj.requires_prescription
+      }]).select().maybeSingle();
+
+      if (!sbError && newDbProduct) {
+        savedProduct = { ...productObj, ...newDbProduct, id: newDbProduct.id || productObj.id, _id: newDbProduct.id || productObj._id };
+      }
+    } catch (err) {
+      console.warn('[CreateProduct] Supabase insert warning, persisting to disk fallback:', err?.message);
+    }
+  }
+
+  // 2. Persist to disk products.json
+  const diskProducts = loadDiskProducts();
+  diskProducts.unshift(savedProduct);
+  saveDiskProducts(diskProducts);
+
+  clearProductCache();
+  return res.status(201).json({
+    success: true,
+    product: normalizeProduct(savedProduct),
+    message: '🎉 Product posted successfully! It is now live in the Shop.'
+  });
+} catch (error) {
+  return res.status(500).json({ success: false, message: error.message });
+}
 };
 
 // @desc    Update a product (Admin only)

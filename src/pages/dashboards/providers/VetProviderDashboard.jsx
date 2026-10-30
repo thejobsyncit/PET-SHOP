@@ -5,10 +5,11 @@ import { logout, updateProfile, fetchProfile } from '../../../store/slices/authS
 import {
   PawPrint, Calendar, Star, TrendingUp, DollarSign, Clock, MapPin, 
   MessageSquare, Plus, Search, ChevronRight, Phone, ShieldCheck, Mail, Heart, Settings,
-  Tag, ShoppingBag, AlertCircle, LayoutDashboard, LogOut, CheckCircle, X, Send, CreditCard, Loader2, Edit3, Check, Stethoscope, FileText, Building
+  Tag, ShoppingBag, AlertCircle, LayoutDashboard, LogOut, CheckCircle, X, Send, CreditCard, Loader2, Edit3, Check, Stethoscope, FileText, Building, Receipt
 } from 'lucide-react';
 import { apiRequest } from '../../../services/api.js';
 import toast from 'react-hot-toast';
+import ProviderProfileSection from '../../../components/dashboards/ProviderProfileSection.jsx';
 import VetProviderContent from './content/VetProviderContent.jsx';
 import { 
   getVetAppointments, 
@@ -21,13 +22,16 @@ import {
 const VetProviderDashboard = ({ 
   currentProvider, 
   profiles, 
-  handleToggleOnline 
+  handleToggleOnline,
+  onOpenSubscriptionModal,
+  onOpenPlanDetails,
+  subscription
 }) => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
-  const rawTab = searchParams.get('tab') || localStorage.getItem('vetDashboardTab') || 'services';
-  const validTabs = ['appointments', 'services', 'records', 'messages', 'hours', 'reviews', 'wallet', 'profile'];
-  const activeTabParam = validTabs.includes(rawTab) ? rawTab : 'services';
+  const validTabs = ['profile', 'appointments', 'services', 'records', 'messages', 'hours', 'reviews', 'wallet'];
+  const rawTab = searchParams.get('tab') || localStorage.getItem('vetDashboardTab') || 'profile';
+  const activeTabParam = validTabs.includes(rawTab) ? rawTab : 'profile';
   const [activeTab, setActiveTab] = useState(activeTabParam);
 
   const { user } = useSelector(state => state.auth);
@@ -43,8 +47,33 @@ const VetProviderDashboard = ({
   const [vetChats, setVetChats] = useState(() => getStoredVetChats());
   const [vetServicesFees, setVetServicesFees] = useState(() => getStoredVetServicesFees());
 
-  const refreshVetStats = () => {
-    setVetAppointments(getVetAppointments());
+  const refreshVetStats = async () => {
+    let apps = getVetAppointments();
+    try {
+      const res = await apiRequest('/bookings/provider');
+      if (res && res.success && Array.isArray(res.bookings)) {
+        const vetBookings = res.bookings.filter(b => 
+          (b.serviceType && b.serviceType.toLowerCase().includes('vet')) ||
+          (b.serviceCategory && b.serviceCategory.toLowerCase().includes('vet')) ||
+          b.doctorId || b.doctorName
+        );
+        const existingIds = new Set(apps.map(a => a.id || a._id));
+        let changed = false;
+        for (const vb of vetBookings) {
+          if (!existingIds.has(vb.id || vb._id)) {
+            apps = [vb, ...apps];
+            existingIds.add(vb.id || vb._id);
+            changed = true;
+          }
+        }
+        if (changed) {
+          localStorage.setItem('joshpetshub_vet_appointments', JSON.stringify(apps));
+        }
+      }
+    } catch (e) {
+      console.warn('Error fetching provider bookings for vet stats:', e);
+    }
+    setVetAppointments(apps);
     setVetWallet(getStoredVetWallet());
     setVetPrescriptions(getStoredVetPrescriptions());
     setVetChats(getStoredVetChats());
@@ -54,7 +83,13 @@ const VetProviderDashboard = ({
   useEffect(() => {
     refreshVetStats();
     window.addEventListener('vet-data-updated', refreshVetStats);
-    return () => window.removeEventListener('vet-data-updated', refreshVetStats);
+    window.addEventListener('service-booking-updated', refreshVetStats);
+    window.addEventListener('storage', refreshVetStats);
+    return () => {
+      window.removeEventListener('vet-data-updated', refreshVetStats);
+      window.removeEventListener('service-booking-updated', refreshVetStats);
+      window.removeEventListener('storage', refreshVetStats);
+    };
   }, []);
 
   useEffect(() => {
@@ -201,6 +236,10 @@ const VetProviderDashboard = ({
   }, [activeTabParam]);
 
   const handleTabChange = (tabName) => {
+    if (tabName === 'plan-details' || tabName === 'invoice') {
+      if (onOpenPlanDetails) onOpenPlanDetails();
+      return;
+    }
     setActiveTab(tabName);
     setSearchParams({ tab: tabName });
     localStorage.setItem('vetDashboardTab', tabName);
@@ -521,6 +560,25 @@ const VetProviderDashboard = ({
   const displayAvatar = user?.avatar || user?.profilePicture || currentProvider?.avatar || 'https://images.unsplash.com/photo-1629909615184-74f495363b67?q=80&w=800&auto=format&fit=crop';
   const displayName = user?.name || currentProvider?.name || 'Dr. Ramesh Kumar';
 
+  const currentSub = subscription || user?.subscription;
+  const isSubActive = Boolean(
+    currentSub &&
+    currentSub.status === 'ACTIVE' &&
+    (!currentSub.expiryDate || new Date(currentSub.expiryDate) > new Date())
+  );
+
+  const vetMenuItems = [
+    { id: 'profile', label: 'Clinic Profile & Plan', icon: Building },
+    ...(isSubActive ? [{ id: 'plan-details', label: 'Plan Details & Invoice', icon: Receipt }] : []),
+    { id: 'appointments', label: 'Appointments & Queue', count: pendingAppointments.length, icon: Calendar },
+    { id: 'services', label: 'Clinical Services & Fees', count: activeServicesCount, icon: Stethoscope },
+    { id: 'records', label: 'E-Prescriptions & Records', count: vetPrescriptions.length, icon: FileText },
+    { id: 'messages', label: 'Tele-Consult Messages', count: vetChats.length, icon: MessageSquare },
+    { id: 'hours', label: 'Clinic Hours & Slots', icon: Clock },
+    { id: 'reviews', label: 'Patient Reviews', extra: '4.9 ★', icon: Star },
+    { id: 'wallet', label: 'Wallet & Payouts', icon: DollarSign }
+  ];
+
   return (
     <div className="min-h-auto lg:h-screen bg-[#FAF9F5] text-slate-900 font-sans selection:bg-[#0F2E23]/20 selection:text-[#0F2E23] flex flex-col lg:flex-row">
       
@@ -604,16 +662,7 @@ const VetProviderDashboard = ({
           <nav className="space-y-1.5 pt-4">
             <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 px-3">Main Menu</div>
             <ul className="space-y-1">
-              {[
-                { id: 'appointments', label: 'Appointments & Queue', count: pendingAppointments.length, icon: Calendar },
-                { id: 'services', label: 'Clinical Services & Fees', count: activeServicesCount, icon: Stethoscope },
-                { id: 'records', label: 'E-Prescriptions & Records', count: vetPrescriptions.length, icon: FileText },
-                { id: 'messages', label: 'Tele-Consult Messages', count: vetChats.length, icon: MessageSquare },
-                { id: 'hours', label: 'Clinic Hours & Slots', icon: Clock },
-                { id: 'reviews', label: 'Patient Reviews', extra: '4.9 ★', icon: Star },
-                { id: 'wallet', label: 'Wallet & Payouts', icon: DollarSign },
-                { id: 'profile', label: 'Clinic Registration & Profile', icon: Building }
-              ].map(item => (
+              {vetMenuItems.map(item => (
                 <li key={item.id}>
                   <button
                     onClick={() => handleTabChange(item.id)}
@@ -671,91 +720,88 @@ const VetProviderDashboard = ({
       <main className="flex-1 min-w-0 px-6 lg:px-8 pt-12 pb-10 overflow-x-hidden">
         
         {/* Header Area */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
-          <div>
-            <h1 className="text-3xl font-sans font-black text-[#0F2E23] tracking-tight">
-              Veterinary Dashboard
-            </h1>
-            <p className="text-sm text-slate-500 font-medium mt-1">
-              Manage your appointments, patients, and digital prescriptions.
-            </p>
-          </div>
-
-        </div>
-
-        {/* 
-          ========================================================
-          CUSTOM SELLER KPI METRICS
-          ========================================================
-        */}
-        <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 sm:gap-5 mb-10">
-          
-          <div className="bg-white border border-slate-200 p-5 rounded-2xl hover:border-[#0F2E23]/30 transition duration-300 shadow-sm hover:shadow-md group">
-            <div className="flex justify-between items-center mb-4">
-              <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Total Appointments</span>
-              <div className="w-8 h-8 rounded-lg bg-slate-50 text-slate-400 flex items-center justify-center group-hover:scale-110 transition duration-300 border border-slate-100">
-                <PawPrint size={16} />
+        {activeTab !== 'profile' ? (
+          <>
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
+              <div>
+                <h1 className="text-3xl font-sans font-black text-[#0F2E23] tracking-tight">
+                  Veterinary Clinic Dashboard
+                </h1>
+                <p className="text-sm text-slate-500 font-medium mt-1">
+                  Manage patient appointments, clinic services, e-prescriptions, and client consultations.
+                </p>
               </div>
             </div>
-            <div className="text-3xl font-sans font-black text-[#0F2E23] mb-1">{stats.totalAppointments}</div>
-            <div className="text-[10px] text-slate-500 font-black uppercase tracking-wider mt-2">All time</div>
-          </div>
 
-          <div className="bg-white border border-slate-200 p-5 rounded-2xl hover:border-emerald-500/50 transition duration-300 shadow-sm hover:shadow-md group relative overflow-hidden">
-            <div className="absolute inset-0 bg-gradient-to-br from-emerald-50/50 to-transparent pointer-events-none"></div>
-            <div className="flex justify-between items-center mb-4 relative z-10">
-              <span className="text-[10px] font-black text-emerald-600 uppercase tracking-widest">Pending Patients</span>
-              <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-500 flex items-center justify-center group-hover:scale-110 transition duration-300 border border-emerald-100">
-                <Clock size={16} />
+            {/* CUSTOM VET KPI METRICS */}
+            <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 sm:gap-5 mb-10">
+              <div className="bg-white border border-slate-200 p-5 rounded-2xl hover:border-[#0F2E23]/30 transition duration-300 shadow-sm hover:shadow-md group">
+                <div className="flex justify-between items-center mb-4">
+                  <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Total Appointments</span>
+                  <div className="w-8 h-8 rounded-lg bg-slate-50 text-slate-400 flex items-center justify-center group-hover:scale-110 transition duration-300 border border-slate-100">
+                    <PawPrint size={16} />
+                  </div>
+                </div>
+                <div className="text-3xl font-sans font-black text-[#0F2E23] mb-1">{stats.totalAppointments}</div>
+                <div className="text-[10px] text-slate-500 font-black uppercase tracking-wider mt-2">All time</div>
+              </div>
+
+              <div className="bg-white border border-slate-200 p-5 rounded-2xl hover:border-emerald-500/50 transition duration-300 shadow-sm hover:shadow-md group relative overflow-hidden">
+                <div className="absolute inset-0 bg-gradient-to-br from-emerald-50/50 to-transparent pointer-events-none"></div>
+                <div className="flex justify-between items-center mb-4 relative z-10">
+                  <span className="text-[10px] font-black text-emerald-600 uppercase tracking-widest">Pending Patients</span>
+                  <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-500 flex items-center justify-center group-hover:scale-110 transition duration-300 border border-emerald-100">
+                    <Clock size={16} />
+                  </div>
+                </div>
+                <div className="text-3xl font-sans font-black text-[#0F2E23] mb-1 relative z-10">{stats.pendingPatients}</div>
+                <div className="text-[10px] text-emerald-600 font-black uppercase tracking-wider mt-2 relative z-10">In queue</div>
+              </div>
+
+              <div className="bg-white border border-slate-200 p-5 rounded-2xl hover:border-rose-500/50 transition duration-300 shadow-sm hover:shadow-md group relative overflow-hidden">
+                <div className="absolute inset-0 bg-gradient-to-br from-rose-50/50 to-transparent pointer-events-none"></div>
+                <div className="flex justify-between items-center mb-4 relative z-10">
+                  <span className="text-[10px] font-black text-rose-600 uppercase tracking-widest">Completed Consults</span>
+                  <div className="w-8 h-8 rounded-lg bg-rose-50 text-rose-500 flex items-center justify-center group-hover:scale-110 transition duration-300 border border-rose-100">
+                    <CheckCircle size={16} />
+                  </div>
+                </div>
+                <div className="text-3xl font-sans font-black text-[#0F2E23] mb-1 relative z-10">{stats.completedConsults}</div>
+                <div className="text-[10px] text-rose-600 font-black uppercase tracking-wider mt-2 relative z-10">Treated patients</div>
+              </div>
+
+              <div className="bg-white border border-slate-200 p-5 rounded-2xl hover:border-[#ffd000]/80 transition duration-300 shadow-sm hover:shadow-md group relative overflow-hidden">
+                <div className="absolute inset-0 bg-gradient-to-br from-[#ffd000]/10 to-transparent pointer-events-none"></div>
+                <div className="flex justify-between items-center mb-4 relative z-10">
+                  <span className="text-[10px] font-black text-amber-600 uppercase tracking-widest">Total Earnings</span>
+                  <div className="w-8 h-8 rounded-lg bg-amber-50 text-amber-500 flex items-center justify-center group-hover:scale-110 transition duration-300 border border-amber-100">
+                    <DollarSign size={16} />
+                  </div>
+                </div>
+                <div className="flex items-end gap-2 mb-1 relative z-10">
+                  <div className="text-2xl font-sans font-black text-[#0F2E23]">₹{stats.revenue.toLocaleString('en-IN')}</div>
+                </div>
+                <div className="text-[10px] text-amber-600 font-black uppercase tracking-wider mt-2 relative z-10">
+                  {stats.completedConsults} completed consultations
+                </div>
+              </div>
+
+              <div className="bg-white border border-slate-200 p-5 rounded-2xl hover:border-sky-500/50 transition duration-300 shadow-sm hover:shadow-md group relative overflow-hidden">
+                <div className="absolute inset-0 bg-gradient-to-br from-sky-50/50 to-transparent pointer-events-none"></div>
+                <div className="flex justify-between items-center mb-4 relative z-10">
+                  <span className="text-[10px] font-black text-sky-600 uppercase tracking-widest">Discounts Given</span>
+                  <div className="w-8 h-8 rounded-lg bg-sky-50 text-sky-500 flex items-center justify-center group-hover:scale-110 transition duration-300 border border-sky-100">
+                    <Tag size={16} />
+                  </div>
+                </div>
+                <div className="flex items-end gap-2 mb-1 relative z-10">
+                  <div className="text-2xl font-sans font-black text-[#0F2E23]">₹{stats.discounts.toLocaleString('en-IN')}</div>
+                </div>
+                <div className="text-[10px] text-sky-600 font-black uppercase tracking-wider mt-2 relative z-10">Total savings offered</div>
               </div>
             </div>
-            <div className="text-3xl font-sans font-black text-[#0F2E23] mb-1 relative z-10">{stats.pendingPatients}</div>
-            <div className="text-[10px] text-emerald-600 font-black uppercase tracking-wider mt-2 relative z-10">In queue</div>
-          </div>
-
-          <div className="bg-white border border-slate-200 p-5 rounded-2xl hover:border-rose-500/50 transition duration-300 shadow-sm hover:shadow-md group relative overflow-hidden">
-            <div className="absolute inset-0 bg-gradient-to-br from-rose-50/50 to-transparent pointer-events-none"></div>
-            <div className="flex justify-between items-center mb-4 relative z-10">
-              <span className="text-[10px] font-black text-rose-600 uppercase tracking-widest">Completed Consults</span>
-              <div className="w-8 h-8 rounded-lg bg-rose-50 text-rose-500 flex items-center justify-center group-hover:scale-110 transition duration-300 border border-rose-100">
-                <CheckCircle size={16} />
-              </div>
-            </div>
-            <div className="text-3xl font-sans font-black text-[#0F2E23] mb-1 relative z-10">{stats.completedConsults}</div>
-            <div className="text-[10px] text-rose-600 font-black uppercase tracking-wider mt-2 relative z-10">Treated patients</div>
-          </div>
-
-          <div className="bg-white border border-slate-200 p-5 rounded-2xl hover:border-[#ffd000]/80 transition duration-300 shadow-sm hover:shadow-md group relative overflow-hidden">
-             <div className="absolute inset-0 bg-gradient-to-br from-[#ffd000]/10 to-transparent pointer-events-none"></div>
-            <div className="flex justify-between items-center mb-4 relative z-10">
-              <span className="text-[10px] font-black text-amber-600 uppercase tracking-widest">Total Earnings</span>
-              <div className="w-8 h-8 rounded-lg bg-amber-50 text-amber-500 flex items-center justify-center group-hover:scale-110 transition duration-300 border border-amber-100">
-                <DollarSign size={16} />
-              </div>
-            </div>
-            <div className="flex items-end gap-2 mb-1 relative z-10">
-              <div className="text-2xl font-sans font-black text-[#0F2E23]">₹{stats.revenue.toLocaleString('en-IN')}</div>
-            </div>
-            <div className="text-[10px] text-amber-600 font-black uppercase tracking-wider mt-2 relative z-10">
-              {stats.completedConsults} completed consultations
-            </div>
-          </div>
-
-          <div className="bg-white border border-slate-200 p-5 rounded-2xl hover:border-sky-500/50 transition duration-300 shadow-sm hover:shadow-md group relative overflow-hidden">
-            <div className="absolute inset-0 bg-gradient-to-br from-sky-50/50 to-transparent pointer-events-none"></div>
-            <div className="flex justify-between items-center mb-4 relative z-10">
-              <span className="text-[10px] font-black text-sky-600 uppercase tracking-widest">Discounts Given</span>
-              <div className="w-8 h-8 rounded-lg bg-sky-50 text-sky-500 flex items-center justify-center group-hover:scale-110 transition duration-300 border border-sky-100">
-                <Tag size={16} />
-              </div>
-            </div>
-            <div className="flex items-end gap-2 mb-1 relative z-10">
-              <div className="text-2xl font-sans font-black text-[#0F2E23]">₹{stats.discounts.toLocaleString('en-IN')}</div>
-            </div>
-            <div className="text-[10px] text-sky-600 font-black uppercase tracking-wider mt-2 relative z-10">Total savings offered</div>
-          </div>
-
-        </div>
+          </>
+        ) : null}
 
         {/* 
           ========================================================
@@ -763,7 +809,15 @@ const VetProviderDashboard = ({
           ========================================================
         */}
         <div className="bg-white rounded-3xl p-8 lg:p-4 lg:p-10 border border-slate-200 min-h-[500px] shadow-sm">
-          <VetProviderContent activeTab={activeTab} />
+          {activeTab === 'profile' ? (
+            <ProviderProfileSection
+              serviceCategory="Consult a Vet"
+              onOpenSubscriptionModal={onOpenSubscriptionModal}
+              onOpenPlanDetails={onOpenPlanDetails}
+            />
+          ) : (
+            <VetProviderContent activeTab={activeTab} currentProvider={currentProvider} />
+          )}
         </div>
       </main>
 

@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import { apiRequest } from '../../../services/api.js';
 import toast from 'react-hot-toast';
+import ProviderProfileSection from '../../../components/dashboards/ProviderProfileSection.jsx';
 import GroomingProviderContent from './content/GroomingProviderContent.jsx';
 
 import { safeSetItem, safeGetItem } from '../../../utils/safeStorage.js';
@@ -16,12 +17,15 @@ import { safeSetItem, safeGetItem } from '../../../utils/safeStorage.js';
 const GroomingProviderDashboard = ({ 
   currentProvider, 
   profiles, 
-  handleToggleOnline 
+  handleToggleOnline,
+  onOpenSubscriptionModal,
+  onOpenPlanDetails,
+  subscription
 }) => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const storedTab = safeGetItem('groomingDashboardTab');
-  const activeTabParam = searchParams.get('tab') || storedTab || 'appointments';
+  const activeTabParam = searchParams.get('tab') || storedTab || 'profile';
   const [activeTab, setActiveTab] = useState(activeTabParam);
 
   const { user } = useSelector(state => state.auth);
@@ -554,14 +558,14 @@ const GroomingProviderDashboard = ({
             <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 px-3">Main Menu</div>
             <ul className="space-y-1">
               {[
+                { id: 'profile', label: 'Studio Profile & Plan', icon: Building },
                 { id: 'appointments', label: 'Spa Appointments & Queue', count: 4, icon: Calendar },
                 { id: 'packages', label: 'Grooming Packages & Pricing', count: 6, icon: Tag },
                 { id: 'gallery', label: 'Before & After Gallery', count: 12, icon: Star },
                 { id: 'messages', label: 'Client Inquiries', count: 2, icon: MessageSquare },
                 { id: 'hours', label: 'Studio Hours & Slots', icon: Clock },
                 { id: 'reviews', label: 'Customer Reviews', extra: '4.8 ★', icon: Heart },
-                { id: 'wallet', label: 'Wallet & Payouts', icon: DollarSign },
-                { id: 'profile', label: 'Studio Registration & Profile', icon: Building }
+                { id: 'wallet', label: 'Wallet & Payouts', icon: DollarSign }
               ].map(item => (
                 <li key={item.id}>
                   <button
@@ -712,7 +716,15 @@ const GroomingProviderDashboard = ({
           ========================================================
         */}
         <div className="bg-white rounded-3xl p-8 lg:p-4 lg:p-10 border border-slate-200 min-h-[500px] shadow-sm">
-          <GroomingProviderContent activeTab={activeTab} />
+          {activeTab === 'profile' ? (
+            <ProviderProfileSection
+              serviceCategory="Pet Grooming Spa"
+              onOpenSubscriptionModal={onOpenSubscriptionModal}
+              onOpenPlanDetails={onOpenPlanDetails}
+            />
+          ) : (
+            <GroomingProviderContent activeTab={activeTab} />
+          )}
         </div>
       </main>
 

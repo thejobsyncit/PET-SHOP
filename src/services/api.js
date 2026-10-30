@@ -1,8 +1,17 @@
-const API_BASE_URL = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? 'https://pet-shop-server-ten.vercel.app/api' : 'http://localhost:5000/api');
+const API_BASE_URL = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? 'https://pet-shop-server-ten.vercel.app/api' : 'http://localhost:5001/api');
+
+// ⚡ Pre-warm production serverless backend on initial page load to eliminate cold start latency
+if (typeof window !== 'undefined' && import.meta.env.PROD) {
+  try {
+    const healthUrl = API_BASE_URL.replace(/\/api\/?$/, '') + '/health';
+    fetch(healthUrl, { method: 'GET', keepalive: true }).catch(() => {});
+  } catch {
+    // Non-blocking pre-warm ping
+  }
+}
 
 const getHeaders = () => {
   let token = localStorage.getItem('joshpetshub_token');
-
 
   const headers = {
     'Content-Type': 'application/json',
@@ -27,6 +36,11 @@ export const apiRequest = async (endpoint, options = {}) => {
       ...options.headers,
     },
   };
+
+  // Safe timeout (15s default) to prevent requests hanging indefinitely on cold network
+  if (!config.signal && typeof AbortSignal !== 'undefined' && typeof AbortSignal.timeout === 'function') {
+    config.signal = AbortSignal.timeout(options.timeout || 15000);
+  }
 
   try {
     const response = await fetch(url, config);

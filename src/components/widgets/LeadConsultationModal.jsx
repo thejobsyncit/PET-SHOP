@@ -7,6 +7,9 @@ import {
 import toast from 'react-hot-toast';
 import { useDispatch, useSelector } from 'react-redux';
 import { register } from '../../store/slices/authSlice.js';
+import { fetchCart, openCart } from '../../store/slices/cartSlice.js';
+import { fetchWishlist } from '../../store/slices/wishlistSlice.js';
+import { validateEmailFormat } from '../../utils/emailValidator.js';
 
 // Country Dial Codes with flags, ISO standards & national phone number lengths
 const COUNTRY_DIAL_CODES = [
@@ -74,6 +77,7 @@ import { INDIAN_STATES_DISTRICTS } from '../../data/indiaLocations.js';
 const INDIAN_STATES_CITIES = INDIAN_STATES_DISTRICTS;
 
 const providerServiceCategories = [
+  'Product Seller',
   'Pet Seller',
   'Pet Adoption',
   'Pet Hostel / Boarding',
@@ -254,6 +258,7 @@ const LeadConsultationModal = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('user'); // 'user' or 'provider'
   const [hideProviderTab, setHideProviderTab] = useState(false);
+  const [regSource, setRegSource] = useState('');
 
   // Password Visibility Toggle State
   const [showUserPassword, setShowUserPassword] = useState(false);
@@ -269,16 +274,18 @@ const LeadConsultationModal = () => {
   const [userPurpose, setUserPurpose] = useState('');
   const [userEmail, setUserEmail] = useState('');
   const [userPassword, setUserPassword] = useState('');
-  const [userState, setUserState] = useState('Gujarat');
+  const [userState, setUserState] = useState('');
   const [userCitySearch, setUserCitySearch] = useState('');
   const [selectedUserCity, setSelectedUserCity] = useState('');
   const [isUserCityDropdownOpen, setIsUserCityDropdownOpen] = useState(false);
 
   // Validation Error States for User
+  const [userFullNameError, setUserFullNameError] = useState('');
   const [userMobileError, setUserMobileError] = useState('');
   const [userWhatsappError, setUserWhatsappError] = useState('');
   const [userPurposeError, setUserPurposeError] = useState('');
   const [userPasswordError, setUserPasswordError] = useState('');
+  const [userEmailError, setUserEmailError] = useState('');
 
   // Service Provider Registration States
   const [providerBusinessName, setProviderBusinessName] = useState('');
@@ -290,7 +297,7 @@ const LeadConsultationModal = () => {
   const [providerCategory, setProviderCategory] = useState('Pet Seller');
   const [providerEmail, setProviderEmail] = useState('');
   const [providerPassword, setProviderPassword] = useState('');
-  const [providerState, setProviderState] = useState('Gujarat');
+  const [providerState, setProviderState] = useState('');
   const [providerCitySearch, setProviderCitySearch] = useState('');
   const [selectedProviderCity, setSelectedProviderCity] = useState('');
   const [isProviderCityDropdownOpen, setIsProviderCityDropdownOpen] = useState(false);
@@ -307,15 +314,30 @@ const LeadConsultationModal = () => {
 
   const indianStates = Object.keys(INDIAN_STATES_CITIES);
 
-  // PASSWORD COMPLEXITY VALIDATOR (Max 10 chars, >=1 Capital, >=1 Small, >=1 Number, >=1 Special Char)
+  // PASSWORD COMPLEXITY VALIDATOR (8-10 chars, >=1 Capital, >=1 Small, >=1 Number, >=1 Special Char)
   const validatePassword = (pwd) => {
     if (!pwd) return 'Password is required *';
+    if (pwd.length < 8) return 'Password must be at least 8 characters *';
     if (pwd.length > 10) return 'Password total length must not exceed 10 characters *';
     if (!/[A-Z]/.test(pwd)) return 'Must contain at least 1 capital letter (A-Z) *';
     if (!/[a-z]/.test(pwd)) return 'Must contain at least 1 small letter (a-z) *';
     if (!/[0-9]/.test(pwd)) return 'Must contain at least 1 number (0-9) *';
     if (!/[!@#$%^&*(),.?":{}|<>]/.test(pwd)) return 'Must contain at least 1 special character (!@#$%^&*) *';
     return '';
+  };
+
+  // Full Name handler (Mandatory & Alphabets only)
+  const handleUserFullNameChange = (e) => {
+    const raw = e.target.value;
+    const cleaned = raw.replace(/[^a-zA-Z\s]/g, '');
+    setUserFullName(cleaned);
+    if (raw !== cleaned) {
+      setUserFullNameError('Full Name should contain alphabets only *');
+    } else if (!cleaned.trim()) {
+      setUserFullNameError('Full Name is required *');
+    } else {
+      setUserFullNameError('');
+    }
   };
 
   // NUMERIC INPUT HANDLER WITH DYNAMIC LENGTH
@@ -469,6 +491,7 @@ const LeadConsultationModal = () => {
       );
       setHideProviderTab(hideProvider);
       setActiveTab(tab);
+      setRegSource(e?.detail?.source || '');
       setIsOpen(true);
     };
     window.addEventListener('open-register-modal', handleOpenRegister);
@@ -496,6 +519,7 @@ const LeadConsultationModal = () => {
   const handleClose = () => {
     setIsOpen(false);
     setHideProviderTab(false);
+    setRegSource('');
     sessionStorage.setItem('joshpetshub_lead_modal_closed', 'true');
   };
 
@@ -540,6 +564,7 @@ const LeadConsultationModal = () => {
   const checkEmailAlreadyRegistered = (email) => {
     if (!email) return false;
     const clean = email.trim().toLowerCase();
+    if (clean === 'sooryas650@gmail.com') return false; // Developer testing account
     if (EXISTING_SYSTEM_EMAILS.includes(clean)) return true;
     try {
       const list = JSON.parse(localStorage.getItem('joshpetshub_registered_users') || '[]');
@@ -558,92 +583,131 @@ const LeadConsultationModal = () => {
 
   // Submit Handler for User Registration
   const handleUserSubmit = async (e) => {
-    e.preventDefault();
-
-    // 1. Mobile validation based on selected country
-    const expectedMobileLength = getRequiredPhoneLength(userCountryCode);
-    if (!userMobileNo || userMobileNo.length !== expectedMobileLength) {
-      setUserMobileError(
-        !userMobileNo
-          ? 'Mobile number is required *'
-          : `Mobile number must be exactly ${expectedMobileLength} digits (${userMobileNo.length}/${expectedMobileLength}) *`
-      );
-      toast.error(`Mobile number must be exactly ${expectedMobileLength} digits for ${userCountryCode}!`);
-      return;
+    if (e && typeof e.preventDefault === 'function') {
+      e.preventDefault();
     }
-    setUserMobileError('');
-
-    // 2. WhatsApp validation based on selected country (MANDATORY)
-    const expectedWhatsappLength = getRequiredPhoneLength(userWhatsappCountryCode);
-    if (!userWhatsappNo || userWhatsappNo.length !== expectedWhatsappLength) {
-      setUserWhatsappError(
-        !userWhatsappNo
-          ? 'WhatsApp number is required *'
-          : `WhatsApp number must be exactly ${expectedWhatsappLength} digits (${userWhatsappNo.length}/${expectedWhatsappLength}) *`
-      );
-      toast.error(`WhatsApp number is mandatory and must be ${expectedWhatsappLength} digits for ${userWhatsappCountryCode}!`);
-      return;
-    }
-    setUserWhatsappError('');
-
-    // 3. "I'm here for" validation (MANDATORY)
-    if (!userPurpose) {
-      setUserPurposeError('Please select what you are here for *');
-      toast.error('Please select an option for "I\'m here for"!');
-      return;
-    }
-    setUserPurposeError('');
-
-    // 4. Password validation
-    const pwdErr = validatePassword(userPassword);
-    if (pwdErr) {
-      setUserPasswordError(pwdErr);
-      toast.error(pwdErr);
-      return;
-    }
-    setUserPasswordError('');
-
-    // 5. Email duplicate validation
-    if (userEmail && userEmail.trim()) {
-      if (checkEmailAlreadyRegistered(userEmail)) {
-        setUserEmailError('This email is already registered. Please log in or use a different email *');
-        toast.error('An account with this email address already exists! Please log in instead.');
-        return;
-      }
-    }
-    setUserEmailError('');
-
-    // 6. District / Location validation
-    const finalUserLocationCity = (selectedUserCity || userCitySearch).trim();
-    if (!finalUserLocationCity) {
-      toast.error('Please select your district / city *');
-      return;
-    }
-
-    const payload = {
-      name: userFullName || 'Pet Lover',
-      email: userEmail || `user_${userMobileNo}@joshpetshub.com`,
-      mobile: userMobileNo,
-      mobileCountryCode: userCountryCode,
-      whatsapp: userWhatsappNo,
-      whatsappCountryCode: userWhatsappCountryCode,
-      purpose: userPurpose,
-      password: userPassword,
-      role: 'CUSTOMER',
-      location: `${finalUserLocationCity}, ${userState}`
-    };
 
     try {
+      // 0. Full Name validation (Mandatory & Alphabets only)
+      if (!userFullName || !userFullName.trim()) {
+        setUserFullNameError('Full Name is required *');
+        toast.error('Full Name is required *');
+        return;
+      }
+      if (!/^[a-zA-Z\s]+$/.test(userFullName.trim())) {
+        setUserFullNameError('Full Name should contain alphabets only *');
+        toast.error('Full Name should contain alphabets only *');
+        return;
+      }
+      setUserFullNameError('');
+
+      // 1. Mobile validation based on selected country
+      const expectedMobileLength = getRequiredPhoneLength(userCountryCode);
+      if (!userMobileNo || userMobileNo.length !== expectedMobileLength) {
+        setUserMobileError(
+          !userMobileNo
+            ? 'Mobile number is required *'
+            : `Mobile number must be exactly ${expectedMobileLength} digits (${userMobileNo.length}/${expectedMobileLength}) *`
+        );
+        toast.error(`Mobile number must be exactly ${expectedMobileLength} digits for ${userCountryCode}!`);
+        return;
+      }
+      setUserMobileError('');
+
+      // 2. WhatsApp validation based on selected country (MANDATORY)
+      const expectedWhatsappLength = getRequiredPhoneLength(userWhatsappCountryCode);
+      if (!userWhatsappNo || userWhatsappNo.length !== expectedWhatsappLength) {
+        setUserWhatsappError(
+          !userWhatsappNo
+            ? 'WhatsApp number is required *'
+            : `WhatsApp number must be exactly ${expectedWhatsappLength} digits (${userWhatsappNo.length}/${expectedWhatsappLength}) *`
+        );
+        toast.error(`WhatsApp number is mandatory and must be ${expectedWhatsappLength} digits for ${userWhatsappCountryCode}!`);
+        return;
+      }
+      setUserWhatsappError('');
+
+      // 3. "I'm here for" validation (MANDATORY)
+      if (!userPurpose) {
+        setUserPurposeError('Please select what you are here for *');
+        toast.error('Please select an option for "I\'m here for"!');
+        return;
+      }
+      setUserPurposeError('');
+
+      // 4. Password validation
+      const pwdErr = validatePassword(userPassword);
+      if (pwdErr) {
+        setUserPasswordError(pwdErr);
+        toast.error(pwdErr);
+        return;
+      }
+      setUserPasswordError('');
+
+      // 5. Email format and duplicate validation
+      if (userEmail && userEmail.trim()) {
+        const emailValidation = validateEmailFormat(userEmail.trim());
+        if (!emailValidation.isValid) {
+          setUserEmailError(emailValidation.message + ' *');
+          toast.error(emailValidation.message);
+          return;
+        }
+        if (checkEmailAlreadyRegistered(userEmail)) {
+          setUserEmailError('This email is already registered. Please log in or use a different email *');
+          toast.error('An account with this email address already exists! Please log in instead.');
+          return;
+        }
+      }
+      setUserEmailError('');
+
+      // 6. District / Location validation
+      if (!userState) {
+        toast.error('Please select your state *');
+        return;
+      }
+      const finalUserLocationCity = (selectedUserCity || userCitySearch).trim();
+      if (!finalUserLocationCity) {
+        toast.error('Please select your district / city *');
+        return;
+      }
+
+      const payload = {
+        name: userFullName.trim(),
+        email: userEmail || `user_${userMobileNo}@joshpetshub.com`,
+        mobile: userMobileNo,
+        mobileCountryCode: userCountryCode,
+        whatsapp: userWhatsappNo,
+        whatsappCountryCode: userWhatsappCountryCode,
+        purpose: userPurpose,
+        password: userPassword,
+        role: 'CUSTOMER',
+        location: `${finalUserLocationCity}, ${userState}`
+      };
+
       const result = await dispatch(register(payload));
       if (register.fulfilled.match(result)) {
-        toast.success(`🎉 Welcome ${userFullName || 'Pet Parent'}! Account registered successfully.`);
+        toast.success(`🎉 Welcome ${userFullName.trim()}! Account registered successfully.`);
+        const sourceAfter = regSource;
         handleClose();
+        dispatch(fetchCart());
+        dispatch(fetchWishlist());
+        if (sourceAfter === 'cart' || sourceAfter === 'cart-mobile') {
+          dispatch(openCart());
+          window.dispatchEvent(new CustomEvent('open-cart-drawer'));
+        } else if (sourceAfter === 'wishlist' || sourceAfter === 'wishlist-mobile' || sourceAfter === 'wishlist-page') {
+          navigate('/wishlist');
+        } else if (sourceAfter === 'buy-now') {
+          navigate('/checkout', { state: { isBuyNow: true } });
+        } else if (sourceAfter === 'checkout' || sourceAfter === 'checkout-page') {
+          navigate('/checkout', { state: { isBuyNow: false } });
+        }
       } else {
         const errorMsg = result?.payload || 'Registration failed. Email may already be registered.';
         setUserEmailError(errorMsg);
         toast.error(errorMsg);
       }
     } catch (err) {
+      console.error('User registration error:', err);
       toast.error(err?.message || 'Registration failed. Please try again.');
     }
   };
@@ -698,6 +762,10 @@ const LeadConsultationModal = () => {
     setProviderPasswordError('');
 
     // District / Location validation
+    if (!providerState) {
+      toast.error('Please select your business state *');
+      return;
+    }
     const finalProviderLocationCity = (selectedProviderCity || providerCitySearch).trim();
     if (!finalProviderLocationCity) {
       toast.error('Please select your business district / city *');
@@ -837,16 +905,35 @@ const LeadConsultationModal = () => {
               TAB 1: USER REGISTRATION FORM
              ============================================================= */}
           {activeTab === 'user' && (
-            <form onSubmit={handleUserSubmit} className="space-y-2.5">
+            <form onSubmit={handleUserSubmit} noValidate className="space-y-2.5">
               {/* Full Name */}
-              <div>
+              <div className="space-y-1">
                 <input
                   type="text"
-                  placeholder="Full Name"
+                  placeholder="Full Name *"
                   value={userFullName}
-                  onChange={(e) => setUserFullName(e.target.value)}
-                  className="w-full px-3.5 py-2 border border-slate-200 rounded-xl text-xs md:text-sm focus:outline-none focus:border-[#15559c] focus:ring-2 focus:ring-blue-100 transition bg-slate-50/50 hover:bg-white font-medium"
+                  onChange={handleUserFullNameChange}
+                  onBlur={() => {
+                    if (!userFullName.trim()) {
+                      setUserFullNameError('Full Name is required *');
+                    } else if (!/^[a-zA-Z\s]+$/.test(userFullName.trim())) {
+                      setUserFullNameError('Full Name should contain alphabets only *');
+                    } else {
+                      setUserFullNameError('');
+                    }
+                  }}
+                  className={`w-full px-3.5 py-2 border rounded-xl text-xs md:text-sm focus:outline-none transition font-medium ${
+                    userFullNameError
+                      ? 'border-red-500 ring-2 ring-red-100 bg-red-50/20'
+                      : 'border-slate-200 focus:border-[#15559c] focus:ring-2 focus:ring-blue-100 bg-slate-50/50 hover:bg-white'
+                  }`}
+                  required
                 />
+                {userFullNameError && (
+                  <p className="text-[11px] font-bold text-red-500 pl-1 flex items-center gap-1">
+                    <AlertCircle size={11} /> {userFullNameError}
+                  </p>
+                )}
               </div>
 
               {/* Mobile No with Country Code Selector & Strict Numbers Validation */}
@@ -962,14 +1049,26 @@ const LeadConsultationModal = () => {
 
               {/* Email & Password Grid */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                <div>
+                <div className="space-y-0.5">
                   <input
                     type="email"
                     placeholder="Email"
                     value={userEmail}
-                    onChange={(e) => setUserEmail(e.target.value)}
-                    className="w-full px-3.5 py-2 border border-slate-200 rounded-xl text-xs md:text-sm focus:outline-none focus:border-[#15559c] focus:ring-2 focus:ring-blue-100 transition bg-slate-50/50 hover:bg-white font-medium"
+                    onChange={(e) => {
+                      setUserEmail(e.target.value);
+                      if (userEmailError) setUserEmailError('');
+                    }}
+                    className={`w-full px-3.5 py-2 border rounded-xl text-xs md:text-sm focus:outline-none transition font-medium ${
+                      userEmailError
+                        ? 'border-red-500 ring-2 ring-red-100 text-red-900 bg-white'
+                        : 'border-slate-200 focus:border-[#15559c] focus:ring-2 focus:ring-blue-100 bg-slate-50/50 hover:bg-white'
+                    }`}
                   />
+                  {userEmailError && (
+                    <p className="text-[10px] font-bold text-red-500 pl-1 flex items-center gap-1">
+                      <AlertCircle size={10} /> {userEmailError}
+                    </p>
+                  )}
                 </div>
 
                 <div className="space-y-0.5">
@@ -977,7 +1076,7 @@ const LeadConsultationModal = () => {
                     <input
                       type={showUserPassword ? 'text' : 'password'}
                       maxLength={10}
-                      placeholder="Password *"
+                      placeholder="Password (8-10 chars) *"
                       value={userPassword}
                       onChange={(e) => {
                         const val = e.target.value;
@@ -1010,7 +1109,7 @@ const LeadConsultationModal = () => {
 
               {/* Password Rules Badge */}
               <div className="bg-blue-50/60 p-2 rounded-lg text-[9.5px] sm:text-[10px] text-[#0f3d6b] font-medium space-y-0.5 border border-blue-100 leading-tight">
-                <span className="font-bold text-[#15559c] block">Password Rules (Max 10 chars):</span>
+                <span className="font-bold text-[#15559c] block">Password Rules (8-10 chars):</span>
                 <p>• At least 1 Capital (A-Z), 1 Small (a-z), 1 Number (0-9), & 1 Special char (!@#$%^&*)</p>
               </div>
 
@@ -1022,102 +1121,28 @@ const LeadConsultationModal = () => {
                     onChange={handleUserStateChange}
                     className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs md:text-sm bg-slate-50/50 hover:bg-white focus:outline-none focus:border-[#15559c] focus:ring-2 focus:ring-blue-100 transition font-medium text-slate-700"
                   >
+                    <option value="">Select State</option>
                     {indianStates.map((s) => (
                       <option key={s} value={s}>{s}</option>
                     ))}
                   </select>
                 </div>
 
-                <div className="relative" ref={userCityRef}>
-                  <div className="relative flex items-center">
-                    <input
-                      type="text"
-                      placeholder="Select / Search District..."
-                      value={userCitySearch}
-                      onChange={(e) => {
-                        setUserCitySearch(e.target.value);
-                        setIsUserCityDropdownOpen(true);
-                      }}
-                      onFocus={() => setIsUserCityDropdownOpen(true)}
-                      className="w-full pl-8 pr-12 py-2 border border-slate-200 rounded-xl text-xs md:text-sm focus:outline-none focus:border-[#15559c] focus:ring-2 focus:ring-blue-100 transition bg-slate-50/50 hover:bg-white font-medium text-slate-800"
-                    />
-                    <Search size={13} className="absolute left-2.5 text-slate-400 pointer-events-none" />
-
-                    <div className="absolute right-2.5 flex items-center gap-1">
-                      {userCitySearch && (
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setUserCitySearch('');
-                            setSelectedUserCity('');
-                            setIsUserCityDropdownOpen(true);
-                          }}
-                          className="p-0.5 text-slate-400 hover:text-slate-600 rounded-full hover:bg-slate-100 transition cursor-pointer"
-                          title="Clear district"
-                        >
-                          <X size={12} />
-                        </button>
-                      )}
-                      <button
-                        type="button"
-                        onClick={() => setIsUserCityDropdownOpen(!isUserCityDropdownOpen)}
-                        className="p-0.5 text-slate-400 hover:text-slate-600 cursor-pointer"
-                        title="Toggle district dropdown"
-                      >
-                        <ChevronDown size={14} className={`transition-transform duration-200 ${isUserCityDropdownOpen ? 'rotate-180 text-[#15559c]' : ''}`} />
-                      </button>
-                    </div>
-                  </div>
-
-                  {isUserCityDropdownOpen && (
-                    <div className="absolute left-0 right-0 top-full mt-1 bg-white border border-slate-200 rounded-xl shadow-2xl z-50 max-h-48 overflow-y-auto divide-y divide-slate-100 animate-in fade-in zoom-in-95">
-                      <div className="px-3 py-1 bg-slate-50 text-[10px] font-bold text-slate-500 uppercase tracking-wider sticky top-0 flex items-center justify-between border-b border-slate-100 z-10">
-                        <span>{userState} Districts ({filteredUserCities.length})</span>
-                        <span className="text-[9px] font-normal text-slate-400">All districts</span>
-                      </div>
-                      {filteredUserCities.length > 0 ? (
-                        filteredUserCities.map((c) => {
-                          const isSelected = selectedUserCity === c;
-                          return (
-                            <div
-                              key={c}
-                              onClick={() => {
-                                setUserCitySearch(c);
-                                setSelectedUserCity(c);
-                                setIsUserCityDropdownOpen(false);
-                              }}
-                              className={`px-3 py-1.5 text-xs cursor-pointer flex items-center justify-between font-medium transition ${
-                                isSelected
-                                  ? 'bg-blue-50 text-[#15559c] font-bold'
-                                  : 'text-slate-700 hover:bg-slate-50 hover:text-[#15559c]'
-                              }`}
-                            >
-                              <div className="flex items-center gap-2">
-                                <MapPin size={10} className={isSelected ? 'text-[#15559c]' : 'text-slate-400'} />
-                                <span>{c}</span>
-                              </div>
-                              {isSelected && <Check size={12} className="text-[#15559c]" />}
-                            </div>
-                          );
-                        })
-                      ) : (
-                        <div className="px-3 py-2.5 text-[11px] text-slate-400 font-medium text-center">
-                          No matching district found.
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setSelectedUserCity(userCitySearch);
-                              setIsUserCityDropdownOpen(false);
-                            }}
-                            className="block mx-auto mt-1 text-[#15559c] font-bold hover:underline cursor-pointer"
-                          >
-                            Use "{userCitySearch}" as custom district
-                          </button>
-                        </div>
-                      )}
-                    </div>
-                  )}
+                <div>
+                  <select
+                    value={selectedUserCity || userCitySearch || ''}
+                    onChange={(e) => {
+                      setSelectedUserCity(e.target.value);
+                      setUserCitySearch(e.target.value);
+                    }}
+                    disabled={!userState}
+                    className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs md:text-sm bg-slate-50/50 hover:bg-white focus:outline-none focus:border-[#15559c] focus:ring-2 focus:ring-blue-100 transition font-medium text-slate-700 disabled:opacity-60 disabled:cursor-not-allowed"
+                  >
+                    <option value="">{userState ? 'Select District' : 'Select State first'}</option>
+                    {availableUserCities.map((d) => (
+                      <option key={d} value={d}>{d}</option>
+                    ))}
+                  </select>
                 </div>
               </div>
 
@@ -1334,102 +1359,28 @@ const LeadConsultationModal = () => {
                     onChange={handleProviderStateChange}
                     className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs md:text-sm bg-slate-50/50 hover:bg-white focus:outline-none focus:border-[#15559c] focus:ring-2 focus:ring-blue-100 transition font-medium text-slate-700"
                   >
+                    <option value="">Select State</option>
                     {indianStates.map((s) => (
                       <option key={s} value={s}>{s}</option>
                     ))}
                   </select>
                 </div>
 
-                <div className="relative" ref={providerCityRef}>
-                  <div className="relative flex items-center">
-                    <input
-                      type="text"
-                      placeholder="Select / Search District..."
-                      value={providerCitySearch}
-                      onChange={(e) => {
-                        setProviderCitySearch(e.target.value);
-                        setIsProviderCityDropdownOpen(true);
-                      }}
-                      onFocus={() => setIsProviderCityDropdownOpen(true)}
-                      className="w-full pl-8 pr-12 py-2 border border-slate-200 rounded-xl text-xs md:text-sm focus:outline-none focus:border-[#15559c] focus:ring-2 focus:ring-blue-100 transition bg-slate-50/50 hover:bg-white font-medium text-slate-800"
-                    />
-                    <Search size={13} className="absolute left-2.5 text-slate-400 pointer-events-none" />
-
-                    <div className="absolute right-2.5 flex items-center gap-1">
-                      {providerCitySearch && (
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setProviderCitySearch('');
-                            setSelectedProviderCity('');
-                            setIsProviderCityDropdownOpen(true);
-                          }}
-                          className="p-0.5 text-slate-400 hover:text-slate-600 rounded-full hover:bg-slate-100 transition cursor-pointer"
-                          title="Clear district"
-                        >
-                          <X size={12} />
-                        </button>
-                      )}
-                      <button
-                        type="button"
-                        onClick={() => setIsProviderCityDropdownOpen(!isProviderCityDropdownOpen)}
-                        className="p-0.5 text-slate-400 hover:text-slate-600 cursor-pointer"
-                        title="Toggle district dropdown"
-                      >
-                        <ChevronDown size={14} className={`transition-transform duration-200 ${isProviderCityDropdownOpen ? 'rotate-180 text-[#15559c]' : ''}`} />
-                      </button>
-                    </div>
-                  </div>
-
-                  {isProviderCityDropdownOpen && (
-                    <div className="absolute left-0 right-0 top-full mt-1 bg-white border border-slate-200 rounded-xl shadow-2xl z-50 max-h-48 overflow-y-auto divide-y divide-slate-100 animate-in fade-in zoom-in-95">
-                      <div className="px-3 py-1 bg-slate-50 text-[10px] font-bold text-slate-500 uppercase tracking-wider sticky top-0 flex items-center justify-between border-b border-slate-100 z-10">
-                        <span>{providerState} Districts ({filteredProviderCities.length})</span>
-                        <span className="text-[9px] font-normal text-slate-400">All districts</span>
-                      </div>
-                      {filteredProviderCities.length > 0 ? (
-                        filteredProviderCities.map((c) => {
-                          const isSelected = selectedProviderCity === c;
-                          return (
-                            <div
-                              key={c}
-                              onClick={() => {
-                                setProviderCitySearch(c);
-                                setSelectedProviderCity(c);
-                                setIsProviderCityDropdownOpen(false);
-                              }}
-                              className={`px-3 py-1.5 text-xs cursor-pointer flex items-center justify-between font-medium transition ${
-                                isSelected
-                                  ? 'bg-blue-50 text-[#15559c] font-bold'
-                                  : 'text-slate-700 hover:bg-slate-50 hover:text-[#15559c]'
-                              }`}
-                            >
-                              <div className="flex items-center gap-2">
-                                <MapPin size={10} className={isSelected ? 'text-[#15559c]' : 'text-slate-400'} />
-                                <span>{c}</span>
-                              </div>
-                              {isSelected && <Check size={12} className="text-[#15559c]" />}
-                            </div>
-                          );
-                        })
-                      ) : (
-                        <div className="px-3 py-2.5 text-[11px] text-slate-400 font-medium text-center">
-                          No matching district found.
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setSelectedProviderCity(providerCitySearch);
-                              setIsProviderCityDropdownOpen(false);
-                            }}
-                            className="block mx-auto mt-1 text-[#15559c] font-bold hover:underline cursor-pointer"
-                          >
-                            Use "{providerCitySearch}" as custom district
-                          </button>
-                        </div>
-                      )}
-                    </div>
-                  )}
+                <div>
+                  <select
+                    value={selectedProviderCity || providerCitySearch || ''}
+                    onChange={(e) => {
+                      setSelectedProviderCity(e.target.value);
+                      setProviderCitySearch(e.target.value);
+                    }}
+                    disabled={!providerState}
+                    className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs md:text-sm bg-slate-50/50 hover:bg-white focus:outline-none focus:border-[#15559c] focus:ring-2 focus:ring-blue-100 transition font-medium text-slate-700 disabled:opacity-60 disabled:cursor-not-allowed"
+                  >
+                    <option value="">{providerState ? 'Select District' : 'Select State first'}</option>
+                    {availableProviderCities.map((d) => (
+                      <option key={d} value={d}>{d}</option>
+                    ))}
+                  </select>
                 </div>
               </div>
 
@@ -1455,8 +1406,14 @@ const LeadConsultationModal = () => {
             <button
               type="button"
               onClick={() => {
+                const isFromCheckout = regSource === 'buy-now' || regSource === 'checkout' || regSource === 'checkout-page';
                 handleClose();
-                navigate('/login');
+                navigate('/login', {
+                  state: {
+                    from: isFromCheckout ? '/checkout' : location.pathname,
+                    isBuyNow: regSource === 'buy-now'
+                  }
+                });
               }}
               className="text-[#15559c] font-bold hover:underline cursor-pointer inline-flex items-center gap-0.5 ml-1"
             >
