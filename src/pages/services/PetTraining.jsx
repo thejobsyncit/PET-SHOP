@@ -36,6 +36,7 @@ import {
   TRAINING_TESTIMONIALS,
   getStoredTrainingProviders,
   saveTrainingBooking,
+  saveTrainingSession,
   saveTrainingEnquiry
 } from '../../data/trainingData.js';
 import { INDIAN_STATES_CITIES } from '../../data/adoptionPetsData.js';
@@ -82,6 +83,7 @@ const PetTraining = () => {
 
   // Modals state
   const [showBookingModal, setShowBookingModal] = useState(false);
+  const [pendingPaymentBooking, setPendingPaymentBooking] = useState(null);
   const [selectedProviderForBooking, setSelectedProviderForBooking] = useState(null);
   const [selectedPackage, setSelectedPackage] = useState(null);
   const [bookingDate, setBookingDate] = useState('');
@@ -257,32 +259,67 @@ const PetTraining = () => {
       return;
     }
 
+    const bookingId = 'TRN-BK-' + Date.now().toString().slice(-6);
+    const bookingPrice = selectedPackage?.price || selectedProviderForBooking.packageStarting || 4999;
     const bookingData = {
-      id: 'TRN-BK-' + Date.now().toString().slice(-6),
+      id: bookingId,
+      _id: bookingId,
+      serviceType: 'Pet Training & Behavior',
+      serviceCategory: 'Pet Training & Behavior',
       providerId: selectedProviderForBooking.id,
       providerName: selectedProviderForBooking.name,
       leadTrainer: selectedProviderForBooking.leadTrainer,
       packageName: selectedPackage?.name || 'Custom Training Sessions',
-      packagePrice: selectedPackage?.price || selectedProviderForBooking.packageStarting,
+      programName: selectedPackage?.name || 'Custom Training Sessions',
+      packagePrice: bookingPrice,
+      fee: bookingPrice,
+      totalAmount: bookingPrice,
       sessionCount: selectedPackage?.sessions || 'Per Session Course',
+      sessionNumber: selectedPackage?.sessions || 'Session 1 (Course Intro)',
       startDate: bookingDate,
+      date: `${bookingDate} • ${bookingTimeSlot}`,
+      bookingDate,
       timeSlot: bookingTimeSlot,
       petName: bookingPetName,
+      petSpecies: 'Dog',
       petBreed: bookingPetBreed,
-      petAge: bookingPetAge,
+      petAge: bookingPetAge || 'Adult',
       trainingAddress: bookingAddress,
+      location: bookingAddress || `${selectedProviderForBooking.area || ''}, ${selectedProviderForBooking.city || ''}`,
+      customerName: user?.name || 'Pet Parent',
+      ownerName: user?.name || 'Pet Parent',
+      customerPhone: bookingOwnerPhone,
       ownerPhone: bookingOwnerPhone,
+      customerEmail: user?.email || '',
+      ownerEmail: user?.email || '',
+      userId: user?._id || user?.id || '',
+      userEmail: user?.email || '',
       behaviorNotes: bookingBehaviorNotes,
-      status: 'Confirmed & Trainer Assigned',
+      trainerNotes: bookingBehaviorNotes ? `Parent Note: ${bookingBehaviorNotes}` : 'Booked via Josh Pets Hub',
+      mode: selectedPackage?.mode || 'At-Home 1-on-1',
+      status: 'Scheduled',
+      paymentStatus: 'Pay on First Session',
       createdAt: new Date().toISOString()
     };
 
-    saveTrainingBooking(bookingData);
-    toast.success(`🎉 Training session booked with ${selectedProviderForBooking.name} for ${bookingPetName}! Trainer will call you to confirm your schedule.`, {
-      duration: 5000,
-      icon: '🎓'
-    });
     setShowBookingModal(false);
+    setPendingPaymentBooking({
+      ...bookingData,
+      serviceName: `Pet Training (${selectedPackage?.name || 'Obedience Program'})`,
+      serviceCategory: 'Pet Training & Behavior',
+      providerName: selectedProviderForBooking.name,
+      price: bookingPrice,
+      date: bookingDate,
+      timeSlot: bookingTimeSlot,
+      ownerName: user?.name || 'Pet Parent',
+      ownerPhone: bookingOwnerPhone,
+      ownerEmail: user?.email || '',
+      petDetails: {
+        name: bookingPetName,
+        breed: bookingPetBreed,
+        age: bookingPetAge || 'Adult'
+      }
+    });
     // Reset fields
     setBookingPetName('');
     setBookingPetBreed('');
@@ -1471,6 +1508,18 @@ const PetTraining = () => {
           </div>
         </div>
       )}
+
+      {/* RAZORPAY CENTRAL PLATFORM PAYMENT MODAL */}
+      <RazorpayBookingPaymentModal
+        isOpen={Boolean(pendingPaymentBooking)}
+        onClose={() => setPendingPaymentBooking(null)}
+        bookingData={pendingPaymentBooking}
+        onSuccess={(confirmed) => {
+          saveTrainingBooking(confirmed);
+          saveTrainingSession(confirmed);
+          setPendingPaymentBooking(null);
+        }}
+      />
 
     </div>
   );

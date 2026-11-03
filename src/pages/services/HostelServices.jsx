@@ -5,11 +5,13 @@ import {
   Sparkles, Search, MapPin, Phone, MessageSquare, Star, ShieldCheck,
   Calendar, Clock, CircleCheck, ChevronRight, X, SlidersHorizontal,
   RefreshCw, Check, ArrowRight, Heart, Award, Home, Hotel,
-  ShieldAlert, UserCheck, Video, Moon, Sun, Trees, ChevronDown,
+  ShieldAlert, UserCheck, Video, Moon, Sun, Trees, ChevronDown, ChevronUp,
   PawPrint, Snowflake, Stethoscope, Smartphone, Utensils, UtensilsCrossed,
   Waves, Cctv
 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import RazorpayBookingPaymentModal from '../../components/widgets/RazorpayBookingPaymentModal.jsx';
+import { apiRequest } from '../../services/api.js';
 import {
   HOSTEL_OFFERINGS,
   HOSTEL_AMENITIES,
@@ -80,6 +82,60 @@ const getOfferingColorTheme = (offeringId, isActive) => {
   }
 };
 
+// =========================================================================
+// Why Choose Josh Pets Hub - Verified Assurances & Comprehensive Stories
+// =========================================================================
+const HOSTEL_WHY_CHOOSE_ITEMS = [
+  {
+    id: 'supervision',
+    title: '24/7 Loving Supervision & Round-the-Clock Safety',
+    quote: '"Our team ensures that your pet is in safe and secure hands with 24/7 round-the-clock loving supervision."',
+    fullText: 'Our hostel caretakers and certified attendants are physically present on-site 24 hours a day, 7 days a week. Pets are never locked in cages or left unattended. Facilities maintain continuous climate control, personalized feeding routines, gentle play sessions, and round-the-clock emergency on-call veterinary ambulance assistance.',
+    highlights: [
+      '24/7 on-site certified caretakers & night attendants',
+      'Emergency on-call veterinary network on standby',
+      'Temperature & climate-controlled private suites',
+      'Zero-cage, loving home-style environment'
+    ],
+    image: 'https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?q=80&w=800&auto=format&fit=crop',
+    alt: 'Safe & Secure Team',
+    blobBg: 'bg-[#fec338]/30',
+    blobRotate: '-rotate-6'
+  },
+  {
+    id: 'verified',
+    title: 'Certified & Background-Checked Host Partners',
+    quote: '"Our host partners are fully background-checked, certified pet lovers with verified hygienic homes."',
+    fullText: 'Every host home and pet boarding resort completes a rigorous 5-point physical verification audit before onboarding. We inspect perimeter safety, double-door escape prevention gates, pet-proofed balconies, non-slip flooring, and sanitized outdoor yards. Host partners undergo mandatory Aadhaar KYC, background checks, and certified pet first-aid handling training.',
+    highlights: [
+      '100% physically inspected premises & private yards',
+      'Government Aadhaar KYC & police background-checked',
+      'Double-door escape prevention security gates',
+      'Certified animal first-aid & behavioral handlers'
+    ],
+    image: 'https://images.unsplash.com/photo-1548199973-03cce0bbc87b?q=80&w=800&auto=format&fit=crop',
+    alt: 'Background Checked Partners',
+    blobBg: 'bg-[#ff85a1]/30',
+    blobRotate: 'rotate-6'
+  },
+  {
+    id: 'updates',
+    title: 'Real-Time WhatsApp Photo & Video Updates',
+    quote: '"You\'ll receive real-time photo and video updates on WhatsApp twice a day so you never miss a moment."',
+    fullText: 'Enjoy complete peace of mind while away on travel or work. Host partners send 2 high-definition video check-ins and 4+ photo updates daily directly to your WhatsApp. You will receive real-time updates detailing your pet\'s meal intake, walk times, play sessions, potty breaks, and peaceful naps, plus direct video calling on request.',
+    highlights: [
+      '2x daily WhatsApp HD video & photo updates',
+      'Direct WhatsApp concierge & host partner channel',
+      'Live video call with your pet anytime on request',
+      'Real-time meal, walk & medication timeline'
+    ],
+    image: 'https://images.unsplash.com/photo-1517849845537-4d257902454a?q=80&w=800&auto=format&fit=crop',
+    alt: 'Real Time Video Updates',
+    blobBg: 'bg-[#8a68e8]/30',
+    blobRotate: '-rotate-6'
+  }
+];
+
 const HostelServices = () => {
   const navigate = useNavigate();
   const { isAuthenticated, user } = useSelector((state) => state.auth);
@@ -110,6 +166,28 @@ const HostelServices = () => {
   const [specialDiet, setSpecialDiet] = useState('Standard (Chicken & Rice)');
   const [specialNotes, setSpecialNotes] = useState('');
   const [showBookingModal, setShowBookingModal] = useState(false);
+  const [pendingPaymentBooking, setPendingPaymentBooking] = useState(null);
+
+  // "Why Choose Us" Interactive Read More & Detailed Modal States
+  const [expandedReasons, setExpandedReasons] = useState({});
+  const [selectedReasonModal, setSelectedReasonModal] = useState(null);
+
+  // Compact Hostel Card Expansion State: cards are small by default, expand on click
+  const [expandedHostelCards, setExpandedHostelCards] = useState({});
+
+  const toggleHostelCard = (providerId) => {
+    setExpandedHostelCards((prev) => ({
+      ...prev,
+      [providerId]: !prev[providerId]
+    }));
+  };
+
+  const toggleReason = (id) => {
+    setExpandedReasons((prev) => ({
+      ...prev,
+      [id]: !prev[id]
+    }));
+  };
 
   const providers = getStoredHostelProviders();
 
@@ -294,33 +372,63 @@ const HostelServices = () => {
     const dailyRate = selectedPackage?.price || selectedProvider.discountPrice || selectedProvider.pricePerNight;
     const totalAmount = nights * dailyRate;
 
+    const bookingId = 'HSTBK-' + Date.now().toString().slice(-6);
     const bookingData = {
-      id: 'HSTBK-' + Date.now().toString().slice(-6),
+      id: bookingId,
+      _id: bookingId,
+      serviceType: 'Pet Hostel / Boarding',
+      serviceCategory: 'Pet Hostel / Boarding',
       providerId: selectedProvider.id,
       providerName: selectedProvider.name,
       hostName: selectedProvider.hostName,
-      packageName: selectedPackage?.name || 'Standard Stay',
+      packageName: selectedPackage?.name || 'Standard Stay Room',
+      kennelType: selectedPackage?.name || 'Standard Stay Room',
       dailyRate,
       nights,
       totalAmount,
+      totalPrice: totalAmount,
+      fee: totalAmount,
       checkInDate,
       checkOutDate,
+      date: checkInDate,
+      timeSlot: `${nights} Night(s) Stay`,
       petName,
       petBreed,
       petAge,
       specialDiet,
+      dietaryNotes: specialDiet || 'Standard wholesome meals',
       ownerName: user?.name || 'Pet Parent',
       ownerPhone,
+      ownerEmail: user?.email || '',
+      userId: user?._id || user?.id || '',
+      userEmail: user?.email || '',
+      location: `${selectedProvider.area || ''}, ${selectedProvider.city || ''}`,
       specialNotes,
-      status: 'Confirmed',
+      status: 'pending_checkin',
+      eta: 'Check-in ' + checkInDate,
+      paymentStatus: 'Paid / Advance Guaranteed',
+      avatarColor: 'bg-emerald-100 text-emerald-800',
+      avatarLetter: (petName || 'P').charAt(0).toUpperCase(),
       createdAt: new Date().toISOString()
     };
 
-    saveHostelBooking(bookingData);
     setShowBookingModal(false);
-    toast.success(`🎉 Pet Hostel booking confirmed with ${selectedProvider.name} for ${nights} night(s)! The host will connect with you on WhatsApp.`, {
-      duration: 6000,
-      icon: '🏨'
+    setPendingPaymentBooking({
+      ...bookingData,
+      serviceName: `Pet Hostel (${selectedPackage?.name || 'Boarding Suite'})`,
+      serviceCategory: 'Pet Hostel / Boarding',
+      providerName: selectedProvider.name,
+      price: bookingData.totalAmount || bookingData.totalPrice || 2500,
+      date: checkInDate,
+      timeSlot: `${nights} Night(s) Stay`,
+      ownerName: user?.name || 'Pet Parent',
+      ownerPhone,
+      ownerEmail: user?.email || '',
+      petDetails: {
+        name: petName,
+        breed: petBreed,
+        age: petAge
+      }
     });
   };
 
@@ -791,159 +899,224 @@ const HostelServices = () => {
                   const targetAmenityName = HOSTEL_OFFERINGS.find(o => o.id === selectedAmenity)?.name;
                   const featuredPkg = getFeaturedPackageForOffering(provider, selectedAmenity);
                   const effectivePrice = featuredPkg ? featuredPkg.price : (provider.discountPrice || provider.pricePerNight);
+                  const isExpanded = Boolean(expandedHostelCards[provider.id]);
 
                   return (
                     <div
                       key={provider.id}
-                      className="bg-white rounded-3xl border border-purple-100 shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden flex flex-col justify-between group"
+                      onClick={() => toggleHostelCard(provider.id)}
+                      className={`bg-white rounded-3xl border transition-all duration-300 overflow-hidden flex flex-col justify-between group cursor-pointer ${
+                        isExpanded
+                          ? 'border-[#7c56dc]/60 shadow-xl ring-2 ring-[#7c56dc]/20'
+                          : 'border-purple-100 shadow-sm hover:shadow-lg hover:border-purple-300'
+                      }`}
+                      title={isExpanded ? "Click card to collapse details" : "Click card to view all details & amenities"}
                     >
                       <div>
-                        {/* Provider Header Image & Badges */}
-                        <div
-                          onClick={() => handleServiceAction({ isAuthenticated, serviceType: 'Hostel', provider, action: 'view_expert_profile' })}
-                          className="relative aspect-[16/9] overflow-hidden bg-slate-100 cursor-pointer"
-                          title={`Visit ${provider.name} and view packages`}
-                        >
+                        {/* Provider Header Image & Badges: Entire card is clickable */}
+                        <div className="relative aspect-[16/9] overflow-hidden bg-slate-900 select-none">
                           <img
                             src={provider.image}
                             alt={provider.name}
                             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                           />
-                          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
+                          {/* Strong dark gradient overlay for crystal-clear text readability */}
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/45 to-transparent"></div>
 
                           {/* Stay Type Badge */}
-                          <div className="absolute top-3 left-3 bg-white/95 text-emerald-700 text-[10px] font-extrabold px-2.5 py-1 rounded-full shadow-md">
+                          <div className="absolute top-3 left-3 bg-white/95 text-emerald-800 text-[10px] font-extrabold px-2.5 py-1 rounded-full shadow-md">
                             {provider.stayType}
                           </div>
 
                           {/* Verified Badge */}
-                          <div className="absolute top-3 right-3 bg-white/95 text-emerald-700 text-[10px] font-extrabold px-2.5 py-1 rounded-full shadow-md flex items-center gap-1">
+                          <div className="absolute top-3 right-3 bg-white/95 text-emerald-800 text-[10px] font-extrabold px-2.5 py-1 rounded-full shadow-md flex items-center gap-1">
                             <ShieldCheck size={12} className="text-emerald-600" />
                             <span>Verified</span>
                           </div>
 
-                          {/* Name on image bottom */}
-                          <div className="absolute bottom-3 left-3 right-3 text-white">
-                            <h3 className="font-extrabold text-base leading-tight drop-shadow-sm">
+                          {/* Click to expand indicator pill */}
+                          <div className="absolute top-11 right-3">
+                            <span className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full shadow-md backdrop-blur-xs flex items-center gap-1 transition ${
+                              isExpanded
+                                ? 'bg-[#7c56dc] !text-white'
+                                : 'bg-black/60 !text-white hover:bg-black/80'
+                            }`}>
+                              <span>{isExpanded ? 'Full info' : 'Click for info'}</span>
+                              <span>{isExpanded ? '↑' : '↓'}</span>
+                            </span>
+                          </div>
+
+                          {/* Name on image bottom - Explicitly white and visible with drop shadow */}
+                          <div className="absolute bottom-3 left-3.5 right-3.5">
+                            <h3 className="font-sans font-black text-base md:text-lg leading-tight !text-white text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.95)] tracking-normal">
                               {provider.name}
                             </h3>
-                            <p className="text-[11px] text-white/90 font-medium flex items-center gap-1 mt-0.5">
-                              <MapPin size={11} className="text-amber-300 shrink-0" />
+                            <p className="text-[11px] !text-amber-200 text-amber-200 font-semibold flex items-center gap-1 mt-1 drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)]">
+                              <MapPin size={12} className="text-amber-300 shrink-0" />
                               <span>{provider.area}, {provider.city}</span>
                             </p>
                           </div>
                         </div>
 
                         {/* Provider Body Details */}
-                        <div className="p-5 space-y-4">
+                        <div className="p-4 space-y-3">
 
-                          {/* Rating, Host & Experience */}
-                          <div className="flex items-center justify-between text-xs pb-3 border-b border-slate-100">
+                          {/* Quick Stats: Rating, Reviews & Starting Price */}
+                          <div className="flex items-center justify-between text-xs pb-2.5 border-b border-slate-100">
                             <div className="flex items-center gap-1.5 font-extrabold text-amber-500">
                               <Star size={14} className="fill-amber-400 text-amber-400" />
-                              <span className="text-slate-900">{provider.rating}</span>
-                              <span className="text-slate-400 font-normal">({provider.reviews} reviews)</span>
+                              <span className="text-slate-900 font-bold">{provider.rating}</span>
+                              <span className="text-slate-400 font-normal text-[11px]">({provider.reviews} reviews)</span>
                             </div>
-                            <span className="text-[11px] font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-lg">
-                              {provider.experience}
-                            </span>
+
+                            <div className="flex items-baseline gap-1">
+                              <span className="text-[10px] uppercase font-bold text-slate-400">From</span>
+                              <span className="text-sm font-extrabold text-slate-950">₹{effectivePrice}</span>
+                              <span className="text-[10px] text-slate-500">/ night</span>
+                            </div>
                           </div>
 
-                          {/* Tagline */}
-                          <p className="text-xs text-slate-600 font-medium italic">
-                            "{provider.tagline}"
-                          </p>
-
-                          {/* Host info */}
-                          <p className="text-[11px] text-slate-500 font-medium flex items-center gap-1.5">
-                            <span className="font-bold text-slate-700">Host:</span> {provider.hostName}
-                          </p>
-
-                          {/* Amenities Included Pills with Matched Highlighting */}
-                          <div className="space-y-1.5">
-                            <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block">
-                              Hostel Amenities:
-                            </span>
-                            <div className="flex flex-wrap gap-1.5">
-                              {provider.amenities.map((amenity, idx) => {
-                                const isMatched = selectedAmenity !== 'all' && targetAmenityName === amenity;
-                                const matchedOffering = HOSTEL_OFFERINGS.find(o => o.name === amenity);
-                                return (
-                                  <span
-                                    key={idx}
-                                    style={isMatched ? { background: 'linear-gradient(135deg, #d4af37 0%, #fef08a 50%, #b89228 100%)' } : {}}
-                                    className={`text-[10px] font-bold px-2.5 py-1 rounded-lg border flex items-center gap-1.5 transition ${isMatched
-                                        ? 'text-slate-950 border-[#b89228] shadow-xs scale-105 ring-2 ring-[#fef08a] font-black'
-                                        : 'bg-slate-50 text-slate-700 border-slate-200/80 hover:bg-slate-100'
-                                      }`}
-                                  >
-                                    <span className="shrink-0">
-                                      {matchedOffering ? renderOfferingIcon(matchedOffering.id, { size: 12, isActive: isMatched }) : <Check size={11} className="text-emerald-600" />}
+                          {/* Compact Preview (When NOT Expanded): shows 2 amenities + more badge */}
+                          {!isExpanded && (
+                            <div className="space-y-2">
+                              <div className="flex items-center justify-between gap-2 text-xs pt-0.5">
+                                <div className="flex flex-wrap items-center gap-1.5 overflow-hidden">
+                                  {provider.amenities.slice(0, 2).map((amenity, idx) => (
+                                    <span
+                                      key={idx}
+                                      className="text-[10px] font-semibold px-2 py-0.5 rounded-lg bg-slate-50 text-slate-700 border border-slate-200/70 truncate max-w-[130px]"
+                                    >
+                                      {amenity}
                                     </span>
-                                    <span>{amenity}</span>
-                                  </span>
-                                );
-                              })}
-                            </div>
-                          </div>
+                                  ))}
+                                  {provider.amenities.length > 2 && (
+                                    <span className="text-[10px] font-bold text-[#7c56dc] bg-purple-50 px-2 py-0.5 rounded-lg border border-purple-100">
+                                      +{provider.amenities.length - 2} more
+                                    </span>
+                                  )}
+                                </div>
 
-                          {/* Dynamic Stay Package Preview tailored to selected feature */}
-                          {featuredPkg && (
-                            <div className={`p-3 rounded-2xl space-y-1 transition ${selectedAmenity !== 'all'
-                                ? 'bg-amber-50/90 border border-amber-300'
-                                : 'bg-amber-50/70 border border-amber-200/60'
-                              }`}>
-                              <div className="flex justify-between items-center">
-                                <span className="text-[10px] font-extrabold uppercase tracking-wide flex items-center gap-1.5 text-amber-900">
-                                  <Sparkles size={12} className="text-amber-600 shrink-0" />
-                                  <span>{selectedAmenity !== 'all' ? `Matched ${targetAmenityName} Package` : 'Featured Stay Package'}</span>
-                                </span>
-                                <span className={`text-xs font-extrabold ${selectedAmenity !== 'all' ? 'text-amber-800' : 'text-slate-900'
-                                  }`}>
-                                  ₹{featuredPkg.price}/night
+                                <span className="text-[10px] font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-lg shrink-0">
+                                  {provider.experience}
                                 </span>
                               </div>
-                              <p className="text-[11px] font-bold text-slate-800">{featuredPkg.name}</p>
-                              <p className="text-[10px] text-slate-600 leading-tight">{featuredPkg.desc}</p>
+
+                              <div className="text-center pt-1">
+                                <span className="text-[11px] font-bold text-[#7c56dc] group-hover:text-purple-700 transition flex items-center justify-center gap-1">
+                                  <span>Click card to view all amenities & details</span>
+                                  <span>↓</span>
+                                </span>
+                              </div>
+                            </div>
+                          )}
+
+                          {/* FULL DETAILS (ONLY SHOWN WHEN THE USER CLICKS THE CARD) */}
+                          {isExpanded && (
+                            <div className="pt-2 border-t border-purple-100/70 space-y-3.5 animate-in fade-in duration-200">
+                              {/* Host & Experience */}
+                              <div className="flex items-center justify-between text-xs bg-slate-50 p-2.5 rounded-xl border border-slate-100">
+                                <p className="text-[11px] text-slate-600 font-medium">
+                                  <span className="font-bold text-slate-800">Host:</span> {provider.hostName}
+                                </p>
+                                <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-100">
+                                  {provider.experience} Boarding
+                                </span>
+                              </div>
+
+                              {/* Tagline */}
+                              <p className="text-xs text-slate-700 font-medium italic bg-purple-50/40 p-2.5 rounded-xl border border-purple-100/60 leading-relaxed">
+                                "{provider.tagline}"
+                              </p>
+
+                              {/* Amenities Included Pills with Matched Highlighting */}
+                              <div className="space-y-1.5">
+                                <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block">
+                                  All Hostel Amenities ({provider.amenities.length}):
+                                </span>
+                                <div className="flex flex-wrap gap-1.5">
+                                  {provider.amenities.map((amenity, idx) => {
+                                    const isMatched = selectedAmenity !== 'all' && targetAmenityName === amenity;
+                                    const matchedOffering = HOSTEL_OFFERINGS.find(o => o.name === amenity);
+                                    return (
+                                      <span
+                                        key={idx}
+                                        style={isMatched ? { background: 'linear-gradient(135deg, #d4af37 0%, #fef08a 50%, #b89228 100%)' } : {}}
+                                        className={`text-[10px] font-bold px-2.5 py-1 rounded-lg border flex items-center gap-1.5 transition ${isMatched
+                                            ? 'text-slate-950 border-[#b89228] shadow-xs scale-105 ring-2 ring-[#fef08a] font-black'
+                                            : 'bg-slate-50 text-slate-700 border-slate-200/80'
+                                          }`}
+                                      >
+                                        <span className="shrink-0">
+                                          {matchedOffering ? renderOfferingIcon(matchedOffering.id, { size: 12, isActive: isMatched }) : <Check size={11} className="text-emerald-600" />}
+                                        </span>
+                                        <span>{amenity}</span>
+                                      </span>
+                                    );
+                                  })}
+                                </div>
+                              </div>
+
+                              {/* Dynamic Stay Package Preview */}
+                              {featuredPkg && (
+                                <div className={`p-3 rounded-2xl space-y-1 transition ${selectedAmenity !== 'all'
+                                    ? 'bg-amber-50/90 border border-amber-300'
+                                    : 'bg-amber-50/70 border border-amber-200/60'
+                                  }`}>
+                                  <div className="flex justify-between items-center">
+                                    <span className="text-[10px] font-extrabold uppercase tracking-wide flex items-center gap-1.5 text-amber-900">
+                                      <Sparkles size={12} className="text-amber-600 shrink-0" />
+                                      <span>{selectedAmenity !== 'all' ? `Matched ${targetAmenityName} Package` : 'Featured Stay Package'}</span>
+                                    </span>
+                                    <span className={`text-xs font-extrabold ${selectedAmenity !== 'all' ? 'text-amber-800' : 'text-slate-900'
+                                      }`}>
+                                      ₹{featuredPkg.price}/night
+                                    </span>
+                                  </div>
+                                  <p className="text-[11px] font-bold text-slate-800">{featuredPkg.name}</p>
+                                  <p className="text-[10px] text-slate-600 leading-tight">{featuredPkg.desc}</p>
+                                </div>
+                              )}
+
+                              {/* 24/7 CCTV & Meals Included Badge */}
+                              <div className="flex items-center justify-between text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2.5 py-1.5 rounded-lg border border-emerald-100">
+                                <span>✓ 24/7 CCTV Live Stream</span>
+                                <span>✓ Meals Included</span>
+                              </div>
+
+                              {/* Collapse hint */}
+                              <div className="text-center pt-1">
+                                <span className="text-[11px] font-bold text-slate-400 group-hover:text-[#7c56dc] transition flex items-center justify-center gap-1">
+                                  <span>Click card to collapse details</span>
+                                  <span>↑</span>
+                                </span>
+                              </div>
                             </div>
                           )}
 
                         </div>
                       </div>
 
-                      {/* Card Footer: Pricing & Booking CTAs */}
-                      <div className="p-5 pt-0 space-y-3">
-                        <div className="flex items-baseline justify-between border-t border-slate-100 pt-3">
-                          <div>
-                            <span className="text-[10px] text-slate-400 font-bold uppercase block">
-                              {selectedAmenity !== 'all' ? `${targetAmenityName} Rate` : 'Starting from'}
-                            </span>
-                            <div className="flex items-baseline gap-1.5">
-                              <span className="text-lg font-extrabold text-slate-950">₹{effectivePrice}</span>
-                              <span className="text-[11px] text-slate-500">/ night</span>
-                              {selectedAmenity === 'all' && provider.discountPrice && (
-                                <span className="text-xs text-slate-400 line-through ml-1">₹{provider.pricePerNight}</span>
-                              )}
-                            </div>
-                          </div>
-
-                          <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-1 rounded-md">
-                            24/7 CCTV & Meals Included
-                          </span>
-                        </div>
-
-                        {/* Action Buttons */}
-                        <div className="grid grid-cols-2 gap-2">
+                      {/* Card Footer: Action Buttons (Book Stay & WhatsApp) */}
+                      <div className="p-4 pt-1 space-y-2">
+                        <div className="grid grid-cols-2 gap-2" onClick={(e) => e.stopPropagation()}>
                           <button
-                            onClick={() => handleOpenBookingModal(provider, featuredPkg)}
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleOpenBookingModal(provider, featuredPkg);
+                            }}
                             className="btn-footer-green-gold font-extrabold py-2.5 px-3 rounded-xl text-xs shadow-md transition-all flex items-center justify-center gap-1.5 cursor-pointer active:scale-95"
                           >
                             <Calendar size={13} />
-                            <span>Book {selectedAmenity !== 'all' ? targetAmenityName : 'Stay'}</span>
+                            <span>Book Stay</span>
                           </button>
 
                           <button
-                            onClick={() => handleWhatsApp(provider)}
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleWhatsApp(provider);
+                            }}
                             className="bg-[#25d366] hover:bg-[#20ba59] text-white font-extrabold py-2.5 px-3 rounded-xl text-xs shadow-md transition-all flex items-center justify-center gap-1.5 cursor-pointer active:scale-95"
                           >
                             <MessageSquare size={13} />
@@ -1089,63 +1262,71 @@ const HostelServices = () => {
           </p>
         </div>
 
-        {/* 3 Host Partner Testimonial Blob Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        {/* 3 Host Partner Testimonial Cards with Interactive Read More & Detailed Assurances */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-start">
+          {HOSTEL_WHY_CHOOSE_ITEMS.map((item) => {
+            const isExpanded = Boolean(expandedReasons[item.id]);
+            return (
+              <div
+                key={item.id}
+                className="bg-white p-6 rounded-3xl border border-purple-100 shadow-sm hover:shadow-md transition text-center space-y-4 flex flex-col items-center"
+              >
+                <div className="relative w-28 h-28 shrink-0">
+                  <div className={`absolute inset-0 ${item.blobBg} rounded-full transform ${item.blobRotate}`}></div>
+                  <img
+                    src={item.image}
+                    alt={item.alt}
+                    className="relative w-full h-full object-cover rounded-full border-2 border-white shadow-md"
+                  />
+                </div>
 
-          {/* Host 1 */}
-          <div className="bg-white p-6 rounded-3xl border border-purple-100 shadow-sm hover:shadow-md transition text-center space-y-4 flex flex-col items-center">
-            <div className="relative w-28 h-28">
-              <div className="absolute inset-0 bg-[#fec338]/30 rounded-full transform -rotate-6"></div>
-              <img
-                src="https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?q=80&w=800&auto=format&fit=crop"
-                alt="Safe & Secure Team"
-                className="relative w-full h-full object-cover rounded-full border-2 border-white shadow-md"
-              />
-            </div>
-            <p className="text-xs text-slate-600 font-medium leading-relaxed">
-              "Our team ensures that your pet is in safe and secure hands with 24/7 round-the-clock loving supervision."
-            </p>
-            <span className="text-[11px] font-bold text-[#7c56dc] hover:underline cursor-pointer">
-              Read more →
-            </span>
-          </div>
+                <p className="text-xs text-slate-600 font-medium leading-relaxed">
+                  {item.quote}
+                </p>
 
-          {/* Host 2 */}
-          <div className="bg-white p-6 rounded-3xl border border-purple-100 shadow-sm hover:shadow-md transition text-center space-y-4 flex flex-col items-center">
-            <div className="relative w-28 h-28">
-              <div className="absolute inset-0 bg-[#ff85a1]/30 rounded-full transform rotate-6"></div>
-              <img
-                src="https://images.unsplash.com/photo-1548199973-03cce0bbc87b?q=80&w=800&auto=format&fit=crop"
-                alt="Background Checked Partners"
-                className="relative w-full h-full object-cover rounded-full border-2 border-white shadow-md"
-              />
-            </div>
-            <p className="text-xs text-slate-600 font-medium leading-relaxed">
-              "Our host partners are fully background-checked, certified pet lovers with verified hygienic homes."
-            </p>
-            <span className="text-[11px] font-bold text-[#7c56dc] hover:underline cursor-pointer">
-              Read more →
-            </span>
-          </div>
+                {/* Animated expandable content */}
+                {isExpanded && (
+                  <div className="text-left w-full pt-3 border-t border-purple-100/70 space-y-3 animate-in fade-in duration-200">
+                    <p className="text-xs text-slate-600 leading-relaxed">
+                      {item.fullText}
+                    </p>
 
-          {/* Host 3 */}
-          <div className="bg-white p-6 rounded-3xl border border-purple-100 shadow-sm hover:shadow-md transition text-center space-y-4 flex flex-col items-center">
-            <div className="relative w-28 h-28">
-              <div className="absolute inset-0 bg-[#8a68e8]/30 rounded-full transform -rotate-6"></div>
-              <img
-                src="https://images.unsplash.com/photo-1517849845537-4d257902454a?q=80&w=800&auto=format&fit=crop"
-                alt="Real Time Video Updates"
-                className="relative w-full h-full object-cover rounded-full border-2 border-white shadow-md"
-              />
-            </div>
-            <p className="text-xs text-slate-600 font-medium leading-relaxed">
-              "You'll receive real-time photo and video updates on WhatsApp twice a day so you never miss a moment."
-            </p>
-            <span className="text-[11px] font-bold text-[#7c56dc] hover:underline cursor-pointer">
-              Read more →
-            </span>
-          </div>
+                    <div className="space-y-1.5 bg-purple-50/60 p-3 rounded-2xl border border-purple-100/70">
+                      <span className="text-[10px] uppercase font-bold text-[#7c56dc] tracking-wider block">
+                        Verified Assurances:
+                      </span>
+                      {item.highlights.map((h, i) => (
+                        <div key={i} className="flex items-start gap-1.5 text-[11px] text-slate-700 font-medium">
+                          <CircleCheck size={13} className="text-emerald-500 shrink-0 mt-0.5" />
+                          <span>{h}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
 
+                <div className="pt-1 flex items-center justify-center gap-3 w-full">
+                  <button
+                    type="button"
+                    onClick={() => toggleReason(item.id)}
+                    className="text-[11px] font-bold text-[#7c56dc] hover:text-[#5a3cb5] hover:underline cursor-pointer inline-flex items-center gap-1 transition select-none"
+                  >
+                    <span>{isExpanded ? 'Show less' : 'Read more'}</span>
+                    <span>{isExpanded ? '↑' : '→'}</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setSelectedReasonModal(item)}
+                    title="View Full Safety and Quality Standards"
+                    className="text-[11px] font-bold text-slate-400 hover:text-slate-600 cursor-pointer transition"
+                  >
+                    • Details
+                  </button>
+                </div>
+              </div>
+            );
+          })}
         </div>
       </ScrollReveal>
 
@@ -1393,7 +1574,68 @@ const HostelServices = () => {
         </div>
       )}
 
-    </div>
+    
+      {/* Why Choose Us Detail Modal */}
+      {selectedReasonModal && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in duration-200">
+          <div className="bg-white rounded-3xl max-w-lg w-full overflow-hidden shadow-2xl border border-purple-100 animate-in zoom-in-95 duration-200">
+            {/* Modal Header */}
+            <div className="bg-gradient-to-r from-[#7c56dc] to-[#5a3cb5] p-5 text-white flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-white/80 shadow">
+                  <img src={selectedReasonModal.image} alt={selectedReasonModal.title} className="w-full h-full object-cover" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-sm sm:text-base">{selectedReasonModal.title}</h3>
+                  <p className="text-[10px] text-purple-200 uppercase tracking-wider font-semibold">Verified Safety Charter</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setSelectedReasonModal(null)}
+                className="w-8 h-8 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center text-white transition cursor-pointer"
+              >
+                <X size={16} />
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div className="p-6 space-y-4 max-h-[75vh] overflow-y-auto text-xs text-slate-600 leading-relaxed">
+              <div className="p-3.5 bg-purple-50/80 rounded-2xl border border-purple-100 text-slate-800 font-medium italic">
+                {selectedReasonModal.quote}
+              </div>
+
+              <p>{selectedReasonModal.fullText}</p>
+
+              <div className="space-y-2 pt-2 border-t border-slate-100">
+                <span className="text-[11px] font-bold text-slate-900 uppercase tracking-wider block">
+                  Safety Standards and Guarantees:
+                </span>
+                <div className="grid grid-cols-1 gap-2">
+                  {selectedReasonModal.highlights.map((h, i) => (
+                    <div key={i} className="flex items-center gap-2 p-2 bg-slate-50 rounded-xl border border-slate-100">
+                      <CircleCheck size={15} className="text-emerald-500 shrink-0" />
+                      <span className="font-medium text-slate-700">{h}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Modal Footer */}
+            <div className="p-4 bg-slate-50 border-t border-slate-100 flex items-center justify-end">
+              <button
+                type="button"
+                onClick={() => setSelectedReasonModal(null)}
+                className="px-5 py-2 bg-[#7c56dc] hover:bg-[#6844c8] text-white rounded-xl text-xs font-bold transition shadow-sm cursor-pointer"
+              >
+                Got It
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+</div>
   );
 };
 

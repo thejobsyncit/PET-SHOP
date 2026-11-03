@@ -13,6 +13,8 @@ import { apiRequest } from '../../services/api.js';
 import { login, logout } from '../../store/slices/authSlice.js';
 import { getStoredMatingPets } from '../../data/breedingData.js';
 import toast from 'react-hot-toast';
+import SuperAdminPlatformWalletView from '../../components/dashboards/SuperAdminPlatformWalletView.jsx';
+import { Landmark } from 'lucide-react';
 
 const SuperAdminDashboard = () => {
   const navigate = useNavigate();
@@ -665,6 +667,7 @@ const SuperAdminDashboard = () => {
             <nav className="space-y-1">
             {[
               { id: 'overview', label: 'Stats Overview', icon: <TrendingUp size={15} /> },
+              { id: 'wallet', label: 'Central Wallet & Payouts', icon: <Landmark size={15} /> },
               { id: 'products', label: 'Manage Products', icon: <Layers size={15} /> },
               { id: 'orders', label: 'Client Orders', icon: <ShoppingBag size={15} /> },
               { id: 'prescriptions', label: 'Rx Verifications', icon: <FileText size={15} /> },
@@ -718,6 +721,7 @@ const SuperAdminDashboard = () => {
             <span className="text-[10px] uppercase tracking-widest text-[#7CA085] font-bold block">ADMINISTRATION PORTAL</span>
             <h2 className="font-serif text-3xl text-primary font-bold mt-1">
               {activeSection === 'overview' && 'Executive Metrics Overview'}
+              {activeSection === 'wallet' && 'Central Platform Wallet & Service Provider Payouts'}
               {activeSection === 'products' && 'Product Catalogue Manager'}
               {activeSection === 'orders' && 'Client Transaction Logs'}
               {activeSection === 'prescriptions' && 'Vet Prescriptions Review'}
@@ -887,6 +891,11 @@ const SuperAdminDashboard = () => {
                 </div>
 
               </div>
+            )}
+
+            {/* SECTION: PLATFORM WALLET & PAYOUTS */}
+            {activeSection === 'wallet' && (
+              <SuperAdminPlatformWalletView />
             )}
 
             {/* SECTION 2: PRODUCTS MANAGER */}

@@ -623,9 +623,10 @@ const Login = () => {
   // Full Name handler (Mandatory & Alphabets only)
   const handleUserFullNameChange = (e) => {
     const raw = e.target.value;
-    const cleaned = raw.replace(/[^a-zA-Z\s]/g, '');
+    const noLeadingSpace = raw.replace(/^\s+/, '');
+    const cleaned = noLeadingSpace.replace(/[^a-zA-Z\s]/g, '');
     setUserFullName(cleaned);
-    if (raw !== cleaned) {
+    if (noLeadingSpace !== cleaned) {
       setUserFullNameError('Full Name should contain alphabets only *');
     } else if (!cleaned.trim()) {
       setUserFullNameError('Full Name is required *');
@@ -1052,19 +1053,23 @@ const Login = () => {
       return;
     }
 
-    // 5. Email format and duplicate validation (Issue 9)
-    if (userEmail && userEmail.trim()) {
-      const emailValidation = validateEmailFormat(userEmail.trim());
-      if (!emailValidation.isValid) {
-        setUserEmailError(emailValidation.message + ' *');
-        toast.error(emailValidation.message);
-        return;
-      }
-      if (checkEmailAlreadyRegistered(userEmail)) {
-        setUserEmailError('This email is already registered. Please log in or use a different email *');
-        toast.error('An account with this email address already exists! Please log in instead.');
-        return;
-      }
+    // 5. Email format and duplicate validation (Mandatory)
+    if (!userEmail || !userEmail.trim()) {
+      setUserEmailError('Email ID is required *');
+      toast.error('Email ID is required *');
+      return;
+    }
+    const cleanUserEmail = userEmail.trim().toLowerCase();
+    const emailValidation = validateEmailFormat(cleanUserEmail);
+    if (!emailValidation.isValid) {
+      setUserEmailError(emailValidation.message + ' *');
+      toast.error(emailValidation.message);
+      return;
+    }
+    if (checkEmailAlreadyRegistered(cleanUserEmail)) {
+      setUserEmailError('This email is already registered. Please log in or use a different email *');
+      toast.error('An account with this email address already exists! Please log in instead.');
+      return;
     }
     setUserEmailError('');
 
@@ -1081,7 +1086,7 @@ const Login = () => {
 
     const payload = {
       name: userFullName.trim(),
-      email: userEmail || `user_${userMobileNo}@joshpetshub.com`,
+      email: cleanUserEmail,
       mobile: userMobileNo,
       mobileCountryCode: userCountryCode,
       whatsapp: userWhatsappNo,
@@ -1093,8 +1098,8 @@ const Login = () => {
     };
 
     const code = Math.floor(100000 + Math.random() * 900000).toString();
-    const targetEmail = (payload.email || userEmail || '').trim();
-    const isEmail = targetEmail.includes('@');
+    const targetEmail = cleanUserEmail;
+    const isEmail = true;
 
     // ⚡ Await send-otp verification to prevent moving to OTP step if email already registered
     if (isEmail) {
@@ -1373,7 +1378,11 @@ const Login = () => {
         toast.success(`📲 New OTP sent! (Valid for 10 min)`, { duration: 5000, icon: '📲' });
       }
     }).catch(() => {
-      toast.success(`📲 New OTP sent to ${targetCode} ${targetNum}! (Valid for 10 min)`, { duration: 5000, icon: '📲' });
+      if (targetEmail) {
+        toast.success(`📧 New OTP sent to ${targetEmail}! (Valid for 10 min)`, { duration: 5000, icon: '📧' });
+      } else {
+        toast.success(`📲 New OTP sent to ${targetCode} ${targetNum}! (Valid for 10 min)`, { duration: 5000, icon: '📲' });
+      }
     });
   };
 
@@ -1537,6 +1546,8 @@ const Login = () => {
                 <div className="w-12 h-12 mx-auto rounded-2xl bg-blue-50 border border-blue-200 flex items-center justify-center text-[#15559c] shadow-sm">
                   {pendingUserData?.role === 'SERVICE_PROVIDER' ? (
                     <Briefcase size={24} className="animate-pulse text-[#15559c]" />
+                  ) : pendingUserData?.email || pendingUserData?.identifier?.includes('@') ? (
+                    <Mail size={24} className="animate-pulse text-[#15559c]" />
                   ) : (
                     <Smartphone size={24} className="animate-pulse text-[#15559c]" />
                   )}
@@ -1546,12 +1557,16 @@ const Login = () => {
                     {otpPurpose === 'login' ? 'LOGIN VERIFICATION' : pendingUserData?.role === 'SERVICE_PROVIDER' ? 'SERVICE PROVIDER VERIFICATION' : 'PET PARENT VERIFICATION'}
                   </span>
                   <h2 className="font-serif text-xl font-bold text-slate-800">
-                    {otpPurpose === 'login' ? 'Verify Login OTP' : pendingUserData?.role === 'SERVICE_PROVIDER' ? 'Verify Partner Mobile' : 'Verify Your Mobile'}
+                    {otpPurpose === 'login'
+                      ? (pendingUserData?.identifier?.includes('@') ? 'Verify Login Email' : 'Verify Login Mobile')
+                      : (pendingUserData?.email
+                          ? (pendingUserData?.role === 'SERVICE_PROVIDER' ? 'Verify Partner Email' : 'Verify Your Email')
+                          : (pendingUserData?.role === 'SERVICE_PROVIDER' ? 'Verify Partner Mobile' : 'Verify Your Mobile'))}
                   </h2>
                   <p className="text-xs text-slate-500 font-medium">
                     We've sent a 6-digit OTP verification code to{' '}
                     <strong className="text-slate-800 font-semibold">
-                      {otpPurpose === 'login' ? pendingUserData?.identifier : `${pendingUserData?.mobileCountryCode || '+91'} ${pendingUserData?.mobile}`}
+                      {pendingUserData?.email || (otpPurpose === 'login' ? pendingUserData?.identifier : `${pendingUserData?.mobileCountryCode || '+91'} ${pendingUserData?.mobile}`)}
                     </strong>
                   </p>
                   {pendingUserData?.whatsapp && (
@@ -2042,7 +2057,7 @@ const Login = () => {
                   SECTION A: USER REGISTRATION FORM
                  ----------------------------------------------------------------- */}
               {registerRoleTab === 'user' && (
-                <form onSubmit={handleUserSubmit} className="space-y-3.5">
+                <form onSubmit={handleUserSubmit} noValidate className="space-y-3.5">
                   {/* Full Name */}
                   <div className="space-y-1">
                     <input
@@ -2051,7 +2066,7 @@ const Login = () => {
                       value={userFullName}
                       onChange={handleUserFullNameChange}
                       onBlur={() => {
-                        if (!userFullName.trim()) {
+                        if (!userFullName || !userFullName.trim()) {
                           setUserFullNameError('Full Name is required *');
                         } else if (!/^[a-zA-Z\s]+$/.test(userFullName.trim())) {
                           setUserFullNameError('Full Name should contain alphabets only *');
@@ -2178,33 +2193,44 @@ const Login = () => {
                     <div className="space-y-1">
                       <input
                         type="email"
-                        placeholder="Email"
+                        placeholder="Email ID *"
                         value={userEmail}
                         onChange={(e) => {
                           setUserEmail(e.target.value);
                           if (userEmailError) setUserEmailError('');
                         }}
                         onBlur={async () => {
-                          if (userEmail && userEmail.trim()) {
-                            if (checkEmailAlreadyRegistered(userEmail)) {
-                              setUserEmailError('This email is already registered. Please log in or use a different email *');
-                              return;
-                            }
-                            try {
-                              const res = await apiRequest('/auth/check-email', {
-                                method: 'POST',
-                                body: JSON.stringify({ email: userEmail.trim() })
-                              });
-                              if (res?.exists) {
-                                setUserEmailError('This email is already registered. Please log in or use a different email *');
-                              }
-                            } catch (_) { }
+                          if (!userEmail || !userEmail.trim()) {
+                            setUserEmailError('Email ID is required *');
+                            return;
                           }
+                          const clean = userEmail.trim().toLowerCase();
+                          const emailValidation = validateEmailFormat(clean);
+                          if (!emailValidation.isValid) {
+                            setUserEmailError(emailValidation.message + ' *');
+                            return;
+                          }
+                          if (checkEmailAlreadyRegistered(clean)) {
+                            setUserEmailError('This email is already registered. Please log in or use a different email *');
+                            return;
+                          }
+                          try {
+                            const res = await apiRequest('/auth/check-email', {
+                              method: 'POST',
+                              body: JSON.stringify({ email: clean })
+                            });
+                            if (res?.exists) {
+                              setUserEmailError('This email is already registered. Please log in or use a different email *');
+                            } else {
+                              setUserEmailError('');
+                            }
+                          } catch (_) { }
                         }}
                         className={`w-full px-4 py-2.5 border rounded-xl text-xs md:text-sm focus:outline-none transition font-medium ${userEmailError
                             ? 'border-red-500 ring-2 ring-red-100 bg-red-50/20 text-red-900'
                             : 'border-slate-200 focus:border-[#15559c] focus:ring-2 focus:ring-blue-100 bg-slate-50/50 hover:bg-white'
                           }`}
+                        required
                       />
                       {userEmailError && (
                         <p className="text-[10px] font-bold text-red-500 pl-1 leading-tight flex items-center gap-1">
@@ -2312,7 +2338,7 @@ const Login = () => {
                   SECTION B: SERVICE PROVIDER REGISTRATION FORM
                  ----------------------------------------------------------------- */}
               {registerRoleTab === 'provider' && (
-                <form onSubmit={handleProviderSubmit} className="space-y-3.5">
+                <form onSubmit={handleProviderSubmit} noValidate className="space-y-3.5">
                   {/* Business / Shelter Legal Name */}
                   <div className="space-y-1">
                     <input
@@ -2426,14 +2452,20 @@ const Login = () => {
                         }}
                         onBlur={async () => {
                           if (providerEmail && providerEmail.trim()) {
-                            if (checkEmailAlreadyRegistered(providerEmail)) {
+                            const clean = providerEmail.trim();
+                            const emailValidation = validateEmailFormat(clean);
+                            if (!emailValidation.isValid) {
+                              setProviderEmailError(emailValidation.message + ' *');
+                              return;
+                            }
+                            if (checkEmailAlreadyRegistered(clean)) {
                               setProviderEmailError('This email is already registered. Please log in or use a different email *');
                               return;
                             }
                             try {
                               const res = await apiRequest('/auth/check-email', {
                                 method: 'POST',
-                                body: JSON.stringify({ email: providerEmail.trim() })
+                                body: JSON.stringify({ email: clean })
                               });
                               if (res?.exists) {
                                 setProviderEmailError('This email is already registered. Please log in or use a different email *');

@@ -8,6 +8,8 @@ import {
   Compass, ShieldAlert, UserCheck, ChevronDown, Dog, Activity, HeartPulse
 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import RazorpayBookingPaymentModal from '../../components/widgets/RazorpayBookingPaymentModal.jsx';
+import { apiRequest } from '../../services/api.js';
 import { 
   WALKING_OFFERINGS, 
   getStoredWalkingProviders, 
@@ -110,6 +112,7 @@ const WalkingServices = () => {
   const [pickupAddress, setPickupAddress] = useState('');
   const [specialNotes, setSpecialNotes] = useState('');
   const [showBookingModal, setShowBookingModal] = useState(false);
+  const [pendingPaymentBooking, setPendingPaymentBooking] = useState(null);
 
   const providers = getStoredWalkingProviders();
 
@@ -305,32 +308,65 @@ const WalkingServices = () => {
       return;
     }
 
+    const bookingId = 'WALK-' + Date.now().toString().slice(-6);
+    const bookingPrice = selectedPackage?.price || selectedProvider.discountPrice || selectedProvider.price || 299;
     const bookingData = {
-      id: 'WALK-' + Date.now().toString().slice(-6),
+      id: bookingId,
+      _id: bookingId,
+      serviceType: 'Pet Walking & Fitness',
+      serviceCategory: 'Pet Walking & Fitness',
       providerId: selectedProvider.id,
       providerName: selectedProvider.name,
       walkerName: selectedProvider.walkerName,
       packageName: selectedPackage?.name || 'Standard 30-Min Walk',
-      packagePrice: selectedPackage?.price || selectedProvider.discountPrice || selectedProvider.price,
+      packagePrice: bookingPrice,
+      fee: bookingPrice,
+      totalAmount: bookingPrice,
       bookingDate,
+      date: bookingDate,
       bookingTime,
+      timeSlot: bookingTime,
       petName,
       petBreed,
       petAge,
       dogSize,
+      petDetails: {
+        name: petName,
+        breed: petBreed,
+        age: petAge,
+        size: dogSize
+      },
       ownerName: user?.name || 'Pet Parent',
       ownerPhone,
+      ownerEmail: user?.email || '',
+      userId: user?._id || user?.id || '',
+      userEmail: user?.email || '',
       pickupAddress: pickupAddress || `${selectedProvider.area}, ${selectedProvider.city}`,
+      location: pickupAddress || `${selectedProvider.area}, ${selectedProvider.city}`,
       specialNotes,
       status: 'Confirmed',
+      paymentStatus: 'Pay on Walk',
       createdAt: new Date().toISOString()
     };
 
-    saveWalkingBooking(bookingData);
     setShowBookingModal(false);
-    toast.success(`🎉 Dog walking slot booked with ${selectedProvider.name} for ${petName}! The walker will coordinate with you.`, {
-      duration: 6000,
-      icon: '🦮'
+    setPendingPaymentBooking({
+      ...bookingData,
+      serviceName: `Dog Walking (${selectedPackage?.name || 'Daily Walk'})`,
+      serviceCategory: 'Pet Walking & Fitness',
+      providerName: selectedProvider.name,
+      price: bookingFee,
+      date: bookingDate,
+      timeSlot: bookingTime,
+      ownerName: user?.name || 'Pet Parent',
+      ownerPhone,
+      ownerEmail: user?.email || '',
+      petDetails: {
+        name: petName,
+        breed: petBreed,
+        age: petAge,
+        size: dogSize
+      }
     });
   };
 
@@ -1292,6 +1328,17 @@ const WalkingServices = () => {
           </div>
         </div>
       )}
+
+      {/* RAZORPAY CENTRAL PLATFORM PAYMENT MODAL */}
+      <RazorpayBookingPaymentModal
+        isOpen={Boolean(pendingPaymentBooking)}
+        onClose={() => setPendingPaymentBooking(null)}
+        bookingData={pendingPaymentBooking}
+        onSuccess={(confirmed) => {
+          saveWalkingBooking(confirmed);
+          setPendingPaymentBooking(null);
+        }}
+      />
 
     </div>
   );

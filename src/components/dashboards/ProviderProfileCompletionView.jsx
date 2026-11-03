@@ -27,7 +27,7 @@ import {
 import toast from 'react-hot-toast';
 import { INDIAN_STATES_DISTRICTS } from '../../data/indiaLocations.js';
 import { apiRequest } from '../../services/api.js';
-import { fetchProfile, completeProviderProfile, sanitizeUserForStorage, safeSetItem } from '../../store/slices/authSlice.js';
+import { fetchProfile, completeProviderProfile, updateProfile, sanitizeUserForStorage, safeSetItem } from '../../store/slices/authSlice.js';
 
 const GOVT_PROOF_OPTIONS = [
   'AWBI Pet Shop Registration Certificate',
@@ -111,12 +111,16 @@ export default function ProviderProfileCompletionView({
   // Extract initial state/city from location
   const { state: initialState, city: initialCity } = resolveStateAndDistrict(user);
 
+  const initialEmailKey = (user?.email || '').toLowerCase().trim();
+  const initialCachedPhone = initialEmailKey ? localStorage.getItem(`joshpetshub_phone_${initialEmailKey}`) : '';
+  const initialPhone = (user?.mobile || user?.phone || initialCachedPhone || '').trim();
+
   const [formData, setFormData] = useState({
     businessName: user?.businessName || user?.name || '',
     name: user?.name || '',
     email: user?.email || '',
-    mobile: user?.mobile || '',
-    whatsapp: user?.whatsapp || user?.whatsappNumber || user?.mobile || '',
+    mobile: initialPhone,
+    whatsapp: user?.whatsapp || user?.whatsappNumber || initialPhone || '',
     state: initialState,
     city: initialCity,
     address: user?.address || user?.streetAddress || user?.location || '',
@@ -143,14 +147,17 @@ export default function ProviderProfileCompletionView({
 
   useEffect(() => {
     if (user) {
+      const emailK = (user.email || '').toLowerCase().trim();
+      const savedPhone = emailK ? localStorage.getItem(`joshpetshub_phone_${emailK}`) : '';
+      const resolvedPhone = (user.mobile || user.phone || savedPhone || '').trim();
       const { state: resolvedSt, city: resolvedCt } = resolveStateAndDistrict(user);
       setFormData((prev) => ({
         ...prev,
         businessName: user.businessName || user.name || prev.businessName,
         name: user.name || prev.name,
         email: user.email || prev.email,
-        mobile: user.mobile || prev.mobile,
-        whatsapp: user.whatsapp || user.whatsappNumber || user.mobile || prev.whatsapp,
+        mobile: resolvedPhone || prev.mobile,
+        whatsapp: user.whatsapp || user.whatsappNumber || resolvedPhone || prev.whatsapp,
         state: user.state || resolvedSt || prev.state,
         city: user.city || resolvedCt || prev.city,
         address: user.address || user.streetAddress || user.location || prev.address,
@@ -205,16 +212,63 @@ export default function ProviderProfileCompletionView({
   const handleAvatarUpload = (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    if (file.size > 2 * 1024 * 1024) {
-      toast.error('Image must be under 2MB.');
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('Image must be under 5MB.');
       return;
     }
     const reader = new FileReader();
     reader.onload = (event) => {
-      setFormData((prev) => ({ ...prev, avatar: event.target?.result }));
-      toast.success('Profile image updated!');
+      const img = new Image();
+      img.onload = async () => {
+        const canvas = document.createElement('canvas');
+        let width = img.width;
+        let height = img.height;
+        const maxDim = 350;
+        if (width > height && width > maxDim) {
+          height *= maxDim / width;
+          width = maxDim;
+        } else if (height > maxDim) {
+          width *= maxDim / height;
+          height = maxDim;
+        }
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, width, height);
+        const compressed = canvas.toDataURL('image/jpeg', 0.8);
+
+        setFormData((prev) => ({ ...prev, avatar: compressed }));
+
+        const activeEmail = (user?.email || formData.email || '').toLowerCase().trim();
+        const activeCachedPhone = activeEmail ? localStorage.getItem(`joshpetshub_phone_${activeEmail}`) : '';
+        const phoneToKeep = (formData.mobile || user?.mobile || user?.phone || activeCachedPhone || '').trim();
+
+        if (activeEmail) {
+          safeSetItem(`joshpetshub_avatar_${activeEmail}`, compressed);
+          if (phoneToKeep) {
+            safeSetItem(`joshpetshub_phone_${activeEmail}`, phoneToKeep);
+          }
+        }
+
+        try {
+          await dispatch(updateProfile({
+            avatar: compressed,
+            profilePicture: compressed,
+            mobile: phoneToKeep,
+            phone: phoneToKeep,
+            name: formData.name || user?.name,
+            businessName: formData.businessName || user?.businessName
+          })).unwrap();
+          toast.success('Profile image updated successfully!');
+        } catch (err) {
+          console.warn('Profile image autosave note:', err);
+          toast.success('Profile image updated!');
+        }
+      };
+      img.src = event.target?.result;
     };
     reader.readAsDataURL(file);
+    e.target.value = '';
   };
 
   const validateForm = () => {
@@ -253,8 +307,14 @@ export default function ProviderProfileCompletionView({
 
     setSaving(true);
     try {
+      const activeEmail = (user?.email || formData.email || '').toLowerCase().trim();
+      const activeCachedPhone = activeEmail ? localStorage.getItem(`joshpetshub_phone_${activeEmail}`) : '';
+      const phoneToKeep = (formData.mobile || user?.mobile || user?.phone || activeCachedPhone || '').trim();
+
       const payload = {
         ...formData,
+        mobile: phoneToKeep,
+        phone: phoneToKeep,
         location: `${formData.city}, ${formData.state}`,
         serviceCategory: serviceCategory || user?.serviceCategory || 'Service Provider'
       };
@@ -263,11 +323,18 @@ export default function ProviderProfileCompletionView({
       if (completeProviderProfile.fulfilled.match(result)) {
         const updatedUser = result.payload.user;
         toast.success(result.payload.message || 'Profile saved successfully!');
+        if (activeEmail && phoneToKeep) {
+          safeSetItem(`joshpetshub_phone_${activeEmail}`, phoneToKeep);
+        }
+        if (activeEmail && payload.avatar) {
+          safeSetItem(`joshpetshub_avatar_${activeEmail}`, payload.avatar);
+        }
         if (updatedUser) {
           safeSetItem('joshpetshub_user', JSON.stringify(sanitizeUserForStorage(updatedUser)));
           setFormData((prev) => ({
             ...prev,
-            ...updatedUser
+            ...updatedUser,
+            mobile: phoneToKeep || updatedUser.mobile
           }));
         }
         dispatch(fetchProfile());

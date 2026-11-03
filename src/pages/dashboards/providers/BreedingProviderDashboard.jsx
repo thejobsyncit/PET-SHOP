@@ -6,33 +6,49 @@ import {
   PawPrint, Calendar, Star, TrendingUp, DollarSign, Clock, MapPin, 
   MessageSquare, Plus, Search, ChevronRight, Phone, ShieldCheck, Mail, Heart, Settings,
   Tag, ShoppingBag, AlertCircle, LayoutDashboard, LogOut, CheckCircle, X, Send, CreditCard, Loader2, Edit3, Check, Stethoscope, FileText, Building,
-  Paperclip, Trash2, Upload, Download, VolumeX, Volume2, Award
+  Paperclip, Trash2, Upload, Download, VolumeX, Volume2, Award, Pause, Play
 } from 'lucide-react';
 import { apiRequest } from '../../../services/api.js';
-import { getStoredMatingPets, saveMatingPet } from '../../../data/breedingData.js';
+import { getStoredMatingPets, saveMatingPet, updateMatingPet, deleteMatingPet } from '../../../data/breedingData.js';
 import { safeSetItem, safeGetItem } from '../../../utils/safeStorage.js';
 
 import toast from 'react-hot-toast';
 import ProviderProfileSection from '../../../components/dashboards/ProviderProfileSection.jsx';
+import ProviderWalletPayoutView from '../../../components/dashboards/ProviderWalletPayoutView.jsx';
 
 
 const ListingsModule = ({ user }) => {
   const [studs, setStuds] = useState([]);
-  const [showAddModal, setShowAddModal] = useState(false);
-  const initialNewProfile = {
+  const [showModal, setShowModal] = useState(false);
+  const [editingStud, setEditingStud] = useState(null);
+
+  const initialFormState = {
     name: '',
-    breed: 'Golden Retriever',
+    breed: '',
     petCategory: 'Dogs',
     gender: 'Male',
-    age: '2 Years',
+    age: '',
     price: '',
-    image: 'https://images.unsplash.com/photo-1552053831-71594a27632d?auto=format&fit=crop&q=80&w=800'
+    image: '',
+    status: 'Active',
+    mateRequirement: '',
+    description: '',
+    kciNumber: '',
+    vaccinated: true,
+    dewormed: true,
+    geneticTested: true
   };
-  const [newProfile, setNewProfile] = useState(initialNewProfile);
+  const [formData, setFormData] = useState(initialFormState);
 
   const refreshStuds = () => {
     const allPets = getStoredMatingPets() || [];
-    const myPets = Array.isArray(allPets) ? allPets.filter(p => p && (p.parentName === user?.name || p.parentPhone === user?.mobile || p.whatsappNumber === user?.mobile)) : [];
+    const myPets = Array.isArray(allPets) ? allPets.filter(p => p && (
+      p.parentName === user?.name || 
+      p.parentPhone === user?.mobile || 
+      p.whatsappNumber === user?.mobile ||
+      p.providerEmail === user?.email ||
+      p.email === user?.email
+    )) : [];
     setStuds(myPets);
   };
 
@@ -40,35 +56,129 @@ const ListingsModule = ({ user }) => {
     refreshStuds();
   }, [user]);
 
-  const handleCreateProfile = (e) => {
+  // Open modal in create mode
+  const handleOpenAdd = () => {
+    setEditingStud(null);
+    setFormData(initialFormState);
+    setShowModal(true);
+  };
+
+  // Open modal in edit mode with current data
+  const handleOpenEdit = (stud) => {
+    setEditingStud(stud);
+    setFormData({
+      name: stud.name || '',
+      breed: stud.breed || 'Golden Retriever',
+      petCategory: stud.petCategory || 'Dogs',
+      gender: stud.gender || 'Male',
+      age: stud.age || '2.5 Years',
+      price: stud.price || 8000,
+      image: stud.image || '',
+      status: stud.status || 'Active',
+      mateRequirement: stud.mateRequirement || '',
+      description: stud.description || '',
+      kciNumber: stud.kciNumber || '',
+      vaccinated: stud.vaccinated !== false,
+      dewormed: stud.dewormed !== false,
+      geneticTested: stud.geneticTested !== false
+    });
+    setShowModal(true);
+  };
+
+  // Toggle Pause / Resume
+  const handleTogglePause = (stud) => {
+    const isPaused = (stud.status || 'Active') === 'Paused';
+    const newStatus = isPaused ? 'Active' : 'Paused';
+    const updated = {
+      ...stud,
+      status: newStatus
+    };
+    updateMatingPet(updated);
+    setStuds(prev => prev.map(s => s.id === stud.id ? updated : s));
+    if (newStatus === 'Paused') {
+      toast.success(`⏸️ "${stud.name}" has been paused.`);
+    } else {
+      toast.success(`▶️ "${stud.name}" is now active!`);
+    }
+    window.dispatchEvent(new CustomEvent('mating-pets-updated'));
+  };
+
+  // Delete stud profile
+  const handleDelete = (id, name) => {
+    if (window.confirm(`Are you sure you want to remove "${name}" from your active stud listings?`)) {
+      deleteMatingPet(id);
+      setStuds(prev => prev.filter(s => s.id !== id));
+      toast.success(`"${name}" removed from stud listings.`);
+      setShowModal(false);
+      setEditingStud(null);
+      window.dispatchEvent(new CustomEvent('mating-pets-updated'));
+    }
+  };
+
+  // Handle Save (Add or Update)
+  const handleSubmit = (e) => {
     e.preventDefault();
-    if (!newProfile.name.trim() || !newProfile.breed.trim()) {
+    if (!formData.name.trim() || !formData.breed.trim()) {
       toast.error('Please enter pet name and breed.');
       return;
     }
-    const petObj = {
-      id: 'mate-' + Date.now(),
-      name: newProfile.name.trim(),
-      breed: newProfile.breed.trim(),
-      petCategory: newProfile.petCategory,
-      gender: newProfile.gender,
-      age: newProfile.age,
-      price: Number(newProfile.price) || 8000,
-      priceDisplay: `₹${(Number(newProfile.price) || 8000).toLocaleString('en-IN')} Stud Fee`,
-      image: newProfile.image || 'https://images.unsplash.com/photo-1552053831-71594a27632d?auto=format&fit=crop&q=80&w=800',
-      parentName: user?.name || 'Verified Breeder',
-      parentPhone: user?.mobile || '+91 9876543210',
-      whatsappNumber: user?.mobile || '+91 9876543210',
-      city: 'Bangalore',
-      state: 'Karnataka',
-      verified: true
-    };
 
-    saveMatingPet(petObj);
-    setStuds(prev => [petObj, ...prev]);
-    toast.success(`🎉 ${petObj.name} added to your active stud listings!`);
-    setNewProfile(initialNewProfile);
-    setShowAddModal(false);
+    if (editingStud) {
+      const updatedObj = {
+        ...editingStud,
+        name: formData.name.trim(),
+        breed: formData.breed.trim(),
+        petCategory: formData.petCategory,
+        gender: formData.gender,
+        age: formData.age.trim(),
+        price: Number(formData.price) || 8000,
+        priceDisplay: `₹${(Number(formData.price) || 8000).toLocaleString('en-IN')} Stud Fee`,
+        image: formData.image?.trim() || editingStud.image || 'https://images.unsplash.com/photo-1552053831-71594a27632d?auto=format&fit=crop&q=80&w=800',
+        status: formData.status || 'Active',
+        mateRequirement: formData.mateRequirement || '',
+        description: formData.description || '',
+        kciNumber: formData.kciNumber || '',
+        vaccinated: formData.vaccinated,
+        dewormed: formData.dewormed,
+        geneticTested: formData.geneticTested
+      };
+      updateMatingPet(updatedObj);
+      setStuds(prev => prev.map(s => s.id === editingStud.id ? updatedObj : s));
+      toast.success(`🎉 "${updatedObj.name}" profile updated successfully!`);
+    } else {
+      const petObj = {
+        id: 'mate-' + Date.now(),
+        name: formData.name.trim(),
+        breed: formData.breed.trim(),
+        petCategory: formData.petCategory,
+        gender: formData.gender,
+        age: formData.age.trim(),
+        price: Number(formData.price) || 8000,
+        priceDisplay: `₹${(Number(formData.price) || 8000).toLocaleString('en-IN')} Stud Fee`,
+        image: formData.image?.trim() || 'https://images.unsplash.com/photo-1552053831-71594a27632d?auto=format&fit=crop&q=80&w=800',
+        parentName: user?.name || 'Elite Breeds Hub',
+        parentPhone: user?.mobile || '9845556677',
+        whatsappNumber: user?.mobile || '9845556677',
+        providerEmail: user?.email || 'elitebreed@joshpetshub.com',
+        city: user?.city || 'Bangalore',
+        state: user?.state || 'Karnataka',
+        verified: true,
+        status: formData.status || 'Active',
+        mateRequirement: formData.mateRequirement || '',
+        description: formData.description || '',
+        kciNumber: formData.kciNumber || '',
+        vaccinated: formData.vaccinated,
+        dewormed: formData.dewormed,
+        geneticTested: formData.geneticTested
+      };
+      saveMatingPet(petObj);
+      setStuds(prev => [petObj, ...prev]);
+      toast.success(`🎉 "${petObj.name}" added to your stud listings!`);
+    }
+
+    setShowModal(false);
+    setEditingStud(null);
+    window.dispatchEvent(new CustomEvent('mating-pets-updated'));
   };
 
   return (
@@ -76,14 +186,11 @@ const ListingsModule = ({ user }) => {
       <div className="flex justify-between items-center border-b border-slate-100 pb-4">
         <div>
           <h2 className="text-xl font-black text-[#0F2E23]">Active Studs/Mates</h2>
-          <p className="text-sm text-slate-500 font-medium">Manage your breeding profiles and stud fees.</p>
+          <p className="text-sm text-slate-500 font-medium">Manage your breeding profiles, stud fees, and active availability.</p>
         </div>
         <button 
           type="button"
-          onClick={() => {
-            setNewProfile(initialNewProfile);
-            setShowAddModal(true);
-          }}
+          onClick={handleOpenAdd}
           className="bg-[#0F2E23] hover:bg-emerald-800 text-white px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider flex items-center gap-2 transition-colors cursor-pointer shadow-sm"
         >
           <Plus size={16} /> Add Profile
@@ -98,56 +205,101 @@ const ListingsModule = ({ user }) => {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {studs.map((stud) => (
-            <div key={stud.id} className="bg-white border border-slate-200 rounded-2xl overflow-hidden hover:shadow-lg transition-shadow duration-300 group flex flex-col">
-              <div className="h-40 overflow-hidden relative">
-                <img src={stud.image} alt={stud.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                <div className="absolute top-3 right-3">
-                  <span className="px-2 py-1 rounded-full text-[10px] font-black uppercase tracking-wider shadow-sm bg-emerald-100 text-emerald-700">
-                    Active
-                  </span>
+          {studs.map((stud) => {
+            const isPaused = (stud.status || 'Active') === 'Paused';
+            return (
+              <div key={stud.id} className="bg-white border border-slate-200 rounded-2xl overflow-hidden hover:shadow-lg transition-shadow duration-300 group flex flex-col">
+                <div className="h-44 overflow-hidden relative">
+                  <img src={stud.image} alt={stud.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                  <div className="absolute top-3 right-3 flex items-center gap-1.5">
+                    <span className={`px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider shadow-sm flex items-center gap-1.5 ${
+                      !isPaused
+                        ? 'bg-emerald-100/90 text-emerald-800 border border-emerald-300 backdrop-blur-xs'
+                        : 'bg-amber-100/90 text-amber-800 border border-amber-300 backdrop-blur-xs'
+                    }`}>
+                      <span className={`w-1.5 h-1.5 rounded-full ${
+                        !isPaused ? 'bg-emerald-600 animate-pulse' : 'bg-amber-600'
+                      }`} />
+                      {stud.status || 'Active'}
+                    </span>
+                  </div>
+                </div>
+                <div className="p-5 flex flex-col flex-1">
+                  <div className="flex justify-between items-start mb-2">
+                    <div>
+                      <h3 className="text-lg font-black text-[#0F2E23]">{stud.name}</h3>
+                      <p className="text-xs font-bold text-slate-500">{stud.breed}</p>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-lg font-black text-amber-600">₹{(stud.price || 8000).toLocaleString('en-IN')}</div>
+                      <div className="text-[9px] uppercase tracking-wider text-slate-400 font-bold">Stud Fee</div>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-4 mt-auto pt-4 border-t border-slate-100 text-sm">
+                    <div className="flex items-center gap-1 text-slate-600 text-xs font-bold">
+                      <Calendar size={14} className="text-slate-400" /> {stud.age}
+                    </div>
+                    <div className="flex items-center gap-1 text-slate-600 text-xs font-bold">
+                      <CheckCircle size={14} className="text-emerald-500" /> {stud.gender || 'Male'}
+                    </div>
+                    {stud.kciNumber && (
+                      <div className="flex items-center gap-1 text-slate-600 text-[11px] font-bold truncate max-w-[120px]" title={stud.kciNumber}>
+                        <Award size={13} className="text-amber-500 shrink-0" /> {stud.kciNumber}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Actions: Edit and Pause/Resume */}
+                  <div className="mt-4 flex gap-2">
+                    <button 
+                      type="button"
+                      onClick={() => handleOpenEdit(stud)}
+                      className="flex-1 bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-700 hover:text-[#0F2E23] hover:border-slate-300 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-2xs"
+                    >
+                      <Edit3 size={13} className="text-slate-500" /> Edit
+                    </button>
+                    <button 
+                      type="button"
+                      onClick={() => handleTogglePause(stud)}
+                      className={`flex-1 border py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-2xs ${
+                        !isPaused
+                          ? 'bg-amber-50 hover:bg-amber-100 text-amber-800 border-amber-200 hover:border-amber-300'
+                          : 'bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border-emerald-200 hover:border-emerald-300'
+                      }`}
+                    >
+                      {!isPaused ? (
+                        <>
+                          <Pause size={13} className="text-amber-600" /> Pause
+                        </>
+                      ) : (
+                        <>
+                          <Play size={13} className="text-emerald-600" /> Resume
+                        </>
+                      )}
+                    </button>
+                  </div>
                 </div>
               </div>
-              <div className="p-5 flex flex-col flex-1">
-                <div className="flex justify-between items-start mb-2">
-                  <div>
-                    <h3 className="text-lg font-black text-[#0F2E23]">{stud.name}</h3>
-                    <p className="text-xs font-bold text-slate-500">{stud.breed}</p>
-                  </div>
-                  <div className="text-right">
-                    <div className="text-lg font-black text-amber-600">₹{(stud.price || 8000).toLocaleString('en-IN')}</div>
-                    <div className="text-[9px] uppercase tracking-wider text-slate-400 font-bold">Fee</div>
-                  </div>
-                </div>
-                <div className="flex items-center gap-4 mt-auto pt-4 border-t border-slate-100 text-sm">
-                  <div className="flex items-center gap-1 text-slate-600">
-                    <Calendar size={14} className="text-slate-400" /> {stud.age}
-                  </div>
-                  <div className="flex items-center gap-1 text-slate-600">
-                    <CheckCircle size={14} className="text-emerald-500" /> {stud.gender || 'Male'}
-                  </div>
-                </div>
-                <div className="mt-4 flex gap-2">
-                  <button className="flex-1 bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-700 py-2 rounded-lg text-xs font-bold transition-colors">Edit</button>
-                  <button className="flex-1 bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-700 py-2 rounded-lg text-xs font-bold transition-colors">Pause</button>
-                </div>
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
 
-      {/* MODAL: ADD PROFILE */}
-      {showAddModal && (
+      {/* MODAL: ADD / EDIT PROFILE */}
+      {showModal && (
         <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200">
-          <div className="bg-white rounded-2xl sm:rounded-3xl max-w-md w-full border border-slate-200 shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+          <div className="bg-white rounded-2xl sm:rounded-3xl max-w-lg w-full border border-slate-200 shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
             <div className="px-6 py-5 border-b border-slate-100 flex items-center justify-between bg-white z-10">
               <h3 className="text-base sm:text-lg font-black text-[#0F2E23] flex items-center gap-2">
-                <PawPrint size={18} className="text-emerald-700" /> Add New Stud / Mate Profile
+                <PawPrint size={18} className="text-emerald-700" /> 
+                {editingStud ? `Edit Stud Profile (${editingStud.name})` : 'Add New Stud / Mate Profile'}
               </h3>
               <button 
                 type="button" 
-                onClick={() => setShowAddModal(false)}
+                onClick={() => {
+                  setShowModal(false);
+                  setEditingStud(null);
+                }}
                 className="p-1.5 text-slate-400 hover:text-slate-700 rounded-full hover:bg-slate-100 transition cursor-pointer"
               >
                 <X size={18} />
@@ -155,15 +307,15 @@ const ListingsModule = ({ user }) => {
             </div>
 
             <div className="overflow-y-auto px-6 py-5 flex-1 custom-scrollbar">
-              <form onSubmit={handleCreateProfile} className="space-y-4 text-xs">
+              <form onSubmit={handleSubmit} className="space-y-4 text-xs">
                 <div>
                   <label className="font-bold text-slate-700 block mb-1">Pet Name *</label>
                   <input
                     type="text"
                     required
-                    value={newProfile.name}
-                    onChange={(e) => setNewProfile({ ...newProfile, name: e.target.value })}
-                    placeholder="e.g. Maximus"
+                    value={formData.name}
+                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    placeholder="e.g. Thor Champion Gold"
                     className="w-full border border-slate-200 rounded-xl p-2.5 font-bold text-slate-900 bg-slate-50 focus:bg-white focus:outline-none focus:border-[#0F2E23]"
                   />
                 </div>
@@ -172,8 +324,8 @@ const ListingsModule = ({ user }) => {
                   <div>
                     <label className="font-bold text-slate-700 block mb-1">Category *</label>
                     <select
-                      value={newProfile.petCategory}
-                      onChange={(e) => setNewProfile({ ...newProfile, petCategory: e.target.value })}
+                      value={formData.petCategory}
+                      onChange={(e) => setFormData({ ...formData, petCategory: e.target.value })}
                       className="w-full border border-slate-200 rounded-xl p-2.5 font-bold text-slate-900 bg-slate-50 focus:bg-white focus:outline-none focus:border-[#0F2E23]"
                     >
                       <option value="Dogs">Dogs</option>
@@ -184,8 +336,8 @@ const ListingsModule = ({ user }) => {
                   <div>
                     <label className="font-bold text-slate-700 block mb-1">Gender *</label>
                     <select
-                      value={newProfile.gender}
-                      onChange={(e) => setNewProfile({ ...newProfile, gender: e.target.value })}
+                      value={formData.gender}
+                      onChange={(e) => setFormData({ ...formData, gender: e.target.value })}
                       className="w-full border border-slate-200 rounded-xl p-2.5 font-bold text-slate-900 bg-slate-50 focus:bg-white focus:outline-none focus:border-[#0F2E23]"
                     >
                       <option value="Male">Male (Stud)</option>
@@ -200,8 +352,8 @@ const ListingsModule = ({ user }) => {
                     <input
                       type="text"
                       required
-                      value={newProfile.breed}
-                      onChange={(e) => setNewProfile({ ...newProfile, breed: e.target.value })}
+                      value={formData.breed}
+                      onChange={(e) => setFormData({ ...formData, breed: e.target.value })}
                       placeholder="e.g. Golden Retriever"
                       className="w-full border border-slate-200 rounded-xl p-2.5 font-bold text-slate-900 bg-slate-50 focus:bg-white focus:outline-none focus:border-[#0F2E23]"
                     />
@@ -211,23 +363,47 @@ const ListingsModule = ({ user }) => {
                     <input
                       type="text"
                       required
-                      value={newProfile.age}
-                      onChange={(e) => setNewProfile({ ...newProfile, age: e.target.value })}
+                      value={formData.age}
+                      onChange={(e) => setFormData({ ...formData, age: e.target.value })}
                       placeholder="e.g. 2.5 Years"
                       className="w-full border border-slate-200 rounded-xl p-2.5 font-bold text-slate-900 bg-slate-50 focus:bg-white focus:outline-none focus:border-[#0F2E23]"
                     />
                   </div>
                 </div>
 
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="font-bold text-slate-700 block mb-1">Mating / Stud Fee (₹) *</label>
+                    <input
+                      type="number"
+                      required
+                      value={formData.price}
+                      onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+                      placeholder="e.g. 15000"
+                      className="w-full border border-slate-200 rounded-xl p-2.5 font-bold text-slate-900 bg-slate-50 focus:bg-white focus:outline-none focus:border-[#0F2E23]"
+                    />
+                  </div>
+                  <div>
+                    <label className="font-bold text-slate-700 block mb-1">Listing Status *</label>
+                    <select
+                      value={formData.status}
+                      onChange={(e) => setFormData({ ...formData, status: e.target.value })}
+                      className="w-full border border-slate-200 rounded-xl p-2.5 font-bold text-slate-900 bg-slate-50 focus:bg-white focus:outline-none focus:border-[#0F2E23]"
+                    >
+                      <option value="Active">Active (Accepting Matings)</option>
+                      <option value="Paused">Paused (Temporarily Inactive)</option>
+                    </select>
+                  </div>
+                </div>
+
                 <div>
-                  <label className="font-bold text-slate-700 block mb-1">Mating / Stud Fee (₹) *</label>
+                  <label className="font-bold text-slate-700 block mb-1">KCI / Pedigree Registration (Optional)</label>
                   <input
-                    type="number"
-                    required
-                    value={newProfile.price}
-                    onChange={(e) => setNewProfile({ ...newProfile, price: e.target.value })}
-                    placeholder="e.g. 8000"
-                    className="w-full border border-slate-200 rounded-xl p-2.5 font-bold text-slate-900 bg-slate-50 focus:bg-white focus:outline-none focus:border-[#0F2E23]"
+                    type="text"
+                    value={formData.kciNumber}
+                    onChange={(e) => setFormData({ ...formData, kciNumber: e.target.value })}
+                    placeholder="e.g. KCI/2023/GR-8899"
+                    className="w-full border border-slate-200 rounded-xl p-2.5 font-medium text-slate-900 bg-slate-50 focus:bg-white focus:outline-none focus:border-[#0F2E23]"
                   />
                 </div>
 
@@ -235,19 +411,74 @@ const ListingsModule = ({ user }) => {
                   <label className="font-bold text-slate-700 block mb-1">Profile Photo URL</label>
                   <input
                     type="text"
-                    value={newProfile.image}
-                    onChange={(e) => setNewProfile({ ...newProfile, image: e.target.value })}
-                    placeholder="https://..."
+                    value={formData.image}
+                    onChange={(e) => setFormData({ ...formData, image: e.target.value })}
+                    placeholder="https://images.unsplash.com/... (leave blank for default)"
+                    className="w-full border border-slate-200 rounded-xl p-2.5 font-medium text-slate-900 bg-slate-50 focus:bg-white focus:outline-none focus:border-[#0F2E23]"
+                  />
+                  <span className="text-[10px] text-slate-400 mt-1 block">Leave empty to use a standard breed image placeholder.</span>
+                </div>
+
+                <div>
+                  <label className="font-bold text-slate-700 block mb-1">Partner Requirements (Optional)</label>
+                  <input
+                    type="text"
+                    value={formData.mateRequirement}
+                    onChange={(e) => setFormData({ ...formData, mateRequirement: e.target.value })}
+                    placeholder="e.g. Looking for healthy KCI certified female partner"
                     className="w-full border border-slate-200 rounded-xl p-2.5 font-medium text-slate-900 bg-slate-50 focus:bg-white focus:outline-none focus:border-[#0F2E23]"
                   />
                 </div>
 
-                <div className="pt-2">
+                {/* Health Checkboxes */}
+                <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
+                  <span className="font-bold text-slate-700 block text-[11px] uppercase tracking-wider">Health Clearances</span>
+                  <div className="flex flex-wrap gap-4">
+                    <label className="flex items-center gap-2 cursor-pointer font-medium text-slate-700">
+                      <input
+                        type="checkbox"
+                        checked={formData.vaccinated}
+                        onChange={(e) => setFormData({ ...formData, vaccinated: e.target.checked })}
+                        className="rounded text-emerald-600 focus:ring-emerald-500"
+                      />
+                      Vaccinated
+                    </label>
+                    <label className="flex items-center gap-2 cursor-pointer font-medium text-slate-700">
+                      <input
+                        type="checkbox"
+                        checked={formData.dewormed}
+                        onChange={(e) => setFormData({ ...formData, dewormed: e.target.checked })}
+                        className="rounded text-emerald-600 focus:ring-emerald-500"
+                      />
+                      Dewormed
+                    </label>
+                    <label className="flex items-center gap-2 cursor-pointer font-medium text-slate-700">
+                      <input
+                        type="checkbox"
+                        checked={formData.geneticTested}
+                        onChange={(e) => setFormData({ ...formData, geneticTested: e.target.checked })}
+                        className="rounded text-emerald-600 focus:ring-emerald-500"
+                      />
+                      Genetic / DNA Tested
+                    </label>
+                  </div>
+                </div>
+
+                <div className="pt-2 flex items-center gap-2">
+                  {editingStud && (
+                    <button
+                      type="button"
+                      onClick={() => handleDelete(editingStud.id, editingStud.name)}
+                      className="px-4 py-3 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 font-bold rounded-xl transition cursor-pointer flex items-center gap-1.5"
+                    >
+                      <Trash2 size={15} /> Delete
+                    </button>
+                  )}
                   <button
                     type="submit"
-                    className="w-full bg-[#0F2E23] text-white font-black py-3 rounded-xl uppercase tracking-wider hover:bg-emerald-900 transition shadow-md cursor-pointer"
+                    className="flex-1 bg-[#0F2E23] text-white font-black py-3 rounded-xl uppercase tracking-wider hover:bg-emerald-900 transition shadow-md cursor-pointer flex items-center justify-center gap-2"
                   >
-                    Save Mating Profile
+                    <CheckCircle size={16} /> {editingStud ? 'Update Stud Profile' : 'Save Mating Profile'}
                   </button>
                 </div>
               </form>
@@ -1190,7 +1421,7 @@ const BreedingProviderContent = ({ activeTab, user }) => {
     case 'matches': return <MatchesModule user={user} />;
     case 'messages': return <MessagesModule user={user} />;
     case 'reviews': return <ReviewsModule user={user} />;
-    case 'wallet': return <WalletModule />;
+    case 'wallet': return <ProviderWalletPayoutView serviceCategory="Pet Mating & Breeding" storageKeyPrefix="breeder" initialBalance={38000} escrowAmount={12000} />;
     case 'profile': return <ProfileModule user={user} />;
     default: return <ListingsModule user={user} />;
   }
@@ -1210,6 +1441,13 @@ const BreedingProviderDashboard = ({
   const activeTabParam = searchParams.get('tab') || storedTab || 'profile';
   const [activeTab, setActiveTab] = useState(activeTabParam);
 
+  useEffect(() => {
+    if (activeTabParam && activeTabParam !== activeTab) {
+      setActiveTab(activeTabParam);
+      safeSetItem('breedingDashboardTab', activeTabParam);
+    }
+  }, [activeTabParam]);
+
   const { user } = useSelector(state => state.auth);
   const dispatch = useDispatch();
   const [profileName, setProfileName] = useState(user?.name || currentProvider?.name || '');
@@ -1225,7 +1463,8 @@ const BreedingProviderDashboard = ({
 
   const handleUpdateProfile = async (e) => {
     e.preventDefault();
-    const result = await dispatch(updateProfile({ name: profileName, avatar: profileAvatar, profilePicture: profileAvatar }));
+    const phoneToKeep = (user?.mobile || user?.phone || '').trim();
+    const result = await dispatch(updateProfile({ name: profileName, avatar: profileAvatar, profilePicture: profileAvatar, mobile: phoneToKeep, phone: phoneToKeep }));
     if (updateProfile.fulfilled.match(result)) {
       toast.success('Profile updated successfully!');
       setIsEditingProfile(false);
@@ -1269,46 +1508,13 @@ const BreedingProviderDashboard = ({
   const displayName = user?.name || currentProvider?.name || 'Provider';
 
   return (
-    <div className="min-h-auto lg:h-screen bg-[#FAF9F5] text-slate-900 font-sans selection:bg-[#0F2E23]/20 selection:text-[#0F2E23] flex flex-col lg:flex-row">
+    <div className="min-h-[calc(100vh-104px)] bg-[#FAF9F5] text-slate-900 font-sans selection:bg-[#0F2E23]/20 selection:text-[#0F2E23] flex flex-col lg:flex-row">
       
       {/* LEFT SIDEBAR */}
       <aside className="w-full lg:w-72 shrink-0 bg-white border-r border-slate-200 relative lg:sticky top-0 lg:top-[104px] h-auto lg:h-[calc(100vh-104px)] flex flex-col justify-between overflow-y-auto z-10 shadow-[4px_0_24px_rgba(0,0,0,0.02)]">
         <div className="p-6 pt-6 lg:pt-12 space-y-8">
           
           <div className="flex flex-col items-center text-center space-y-4">
-            <div className="relative group cursor-pointer">
-              <label htmlFor="sidebar-avatar-upload" className="block relative cursor-pointer">
-                <div className="absolute -inset-1 bg-gradient-to-r from-[#ffd000] to-amber-500 rounded-full blur opacity-40 group-hover:opacity-70 transition duration-1000 group-hover:duration-200"></div>
-                <img 
-                  src={displayAvatar} 
-                  alt={displayName} 
-                  className="relative w-24 h-24 rounded-full object-cover border-4 border-white shadow-lg transition group-hover:opacity-80"
-                />
-                <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition z-10">
-                  <div className="bg-[#0F2E23]/80 p-2 rounded-full text-white">
-                    <Edit3 size={16} />
-                  </div>
-                </div>
-                <div className="absolute bottom-1 right-1 w-5 h-5 bg-white rounded-full flex items-center justify-center shadow-sm z-20">
-                  <span className={`w-3 h-3 rounded-full ${currentProvider?.isOnline ? 'bg-emerald-500' : 'bg-slate-400'}`}></span>
-                </div>
-              </label>
-              <input 
-                type="file" 
-                id="sidebar-avatar-upload" 
-                className="hidden" 
-                accept="image/*"
-                onChange={(e) => {
-                  handleFileChange(e, async (dataUrl) => {
-                    setProfileAvatar(dataUrl);
-                    const result = await dispatch(updateProfile({ name: profileName, avatar: dataUrl, profilePicture: dataUrl }));
-                    if (updateProfile.fulfilled.match(result)) {
-                      toast.success('Profile picture updated successfully!');
-                    }
-                  });
-                }} 
-              />
-            </div>
             <div className="w-full px-4">
               {isEditingProfile ? (
                 <form onSubmit={handleUpdateProfile} className="flex items-center gap-2 justify-center mt-2">
@@ -1345,12 +1551,12 @@ const BreedingProviderDashboard = ({
             <ul className="space-y-1">
               {[
                 { id: 'profile', label: 'Breeder Profile & Plan', icon: Building },
-                { id: 'listings', label: 'Active Studs/Mates', count: 4, icon: PawPrint },
-                { id: 'matches', label: 'Match Requests', count: 3, icon: Heart },
-                { id: 'messages', label: 'Client Inquiries', count: 6, icon: MessageSquare },
-                { id: 'reviews', label: 'Customer Reviews', extra: '4.9 ★', icon: Star },
+                { id: 'listings', label: 'Active Studs/Mates', icon: PawPrint },
+                { id: 'matches', label: 'Match Requests', icon: Heart },
+                { id: 'messages', label: 'Client Inquiries', icon: MessageSquare },
+                { id: 'reviews', label: 'Customer Reviews', icon: Star },
                 { id: 'wallet', label: 'Wallet & Payouts', icon: DollarSign }
-              ].map(item => (
+              ].map(item => ( 
                 <li key={item.id}>
                   <button
                     onClick={() => {
@@ -1368,20 +1574,6 @@ const BreedingProviderDashboard = ({
                       <item.icon size={18} className={activeTab === item.id ? 'text-amber-400' : 'text-slate-400 group-hover:text-emerald-600'} />
                       <span className="font-bold text-sm tracking-wide">{item.label}</span>
                     </div>
-                    {item.count !== undefined && (
-                      <span className={`text-[10px] font-black px-2 py-0.5 rounded-full ${
-                        activeTab === item.id ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-500 group-hover:bg-emerald-100'
-                      }`}>
-                        {item.count}
-                      </span>
-                    )}
-                    {item.extra !== undefined && (
-                      <span className={`text-[10px] font-black px-2 py-0.5 rounded-full ${
-                        activeTab === item.id ? 'bg-amber-400/20 text-amber-300' : 'bg-amber-100 text-amber-600'
-                      }`}>
-                        {item.extra}
-                      </span>
-                    )}
                   </button>
                 </li>
               ))}

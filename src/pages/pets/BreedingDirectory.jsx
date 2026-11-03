@@ -113,6 +113,12 @@ const BreedingDirectory = () => {
   useEffect(() => {
     window.scrollTo(0, 0);
     setPets(getStoredMatingPets());
+
+    const handlePetsUpdated = () => {
+      setPets(getStoredMatingPets());
+    };
+    window.addEventListener('mating-pets-updated', handlePetsUpdated);
+    return () => window.removeEventListener('mating-pets-updated', handlePetsUpdated);
   }, []);
 
   // Sync user info on auth changes
@@ -210,6 +216,8 @@ const BreedingDirectory = () => {
   // Filtered & Sorted Mating Pets
   const filteredPets = useMemo(() => {
     return pets.filter((pet) => {
+      // Exclude paused listings from public search
+      if (pet.status === 'Paused') return false;
       // 1. Keyword search (Name, breed, description, city, parent)
       if (searchKeyword.trim()) {
         const query = searchKeyword.toLowerCase();
@@ -282,29 +290,9 @@ const BreedingDirectory = () => {
 
   // Open Details Modal / Visit Mating Profile
   const handleOpenDetails = (pet) => {
-    if (!isAuthenticated) {
-      toast('Please sign up or log in to view breeding companion details.', {
-        icon: '🔐',
-        duration: 4000
-      });
-      window.dispatchEvent(
-        new CustomEvent('open-register-modal', {
-          detail: {
-            tab: 'user',
-            hideProviderTab: true,
-            source: 'mating-details',
-            petName: pet?.name
-          }
-        })
-      );
-      return;
-    }
-    handleServiceAction({
-      isAuthenticated,
-      serviceType: 'Breeding',
-      provider: { name: `${pet.name} (${pet.parentName})`, phone: pet.parentPhone, city: pet.city, image: pet.image },
-      action: 'view_expert_profile'
-    });
+    if (!pet) return;
+    setSelectedPetForDetails(pet);
+    setShowDetailsModal(true);
   };
 
   // Open Proposal & Package Access Modal (Requires Login)
@@ -451,7 +439,7 @@ const BreedingDirectory = () => {
       isAuthenticated,
       serviceType: 'Breeding',
       provider: { name: `${pet.name} (${pet.parentName})`, phone: pet.parentPhone, city: pet.city, image: pet.image },
-      action: 'view_expert_profile'
+      action: 'whatsapp'
     });
   };
 

@@ -175,6 +175,14 @@ export const handleServiceAction = ({
   customPackages = null,
   onAuthorized = null
 }) => {
+  // If action is view profile, trigger onAuthorized if provided and exit safely
+  if (action === 'view_expert_profile' || action === 'profile') {
+    if (typeof onAuthorized === 'function') {
+      onAuthorized();
+    }
+    return true;
+  }
+
   // 1. Check if user already took a package and paid once:
   const activeMembership = getActiveUserMembership();
   if (activeMembership) {

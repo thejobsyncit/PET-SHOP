@@ -36,31 +36,38 @@ const saveLocalMessages = (messages) => {
 router.get('/rooms', protect, async (req, res) => {
   try {
     const currentUserId = (req.user._id || req.user.id || '').toString();
+    const currentUserEmail = (req.user.email || '').toLowerCase().trim();
     const allMessages = getLocalMessages();
 
     // Map to track unique contacts
     const roomMap = new Map();
 
     allMessages.forEach((m) => {
-      const senderId = (m.sender?._id || m.sender?.id || m.sender || '').toString();
-      const recipientId = (m.recipient?._id || m.recipient?.id || m.recipient || '').toString();
+      const senderId = (m.sender?._id || m.sender?.id || (typeof m.sender === 'string' ? m.sender : '') || '').toString();
+      const recipientId = (m.recipient?._id || m.recipient?.id || (typeof m.recipient === 'string' ? m.recipient : '') || '').toString();
+      const senderEmail = (m.sender?.email || '').toLowerCase().trim();
+      const recipientEmail = (m.recipient?.email || '').toLowerCase().trim();
 
-      if (senderId === currentUserId || recipientId === currentUserId) {
-        const isSender = senderId === currentUserId;
+      const isSender = (currentUserId && senderId === currentUserId) || (currentUserEmail && senderEmail === currentUserEmail);
+      const isRecipient = (currentUserId && recipientId === currentUserId) || (currentUserEmail && recipientEmail === currentUserEmail);
+
+      if (isSender || isRecipient) {
         const otherId = isSender ? recipientId : senderId;
+        const otherEmail = isSender ? recipientEmail : senderEmail;
         const otherData = isSender ? m.recipient : m.sender;
+        const mapKey = otherId || otherEmail;
 
-        if (otherId && otherId !== currentUserId) {
-          const existing = roomMap.get(otherId);
+        if (mapKey && mapKey !== currentUserId && mapKey !== currentUserEmail) {
+          const existing = roomMap.get(mapKey);
           const msgTime = new Date(m.createdAt || 0).getTime();
 
           if (!existing || msgTime > existing._timestamp) {
-            roomMap.set(otherId, {
-              _id: otherId,
-              id: otherId,
-              name: typeof otherData === 'object' && otherData.name ? otherData.name : 'Pet Owner / Seller',
-              email: typeof otherData === 'object' && otherData.email ? otherData.email : '',
-              avatar: typeof otherData === 'object' && otherData.avatar ? otherData.avatar : '',
+            roomMap.set(mapKey, {
+              _id: otherId || mapKey,
+              id: otherId || mapKey,
+              name: typeof otherData === 'object' && otherData?.name ? otherData.name : 'Pet Owner / Seller',
+              email: typeof otherData === 'object' && otherData?.email ? otherData.email : (otherEmail || ''),
+              avatar: typeof otherData === 'object' && otherData?.avatar ? otherData.avatar : '',
               lastMessage: m.messageText || '',
               lastMessageTime: m.createdAt || new Date().toISOString(),
               listingTitle: m.listingTitle || m.listingRef || null,
@@ -83,14 +90,24 @@ router.get('/rooms', protect, async (req, res) => {
 router.get('/messages/:contactId', protect, async (req, res) => {
   try {
     const currentUserId = (req.user._id || req.user.id || '').toString();
+    const currentUserEmail = (req.user.email || '').toLowerCase().trim();
     const contactId = (req.params.contactId || '').toString();
+    const contactEmail = contactId.toLowerCase().trim();
 
     const allMessages = getLocalMessages();
     const conversation = allMessages.filter((m) => {
-      const sId = (m.sender?._id || m.sender?.id || m.sender || '').toString();
-      const rId = (m.recipient?._id || m.recipient?.id || m.recipient || '').toString();
+      const sId = (m.sender?._id || m.sender?.id || (typeof m.sender === 'string' ? m.sender : '') || '').toString();
+      const rId = (m.recipient?._id || m.recipient?.id || (typeof m.recipient === 'string' ? m.recipient : '') || '').toString();
+      const sEmail = (m.sender?.email || '').toLowerCase().trim();
+      const rEmail = (m.recipient?.email || '').toLowerCase().trim();
 
-      return (sId === currentUserId && rId === contactId) || (sId === contactId && rId === currentUserId);
+      const senderIsMe = (currentUserId && sId === currentUserId) || (currentUserEmail && sEmail === currentUserEmail);
+      const recipientIsMe = (currentUserId && rId === currentUserId) || (currentUserEmail && rEmail === currentUserEmail);
+
+      const senderIsContact = (contactId && sId === contactId) || (contactEmail && sEmail === contactEmail);
+      const recipientIsContact = (contactId && rId === contactId) || (contactEmail && rEmail === contactEmail);
+
+      return (senderIsMe && recipientIsContact) || (senderIsContact && recipientIsMe);
     }).sort((a, b) => new Date(a.createdAt || 0) - new Date(b.createdAt || 0));
 
     res.json({ success: true, messages: conversation });

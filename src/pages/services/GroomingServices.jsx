@@ -8,6 +8,7 @@ import {
   ShieldAlert, UserCheck, HeartHandshake, SearchCheck, BadgeCheck
 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import RazorpayBookingPaymentModal from '../../components/widgets/RazorpayBookingPaymentModal.jsx';
 import { 
   GROOMING_OFFERINGS, 
   getStoredGroomingProviders,
@@ -99,6 +100,7 @@ const GroomingServices = () => {
   const [ownerPhone, setOwnerPhone] = useState(user?.mobile || user?.phone || '');
   const [specialNotes, setSpecialNotes] = useState('');
   const [showBookingModal, setShowBookingModal] = useState(false);
+  const [pendingPaymentBooking, setPendingPaymentBooking] = useState(null);
   const [isSubmittingBooking, setIsSubmittingBooking] = useState(false);
 
   const providers = getStoredGroomingProviders();
@@ -300,34 +302,26 @@ const GroomingServices = () => {
       createdAt: new Date().toISOString()
     };
 
-    // 1. Save locally for guaranteed client persistence
-    saveGroomingBooking(bookingPayload);
-
-    // 2. Call backend api to save to server
-    try {
-      await apiRequest('/bookings', {
-        method: 'POST',
-        body: JSON.stringify(bookingPayload)
-      });
-    } catch (err) {
-      console.warn('Backend booking sync warning, stored locally:', err);
-    }
-
     setIsSubmittingBooking(false);
     setShowBookingModal(false);
-
-    toast.success(
-      `🎉 Grooming appointment booked with ${selectedProvider.name} for ${petName} on ${new Date(bookingDate).toLocaleDateString()} (${bookingTime})! Pay ₹${bookingFee} during your session.`,
-      {
-        duration: 6000,
-        icon: '✂️'
-      }
-    );
-
-    // Reset pet fields
-    setPetName('');
-    setPetBreed('');
-    setSpecialNotes('');
+    setPendingPaymentBooking({
+      ...bookingPayload,
+      serviceName: `${selectedPackage?.name || 'Full Grooming Spa'} (${selectedProvider?.name})`,
+      serviceCategory: 'Pet Grooming Spa',
+      providerName: selectedProvider?.name || 'Verified Grooming Studio',
+      price: bookingFee,
+      date: bookingDate,
+      timeSlot: bookingTime,
+      petDetails: {
+        name: petName.trim(),
+        type: selectedPetType === 'All' ? 'Dog/Cat' : selectedPetType,
+        breed: petBreed.trim(),
+        age: petAge
+      },
+      ownerName: user?.name || 'Pet Parent',
+      ownerPhone: ownerPhone.trim(),
+      ownerEmail: user?.email || ''
+    });
   };
 
   // Direct WhatsApp Connect
@@ -1288,6 +1282,20 @@ const GroomingServices = () => {
           </div>
         </div>
       )}
+
+      {/* RAZORPAY CENTRAL PLATFORM PAYMENT MODAL */}
+      <RazorpayBookingPaymentModal
+        isOpen={Boolean(pendingPaymentBooking)}
+        onClose={() => setPendingPaymentBooking(null)}
+        bookingData={pendingPaymentBooking}
+        onSuccess={(confirmed) => {
+          saveGroomingBooking(confirmed);
+          setPendingPaymentBooking(null);
+          setPetName('');
+          setPetBreed('');
+          setSpecialNotes('');
+        }}
+      />
 
     </div>
   );

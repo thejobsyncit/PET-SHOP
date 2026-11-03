@@ -200,5 +200,123 @@
     "messageText": "hii",
     "isRead": false,
     "createdAt": "2026-10-22T05:25:51.706Z"
+  },
+  {
+    "_id": "MSG-1793364768586-7845",
+    "sender": {
+      "_id": "5c03a90d-6c0a-41e6-86a2-bef6e9b5bb22",
+      "id": "5c03a90d-6c0a-41e6-86a2-bef6e9b5bb22",
+      "name": "Soorya S",
+      "email": "sooryas650@gmail.com"
+    },
+    "recipient": {
+      "_id": "seller-bird-01",
+      "id": "seller-bird-01",
+      "name": "Parrot Paradise Avian Farm"
+    },
+    "listingRef": "LIST-BIRD-01",
+    "listingTitle": "Hand-Tamed Talking African Grey Parrot",
+    "listingImage": "https://images.unsplash.com/photo-1452570053594-1b985d6ea890?q=80&w=800&auto=format&fit=crop",
+    "messageText": "Is this pet still available?",
+    "isRead": false,
+    "createdAt": "2026-10-30T12:52:48.586Z"
+  },
+  {
+    "_id": "MSG-1793364984928-2147",
+    "sender": {
+      "_id": "5c03a90d-6c0a-41e6-86a2-bef6e9b5bb22",
+      "id": "5c03a90d-6c0a-41e6-86a2-bef6e9b5bb22",
+      "name": "Soorya S",
+      "email": "sooryas650@gmail.com"
+    },
+    "recipient": {
+      "_id": "seller-bird-01",
+      "id": "seller-bird-01",
+      "name": "Parrot Paradise Avian Farm"
+    },
+    "listingRef": "LIST-BIRD-01",
+    "listingTitle": "Hand-Tamed Talking African Grey Parrot",
+    "listingImage": "https://images.unsplash.com/photo-1452570053594-1b985d6ea890?q=80&w=800&auto=format&fit=crop",
+    "messageText": "Hi, I am interested in Hand-Tamed Talking African Grey Parrot. Is this pet still available?",
+    "isRead": false,
+    "createdAt": "2026-10-30T12:56:24.928Z"
+  },
+  {
+    "_id": "MSG-1793685476045-4134",
+    "sender": {
+      "_id": "5c03a90d-6c0a-41e6-86a2-bef6e9b5bb22",
+      "id": "5c03a90d-6c0a-41e6-86a2-bef6e9b5bb22",
+      "name": "Soorya S",
+      "email": "sooryas650@gmail.com"
+    },
+    "recipient": {
+      "_id": "seller-fish-01",
+      "id": "seller-fish-01",
+      "name": "Karthik Raja (Aqua Exotics)"
+    },
+    "listingTitle": "Live Japanese Koi Fish",
+    "messageText": "Hello from real token test",
+    "isRead": false,
+    "createdAt": "2026-11-03T05:57:56.045Z"
+  },
+  {
+    "_id": "MSG-1793685503019-9852",
+    "sender": {
+      "_id": "5c03a90d-6c0a-41e6-86a2-bef6e9b5bb22",
+      "id": "5c03a90d-6c0a-41e6-86a2-bef6e9b5bb22",
+      "name": "Soorya S",
+      "email": "sooryas650@gmail.com"
+    },
+    "recipient": {
+      "_id": "seller-aqua-01",
+      "id": "seller-aqua-01",
+      "name": "Karthik Raja (Aqua Exotics)"
+    },
+    "listingRef": "LIST-FISH-01",
+    "listingTitle": "Show Grade Super Red Arowana (Microchipped with CITES Certificate)",
+    "listingImage": "https://images.unsplash.com/photo-1522069169874-c58ec4b76be5?q=80&w=800&auto=format&fit=crop",
+    "messageText": "Hi from real token test! Is this pet available?",
+    "isRead": false,
+    "createdAt": "2026-11-03T05:58:23.019Z"
+  },
+  {
+    "_id": "MSG-1793685973595-4121",
+    "sender": {
+      "_id": "5c03a90d-6c0a-41e6-86a2-bef6e9b5bb22",
+      "id": "5c03a90d-6c0a-41e6-86a2-bef6e9b5bb22",
+      "name": "Soorya S",
+      "email": "sooryas650@gmail.com"
+    },
+    "recipient": {
+      "_id": "seller-aqua-01",
+      "id": "seller-aqua-01",
+      "name": "Karthik Raja (Aqua Exotics)"
+    },
+    "listingRef": "LIST-FISH-01",
+    "listingTitle": "Show Grade Super Red Arowana (Microchipped with CITES Certificate)",
+    "listingImage": "https://images.unsplash.com/photo-1522069169874-c58ec4b76be5?q=80&w=800&auto=format&fit=crop",
+    "messageText": "Hi! I am very interested in this pet listing. Is it available?",
+    "isRead": false,
+    "createdAt": "2026-11-03T06:06:13.595Z"
+  },
+  {
+    "_id": "MSG-1793685977595-1649",
+    "sender": {
+      "_id": "5c03a90d-6c0a-41e6-86a2-bef6e9b5bb22",
+      "id": "5c03a90d-6c0a-41e6-86a2-bef6e9b5bb22",
+      "name": "Soorya S",
+      "email": "sooryas650@gmail.com"
+    },
+    "recipient": {
+      "_id": "seller-aqua-01",
+      "id": "seller-aqua-01",
+      "name": "Karthik Raja (Aqua Exotics)"
+    },
+    "listingRef": "LIST-FISH-01",
+    "listingTitle": "Show Grade Super Red Arowana (Microchipped with CITES Certificate)",
+    "listingImage": "https://images.unsplash.com/photo-1522069169874-c58ec4b76be5?q=80&w=800&auto=format&fit=crop",
+    "messageText": "Also, can we arrange a quick video call?",
+    "isRead": false,
+    "createdAt": "2026-11-03T06:06:17.595Z"
   }
 ]

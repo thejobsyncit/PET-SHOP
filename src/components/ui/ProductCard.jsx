@@ -3,7 +3,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { Heart, ShoppingBag, Eye, ShieldAlert, Check, X, ClipboardList, Minus, Plus } from 'lucide-react';
 import { addToCartAPI } from '../../store/slices/cartSlice.js';
-import { toggleWishlistAPI } from '../../store/slices/wishlistSlice.js';
+import { toggleWishlistAPI, getWishlistItemIdStr } from '../../store/slices/wishlistSlice.js';
 import { openAuthModal } from '../../store/slices/authSlice.js';
 import RatingStars from './RatingStars.jsx';
 import toast from 'react-hot-toast';
@@ -19,8 +19,8 @@ const ProductCard = ({ product }) => {
   const { isAuthenticated } = useSelector((state) => state.auth);
   const wishlistItems = useSelector((state) => state.wishlist.items);
   const cartItems = useSelector((state) => state.cart.items || []);
-  const productId = product._id || product.id;
-  const isWishlisted = wishlistItems.some(item => (item._id || item.id) === productId);
+  const productId = getWishlistItemIdStr(product);
+  const isWishlisted = Boolean(productId && wishlistItems.some(item => getWishlistItemIdStr(item) === productId));
   const pStock = typeof product.stock === 'number'
     ? Math.max(0, product.stock)
     : (product.stock !== undefined && product.stock !== null && !isNaN(Number(product.stock))
@@ -29,10 +29,12 @@ const ProductCard = ({ product }) => {
 
   const handleToggleWishlist = async (e) => {
     e.stopPropagation();
-    const result = await dispatch(toggleWishlistAPI(product));
+    if (!product) return;
+    const action = isWishlisted ? 'remove' : 'add';
+    const result = await dispatch(toggleWishlistAPI({ product, action }));
     if (toggleWishlistAPI.fulfilled.match(result)) {
       const updatedList = result.payload?.wishlist || [];
-      const nowInWishlist = updatedList.some(item => (item._id || item.id) === productId);
+      const nowInWishlist = updatedList.some(item => getWishlistItemIdStr(item) === productId);
       if (nowInWishlist) {
         toast.success('Added to wishlist');
       } else {
@@ -172,13 +174,18 @@ const ProductCard = ({ product }) => {
         {/* Wishlist Heart */}
         <button
           onClick={handleToggleWishlist}
-          className="absolute top-4 right-4 z-20 p-2.5 bg-white/80 backdrop-blur-md border border-white shadow-sm hover:bg-white hover:text-red-500 hover:shadow-lg hover:scale-110 transition-all duration-300 rounded-full cursor-pointer text-gray-400"
+          type="button"
+          title={isWishlisted ? "Remove from Wishlist" : "Add to Wishlist"}
+          aria-label={isWishlisted ? "Remove from Wishlist" : "Add to Wishlist"}
+          className={`absolute top-4 right-4 z-20 p-2.5 bg-white/80 backdrop-blur-md border shadow-sm hover:scale-110 transition-all duration-300 rounded-full cursor-pointer ${
+            isWishlisted ? "border-red-200 text-red-500 hover:bg-red-50" : "border-white hover:bg-white hover:text-red-500 text-gray-400"
+          }`}
         >
           <Heart size={16} className={isWishlisted ? "fill-red-500 text-red-500" : ""} />
         </button>
 
         {/* Image Display */}
-        <div className="relative aspect-square overflow-hidden bg-gray-50/50">
+        <div className="relative aspect-square overflow-hidden bg-white p-2">
           <img
             src={(hovered && product.images?.[1]) ? product.images[1] : (product.images?.[0] || product.image || 'https://images.unsplash.com/photo-1548199973-03cce0bbc87b?q=80&w=800')}
             alt={product.name}
@@ -188,7 +195,7 @@ const ProductCard = ({ product }) => {
               e.currentTarget.onerror = null;
               e.currentTarget.src = 'https://images.unsplash.com/photo-1548199973-03cce0bbc87b?q=80&w=800';
             }}
-            className="w-full h-full object-cover transition-all duration-700 ease-out group-hover:scale-[1.15] group-hover:-rotate-1"
+            className="w-full h-full object-contain transition-all duration-700 ease-out group-hover:scale-105"
           />
 
           {/* Quick Buttons Hover Overlay */}
@@ -269,7 +276,7 @@ const ProductCard = ({ product }) => {
             </button>
 
             {/* Left Image Pane */}
-            <div className="w-full md:w-1/2 aspect-square bg-gray-50 border-r border-beige">
+            <div className="w-full md:w-1/2 aspect-square bg-white border-r border-beige p-4 flex items-center justify-center">
               <img 
                 src={product.images?.[0] || product.image || 'https://images.unsplash.com/photo-1548199973-03cce0bbc87b?q=80&w=800'} 
                 alt={product.name} 
@@ -277,7 +284,7 @@ const ProductCard = ({ product }) => {
                   e.currentTarget.onerror = null;
                   e.currentTarget.src = 'https://images.unsplash.com/photo-1548199973-03cce0bbc87b?q=80&w=800';
                 }}
-                className="w-full h-full object-cover" 
+                className="w-full h-full object-contain" 
               />
             </div>
 

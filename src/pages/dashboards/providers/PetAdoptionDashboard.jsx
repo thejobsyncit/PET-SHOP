@@ -14,6 +14,7 @@ import { logout } from '../../../store/slices/authSlice.js';
 import { apiRequest } from '../../../services/api.js';
 import toast from 'react-hot-toast';
 import ProviderProfileSection from '../../../components/dashboards/ProviderProfileSection.jsx';
+import ProviderWalletPayoutView from '../../../components/dashboards/ProviderWalletPayoutView.jsx';
 import {
   getStoredAdoptionPets,
   setStoredAdoptionPets,
@@ -63,6 +64,7 @@ const PetAdoptionDashboard = ({
   const [newChatMessage, setNewChatMessage] = useState('');
   const [loadingChat, setLoadingChat] = useState(false);
   const messagesEndRef = useRef(null);
+  const chatContainerRef = useRef(null);
 
   // Add / Edit Rescue Pet Modal State
   const [showAddPetModal, setShowAddPetModal] = useState(false);
@@ -319,7 +321,7 @@ const PetAdoptionDashboard = ({
     }
 
     setTimeout(() => {
-      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+      if (chatContainerRef.current) { chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight; }
     }, 100);
   };
 
@@ -352,7 +354,7 @@ const PetAdoptionDashboard = ({
     setActiveChatContact(updatedInquiry);
 
     setTimeout(() => {
-      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+      if (chatContainerRef.current) { chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight; }
     }, 100);
 
     try {
@@ -451,10 +453,11 @@ const PetAdoptionDashboard = ({
   // Sidebar Menu Items matching exact layout
   const navItems = [
     { id: 'profile', label: 'Profile & Plan', icon: Settings },
-    { id: 'inventory', label: 'My Pet Inventory', icon: PawPrint, count: stats.availableStock },
-    { id: 'applications', label: 'Adoption Applications', icon: FileText, count: stats.pendingApps },
-    { id: 'inquiries', label: 'Buyer Leads', icon: MessageSquare, count: inquiries.length },
-    { id: 'rehomed', label: 'Forever Homes', icon: Home, count: stats.soldOutCount }
+    { id: 'inventory', label: 'My Pet Inventory', icon: PawPrint },
+    { id: 'applications', label: 'Adoption Applications', icon: FileText },
+    { id: 'inquiries', label: 'Buyer Leads', icon: MessageSquare },
+    { id: 'rehomed', label: 'Forever Homes', icon: Home },
+    { id: 'wallet', label: 'Wallet & Payouts', icon: DollarSign }
   ];
 
   // Photo Upload Handler for Pet Listing
@@ -787,7 +790,7 @@ const PetAdoptionDashboard = ({
   const uploadedDocsCount = [awbiDocUrl, ngoDocUrl, municipalDocUrl, vetDocUrl, founderDocUrl, bankDocUrl].filter(Boolean).length;
 
   return (
-    <div className="min-h-auto lg:h-screen bg-[#FAF9F5] text-slate-900 font-sans selection:bg-[#0F2E23]/20 selection:text-[#0F2E23] flex flex-col md:flex-row">
+    <div className="min-h-[calc(100vh-104px)] bg-[#FAF9F5] text-slate-900 font-sans selection:bg-[#0F2E23]/20 selection:text-[#0F2E23] flex flex-col md:flex-row">
       
       {/* 
         ========================================================
@@ -800,15 +803,6 @@ const PetAdoptionDashboard = ({
           
           {/* User / Shelter Avatar & Badges */}
           <div className="flex flex-col items-center text-center space-y-3">
-            <div className="relative">
-              <img 
-                src={displayAvatar} 
-                alt={displayName} 
-                className="w-20 h-20 rounded-full object-cover border-2 border-slate-100 shadow-md"
-              />
-              <span className="absolute bottom-1 right-1 w-4 h-4 rounded-full bg-emerald-500 border-2 border-white shadow-xs" title="Online & Accepting Adoptions"></span>
-            </div>
-
             <div>
               <h2 className="text-base font-black text-[#0F2E23] tracking-tight leading-tight line-clamp-2 px-2">
                 {displayName}
@@ -847,15 +841,7 @@ const PetAdoptionDashboard = ({
                     <item.icon size={18} className={isActive ? 'text-[#ffd000]' : 'text-slate-400'} /> 
                     <span>{item.label}</span>
                   </div>
-                  {item.count !== undefined && (
-                    <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-black ${
-                      isActive 
-                        ? 'bg-white/20 text-white' 
-                        : 'bg-slate-100 text-slate-500'
-                    }`}>
-                      {item.count}
-                    </span>
-                  )}
+
                 </button>
               );
             })}
@@ -878,7 +864,7 @@ const PetAdoptionDashboard = ({
         RIGHT MAIN CONTENT
         ========================================================
       */}
-      <main className="flex-1 min-w-0 px-4 sm:px-6 lg:px-8 pt-8 md:pt-12 pb-16 overflow-x-hidden">
+      <main className="flex-1 min-w-0 px-4 sm:px-6 lg:px-8 pt-8 md:pt-12 pb-24 overflow-x-hidden">
         
         {/* Header Area */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
@@ -1495,7 +1481,7 @@ const PetAdoptionDashboard = ({
                     </div>
                     
                     {/* Chat Messages */}
-                    <div className="flex-1 overflow-y-auto p-5 bg-[#FAF9F5] space-y-3.5">
+                    <div ref={chatContainerRef} className="flex-1 overflow-y-auto p-5 bg-[#FAF9F5] space-y-3.5">
                       {loadingChat ? (
                         <p className="text-center text-slate-400 text-xs font-bold animate-pulse py-10">Loading conversation...</p>
                       ) : (
@@ -2197,6 +2183,15 @@ const PetAdoptionDashboard = ({
 
           </div>
         )}
+
+          {activeTab === 'wallet' && (
+            <ProviderWalletPayoutView
+              serviceCategory="Pet Adoption & Shelter"
+              storageKeyPrefix="adoption"
+              initialBalance={34000}
+              escrowAmount={9500}
+            />
+          )}
 
       </main>
 

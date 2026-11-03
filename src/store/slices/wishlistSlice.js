@@ -54,10 +54,18 @@ export const clearLocalWishlist = (customKey) => {
   } catch (_) {}
 };
 
+// Helper to extract a normalized string ID from any product or wishlist item
+export const getWishlistItemIdStr = (item) => {
+  if (!item) return '';
+  if (typeof item === 'string' || typeof item === 'number') return String(item).trim();
+  const raw = item._id || item.id || item.productId || (typeof item.product === 'object' ? (item.product?._id || item.product?.id) : item.product);
+  return raw ? String(raw).trim() : '';
+};
+
 // Helper to normalize product fields
 const normalizeWishlistProduct = (p) => {
   if (!p) return null;
-  const pId = p._id || p.id;
+  const pId = getWishlistItemIdStr(p);
   const price = Number(p.price) || 0;
   const discountPrice = p.discount_price !== null && p.discount_price !== undefined 
     ? Number(p.discount_price) 
@@ -96,22 +104,34 @@ export const fetchWishlist = createAsyncThunk('wishlist/fetchWishlist', async (_
   }
 });
 
-export const toggleWishlistAPI = createAsyncThunk('wishlist/toggle', async (product, thunkAPI) => {
+export const toggleWishlistAPI = createAsyncThunk('wishlist/toggle', async (payload, thunkAPI) => {
+  const product = (payload && typeof payload === 'object' && payload.product) ? payload.product : payload;
+  const explicitAction = (payload && typeof payload === 'object' && payload.action) ? payload.action : null; // 'add' | 'remove' | null
+
   const normProduct = normalizeWishlistProduct(product);
   const userKey = getActiveWishlistUserKey();
-  if (!normProduct) return { wishlist: getInitialWishlist(userKey) };
-  const productId = normProduct._id || normProduct.id;
+  const state = thunkAPI.getState();
+  const currentStoreItems = state.wishlist?.items || [];
+
+  if (!normProduct) return { wishlist: currentStoreItems };
+  const productId = getWishlistItemIdStr(normProduct);
+
+  const isCurrentlyInStore = currentStoreItems.some(item => getWishlistItemIdStr(item) === productId);
+  const shouldRemove = explicitAction === 'remove' || (explicitAction !== 'add' && isCurrentlyInStore);
+  const actionToTake = shouldRemove ? 'remove' : 'add';
 
   const toggleInLocal = () => {
-    let current = getInitialWishlist(userKey);
-    const existIdx = current.findIndex(p => (p._id || p.id) === productId);
-    if (existIdx > -1) {
-      current = current.filter(p => (p._id || p.id) !== productId);
+    let localItems = getInitialWishlist(userKey);
+    let base = Array.isArray(localItems) && localItems.length > 0 ? localItems : currentStoreItems;
+    let updated;
+    if (shouldRemove) {
+      updated = base.filter(item => getWishlistItemIdStr(item) !== productId);
     } else {
-      current.push(normProduct);
+      const alreadyHas = base.some(item => getWishlistItemIdStr(item) === productId);
+      updated = alreadyHas ? base : [...base, normProduct];
     }
-    saveLocalWishlist(current, userKey);
-    return current;
+    saveLocalWishlist(updated, userKey);
+    return updated;
   };
 
   const token = localStorage.getItem('joshpetshub_token');
@@ -125,7 +145,7 @@ export const toggleWishlistAPI = createAsyncThunk('wishlist/toggle', async (prod
 
     const data = await apiRequest('/wishlist', {
       method: 'POST',
-      body: JSON.stringify({ productId, product: normProduct }),
+      body: JSON.stringify({ productId, product: normProduct, action: actionToTake }),
     });
 
     if (data && Array.isArray(data.wishlist)) {
@@ -143,10 +163,7 @@ export const toggleWishlistAPI = createAsyncThunk('wishlist/toggle', async (prod
 
 const getInitialStateWishlist = () => {
   if (typeof window === 'undefined') return [];
-  const token = localStorage.getItem('joshpetshub_token');
-  if (!token) return [];
   const userKey = getActiveWishlistUserKey();
-  if (userKey === 'guest') return [];
   return getInitialWishlist(userKey);
 };
 

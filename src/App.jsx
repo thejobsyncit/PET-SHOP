@@ -144,6 +144,7 @@ function App() {
               <Route path="chat" element={<ChatConsole />} />
 
               {/* Service Provider Platform */}
+              <Route path="dashboard" element={<ServiceProviderDashboard />} />
               <Route path="provider-dashboard" element={<ServiceProviderDashboard />} />
               <Route path="provider/dashboard" element={<ServiceProviderDashboard />} />
             </Route>

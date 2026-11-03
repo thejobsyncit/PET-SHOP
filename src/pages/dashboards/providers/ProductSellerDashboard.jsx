@@ -5,10 +5,11 @@ import {
   Package, ShoppingBag, Plus, Search, Edit3, Trash2,
   TrendingUp, DollarSign, CheckCircle2, AlertTriangle, AlertCircle,
   Truck, ArrowUpRight, Sparkles, Star, X, Check,
-  Store, ExternalLink, ShieldCheck, MapPin, CheckCircle, LogOut, Settings
+  Store, ExternalLink, ShieldCheck, MapPin, CheckCircle, LogOut, Settings, Wallet
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import ProviderProfileSection from '../../../components/dashboards/ProviderProfileSection.jsx';
+import ProviderWalletPayoutView from '../../../components/dashboards/ProviderWalletPayoutView.jsx';
 import { createProductAsync, removeProductLocally } from '../../../store/slices/productSlice.js';
 import { logout } from '../../../store/slices/authSlice.js';
 
@@ -631,6 +632,18 @@ const ProductSellerDashboard = ({
               <TrendingUp size={16} />
               <span>Revenue & Sales</span>
             </button>
+
+            <button
+              onClick={() => handleTabChange('wallet')}
+              className={`px-4 py-2.5 rounded-t-xl transition flex items-center gap-2 cursor-pointer border-b-2 ${
+                activeTab === 'wallet'
+                  ? 'border-emerald-400 text-emerald-300 bg-white/10'
+                  : 'border-transparent text-emerald-100/70 hover:text-white hover:bg-white/5'
+              }`}
+            >
+              <Wallet size={16} />
+              <span>Wallet & Payouts</span>
+            </button>
           </div>
         </div>
       </div>
@@ -1107,6 +1120,17 @@ const ProductSellerDashboard = ({
                 </div>
               </div>
             </div>
+          </div>
+        )}
+
+        {activeTab === 'wallet' && (
+          <div className="bg-white rounded-3xl p-6 sm:p-8 lg:p-10 border border-slate-200 shadow-sm">
+            <ProviderWalletPayoutView
+              serviceCategory="Product Seller"
+              storageKeyPrefix="productseller"
+              initialBalance={68500}
+              escrowAmount={22000}
+            />
           </div>
         )}
       </div>

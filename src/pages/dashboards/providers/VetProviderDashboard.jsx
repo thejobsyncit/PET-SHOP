@@ -107,11 +107,14 @@ const VetProviderDashboard = ({
       toast.error('Provider name cannot be empty');
       return;
     }
+    const phoneToKeep = (user?.mobile || user?.phone || '').trim();
     const result = await dispatch(updateProfile({ 
       name: profileName.trim(), 
       businessName: profileName.trim(),
       avatar: profileAvatar, 
-      profilePicture: profileAvatar 
+      profilePicture: profileAvatar,
+      mobile: phoneToKeep,
+      phone: phoneToKeep
     }));
     if (updateProfile.fulfilled.match(result)) {
       toast.success('Doctor profile updated successfully!');
@@ -140,7 +143,7 @@ const VetProviderDashboard = ({
       if (res.success) {
         setChatMessages(res.messages || []);
         setTimeout(() => {
-          messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+          if (chatContainerRef.current) { chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight; }
         }, 100);
       }
     } catch (e) {
@@ -167,7 +170,7 @@ const VetProviderDashboard = ({
         setChatMessages([...chatMessages, res.message]);
         setNewChatMessage('');
         setTimeout(() => {
-          messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+          if (chatContainerRef.current) { chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight; }
         }, 100);
       }
     } catch (err) {
@@ -570,17 +573,17 @@ const VetProviderDashboard = ({
   const vetMenuItems = [
     { id: 'profile', label: 'Clinic Profile & Plan', icon: Building },
     ...(isSubActive ? [{ id: 'plan-details', label: 'Plan Details & Invoice', icon: Receipt }] : []),
-    { id: 'appointments', label: 'Appointments & Queue', count: pendingAppointments.length, icon: Calendar },
-    { id: 'services', label: 'Clinical Services & Fees', count: activeServicesCount, icon: Stethoscope },
-    { id: 'records', label: 'E-Prescriptions & Records', count: vetPrescriptions.length, icon: FileText },
-    { id: 'messages', label: 'Tele-Consult Messages', count: vetChats.length, icon: MessageSquare },
+    { id: 'appointments', label: 'Appointments & Queue',  icon: Calendar },
+    { id: 'services', label: 'Clinical Services & Fees',  icon: Stethoscope },
+    { id: 'records', label: 'E-Prescriptions & Records',  icon: FileText },
+    { id: 'messages', label: 'Tele-Consult Messages',  icon: MessageSquare },
     { id: 'hours', label: 'Clinic Hours & Slots', icon: Clock },
-    { id: 'reviews', label: 'Patient Reviews', extra: '4.9 ★', icon: Star },
+    { id: 'reviews', label: 'Patient Reviews', icon: Star },
     { id: 'wallet', label: 'Wallet & Payouts', icon: DollarSign }
   ];
 
   return (
-    <div className="min-h-auto lg:h-screen bg-[#FAF9F5] text-slate-900 font-sans selection:bg-[#0F2E23]/20 selection:text-[#0F2E23] flex flex-col lg:flex-row">
+    <div className="min-h-[calc(100vh-104px)] bg-[#FAF9F5] text-slate-900 font-sans selection:bg-[#0F2E23]/20 selection:text-[#0F2E23] flex flex-col lg:flex-row">
       
       {/* 
         ========================================================
@@ -592,41 +595,6 @@ const VetProviderDashboard = ({
           
           {/* Profile Widget */}
           <div className="flex flex-col items-center text-center space-y-4">
-            <div className="relative group cursor-pointer">
-              <label htmlFor="sidebar-avatar-upload" className="block relative cursor-pointer">
-                <div className="absolute -inset-1 bg-gradient-to-r from-[#ffd000] to-amber-500 rounded-full blur opacity-40 group-hover:opacity-70 transition duration-1000 group-hover:duration-200"></div>
-                <img 
-                  src={displayAvatar} 
-                  alt={displayName} 
-                  className="relative w-24 h-24 rounded-full object-cover border-4 border-white shadow-lg transition group-hover:opacity-80"
-                />
-                <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition z-10">
-                  <div className="bg-[#0F2E23]/80 p-2 rounded-full text-white">
-                    <Edit3 size={16} />
-                  </div>
-                </div>
-                <div className="absolute bottom-1 right-1 w-5 h-5 bg-white rounded-full flex items-center justify-center shadow-sm z-20">
-                  <span className={`w-3 h-3 rounded-full ${currentProvider?.isOnline ? 'bg-emerald-500' : 'bg-slate-400'}`}></span>
-                </div>
-              </label>
-              <input 
-                type="file" 
-                id="sidebar-avatar-upload" 
-                className="hidden" 
-                accept="image/*"
-                onChange={(e) => {
-                  handleFileChange(e, async (compressedDataUrl) => {
-                    setProfileAvatar(compressedDataUrl);
-                    const result = await dispatch(updateProfile({ name: profileName, avatar: compressedDataUrl, profilePicture: compressedDataUrl }));
-                    if (updateProfile.fulfilled.match(result)) {
-                      toast.success('Profile picture updated successfully!');
-                    } else {
-                      toast.error('Failed to update profile picture');
-                    }
-                  });
-                }} 
-              />
-            </div>
             <div className="w-full px-4">
               {isEditingProfile ? (
                 <form onSubmit={handleUpdateProfile} className="flex items-center gap-2 justify-center mt-2">
@@ -676,20 +644,6 @@ const VetProviderDashboard = ({
                       <item.icon size={18} className={activeTab === item.id ? 'text-amber-400' : 'text-slate-400 group-hover:text-emerald-600'} />
                       <span className="font-bold text-sm tracking-wide">{item.label}</span>
                     </div>
-                    {item.count !== undefined && (
-                      <span className={`text-[10px] font-black px-2 py-0.5 rounded-full ${
-                        activeTab === item.id ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-500 group-hover:bg-emerald-100'
-                      }`}>
-                        {item.count}
-                      </span>
-                    )}
-                    {item.extra !== undefined && (
-                      <span className={`text-[10px] font-black px-2 py-0.5 rounded-full ${
-                        activeTab === item.id ? 'bg-amber-400/20 text-amber-300' : 'bg-amber-100 text-amber-600'
-                      }`}>
-                        {item.extra}
-                      </span>
-                    )}
                   </button>
                 </li>
               ))}

@@ -555,6 +555,13 @@ export const clearCart = async (req, res) => {
 // WISHLIST CONTROLLERS
 // ==========================================
 
+const getWishlistItemIdStr = (item) => {
+  if (!item) return '';
+  if (typeof item === 'string' || typeof item === 'number') return String(item).trim();
+  const raw = item._id || item.id || item.productId || (typeof item.product === 'object' ? (item.product?._id || item.product?.id) : item.product);
+  return raw ? String(raw).trim() : '';
+};
+
 // @desc    Get user wishlist
 // @route   GET /api/wishlist
 // @access  Private
@@ -573,14 +580,13 @@ export const getWishlist = async (req, res) => {
       return res.json({ success: true, wishlist: [] });
     }
 
-    const getId = (item) => (typeof item === 'object' && item !== null ? (item.id || item._id) : item);
-    const productIds = rawWishlist.map(getId).filter(Boolean);
+    const productIds = Array.from(new Set(rawWishlist.map(getWishlistItemIdStr).filter(Boolean)));
     const populated = await populateProducts(productIds);
 
     const finalWishlist = productIds.map(id => {
-      const found = populated.find(p => p.id === id || p._id === id);
+      const found = populated.find(p => String(p.id) === String(id) || String(p._id) === String(id));
       if (found) return found;
-      const rawObj = rawWishlist.find(item => getId(item) === id);
+      const rawObj = rawWishlist.find(item => getWishlistItemIdStr(item) === id);
       return typeof rawObj === 'object' && rawObj !== null 
         ? normalizeProduct(rawObj) 
         : { _id: id, id, name: 'Product', price: 0 };
@@ -597,7 +603,7 @@ export const getWishlist = async (req, res) => {
 // @route   POST /api/wishlist
 // @access  Private
 export const toggleWishlist = async (req, res) => {
-  const { productId, product } = req.body;
+  const { productId, product, action } = req.body;
   const targetId = productId || product?._id || product?.id;
   const userId = req.user?._id || req.user?.id;
   const userEmail = req.user?.email;
@@ -615,24 +621,29 @@ export const toggleWishlist = async (req, res) => {
     let wishlist = userData?.user?.wishlist || [];
     if (!Array.isArray(wishlist)) wishlist = [];
 
-    const getId = (item) => (typeof item === 'object' && item !== null ? (item.id || item._id) : item);
-    const exists = wishlist.some(item => getId(item) === targetId);
+    const targetIdStr = String(targetId).trim();
+    const exists = wishlist.some(item => getWishlistItemIdStr(item) === targetIdStr);
 
-    if (exists) {
-      wishlist = wishlist.filter(item => getId(item) !== targetId);
+    // Determine whether to remove or add
+    const shouldRemove = action === 'remove' || (action !== 'add' && exists);
+
+    if (shouldRemove) {
+      wishlist = wishlist.filter(item => getWishlistItemIdStr(item) !== targetIdStr);
     } else {
-      wishlist.push(targetId);
+      if (!exists) {
+        wishlist.push(targetIdStr);
+      }
     }
 
     await saveUserWishlist(userId, wishlist, userData, userEmail);
 
-    const productIds = wishlist.map(getId).filter(Boolean);
+    const productIds = Array.from(new Set(wishlist.map(getWishlistItemIdStr).filter(Boolean)));
     const populated = await populateProducts(productIds);
 
     const finalWishlist = productIds.map(id => {
-      const found = populated.find(p => p.id === id || p._id === id);
+      const found = populated.find(p => String(p.id) === String(id) || String(p._id) === String(id));
       if (found) return found;
-      if (product && (product._id === id || product.id === id)) {
+      if (product && (String(product._id) === String(id) || String(product.id) === String(id))) {
         return normalizeProduct(product);
       }
       return { _id: id, id, name: 'Product', price: 0 };

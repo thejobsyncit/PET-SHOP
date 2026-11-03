@@ -94,6 +94,12 @@ const ForgotPassword = () => {
       return;
     }
 
+    // Automatically clear any previously entered numbers in the 6-digit verification code field
+    setOtpDigits(['', '', '', '', '', '']);
+    setTimeout(() => {
+      otpInputRefs.current[0]?.focus();
+    }, 50);
+
     setLoading(true);
     const demoCode = Math.floor(100000 + Math.random() * 900000).toString();
     setGeneratedOtp(demoCode);
@@ -363,6 +369,7 @@ const ForgotPassword = () => {
                   type="button"
                   onClick={() => {
                     setStep(1);
+                    setOtpDigits(['', '', '', '', '', '']);
                     setErrorMsg('');
                   }}
                   className="text-[10px] font-bold text-emerald-700 hover:underline shrink-0 uppercase tracking-wider bg-white/70 px-2 py-1 rounded-md border border-emerald-200"
@@ -529,6 +536,7 @@ const ForgotPassword = () => {
                   type="button"
                   onClick={() => {
                     setStep(1);
+                    setOtpDigits(['', '', '', '', '', '']);
                     setErrorMsg('');
                   }}
                   className="w-1/3 py-3 border border-slate-200 hover:bg-slate-50 text-slate-700 font-bold text-xs uppercase tracking-wider rounded-xl transition cursor-pointer"

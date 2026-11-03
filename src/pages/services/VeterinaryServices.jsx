@@ -33,6 +33,7 @@ import {
   Star
 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import RazorpayBookingPaymentModal from '../../components/widgets/RazorpayBookingPaymentModal.jsx';
 import {
   VET_SERVICE_MODES,
   VET_PET_CATEGORIES,
@@ -87,6 +88,7 @@ export default function VeterinaryServices() {
 
   const [selectedDoctorForBooking, setSelectedDoctorForBooking] = useState(null);
   const [showBookingModal, setShowBookingModal] = useState(false);
+  const [pendingPaymentBooking, setPendingPaymentBooking] = useState(null);
   const [bookingMode, setBookingMode] = useState('In-Clinic Visit');
   const [bookingDate, setBookingDate] = useState('');
   const [bookingTimeSlot, setBookingTimeSlot] = useState('10:30 AM - 11:00 AM');
@@ -269,21 +271,9 @@ export default function VeterinaryServices() {
 
   // Open Details Modal / Visit Doctor
   const handleOpenDetails = (doc) => {
-    if (!isAuthenticated) {
-      toast.error('Please register or log in first to view veterinarian profiles.', { icon: '🔒' });
-      window.dispatchEvent(
-        new CustomEvent('open-register-modal', {
-          detail: { tab: 'user', hideProviderTab: true, source: 'veterinary' }
-        })
-      );
-      return;
-    }
-    handleServiceAction({
-      isAuthenticated,
-      serviceType: 'Veterinary',
-      provider: { ...doc, phone: doc.whatsapp },
-      action: 'view_expert_profile'
-    });
+    if (!doc) return;
+    setSelectedDoctorForDetails(doc);
+    setShowDoctorModal(true);
   };
 
   // Open Booking Modal with Auth Verification & Package Access
@@ -371,28 +361,25 @@ export default function VeterinaryServices() {
       createdAt: new Date().toISOString()
     };
 
-    // 1. Save locally for guaranteed client persistence
-    saveVetAppointment(appointment);
-
-    // 2. Persist to server backend API
-    try {
-      await apiRequest('/bookings', {
-        method: 'POST',
-        body: JSON.stringify(appointment)
-      });
-    } catch (err) {
-      console.warn('Backend booking sync warning, stored locally:', err);
-    }
-
-    // 3. Dispatch reactive events to update all dashboards in real-time
-    window.dispatchEvent(new CustomEvent('service-booking-updated', { detail: appointment }));
-    window.dispatchEvent(new CustomEvent('vet-data-updated', { detail: { type: 'appointment', action: 'create', appointment } }));
-
     setShowBookingModal(false);
-    toast.success(
-      `Appointment confirmed with ${selectedDoctorForBooking.name} for ${bookingDate} (${bookingTimeSlot})!`,
-      { duration: 5000 }
-    );
+    setPendingPaymentBooking({
+      ...appointment,
+      serviceName: `Veterinary Consultation (${bookingMode})`,
+      serviceCategory: 'Consult a Vet',
+      providerName: selectedDoctorForBooking.name,
+      price: Number(consultFee) || 500,
+      date: bookingDate,
+      timeSlot: bookingTimeSlot,
+      ownerName: ownerName.trim() || user?.name || 'Pet Parent',
+      ownerPhone: ownerPhone.trim() || user?.mobile || '',
+      ownerEmail: user?.email || '',
+      petDetails: {
+        name: petName.trim(),
+        type: petSpecies,
+        breed: petBreed.trim() || 'Indie / Mixed',
+        symptoms: petSymptoms.trim()
+      }
+    });
 
     // Reset fields
     setPetName('');
@@ -839,7 +826,11 @@ export default function VeterinaryServices() {
                       
                       {/* Doctor Top Header with Avatar & Badges */}
                       <div className="flex items-start gap-3.5 mb-3">
-                        <div className="relative shrink-0">
+                        <div 
+                          onClick={() => handleOpenDetails(doc)}
+                          className="relative shrink-0 cursor-pointer group/img"
+                          title={`View ${doc.name}'s Profile`}
+                        >
                           <img
                             src={doc.avatar}
                             alt={doc.name}
@@ -854,7 +845,11 @@ export default function VeterinaryServices() {
 
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-1.5 flex-wrap">
-                            <h3 className="font-serif font-bold text-base text-slate-900 truncate">
+                            <h3 
+                              onClick={() => handleOpenDetails(doc)}
+                              className="font-serif font-bold text-base text-slate-900 truncate cursor-pointer hover:text-[#1D3B2E] transition-colors"
+                              title={`View ${doc.name}'s Profile`}
+                            >
                               {doc.name}
                             </h3>
                             <span className="text-[10px] bg-emerald-50 text-emerald-800 border border-emerald-200 px-1.5 py-0.2 rounded font-bold">
@@ -1309,31 +1304,45 @@ export default function VeterinaryServices() {
             
             {/* Modal Header */}
             <div className="bg-gradient-to-r from-[#1D3B2E] to-[#2E5947] text-white px-5 py-4 flex items-center justify-between shrink-0">
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-3.5">
                 <img
                   src={selectedDoctorForDetails.avatar}
                   alt={selectedDoctorForDetails.name}
-                  className="w-12 h-12 rounded-xl object-cover border-2 border-emerald-300"
+                  className="w-14 h-14 rounded-2xl object-cover border-2 border-emerald-300 shadow-md shrink-0"
                 />
                 <div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 flex-wrap">
                     <h3 className="font-serif font-bold text-base sm:text-lg text-white">
                       {selectedDoctorForDetails.name}
                     </h3>
-                    <span className="text-[10px] bg-white/20 text-white px-1.5 py-0.5 rounded font-bold">
+                    <span className="text-[10px] bg-emerald-500/30 text-emerald-100 border border-emerald-300/40 px-2 py-0.5 rounded font-bold">
                       {selectedDoctorForDetails.experienceDisplay}
                     </span>
+                    {selectedDoctorForDetails.isVerified && (
+                      <span className="text-[10px] bg-white/20 text-white px-2 py-0.5 rounded font-semibold flex items-center gap-1">
+                        <CheckCircle2 size={11} className="text-emerald-300" /> Verified Vet
+                      </span>
+                    )}
                   </div>
-                  <p className="text-xs text-emerald-200">
-                    {selectedDoctorForDetails.title} • {selectedDoctorForDetails.city}
+                  <p className="text-xs text-emerald-200 mt-0.5">
+                    {selectedDoctorForDetails.title} • {selectedDoctorForDetails.city}, {selectedDoctorForDetails.state}
                   </p>
+                  <div className="flex items-center gap-2 mt-1 text-xs text-emerald-100">
+                    <span className="flex items-center gap-1 text-amber-300 font-bold">
+                      <Star size={12} className="fill-amber-400 text-amber-400" />
+                      {selectedDoctorForDetails.rating}
+                    </span>
+                    <span className="text-emerald-200/80 text-[11px]">
+                      ({selectedDoctorForDetails.reviewsCount} verified reviews)
+                    </span>
+                  </div>
                 </div>
               </div>
 
               <button
                 type="button"
                 onClick={() => setShowDoctorModal(false)}
-                className="w-8 h-8 rounded-full bg-white/20 hover:bg-white/30 text-white flex items-center justify-center transition cursor-pointer"
+                className="w-8 h-8 rounded-full bg-white/20 hover:bg-white/30 text-white flex items-center justify-center transition cursor-pointer shrink-0"
               >
                 <X size={16} />
               </button>
@@ -1344,16 +1353,17 @@ export default function VeterinaryServices() {
               
               {/* Doctor Bio */}
               <div>
-                <h4 className="font-bold text-slate-900 uppercase tracking-wider text-[11px] mb-1">
+                <h4 className="font-bold text-slate-900 uppercase tracking-wider text-[11px] mb-1 flex items-center gap-1.5">
+                  <Stethoscope size={13} className="text-[#1D3B2E]" />
                   About the Doctor
                 </h4>
-                <p className="text-slate-600 leading-relaxed">
+                <p className="text-slate-600 leading-relaxed bg-stone-50 p-3 rounded-xl border border-stone-200/70">
                   {selectedDoctorForDetails.bio}
                 </p>
               </div>
 
               {/* Qualifications & Registration */}
-              <div className="grid grid-cols-2 gap-3 bg-stone-50 p-3 rounded-xl border border-stone-200/80">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 bg-stone-50 p-3 rounded-xl border border-stone-200/80">
                 <div>
                   <span className="block text-[10px] font-bold text-slate-400 uppercase">Degree & Credentials</span>
                   <span className="font-semibold text-slate-800">{selectedDoctorForDetails.degrees}</span>
@@ -1364,33 +1374,95 @@ export default function VeterinaryServices() {
                 </div>
               </div>
 
-              {/* Clinic Facilities */}
-              <div>
-                <h4 className="font-bold text-slate-900 uppercase tracking-wider text-[11px] mb-2">
-                  Hospital & Diagnostic Facilities
-                </h4>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                  {selectedDoctorForDetails.facilities.map((fac, idx) => (
-                    <div key={idx} className="flex items-center gap-2 p-2 bg-emerald-50/60 rounded-lg text-emerald-950 font-medium">
-                      <CheckCircle2 size={13} className="text-[#1D3B2E] shrink-0" />
-                      <span>{fac}</span>
-                    </div>
-                  ))}
+              {/* Clinic Name & Location */}
+              <div className="bg-emerald-50/40 p-3 rounded-xl border border-emerald-200/60 space-y-2">
+                <div className="flex items-center justify-between flex-wrap gap-1">
+                  <div className="flex items-center gap-1.5 text-xs font-bold text-slate-900">
+                    <Building2 size={14} className="text-[#1D3B2E]" />
+                    <span>{selectedDoctorForDetails.clinicName}</span>
+                  </div>
+                  <div className="flex items-center gap-1 text-[11px] text-slate-600 font-medium">
+                    <Clock size={12} className="text-slate-500" />
+                    <span>Today: {selectedDoctorForDetails.openTodayTiming}</span>
+                  </div>
+                </div>
+                <div className="flex items-center gap-1.5 text-[11px] text-slate-600">
+                  <MapPin size={13} className="text-slate-400 shrink-0" />
+                  <span>{selectedDoctorForDetails.address}</span>
                 </div>
               </div>
 
+              {/* Specializations & Categories */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <h4 className="font-bold text-slate-900 uppercase tracking-wider text-[10px] mb-1.5">
+                    Specializations
+                  </h4>
+                  <div className="flex flex-wrap gap-1">
+                    {selectedDoctorForDetails.specializations && selectedDoctorForDetails.specializations.map((spec, idx) => (
+                      <span
+                        key={idx}
+                        className="text-[10px] bg-emerald-50 text-emerald-900 border border-emerald-200 px-2 py-0.5 rounded font-medium"
+                      >
+                        {spec}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+                <div>
+                  <h4 className="font-bold text-slate-900 uppercase tracking-wider text-[10px] mb-1.5">
+                    Species Treated
+                  </h4>
+                  <div className="flex flex-wrap gap-1">
+                    {selectedDoctorForDetails.petCategories && selectedDoctorForDetails.petCategories.map((cat, idx) => (
+                      <span
+                        key={idx}
+                        className="text-[10px] bg-stone-100 text-slate-700 border border-stone-200 px-2 py-0.5 rounded font-medium"
+                      >
+                        {cat}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* Clinic Facilities */}
+              {selectedDoctorForDetails.facilities && selectedDoctorForDetails.facilities.length > 0 && (
+                <div>
+                  <h4 className="font-bold text-slate-900 uppercase tracking-wider text-[11px] mb-2 flex items-center gap-1.5">
+                    <ShieldCheck size={13} className="text-[#1D3B2E]" />
+                    Hospital & Diagnostic Facilities
+                  </h4>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    {selectedDoctorForDetails.facilities.map((fac, idx) => (
+                      <div key={idx} className="flex items-center gap-2 p-2 bg-emerald-50/60 rounded-lg text-emerald-950 font-medium">
+                        <CheckCircle2 size={13} className="text-[#1D3B2E] shrink-0" />
+                        <span>{fac}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               {/* Rates Breakdown */}
               <div>
-                <h4 className="font-bold text-slate-900 uppercase tracking-wider text-[11px] mb-2">
-                  Consultation Rates
-                </h4>
+                <div className="flex items-center justify-between mb-2">
+                  <h4 className="font-bold text-slate-900 uppercase tracking-wider text-[11px]">
+                    Consultation Rates
+                  </h4>
+                  {selectedDoctorForDetails.isEmergencyAvailable && (
+                    <span className="text-[10px] font-bold text-red-600 bg-red-50 border border-red-200 px-2 py-0.5 rounded">
+                      24/7 ICU & Emergency Available
+                    </span>
+                  )}
+                </div>
                 <div className="grid grid-cols-3 gap-2 text-center">
-                  <div className="p-2.5 bg-stone-50 border border-stone-200 rounded-xl">
-                    <span className="block text-[10px] text-slate-500 font-bold uppercase">Video Call</span>
-                    <span className="font-bold text-slate-900 text-sm">₹{selectedDoctorForDetails.videoConsultFee}</span>
+                  <div className="p-2.5 bg-emerald-50/60 border border-emerald-200/70 rounded-xl">
+                    <span className="block text-[10px] text-emerald-800 font-bold uppercase">Video Consult</span>
+                    <span className="font-bold text-emerald-950 text-sm">₹{selectedDoctorForDetails.videoConsultFee}</span>
                   </div>
                   <div className="p-2.5 bg-stone-50 border border-stone-200 rounded-xl">
-                    <span className="block text-[10px] text-slate-500 font-bold uppercase">In-Clinic</span>
+                    <span className="block text-[10px] text-slate-500 font-bold uppercase">In-Clinic Visit</span>
                     <span className="font-bold text-slate-900 text-sm">₹{selectedDoctorForDetails.inClinicFee}</span>
                   </div>
                   <div className="p-2.5 bg-stone-50 border border-stone-200 rounded-xl">
@@ -1403,17 +1475,39 @@ export default function VeterinaryServices() {
             </div>
 
             {/* Modal Footer */}
-            <div className="p-4 border-t border-stone-100 flex items-center justify-end gap-2 bg-stone-50">
+            <div className="p-4 border-t border-stone-100 flex items-center justify-between gap-2 bg-stone-50">
               <button
                 type="button"
-                onClick={() => {
-                  setShowDoctorModal(false);
-                  handleOpenBooking(selectedDoctorForDetails);
-                }}
-                className="px-5 py-2.5 bg-[#1D3B2E] hover:bg-[#152e24] text-white font-bold text-xs uppercase tracking-wider rounded-xl transition cursor-pointer shadow-md"
+                onClick={() => setShowDoctorModal(false)}
+                className="px-4 py-2 bg-white hover:bg-stone-100 text-slate-700 border border-stone-300 font-bold text-xs uppercase tracking-wider rounded-xl transition cursor-pointer"
               >
-                Book Appointment Now
+                Close
               </button>
+
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    handleWhatsAppConsult(selectedDoctorForDetails);
+                  }}
+                  className="px-3.5 py-2.5 bg-[#25D366] hover:bg-[#1EBE5D] text-white font-bold text-xs rounded-xl flex items-center gap-1.5 transition cursor-pointer shadow-sm"
+                  title="Chat on WhatsApp"
+                >
+                  <MessageSquare size={14} />
+                  <span>WhatsApp</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowDoctorModal(false);
+                    handleOpenBooking(selectedDoctorForDetails);
+                  }}
+                  className="px-5 py-2.5 bg-[#1D3B2E] hover:bg-[#152e24] text-white font-bold text-xs uppercase tracking-wider rounded-xl transition cursor-pointer shadow-md"
+                >
+                  Book Appointment Now
+                </button>
+              </div>
             </div>
 
           </div>

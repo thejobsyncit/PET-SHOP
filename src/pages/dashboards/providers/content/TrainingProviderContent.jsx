@@ -9,12 +9,15 @@ import {
   TrendingUp, Wallet, ArrowRight, MessageCircle
 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import ProviderWalletPayoutView from '../../../../components/dashboards/ProviderWalletPayoutView.jsx';
+import { apiRequest } from '../../../../services/api.js';
 import { 
   getStoredTrainingProviders,
   getProviderTrainingService,
   saveOrUpdateTrainingService,
   deleteProviderTrainingService,
   getStoredTrainingSessions,
+  getStoredTrainingBookings,
   saveTrainingSession,
   updateTrainingSessionStatus,
   getStoredTrainingCourses,
@@ -270,14 +273,85 @@ const TrainingProviderContent = ({ activeTab, user }) => {
     trainerNotes: ''
   });
 
-  const refreshSessions = () => setSessions(getStoredTrainingSessions());
+  const refreshSessions = async () => {
+    let list = getStoredTrainingSessions() || [];
+    const bookings = getStoredTrainingBookings() || [];
+    const existingIds = new Set(list.map(s => s.id || s._id));
+
+    for (const b of bookings) {
+      const bId = b.id || b._id;
+      if (!existingIds.has(bId)) {
+        list.unshift({
+          id: bId,
+          petName: b.petName || 'Dog',
+          petSpecies: b.petSpecies || 'Dog',
+          petBreed: b.petBreed || 'Mixed',
+          petAge: b.petAge || 'Adult',
+          customerName: b.customerName || b.ownerName || 'Pet Parent',
+          customerPhone: b.customerPhone || b.ownerPhone || '',
+          customerEmail: b.customerEmail || b.ownerEmail || '',
+          programName: b.programName || b.packageName || 'Obedience Course',
+          sessionNumber: b.sessionNumber || 'Session 1',
+          date: b.date || `${b.startDate || b.bookingDate || 'Upcoming'} (${b.timeSlot || 'Morning'})`,
+          mode: b.mode || 'At-Home 1-on-1',
+          location: b.location || b.trainingAddress || 'Client Home',
+          trainerNotes: b.trainerNotes || b.behaviorNotes || '',
+          fee: b.fee || b.packagePrice || 4999,
+          status: b.status || 'Scheduled'
+        });
+        existingIds.add(bId);
+      }
+    }
+
+    try {
+      const res = await apiRequest('/bookings/provider');
+      if (res && res.success && Array.isArray(res.bookings)) {
+        const trainingBookings = res.bookings.filter(b => 
+          (b.serviceType && b.serviceType.toLowerCase().includes('train')) ||
+          (b.serviceCategory && b.serviceCategory.toLowerCase().includes('train')) ||
+          b.programName || (b.id && b.id.startsWith('TRN-'))
+        );
+        for (const tb of trainingBookings) {
+          const bId = tb.id || tb._id;
+          if (!existingIds.has(bId)) {
+            list.unshift({
+              id: bId,
+              petName: tb.petName || 'Dog',
+              petSpecies: tb.petSpecies || 'Dog',
+              petBreed: tb.petBreed || 'Mixed',
+              petAge: tb.petAge || 'Adult',
+              customerName: tb.customerName || tb.ownerName || 'Pet Parent',
+              customerPhone: tb.customerPhone || tb.ownerPhone || '',
+              customerEmail: tb.customerEmail || tb.ownerEmail || '',
+              programName: tb.programName || tb.packageName || 'Obedience Course',
+              sessionNumber: tb.sessionNumber || 'Session 1',
+              date: tb.date || `${tb.startDate || tb.bookingDate || 'Upcoming'} (${tb.timeSlot || 'Morning'})`,
+              mode: tb.mode || 'At-Home 1-on-1',
+              location: tb.location || tb.trainingAddress || 'Client Home',
+              trainerNotes: tb.trainerNotes || tb.behaviorNotes || '',
+              fee: tb.fee || tb.packagePrice || 4999,
+              status: tb.status || 'Scheduled'
+            });
+            existingIds.add(bId);
+          }
+        }
+      }
+    } catch (e) {
+      console.warn('Could not sync training bookings from server:', e);
+    }
+
+    setSessions(list);
+  };
 
   useEffect(() => {
+    refreshSessions();
     window.addEventListener('training-session-created', refreshSessions);
     window.addEventListener('training-session-updated', refreshSessions);
+    window.addEventListener('service-booking-updated', refreshSessions);
     return () => {
       window.removeEventListener('training-session-created', refreshSessions);
       window.removeEventListener('training-session-updated', refreshSessions);
+      window.removeEventListener('service-booking-updated', refreshSessions);
     };
   }, []);
 
@@ -1238,7 +1312,10 @@ const TrainingProviderContent = ({ activeTab, user }) => {
                           {session.petBreed} • {session.petAge}
                         </span>
                       </div>
-                      <span className="text-xs font-semibold text-emerald-800 block mt-0.5">{session.programName}</span>
+                      <span className="text-xs font-semibold text-emerald-800 block mt-0.5">
+                        {session.programName}
+                        {session.fee && <span className="text-emerald-700 font-extrabold ml-2">₹{session.fee}</span>}
+                      </span>
                       <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 block">{session.sessionNumber}</span>
                     </div>
 
@@ -1966,139 +2043,15 @@ const TrainingProviderContent = ({ activeTab, user }) => {
 
       {/* ========================================================================= */}
       {/* TAB 6: WALLET & PAYOUTS */}
-      {/* ========================================================================= */}
       {activeTab === 'wallet' && (
-        <div className="space-y-6">
-          
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-6 border-b border-slate-100">
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="p-2 bg-emerald-100 text-emerald-800 rounded-xl">
-                  <DollarSign size={20} />
-                </span>
-                <h2 className="text-2xl font-sans font-black text-[#0F2E23]">Wallet & Payouts</h2>
-              </div>
-              <p className="text-sm text-slate-500 mt-1">
-                Track your course earnings, escrow payouts, and request instant bank settlements.
-              </p>
-            </div>
-
-            <button
-              onClick={() => setShowPayoutModal(true)}
-              className="bg-[#0F2E23] text-white px-5 py-2.5 rounded-xl font-bold text-xs hover:bg-emerald-900 transition shadow-md flex items-center gap-2"
-            >
-              <Wallet size={16} /> Request Payout
-            </button>
-          </div>
-
-          {/* Balance Cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <div className="bg-gradient-to-br from-[#0F2E23] to-emerald-900 text-white p-6 rounded-3xl shadow-lg">
-              <span className="text-[11px] font-bold text-emerald-200 uppercase tracking-wider block mb-1">Available for Payout</span>
-              <div className="text-3xl font-black mb-3">₹28,500</div>
-              <span className="text-[10px] bg-white/20 px-2.5 py-1 rounded-full font-bold">Ready to withdraw</span>
-            </div>
-
-            <div className="bg-white border border-slate-200 p-6 rounded-3xl shadow-sm">
-              <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-1">In Escrow (Upcoming Sessions)</span>
-              <div className="text-3xl font-black text-[#0F2E23] mb-3">₹14,000</div>
-              <span className="text-[10px] text-amber-700 font-bold bg-amber-50 px-2.5 py-1 rounded-full">Released on session completion</span>
-            </div>
-
-            <div className="bg-white border border-slate-200 p-6 rounded-3xl shadow-sm">
-              <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Lifetime Earnings</span>
-              <div className="text-3xl font-black text-[#0F2E23] mb-3">₹1,42,500</div>
-              <span className="text-[10px] text-emerald-700 font-bold bg-emerald-50 px-2.5 py-1 rounded-full">100% payout track record</span>
-            </div>
-          </div>
-
-          {/* Payout History */}
-          <div className="bg-white rounded-3xl border border-slate-200 p-6 space-y-4 shadow-sm">
-            <h3 className="text-base font-black text-[#0F2E23]">Recent Settlement History</h3>
-            
-            <div className="divide-y divide-slate-100">
-              {payoutsHistory.map((pay) => (
-                <div key={pay.id} className="py-3.5 flex items-center justify-between gap-3">
-                  <div>
-                    <span className="text-xs font-black text-[#0F2E23] block">{pay.id}</span>
-                    <span className="text-[11px] text-slate-500">{pay.date} • {pay.mode}</span>
-                  </div>
-
-                  <div className="text-right">
-                    <span className="text-sm font-black text-[#0F2E23] block">₹{pay.amount.toLocaleString('en-IN')}</span>
-                    <span className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded-full ${
-                      pay.status === 'Completed' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'
-                    }`}>
-                      {pay.status}
-                    </span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Request Payout Modal */}
-          {showPayoutModal && (
-            <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-              <div className="bg-white rounded-3xl max-w-md w-full p-6 space-y-4 shadow-2xl relative">
-                <div className="flex justify-between items-center border-b border-slate-100 pb-3">
-                  <h3 className="text-base font-black text-[#0F2E23]">Request Bank / UPI Payout</h3>
-                  <button onClick={() => setShowPayoutModal(false)} className="text-slate-400 hover:text-slate-600">
-                    <X size={18} />
-                  </button>
-                </div>
-
-                <form onSubmit={handleRequestPayout} className="space-y-4">
-                  <div>
-                    <label className="text-xs font-bold text-slate-700 block mb-1">Withdrawal Amount (₹) *</label>
-                    <input
-                      type="number"
-                      value={payoutAmount}
-                      onChange={(e) => setPayoutAmount(e.target.value)}
-                      placeholder="15000"
-                      max="28500"
-                      className="w-full text-sm font-bold px-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:border-emerald-600"
-                      required
-                    />
-                    <span className="text-[10px] text-slate-400 mt-1 block">Maximum available: ₹28,500</span>
-                  </div>
-
-                  <div>
-                    <label className="text-xs font-bold text-slate-700 block mb-1">UPI ID or Bank Account Details *</label>
-                    <input
-                      type="text"
-                      value={payoutUpi}
-                      onChange={(e) => setPayoutUpi(e.target.value)}
-                      placeholder="e.g. yourname@okhdfcbank"
-                      className="w-full text-xs px-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:border-emerald-600"
-                      required
-                    />
-                  </div>
-
-                  <div className="pt-2 border-t border-slate-100 flex justify-end gap-2">
-                    <button
-                      type="button"
-                      onClick={() => setShowPayoutModal(false)}
-                      className="px-4 py-2 rounded-xl border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-50"
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      type="submit"
-                      className="px-5 py-2 rounded-xl bg-[#0F2E23] text-white text-xs font-bold hover:bg-emerald-900 shadow-md flex items-center gap-1.5"
-                    >
-                      Confirm Payout
-                    </button>
-                  </div>
-                </form>
-              </div>
-            </div>
-          )}
-
-        </div>
+        <ProviderWalletPayoutView
+          serviceCategory="Pet Training & Behavior"
+          storageKeyPrefix="training"
+          initialBalance={28500}
+          escrowAmount={14000}
+        />
       )}
 
-      {/* ========================================================================= */}
       {/* TAB 7: TRAINER PROFILE */}
       {/* ========================================================================= */}
       {activeTab === 'profile' && (

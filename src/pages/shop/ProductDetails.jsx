@@ -4,7 +4,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { ChevronRight, ShoppingBag, Heart, Star, ShieldAlert, Award, ArrowRight, ClipboardList, Plus, Minus, Check, MessageSquare } from 'lucide-react';
 import { fetchProductDetail, fetchProducts, clearProductDetail } from '../../store/slices/productSlice.js';
 import { addToCartAPI } from '../../store/slices/cartSlice.js';
-import { toggleWishlistAPI } from '../../store/slices/wishlistSlice.js';
+import { toggleWishlistAPI, getWishlistItemIdStr } from '../../store/slices/wishlistSlice.js';
 import { openAuthModal } from '../../store/slices/authSlice.js';
 import { apiRequest } from '../../services/api.js';
 import RatingStars from '../../components/ui/RatingStars.jsx';
@@ -24,9 +24,9 @@ const ProductDetails = () => {
   const cartItems = useSelector((state) => state.cart.items || []);
   
   // Safe fallback to finding product from cached store products or wishlist while detail API request resolves
-  const product = productFromStore || products.find(p => p.slug === slug || (p._id || p.id) === slug) || wishlistItems.find(p => p.slug === slug || (p._id || p.id) === slug);
-  const productId = product ? (product._id || product.id) : null;
-  const isWishlisted = productId && wishlistItems.some(item => (item._id || item.id) === productId);
+  const product = productFromStore || products.find(p => p.slug === slug || getWishlistItemIdStr(p) === slug) || wishlistItems.find(p => p.slug === slug || getWishlistItemIdStr(p) === slug);
+  const productId = getWishlistItemIdStr(product);
+  const isWishlisted = Boolean(productId && wishlistItems.some(item => getWishlistItemIdStr(item) === productId));
   const pStock = typeof product?.stock === 'number' 
     ? Math.max(0, product.stock) 
     : (product?.stock !== undefined && product?.stock !== null && !isNaN(Number(product.stock)) 
@@ -80,10 +80,45 @@ const ProductDetails = () => {
     if (!isBackground) {
       setReviewsLoading(true);
     }
+
+    // Load from local storage cache first for instant display
+    try {
+      const cacheKey = `product_reviews_${slug || target}`;
+      const cached = JSON.parse(localStorage.getItem(cacheKey) || 'null');
+      if (Array.isArray(cached) && cached.length > 0) {
+        setReviews(prev => {
+          if (prev.length === 0) return cached;
+          const prevIds = new Set(prev.map(r => String(r._id || r.id)));
+          const extra = cached.filter(r => !prevIds.has(String(r._id || r.id)));
+          return [...prev, ...extra];
+        });
+      }
+    } catch (_) {}
+
     try {
       const data = await apiRequest(`/reviews/product/${target}`);
       if (data.success && Array.isArray(data.reviews)) {
-        setReviews(data.reviews);
+        setReviews(prev => {
+          const incoming = data.reviews;
+          const incomingIds = new Set(incoming.map(r => String(r._id || r.id)));
+
+          // Preserve any newly submitted review in local state that may not have propagated yet
+          const preserved = prev.filter(r => {
+            const rId = String(r._id || r.id || '');
+            if (!rId) return false;
+            return !incomingIds.has(rId);
+          });
+
+          const merged = [...preserved, ...incoming];
+
+          // Persist merged reviews to local cache
+          try {
+            const cacheKey = `product_reviews_${slug || target}`;
+            localStorage.setItem(cacheKey, JSON.stringify(merged.slice(0, 50)));
+          } catch (_) {}
+
+          return merged;
+        });
       }
     } catch (err) {
       console.error(err);
@@ -95,11 +130,13 @@ const ProductDetails = () => {
   };
 
   const handleToggleWishlist = async () => {
-    const result = await dispatch(toggleWishlistAPI(product));
+    if (!product) return;
+    const action = isWishlisted ? 'remove' : 'add';
+    const result = await dispatch(toggleWishlistAPI({ product, action }));
     if (toggleWishlistAPI.fulfilled.match(result)) {
       const updatedList = result.payload?.wishlist || [];
-      const currentId = product._id || product.id;
-      const nowInWishlist = updatedList.some(item => (item._id || item.id) === currentId);
+      const currentId = getWishlistItemIdStr(product);
+      const nowInWishlist = updatedList.some(item => getWishlistItemIdStr(item) === currentId);
       if (nowInWishlist) {
         toast.success('Added to wishlist');
       } else {
@@ -249,10 +286,20 @@ const ProductDetails = () => {
             data.review,
             ...prev.filter(r => (r._id || r.id) !== (data.review._id || data.review.id))
           ]);
+
+          try {
+            const cacheKey = `product_reviews_${currentSlug || currentTargetId}`;
+            const existing = JSON.parse(localStorage.getItem(cacheKey) || '[]');
+            const updated = [data.review, ...existing.filter(r => (r._id || r.id) !== (data.review._id || data.review.id))];
+            localStorage.setItem(cacheKey, JSON.stringify(updated.slice(0, 50)));
+          } catch (_) {}
         }
 
         // Background reload from server to sync canonical state without flashing loading UI
         loadReviews(currentTargetId, true);
+        if (currentSlug && currentSlug !== currentTargetId) {
+          loadReviews(currentSlug, true);
+        }
       }
     } catch (error) {
       toast.error(error.message || 'Already reviewed this product.');
@@ -321,7 +368,7 @@ const ProductDetails = () => {
           
           {/* LEFT: Image Gallery */}
           <div className="w-full lg:w-1/2 space-y-4">
-            <div className="aspect-square bg-gray-50 border border-beige overflow-hidden">
+            <div className="aspect-square bg-white border border-beige overflow-hidden flex items-center justify-center p-3 rounded-xl shadow-xs">
               <img 
                 src={product.images?.[activeImage] || product.image || 'https://images.unsplash.com/photo-1548199973-03cce0bbc87b?q=80&w=800'} 
                 alt={product.name} 
@@ -329,7 +376,7 @@ const ProductDetails = () => {
                   e.currentTarget.onerror = null;
                   e.currentTarget.src = 'https://images.unsplash.com/photo-1548199973-03cce0bbc87b?q=80&w=800';
                 }}
-                className="w-full h-full object-cover" 
+                className="w-full h-full object-contain" 
               />
             </div>
             
@@ -340,7 +387,7 @@ const ProductDetails = () => {
                   <button
                     key={idx}
                     onClick={() => setActiveImage(idx)}
-                    className={`w-20 h-20 border object-cover bg-gray-50 cursor-pointer overflow-hidden transition ${
+                    className={`w-20 h-20 border rounded-xl bg-white cursor-pointer overflow-hidden transition p-1 flex items-center justify-center ${
                       activeImage === idx ? 'border-primary ring-2 ring-primary/40' : 'border-beige hover:border-accent'
                     }`}
                   >
@@ -351,7 +398,7 @@ const ProductDetails = () => {
                         e.currentTarget.onerror = null;
                         e.currentTarget.src = 'https://images.unsplash.com/photo-1548199973-03cce0bbc87b?q=80&w=800';
                       }}
-                      className="w-full h-full object-cover" 
+                      className="w-full h-full object-contain" 
                     />
                   </button>
                 ))}
@@ -485,8 +532,14 @@ const ProductDetails = () => {
                 {/* Wishlist Button */}
                 <button
                   onClick={handleToggleWishlist}
-                  className="p-3.5 border border-beige hover:border-primary hover:text-red-500 text-gray-400 transition rounded-none bg-white cursor-pointer"
-                  title="Add to Wishlist"
+                  type="button"
+                  className={`p-3.5 border transition rounded-none bg-white cursor-pointer ${
+                    isWishlisted 
+                      ? "border-red-500 text-red-500 hover:border-red-600 hover:bg-red-50/20" 
+                      : "border-beige hover:border-primary hover:text-red-500 text-gray-400"
+                  }`}
+                  title={isWishlisted ? "Remove from Wishlist" : "Add to Wishlist"}
+                  aria-label={isWishlisted ? "Remove from Wishlist" : "Add to Wishlist"}
                 >
                   <Heart size={18} className={isWishlisted ? "fill-red-500 text-red-500" : ""} />
                 </button>
@@ -592,7 +645,7 @@ const ProductDetails = () => {
               {/* Product list */}
               <div className="flex items-center gap-4 flex-wrap">
                 <div className="flex items-center gap-3 border border-beige p-3 bg-secondary">
-                  <img src={product.images[0]} alt={product.name} className="w-12 h-12 object-cover bg-white" />
+                  <img src={product.images[0]} alt={product.name} className="w-12 h-12 object-contain bg-white p-1 rounded border border-beige/60" />
                   <div>
                     <p className="text-[11px] font-bold text-primary truncate max-w-xs">{product.name}</p>
                     <p className="text-xs font-semibold text-accent">₹{product.discountPrice || product.price}</p>
@@ -604,7 +657,7 @@ const ProductDetails = () => {
                 {frequentlyBoughtTogether.map((item) => (
                   <React.Fragment key={item._id}>
                     <div className="flex items-center gap-3 border border-beige p-3 bg-secondary">
-                      <img src={item.images[0]} alt={item.name} className="w-12 h-12 object-cover bg-white" />
+                      <img src={item.images[0]} alt={item.name} className="w-12 h-12 object-contain bg-white p-1 rounded border border-beige/60" />
                       <div>
                         <p className="text-[11px] font-bold text-primary truncate max-w-[120px]">{item.name}</p>
                         <p className="text-xs font-semibold text-accent">₹{item.discountPrice || item.price}</p>

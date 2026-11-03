@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useSelector } from 'react-redux';
 import { 
   Calendar, Star, MessageSquare, Clock, CreditCard, Building, Check, Video, 
   Paperclip, CheckCircle2, FileText, PawPrint, Save, Clock3, User, Plus, 
@@ -9,6 +10,7 @@ import {
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { safeSetItem, safeGetItem } from '../../../../utils/safeStorage.js';
+import { apiRequest } from '../../../../services/api.js';
 import { getStoredHostelBookings } from '../../../../data/hostelData.js';
 import { downloadBill, printBill } from '../../../../utils/billGenerator.js';
 
@@ -225,6 +227,13 @@ const POPULAR_AMENITIES_SUGGESTIONS = [
 ];
 
 const HostelProviderContent = ({ activeTab }) => {
+  const { user } = useSelector(state => state.auth);
+
+  const getHostelScheduleStorageKey = (u = user) => {
+    if (u?._id) return `hostel_schedule_data_${u._id}`;
+    if (u?.email) return `hostel_schedule_data_${u.email.toLowerCase().trim()}`;
+    return 'hostel_schedule_data_v2';
+  };
   // 1. Profile State
   const [profile, setProfile] = useState(() => {
     const saved = safeGetItem('hostel_profile_data_v2');
@@ -254,35 +263,140 @@ const HostelProviderContent = ({ activeTab }) => {
 
   // 2. Bookings State (Issue 1)
   const [bookings, setBookings] = useState(() => {
+    let list = [];
     const saved = safeGetItem('hostel_provider_bookings_v2');
     if (saved) {
-      try { return JSON.parse(saved); } catch (e) {}
+      try {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) list = parsed;
+      } catch (e) {}
     }
-    // Also merge any bookings made through customer booking form
     const customerBookings = getStoredHostelBookings();
-    if (customerBookings && customerBookings.length > 0) {
-      const formatted = customerBookings.map((cb, idx) => ({
-        id: `BK-CUST-${idx + 1}`,
-        petName: cb.petName || 'Pet Guest',
-        petBreed: `${cb.petBreed || 'Dog'} (${cb.petAge || 'Adult'})`,
-        kennelType: cb.package || 'Deluxe Room',
-        ownerName: cb.ownerName || 'Pet Parent',
-        ownerPhone: cb.ownerPhone || '+91 98000 12345',
-        checkInDate: cb.checkInDate || '2026-10-02',
-        checkOutDate: cb.checkOutDate || '2026-10-05',
-        nights: 3,
-        status: 'pending_checkin',
-        eta: 'Upcoming Reservation',
-        totalPrice: cb.totalAmount || 2400,
-        paid: true,
-        dietaryNotes: cb.specialDiet || 'Standard diet',
-        avatarColor: 'bg-emerald-100 text-emerald-700',
-        avatarLetter: (cb.petName || 'P').charAt(0).toUpperCase()
-      }));
-      return [...DEFAULT_BOOKINGS, ...formatted];
+    if (Array.isArray(customerBookings) && customerBookings.length > 0) {
+      const existingIds = new Set(list.map(b => b.id || b._id));
+      for (const cb of customerBookings) {
+        const bId = cb.id || cb._id;
+        if (!existingIds.has(bId)) {
+          list.unshift({
+            id: bId,
+            petName: cb.petName || 'Pet Guest',
+            petBreed: `${cb.petBreed || 'Dog'} (${cb.petAge || 'Adult'})`,
+            kennelType: cb.kennelType || cb.packageName || 'Deluxe Room',
+            ownerName: cb.ownerName || 'Pet Parent',
+            ownerPhone: cb.ownerPhone || '+91 98000 12345',
+            ownerEmail: cb.ownerEmail || '',
+            checkInDate: cb.checkInDate || '2026-10-02',
+            checkOutDate: cb.checkOutDate || '2026-10-05',
+            nights: cb.nights || 3,
+            status: cb.status || 'pending_checkin',
+            eta: cb.eta || ('Check-in ' + (cb.checkInDate || 'Soon')),
+            totalPrice: Number(cb.totalPrice || cb.totalAmount || cb.fee || 2400),
+            paid: true,
+            dietaryNotes: cb.dietaryNotes || cb.specialDiet || 'Standard diet',
+            avatarColor: cb.avatarColor || 'bg-emerald-100 text-emerald-700',
+            avatarLetter: (cb.petName || 'P').charAt(0).toUpperCase()
+          });
+          existingIds.add(bId);
+        }
+      }
     }
-    return DEFAULT_BOOKINGS;
+    return list.length > 0 ? list : DEFAULT_BOOKINGS;
   });
+
+  // Re-sync hostel bookings from server & listen to real-time events
+  const refreshHostelBookings = async () => {
+    let list = [];
+    const saved = safeGetItem('hostel_provider_bookings_v2');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) list = parsed;
+      } catch (e) {}
+    }
+    const customerBookings = getStoredHostelBookings();
+    if (Array.isArray(customerBookings) && customerBookings.length > 0) {
+      const existingIds = new Set(list.map(b => b.id || b._id));
+      for (const cb of customerBookings) {
+        const bId = cb.id || cb._id;
+        if (!existingIds.has(bId)) {
+          list.unshift({
+            id: bId,
+            petName: cb.petName || 'Pet Guest',
+            petBreed: `${cb.petBreed || 'Dog'} (${cb.petAge || 'Adult'})`,
+            kennelType: cb.kennelType || cb.packageName || 'Deluxe Room',
+            ownerName: cb.ownerName || 'Pet Parent',
+            ownerPhone: cb.ownerPhone || '+91 98000 12345',
+            ownerEmail: cb.ownerEmail || '',
+            checkInDate: cb.checkInDate || '2026-10-02',
+            checkOutDate: cb.checkOutDate || '2026-10-05',
+            nights: cb.nights || 3,
+            status: cb.status || 'pending_checkin',
+            eta: cb.eta || ('Check-in ' + (cb.checkInDate || 'Soon')),
+            totalPrice: Number(cb.totalPrice || cb.totalAmount || cb.fee || 2400),
+            paid: true,
+            dietaryNotes: cb.dietaryNotes || cb.specialDiet || 'Standard diet',
+            avatarColor: cb.avatarColor || 'bg-emerald-100 text-emerald-700',
+            avatarLetter: (cb.petName || 'P').charAt(0).toUpperCase()
+          });
+          existingIds.add(bId);
+        }
+      }
+    }
+
+    try {
+      const res = await apiRequest('/bookings/provider');
+      if (res && res.success && Array.isArray(res.bookings)) {
+        const existingIds = new Set(list.map(b => b.id || b._id));
+        const hostelServerBookings = res.bookings.filter(b => 
+          (b.serviceType && b.serviceType.toLowerCase().includes('hostel')) ||
+          (b.serviceCategory && b.serviceCategory.toLowerCase().includes('hostel')) ||
+          b.kennelType || b.checkInDate
+        );
+        for (const sb of hostelServerBookings) {
+          const bId = sb.id || sb._id;
+          if (!existingIds.has(bId)) {
+            list.unshift({
+              id: bId,
+              petName: sb.petName || 'Pet Guest',
+              petBreed: `${sb.petBreed || 'Dog'} (${sb.petAge || 'Adult'})`,
+              kennelType: sb.kennelType || sb.packageName || 'Deluxe Room',
+              ownerName: sb.ownerName || 'Pet Parent',
+              ownerPhone: sb.ownerPhone || '+91 98000 12345',
+              ownerEmail: sb.ownerEmail || '',
+              checkInDate: sb.checkInDate || '2026-10-02',
+              checkOutDate: sb.checkOutDate || '2026-10-05',
+              nights: sb.nights || 3,
+              status: sb.status || 'pending_checkin',
+              eta: sb.eta || ('Check-in ' + (sb.checkInDate || 'Soon')),
+              totalPrice: Number(sb.totalPrice || sb.totalAmount || sb.fee || 2400),
+              paid: true,
+              dietaryNotes: sb.dietaryNotes || sb.specialDiet || 'Standard diet',
+              avatarColor: sb.avatarColor || 'bg-emerald-100 text-emerald-700',
+              avatarLetter: (sb.petName || 'P').charAt(0).toUpperCase()
+            });
+            existingIds.add(bId);
+          }
+        }
+      }
+    } catch (e) {
+      console.warn('Could not sync hostel provider bookings from server:', e);
+    }
+
+    if (list.length > 0) {
+      setBookings(list);
+      safeSetItem('hostel_provider_bookings_v2', JSON.stringify(list));
+    }
+  };
+
+  useEffect(() => {
+    refreshHostelBookings();
+    window.addEventListener('hostel-booking-created', refreshHostelBookings);
+    window.addEventListener('service-booking-updated', refreshHostelBookings);
+    return () => {
+      window.removeEventListener('hostel-booking-created', refreshHostelBookings);
+      window.removeEventListener('service-booking-updated', refreshHostelBookings);
+    };
+  }, []);
 
   const [bookingFilter, setBookingFilter] = useState('all'); // 'all' | 'pending' | 'active' | 'completed'
   const [bookingSearch, setBookingSearch] = useState('');
@@ -327,6 +441,7 @@ const HostelProviderContent = ({ activeTab }) => {
     return DEFAULT_INQUIRIES;
   });
   const [selectedInquiryId, setSelectedInquiryId] = useState('inq-1');
+  const [mobileChatView, setMobileChatView] = useState(false);
   const [messageInput, setMessageInput] = useState('');
   const chatMessagesEndRef = useRef(null);
   const chatContainerRef = useRef(null);
@@ -346,7 +461,8 @@ const HostelProviderContent = ({ activeTab }) => {
 
   // 7. Schedule & Timings State
   const [schedule, setSchedule] = useState(() => {
-    const saved = safeGetItem('hostel_schedule_data_v2');
+    const userKey = user?._id ? `hostel_schedule_data_${user._id}` : user?.email ? `hostel_schedule_data_${user.email.toLowerCase().trim()}` : null;
+    const saved = (userKey && safeGetItem(userKey)) || safeGetItem('hostel_schedule_data_v2');
     if (saved) {
       try { return JSON.parse(saved); } catch (e) {}
     }
@@ -356,6 +472,21 @@ const HostelProviderContent = ({ activeTab }) => {
       checkOutTime: '11:00'
     };
   });
+
+  // Re-sync timings whenever user logs in or switches accounts
+  useEffect(() => {
+    if (!user) return;
+    const userKey = getHostelScheduleStorageKey(user);
+    const saved = safeGetItem(userKey) || safeGetItem('hostel_schedule_data_v2');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (parsed && (parsed.checkInTime || parsed.checkOutTime)) {
+          setSchedule(parsed);
+        }
+      } catch (e) {}
+    }
+  }, [user?._id, user?.email]);
 
   // Timings validation & helpers
   const formatTime12Hour = (time24) => {
@@ -388,6 +519,10 @@ const HostelProviderContent = ({ activeTab }) => {
       return;
     }
     safeSetItem('hostel_schedule_data_v2', JSON.stringify(schedule));
+    const userKey = getHostelScheduleStorageKey(user);
+    if (userKey && userKey !== 'hostel_schedule_data_v2') {
+      safeSetItem(userKey, JSON.stringify(schedule));
+    }
     toast.success('Timings saved successfully!');
   };
 
@@ -505,10 +640,7 @@ const HostelProviderContent = ({ activeTab }) => {
   // Auto-scroll chat on new message or conversation switch without scrolling the window/page
   useEffect(() => {
     if (activeTab === 'messages' && chatContainerRef.current) {
-      chatContainerRef.current.scrollTo({
-        top: chatContainerRef.current.scrollHeight,
-        behavior: 'smooth'
-      });
+      chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
     }
   }, [inquiries, selectedInquiryId, activeTab]);
 
@@ -957,7 +1089,8 @@ const HostelProviderContent = ({ activeTab }) => {
                             <span className="text-[10px] text-slate-500 font-bold">({b.petBreed})</span>
                           </div>
                           <p className="text-[11px] text-slate-500 font-semibold mt-0.5">
-                            {b.kennelType} • Owner: <span className="text-slate-700 font-bold">{b.ownerName}</span>
+                            <span className="text-[#7c56dc] font-bold">{b.kennelType || 'Standard Stay'}</span> • Owner: <span className="text-slate-700 font-bold">{b.ownerName}</span>
+                            {b.ownerPhone && <span className="text-slate-600 font-medium"> • 📞 {b.ownerPhone}</span>}
                           </p>
                         </div>
                       </div>
@@ -988,7 +1121,7 @@ const HostelProviderContent = ({ activeTab }) => {
                       </div>
                       <div className="flex justify-between text-slate-600">
                         <span className="font-semibold text-slate-400">Total Booking Bill:</span>
-                        <span className="font-black text-emerald-700">₹{b.totalPrice.toLocaleString()} (Paid)</span>
+                        <span className="font-black text-emerald-700">₹{Number(b.totalPrice || b.totalAmount || b.fee || 0).toLocaleString()} (Paid)</span>
                       </div>
                       {b.dietaryNotes && (
                         <div className="pt-1 border-t border-slate-100 text-[11px] text-slate-500">

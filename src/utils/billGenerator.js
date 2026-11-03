@@ -120,27 +120,38 @@ export const generateBillHtml = ({
     }
     .inv-header {
       text-align: right;
-      shrink: 0;
+      flex-shrink: 0;
+      max-width: 55%;
     }
     .inv-header h1 {
       margin: 0;
-      font-size: 18px;
+      font-size: 14px;
       font-weight: 900;
       color: #0F2E23;
       text-transform: uppercase;
-      letter-spacing: 1px;
+      letter-spacing: 0.5px;
+      line-height: 1.3;
+      word-break: break-word;
     }
     .status-badge {
-      display: inline-block;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
       background: #ecfdf5;
       color: #059669;
       border: 1px solid #a7f3d0;
       font-weight: 800;
       font-size: 10px;
-      padding: 3px 10px;
+      padding: 4px 12px;
       border-radius: 999px;
       margin-top: 6px;
       letter-spacing: 0.5px;
+      white-space: nowrap;
+    }
+    .status-badge.status-pending {
+      background: #fef3c7;
+      color: #d97706;
+      border-color: #fde68a;
     }
     .grid {
       display: grid;
@@ -252,7 +263,7 @@ export const generateBillHtml = ({
       </div>
       <div class="inv-header">
         <h1>${invoiceTitle}</h1>
-        <div class="status-badge">${statusText}</div>
+        <div class="status-badge ${/paid|completed|confirmed|success/i.test(String(statusText || '')) ? 'status-paid' : 'status-pending'}">${statusText}</div>
       </div>
     </div>
 
@@ -348,42 +359,73 @@ export const downloadBill = async (billData) => {
     doc.setFillColor(212, 175, 55); // #D4AF37 Gold Accent
     doc.rect(0, 6, pageWidth, 1.5, 'F');
 
-    let y = 18;
+    let y = 17;
 
-    // Brand Header
+    // Left: Brand Header
     doc.setFont('helvetica', 'bold');
-    doc.setFontSize(22);
+    doc.setFontSize(20);
     doc.setTextColor(15, 46, 35);
     doc.text('JOSH PETS HUB', margin, y);
 
-    y += 5.5;
+    y += 5;
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(8);
     doc.setTextColor(100, 116, 139);
-    doc.text("India's Premier Verified Pet Care, Veterinary & Relocation Network - Official Tax Invoice", margin, y);
+    doc.text("Official Tax Invoice & Pet Care Service Receipt", margin, y);
     y += 4;
-    doc.text('GSTIN: 29AAAAA0000A1Z5 | CIN: U74999KA2024PTC123456 | support@joshpetshub.com', margin, y);
+    doc.text('GSTIN: 29AAAAA0000A1Z5 | support@joshpetshub.com', margin, y);
 
-    // Invoice Title Box on Right
+    // Right: Invoice Title & Status Badge Box
+    const boxX = 110;
+    const boxY = 10.5;
+    const boxW = pageWidth - margin - boxX; // 196 - 110 = 86mm
+    const boxH = 20;
+
     doc.setFillColor(248, 250, 252);
     doc.setDrawColor(226, 232, 240);
-    doc.roundedRect(108, 12, 88, 17, 2, 2, 'FD');
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(9);
-    doc.setTextColor(15, 46, 35);
-    doc.text(String(billData.invoiceTitle || 'TAX INVOICE').slice(0, 36), 111, 18);
-    doc.setFontSize(8);
-    const isPaid = String(billData.statusText || '').toLowerCase().includes('paid');
-    doc.setTextColor(isPaid ? 5 : 217, isPaid ? 150 : 119, isPaid ? 105 : 6);
-    doc.text(String(billData.statusText || 'PAYMENT COMPLETED').slice(0, 36), 111, 24);
+    doc.setLineWidth(0.4);
+    doc.roundedRect(boxX, boxY, boxW, boxH, 2, 2, 'FD');
 
-    y += 11;
+    // Title text right-aligned inside box with 4mm padding
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(8.5);
+    doc.setTextColor(15, 46, 35);
+    const titleText = String(billData.invoiceTitle || 'TAX INVOICE').slice(0, 38);
+    doc.text(titleText, boxX + boxW - 4, boxY + 6.5, { align: 'right' });
+
+    // Status Badge Pill (Right aligned within box)
+    const status = String(billData.statusText || 'PAYMENT COMPLETED').trim();
+    const isPaid = /paid|completed|confirmed|success/i.test(status);
+
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(7.5);
+    const badgeTextWidth = doc.getTextWidth(status);
+    const badgeW = Math.max(badgeTextWidth + 8, 34);
+    const badgeH = 5.5;
+    const badgeX = boxX + boxW - 4 - badgeW;
+    const badgeY = boxY + 10.5;
+
+    if (isPaid) {
+      doc.setFillColor(236, 253, 245); // #ecfdf5 soft emerald
+      doc.setDrawColor(167, 243, 208); // #a7f3d0 green border
+      doc.setTextColor(5, 150, 105);   // #059669 rich green text
+    } else {
+      doc.setFillColor(254, 243, 199); // #fef3c7 soft amber
+      doc.setDrawColor(253, 230, 138); // #fde68a amber border
+      doc.setTextColor(217, 119, 6);   // #d97706 amber text
+    }
+
+    doc.roundedRect(badgeX, badgeY, badgeW, badgeH, 1.5, 1.5, 'FD');
+    doc.text(status, badgeX + (badgeW / 2), badgeY + 3.8, { align: 'center' });
+
+    // Divider line below header
+    y = 33;
     doc.setDrawColor(226, 232, 240);
     doc.setLineWidth(0.5);
     doc.line(margin, y, pageWidth - margin, y);
 
     // Customer & Invoice Details Cards
-    y += 6;
+    y += 4;
     const cardY = y;
     const colWidth = (contentWidth - 6) / 2;
 

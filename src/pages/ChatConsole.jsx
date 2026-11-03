@@ -1,23 +1,136 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { useLocation, useNavigate, Link } from 'react-router-dom';
+import { useLocation, useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { Send, MessageSquare, User, RefreshCw, ArrowLeft, Check, Sparkles, Tag, ShieldCheck } from 'lucide-react';
 import { apiRequest } from '../services/api.js';
+import { getPetListingById } from '../data/classifiedsData.js';
 import toast from 'react-hot-toast';
+
+// Safe LocalStorage helpers for chat persistence across page refreshes and sessions
+const getChatStorageKey = (userId, contactId) => `joshpetshub_chat_msgs_${userId || 'usr'}_${contactId || 'unknown'}`;
+
+const getStoredLocalMessages = (userId, contactId) => {
+  if (!contactId) return [];
+  try {
+    const raw = localStorage.getItem(getChatStorageKey(userId, contactId));
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed)) return parsed;
+    }
+  } catch (_) {}
+  return [];
+};
+
+const saveStoredLocalMessages = (userId, contactId, messages) => {
+  if (!contactId || !Array.isArray(messages)) return;
+  try {
+    localStorage.setItem(getChatStorageKey(userId, contactId), JSON.stringify(messages.slice(-200)));
+  } catch (_) {}
+};
+
+// Helper to resolve listing details from id or fallback
+const resolvePetListing = (listingId, fallbackListing) => {
+  if (fallbackListing && fallbackListing.title) return fallbackListing;
+  if (!listingId) return fallbackListing || null;
+  try {
+    const pet = getPetListingById(listingId);
+    if (pet) {
+      return {
+        id: pet._id || pet.id,
+        title: pet.title,
+        image: pet.images?.[0] || pet.image,
+        price: pet.price,
+        breed: pet.breed,
+        sellerId: pet.user?._id || pet.user?.id || pet.sellerId,
+        sellerName: pet.user?.name || pet.sellerName,
+        sellerEmail: pet.user?.email || pet.sellerEmail
+      };
+    }
+  } catch (_) {}
+  return fallbackListing || null;
+};
 
 const ChatConsole = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { user, isAuthenticated } = useSelector((state) => state.auth);
 
-  const [rooms, setRooms] = useState([]);
-  const [activeContact, setActiveContact] = useState(null);
-  const [listingContext, setListingContext] = useState(null);
-  const [messages, setMessages] = useState([]);
+  const currentUserId = (user?._id || user?.id || user?.email || 'user-default').toString();
+  const contactParam = searchParams.get('contact');
+  const listingParam = searchParams.get('listing');
+
+  // Read saved active chat metadata from sessionStorage or localStorage
+  const getPersistedChatMeta = () => {
+    try {
+      const fromSession = sessionStorage.getItem('joshpetshub_active_chat');
+      if (fromSession) return JSON.parse(fromSession);
+    } catch (_) {}
+    try {
+      const fromLocal = localStorage.getItem('joshpetshub_last_active_chat');
+      if (fromLocal) return JSON.parse(fromLocal);
+    } catch (_) {}
+    return null;
+  };
+
+  const initialMeta = getPersistedChatMeta();
+
+  // Resolve initial active contact from state, search params, or persistent cache
+  const initialContactId = (
+    location.state?.recipientId ||
+    contactParam ||
+    initialMeta?.recipientId ||
+    initialMeta?.id ||
+    initialMeta?._id ||
+    ''
+  ).toString();
+
+  const initialListingId = location.state?.listingId || listingParam || initialMeta?.listingId || initialMeta?.listing?.id;
+  const initialResolvedListing = resolvePetListing(initialListingId, {
+    id: initialListingId,
+    title: location.state?.listingTitle || initialMeta?.listingTitle || initialMeta?.listing?.title,
+    image: location.state?.listingImage || initialMeta?.listingImage || initialMeta?.listing?.image,
+    price: location.state?.listingPrice || initialMeta?.listingPrice || initialMeta?.listing?.price,
+    breed: location.state?.listingBreed || initialMeta?.listingBreed || initialMeta?.listing?.breed
+  });
+
+  const [activeContact, setActiveContact] = useState(() => {
+    if (!initialContactId) return null;
+    return {
+      _id: initialContactId,
+      id: initialContactId,
+      name: location.state?.ownerName || initialMeta?.ownerName || initialMeta?.name || initialResolvedListing?.sellerName || 'Pet Breeder / Seller',
+      email: location.state?.ownerEmail || initialMeta?.ownerEmail || initialMeta?.email || initialResolvedListing?.sellerEmail || '',
+      listingTitle: initialResolvedListing?.title || null
+    };
+  });
+
+  const [listingContext, setListingContext] = useState(initialResolvedListing);
+
+  const [messages, setMessages] = useState(() => {
+    if (initialContactId) {
+      return getStoredLocalMessages(currentUserId, initialContactId);
+    }
+    return [];
+  });
+
+  const [rooms, setRooms] = useState(() => {
+    if (initialContactId) {
+      return [{
+        _id: initialContactId,
+        id: initialContactId,
+        name: location.state?.ownerName || initialMeta?.ownerName || initialMeta?.name || initialResolvedListing?.sellerName || 'Pet Breeder / Seller',
+        email: location.state?.ownerEmail || initialMeta?.ownerEmail || initialMeta?.email || initialResolvedListing?.sellerEmail || '',
+        listingTitle: initialResolvedListing?.title || null
+      }];
+    }
+    return [];
+  });
+
   const [newMessage, setNewMessage] = useState('');
   const [loadingRooms, setLoadingRooms] = useState(true);
   const [loadingMessages, setLoadingMessages] = useState(false);
-  const [showMobileChat, setShowMobileChat] = useState(false);
+  const [showMobileChat, setShowMobileChat] = useState(Boolean(initialContactId));
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   const messagesContainerRef = useRef(null);
@@ -38,12 +151,44 @@ const ChatConsole = () => {
     loadRooms();
   }, [isAuthenticated]);
 
+  // Persist whenever activeContact or listingContext updates
   useEffect(() => {
-    // Check if redirecting from a listing with recipient data
+    if (activeContact) {
+      const contactId = (activeContact._id || activeContact.id).toString();
+      const meta = {
+        recipientId: contactId,
+        id: contactId,
+        _id: contactId,
+        ownerName: activeContact.name,
+        name: activeContact.name,
+        ownerEmail: activeContact.email,
+        email: activeContact.email,
+        listingId: listingContext?.id,
+        listingTitle: listingContext?.title,
+        listingImage: listingContext?.image,
+        listingPrice: listingContext?.price,
+        listingBreed: listingContext?.breed
+      };
+      try {
+        sessionStorage.setItem('joshpetshub_active_chat', JSON.stringify(meta));
+        localStorage.setItem('joshpetshub_last_active_chat', JSON.stringify(meta));
+      } catch (_) {}
+
+      // Keep URL search params in sync so reloading address maintains the chat
+      if (searchParams.get('contact') !== contactId || (listingContext?.id && searchParams.get('listing') !== listingContext.id)) {
+        const nextParams = { contact: contactId };
+        if (listingContext?.id) nextParams.listing = listingContext.id;
+        setSearchParams(nextParams, { replace: true });
+      }
+    }
+  }, [activeContact, listingContext]);
+
+  // Handle incoming redirect state (e.g. clicking CHAT on a pet classified card)
+  useEffect(() => {
     if (location.state && location.state.recipientId) {
       const recipientId = (location.state.recipientId || '').toString();
       const ownerName = location.state.ownerName || 'Breeder / Seller';
-      
+
       const listing = {
         id: location.state.listingId,
         title: location.state.listingTitle,
@@ -51,12 +196,12 @@ const ChatConsole = () => {
         price: location.state.listingPrice,
         breed: location.state.listingBreed
       };
-      
+
       if (listing.title) {
         setListingContext(listing);
       }
 
-      const initialContact = {
+      const contact = {
         _id: recipientId,
         id: recipientId,
         name: ownerName,
@@ -64,15 +209,13 @@ const ChatConsole = () => {
         listingTitle: listing.title || null
       };
 
-      // Auto-set active contact and open mobile view
-      setActiveContact(initialContact);
+      setActiveContact(contact);
       setShowMobileChat(true);
 
-      // Insert immediately into rooms if not already there
       setRooms((prev) => {
         const exists = prev.some((r) => (r._id || r.id).toString() === recipientId);
         if (!exists) {
-          return [initialContact, ...prev];
+          return [contact, ...prev];
         }
         return prev;
       });
@@ -81,32 +224,54 @@ const ChatConsole = () => {
     }
   }, [location.state]);
 
+  // Load conversation messages whenever activeContact changes
+  useEffect(() => {
+    if (activeContact) {
+      const cId = (activeContact._id || activeContact.id).toString();
+      loadMessages(cId);
+    }
+  }, [activeContact?._id, activeContact?.id]);
+
   const loadRooms = async () => {
     setLoadingRooms(true);
     try {
       const data = await apiRequest('/chats/rooms');
-      if (data && data.success && Array.isArray(data.rooms)) {
-        setRooms((prev) => {
-          // Keep active contact if currently selected via state
-          if (activeContactRef.current) {
-            const hasActive = data.rooms.some(
-              (r) => (r._id || r.id).toString() === (activeContactRef.current._id || activeContactRef.current.id).toString()
-            );
-            if (!hasActive) {
-              return [activeContactRef.current, ...data.rooms];
-            }
-          }
-          return data.rooms;
+      const serverRooms = data && data.success && Array.isArray(data.rooms) ? data.rooms : [];
+
+      setRooms((prev) => {
+        const roomMap = new Map();
+
+        // 1. Keep active contact first
+        if (activeContactRef.current) {
+          const actId = (activeContactRef.current._id || activeContactRef.current.id).toString();
+          roomMap.set(actId, activeContactRef.current);
+        }
+
+        // 2. Add server rooms
+        serverRooms.forEach((r) => {
+          const rId = (r._id || r.id).toString();
+          roomMap.set(rId, r);
         });
 
-        // Pre-select first room if no contact is selected and no state redirect
-        if (data.rooms.length > 0 && !activeContactRef.current && !location.state?.recipientId) {
-          setActiveContact(data.rooms[0]);
-          loadMessages(data.rooms[0]._id || data.rooms[0].id);
-        }
+        // 3. Keep previous client rooms
+        prev.forEach((p) => {
+          const pId = (p._id || p.id).toString();
+          if (!roomMap.has(pId)) roomMap.set(pId, p);
+        });
+
+        return Array.from(roomMap.values());
+      });
+
+      // If no contact is currently selected and server provided rooms, pre-select first room
+      if (!activeContactRef.current && serverRooms.length > 0) {
+        setActiveContact(serverRooms[0]);
+        loadMessages(serverRooms[0]._id || serverRooms[0].id);
       }
     } catch (err) {
       console.warn('Could not load chat rooms from server:', err.message);
+      if (activeContactRef.current) {
+        setRooms([activeContactRef.current]);
+      }
     } finally {
       setLoadingRooms(false);
     }
@@ -114,15 +279,50 @@ const ChatConsole = () => {
 
   const loadMessages = async (contactId) => {
     if (!contactId) return;
-    setLoadingMessages(true);
+    const cid = contactId.toString();
+
+    // 1. Immediately hydrate from local storage cache so chat box is NEVER empty!
+    const localCached = getStoredLocalMessages(currentUserId, cid);
+    if (localCached.length > 0) {
+      setMessages(localCached);
+      scrollToBottom();
+    }
+
+    setLoadingMessages(localCached.length === 0);
+
     try {
-      const data = await apiRequest(`/chats/messages/${contactId}`);
+      const data = await apiRequest(`/chats/messages/${cid}`);
       if (data && data.success && Array.isArray(data.messages)) {
-        setMessages(data.messages);
+        const seenIds = new Set();
+        const merged = [];
+
+        data.messages.forEach((m) => {
+          const mId = m._id || m.id;
+          if (mId) seenIds.add(mId.toString());
+          merged.push(m);
+        });
+
+        // Add any local messages not yet in server list
+        localCached.forEach((l) => {
+          const lId = (l._id || l.id || '').toString();
+          if (lId && !seenIds.has(lId)) {
+            const isDuplicate = merged.some(
+              (m) => m.messageText === l.messageText && Math.abs(new Date(m.createdAt || 0) - new Date(l.createdAt || 0)) < 15000
+            );
+            if (!isDuplicate) {
+              merged.push(l);
+              seenIds.add(lId);
+            }
+          }
+        });
+
+        merged.sort((a, b) => new Date(a.createdAt || 0) - new Date(b.createdAt || 0));
+        setMessages(merged);
+        saveStoredLocalMessages(currentUserId, cid, merged);
         scrollToBottom();
       }
     } catch (err) {
-      console.warn('Could not load conversation history:', err.message);
+      console.warn('Could not load conversation history from server, keeping local cache:', err.message);
     } finally {
       setLoadingMessages(false);
     }
@@ -131,7 +331,28 @@ const ChatConsole = () => {
   const handleSelectContact = (contact) => {
     setActiveContact(contact);
     setShowMobileChat(true);
-    loadMessages(contact._id || contact.id);
+
+    const contactId = (contact._id || contact.id).toString();
+    try {
+      const toSave = {
+        recipientId: contactId,
+        id: contactId,
+        _id: contactId,
+        ownerName: contact.name,
+        name: contact.name,
+        ownerEmail: contact.email,
+        email: contact.email,
+        listingTitle: contact.listingTitle || listingContext?.title,
+        listingImage: listingContext?.image,
+        listingPrice: listingContext?.price,
+        listingBreed: listingContext?.breed
+      };
+      sessionStorage.setItem('joshpetshub_active_chat', JSON.stringify(toSave));
+      localStorage.setItem('joshpetshub_last_active_chat', JSON.stringify(toSave));
+      setSearchParams({ contact: contactId }, { replace: true });
+    } catch (_) {}
+
+    loadMessages(contactId);
   };
 
   const handleSendMessage = async (e) => {
@@ -139,7 +360,6 @@ const ChatConsole = () => {
     if (!newMessage.trim() || !activeContact) return;
 
     const contactId = (activeContact._id || activeContact.id).toString();
-    const currentUserId = (user?._id || user?.id || 'user-default').toString();
     const currentUserName = user?.name || 'Pet Parent';
     const textToSend = newMessage.trim();
 
@@ -152,6 +372,36 @@ const ChatConsole = () => {
       listingImage: listingContext?.image || location.state?.listingImage || undefined
     };
 
+    const optimisticMsg = {
+      _id: `MSG-LOCAL-${Date.now()}-${Math.floor(1000 + Math.random() * 9000)}`,
+      sender: {
+        _id: currentUserId,
+        id: currentUserId,
+        name: currentUserName,
+        email: user?.email || ''
+      },
+      recipient: {
+        _id: contactId,
+        id: contactId,
+        name: activeContact.name
+      },
+      messageText: textToSend,
+      listingTitle: payload.listingTitle,
+      listingImage: payload.listingImage,
+      createdAt: new Date().toISOString()
+    };
+
+    // 1. Immediately store and display
+    setMessages((prev) => {
+      const updated = [...prev, optimisticMsg];
+      saveStoredLocalMessages(currentUserId, contactId, updated);
+      return updated;
+    });
+    setNewMessage('');
+    scrollToBottom();
+    setTimeout(() => inputRef.current?.focus({ preventScroll: true }), 10);
+
+    // 2. Transmit to backend
     try {
       const data = await apiRequest('/chats', {
         method: 'POST',
@@ -159,42 +409,18 @@ const ChatConsole = () => {
       });
 
       if (data && (data.success || data.message)) {
-        const savedMsg = data.message || {
-          _id: `MSG-${Date.now()}`,
-          sender: { _id: currentUserId, name: currentUserName },
-          recipient: { _id: contactId, name: activeContact.name },
-          messageText: textToSend,
-          listingTitle: payload.listingTitle,
-          listingImage: payload.listingImage,
-          createdAt: new Date().toISOString()
-        };
-
-        setMessages((prev) => [...prev, savedMsg]);
-        setNewMessage('');
-        scrollToBottom();
-        setTimeout(() => inputRef.current?.focus({ preventScroll: true }), 10);
+        const saved = data.message;
+        if (saved && saved._id) {
+          setMessages((prev) => {
+            const replaced = prev.map((m) => (m._id === optimisticMsg._id ? saved : m));
+            saveStoredLocalMessages(currentUserId, contactId, replaced);
+            return replaced;
+          });
+        }
         loadRoomsWithoutReset();
-      } else {
-        throw new Error(data?.message || 'Failed to send message');
       }
     } catch (err) {
-      console.warn('Backend message send fallback to client session:', err.message);
-      
-      // Fallback: Optimistic delivery so user is never blocked
-      const localMsg = {
-        _id: `MSG-LOCAL-${Date.now()}`,
-        sender: { _id: currentUserId, name: currentUserName },
-        recipient: { _id: contactId, name: activeContact.name },
-        messageText: textToSend,
-        listingTitle: payload.listingTitle,
-        listingImage: payload.listingImage,
-        createdAt: new Date().toISOString()
-      };
-
-      setMessages((prev) => [...prev, localMsg]);
-      setNewMessage('');
-      scrollToBottom();
-      toast.success('Message sent.');
+      console.warn('Backend message save note: message safely persisted in local session:', err.message);
     }
   };
 
@@ -235,8 +461,6 @@ const ChatConsole = () => {
     }
   };
 
-  const currentUserId = (user?._id || user?.id || '').toString();
-
   return (
     <div className="max-w-7xl mx-auto px-4 md:px-8 py-6 md:py-10 pb-20">
       
@@ -276,7 +500,7 @@ const ChatConsole = () => {
           </div>
 
           <div className="flex-1 min-h-0 overflow-y-auto divide-y divide-beige">
-            {loadingRooms ? (
+            {loadingRooms && rooms.length === 0 ? (
               <p className="p-4 text-xs text-gray-400 text-center">Loading conversation channels...</p>
             ) : rooms.length > 0 ? (
               rooms.map((contact) => {
@@ -374,7 +598,7 @@ const ChatConsole = () => {
                 </div>
               </div>
 
-              {/* Inquiry Pet Header Banner (if redirected from a listing) */}
+              {/* Inquiry Pet Header Banner (if redirected from or viewing a listing) */}
               {listingContext && (
                 <div className="bg-[#fcfaf5] border-b border-[#e9dfcd] p-3 sm:px-4 flex items-center justify-between gap-3 text-xs shrink-0 shadow-sm animate-in fade-in">
                   <div className="flex items-center gap-3 min-w-0">
@@ -409,7 +633,7 @@ const ChatConsole = () => {
 
               {/* Scrolling messages list */}
               <div ref={messagesContainerRef} className="flex-1 min-h-0 overflow-y-auto p-4 sm:p-6 space-y-3.5 bg-[#FAFBF9]">
-                {loadingMessages ? (
+                {loadingMessages && messages.length === 0 ? (
                   <p className="text-xs text-gray-400 text-center py-10">Fetching correspondence history...</p>
                 ) : messages.length > 0 ? (
                   messages.map((m, index) => {

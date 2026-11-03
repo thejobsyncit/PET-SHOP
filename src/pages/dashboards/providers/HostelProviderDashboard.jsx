@@ -117,7 +117,8 @@ const HostelProviderDashboard = ({
 
           const compressedBase64 = canvas.toDataURL('image/jpeg', 0.8);
           
-          await dispatch(updateProfile({ avatar: compressedBase64 })).unwrap();
+          const phoneToKeep = (user?.mobile || user?.phone || '').trim();
+          await dispatch(updateProfile({ avatar: compressedBase64, profilePicture: compressedBase64, mobile: phoneToKeep, phone: phoneToKeep })).unwrap();
           toast.success('Profile picture updated!', { id: toastId });
           setIsUploading(false);
         };
@@ -133,12 +134,12 @@ const HostelProviderDashboard = ({
 
   const navMenuItems = [
     { id: 'profile', label: 'Resort Profile & Plan', icon: Building },
-    { id: 'bookings', label: 'Boarding Bookings', count: 8, icon: Calendar },
-    { id: 'rooms', label: 'Kennels & Accommodations', count: 4, icon: Home },
-    { id: 'gallery', label: 'Facility Gallery', count: 6, icon: Camera },
-    { id: 'messages', label: 'Pet Parent Inquiries', count: 3, icon: MessageSquare },
+    { id: 'bookings', label: 'Boarding Bookings', icon: Calendar },
+    { id: 'rooms', label: 'Kennels & Accommodations', icon: Home },
+    { id: 'gallery', label: 'Facility Gallery', icon: Camera },
+    { id: 'messages', label: 'Pet Parent Inquiries', icon: MessageSquare },
     { id: 'hours', label: 'Check-in/Out Timings', icon: Clock },
-    { id: 'reviews', label: 'Guest Reviews', extra: '4.9 ★', icon: Heart },
+    { id: 'reviews', label: 'Guest Reviews', icon: Heart },
     { id: 'wallet', label: 'Wallet & Payouts', icon: DollarSign }
   ];
 
@@ -185,13 +186,7 @@ const HostelProviderDashboard = ({
                 <item.icon size={16} className={activeTab === item.id ? 'text-[#ffd000]' : 'text-slate-400'} />
                 <span className="text-xs font-bold">{item.label}</span>
               </div>
-              {item.count !== undefined && (
-                <span className={`text-[9px] font-black px-1.5 py-0.5 rounded-full ${
-                  activeTab === item.id ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-500'
-                }`}>
-                  {item.count}
-                </span>
-              )}
+
             </button>
           ))}
           <div className="pt-2 border-t border-slate-100">
@@ -214,34 +209,6 @@ const HostelProviderDashboard = ({
         
         {/* Profile Summary */}
         <div className="p-6 border-b border-slate-100 flex flex-col items-center text-center">
-          <div className="relative group cursor-pointer mb-4">
-            <div className={`w-24 h-24 rounded-full border-4 border-white shadow-md overflow-hidden ${isUploading ? 'opacity-50' : ''}`}>
-              <img 
-                src={user?.avatar || "https://images.unsplash.com/photo-1548199973-03cce0bbc87b?q=80&w=800&auto=format&fit=crop"} 
-                alt="Profile" 
-                className="w-full h-full object-cover"
-              />
-            </div>
-            
-            <label className="absolute inset-0 flex flex-col items-center justify-center bg-black/50 text-white opacity-0 group-hover:opacity-100 transition-opacity rounded-full cursor-pointer">
-              <Camera size={20} className="mb-1" />
-              <span className="text-[10px] font-bold uppercase tracking-wider">Change</span>
-              <input 
-                type="file" 
-                className="hidden" 
-                accept="image/jpeg, image/png, image/webp" 
-                onChange={handleFileChange}
-                disabled={isUploading}
-              />
-            </label>
-
-            {isUploading && (
-              <div className="absolute inset-0 flex items-center justify-center bg-white/80 rounded-full">
-                <div className="w-5 h-5 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin"></div>
-              </div>
-            )}
-          </div>
-
           <h2 className="font-black text-slate-800 text-lg mb-1">{user?.name || 'Happy Paws Pet Resort'}</h2>
           <p className="text-xs text-slate-500 font-medium">Sarjapur Road, Bangalore</p>
           
@@ -269,20 +236,6 @@ const HostelProviderDashboard = ({
                       <item.icon size={18} className={activeTab === item.id ? 'text-[#ffd000]' : 'text-slate-400 group-hover:text-[#0F2E23] transition-colors'} />
                       <span className={`text-sm font-bold ${activeTab === item.id ? 'text-white' : ''}`}>{item.label}</span>
                     </div>
-                    {item.count !== undefined && (
-                      <span className={`text-[10px] font-black px-2 py-0.5 rounded-full ${
-                        activeTab === item.id ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-500 group-hover:bg-slate-200'
-                      }`}>
-                        {item.count}
-                      </span>
-                    )}
-                    {item.extra && (
-                      <span className={`text-[10px] font-black px-2 py-0.5 rounded-full ${
-                        activeTab === item.id ? 'bg-[#ffd000] text-[#0F2E23]' : 'bg-amber-100 text-amber-700'
-                      }`}>
-                        {item.extra}
-                      </span>
-                    )}
                   </button>
                 </li>
               ))}
