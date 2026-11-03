@@ -8,11 +8,17 @@ import {
   CheckCircle, ArrowRight, Filter, AlertCircle
 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import ProviderWalletPayoutView from '../../../../components/dashboards/ProviderWalletPayoutView.jsx';
 import { useSelector, useDispatch } from 'react-redux';
 import { apiRequest } from '../../../../services/api.js';
 import { updateProfile } from '../../../../store/slices/authSlice.js';
 import { safeSetItem, safeGetItem } from '../../../../utils/safeStorage.js';
-import { getStoredGroomingBookings } from '../../../../data/groomingData.js';
+import { 
+  getStoredGroomingBookings,
+  getStoredGroomingSchedule,
+  saveGroomingSchedule,
+  DEFAULT_GROOMING_SCHEDULE
+} from '../../../../data/groomingData.js';
 
 // Default Velvet Fur Spa Before & After Grooming Transformations
 const DEFAULT_GROOMING_GALLERY = [
@@ -86,6 +92,65 @@ const GALLERY_CATEGORIES = [
   'Feline Spa & Hygiene'
 ];
 
+export const DEFAULT_GROOMING_ADDONS = [
+  {
+    id: 'addon-1',
+    name: 'Teeth Cleaning & Breath Freshener',
+    price: 350,
+    duration: '15 mins',
+    petType: 'All Pets',
+    description: 'Enzymatic toothpaste tartar cleansing, plaque removal, and spearmint breath freshening spray.',
+    active: true
+  },
+  {
+    id: 'addon-2',
+    name: 'De-shedding & Undercoat Blowout',
+    price: 550,
+    duration: '30 mins',
+    petType: 'Dogs',
+    description: 'High-velocity undercoat blowout and specialized deshedding fur treatment to eliminate loose hair.',
+    active: true
+  },
+  {
+    id: 'addon-3',
+    name: 'Flea & Tick Defense Bath',
+    price: 450,
+    duration: '20 mins',
+    petType: 'All Pets',
+    description: 'Medicated organic neem herbal soak and tick repelling dip for fast parasite elimination.',
+    active: true
+  },
+  {
+    id: 'addon-4',
+    name: 'Ear Cleaning & Hair Plucking',
+    price: 250,
+    duration: '15 mins',
+    petType: 'All Pets',
+    description: 'Gentle antiseptic ear canal flush, wax extraction, plucking, and soothing hygiene wipe.',
+    active: true
+  },
+  {
+    id: 'addon-5',
+    name: 'Paw Pad Butter Spa & Balm',
+    price: 200,
+    duration: '10 mins',
+    petType: 'All Pets',
+    description: 'Nourishing organic shea butter and vitamin E balm massage for cracked paw pads and dry nose.',
+    active: true
+  }
+];
+
+export const PRESET_ADDONS = [
+  { name: 'Blueberry Facial & Coat Glow', price: 350, duration: '15 mins', petType: 'All Pets', description: 'Antioxidant blueberry face massage, tear stain brightening, and coat shine conditioning.' },
+  { name: 'Teeth Cleaning & Breath Freshener', price: 350, duration: '15 mins', petType: 'All Pets', description: 'Enzymatic tartar scrub and refreshing herbal breath spray.' },
+  { name: 'Paw Pad Butter Spa & Balm', price: 200, duration: '10 mins', petType: 'All Pets', description: 'Deep shea butter moisturizing massage for paw pads and nose leather.' },
+  { name: 'De-shedding & Undercoat Blowout', price: 550, duration: '30 mins', petType: 'Dogs', description: 'High-velocity undercoat blowout removing dead fur and stubborn mats.' },
+  { name: 'Flea & Tick Defense Bath', price: 450, duration: '20 mins', petType: 'All Pets', description: 'Herbal medicated wash eliminating ticks, fleas, and larvae.' },
+  { name: 'Nail Grinding & Precision Buffing', price: 250, duration: '15 mins', petType: 'All Pets', description: 'Smooth rounded edges with precision Dremel rotary tool.' },
+  { name: 'Medicated Anti-Itch Soak', price: 400, duration: '20 mins', petType: 'All Pets', description: 'Colloidal oatmeal bath providing instant relief from itchy or dry skin.' },
+  { name: 'Aromatherapy Fur Perfume Mist', price: 150, duration: '5 mins', petType: 'All Pets', description: 'Hypoallergenic lavender coat mist that leaves pets smelling fresh for days.' }
+];
+
 const GroomingProviderContent = ({ activeTab }) => {
   const { user } = useSelector(state => state.auth);
   const dispatch = useDispatch();
@@ -114,18 +179,16 @@ const GroomingProviderContent = ({ activeTab }) => {
     facilities: ['Air Conditioned', 'CCTV Monitored', 'Medicated Baths'],
   });
 
-  const [schedule, setSchedule] = useState({
-    acceptingWalkIns: true,
-    days: {
-      Monday: { isOpen: true, start: '10:00', end: '20:00' },
-      Tuesday: { isOpen: true, start: '10:00', end: '20:00' },
-      Wednesday: { isOpen: true, start: '10:00', end: '20:00' },
-      Thursday: { isOpen: true, start: '10:00', end: '20:00' },
-      Friday: { isOpen: true, start: '10:00', end: '20:00' },
-      Saturday: { isOpen: true, start: '09:00', end: '21:00' },
-      Sunday: { isOpen: false, start: '10:00', end: '18:00' },
+  const [schedule, setSchedule] = useState(() => getStoredGroomingSchedule(user));
+
+  useEffect(() => {
+    if (user) {
+      const stored = getStoredGroomingSchedule(user);
+      if (stored) {
+        setSchedule(stored);
+      }
     }
-  });
+  }, [user?.email, user?._id]);
 
   const toggleDay = (day) => {
     setSchedule(prev => ({
@@ -314,14 +377,136 @@ const GroomingProviderContent = ({ activeTab }) => {
     toast.success(`Toggled unread status for ${activeGroomInquiry.name}`);
   };
   
-  const [packagesState, setPackagesState] = useState({
-    fullGroom: { active: true, fee: 1500 },
-    bathBrush: { active: true, fee: 800 },
-    nailClip: { active: true, fee: 300 },
+  const [packagesState, setPackagesState] = useState(() => {
+    const saved = safeGetItem('velvet_grooming_packages');
+    if (saved) {
+      try { return JSON.parse(saved); } catch (e) {}
+    }
+    return {
+      fullGroom: { active: true, fee: 1500 },
+      bathBrush: { active: true, fee: 800 },
+      nailClip: { active: true, fee: 300 },
+    };
   });
 
   const togglePackage = (key) => setPackagesState(p => ({ ...p, [key]: { ...p[key], active: !p[key].active }}));
   const updatePackageFee = (key, val) => setPackagesState(p => ({ ...p, [key]: { ...p[key], fee: val }}));
+
+  // Add-On Services State
+  const [addOns, setAddOns] = useState(() => {
+    const saved = safeGetItem('velvet_grooming_addons');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      } catch (e) {}
+    }
+    return DEFAULT_GROOMING_ADDONS;
+  });
+
+  const [showAddOnModal, setShowAddOnModal] = useState(false);
+  const [editingAddOnId, setEditingAddOnId] = useState(null);
+  const [addOnForm, setAddOnForm] = useState({
+    name: '',
+    price: '',
+    duration: '15 mins',
+    petType: 'All Pets',
+    description: ''
+  });
+
+  const handleOpenAddOnModal = (addon = null) => {
+    if (addon) {
+      setEditingAddOnId(addon.id);
+      setAddOnForm({
+        name: addon.name,
+        price: addon.price,
+        duration: addon.duration || '15 mins',
+        petType: addon.petType || 'All Pets',
+        description: addon.description || ''
+      });
+    } else {
+      setEditingAddOnId(null);
+      setAddOnForm({
+        name: '',
+        price: '',
+        duration: '15 mins',
+        petType: 'All Pets',
+        description: ''
+      });
+    }
+    setShowAddOnModal(true);
+  };
+
+  const handleApplyPreset = (preset) => {
+    setAddOnForm({
+      name: preset.name,
+      price: String(preset.price),
+      duration: preset.duration,
+      petType: preset.petType,
+      description: preset.description
+    });
+  };
+
+  const handleSaveAddOn = (e) => {
+    e.preventDefault();
+    const trimmedName = addOnForm.name.trim();
+    const numPrice = Number(addOnForm.price);
+
+    if (!trimmedName) {
+      toast.error('Please enter the add-on service name.');
+      return;
+    }
+    if (isNaN(numPrice) || numPrice <= 0) {
+      toast.error('Please enter a valid price for the add-on service.');
+      return;
+    }
+
+    let updatedList;
+    if (editingAddOnId) {
+      updatedList = addOns.map(item => item.id === editingAddOnId ? {
+        ...item,
+        name: trimmedName,
+        price: numPrice,
+        duration: addOnForm.duration,
+        petType: addOnForm.petType,
+        description: addOnForm.description.trim()
+      } : item);
+      toast.success(`Updated "${trimmedName}" successfully!`);
+    } else {
+      const newEntry = {
+        id: 'addon-' + Date.now(),
+        name: trimmedName,
+        price: numPrice,
+        duration: addOnForm.duration,
+        petType: addOnForm.petType,
+        description: addOnForm.description.trim(),
+        active: true
+      };
+      updatedList = [...addOns, newEntry];
+      toast.success(`Added "${trimmedName}" to add-on services!`);
+    }
+
+    setAddOns(updatedList);
+    safeSetItem('velvet_grooming_addons', JSON.stringify(updatedList));
+    setShowAddOnModal(false);
+  };
+
+  const handleDeleteAddOn = (id, name) => {
+    const updatedList = addOns.filter(item => item.id !== id);
+    setAddOns(updatedList);
+    safeSetItem('velvet_grooming_addons', JSON.stringify(updatedList));
+    toast.success(`Removed "${name}" from add-ons.`);
+  };
+
+  const handleToggleAddOnStatus = (id) => {
+    const updatedList = addOns.map(item => item.id === id ? { ...item, active: !item.active } : item);
+    setAddOns(updatedList);
+    safeSetItem('velvet_grooming_addons', JSON.stringify(updatedList));
+    const target = updatedList.find(i => i.id === id);
+    if (target) {
+      toast.success(`"${target.name}" is now ${target.active ? 'active' : 'paused'}.`);
+    }
+  };
 
   const handleProfileChange = (e) => {
     const { name, value } = e.target;
@@ -460,6 +645,12 @@ const GroomingProviderContent = ({ activeTab }) => {
   
   useEffect(() => {
     fetchData();
+    window.addEventListener('service-booking-updated', fetchData);
+    window.addEventListener('grooming-booking-created', fetchData);
+    return () => {
+      window.removeEventListener('service-booking-updated', fetchData);
+      window.removeEventListener('grooming-booking-created', fetchData);
+    };
   }, [user]);
 
   const fetchData = async () => {
@@ -487,16 +678,19 @@ const GroomingProviderContent = ({ activeTab }) => {
 
       // Fetch provider service
       const servRes = await apiRequest('/services/provider');
-      if (servRes.success && servRes.services && servRes.services.length > 0) {
+      const servicesList = (servRes && servRes.success && (servRes.services || servRes.data)) || [];
+      if (Array.isArray(servicesList) && servicesList.length > 0) {
         // Find a grooming service, or just take the first one
-        const srv = servRes.services.find(s => s.category === 'Grooming') || servRes.services[0];
+        const srv = servicesList.find(s => s.category === 'Grooming') || servicesList[0];
         setServiceId(srv._id);
         
-        if (srv.schedule) {
-           setSchedule({
+        if (srv.schedule && typeof srv.schedule === 'object' && Object.keys(srv.schedule).length > 0) {
+           const synced = {
              acceptingWalkIns: srv.acceptingWalkIns !== false,
              days: srv.schedule
-           });
+           };
+           setSchedule(synced);
+           saveGroomingSchedule(synced, user);
         }
         
         if (srv.packages && srv.packages.length > 0) {
@@ -539,39 +733,56 @@ const GroomingProviderContent = ({ activeTab }) => {
   const savePackages = async () => {
      try {
        const pkgs = [];
-       if (packagesState.fullGroom.active) pkgs.push({ name: 'Full Grooming', price: packagesState.fullGroom.fee });
-       if (packagesState.bathBrush.active) pkgs.push({ name: 'Bath & Brush', price: packagesState.bathBrush.fee });
-       if (packagesState.nailClip.active) pkgs.push({ name: 'Nail Clipping', price: packagesState.nailClip.fee });
+       if (packagesState.fullGroom.active) pkgs.push({ name: 'Full Grooming', price: Number(packagesState.fullGroom.fee) });
+       if (packagesState.bathBrush.active) pkgs.push({ name: 'Bath & Brush', price: Number(packagesState.bathBrush.fee) });
+       if (packagesState.nailClip.active) pkgs.push({ name: 'Nail Clipping', price: Number(packagesState.nailClip.fee) });
+
+       safeSetItem('velvet_grooming_packages', JSON.stringify(packagesState));
+       safeSetItem('velvet_grooming_addons', JSON.stringify(addOns));
 
        if (serviceId) {
          await apiRequest(`/services/${serviceId}`, {
            method: 'PUT',
-           body: JSON.stringify({ packages: pkgs })
+           body: JSON.stringify({ 
+             packages: pkgs,
+             addOns: addOns
+           })
          });
-         toast.success('Packages & Pricing updated successfully!');
-       } else {
-         toast.error('No service profile found. Please contact support.');
        }
+       toast.success('Grooming packages & add-on services saved successfully!');
      } catch (err) {
+       console.error(err);
        toast.error('Failed to save packages');
      }
   };
 
   const saveSchedule = async () => {
      try {
+       // 1. Save locally with user-scoped key, generic fallback, and registered users list
+       saveGroomingSchedule(schedule, user);
+
+       // 2. Persist to user profile in Redux & server auth profile
+       dispatch(updateProfile({
+         groomingSchedule: schedule
+       }));
+
+       // 3. Sync to backend service profile if serviceId is available
        if (serviceId) {
-         await apiRequest(`/services/${serviceId}`, {
-           method: 'PUT',
-           body: JSON.stringify({ 
-             schedule: schedule.days,
-             acceptingWalkIns: schedule.acceptingWalkIns 
-           })
-         });
-         toast.success('Schedule saved successfully!');
-       } else {
-         toast.error('No service profile found. Please contact support.');
+         try {
+           await apiRequest(`/services/${serviceId}`, {
+             method: 'PUT',
+             body: JSON.stringify({ 
+               schedule: schedule.days,
+               acceptingWalkIns: schedule.acceptingWalkIns 
+             })
+           });
+         } catch (apiErr) {
+           console.warn('Backend service schedule update failed (using local sync):', apiErr);
+         }
        }
+       toast.success('Studio hours & schedule saved successfully!');
      } catch (err) {
+       console.error('Failed to save schedule:', err);
        toast.error('Failed to save schedule');
      }
   };
@@ -674,8 +885,24 @@ const GroomingProviderContent = ({ activeTab }) => {
                           {apt.petDetails?.name ? apt.petDetails.name.charAt(0).toUpperCase() : 'P'}
                         </div>
                         <div>
-                          <h3 className="font-bold text-slate-800 text-sm">{apt.petDetails?.name || 'Pet'} ({apt.petDetails?.breed || 'Unknown'})</h3>
-                          <p className="text-[10px] text-slate-500 uppercase tracking-widest">{dateObj.toLocaleDateString()} • {apt.serviceType || 'Grooming'}</p>
+                          <div className="flex items-center gap-2">
+                            <h3 className="font-bold text-slate-800 text-sm">{apt.petDetails?.name || apt.petName || 'Pet'}</h3>
+                            <span className="text-xs text-slate-500 font-semibold">({apt.petDetails?.breed || apt.petBreed || 'Dog'})</span>
+                          </div>
+                          <p className="text-xs font-extrabold text-[#0F2E23] mt-0.5">{apt.packageName || apt.serviceType || 'Full Grooming Spa'}</p>
+                          <p className="text-[11px] text-slate-500 font-medium mt-0.5">
+                            {dateObj.toLocaleDateString()} • {apt.timeSlot || 'Scheduled Slot'}
+                          </p>
+                          <p className="text-[11px] text-slate-600 font-bold mt-0.5">
+                            Owner: <span className="text-slate-800 font-bold">{apt.ownerName || 'Pet Parent'}</span>
+                            {(apt.ownerPhone || apt.phone) && <span className="text-slate-500 font-normal"> • 📞 {apt.ownerPhone || apt.phone}</span>}
+                            {(apt.fee || apt.packagePrice) && <span className="text-emerald-700 font-extrabold ml-1.5">• Fee: ₹{apt.fee || apt.packagePrice}</span>}
+                          </p>
+                          {apt.specialNotes && (
+                            <p className="text-[10px] text-amber-800 bg-amber-50 rounded-md px-1.5 py-0.5 mt-1 border border-amber-100">
+                              Note: {apt.specialNotes}
+                            </p>
+                          )}
                         </div>
                       </div>
                       {isPending ? (
@@ -779,18 +1006,266 @@ const GroomingProviderContent = ({ activeTab }) => {
           </div>
           
           <div className="bg-slate-50 rounded-2xl p-6 border border-slate-100 mt-6">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-sm font-black text-[#0F2E23] uppercase tracking-widest">Add-On Services</h3>
-              <button onClick={() => toast.success('Add-on modal opened')} className="flex items-center gap-1 text-emerald-600 text-xs font-black uppercase tracking-widest hover:text-emerald-700 transition"><Plus size={14}/> Add New</button>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
+              <div>
+                <h3 className="text-sm font-black text-[#0F2E23] uppercase tracking-widest flex items-center gap-2">
+                  <Sparkles size={16} className="text-emerald-700" /> Add-On Services & Treatments
+                </h3>
+                <p className="text-xs text-slate-500 font-medium mt-0.5">
+                  Offer optional extras and luxury care treatments bookable alongside grooming packages.
+                </p>
+              </div>
+              <button 
+                type="button"
+                onClick={() => handleOpenAddOnModal()} 
+                className="inline-flex items-center justify-center gap-1.5 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-black uppercase tracking-wider rounded-xl shadow-xs transition cursor-pointer"
+              >
+                <Plus size={15}/> Add New
+              </button>
             </div>
-            <div className="flex flex-wrap gap-2">
-              {['Teeth Cleaning', 'De-shedding Treatment', 'Flea & Tick Bath', 'Ear Cleaning'].map((spec, i) => (
-                <span key={i} className="bg-white border border-slate-200 px-3 py-1.5 rounded-lg text-xs font-bold text-slate-700 flex items-center gap-2">
-                  {spec} <span onClick={() => toast.success(`Removed ${spec}`)} className="text-slate-300 hover:text-red-500 cursor-pointer transition">×</span>
-                </span>
-              ))}
-            </div>
+
+            {addOns.length === 0 ? (
+              <div className="bg-white border border-dashed border-slate-300 rounded-xl p-8 text-center space-y-3">
+                <Sparkles size={32} className="mx-auto text-slate-400" />
+                <p className="text-sm font-bold text-slate-700">No add-on services yet</p>
+                <p className="text-xs text-slate-500 max-w-sm mx-auto">Add teeth cleaning, de-shedding, tick baths, or facial treatments that pet parents can book with their grooming packages.</p>
+                <button
+                  type="button"
+                  onClick={() => handleOpenAddOnModal()}
+                  className="px-4 py-2 bg-[#0F2E23] text-white text-xs font-bold rounded-xl shadow-xs hover:bg-[#163e30] transition cursor-pointer"
+                >
+                  <Plus size={14} className="inline mr-1" /> Add Your First Service
+                </button>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                {addOns.map((addon) => (
+                  <div 
+                    key={addon.id} 
+                    className={`bg-white border rounded-xl p-4 shadow-2xs transition-all relative group ${
+                      addon.active ? 'border-slate-200 hover:border-emerald-300' : 'border-slate-200/60 opacity-60 bg-slate-50/50'
+                    }`}
+                  >
+                    <div className="flex items-start justify-between gap-2 mb-2">
+                      <div className="flex-1 min-w-0 pr-1">
+                        <h4 className="text-xs font-black text-slate-800 leading-snug truncate">{addon.name}</h4>
+                        <div className="flex items-center gap-1.5 mt-1 flex-wrap">
+                          <span className="text-xs font-black text-emerald-700">₹{addon.price}</span>
+                          <span className="text-slate-300">•</span>
+                          <span className="text-[10px] font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-md flex items-center gap-1">
+                            <Clock size={10} /> {addon.duration}
+                          </span>
+                          <span className="text-[10px] font-bold text-amber-700 bg-amber-50 border border-amber-200/50 px-1.5 py-0.5 rounded-md">
+                            {addon.petType || 'All Pets'}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-1 shrink-0">
+                        <button
+                          type="button"
+                          onClick={() => handleToggleAddOnStatus(addon.id)}
+                          title={addon.active ? 'Pause this add-on' : 'Activate this add-on'}
+                          className={`w-7 h-4 rounded-full relative cursor-pointer transition-colors duration-200 ${addon.active ? 'bg-emerald-500' : 'bg-slate-300'}`}
+                        >
+                          <span className={`w-3 h-3 bg-white rounded-full absolute top-0.5 shadow-xs transition-all duration-200 ${addon.active ? 'right-0.5' : 'left-0.5'}`} />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleOpenAddOnModal(addon)}
+                          className="p-1 text-slate-400 hover:text-emerald-700 rounded-md hover:bg-slate-100 transition cursor-pointer"
+                          title="Edit Add-On"
+                        >
+                          <Edit3 size={13} />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteAddOn(addon.id, addon.name)}
+                          className="p-1 text-slate-400 hover:text-rose-600 rounded-md hover:bg-rose-50 transition cursor-pointer"
+                          title="Delete Add-On"
+                        >
+                          <Trash2 size={13} />
+                        </button>
+                      </div>
+                    </div>
+
+                    {addon.description && (
+                      <p className="text-[11px] text-slate-500 font-medium line-clamp-2 leading-relaxed">
+                        {addon.description}
+                      </p>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
+
+          {/* ADD / EDIT ADD-ON SERVICE MODAL */}
+          {showAddOnModal && (
+            <div className="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center z-50 p-4 overflow-y-auto animate-fadeIn">
+              <div 
+                className="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-7 shadow-2xl border border-slate-100 relative my-6 max-h-[92vh] overflow-y-auto text-slate-800"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <button 
+                  type="button"
+                  onClick={() => setShowAddOnModal(false)}
+                  className="absolute top-5 right-5 text-slate-400 hover:text-slate-700 p-1.5 rounded-full hover:bg-slate-100 transition cursor-pointer"
+                  aria-label="Close"
+                >
+                  <X size={18} />
+                </button>
+
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="w-10 h-10 rounded-2xl bg-emerald-100 text-emerald-800 flex items-center justify-center shrink-0">
+                    <Sparkles size={20} />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-black text-[#0F2E23]">
+                      {editingAddOnId ? 'Edit Add-On Service' : 'Add New Add-On Service'}
+                    </h3>
+                    <p className="text-xs text-slate-500 font-medium">
+                      Configure extra treatments and pricing for Velvet Fur Studio.
+                    </p>
+                  </div>
+                </div>
+
+                {/* Quick Presets if adding new */}
+                {!editingAddOnId && (
+                  <div className="bg-slate-50 border border-slate-100 rounded-2xl p-3 my-4">
+                    <span className="text-[10px] font-black uppercase tracking-wider text-slate-500 block mb-2">
+                      Popular Service Suggestions (Click to autofill):
+                    </span>
+                    <div className="flex flex-wrap gap-1.5">
+                      {PRESET_ADDONS.map((preset, idx) => (
+                        <button
+                          key={idx}
+                          type="button"
+                          onClick={() => handleApplyPreset(preset)}
+                          className="px-2.5 py-1 bg-white hover:bg-emerald-50 border border-slate-200 hover:border-emerald-300 text-slate-700 hover:text-emerald-800 rounded-lg text-[11px] font-bold transition cursor-pointer text-left flex items-center gap-1 shadow-2xs"
+                        >
+                          <span>{preset.name}</span>
+                          <span className="text-emerald-600 font-black">₹{preset.price}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                <form onSubmit={handleSaveAddOn} className="space-y-4 mt-4">
+                  {/* Service Name */}
+                  <div>
+                    <label className="text-[11px] font-black text-slate-600 uppercase tracking-wider block mb-1">
+                      Service / Treatment Name *
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={addOnForm.name}
+                      onChange={(e) => setAddOnForm({ ...addOnForm, name: e.target.value })}
+                      placeholder="e.g. Blueberry Facial & Coat Glow"
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs font-bold text-slate-800 focus:outline-none focus:border-emerald-600 focus:bg-white transition"
+                    />
+                  </div>
+
+                  {/* Price and Duration */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label className="text-[11px] font-black text-slate-600 uppercase tracking-wider block mb-1">
+                        Base Price (₹) *
+                      </label>
+                      <div className="flex items-center bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 focus-within:border-emerald-600 focus-within:bg-white transition">
+                        <span className="text-slate-500 font-bold mr-1.5 text-sm">₹</span>
+                        <input
+                          type="number"
+                          required
+                          min="1"
+                          step="10"
+                          value={addOnForm.price}
+                          onChange={(e) => setAddOnForm({ ...addOnForm, price: e.target.value })}
+                          placeholder="350"
+                          className="bg-transparent border-none outline-none text-xs font-bold w-full text-slate-800"
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="text-[11px] font-black text-slate-600 uppercase tracking-wider block mb-1">
+                        Estimated Duration *
+                      </label>
+                      <select
+                        value={addOnForm.duration}
+                        onChange={(e) => setAddOnForm({ ...addOnForm, duration: e.target.value })}
+                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-xs font-bold text-slate-800 focus:outline-none focus:border-emerald-600 focus:bg-white transition cursor-pointer"
+                      >
+                        <option value="5 mins">5 mins (Quick Spritz / Wipe)</option>
+                        <option value="10 mins">10 mins (Paw / Ear Care)</option>
+                        <option value="15 mins">15 mins (Teeth / Facial)</option>
+                        <option value="20 mins">20 mins (Flea Dip / Medicated)</option>
+                        <option value="30 mins">30 mins (De-shedding)</option>
+                        <option value="45 mins">45 mins (Deep Fur Therapy)</option>
+                        <option value="60 mins">60 mins (Full Luxury Spa)</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  {/* Applicable For */}
+                  <div>
+                    <label className="text-[11px] font-black text-slate-600 uppercase tracking-wider block mb-1">
+                      Applicable Pet Type
+                    </label>
+                    <div className="grid grid-cols-3 gap-2">
+                      {['All Pets', 'Dogs', 'Cats'].map((type) => (
+                        <button
+                          key={type}
+                          type="button"
+                          onClick={() => setAddOnForm({ ...addOnForm, petType: type })}
+                          className={`py-2 px-3 rounded-xl border text-xs font-bold transition cursor-pointer text-center ${
+                            addOnForm.petType === type
+                              ? 'border-emerald-600 bg-emerald-50 text-emerald-800 font-black shadow-2xs'
+                              : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50'
+                          }`}
+                        >
+                          {type}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Description */}
+                  <div>
+                    <label className="text-[11px] font-black text-slate-600 uppercase tracking-wider block mb-1">
+                      Treatment Details / Description (Optional)
+                    </label>
+                    <textarea
+                      rows={3}
+                      value={addOnForm.description}
+                      onChange={(e) => setAddOnForm({ ...addOnForm, description: e.target.value })}
+                      placeholder="Describe the treatment benefits, ingredients used, or process..."
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs font-medium text-slate-800 focus:outline-none focus:border-emerald-600 focus:bg-white transition resize-none"
+                    />
+                  </div>
+
+                  {/* Modal Buttons */}
+                  <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-100">
+                    <button
+                      type="button"
+                      onClick={() => setShowAddOnModal(false)}
+                      className="px-5 py-2.5 rounded-xl border border-slate-200 text-slate-600 text-xs font-black uppercase tracking-wider hover:bg-slate-50 transition cursor-pointer"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      className="px-6 py-2.5 bg-[#0F2E23] hover:bg-[#163e30] text-white rounded-xl text-xs font-black uppercase tracking-wider shadow-md hover:shadow-lg transition cursor-pointer flex items-center gap-2"
+                    >
+                      <Save size={14} /> {editingAddOnId ? 'Save Changes' : 'Add Treatment'}
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          )}
         </div>
       )}
 
@@ -1391,85 +1866,12 @@ const GroomingProviderContent = ({ activeTab }) => {
 
       {/* WALLET TAB */}
       {activeTab === 'wallet' && (
-        <div className="space-y-6 animate-fadeIn">
-           <div className="flex items-center justify-between border-b border-slate-100 pb-6">
-            <div>
-              <h2 className="text-xl font-black text-[#0F2E23]">Wallet & Payouts</h2>
-              <p className="text-sm text-slate-500 font-medium mt-1">Track your grooming earnings and bank settlements.</p>
-            </div>
-            <button 
-              onClick={() => {
-                setWithdrawAmount(walletBalance.toString());
-                setShowWithdrawModal(true);
-              }}
-              className="px-6 py-2.5 bg-[#0F2E23] hover:bg-[#163e30] text-white rounded-xl text-xs font-black uppercase tracking-widest flex items-center gap-2 cursor-pointer shadow-sm"
-            >
-              <Wallet size={16} /> Withdraw to Bank
-            </button>
-          </div>
-          <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
-            <h3 className="text-sm font-black text-slate-500 uppercase tracking-widest mb-4">Current Balance</h3>
-            <div className="text-4xl font-black text-[#0F2E23]">₹{walletBalance.toLocaleString('en-IN')}</div>
-            <button 
-              onClick={() => {
-                setWithdrawAmount(walletBalance.toString());
-                setShowWithdrawModal(true);
-              }}
-              className="mt-4 px-6 py-2.5 bg-[#0F2E23] hover:bg-[#163e30] text-white rounded-xl text-xs font-black uppercase tracking-widest cursor-pointer shadow-sm"
-            >
-              Withdraw to Bank
-            </button>
-          </div>
-
-          {showWithdrawModal && (
-            <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fadeIn" onClick={() => setShowWithdrawModal(false)}>
-              <div className="bg-white rounded-3xl max-w-md w-full border border-slate-200 shadow-2xl overflow-hidden p-6 space-y-4" onClick={(e) => e.stopPropagation()}>
-                <div className="flex justify-between items-center pb-3 border-b border-slate-100">
-                  <div className="flex items-center gap-2.5">
-                    <Landmark size={20} className="text-[#0F2E23]" />
-                    <h3 className="font-black text-[#0F2E23] text-base">Withdraw to Bank</h3>
-                  </div>
-                  <button onClick={() => setShowWithdrawModal(false)} className="p-1.5 text-slate-400 hover:text-slate-700 rounded-full hover:bg-slate-100 cursor-pointer">
-                    <X size={18} />
-                  </button>
-                </div>
-                <form onSubmit={handleWithdrawSubmit} className="space-y-4 text-xs">
-                  <div className="bg-emerald-50 border border-emerald-200 p-3 rounded-xl flex justify-between items-center">
-                    <span className="font-bold text-emerald-800">Available Balance:</span>
-                    <span className="font-black text-[#0F2E23] text-base">₹{walletBalance.toLocaleString('en-IN')}</span>
-                  </div>
-                  <div>
-                    <label className="font-bold text-slate-700 block mb-1">Amount (₹) *</label>
-                    <input 
-                      type="number"
-                      required
-                      min="500"
-                      max={walletBalance}
-                      value={withdrawAmount}
-                      onChange={(e) => setWithdrawAmount(e.target.value)}
-                      className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-sm font-bold text-slate-800"
-                    />
-                  </div>
-                  <div>
-                    <label className="font-bold text-slate-700 block mb-1">Destination Bank Account</label>
-                    <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 font-bold text-slate-800 flex items-center justify-between">
-                      <span>HDFC Bank (••••5678)</span>
-                      <span className="text-[10px] bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full font-black">Verified</span>
-                    </div>
-                  </div>
-                  <div className="flex gap-3 pt-2">
-                    <button type="button" onClick={() => setShowWithdrawModal(false)} className="flex-1 py-2.5 border rounded-xl font-bold text-slate-600 hover:bg-slate-50 cursor-pointer">
-                      Cancel
-                    </button>
-                    <button type="submit" disabled={isSubmittingWithdraw} className="flex-1 py-2.5 bg-[#0F2E23] text-white rounded-xl font-black uppercase tracking-wider hover:bg-[#163e30] cursor-pointer">
-                      {isSubmittingWithdraw ? 'Processing...' : 'Confirm'}
-                    </button>
-                  </div>
-                </form>
-              </div>
-            </div>
-          )}
-        </div>
+        <ProviderWalletPayoutView
+          serviceCategory="Pet Grooming Spa"
+          storageKeyPrefix="grooming"
+          initialBalance={32500}
+          escrowAmount={8500}
+        />
       )}
 
       {/* MESSAGES TAB */}

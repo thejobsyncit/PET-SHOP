@@ -105,12 +105,14 @@ const PetClassifiedDetail = () => {
       return;
     }
 
-    navigate('/chat', {
+    const listingId = pet?._id || pet?.id;
+    const chatUrl = `/chat?contact=${encodeURIComponent(ownerId)}${listingId ? `&listing=${encodeURIComponent(listingId)}` : ''}`;
+    navigate(chatUrl, {
       state: {
         recipientId: ownerId,
         ownerName: owner?.name || pet?.sellerName || 'Pet Seller',
         ownerEmail: owner?.email || '',
-        listingId: pet?._id || pet?.id,
+        listingId,
         listingTitle: pet?.title,
         listingImage: pet?.images?.[0] || selectedImage,
         listingPrice: pet?.price,

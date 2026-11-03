@@ -27,6 +27,9 @@ import {
   getStoredTransportEnquiries 
 } from '../../data/transportData.js';
 import { getStoredGroomingBookings } from '../../data/groomingData.js';
+import { getStoredHostelBookings } from '../../data/hostelData.js';
+import { getStoredWalkingBookings } from '../../data/walkingData.js';
+import { getStoredTrainingBookings } from '../../data/trainingData.js';
 import { getVetAppointments } from '../../data/veterinaryData.js';
 import { apiRequest } from '../../services/api.js';
 import toast from 'react-hot-toast';
@@ -73,6 +76,7 @@ const AccountDashboard = () => {
   // Form Profile State
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
   const [avatar, setAvatar] = useState('');
 
@@ -346,6 +350,7 @@ const AccountDashboard = () => {
     if (user) {
       setName(user.name || '');
       setEmail(user.email || '');
+      setPhone(user.mobile || user.phone || '');
       setAvatar(user.avatar || user.profilePicture || '');
       loadAdoptionData();
       loadTransportData();
@@ -383,11 +388,19 @@ const AccountDashboard = () => {
     window.addEventListener('service-booking-updated', handleBookingEvents);
     window.addEventListener('vet-data-updated', handleBookingEvents);
     window.addEventListener('grooming-booking-created', handleBookingEvents);
+    window.addEventListener('hostel-booking-created', handleBookingEvents);
+    window.addEventListener('walking-booking-created', handleBookingEvents);
+    window.addEventListener('training-session-created', handleBookingEvents);
+    window.addEventListener('transport-booking-created', handleBookingEvents);
     window.addEventListener('storage', handleBookingEvents);
     return () => {
       window.removeEventListener('service-booking-updated', handleBookingEvents);
       window.removeEventListener('vet-data-updated', handleBookingEvents);
       window.removeEventListener('grooming-booking-created', handleBookingEvents);
+      window.removeEventListener('hostel-booking-created', handleBookingEvents);
+      window.removeEventListener('walking-booking-created', handleBookingEvents);
+      window.removeEventListener('training-session-created', handleBookingEvents);
+      window.removeEventListener('transport-booking-created', handleBookingEvents);
       window.removeEventListener('storage', handleBookingEvents);
     };
   }, [user]);
@@ -404,11 +417,17 @@ const AccountDashboard = () => {
     const bEmail = (b.userEmail || b.ownerEmail || b.customerEmail || b.email || b.user?.email || '').toLowerCase().trim();
     if (cEmail && bEmail && bEmail === cEmail) return true;
 
+    // Strict check: if emails are present and differ, not owned
+    if (cEmail && bEmail && bEmail !== cEmail) return false;
+    // Strict check: if userIds are present and differ, not owned
+    if (cId && bUserId && bUserId !== cId) return false;
+
     const bPhone = (b.ownerPhone || b.userPhone || b.customerPhone || b.phone || b.mobile)
       ? String(b.ownerPhone || b.userPhone || b.customerPhone || b.phone || b.mobile).replace(/\D/g, '').slice(-10)
       : '';
     if (cPhone && cPhone.length >= 10 && bPhone && (bPhone === cPhone || bPhone.endsWith(cPhone) || cPhone.endsWith(bPhone))) {
       if (bEmail && cEmail && bEmail !== cEmail) return false;
+      if (bUserId && cId && bUserId !== cId) return false;
       return true;
     }
     return false;
@@ -521,6 +540,94 @@ const AccountDashboard = () => {
         }
       } catch (e) {
         console.warn('Error merging local vet bookings:', e);
+      }
+
+      // Merge local hostel bookings
+      try {
+        const localHostel = getStoredHostelBookings();
+        const existingIds = new Set(combinedBookings.map(b => b.id || b._id));
+        for (const h of localHostel) {
+          const hId = h.id || h._id;
+          if (!existingIds.has(hId) && isBookingOwnedByUser(h, user)) {
+            combinedBookings.push({
+              ...h,
+              serviceType: 'Pet Hostel / Boarding',
+              packageName: h.kennelType || h.packageName || 'Standard Stay Room',
+              date: h.checkInDate || h.date,
+              timeSlot: `${h.nights || 1} Night(s) Stay (${h.checkInDate} to ${h.checkOutDate})`,
+              fee: h.totalPrice || h.totalAmount || h.fee || 2400
+            });
+            existingIds.add(hId);
+          }
+        }
+      } catch (e) {
+        console.warn('Error merging local hostel bookings:', e);
+      }
+
+      // Merge local walking bookings
+      try {
+        const localWalking = getStoredWalkingBookings();
+        const existingIds = new Set(combinedBookings.map(b => b.id || b._id));
+        for (const w of localWalking) {
+          const wId = w.id || w._id;
+          if (!existingIds.has(wId) && isBookingOwnedByUser(w, user)) {
+            combinedBookings.push({
+              ...w,
+              serviceType: 'Pet Walking & Fitness',
+              packageName: w.packageName || 'Standard 30-Min Walk',
+              date: w.bookingDate || w.date,
+              timeSlot: w.bookingTime || w.timeSlot || 'Morning Stride',
+              fee: w.packagePrice || w.fee || 299
+            });
+            existingIds.add(wId);
+          }
+        }
+      } catch (e) {
+        console.warn('Error merging local walking bookings:', e);
+      }
+
+      // Merge local training bookings
+      try {
+        const localTraining = getStoredTrainingBookings();
+        const existingIds = new Set(combinedBookings.map(b => b.id || b._id));
+        for (const t of localTraining) {
+          const tId = t.id || t._id;
+          if (!existingIds.has(tId) && isBookingOwnedByUser(t, user)) {
+            combinedBookings.push({
+              ...t,
+              serviceType: 'Pet Training & Behavior',
+              packageName: t.packageName || t.programName || 'Training Course',
+              date: t.startDate || t.date,
+              timeSlot: t.timeSlot || 'Scheduled Session',
+              fee: t.packagePrice || t.fee || 4999
+            });
+            existingIds.add(tId);
+          }
+        }
+      } catch (e) {
+        console.warn('Error merging local training bookings:', e);
+      }
+
+      // Merge local transport bookings
+      try {
+        const localTransport = getUserTransportBookings(user);
+        const existingIds = new Set(combinedBookings.map(b => b.id || b._id));
+        for (const tp of localTransport) {
+          const tpId = tp.id || tp._id;
+          if (!existingIds.has(tpId) && isBookingOwnedByUser(tp, user)) {
+            combinedBookings.push({
+              ...tp,
+              serviceType: 'Pet Transport & Relocation',
+              packageName: tp.packageName || tp.mode || 'Pet Relocation Transit',
+              date: tp.bookingDate || tp.travelDate || tp.date,
+              timeSlot: `${tp.originCity || 'Origin'} ➔ ${tp.destCity || 'Destination'}`,
+              fee: tp.fareAmount || tp.packagePrice || tp.fee || 2499
+            });
+            existingIds.add(tpId);
+          }
+        }
+      } catch (e) {
+        console.warn('Error merging local transport bookings:', e);
       }
 
       // Normalize all bookings for guaranteed uniform structure in Service Bookings
@@ -712,6 +819,8 @@ const AccountDashboard = () => {
     const payload = {
       name: name.trim(),
       email: email.trim(),
+      mobile: phone.trim(),
+      phone: phone.trim(),
       avatar
     };
 
@@ -1944,6 +2053,18 @@ const AccountDashboard = () => {
                   />
                 </div>
 
+                <div className="space-y-1">
+                  <label className="text-xs text-gray-500 font-semibold block">Phone Number</label>
+                  <input
+                    type="tel"
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value.replace(/\D/g, '').slice(0, 10))}
+                    placeholder="10-digit mobile number"
+                    maxLength={10}
+                    className="w-full px-3 py-2 border border-beige text-xs focus:outline-none focus:border-primary rounded"
+                  />
+                </div>
+
                 {/* Password Change Section */}
                 <div className="pt-4 border-t border-beige/80 space-y-3">
                   <div className="flex items-center justify-between">
@@ -2199,15 +2320,6 @@ const AccountDashboard = () => {
                             }`}>
                               {enq.status}
                             </span>
-                            <button
-                              type="button"
-                              onClick={() => handleDownloadBookingBill(enq)}
-                              className="px-2.5 py-1 bg-[#0F2E23] hover:bg-[#163f30] text-[#D4AF37] hover:text-white rounded-lg text-[10px] font-bold shadow-xs transition inline-flex items-center gap-1 cursor-pointer active:scale-95"
-                              title="Download official bill in PDF format"
-                            >
-                              <Download size={11} />
-                              <span>Download Bill (PDF)</span>
-                            </button>
                           </div>
                         </div>
 
@@ -2253,7 +2365,7 @@ const AccountDashboard = () => {
                         )}
 
                         {/* Transporter Response / Official Confirmation */}
-                        {enq.providerReply || isBooking || hasQuote ? (
+                        {enq.providerReply || isBooking || hasQuote || isConfirmed ? (
                           <div className="bg-emerald-50 p-4 rounded-xl border border-emerald-200 text-xs space-y-2">
                             <div className="flex items-center justify-between">
                               <div className="flex items-center gap-1.5 font-bold text-emerald-900">

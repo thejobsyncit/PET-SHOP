@@ -13,6 +13,7 @@ import { getStoredWalkingProviders, getStoredWalkingBookings, saveWalkingProvide
 import { safeSetItem, safeGetItem } from '../../../utils/safeStorage.js';
 import toast from 'react-hot-toast';
 import ProviderProfileSection from '../../../components/dashboards/ProviderProfileSection.jsx';
+import ProviderWalletPayoutView from '../../../components/dashboards/ProviderWalletPayoutView.jsx';
 
 
 const AppointmentsModule = ({ user }) => {
@@ -39,33 +40,71 @@ const AppointmentsModule = ({ user }) => {
 
   const [appointments, setAppointments] = useState([]);
 
-  useEffect(() => {
-    if (myProvider) {
-      const allBookings = getStoredWalkingBookings() || [];
-      // Filter bookings for this provider
-      const myBookings = Array.isArray(allBookings) ? allBookings.filter(b => b && b.providerId === myProvider.id) : [];
-      
-      // Transform into display format
-      const formatted = myBookings.map((b, idx) => ({
-        id: b.id || `WA-00${idx+1}`,
-        petName: b.petName || 'Dog',
-        breed: b.petBreed || 'Mixed',
-        owner: b.ownerName || 'Client',
-        time: b.timeSlot || 'Morning',
-        date: new Date(b.date || b.createdAt).toLocaleDateString(),
-        status: b.status || 'Pending',
-        location: b.location || 'Local Area',
-        type: b.serviceType || 'Solo Walk'
-      }));
-      
-      setAppointments(formatted);
+  const fetchWalkingAppointments = async () => {
+    const local = getStoredWalkingBookings() || [];
+    let serverBookings = [];
+    try {
+      const res = await apiRequest('/bookings/provider');
+      if (res && res.success && Array.isArray(res.bookings)) {
+        serverBookings = res.bookings.filter(b => 
+          (b.serviceType && b.serviceType.toLowerCase().includes('walk')) ||
+          (b.serviceCategory && b.serviceCategory.toLowerCase().includes('walk')) ||
+          b.walkerName || (b.id && b.id.startsWith('WALK-'))
+        );
+      }
+    } catch (e) {
+      console.warn('Could not sync walking bookings from server:', e);
     }
+
+    const combined = [...local];
+    const existingIds = new Set(local.map(b => b.id || b._id));
+    for (const sb of serverBookings) {
+      const bId = sb.id || sb._id;
+      if (!existingIds.has(bId)) {
+        combined.unshift(sb);
+        existingIds.add(bId);
+      }
+    }
+
+    // Transform into display format
+    const formatted = combined.map((b, idx) => ({
+      id: b.id || b._id || `WA-00${idx+1}`,
+      petName: b.petName || b.petDetails?.name || 'Dog',
+      breed: b.petBreed || b.petDetails?.breed || 'Mixed',
+      owner: b.ownerName || 'Client',
+      phone: b.ownerPhone || b.phone || '',
+      time: b.timeSlot || b.bookingTime || 'Morning Slot',
+      date: b.date || b.bookingDate || new Date(b.createdAt || Date.now()).toLocaleDateString(),
+      status: b.status || 'Confirmed',
+      location: b.location || b.pickupAddress || 'Home Doorstep',
+      type: b.packageName || b.serviceType || 'Standard 30-Min Walk',
+      fee: Number(b.fee || b.packagePrice || b.price || b.totalAmount || 299)
+    }));
+
+    setAppointments(formatted);
+  };
+
+  useEffect(() => {
+    fetchWalkingAppointments();
+    window.addEventListener('walking-booking-created', fetchWalkingAppointments);
+    window.addEventListener('service-booking-updated', fetchWalkingAppointments);
+    return () => {
+      window.removeEventListener('walking-booking-created', fetchWalkingAppointments);
+      window.removeEventListener('service-booking-updated', fetchWalkingAppointments);
+    };
   }, [myProvider]);
 
   // Block Calendar State
+  const getWalkingCalendarKey = (u = user) => {
+    if (u?._id) return `walking_blocked_calendar_${u._id}`;
+    if (u?.email) return `walking_blocked_calendar_${u.email.toLowerCase().trim()}`;
+    return 'walking_blocked_calendar_v1';
+  };
+
   const [showBlockModal, setShowBlockModal] = useState(false);
   const [blockedSlots, setBlockedSlots] = useState(() => {
-    const saved = safeGetItem('walking_blocked_calendar_v1');
+    const userKey = user?._id ? `walking_blocked_calendar_${user._id}` : user?.email ? `walking_blocked_calendar_${user.email.toLowerCase().trim()}` : null;
+    const saved = (userKey && safeGetItem(userKey)) || safeGetItem('walking_blocked_calendar_v1');
     if (saved) {
       try { return JSON.parse(saved); } catch (e) {}
     }
@@ -73,6 +112,18 @@ const AppointmentsModule = ({ user }) => {
       { id: 'BLK-1', date: '2026-10-10', timeSlot: 'Afternoon (02:00 PM - 05:00 PM)', reason: 'Personal Time Off' }
     ];
   });
+
+  useEffect(() => {
+    if (!user) return;
+    const userKey = getWalkingCalendarKey(user);
+    const saved = safeGetItem(userKey) || safeGetItem('walking_blocked_calendar_v1');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) setBlockedSlots(parsed);
+      } catch (e) {}
+    }
+  }, [user?._id, user?.email]);
 
   const [blockForm, setBlockForm] = useState({
     date: new Date().toISOString().split('T')[0],
@@ -97,6 +148,10 @@ const AppointmentsModule = ({ user }) => {
     const updated = [newBlocked, ...blockedSlots];
     setBlockedSlots(updated);
     safeSetItem('walking_blocked_calendar_v1', JSON.stringify(updated));
+    const uKey = getWalkingCalendarKey();
+    if (uKey && uKey !== 'walking_blocked_calendar_v1') {
+      safeSetItem(uKey, JSON.stringify(updated));
+    }
     setShowBlockModal(false);
     toast.success(`Calendar blocked for ${blockForm.date} (${blockForm.timeSlot})`);
   };
@@ -105,6 +160,10 @@ const AppointmentsModule = ({ user }) => {
     const updated = blockedSlots.filter(s => s.id !== id);
     setBlockedSlots(updated);
     safeSetItem('walking_blocked_calendar_v1', JSON.stringify(updated));
+    const uKey = getWalkingCalendarKey();
+    if (uKey && uKey !== 'walking_blocked_calendar_v1') {
+      safeSetItem(uKey, JSON.stringify(updated));
+    }
     toast.success('Calendar slot unblocked successfully!');
   };
 
@@ -184,7 +243,11 @@ const AppointmentsModule = ({ user }) => {
                   </div>
                   
                   <h3 className="text-lg font-black text-[#0F2E23] mt-2">Walk with <span className="text-emerald-600">{appt.petName}</span></h3>
-                  <p className="text-xs font-bold text-slate-500">{appt.breed} • Owner: {appt.owner}</p>
+                  <p className="text-xs font-bold text-slate-500">
+                    {appt.breed} • Owner: <span className="text-slate-800">{appt.owner}</span>
+                    {appt.phone && <span> • 📞 {appt.phone}</span>}
+                    {appt.fee && <span className="text-emerald-700 font-extrabold ml-1.5">• Fee: ₹{appt.fee}</span>}
+                  </p>
                   
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-4 text-sm text-slate-600 font-medium">
                     <div className="flex items-center gap-2"><Clock size={16} className="text-slate-400"/> {appt.date}, {appt.time}</div>
@@ -744,6 +807,7 @@ const MessagesModule = ({ user }) => {
   const [showSettingsModal, setShowSettingsModal] = useState(false);
   const [showAddMenu, setShowAddMenu] = useState(false);
   const chatMessagesEndRef = useRef(null);
+  const chatContainerRef = useRef(null);
   const fileInputRef = useRef(null);
 
   // Chat Settings State
@@ -769,7 +833,9 @@ const MessagesModule = ({ user }) => {
   }, [conversations, activeConversation]);
 
   useEffect(() => {
-    chatMessagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    if (chatContainerRef.current) {
+      chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
+    }
   }, [selectedInquiryId, conversations]);
 
   const handleSelectConversation = (id) => {
@@ -1100,7 +1166,7 @@ const MessagesModule = ({ user }) => {
           </div>
           
           {/* Chat Messages */}
-          <div className="flex-1 p-6 overflow-y-auto space-y-4 bg-slate-50/30">
+          <div ref={chatContainerRef} className="flex-1 p-6 overflow-y-auto space-y-4 bg-slate-50/30">
             <div className="flex flex-col items-center mb-4">
               <span className="text-[10px] font-bold text-slate-400 bg-slate-100 px-3 py-1 rounded-full uppercase tracking-wider">
                 Conversation with {activeConversation?.name}
@@ -1656,7 +1722,7 @@ const WalkingProviderContent = ({ activeTab, user }) => {
     case 'routes': return <RoutesModule />;
     case 'messages': return <MessagesModule user={user} />;
     case 'reviews': return <ReviewsModule user={user} />;
-    case 'wallet': return <WalletModule />;
+    case 'wallet': return <ProviderWalletPayoutView serviceCategory="Dog Walking & Fitness" storageKeyPrefix="walking" initialBalance={24500} escrowAmount={6000} />;
     case 'profile': return <div className="p-8 text-center text-slate-500 font-medium">Profile management coming soon...</div>;
     default: return <AppointmentsModule user={user} />;
   }
@@ -1691,7 +1757,8 @@ const WalkingProviderDashboard = ({
 
   const handleUpdateProfile = async (e) => {
     e.preventDefault();
-    const result = await dispatch(updateProfile({ name: profileName, avatar: profileAvatar, profilePicture: profileAvatar }));
+    const phoneToKeep = (user?.mobile || user?.phone || '').trim();
+    const result = await dispatch(updateProfile({ name: profileName, avatar: profileAvatar, profilePicture: profileAvatar, mobile: phoneToKeep, phone: phoneToKeep }));
     if (updateProfile.fulfilled.match(result)) {
       toast.success('Profile updated successfully!');
       setIsEditingProfile(false);
@@ -1744,15 +1811,15 @@ const WalkingProviderDashboard = ({
   const navMenuItems = [
     { id: 'profile', label: 'Walker Profile & Plan', icon: PawPrint },
     ...(isSubActive ? [{ id: 'plan-details', label: 'Plan Details & Invoice', icon: Receipt }] : []),
-    { id: 'appointments', label: 'Walk Appointments', count: 5, icon: Calendar },
-    { id: 'routes', label: 'Active Routes', count: 3, icon: MapPin },
-    { id: 'messages', label: 'Client Inquiries', count: 2, icon: MessageSquare },
-    { id: 'reviews', label: 'Customer Reviews', extra: '4.9 ★', icon: Heart },
+    { id: 'appointments', label: 'Walk Appointments', icon: Calendar },
+    { id: 'routes', label: 'Active Routes', icon: MapPin },
+    { id: 'messages', label: 'Client Inquiries', icon: MessageSquare },
+    { id: 'reviews', label: 'Customer Reviews', icon: Heart },
     { id: 'wallet', label: 'Wallet & Payouts', icon: DollarSign }
   ];
 
   return (
-    <div className="min-h-auto lg:h-screen bg-[#FAF9F5] text-slate-900 font-sans selection:bg-[#0F2E23]/20 selection:text-[#0F2E23] flex flex-col lg:flex-row">
+    <div className="min-h-[calc(100vh-104px)] bg-[#FAF9F5] text-slate-900 font-sans selection:bg-[#0F2E23]/20 selection:text-[#0F2E23] flex flex-col lg:flex-row">
       
       {/* LEFT SIDEBAR */}
       <aside className="w-full lg:w-72 shrink-0 bg-white border-r border-slate-200 relative lg:sticky top-0 lg:top-[104px] h-auto lg:h-[calc(100vh-104px)] flex flex-col justify-between overflow-y-auto z-10 shadow-[4px_0_24px_rgba(0,0,0,0.02)]">
@@ -1784,20 +1851,6 @@ const WalkingProviderDashboard = ({
                       <item.icon size={18} className={activeTab === item.id ? 'text-amber-400' : 'text-slate-400 group-hover:text-emerald-600'} />
                       <span className="font-bold text-sm tracking-wide">{item.label}</span>
                     </div>
-                    {item.count !== undefined && (
-                      <span className={`text-[10px] font-black px-2 py-0.5 rounded-full ${
-                        activeTab === item.id ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-500 group-hover:bg-emerald-100'
-                      }`}>
-                        {item.count}
-                      </span>
-                    )}
-                    {item.extra !== undefined && (
-                      <span className={`text-[10px] font-black px-2 py-0.5 rounded-full ${
-                        activeTab === item.id ? 'bg-amber-400/20 text-amber-300' : 'bg-amber-100 text-amber-600'
-                      }`}>
-                        {item.extra}
-                      </span>
-                    )}
                   </button>
                 </li>
               ))}

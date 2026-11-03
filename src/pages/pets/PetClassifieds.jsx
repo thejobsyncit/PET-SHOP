@@ -170,12 +170,14 @@ const PetClassifieds = () => {
       return;
     }
     
-    navigate('/chat', { 
+    const listingId = listing?._id || listing?.id;
+    const chatUrl = `/chat?contact=${encodeURIComponent(ownerId)}${listingId ? `&listing=${encodeURIComponent(listingId)}` : ''}`;
+    navigate(chatUrl, { 
       state: { 
         recipientId: ownerId, 
         ownerName: owner?.name || listing?.sellerName || 'Pet Seller',
         ownerEmail: owner?.email || '',
-        listingId: listing?._id || listing?.id,
+        listingId,
         listingTitle: listing?.title,
         listingImage: listing?.images?.[0],
         listingPrice: listing?.price,

@@ -236,7 +236,13 @@ export const completeProviderProfile = async (req, res) => {
 
     const effectiveBusinessName = (businessName || '').trim();
     const effectiveName = (name || contactPerson || '').trim();
-    const effectiveMobile = (mobile || phone || '').trim();
+    let effectiveMobile = (mobile || phone || req.user?.mobile || req.user?.phone || '').trim();
+    if (!effectiveMobile) {
+      const diskUsers = loadDiskUsers();
+      const matchedDisk = diskUsers.find(u => (userId && (u._id === userId || u.id === userId)) || (email && u.email && u.email.toLowerCase() === email));
+      const demoAcct = Array.isArray(DEMO_ACCOUNTS) ? DEMO_ACCOUNTS.find(d => (userId && (d._id === userId || d.id === userId)) || (email && d.email && d.email.toLowerCase() === email)) : null;
+      effectiveMobile = (matchedDisk?.mobile || matchedDisk?.phone || demoAcct?.mobile || demoAcct?.phone || '').trim();
+    }
     const effectiveAddress = (address || streetAddress || '').trim();
 
     // Strict validation of mandatory fields

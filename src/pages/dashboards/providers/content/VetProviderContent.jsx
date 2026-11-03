@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useSelector } from 'react-redux';
 import { 
   Calendar, Stethoscope, Star, MessageSquare, Clock, CreditCard, Building, Check, 
   Video, Paperclip, CheckCircle2, FileText, PawPrint, Save, Clock3, User, Plus, 
@@ -31,6 +32,7 @@ import {
 } from '../../../../data/veterinaryData.js';
 
 const VetProviderContent = ({ activeTab, currentProvider }) => {
+  const { user } = useSelector(state => state.auth);
   const profilePhotoInputRef = useRef(null);
   const chatAttachmentRef = useRef(null);
 
@@ -72,7 +74,14 @@ const VetProviderContent = ({ activeTab, currentProvider }) => {
   const [appointments, setAppointments] = useState([]);
   const [appointmentFilter, setAppointmentFilter] = useState('all');
   const [prescriptions, setPrescriptions] = useState([]);
-  const [schedule, setSchedule] = useState(() => getStoredVetSchedule());
+  const [schedule, setSchedule] = useState(() => getStoredVetSchedule(user));
+  // Re-sync vet clinic schedule on user change
+  useEffect(() => {
+    if (user) {
+      setSchedule(getStoredVetSchedule(user));
+    }
+  }, [user?._id, user?.email]);
+
   const [wallet, setWallet] = useState(() => getStoredVetWallet());
   const [reviews, setReviews] = useState(() => getStoredVetReviews());
   const [chats, setChats] = useState(() => getStoredVetChats());
@@ -536,27 +545,35 @@ const VetProviderContent = ({ activeTab, currentProvider }) => {
   // 8. Handlers for Clinic Hours Tab
   // -------------------------------------------------------------
   const toggleDay = (day) => {
-    setSchedule(prev => ({
-      ...prev,
-      days: {
-        ...prev.days,
-        [day]: { ...prev.days[day], isOpen: !prev.days[day].isOpen }
-      }
-    }));
+    setSchedule(prev => {
+      const next = {
+        ...prev,
+        days: {
+          ...prev.days,
+          [day]: { ...prev.days[day], isOpen: !prev.days[day].isOpen }
+        }
+      };
+      saveVetSchedule(next, user);
+      return next;
+    });
   };
 
   const updateTime = (day, field, value) => {
-    setSchedule(prev => ({
-      ...prev,
-      days: {
-        ...prev.days,
-        [day]: { ...prev.days[day], [field]: value }
-      }
-    }));
+    setSchedule(prev => {
+      const next = {
+        ...prev,
+        days: {
+          ...prev.days,
+          [day]: { ...prev.days[day], [field]: value }
+        }
+      };
+      saveVetSchedule(next, user);
+      return next;
+    });
   };
 
   const handleSaveSchedule = () => {
-    saveVetSchedule(schedule);
+    saveVetSchedule(schedule, user);
     const todayName = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][new Date().getDay()];
     const todayConfig = schedule.days[todayName];
     const timingStr = todayConfig?.isOpen ? `${todayConfig.start} - ${todayConfig.end}` : 'Closed Today';

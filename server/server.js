@@ -32,6 +32,7 @@ import enquiryRoutes from './routes/enquiryRoutes.js';
 import paymentRoutes from './routes/paymentRoutes.js';
 import cookieConsentRoutes from './routes/cookieConsentRoutes.js';
 import subscriptionRoutes from './routes/subscriptionRoutes.js';
+import walletPayoutRoutes from './routes/walletPayoutRoutes.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -96,12 +97,17 @@ app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(cookieParser());
 
-// Rate limiting
+// Rate limiting (exempts localhost / development to avoid blocking local testing)
+const isLocalhostIp = (ip = '') => {
+  return ip === '127.0.0.1' || ip === '::1' || ip === '::ffff:127.0.0.1' || ip.includes('127.0.0.1');
+};
+
 const apiLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 10000, // Increased for developer local tests
+  max: process.env.NODE_ENV === 'production' ? 1000 : 50000,
   standardHeaders: true,
   legacyHeaders: false,
+  skip: (req) => process.env.NODE_ENV !== 'production' || isLocalhostIp(req.ip),
   message: { success: false, message: 'Too many requests from this IP, please try again after 15 minutes' }
 });
 app.use('/api', apiLimiter);
@@ -109,9 +115,10 @@ app.use('/api', apiLimiter);
 // Dedicated authentication rate limiter (brute-force defense)
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 30, // 30 attempts per 15 minutes
+  max: process.env.NODE_ENV === 'production' ? 30 : 500,
   standardHeaders: true,
   legacyHeaders: false,
+  skip: (req) => process.env.NODE_ENV !== 'production' || isLocalhostIp(req.ip),
   message: { success: false, message: 'Too many authentication attempts from this IP, please try again in 15 minutes.' }
 });
 app.use('/api/auth/login', authLimiter);
@@ -155,6 +162,7 @@ app.use('/api/enquiries', enquiryRoutes);
 app.use('/api/payments', paymentRoutes);
 app.use('/api/cookie-consents', cookieConsentRoutes);
 app.use('/api/subscriptions', subscriptionRoutes);
+app.use('/api/wallet-payouts', walletPayoutRoutes);
 
 // Health check endpoint
 app.get('/health', (req, res) => {

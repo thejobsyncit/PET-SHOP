@@ -1,0 +1,15 @@
+[
+  {
+    "providerId": "prov-groom-02",
+    "providerEmail": "velvetfur@joshpetshub.com",
+    "providerName": "Velvet Fur Grooming Studio",
+    "accountHolder": "Velvet Fur Grooming Studio Enterprise",
+    "bankName": "HDFC Bank Limited",
+    "accountNumberMasked": "••••••••0345",
+    "accountNumberEncrypted": "50100482910345",
+    "ifsc": "HDFC0001234",
+    "isVerified": true,
+    "verifiedAt": "2026-11-03T08:18:43.353Z",
+    "updatedAt": "2026-11-03T08:18:43.353Z"
+  }
+]

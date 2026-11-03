@@ -27,7 +27,7 @@ const resolveProductIdentifiers = async (identifier) => {
   const idStr = String(identifier).trim().toLowerCase();
   const identifiers = new Set([idStr]);
 
-  // Check disk products
+  // 1. Check disk products
   try {
     const products = loadDiskProducts();
     for (const p of products) {
@@ -40,14 +40,18 @@ const resolveProductIdentifiers = async (identifier) => {
     }
   } catch (_) {}
 
-  // Check Supabase products if connected
+  // 2. Check Supabase products if connected (safe UUID check to prevent Postgres 22P02 syntax errors)
   if (supabase) {
     try {
-      const { data: pFromDb } = await supabase
-        .from('products')
-        .select('id, slug')
-        .or(`id.eq.${identifier},slug.eq.${identifier}`);
-      if (Array.isArray(pFromDb)) {
+      const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(identifier);
+      let query = supabase.from('products').select('id, slug');
+      if (isUUID) {
+        query = query.or(`id.eq.${identifier},slug.eq.${identifier}`);
+      } else {
+        query = query.eq('slug', identifier);
+      }
+      const { data: pFromDb, error } = await query;
+      if (!error && Array.isArray(pFromDb)) {
         for (const p of pFromDb) {
           if (p.id) identifiers.add(String(p.id).trim().toLowerCase());
           if (p.slug) identifiers.add(String(p.slug).trim().toLowerCase());
@@ -55,6 +59,19 @@ const resolveProductIdentifiers = async (identifier) => {
       }
     } catch (_) {}
   }
+
+  // 3. Check existing reviews on disk to discover associated product <-> slug aliases
+  try {
+    const diskReviews = loadReviews();
+    for (const r of diskReviews) {
+      const rProd = String(r.product || r.product_id || r.productId || '').trim().toLowerCase();
+      const rSlug = String(r.productSlug || r.slug || '').trim().toLowerCase();
+      if (rProd === idStr || rSlug === idStr) {
+        if (rProd) identifiers.add(rProd);
+        if (rSlug) identifiers.add(rSlug);
+      }
+    }
+  } catch (_) {}
 
   return identifiers;
 };
@@ -103,6 +120,7 @@ export const getProductReviews = async (req, res) => {
 
   try {
     const validIdentifiers = await resolveProductIdentifiers(productId);
+    const mergedMap = new Map();
 
     // 1. Try fetching from Supabase if table exists
     if (supabase) {
@@ -113,25 +131,28 @@ export const getProductReviews = async (req, res) => {
           .select('*, user:users(name, avatar)')
           .in('product_id', idList);
 
-        if (!error && Array.isArray(dbReviews) && dbReviews.length > 0) {
-          return res.json({
-            success: true,
-            reviews: dbReviews.map(r => ({
+        if (!error && Array.isArray(dbReviews)) {
+          for (const r of dbReviews) {
+            const key = String(r.id || r._id || `${r.user_id}_${r.rating}_${r.title}`);
+            mergedMap.set(key, {
               _id: r.id || r._id,
               id: r.id || r._id,
+              user: r.user_id || r.user,
+              user_id: r.user_id || r.user,
               userName: r.user?.name || r.userName || 'Verified Buyer',
               userAvatar: r.user?.avatar,
               rating: r.rating,
               title: r.title || '',
               comment: r.comment || '',
+              verifiedPurchase: true,
               createdAt: r.created_at || r.createdAt || new Date().toISOString()
-            }))
-          });
+            });
+          }
         }
       } catch (_) {}
     }
 
-    // 2. Fallback to local persistent storage
+    // 2. Merge local persistent storage (always preserved, never dropped)
     const allReviews = loadReviews();
     const matching = allReviews.filter(r => {
       const rProd = String(r.product || r.product_id || r.productId || '').trim().toLowerCase();
@@ -139,17 +160,29 @@ export const getProductReviews = async (req, res) => {
       return validIdentifiers.has(rProd) || validIdentifiers.has(rSlug);
     });
 
-    const sanitizedReviews = matching.map(r => ({
-      ...r,
-      _id: r._id || r.id,
-      id: r.id || r._id,
-      userName: r.userName || r.user_name || 'Verified Buyer',
-      title: r.title || '',
-      comment: r.comment || '',
-      createdAt: r.createdAt || r.created_at || '2026-10-15T10:00:00.000Z'
-    }));
+    for (const r of matching) {
+      const key = String(r.id || r._id || `${r.user || r.user_id}_${r.rating}_${r.title}`);
+      if (!mergedMap.has(key)) {
+        mergedMap.set(key, {
+          ...r,
+          _id: r._id || r.id,
+          id: r.id || r._id,
+          userName: r.userName || r.user_name || 'Verified Buyer',
+          title: r.title || '',
+          comment: r.comment || '',
+          verifiedPurchase: true,
+          createdAt: r.createdAt || r.created_at || '2026-10-15T10:00:00.000Z'
+        });
+      }
+    }
 
-    res.json({ success: true, reviews: sanitizedReviews });
+    const finalReviews = Array.from(mergedMap.values()).sort((a, b) => {
+      const timeA = new Date(a.createdAt || 0).getTime();
+      const timeB = new Date(b.createdAt || 0).getTime();
+      return timeB - timeA;
+    });
+
+    res.json({ success: true, reviews: finalReviews });
   } catch (error) {
     console.error('[ReviewController] getProductReviews error:', error);
     res.status(500).json({ success: false, message: error.message });
@@ -170,7 +203,7 @@ export const createReview = async (req, res) => {
       return res.status(400).json({ success: false, message: 'Product ID or slug is required' });
     }
 
-    // Resolve matching product info
+    // Resolve matching product info across disk & Supabase
     let resolvedId = productId;
     let resolvedSlug = productSlug;
 
@@ -185,6 +218,23 @@ export const createReview = async (req, res) => {
         resolvedSlug = found.slug || resolvedSlug;
       }
     } catch (_) {}
+
+    if (supabase && (!resolvedId || !resolvedSlug || resolvedId === resolvedSlug)) {
+      try {
+        const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(targetIdentifier);
+        let query = supabase.from('products').select('id, slug');
+        if (isUUID) {
+          query = query.eq('id', targetIdentifier);
+        } else {
+          query = query.eq('slug', targetIdentifier);
+        }
+        const { data: dbP } = await query.maybeSingle();
+        if (dbP) {
+          resolvedId = dbP.id || resolvedId;
+          resolvedSlug = dbP.slug || resolvedSlug;
+        }
+      } catch (_) {}
+    }
 
     const reviewId = 'rev_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7);
     const cleanTitle = typeof title === 'string' ? title.trim() : '';

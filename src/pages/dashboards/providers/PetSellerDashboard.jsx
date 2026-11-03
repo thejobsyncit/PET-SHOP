@@ -16,6 +16,7 @@ export const SELLER_PET_BREEDS = PET_BREEDS_BY_CATEGORY;
 
 import { safeSetItem, safeGetItem } from '../../../utils/safeStorage.js';
 import ProviderProfileSection from '../../../components/dashboards/ProviderProfileSection.jsx';
+import ProviderWalletPayoutView from '../../../components/dashboards/ProviderWalletPayoutView.jsx';
 
 const PetSellerDashboard = ({ 
   currentProvider, 
@@ -51,11 +52,14 @@ const PetSellerDashboard = ({
       toast.error('Seller name cannot be empty');
       return;
     }
+    const phoneToKeep = (user?.mobile || user?.phone || '').trim();
     const result = await dispatch(updateProfile({ 
       name: profileName.trim(), 
       businessName: profileName.trim(),
       avatar: profileAvatar, 
-      profilePicture: profileAvatar 
+      profilePicture: profileAvatar,
+      mobile: phoneToKeep,
+      phone: phoneToKeep
     }));
     if (updateProfile.fulfilled.match(result)) {
       toast.success('Seller profile updated successfully!');
@@ -595,9 +599,10 @@ const PetSellerDashboard = ({
 
   const navItems = [
     { id: 'profile', label: 'Profile & Plan', icon: Settings },
-    { id: 'inventory', label: 'My Pet Inventory', icon: PawPrint, count: stats.totalListings },
-    { id: 'orders', label: 'Sales & Orders', icon: DollarSign, count: stats.totalOrders },
-    { id: 'inquiries', label: 'Buyer Leads', icon: MessageSquare, count: stats.inquiries }
+    { id: 'inventory', label: 'My Pet Inventory', icon: PawPrint },
+    { id: 'orders', label: 'Sales & Orders', icon: DollarSign },
+    { id: 'inquiries', label: 'Buyer Leads', icon: MessageSquare },
+    { id: 'wallet', label: 'Wallet & Payouts', icon: DollarSign }
   ];
 
   // Fix Profile Avatar - Use actual user's avatar if they are logged in, otherwise fallback
@@ -605,7 +610,7 @@ const PetSellerDashboard = ({
   const displayName = user?.name || profileName || currentProvider?.name || 'Pet Seller';
 
   return (
-    <div className="min-h-auto lg:h-screen bg-[#FAF9F5] text-slate-900 font-sans selection:bg-[#0F2E23]/20 selection:text-[#0F2E23] flex flex-col lg:flex-row">
+    <div className="min-h-[calc(100vh-104px)] bg-[#FAF9F5] text-slate-900 font-sans selection:bg-[#0F2E23]/20 selection:text-[#0F2E23] flex flex-col lg:flex-row">
       
       {/* 
         ========================================================
@@ -617,17 +622,6 @@ const PetSellerDashboard = ({
           
           {/* Profile Widget */}
           <div className="flex flex-col items-center text-center space-y-4">
-            <div className="relative group">
-              <div className="absolute -inset-1 bg-gradient-to-r from-[#ffd000] to-amber-500 rounded-full blur opacity-40 group-hover:opacity-70 transition duration-1000 group-hover:duration-200"></div>
-              <img 
-                src={displayAvatar} 
-                alt={displayName} 
-                className="relative w-24 h-24 rounded-full object-cover border-4 border-white shadow-lg"
-              />
-              <div className="absolute bottom-1 right-1 w-5 h-5 bg-white rounded-full flex items-center justify-center shadow-sm">
-                <span className={`w-3 h-3 rounded-full ${currentProvider?.isOnline ? 'bg-emerald-500' : 'bg-slate-400'}`}></span>
-              </div>
-            </div>
             <div className="w-full px-4">
               {isEditingProfile ? (
                 <form onSubmit={handleUpdateProfile} className="flex items-center gap-2 justify-center mt-2">
@@ -676,13 +670,7 @@ const PetSellerDashboard = ({
                   <item.icon size={18} className={activeTab === item.id ? 'text-[#ffd000]' : 'text-slate-400'} /> 
                   {item.label}
                 </div>
-                {item.count !== undefined && (
-                  <span className={`px-2.5 py-0.5 rounded-full text-[10px] ${
-                    activeTab === item.id ? 'bg-white/20 text-white font-black' : 'bg-slate-100 text-slate-500 font-black'
-                  }`}>
-                    {item.count}
-                  </span>
-                )}
+
               </button>
             ))}
           </nav>
@@ -1126,6 +1114,17 @@ const PetSellerDashboard = ({
               serviceCategory="Pet Seller"
               onOpenSubscriptionModal={onOpenSubscriptionModal}
               onOpenPlanDetails={onOpenPlanDetails}
+            />
+          )}
+
+
+          {activeTab === 'wallet' && (
+            <ProviderWalletPayoutView
+              serviceCategory="Pet Seller"
+              storageKeyPrefix="petseller"
+              initialBalance={52000}
+              escrowAmount={18000}
+
             />
           )}
 

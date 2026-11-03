@@ -27,7 +27,7 @@ const Wishlist = () => {
   }, [dispatch, isAuthenticated]);
 
   const handleRemove = async (product) => {
-    await dispatch(toggleWishlistAPI(product));
+    await dispatch(toggleWishlistAPI({ product, action: 'remove' }));
     toast.success('Removed from wishlist');
   };
 
@@ -178,7 +178,7 @@ const Wishlist = () => {
                     const targetSlug = product.slug || product._id || product.id;
                     navigate(targetSlug ? `/product/${targetSlug}` : '/shop');
                   }}
-                  className="relative aspect-square overflow-hidden bg-gray-50 border-b border-beige cursor-pointer"
+                  className="relative aspect-square overflow-hidden bg-white p-2 border-b border-beige cursor-pointer flex items-center justify-center"
                 >
                   <img 
                     src={product.images?.[0] || product.image || 'https://images.unsplash.com/photo-1548199973-03cce0bbc87b?q=80&w=800'} 
@@ -187,7 +187,7 @@ const Wishlist = () => {
                       e.currentTarget.onerror = null;
                       e.currentTarget.src = 'https://images.unsplash.com/photo-1548199973-03cce0bbc87b?q=80&w=800';
                     }}
-                    className="w-full h-full object-cover" 
+                    className="w-full h-full object-contain" 
                   />
                 </div>
 

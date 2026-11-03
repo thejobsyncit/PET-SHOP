@@ -329,9 +329,10 @@ const LeadConsultationModal = () => {
   // Full Name handler (Mandatory & Alphabets only)
   const handleUserFullNameChange = (e) => {
     const raw = e.target.value;
-    const cleaned = raw.replace(/[^a-zA-Z\s]/g, '');
+    const noLeadingSpace = raw.replace(/^\s+/, '');
+    const cleaned = noLeadingSpace.replace(/[^a-zA-Z\s]/g, '');
     setUserFullName(cleaned);
-    if (raw !== cleaned) {
+    if (noLeadingSpace !== cleaned) {
       setUserFullNameError('Full Name should contain alphabets only *');
     } else if (!cleaned.trim()) {
       setUserFullNameError('Full Name is required *');
@@ -644,19 +645,23 @@ const LeadConsultationModal = () => {
       }
       setUserPasswordError('');
 
-      // 5. Email format and duplicate validation
-      if (userEmail && userEmail.trim()) {
-        const emailValidation = validateEmailFormat(userEmail.trim());
-        if (!emailValidation.isValid) {
-          setUserEmailError(emailValidation.message + ' *');
-          toast.error(emailValidation.message);
-          return;
-        }
-        if (checkEmailAlreadyRegistered(userEmail)) {
-          setUserEmailError('This email is already registered. Please log in or use a different email *');
-          toast.error('An account with this email address already exists! Please log in instead.');
-          return;
-        }
+      // 5. Email format and duplicate validation (Mandatory)
+      if (!userEmail || !userEmail.trim()) {
+        setUserEmailError('Email ID is required *');
+        toast.error('Email ID is required *');
+        return;
+      }
+      const cleanUserEmail = userEmail.trim().toLowerCase();
+      const emailValidation = validateEmailFormat(cleanUserEmail);
+      if (!emailValidation.isValid) {
+        setUserEmailError(emailValidation.message + ' *');
+        toast.error(emailValidation.message);
+        return;
+      }
+      if (checkEmailAlreadyRegistered(cleanUserEmail)) {
+        setUserEmailError('This email is already registered. Please log in or use a different email *');
+        toast.error('An account with this email address already exists! Please log in instead.');
+        return;
       }
       setUserEmailError('');
 
@@ -673,7 +678,7 @@ const LeadConsultationModal = () => {
 
       const payload = {
         name: userFullName.trim(),
-        email: userEmail || `user_${userMobileNo}@joshpetshub.com`,
+        email: cleanUserEmail,
         mobile: userMobileNo,
         mobileCountryCode: userCountryCode,
         whatsapp: userWhatsappNo,
@@ -741,12 +746,14 @@ const LeadConsultationModal = () => {
     }
     setProviderWhatsappError('');
 
-    if (!providerEmail || !providerEmail.includes('@')) {
-      setProviderEmailError('Business Email is mandatory for Service Providers *');
-      toast.error('Business Email is required for Service Providers!');
+    const cleanProviderEmail = (providerEmail || '').trim().toLowerCase();
+    const provEmailValidation = validateEmailFormat(cleanProviderEmail);
+    if (!provEmailValidation.isValid) {
+      setProviderEmailError(provEmailValidation.message + ' *');
+      toast.error(provEmailValidation.message);
       return;
     }
-    if (checkEmailAlreadyRegistered(providerEmail)) {
+    if (checkEmailAlreadyRegistered(cleanProviderEmail)) {
       setProviderEmailError('This email is already registered. Please log in or use a different email *');
       toast.error('An account with this email address already exists! Please log in instead.');
       return;
@@ -1052,17 +1059,45 @@ const LeadConsultationModal = () => {
                 <div className="space-y-0.5">
                   <input
                     type="email"
-                    placeholder="Email"
+                    placeholder="Email ID *"
                     value={userEmail}
                     onChange={(e) => {
                       setUserEmail(e.target.value);
                       if (userEmailError) setUserEmailError('');
+                    }}
+                    onBlur={async () => {
+                      if (!userEmail || !userEmail.trim()) {
+                        setUserEmailError('Email ID is required *');
+                        return;
+                      }
+                      const clean = userEmail.trim().toLowerCase();
+                      const emailValidation = validateEmailFormat(clean);
+                      if (!emailValidation.isValid) {
+                        setUserEmailError(emailValidation.message + ' *');
+                        return;
+                      }
+                      if (checkEmailAlreadyRegistered(clean)) {
+                        setUserEmailError('This email is already registered. Please log in or use a different email *');
+                        return;
+                      }
+                      try {
+                        const res = await apiRequest('/auth/check-email', {
+                          method: 'POST',
+                          body: JSON.stringify({ email: clean })
+                        });
+                        if (res?.exists) {
+                          setUserEmailError('This email is already registered. Please log in or use a different email *');
+                        } else {
+                          setUserEmailError('');
+                        }
+                      } catch (_) { }
                     }}
                     className={`w-full px-3.5 py-2 border rounded-xl text-xs md:text-sm focus:outline-none transition font-medium ${
                       userEmailError
                         ? 'border-red-500 ring-2 ring-red-100 text-red-900 bg-white'
                         : 'border-slate-200 focus:border-[#15559c] focus:ring-2 focus:ring-blue-100 bg-slate-50/50 hover:bg-white'
                     }`}
+                    required
                   />
                   {userEmailError && (
                     <p className="text-[10px] font-bold text-red-500 pl-1 flex items-center gap-1">
@@ -1164,7 +1199,7 @@ const LeadConsultationModal = () => {
               TAB 2: SERVICE PROVIDER REGISTRATION FORM
              ============================================================= */}
           {activeTab === 'provider' && (
-            <form onSubmit={handleProviderSubmit} className="space-y-2.5">
+            <form onSubmit={handleProviderSubmit} noValidate className="space-y-2.5">
               {/* Business Name */}
               <div>
                 <input
@@ -1293,9 +1328,34 @@ const LeadConsultationModal = () => {
                     value={providerEmail}
                     onChange={(e) => {
                       setProviderEmail(e.target.value);
-                      if (e.target.value && e.target.value.includes('@')) {
-                        setProviderEmailError('');
+                      if (providerEmailError) setProviderEmailError('');
+                    }}
+                    onBlur={async () => {
+                      if (!providerEmail || !providerEmail.trim()) {
+                        setProviderEmailError('Business Email is mandatory for Service Providers *');
+                        return;
                       }
+                      const clean = providerEmail.trim().toLowerCase();
+                      const emailValidation = validateEmailFormat(clean);
+                      if (!emailValidation.isValid) {
+                        setProviderEmailError(emailValidation.message + ' *');
+                        return;
+                      }
+                      if (checkEmailAlreadyRegistered(clean)) {
+                        setProviderEmailError('This email is already registered. Please log in or use a different email *');
+                        return;
+                      }
+                      try {
+                        const res = await apiRequest('/auth/check-email', {
+                          method: 'POST',
+                          body: JSON.stringify({ email: clean })
+                        });
+                        if (res?.exists) {
+                          setProviderEmailError('This email is already registered. Please log in or use a different email *');
+                        } else {
+                          setProviderEmailError('');
+                        }
+                      } catch (_) { }
                     }}
                     className={`w-full px-3.5 py-2 border rounded-xl text-xs md:text-sm focus:outline-none transition bg-white font-medium ${
                       providerEmailError

@@ -89,7 +89,11 @@ router.post('/', async (req, res) => {
     const body = req.body || {};
     const prefix = (body.serviceType && body.serviceType.toLowerCase().includes('vet')) || body.doctorId
       ? 'VET-'
-      : ((body.serviceType && body.serviceType.toLowerCase().includes('transport')) ? 'TRP-' : 'GRM-');
+      : ((body.serviceType && body.serviceType.toLowerCase().includes('transport')) ? 'TRP-'
+      : ((body.serviceType && body.serviceType.toLowerCase().includes('hostel')) ? 'HSTBK-'
+      : ((body.serviceType && body.serviceType.toLowerCase().includes('walk')) ? 'WALK-'
+      : ((body.serviceType && body.serviceType.toLowerCase().includes('train')) ? 'TRN-BK-'
+      : 'GRM-'))));
     const bookingId = body.id || body._id || `${prefix}${Date.now().toString().slice(-6)}`;
     const newBooking = {
       _id: bookingId,
@@ -140,7 +144,27 @@ const updateBookingStatus = async (req, res) => {
     const { id } = req.params;
     const body = req.body || {};
     const diskBookings = loadDiskBookings();
-    const updated = diskBookings.map(b => ((b.id === id || b._id === id) ? { ...b, ...body, status: body.status || b.status } : b));
+    const updated = diskBookings.map(b => {
+      if (b.id === id || b._id === id) {
+        const nextStatus = body.status || b.status;
+        let settlementStatus = body.settlementStatus || b.settlementStatus;
+        if (nextStatus === 'Completed' || nextStatus === 'confirmed_completed') {
+          if (settlementStatus === 'Pending' || !settlementStatus) {
+            settlementStatus = 'Available';
+          }
+        } else if (nextStatus === 'Cancelled' || nextStatus === 'Refunded') {
+          settlementStatus = 'Refunded';
+        }
+        return {
+          ...b,
+          ...body,
+          status: nextStatus,
+          bookingStatus: nextStatus,
+          settlementStatus: settlementStatus || 'Pending'
+        };
+      }
+      return b;
+    });
     saveDiskBookings(updated);
     return res.json({ success: true, message: 'Booking status updated successfully' });
   } catch (err) {

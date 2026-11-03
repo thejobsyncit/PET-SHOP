@@ -7,12 +7,16 @@ const About = () => {
     <div className="space-y-16 pb-20">
       
       {/* 1. Hero Block */}
-      <section className="relative h-[40vh] flex items-center justify-center overflow-hidden border-b border-beige">
+      <section className="relative min-h-[380px] md:h-[48vh] flex items-center justify-center overflow-hidden border-b border-beige">
         <div className="absolute inset-0">
           <img 
-            src="https://images.unsplash.com/photo-1552053831-71594a27632d?q=80&w=800&auto=format&fit=crop" 
+            src="https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?q=80&w=1600&auto=format&fit=crop" 
             alt="About Josh Pets Hub Brand" 
-            className="w-full h-full object-cover filter brightness-[0.55]"
+            onError={(e) => {
+              e.currentTarget.onerror = null;
+              e.currentTarget.src = 'https://images.unsplash.com/photo-1548199973-03cce0bbc87b?q=80&w=1600';
+            }}
+            className="w-full h-full object-cover object-center filter brightness-[0.55]"
           />
         </div>
         <div className="relative z-10 max-w-4xl mx-auto px-6 text-center text-white space-y-4">

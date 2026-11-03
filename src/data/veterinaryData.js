@@ -938,9 +938,15 @@ export const INITIAL_VET_SCHEDULE = {
   }
 };
 
-export const getStoredVetSchedule = () => {
+export const getStoredVetSchedule = (user = null) => {
+  const userKey = user?._id
+    ? `joshpetshub_vet_schedule_${user._id}`
+    : user?.email
+      ? `joshpetshub_vet_schedule_${user.email.toLowerCase().trim()}`
+      : null;
+
   try {
-    const saved = localStorage.getItem('joshpetshub_vet_schedule');
+    const saved = (userKey && localStorage.getItem(userKey)) || localStorage.getItem('joshpetshub_vet_schedule');
     if (saved) {
       const parsed = JSON.parse(saved);
       if (parsed && parsed.days) return parsed;
@@ -956,9 +962,17 @@ export const getStoredVetSchedule = () => {
   return INITIAL_VET_SCHEDULE;
 };
 
-export const saveVetSchedule = (schedule) => {
+export const saveVetSchedule = (schedule, user = null) => {
   try {
     localStorage.setItem('joshpetshub_vet_schedule', JSON.stringify(schedule));
+    const userKey = user?._id
+      ? `joshpetshub_vet_schedule_${user._id}`
+      : user?.email
+        ? `joshpetshub_vet_schedule_${user.email.toLowerCase().trim()}`
+        : null;
+    if (userKey) {
+      localStorage.setItem(userKey, JSON.stringify(schedule));
+    }
     window.dispatchEvent(new CustomEvent('vet-data-updated', { detail: { type: 'schedule', schedule } }));
     return schedule;
   } catch (e) {

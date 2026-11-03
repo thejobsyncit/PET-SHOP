@@ -11,6 +11,7 @@ import { supabase } from '../config/supabase.js';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const USERS_FILE = path.join(__dirname, '..', 'data', 'users.json');
+const SERVER_DATA_BOOKINGS_FILE = path.join(__dirname, '..', '..', 'server_data', 'bookings.json');
 
 // Helper to sanitize user object: never expose passwords or hashes
 export const sanitizeUser = (user) => {
@@ -64,7 +65,9 @@ export const sanitizeUser = (user) => {
     trainingSpecialization: userObj.trainingSpecialization || '',
     vehicleTypes: userObj.vehicleTypes || '',
     emergencyHelpline: userObj.emergencyHelpline || '',
-    profileData: userObj.profileData || null
+    profileData: userObj.profileData || null,
+    groomingSchedule: userObj.groomingSchedule || null,
+    schedule: userObj.schedule || null
   };
 };
 
@@ -103,6 +106,7 @@ export const DEMO_ACCOUNTS = [
     businessName: 'Dr. Ramesh Kumar Pet Clinic',
     email: 'dr.ramesh@joshpetshub.com',
     mobile: '9845012345',
+    phone: '9845012345',
     password: 'Pass@1234',
     role: 'SERVICE_PROVIDER',
     serviceCategory: 'Consult a Vet',
@@ -125,6 +129,7 @@ export const DEMO_ACCOUNTS = [
     businessName: 'Velvet Fur Grooming Studio',
     email: 'velvetfur@joshpetshub.com',
     mobile: '9845199882',
+    phone: '9845199882',
     password: 'Pass@1234',
     role: 'SERVICE_PROVIDER',
     serviceCategory: 'Pet Grooming Spa',
@@ -145,6 +150,7 @@ export const DEMO_ACCOUNTS = [
     businessName: 'Happy Paws Pet Resort',
     email: 'happypaws@joshpetshub.com',
     mobile: '9731299881',
+    phone: '9731299881',
     password: 'Pass@1234',
     role: 'SERVICE_PROVIDER',
     serviceCategory: 'Pet Hostel / Boarding',
@@ -166,6 +172,7 @@ export const DEMO_ACCOUNTS = [
     businessName: 'Royal Paws Elite Pet Sellers',
     email: 'royalpaws@joshpetshub.com',
     mobile: '9945122334',
+    phone: '9945122334',
     password: 'Pass@1234',
     role: 'SERVICE_PROVIDER',
     serviceCategory: 'Pet Seller',
@@ -188,6 +195,7 @@ export const DEMO_ACCOUNTS = [
     businessName: 'Hope Animal Welfare Foundation & Sanctuary',
     email: 'adopt@joshpetshub.com',
     mobile: '9845577661',
+    phone: '9845577661',
     password: 'Pass@1234',
     role: 'SERVICE_PROVIDER',
     serviceCategory: 'Pet Adoption',
@@ -208,6 +216,7 @@ export const DEMO_ACCOUNTS = [
     businessName: 'Swift Paws Walking',
     email: 'swiftpaws@joshpetshub.com',
     mobile: '9845112233',
+    phone: '9845112233',
     password: 'Pass@1234',
     role: 'SERVICE_PROVIDER',
     serviceCategory: 'Pet Walking & Fitness',
@@ -228,6 +237,7 @@ export const DEMO_ACCOUNTS = [
     businessName: 'SafePet Transit',
     email: 'safepet@joshpetshub.com',
     mobile: '9845223344',
+    phone: '9845223344',
     password: 'Pass@1234',
     role: 'SERVICE_PROVIDER',
     serviceCategory: 'Pet Transport & Relocation',
@@ -249,6 +259,7 @@ export const DEMO_ACCOUNTS = [
     businessName: 'Clever Canines',
     email: 'clevercanines@joshpetshub.com',
     mobile: '9845334455',
+    phone: '9845334455',
     password: 'Pass@1234',
     role: 'SERVICE_PROVIDER',
     serviceCategory: 'Pet Training & Behavior',
@@ -270,6 +281,7 @@ export const DEMO_ACCOUNTS = [
     businessName: 'PawProtect Insurance',
     email: 'pawinsure@joshpetshub.com',
     mobile: '9845445566',
+    phone: '9845445566',
     password: 'Pass@1234',
     role: 'SERVICE_PROVIDER',
     serviceCategory: 'Pet Insurance',
@@ -291,6 +303,7 @@ export const DEMO_ACCOUNTS = [
     businessName: 'Elite Breeds Hub',
     email: 'elitebreed@joshpetshub.com',
     mobile: '9845556677',
+    phone: '9845556677',
     password: 'Pass@1234',
     role: 'SERVICE_PROVIDER',
     serviceCategory: 'Pet Mating & Breeding',
@@ -313,6 +326,7 @@ export const DEMO_ACCOUNTS = [
     businessName: 'Josh Pet Store & Supplies',
     email: 'productseller@joshpetshub.com',
     mobile: '9845667788',
+    phone: '9845667788',
     password: 'Pass@1234',
     role: 'SERVICE_PROVIDER',
     serviceCategory: 'Pet Products & Supplies',
@@ -335,6 +349,7 @@ export const DEMO_ACCOUNTS = [
     businessName: '',
     email: 'priya@joshpetshub.com',
     mobile: '9876543210',
+    phone: '9876543210',
     password: 'Pass@1234',
     role: 'CUSTOMER',
     serviceCategory: '',
@@ -346,6 +361,7 @@ export const DEMO_ACCOUNTS = [
     businessName: '',
     email: 'customer1@joshpetshub.com',
     mobile: '9876543211',
+    phone: '9876543211',
     password: 'Pass@1234',
     role: 'CUSTOMER',
     serviceCategory: '',
@@ -357,6 +373,7 @@ export const DEMO_ACCOUNTS = [
     businessName: '',
     email: 'sooryas650@gmail.com',
     mobile: '9876543210',
+    phone: '9876543210',
     password: '3629@Srm',
     role: 'CUSTOMER',
     serviceCategory: '',
@@ -368,6 +385,7 @@ export const DEMO_ACCOUNTS = [
     businessName: 'Admin Hub',
     email: 'admin@joshpetshub.com',
     mobile: '9888888888',
+    phone: '9888888888',
     password: 'Admin@123',
     role: 'ADMIN',
     serviceCategory: '',
@@ -379,6 +397,7 @@ export const DEMO_ACCOUNTS = [
     businessName: 'JOSH PETS HUB',
     email: 'superadmin@joshpetshub.com',
     mobile: '9999999999',
+    phone: '9999999999',
     password: 'SuperAdmin@123',
     role: 'SUPERADMIN',
     serviceCategory: '',
@@ -476,11 +495,19 @@ export const registerUser = async (req, res) => {
     return res.status(400).json({ success: false, message: 'Full name should contain alphabets only' });
   }
 
-  if (!email || !password) {
-    return res.status(400).json({ success: false, message: 'Please provide email and password' });
+  if (!email || !email.trim()) {
+    return res.status(400).json({ success: false, message: 'Email address is required' });
   }
 
   const cleanEmail = email.trim().toLowerCase();
+  const emailValidation = validateEmailFormat(cleanEmail);
+  if (!emailValidation.isValid) {
+    return res.status(400).json({ success: false, message: emailValidation.message });
+  }
+
+  if (!password) {
+    return res.status(400).json({ success: false, message: 'Please provide password' });
+  }
 
   // STRICT Duplicate Email Check
   const alreadyExists = await isEmailAlreadyRegistered(cleanEmail);
@@ -795,10 +822,23 @@ export const loginUser = async (req, res) => {
     const token = generateToken(user);
     setAuthCookie(res, token);
 
-    // 10. Ensure addresses are loaded and return sanitized user data
+    // 10. Ensure phone and addresses are loaded and return sanitized user data
     if (user) {
       const uEmail = (user.email || loginKey || '').toLowerCase();
       const uId = user._id || user.id;
+      const phoneNum = (user.mobile || user.phone || '').trim();
+      if (phoneNum) {
+        user.mobile = phoneNum;
+        user.phone = phoneNum;
+      } else {
+        const dUser = diskUsers.find(u => (uId && (u._id === uId || u.id === uId)) || (u.email && u.email.toLowerCase() === uEmail));
+        const demoUser = DEMO_ACCOUNTS.find(d => (uId && (d._id === uId || d.id === uId)) || (d.email && d.email.toLowerCase() === uEmail));
+        const resolvedPhone = (dUser?.mobile || dUser?.phone || demoUser?.mobile || demoUser?.phone || '').trim();
+        if (resolvedPhone) {
+          user.mobile = resolvedPhone;
+          user.phone = resolvedPhone;
+        }
+      }
       if (!Array.isArray(user.addresses) || user.addresses.length === 0) {
         const dUser = diskUsers.find(u => (uId && (u._id === uId || u.id === uId)) || (u.email && u.email.toLowerCase() === uEmail));
         if (dUser && Array.isArray(dUser.addresses) && dUser.addresses.length > 0) {
@@ -827,9 +867,25 @@ export const loginUser = async (req, res) => {
 // @access  Private
 export const getUserProfile = async (req, res) => {
   try {
+    const user = req.user ? { ...req.user } : null;
+    if (user) {
+      const uEmail = (user.email || '').toLowerCase();
+      const uId = user._id || user.id;
+      let phoneNum = (user.mobile || user.phone || '').trim();
+      if (!phoneNum) {
+        const diskUsers = loadDiskUsers();
+        const dUser = diskUsers.find(u => (uId && (u._id === uId || u.id === uId)) || (u.email && u.email.toLowerCase() === uEmail));
+        const demoUser = DEMO_ACCOUNTS.find(d => (uId && (d._id === uId || d.id === uId)) || (d.email && d.email.toLowerCase() === uEmail));
+        phoneNum = (dUser?.mobile || dUser?.phone || demoUser?.mobile || demoUser?.phone || '').trim();
+      }
+      if (phoneNum) {
+        user.mobile = phoneNum;
+        user.phone = phoneNum;
+      }
+    }
     res.json({
       success: true,
-      user: sanitizeUser(req.user)
+      user: sanitizeUser(user)
     });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
@@ -874,7 +930,10 @@ export const updateUserProfile = async (req, res) => {
     kennelName,
     trainingSpecialization,
     vehicleTypes,
-    emergencyHelpline
+    emergencyHelpline,
+    addresses,
+    groomingSchedule,
+    schedule
   } = req.body;
 
   try {
@@ -914,9 +973,10 @@ export const updateUserProfile = async (req, res) => {
         updateData.profilePicture = avatar || profilePicture;
       }
       if (businessName) updateData.businessName = businessName;
-      if (mobile || phone) {
-        updateData.mobile = (mobile || phone).trim();
-        updateData.phone = (mobile || phone).trim();
+      const resolvedPhone = (mobile || phone || user.mobile || user.phone || diskUser?.mobile || diskUser?.phone || demoUser?.mobile || demoUser?.phone || '').trim();
+      if (resolvedPhone) {
+        updateData.mobile = resolvedPhone;
+        updateData.phone = resolvedPhone;
       }
       if (whatsapp || whatsappNumber) {
         updateData.whatsapp = (whatsapp || whatsappNumber).trim();
@@ -949,6 +1009,13 @@ export const updateUserProfile = async (req, res) => {
       if (trainingSpecialization !== undefined) updateData.trainingSpecialization = trainingSpecialization;
       if (vehicleTypes !== undefined) updateData.vehicleTypes = vehicleTypes;
       if (emergencyHelpline !== undefined) updateData.emergencyHelpline = emergencyHelpline;
+      if (Array.isArray(addresses)) updateData.addresses = addresses;
+      if (groomingSchedule !== undefined || req.body.groomingSchedule !== undefined) {
+        updateData.groomingSchedule = groomingSchedule !== undefined ? groomingSchedule : req.body.groomingSchedule;
+      }
+      if (schedule !== undefined || req.body.schedule !== undefined) {
+        updateData.schedule = schedule !== undefined ? schedule : req.body.schedule;
+      }
       const targetPassword = newPassword || password;
 
       if (targetPassword || currentPassword || confirmPassword) {
@@ -1028,16 +1095,23 @@ export const updateUserProfile = async (req, res) => {
       }
 
       // Update in local disk users.json
+      let updatedRecord = null;
       try {
         const dUsers = loadDiskUsers();
         const dIdx = dUsers.findIndex(u => (userId && (u._id === userId || u.id === userId)) || (targetEmail && u.email && u.email.toLowerCase() === targetEmail));
-        const updatedRecord = {
+        updatedRecord = {
           ...user,
           ...updateData,
+          mobile: updateData.mobile || user.mobile || user.phone || resolvedPhone,
+          phone: updateData.phone || user.phone || user.mobile || resolvedPhone,
           name: updateData.name || user.name || (targetEmail === 'sooryas650@gmail.com' ? 'Soorya S' : 'User'),
           email: updateData.email || user.email || targetEmail,
           avatar: updateData.avatar || user.avatar || null,
-          businessName: updateData.business_name || user.businessName || user.business_name || ''
+          profilePicture: updateData.avatar || user.profilePicture || null,
+          businessName: updateData.businessName || updateData.business_name || user.businessName || user.business_name || '',
+          addresses: updateData.addresses || user.addresses || [],
+          groomingSchedule: updateData.groomingSchedule !== undefined ? updateData.groomingSchedule : (user.groomingSchedule || null),
+          schedule: updateData.schedule !== undefined ? updateData.schedule : (user.schedule || null)
         };
         if (targetPassword) {
           updatedRecord.password = updateData.password;
@@ -1055,18 +1129,40 @@ export const updateUserProfile = async (req, res) => {
 
       // Update inMemoryUsers
       if (targetEmail) {
-        inMemoryUsers.set(targetEmail, { ...user, ...updateData });
+        inMemoryUsers.set(targetEmail, { ...user, ...updateData, ...(updatedRecord || {}) });
       }
 
       // Update in DEMO_ACCOUNTS if present
-      if (demoUser && targetPassword) {
-        demoUser.password = targetPassword;
+      if (demoUser) {
+        if (targetPassword) demoUser.password = targetPassword;
+        if (updateData.name) demoUser.name = updateData.name;
+        if (updateData.avatar) {
+          demoUser.avatar = updateData.avatar;
+          demoUser.profilePicture = updateData.avatar;
+        }
+        if (resolvedPhone) {
+          demoUser.phone = resolvedPhone;
+          demoUser.mobile = resolvedPhone;
+        }
+        if (updateData.businessName) demoUser.businessName = updateData.businessName;
+        if (updateData.location) demoUser.location = updateData.location;
+        if (updateData.address || updateData.streetAddress) {
+          demoUser.address = updateData.address || updateData.streetAddress;
+          demoUser.streetAddress = updateData.address || updateData.streetAddress;
+        }
+        if (Array.isArray(updateData.addresses)) {
+          demoUser.addresses = updateData.addresses;
+        }
+        if (updateData.groomingSchedule !== undefined) demoUser.groomingSchedule = updateData.groomingSchedule;
+        if (updateData.schedule !== undefined) demoUser.schedule = updateData.schedule;
       }
 
       const finalUser = sanitizeUser({
         ...user,
-        ...updatedRecord,
-        ...updateData
+        ...(updatedRecord || {}),
+        ...updateData,
+        mobile: resolvedPhone || updatedRecord?.mobile || user.mobile || user.phone,
+        phone: resolvedPhone || updatedRecord?.phone || user.phone || user.mobile
       });
 
       return res.json({
@@ -1333,16 +1429,21 @@ export const sendOtp = async (req, res) => {
     return res.status(400).json({ success: false, message: 'Please provide email or mobile number' });
   }
 
-  // If this is for REGISTRATION, strictly verify that the email is not already registered
+  // If this is for REGISTRATION, strictly verify that the email is provided and not already registered
   if (purpose === 'registration' || purpose === 'register') {
-    if (targetEmail) {
-      const alreadyExists = await isEmailAlreadyRegistered(targetEmail);
-      if (alreadyExists) {
-        return res.status(400).json({
-          success: false,
-          message: 'An account with this email address already exists. Please log in instead.'
-        });
-      }
+    if (!targetEmail) {
+      return res.status(400).json({ success: false, message: 'Valid email address is required for registration' });
+    }
+    const emailValidation = validateEmailFormat(targetEmail);
+    if (!emailValidation.isValid) {
+      return res.status(400).json({ success: false, message: emailValidation.message });
+    }
+    const alreadyExists = await isEmailAlreadyRegistered(targetEmail);
+    if (alreadyExists) {
+      return res.status(400).json({
+        success: false,
+        message: 'An account with this email address already exists. Please log in instead.'
+      });
     }
   }
 

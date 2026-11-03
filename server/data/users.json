@@ -8,7 +8,9 @@
     "addresses": [],
     "wishlist": [],
     "cart": [],
-    "businessName": "JOSH PETS HUB"
+    "businessName": "JOSH PETS HUB",
+    "mobile": "9876543210",
+    "phone": "9876543210"
   },
   {
     "_id": "60d5ec49ad70591244000001",
@@ -30,7 +32,9 @@
     ],
     "wishlist": [],
     "cart": [],
-    "businessName": "Admin Hub"
+    "businessName": "Admin Hub",
+    "mobile": "9876543210",
+    "phone": "9876543210"
   },
   {
     "_id": "2d3769a2-22b0-4cd0-b489-3d5f8de98fcb",
@@ -62,7 +66,8 @@
     "password_plain": "Pass@1234",
     "serviceCategory": "",
     "businessName": "",
-    "verificationStatus": "Verified"
+    "verificationStatus": "Verified",
+    "phone": "1"
   },
   {
     "_id": "60d5ec49ad70591244000003",
@@ -83,7 +88,9 @@
       }
     ],
     "wishlist": [],
-    "cart": []
+    "cart": [],
+    "mobile": "9876543210",
+    "phone": "9876543210"
   },
   {
     "_id": "60d5ec49ad70591244000004",
@@ -93,7 +100,9 @@
     "role": "CUSTOMER",
     "addresses": [],
     "wishlist": [],
-    "cart": []
+    "cart": [],
+    "mobile": "9876543210",
+    "phone": "9876543210"
   },
   {
     "_id": "60d5ec49ad70591244000005",
@@ -103,7 +112,9 @@
     "role": "CUSTOMER",
     "addresses": [],
     "wishlist": [],
-    "cart": []
+    "cart": [],
+    "mobile": "9876543210",
+    "phone": "9876543210"
   },
   {
     "_id": "60d5ec49ad70591244000006",
@@ -113,7 +124,9 @@
     "role": "SERVICE_PROVIDER",
     "addresses": [],
     "wishlist": [],
-    "cart": []
+    "cart": [],
+    "mobile": "9845012345",
+    "phone": "9845012345"
   },
   {
     "_id": "prov-vet-01",
@@ -143,9 +156,9 @@
     "address": "Koramangala, Bangalore, Karnataka",
     "streetAddress": "Koramangala, Bangalore, Karnataka",
     "experienceYears": 12,
-    "experience": 1,
-    "avatar": null,
-    "profilePicture": null,
+    "experience": 12,
+    "avatar": "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/4gHYSUNDX1BST0ZJTEUAAQEAAAHIAAAAAAQwAABtbnRyUkdCIFhZWiAH4AABAAEAAAAAAABhY3NwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAA9tYAAQAAAADTLQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAlkZXNjAAAA8AAAACRyWFlaAAABFAAAABRnWFlaAAABKAAAABRiWFlaAAABPAAAABR3dHB0AAABUAAAABRyVFJDAAABZAAAAChnVFJDAAABZAAAAChiVFJDAAABZAAAAChjcHJ0AAABjAAAADxtbHVjAAAAAAAAAAEAAAAMZW5VUwAAAAgAAAAcAHMAUgBHAEJYWVogAAAAAAAAb6IAADj1AAADkFhZWiAAAAAAAABimQAAt4UAABjaWFlaIAAAAAAAACSgAAAPhAAAts9YWVogAAAAAAAA9tYAAQAAAADTLXBhcmEAAAAAAAQAAAACZmYAAPKnAAANWQAAE9AAAApbAAAAAAAAAABtbHVjAAAAAAAAAAEAAAAMZW5VUwAAACAAAAAcAEcAbwBvAGcAbABlACAASQBuAGMALgAgADIAMAAxADb/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAj/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFAEBAAAAAAAAAAAAAAAAAAAAAP/EABQRAQAAAAAAAAAAAAAAAAAAAAD/2gAMAwEAAhEDEQA/AJUAB//Z",
+    "profilePicture": "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/4gHYSUNDX1BST0ZJTEUAAQEAAAHIAAAAAAQwAABtbnRyUkdCIFhZWiAH4AABAAEAAAAAAABhY3NwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAA9tYAAQAAAADTLQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAlkZXNjAAAA8AAAACRyWFlaAAABFAAAABRnWFlaAAABKAAAABRiWFlaAAABPAAAABR3dHB0AAABUAAAABRyVFJDAAABZAAAAChnVFJDAAABZAAAAChiVFJDAAABZAAAAChjcHJ0AAABjAAAADxtbHVjAAAAAAAAAAEAAAAMZW5VUwAAAAgAAAAcAHMAUgBHAEJYWVogAAAAAAAAb6IAADj1AAADkFhZWiAAAAAAAABimQAAt4UAABjaWFlaIAAAAAAAACSgAAAPhAAAts9YWVogAAAAAAAA9tYAAQAAAADTLXBhcmEAAAAAAAQAAAACZmYAAPKnAAANWQAAE9AAAApbAAAAAAAAAABtbHVjAAAAAAAAAAEAAAAMZW5VUwAAACAAAAAcAEcAbwBvAGcAbABlACAASQBuAGMALgAgADIAMAAxADb/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAj/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFAEBAAAAAAAAAAAAAAAAAAAAAP/EABQRAQAAAAAAAAAAAAAAAAAAAAD/2gAMAwEAAhEDEQA/AJUAB//Z",
     "degrees": "BVSc & AH, MVSc (Surgery)",
     "vciRegistration": "VCI/KA/2012/0491",
     "certifications": null,
@@ -156,11 +169,11 @@
     "trainingSpecialization": null,
     "vehicleTypes": null,
     "emergencyHelpline": null,
-    "completedAt": "2026-10-28T14:47:26.601Z",
+    "completedAt": "2026-11-02T05:48:28.032Z",
     "isProfileComplete": true,
     "requiresSubscription": true,
     "profileCompleted": true,
-    "profileCompletedAt": "2026-10-28T14:47:26.603Z",
+    "profileCompletedAt": "2026-11-02T05:48:28.032Z",
     "profileData": {
       "businessName": "Dr. Ramesh Kumar Pet Clinic",
       "name": "Dr. Ramesh Kumar",
@@ -177,12 +190,12 @@
       "govtProofType": "Veterinary Council of India (VCI) Registration",
       "govtProofNumber": "VCI/KA/2012/0491",
       "govtProofDoc": null,
-      "experienceYears": 1,
-      "experience": 1,
-      "bio": "Specialized veterinary medicine and surgical care clinic.",
-      "avatar": null,
-      "profilePicture": null,
-      "degrees": null,
+      "experienceYears": 12,
+      "experience": 12,
+      "bio": "Specialized veterinary medicine and surgical care clinic with 12+ years of surgical experience.",
+      "avatar": "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/4gHYSUNDX1BST0ZJTEUAAQEAAAHIAAAAAAQwAABtbnRyUkdCIFhZWiAH4AABAAEAAAAAAABhY3NwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAA9tYAAQAAAADTLQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAlkZXNjAAAA8AAAACRyWFlaAAABFAAAABRnWFlaAAABKAAAABRiWFlaAAABPAAAABR3dHB0AAABUAAAABRyVFJDAAABZAAAAChnVFJDAAABZAAAAChiVFJDAAABZAAAAChjcHJ0AAABjAAAADxtbHVjAAAAAAAAAAEAAAAMZW5VUwAAAAgAAAAcAHMAUgBHAEJYWVogAAAAAAAAb6IAADj1AAADkFhZWiAAAAAAAABimQAAt4UAABjaWFlaIAAAAAAAACSgAAAPhAAAts9YWVogAAAAAAAA9tYAAQAAAADTLXBhcmEAAAAAAAQAAAACZmYAAPKnAAANWQAAE9AAAApbAAAAAAAAAABtbHVjAAAAAAAAAAEAAAAMZW5VUwAAACAAAAAcAEcAbwBvAGcAbABlACAASQBuAGMALgAgADIAMAAxADb/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAj/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFAEBAAAAAAAAAAAAAAAAAAAAAP/EABQRAQAAAAAAAAAAAAAAAAAAAAD/2gAMAwEAAhEDEQA/AJUAB//Z",
+      "profilePicture": "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/4gHYSUNDX1BST0ZJTEUAAQEAAAHIAAAAAAQwAABtbnRyUkdCIFhZWiAH4AABAAEAAAAAAABhY3NwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAA9tYAAQAAAADTLQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAlkZXNjAAAA8AAAACRyWFlaAAABFAAAABRnWFlaAAABKAAAABRiWFlaAAABPAAAABR3dHB0AAABUAAAABRyVFJDAAABZAAAAChnVFJDAAABZAAAAChiVFJDAAABZAAAAChjcHJ0AAABjAAAADxtbHVjAAAAAAAAAAEAAAAMZW5VUwAAAAgAAAAcAHMAUgBHAEJYWVogAAAAAAAAb6IAADj1AAADkFhZWiAAAAAAAABimQAAt4UAABjaWFlaIAAAAAAAACSgAAAPhAAAts9YWVogAAAAAAAA9tYAAQAAAADTLXBhcmEAAAAAAAQAAAACZmYAAPKnAAANWQAAE9AAAApbAAAAAAAAAABtbHVjAAAAAAAAAAEAAAAMZW5VUwAAACAAAAAcAEcAbwBvAGcAbABlACAASQBuAGMALgAgADIAMAAxADb/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAj/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFAEBAAAAAAAAAAAAAAAAAAAAAP/EABQRAQAAAAAAAAAAAAAAAAAAAAD/2gAMAwEAAhEDEQA/AJUAB//Z",
+      "degrees": "BVSc & AH, MVSc (Surgery)",
       "vciRegistration": "VCI/KA/2012/0491",
       "certifications": null,
       "facilities": [],
@@ -193,7 +206,7 @@
       "trainingSpecialization": null,
       "vehicleTypes": null,
       "emergencyHelpline": null,
-      "completedAt": "2026-10-28T14:47:26.601Z"
+      "completedAt": "2026-11-02T05:48:28.032Z"
     },
     "subscription": {
       "status": "ACTIVE",
@@ -243,7 +256,7 @@
     "govtProofNumber": "AWBI/NGO/2019/3321",
     "govtProofDoc": null,
     "verificationStatus": "Verified",
-    "shelterCapacity": 85,
+    "shelterCapacity": 120,
     "bio": "Registered non-profit animal rescue shelter dedicated to rescuing, rehabilitating, and rehoming abandoned pets across South India.",
     "password": "$2b$10$8PW2sWXDdhAF2MbBSXOpf.zbRbHHdnYOI6jbxj7WKVUTlh6z4RU.y",
     "id": "prov-adopt-05",
@@ -255,7 +268,7 @@
     "city": "Bengaluru Urban (Bangalore)",
     "address": "Sarjapur Road, Bangalore, Karnataka",
     "experienceYears": 9,
-    "avatar": null,
+    "avatar": "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/4gHYSUNDX1BST0ZJTEUAAQEAAAHIAAAAAAQwAABtbnRyUkdCIFhZWiAH4AABAAEAAAAAAABhY3NwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAA9tYAAQAAAADTLQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAlkZXNjAAAA8AAAACRyWFlaAAABFAAAABRnWFlaAAABKAAAABRiWFlaAAABPAAAABR3dHB0AAABUAAAABRyVFJDAAABZAAAAChnVFJDAAABZAAAAChiVFJDAAABZAAAAChjcHJ0AAABjAAAADxtbHVjAAAAAAAAAAEAAAAMZW5VUwAAAAgAAAAcAHMAUgBHAEJYWVogAAAAAAAAb6IAADj1AAADkFhZWiAAAAAAAABimQAAt4UAABjaWFlaIAAAAAAAACSgAAAPhAAAts9YWVogAAAAAAAA9tYAAQAAAADTLXBhcmEAAAAAAAQAAAACZmYAAPKnAAANWQAAE9AAAApbAAAAAAAAAABtbHVjAAAAAAAAAAEAAAAMZW5VUwAAACAAAAAcAEcAbwBvAGcAbABlACAASQBuAGMALgAgADIAMAAxADb/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAj/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFAEBAAAAAAAAAAAAAAAAAAAAAP/EABQRAQAAAAAAAAAAAAAAAAAAAAD/2gAMAwEAAhEDEQA/AJUAB//Z",
     "degrees": null,
     "vciRegistration": null,
     "certifications": null,
@@ -263,35 +276,44 @@
     "capacity": 120,
     "breedingLicense": null,
     "kennelName": null,
-    "completedAt": "2026-10-27T15:01:27.528Z",
+    "completedAt": "2026-11-02T05:48:05.600Z",
     "isProfileComplete": true,
     "requiresSubscription": true,
     "profileCompleted": true,
-    "profileCompletedAt": "2026-10-27T15:01:27.528Z",
+    "profileCompletedAt": "2026-11-02T05:48:05.600Z",
     "profileData": {
       "businessName": "Hope Animal Welfare Foundation & Sanctuary",
       "name": "Hope Animal Sanctuary & Adoption Center",
       "email": "adopt@joshpetshub.com",
       "mobile": "9845577661",
+      "phone": "9845577661",
       "whatsapp": "9845577661",
-      "location": "Whitefield, Bangalore",
-      "state": "Bangalore",
-      "city": "Whitefield",
-      "address": "Whitefield, Bangalore, Karnataka",
-      "govtProofType": "AWBI Pet Shop Registration Certificate",
-      "govtProofNumber": "hgfuhyutytyt",
+      "whatsappNumber": "9845577661",
+      "location": "Bengaluru Urban (Bangalore), Karnataka",
+      "state": "Karnataka",
+      "city": "Bengaluru Urban (Bangalore)",
+      "address": "Sarjapur Road, Bangalore, Karnataka",
+      "streetAddress": "Sarjapur Road, Bangalore, Karnataka",
+      "govtProofType": "Section 8 / Trust NGO Animal Welfare Certificate",
+      "govtProofNumber": "AWBI/NGO/2019/3321",
       "govtProofDoc": null,
-      "experienceYears": 3,
-      "bio": "ytgfhgfhghf",
-      "avatar": null,
+      "experienceYears": 9,
+      "experience": 9,
+      "bio": "Registered non-profit animal rescue shelter dedicated to rescuing, rehabilitating, and rehoming abandoned pets across South India.",
+      "avatar": "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/4gHYSUNDX1BST0ZJTEUAAQEAAAHIAAAAAAQwAABtbnRyUkdCIFhZWiAH4AABAAEAAAAAAABhY3NwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAA9tYAAQAAAADTLQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAlkZXNjAAAA8AAAACRyWFlaAAABFAAAABRnWFlaAAABKAAAABRiWFlaAAABPAAAABR3dHB0AAABUAAAABRyVFJDAAABZAAAAChnVFJDAAABZAAAAChiVFJDAAABZAAAAChjcHJ0AAABjAAAADxtbHVjAAAAAAAAAAEAAAAMZW5VUwAAAAgAAAAcAHMAUgBHAEJYWVogAAAAAAAAb6IAADj1AAADkFhZWiAAAAAAAABimQAAt4UAABjaWFlaIAAAAAAAACSgAAAPhAAAts9YWVogAAAAAAAA9tYAAQAAAADTLXBhcmEAAAAAAAQAAAACZmYAAPKnAAANWQAAE9AAAApbAAAAAAAAAABtbHVjAAAAAAAAAAEAAAAMZW5VUwAAACAAAAAcAEcAbwBvAGcAbABlACAASQBuAGMALgAgADIAMAAxADb/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAj/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFAEBAAAAAAAAAAAAAAAAAAAAAP/EABQRAQAAAAAAAAAAAAAAAAAAAAD/2gAMAwEAAhEDEQA/AJUAB//Z",
+      "profilePicture": "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/4gHYSUNDX1BST0ZJTEUAAQEAAAHIAAAAAAQwAABtbnRyUkdCIFhZWiAH4AABAAEAAAAAAABhY3NwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAA9tYAAQAAAADTLQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAlkZXNjAAAA8AAAACRyWFlaAAABFAAAABRnWFlaAAABKAAAABRiWFlaAAABPAAAABR3dHB0AAABUAAAABRyVFJDAAABZAAAAChnVFJDAAABZAAAAChiVFJDAAABZAAAAChjcHJ0AAABjAAAADxtbHVjAAAAAAAAAAEAAAAMZW5VUwAAAAgAAAAcAHMAUgBHAEJYWVogAAAAAAAAb6IAADj1AAADkFhZWiAAAAAAAABimQAAt4UAABjaWFlaIAAAAAAAACSgAAAPhAAAts9YWVogAAAAAAAA9tYAAQAAAADTLXBhcmEAAAAAAAQAAAACZmYAAPKnAAANWQAAE9AAAApbAAAAAAAAAABtbHVjAAAAAAAAAAEAAAAMZW5VUwAAACAAAAAcAEcAbwBvAGcAbABlACAASQBuAGMALgAgADIAMAAxADb/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAj/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFAEBAAAAAAAAAAAAAAAAAAAAAP/EABQRAQAAAAAAAAAAAAAAAAAAAAD/2gAMAwEAAhEDEQA/AJUAB//Z",
       "degrees": null,
       "vciRegistration": null,
       "certifications": null,
       "facilities": [],
-      "capacity": null,
+      "capacity": 120,
+      "shelterCapacity": 120,
       "breedingLicense": null,
       "kennelName": null,
-      "completedAt": "2026-10-27T15:01:27.528Z"
+      "trainingSpecialization": null,
+      "vehicleTypes": null,
+      "emergencyHelpline": null,
+      "completedAt": "2026-11-02T05:48:05.600Z"
     },
     "subscription": {
       "status": "ACTIVE",
@@ -326,15 +348,23 @@
         "paymentMethod": "Online Gateway",
         "paidAt": "2026-10-27T15:01:30.342Z"
       }
-    ]
+    ],
+    "phone": "9845577661",
+    "profilePicture": "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/4gHYSUNDX1BST0ZJTEUAAQEAAAHIAAAAAAQwAABtbnRyUkdCIFhZWiAH4AABAAEAAAAAAABhY3NwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAA9tYAAQAAAADTLQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAlkZXNjAAAA8AAAACRyWFlaAAABFAAAABRnWFlaAAABKAAAABRiWFlaAAABPAAAABR3dHB0AAABUAAAABRyVFJDAAABZAAAAChnVFJDAAABZAAAAChiVFJDAAABZAAAAChjcHJ0AAABjAAAADxtbHVjAAAAAAAAAAEAAAAMZW5VUwAAAAgAAAAcAHMAUgBHAEJYWVogAAAAAAAAb6IAADj1AAADkFhZWiAAAAAAAABimQAAt4UAABjaWFlaIAAAAAAAACSgAAAPhAAAts9YWVogAAAAAAAA9tYAAQAAAADTLXBhcmEAAAAAAAQAAAACZmYAAPKnAAANWQAAE9AAAApbAAAAAAAAAABtbHVjAAAAAAAAAAEAAAAMZW5VUwAAACAAAAAcAEcAbwBvAGcAbABlACAASQBuAGMALgAgADIAMAAxADb/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAj/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFAEBAAAAAAAAAAAAAAAAAAAAAP/EABQRAQAAAAAAAAAAAAAAAAAAAAD/2gAMAwEAAhEDEQA/AJUAB//Z",
+    "whatsappNumber": "9845577661",
+    "streetAddress": "Sarjapur Road, Bangalore, Karnataka",
+    "experience": 9,
+    "trainingSpecialization": null,
+    "vehicleTypes": null,
+    "emergencyHelpline": null
   },
   {
     "_id": "6aa12ddc8cb516b3b281a3df",
-    "name": "Priya Sharma",
+    "name": "Priya Sharma Super Parent",
     "businessName": "Priya Sharma",
     "email": "priya@joshpetshub.com",
     "role": "CUSTOMER",
-    "mobile": "9876543210",
+    "mobile": "9845099881",
     "location": "Bangalore, Karnataka",
     "serviceCategory": "",
     "govtProofType": "AWBI / NGO Registration Certificate",
@@ -345,7 +375,34 @@
     "bio": "",
     "password": "$2b$10$rfCIMxtNEySbI2N46Jqd8OkkjMBHEC.Uc.WBY/Yn2aBOQLKbeyZNS",
     "cart": [],
-    "wishlist": []
+    "wishlist": [],
+    "avatar": "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150",
+    "addresses": [
+      {
+        "_id": "97e1a593-bcbb-44f1-a673-ea167101d7e2",
+        "name": "Priya Residence",
+        "phone": "9876543210",
+        "streetAddress": "123 Palm Grove Road, Indiranagar",
+        "city": "Bangalore",
+        "state": "Karnataka",
+        "postalCode": "560038",
+        "country": "India",
+        "isDefault": false
+      },
+      {
+        "_id": "607f9cdb-f69b-4a00-a007-cee9afd02b8e",
+        "name": "Priya Home Bangalore",
+        "phone": "9845099881",
+        "streetAddress": "Flat 402, Green Meadows",
+        "city": "Bangalore",
+        "state": "Karnataka",
+        "postalCode": "560034",
+        "country": "India",
+        "isDefault": true
+      }
+    ],
+    "profilePicture": "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150",
+    "phone": "9845099881"
   },
   {
     "_id": "prov-groom-02",
@@ -360,7 +417,7 @@
     "govtProofNumber": "BBMP/TRADE/2023/5549",
     "govtProofDoc": null,
     "verificationStatus": "Verified",
-    "shelterCapacity": 50,
+    "shelterCapacity": null,
     "bio": "Luxury organic grooming spa offering certified breed styling, medicated baths, and soothing coat treatments.",
     "password": "$2b$10$8PW2sWXDdhAF2MbBSXOpf.zbRbHHdnYOI6jbxj7WKVUTlh6z4RU.y",
     "id": "prov-groom-02",
@@ -371,44 +428,53 @@
     "state": "Karnataka",
     "city": "Bengaluru Urban (Bangalore)",
     "address": "Indiranagar, Bangalore, Karnataka",
-    "experienceYears": 6,
-    "avatar": null,
+    "experienceYears": 1,
+    "avatar": "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/4gHYSUNDX1BST0ZJTEUAAQEAAAHIAAAAAAQwAABtbnRyUkdCIFhZWiAH4AABAAEAAAAAAABhY3NwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAA9tYAAQAAAADTLQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAlkZXNjAAAA8AAAACRyWFlaAAABFAAAABRnWFlaAAABKAAAABRiWFlaAAABPAAAABR3dHB0AAABUAAAABRyVFJDAAABZAAAAChnVFJDAAABZAAAAChiVFJDAAABZAAAAChjcHJ0AAABjAAAADxtbHVjAAAAAAAAAAEAAAAMZW5VUwAAAAgAAAAcAHMAUgBHAEJYWVogAAAAAAAAb6IAADj1AAADkFhZWiAAAAAAAABimQAAt4UAABjaWFlaIAAAAAAAACSgAAAPhAAAts9YWVogAAAAAAAA9tYAAQAAAADTLXBhcmEAAAAAAAQAAAACZmYAAPKnAAANWQAAE9AAAApbAAAAAAAAAABtbHVjAAAAAAAAAAEAAAAMZW5VUwAAACAAAAAcAEcAbwBvAGcAbABlACAASQBuAGMALgAgADIAMAAxADb/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAj/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFAEBAAAAAAAAAAAAAAAAAAAAAP/EABQRAQAAAAAAAAAAAAAAAAAAAAD/2gAMAwEAAhEDEQA/AJUAB//Z",
     "degrees": null,
     "vciRegistration": null,
-    "certifications": "sxzx",
+    "certifications": null,
     "facilities": [],
     "capacity": null,
     "breedingLicense": null,
     "kennelName": null,
-    "completedAt": "2026-10-28T11:59:43.476Z",
+    "completedAt": "2026-11-02T05:48:50.302Z",
     "isProfileComplete": true,
     "requiresSubscription": true,
     "profileCompleted": true,
-    "profileCompletedAt": "2026-10-28T11:59:43.477Z",
+    "profileCompletedAt": "2026-11-02T05:48:50.302Z",
     "profileData": {
       "businessName": "Velvet Fur Grooming Studio",
       "name": "Velvet Fur Grooming Studio",
       "email": "velvetfur@joshpetshub.com",
       "mobile": "9845199882",
+      "phone": "9845199882",
       "whatsapp": "9845199882",
-      "location": "Indiranagar, Bangalore",
-      "state": "Bangalore",
-      "city": "Indiranagar",
+      "whatsappNumber": "9845199882",
+      "location": "Bengaluru Urban (Bangalore), Karnataka",
+      "state": "Karnataka",
+      "city": "Bengaluru Urban (Bangalore)",
       "address": "Indiranagar, Bangalore, Karnataka",
-      "govtProofType": "AWBI Pet Shop Registration Certificate",
-      "govtProofNumber": "sasa",
+      "streetAddress": "Indiranagar, Bangalore, Karnataka",
+      "govtProofType": "Municipal Trade License",
+      "govtProofNumber": "BBMP/TRADE/2023/5549",
       "govtProofDoc": null,
-      "experienceYears": 3,
-      "bio": "Zxxzzzxzxaswswsss",
-      "avatar": null,
+      "experienceYears": 1,
+      "experience": 1,
+      "bio": "Luxury organic grooming spa offering certified breed styling, medicated baths, and soothing coat treatments.",
+      "avatar": "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/4gHYSUNDX1BST0ZJTEUAAQEAAAHIAAAAAAQwAABtbnRyUkdCIFhZWiAH4AABAAEAAAAAAABhY3NwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAA9tYAAQAAAADTLQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAlkZXNjAAAA8AAAACRyWFlaAAABFAAAABRnWFlaAAABKAAAABRiWFlaAAABPAAAABR3dHB0AAABUAAAABRyVFJDAAABZAAAAChnVFJDAAABZAAAAChiVFJDAAABZAAAAChjcHJ0AAABjAAAADxtbHVjAAAAAAAAAAEAAAAMZW5VUwAAAAgAAAAcAHMAUgBHAEJYWVogAAAAAAAAb6IAADj1AAADkFhZWiAAAAAAAABimQAAt4UAABjaWFlaIAAAAAAAACSgAAAPhAAAts9YWVogAAAAAAAA9tYAAQAAAADTLXBhcmEAAAAAAAQAAAACZmYAAPKnAAANWQAAE9AAAApbAAAAAAAAAABtbHVjAAAAAAAAAAEAAAAMZW5VUwAAACAAAAAcAEcAbwBvAGcAbABlACAASQBuAGMALgAgADIAMAAxADb/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAj/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFAEBAAAAAAAAAAAAAAAAAAAAAP/EABQRAQAAAAAAAAAAAAAAAAAAAAD/2gAMAwEAAhEDEQA/AJUAB//Z",
+      "profilePicture": "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/4gHYSUNDX1BST0ZJTEUAAQEAAAHIAAAAAAQwAABtbnRyUkdCIFhZWiAH4AABAAEAAAAAAABhY3NwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAA9tYAAQAAAADTLQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAlkZXNjAAAA8AAAACRyWFlaAAABFAAAABRnWFlaAAABKAAAABRiWFlaAAABPAAAABR3dHB0AAABUAAAABRyVFJDAAABZAAAAChnVFJDAAABZAAAAChiVFJDAAABZAAAAChjcHJ0AAABjAAAADxtbHVjAAAAAAAAAAEAAAAMZW5VUwAAAAgAAAAcAHMAUgBHAEJYWVogAAAAAAAAb6IAADj1AAADkFhZWiAAAAAAAABimQAAt4UAABjaWFlaIAAAAAAAACSgAAAPhAAAts9YWVogAAAAAAAA9tYAAQAAAADTLXBhcmEAAAAAAAQAAAACZmYAAPKnAAANWQAAE9AAAApbAAAAAAAAAABtbHVjAAAAAAAAAAEAAAAMZW5VUwAAACAAAAAcAEcAbwBvAGcAbABlACAASQBuAGMALgAgADIAMAAxADb/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAj/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFAEBAAAAAAAAAAAAAAAAAAAAAP/EABQRAQAAAAAAAAAAAAAAAAAAAAD/2gAMAwEAAhEDEQA/AJUAB//Z",
       "degrees": null,
       "vciRegistration": null,
-      "certifications": "sxzx",
+      "certifications": null,
       "facilities": [],
       "capacity": null,
+      "shelterCapacity": null,
       "breedingLicense": null,
       "kennelName": null,
-      "completedAt": "2026-10-28T11:59:43.476Z"
+      "trainingSpecialization": null,
+      "vehicleTypes": null,
+      "emergencyHelpline": null,
+      "completedAt": "2026-11-02T05:48:50.302Z"
     },
     "subscription": {
       "status": "ACTIVE",
@@ -443,7 +509,56 @@
         "paymentMethod": "Online Gateway",
         "paidAt": "2026-10-28T11:59:53.243Z"
       }
-    ]
+    ],
+    "profilePicture": "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/4gHYSUNDX1BST0ZJTEUAAQEAAAHIAAAAAAQwAABtbnRyUkdCIFhZWiAH4AABAAEAAAAAAABhY3NwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAA9tYAAQAAAADTLQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAlkZXNjAAAA8AAAACRyWFlaAAABFAAAABRnWFlaAAABKAAAABRiWFlaAAABPAAAABR3dHB0AAABUAAAABRyVFJDAAABZAAAAChnVFJDAAABZAAAAChiVFJDAAABZAAAAChjcHJ0AAABjAAAADxtbHVjAAAAAAAAAAEAAAAMZW5VUwAAAAgAAAAcAHMAUgBHAEJYWVogAAAAAAAAb6IAADj1AAADkFhZWiAAAAAAAABimQAAt4UAABjaWFlaIAAAAAAAACSgAAAPhAAAts9YWVogAAAAAAAA9tYAAQAAAADTLXBhcmEAAAAAAAQAAAACZmYAAPKnAAANWQAAE9AAAApbAAAAAAAAAABtbHVjAAAAAAAAAAEAAAAMZW5VUwAAACAAAAAcAEcAbwBvAGcAbABlACAASQBuAGMALgAgADIAMAAxADb/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAj/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFAEBAAAAAAAAAAAAAAAAAAAAAP/EABQRAQAAAAAAAAAAAAAAAAAAAAD/2gAMAwEAAhEDEQA/AJUAB//Z",
+    "phone": "9845199882",
+    "whatsappNumber": "9845199882",
+    "streetAddress": "Indiranagar, Bangalore, Karnataka",
+    "experience": 1,
+    "trainingSpecialization": null,
+    "vehicleTypes": null,
+    "emergencyHelpline": null,
+    "groomingSchedule": {
+      "acceptingWalkIns": true,
+      "days": {
+        "Monday": {
+          "isOpen": true,
+          "start": "10:00",
+          "end": "20:00"
+        },
+        "Tuesday": {
+          "isOpen": true,
+          "start": "08:30",
+          "end": "19:30"
+        },
+        "Wednesday": {
+          "isOpen": true,
+          "start": "10:00",
+          "end": "20:00"
+        },
+        "Thursday": {
+          "isOpen": true,
+          "start": "10:00",
+          "end": "20:00"
+        },
+        "Friday": {
+          "isOpen": true,
+          "start": "10:00",
+          "end": "20:00"
+        },
+        "Saturday": {
+          "isOpen": true,
+          "start": "09:00",
+          "end": "21:00"
+        },
+        "Sunday": {
+          "isOpen": true,
+          "start": "11:00",
+          "end": "17:00"
+        }
+      }
+    },
+    "schedule": null
   },
   {
     "_id": "6aad0797f7d5a7253ba9b848",
@@ -465,25 +580,26 @@
     "wishlist": [],
     "cart": [],
     "prescriptionHistory": [],
-    "createdAt": "2026-09-18T09:42:47.090Z"
+    "createdAt": "2026-09-18T09:42:47.090Z",
+    "phone": "9876543210"
   },
   {
     "_id": "5c03a90d-6c0a-41e6-86a2-bef6e9b5bb22",
     "id": "5c03a90d-6c0a-41e6-86a2-bef6e9b5bb22",
     "name": "Soorya S",
     "email": "sooryas650@gmail.com",
-    "password": "$2b$10$sEEeAHPYRhVmMzcBOPqPMO.wLWQqi/Ackd3Bv4TYokhtsnrQh/fvS",
+    "password": "$2b$10$HcymGmbhkmTkZesc6EFv9.t8jCbts3Vxx6/kWJlH677rs6xRTRdCq",
     "mobile": "9876543210",
     "role": "CUSTOMER",
     "location": "Chennai, Tamil Nadu",
-    "serviceCategory": "Pet Walking & Fitness",
-    "service_category": "Pet Walking & Fitness",
+    "serviceCategory": "Pet Adoption",
+    "service_category": "Pet Adoption",
     "businessName": "Soorya S",
     "business_name": "sam pets",
-    "govtProofType": "Professional Pet Handler / Walker Cert",
-    "govt_proof_type": "Professional Pet Handler / Walker Cert",
-    "govtProofNumber": "rarara",
-    "govt_proof_number": "rarara",
+    "govtProofType": "AWBI / Section 8 NGO Reg",
+    "govt_proof_type": "AWBI / Section 8 NGO Reg",
+    "govtProofNumber": "3dweds3adsffdaa",
+    "govt_proof_number": "3dweds3adsffdaa",
     "govtProofDoc": "uploaded_doc_ref",
     "govt_proof_doc": "uploaded_doc_ref",
     "verificationStatus": "Verified",
@@ -493,8 +609,40 @@
     "bio": null,
     "isProfileComplete": false,
     "profileCompleted": false,
-    "subscription": null,
-    "subscriptionHistory": [],
+    "subscription": {
+      "status": "ACTIVE",
+      "planId": "quarterly",
+      "planName": "Quarterly Plan",
+      "basePrice": 499,
+      "gstRate": 0.18,
+      "gstAmount": 89.82,
+      "totalAmount": 588.82,
+      "validityMonths": 3,
+      "startDate": "2026-11-02T06:26:48.977Z",
+      "expiryDate": "2027-02-02T06:26:48.977Z",
+      "paymentId": "PAY_SUB_1793600808963_1812",
+      "orderId": "sub_ord_1793600808958_16cfe246",
+      "paymentMethod": "UPI (QR Code Scan)",
+      "paidAt": "2026-11-02T06:26:48.977Z"
+    },
+    "subscriptionHistory": [
+      {
+        "status": "ACTIVE",
+        "planId": "quarterly",
+        "planName": "Quarterly Plan",
+        "basePrice": 499,
+        "gstRate": 0.18,
+        "gstAmount": 89.82,
+        "totalAmount": 588.82,
+        "validityMonths": 3,
+        "startDate": "2026-11-02T06:26:48.977Z",
+        "expiryDate": "2027-02-02T06:26:48.977Z",
+        "paymentId": "PAY_SUB_1793600808963_1812",
+        "orderId": "sub_ord_1793600808958_16cfe246",
+        "paymentMethod": "UPI (QR Code Scan)",
+        "paidAt": "2026-11-02T06:26:48.977Z"
+      }
+    ],
     "addresses": [],
     "wishlist": [],
     "cart": [],
@@ -526,7 +674,7 @@
     "govtProofDoc": null,
     "experienceYears": 7,
     "bio": "CCTV-monitored climate-controlled boarding suites, daily outdoor exercise, and 24/7 dedicated veterinary supervision.",
-    "avatar": null,
+    "avatar": "data:image/png;base64,new_photo_test_1793444347583",
     "degrees": null,
     "vciRegistration": null,
     "certifications": null,
@@ -597,7 +745,9 @@
         "paymentMethod": "Online Gateway",
         "paidAt": "2026-10-28T11:53:59.769Z"
       }
-    ]
+    ],
+    "phone": "9731299881",
+    "profilePicture": "data:image/png;base64,new_photo_test_1793444347583"
   },
   {
     "_id": "prov-seller-04",
@@ -624,7 +774,7 @@
     "govtProofDoc": null,
     "experienceYears": 8,
     "bio": "Ethical kennel club registered breeder providing certified vaccinated, dewormed puppies with full lineage documentation.",
-    "avatar": null,
+    "avatar": "data:image/png;base64,new_photo_test_1793444348181",
     "degrees": null,
     "vciRegistration": null,
     "certifications": null,
@@ -711,7 +861,9 @@
         "paymentMethod": "Online Gateway",
         "paidAt": "2026-10-27T12:30:40.067Z"
       }
-    ]
+    ],
+    "phone": "9945122334",
+    "profilePicture": "data:image/png;base64,new_photo_test_1793444348181"
   },
   {
     "_id": "prov-walk-06",
@@ -742,8 +894,8 @@
     "experienceYears": 6,
     "experience": 6,
     "bio": "Premier canine walking, park excursions, and daily exercise services in South Bangalore.",
-    "avatar": null,
-    "profilePicture": null,
+    "avatar": "data:image/png;base64,new_photo_test_1793444349482",
+    "profilePicture": "data:image/png;base64,new_photo_test_1793444349482",
     "degrees": null,
     "vciRegistration": null,
     "certifications": null,
@@ -854,7 +1006,44 @@
     "vehicleTypes": "AC Van, Climate Ambulance",
     "experienceYears": 4,
     "isProfileComplete": true,
-    "profileCompleted": true
+    "profileCompleted": true,
+    "subscription": {
+      "status": "ACTIVE",
+      "planId": "monthly",
+      "planName": "Monthly Plan",
+      "basePrice": 199,
+      "gstRate": 0.18,
+      "gstAmount": 35.82,
+      "totalAmount": 234.82,
+      "validityMonths": 1,
+      "startDate": "2026-10-31T06:07:18.345Z",
+      "expiryDate": "2026-11-30T06:07:18.345Z",
+      "paymentId": "PAY_SUB_1793426838338_8348",
+      "orderId": "sub_ord_1793426838334_ccb96ee8",
+      "paymentMethod": "UPI (QR Code Scan)",
+      "paidAt": "2026-10-31T06:07:18.345Z"
+    },
+    "subscriptionHistory": [
+      {
+        "status": "ACTIVE",
+        "planId": "monthly",
+        "planName": "Monthly Plan",
+        "basePrice": 199,
+        "gstRate": 0.18,
+        "gstAmount": 35.82,
+        "totalAmount": 234.82,
+        "validityMonths": 1,
+        "startDate": "2026-10-31T06:07:18.345Z",
+        "expiryDate": "2026-11-30T06:07:18.345Z",
+        "paymentId": "PAY_SUB_1793426838338_8348",
+        "orderId": "sub_ord_1793426838334_ccb96ee8",
+        "paymentMethod": "UPI (QR Code Scan)",
+        "paidAt": "2026-10-31T06:07:18.345Z"
+      }
+    ],
+    "phone": "9845223344",
+    "avatar": "data:image/png;base64,new_photo_test_1793444350207",
+    "profilePicture": "data:image/png;base64,new_photo_test_1793444350207"
   },
   {
     "_id": "prov-train-08",
@@ -881,13 +1070,16 @@
     "trainingSpecialization": "Obedience, Behavioral, Guard Dog",
     "experienceYears": 7,
     "isProfileComplete": true,
-    "profileCompleted": true
+    "profileCompleted": true,
+    "phone": "9845334455",
+    "avatar": "data:image/png;base64,new_photo_test_1793444350829",
+    "profilePicture": "data:image/png;base64,new_photo_test_1793444350829"
   },
   {
     "_id": "prov-insure-09",
     "id": "prov-insure-09",
     "name": "PawProtect Insurance",
-    "businessName": "PawProtect Insurance",
+    "businessName": "PawProtect Insuranc",
     "email": "pawinsure@joshpetshub.com",
     "mobile": "9845445566",
     "password": "$2b$10$8PW2sWXDdhAF2MbBSXOpf.zbRbHHdnYOI6jbxj7WKVUTlh6z4RU.y",
@@ -908,7 +1100,96 @@
     "emergencyHelpline": "1800-PET-CARE",
     "experienceYears": 6,
     "isProfileComplete": true,
-    "profileCompleted": true
+    "profileCompleted": true,
+    "subscription": {
+      "status": "ACTIVE",
+      "planId": "monthly",
+      "planName": "Monthly Plan",
+      "basePrice": 199,
+      "gstRate": 0.18,
+      "gstAmount": 35.82,
+      "totalAmount": 234.82,
+      "validityMonths": 1,
+      "startDate": "2026-10-31T06:09:34.091Z",
+      "expiryDate": "2026-11-30T06:09:34.091Z",
+      "paymentId": "PAY_SUB_1793426974082_3338",
+      "orderId": "sub_ord_1793426974076_2eec26f4",
+      "paymentMethod": "UPI (QR Code Scan)",
+      "paidAt": "2026-10-31T06:09:34.091Z"
+    },
+    "subscriptionHistory": [
+      {
+        "status": "ACTIVE",
+        "planId": "monthly",
+        "planName": "Monthly Plan",
+        "basePrice": 199,
+        "gstRate": 0.18,
+        "gstAmount": 35.82,
+        "totalAmount": 234.82,
+        "validityMonths": 1,
+        "startDate": "2026-10-31T06:09:34.091Z",
+        "expiryDate": "2026-11-30T06:09:34.091Z",
+        "paymentId": "PAY_SUB_1793426974082_3338",
+        "orderId": "sub_ord_1793426974076_2eec26f4",
+        "paymentMethod": "UPI (QR Code Scan)",
+        "paidAt": "2026-10-31T06:09:34.091Z"
+      }
+    ],
+    "phone": "9845445566",
+    "whatsapp": "9845445566",
+    "whatsappNumber": "9845445566",
+    "streetAddress": "MG Road, Bangalore, Karnataka",
+    "govtProofDoc": null,
+    "experience": 6,
+    "avatar": "data:image/png;base64,new_photo_test_1793444351552",
+    "profilePicture": "data:image/png;base64,new_photo_test_1793444351552",
+    "degrees": null,
+    "vciRegistration": null,
+    "certifications": null,
+    "facilities": [],
+    "capacity": null,
+    "shelterCapacity": null,
+    "breedingLicense": null,
+    "kennelName": null,
+    "trainingSpecialization": null,
+    "vehicleTypes": null,
+    "completedAt": "2026-10-31T07:25:44.954Z",
+    "requiresSubscription": true,
+    "profileCompletedAt": "2026-10-31T07:25:44.955Z",
+    "profileData": {
+      "businessName": "PawProtect Insuranc",
+      "name": "PawProtect Insurance",
+      "email": "pawinsure@joshpetshub.com",
+      "mobile": "9845445566",
+      "phone": "9845445566",
+      "whatsapp": "9845445566",
+      "whatsappNumber": "9845445566",
+      "location": "Bengaluru Urban (Bangalore), Karnataka",
+      "state": "Karnataka",
+      "city": "Bengaluru Urban (Bangalore)",
+      "address": "MG Road, Bangalore, Karnataka",
+      "streetAddress": "MG Road, Bangalore, Karnataka",
+      "govtProofType": "GSTIN Registration Certificate",
+      "govtProofNumber": "29AABCP1330K1Z2",
+      "govtProofDoc": null,
+      "experienceYears": 6,
+      "experience": 6,
+      "bio": "Comprehensive veterinary medical insurance coverage, accidental trauma protection, and cashless network claims.",
+      "avatar": null,
+      "profilePicture": null,
+      "degrees": null,
+      "vciRegistration": null,
+      "certifications": null,
+      "facilities": [],
+      "capacity": null,
+      "shelterCapacity": null,
+      "breedingLicense": null,
+      "kennelName": null,
+      "trainingSpecialization": null,
+      "vehicleTypes": null,
+      "emergencyHelpline": "1800-PET-CARE",
+      "completedAt": "2026-10-31T07:25:44.954Z"
+    }
   },
   {
     "_id": "prov-breed-10",
@@ -936,7 +1217,24 @@
     "kennelName": "Elite Pedigree Champions",
     "experienceYears": 10,
     "isProfileComplete": true,
-    "profileCompleted": true
+    "profileCompleted": true,
+    "phone": "9845556677",
+    "avatar": "data:image/png;base64,new_photo_test_1793444352268",
+    "profilePicture": "data:image/png;base64,new_photo_test_1793444352268",
+    "subscription": {
+      "status": "ACTIVE",
+      "planId": "yearly",
+      "planName": "Yearly Plan",
+      "basePrice": 999,
+      "gstRate": 0.18,
+      "gstAmount": 179.82,
+      "totalAmount": 1178.82,
+      "validityMonths": 12,
+      "startDate": "2026-10-27T11:20:12.624Z",
+      "expiryDate": "2027-10-27T11:20:12.625Z",
+      "paymentId": "PAY-DEMO-YEARLY",
+      "paidAt": "2026-10-27T11:20:12.625Z"
+    }
   },
   {
     "_id": "user-pavi-01",
@@ -951,7 +1249,8 @@
     "verificationStatus": "Verified",
     "addresses": [],
     "wishlist": [],
-    "cart": []
+    "cart": [],
+    "phone": "9876543210"
   },
   {
     "_id": "bd4bfbab-9be6-4d07-8312-536dfb92a40f",
@@ -980,7 +1279,8 @@
     "addresses": [],
     "wishlist": [],
     "cart": [],
-    "prescription_history": []
+    "prescription_history": [],
+    "phone": "9789883629"
   },
   {
     "_id": "test-user-1",
@@ -1106,7 +1406,8 @@
     ],
     "requiresSubscription": true,
     "cart": [],
-    "wishlist": []
+    "wishlist": [],
+    "phone": "9876543210"
   },
   {
     "_id": "prov-prod-11",
@@ -1133,7 +1434,7 @@
     "govtProofDoc": null,
     "experienceYears": 8,
     "bio": "Authorized distributor of premium pet foods, grooming accessories, orthopedic bedding, and health supplements.",
-    "avatar": null,
+    "avatar": "data:image/png;base64,new_photo_test_1793444352797",
     "degrees": null,
     "vciRegistration": null,
     "certifications": null,
@@ -1204,7 +1505,9 @@
         "paymentMethod": "Online Gateway",
         "paidAt": "2026-10-27T11:20:12.625Z"
       }
-    ]
+    ],
+    "phone": "9845667788",
+    "profilePicture": "data:image/png;base64,new_photo_test_1793444352797"
   },
   {
     "_id": "4b3f9707-d1b8-4e9e-83d3-bb6376e32ac0",
@@ -1237,7 +1540,8 @@
     "addresses": [],
     "wishlist": [],
     "cart": [],
-    "prescription_history": []
+    "prescription_history": [],
+    "phone": "9876543210"
   },
   {
     "_id": "b2cbfc1b-8b34-43ba-8cec-2267d3ada16d",
@@ -1270,6 +1574,7 @@
     "addresses": [],
     "wishlist": [],
     "cart": [],
-    "prescription_history": []
+    "prescription_history": [],
+    "phone": "9845012345"
   }
 ]

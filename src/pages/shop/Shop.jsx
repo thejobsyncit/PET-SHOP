@@ -565,7 +565,7 @@ const Shop = () => {
             <img 
               src={img} 
               alt={`${currentMeta.title} slide ${idx + 1}`} 
-              className="w-full h-full object-cover filter brightness-75 scale-105 transform origin-center transition-transform duration-[20s] hover:scale-110"
+              className="w-full h-full object-cover object-center filter brightness-75 transition-transform duration-[20s]"
             />
             <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-black/70"></div>
             <div className="absolute inset-0 bg-gradient-to-t from-[#0F2E23] via-[#0F2E23]/20 to-transparent opacity-80"></div>
@@ -645,10 +645,10 @@ const Shop = () => {
               {/* Premium Subcategories Image Grid */}
               {currentMeta.subcategories && currentMeta.subcategories.length > 0 && (
                 <div className="mb-8">
-                  <div className="flex items-center gap-4 overflow-x-auto pb-6 pt-2 custom-scrollbar">
+                  <div className="flex items-center gap-4 overflow-x-auto pt-4 pb-5 px-3 custom-scrollbar">
                     <div 
                       onClick={() => handleFilterChange({ subcategory: '' })}
-                      className={`relative min-w-[150px] h-[110px] rounded-2xl overflow-hidden cursor-pointer group shadow-md transition-all duration-300 ${!filters.subcategory ? 'ring-2 ring-primary ring-offset-4 shadow-xl' : 'hover:shadow-xl hover:-translate-y-1'}`}
+                      className={`relative min-w-[150px] h-[110px] shrink-0 rounded-2xl overflow-hidden cursor-pointer group shadow-md transition-all duration-300 ${!filters.subcategory ? 'ring-2 ring-primary ring-offset-2 shadow-xl' : 'hover:shadow-xl hover:-translate-y-1'}`}
                     >
                       <img src={currentMeta.hero} alt={`All ${currentMeta.title.split(' ')[0]}`} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 filter group-hover:brightness-110" />
                       <div className={`absolute inset-0 transition-all duration-500 flex flex-col justify-end p-4 ${!filters.subcategory ? 'bg-gradient-to-t from-primary/90 via-primary/30 to-transparent' : 'bg-gradient-to-t from-black/80 via-black/20 to-transparent group-hover:from-primary/80 group-hover:via-primary/20'}`}>
@@ -662,7 +662,7 @@ const Shop = () => {
                         <div 
                           key={sub.name}
                           onClick={() => handleFilterChange({ subcategory: sub.name })}
-                          className={`relative min-w-[150px] h-[110px] rounded-2xl overflow-hidden cursor-pointer group shadow-md transition-all duration-300 ${isActive ? 'ring-2 ring-primary ring-offset-4 shadow-xl' : 'hover:shadow-xl hover:-translate-y-1'}`}
+                          className={`relative min-w-[150px] h-[110px] shrink-0 rounded-2xl overflow-hidden cursor-pointer group shadow-md transition-all duration-300 ${isActive ? 'ring-2 ring-primary ring-offset-2 shadow-xl' : 'hover:shadow-xl hover:-translate-y-1'}`}
                         >
                           <img src={sub.img} alt={sub.name} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 filter group-hover:brightness-110" />
                           <div className={`absolute inset-0 transition-all duration-500 flex flex-col justify-end p-4 ${isActive ? 'bg-gradient-to-t from-primary/90 via-primary/30 to-transparent' : 'bg-gradient-to-t from-black/80 via-black/20 to-transparent group-hover:from-primary/80 group-hover:via-primary/20'}`}>

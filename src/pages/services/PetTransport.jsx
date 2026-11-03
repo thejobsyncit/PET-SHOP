@@ -9,6 +9,8 @@ import {
   Scale, FileText, Send, HelpCircle, Info, ChevronDown, CheckSquare, Square, Plus
 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import RazorpayBookingPaymentModal from '../../components/widgets/RazorpayBookingPaymentModal.jsx';
+import { apiRequest } from '../../services/api.js';
 import { 
   TRANSPORT_MODES, 
   TRANSPORT_STEPS, 
@@ -79,6 +81,7 @@ const PetTransport = () => {
   const [bookingOwnerPhone, setBookingOwnerPhone] = useState(user?.mobile || '');
   const [bookingNotes, setBookingNotes] = useState('');
   const [showBookingModal, setShowBookingModal] = useState(false);
+  const [pendingPaymentBooking, setPendingPaymentBooking] = useState(null);
 
   // Per-Provider Enquiry Modal States
   const [selectedProviderForEnquiry, setSelectedProviderForEnquiry] = useState(null);
@@ -399,7 +402,38 @@ const PetTransport = () => {
       createdAt: new Date().toISOString()
     };
 
-    saveTransportBooking(bookingData);
+    // Ensure canonical properties for provider card
+    bookingData.serviceType = 'Pet Transport & Relocation';
+    bookingData.serviceCategory = 'Pet Transport & Relocation';
+    bookingData.fareAmount = bookingPrice;
+    bookingData.fee = bookingPrice;
+    bookingData.mode = selectedPackage?.name || (selectedProviderForBooking.name?.includes('Air') ? 'Flight / Air Cargo' : 'Private Car / AC Cab');
+    bookingData.travelDate = bookingDate;
+
+    setShowBookingModal(false);
+    setPendingPaymentBooking({
+      ...bookingData,
+      serviceName: 'Pet Relocation (' + (selectedPackage?.name || 'Cab / Flight Transit') + ')',
+      serviceCategory: 'Pet Transport & Relocation',
+      providerName: selectedProviderForBooking.name,
+      price: bookingPrice,
+      date: bookingDate,
+      timeSlot: 'Morning (09:00 AM - 12:00 PM)',
+      ownerName: bookingOwnerName || user?.name || 'Pet Parent',
+      ownerPhone: bookingOwnerPhone,
+      ownerEmail: user?.email || '',
+      petDetails: {
+        name: bookingPetName,
+        breed: bookingPetBreed,
+        age: 'Standard'
+      }
+    });
+    setBookingPetName('');
+    setBookingPetBreed('');
+    setBookingDate('');
+    setBookingNotes('');
+    return;
+
     toast.success(
       (t) => (
         <div className="flex items-center justify-between gap-3 text-xs">
@@ -2348,6 +2382,17 @@ const PetTransport = () => {
           </div>
         </div>
       )}
+
+      {/* RAZORPAY CENTRAL PLATFORM PAYMENT MODAL */}
+      <RazorpayBookingPaymentModal
+        isOpen={Boolean(pendingPaymentBooking)}
+        onClose={() => setPendingPaymentBooking(null)}
+        bookingData={pendingPaymentBooking}
+        onSuccess={(confirmed) => {
+          saveTransportBooking(confirmed);
+          setPendingPaymentBooking(null);
+        }}
+      />
 
     </div>
   );

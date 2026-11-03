@@ -1021,10 +1021,17 @@ export const isTransportItemMatchingUser = (item, currentUser) => {
     return true;
   }
 
-  // 3. By Phone match (clean 10 digits), but ONLY if there is no conflicting email
+  // Strict check: if emails are present and differ, never match
+  if (uEmail && itemEmail && itemEmail !== uEmail) return false;
+  if (uId && item.userId && String(item.userId).trim() !== uId) return false;
+
+  // 3. By Phone match (clean 10 digits), but ONLY if there is no conflicting email or userId
   const itemPhone = cleanDigits(item.userPhone || item.customerPhone || item.ownerPhone || item.mobile);
   if (uPhone && uPhone.length >= 10 && itemPhone && (itemPhone === uPhone || itemPhone.endsWith(uPhone) || uPhone.endsWith(itemPhone))) {
     if (itemEmail && uEmail && itemEmail !== uEmail) {
+      return false;
+    }
+    if (item.userId && uId && String(item.userId).trim() !== uId) {
       return false;
     }
     return true;

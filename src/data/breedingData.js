@@ -549,6 +549,17 @@ export const saveMatingPet = (newPet) => {
   return updated;
 };
 
+export const deleteMatingPet = (id) => {
+  const current = getStoredMatingPets();
+  const updated = current.filter(p => String(p.id) !== String(id));
+  try {
+    localStorage.setItem('joshpetshub_mating_pets_v4', JSON.stringify(updated));
+  } catch (e) {
+    console.warn('LocalStorage quota exceeded, updated in-memory', e);
+  }
+  return updated;
+};
+
 export const updateMatingPet = (updatedPet) => {
   const current = getStoredMatingPets();
   const index = current.findIndex(p => String(p.id) === String(updatedPet.id));

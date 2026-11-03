@@ -7,6 +7,8 @@ import {
   Check, MessageSquare, Info, Eye
 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import ProviderWalletPayoutView from '../../../../components/dashboards/ProviderWalletPayoutView.jsx';
+import { apiRequest } from '../../../../services/api.js';
 import { 
   getProviderTransportService,
   saveOrUpdateTransportService,
@@ -157,14 +159,44 @@ const TransportProviderContent = ({ activeTab, user }) => {
   };
   const [newBookingForm, setNewBookingForm] = useState(initialNewBookingForm);
 
-  const refreshBookings = () => setBookings(getStoredTransportBookings());
+  const refreshBookings = async () => {
+    const local = getStoredTransportBookings() || [];
+    let serverBookings = [];
+    try {
+      const res = await apiRequest('/bookings/provider');
+      if (res && res.success && Array.isArray(res.bookings)) {
+        serverBookings = res.bookings.filter(b => 
+          (b.serviceType && b.serviceType.toLowerCase().includes('transport')) ||
+          (b.serviceCategory && b.serviceCategory.toLowerCase().includes('transport')) ||
+          (b.id && b.id.startsWith('TRP-')) ||
+          b.originCity || b.destCity
+        );
+      }
+    } catch (e) {
+      console.warn('Could not sync transport bookings from server:', e);
+    }
+
+    const combined = [...local];
+    const existingIds = new Set(local.map(b => b.id || b._id));
+    for (const sb of serverBookings) {
+      const bId = sb.id || sb._id;
+      if (!existingIds.has(bId)) {
+        combined.unshift(sb);
+        existingIds.add(bId);
+      }
+    }
+    setBookings(combined);
+  };
 
   useEffect(() => {
+    refreshBookings();
     window.addEventListener('transport-booking-created', refreshBookings);
     window.addEventListener('transport-booking-updated', refreshBookings);
+    window.addEventListener('service-booking-updated', refreshBookings);
     return () => {
       window.removeEventListener('transport-booking-created', refreshBookings);
       window.removeEventListener('transport-booking-updated', refreshBookings);
+      window.removeEventListener('service-booking-updated', refreshBookings);
     };
   }, []);
 
@@ -1607,154 +1639,12 @@ const TransportProviderContent = ({ activeTab, user }) => {
   // TAB 6: WALLET & PAYOUTS
   if (activeTab === 'wallet') {
     return (
-      <div className="space-y-5 sm:space-y-6 animate-in fade-in duration-300">
-        
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-4 border-b border-slate-100 pb-4 sm:pb-5">
-          <div>
-            <h2 className="text-xl sm:text-2xl font-sans font-black text-[#0F2E23]">Wallet & Trip Payouts</h2>
-            <p className="text-xs text-slate-500 mt-0.5">Manage earned relocation fares, escrow releases, and bank settlement transfers.</p>
-          </div>
-
-          <button
-            onClick={openPayoutModal}
-            className="w-full sm:w-auto justify-center bg-[#0F2E23] hover:bg-[#164E3D] text-[#D4AF37] hover:text-white text-xs font-black px-5 py-2.5 rounded-xl transition shadow-sm cursor-pointer"
-          >
-            Request Bank Payout
-          </button>
-        </div>
-
-        {/* Finance Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
-          <div className="bg-gradient-to-br from-[#0F2E23] to-[#1a4a39] text-white p-4 sm:p-6 rounded-2xl sm:rounded-3xl space-y-2 shadow-lg flex flex-col justify-between">
-            <div>
-              <span className="text-[10px] font-black uppercase text-amber-300 tracking-wider">Available for Payout</span>
-              <div className="text-2xl sm:text-3xl font-sans font-black text-white">₹{availableBalance.toLocaleString('en-IN')}</div>
-              <p className="text-[11px] text-emerald-200">Cleared from recent completed trips</p>
-            </div>
-            <button
-              type="button"
-              onClick={openPayoutModal}
-              className="mt-3 w-full bg-white/10 hover:bg-white text-white hover:text-[#0F2E23] border border-white/20 py-2 rounded-xl text-xs font-black transition-all shadow-sm cursor-pointer"
-            >
-              Withdraw Funds
-            </button>
-          </div>
-
-          <div className="bg-white border border-slate-200 p-4 sm:p-6 rounded-2xl sm:rounded-3xl space-y-2 shadow-sm">
-            <span className="text-[10px] font-black uppercase text-slate-400 tracking-wider">Gross Revenue YTD</span>
-            <div className="text-2xl sm:text-3xl font-sans font-black text-[#0F2E23]">₹68,450</div>
-            <p className="text-[11px] text-slate-500">45 successfully completed relocations</p>
-          </div>
-
-          <div className="bg-white border border-slate-200 p-4 sm:p-6 rounded-2xl sm:rounded-3xl space-y-2 shadow-sm">
-            <span className="text-[10px] font-black uppercase text-slate-400 tracking-wider">Escrow in Transit</span>
-            <div className="text-2xl sm:text-3xl font-sans font-black text-amber-600">₹9,800</div>
-            <p className="text-[11px] text-slate-500">Released upon doorstep handover</p>
-          </div>
-        </div>
-
-        {/* Recent Settlements */}
-        <div className="space-y-3 pt-2">
-          <h4 className="text-sm font-black text-slate-700">Recent Bank Settlements</h4>
-          <div className="bg-white rounded-2xl border border-slate-200 divide-y divide-slate-100 overflow-hidden text-xs">
-            {settlements.map((s) => (
-              <div key={s.id} className="p-3.5 sm:p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
-                <div>
-                  <div className="font-bold text-slate-900">{s.bank}</div>
-                  <div className="text-slate-400 text-[11px]">{s.date} • Ref: {s.id}</div>
-                </div>
-                <div className="sm:text-right flex sm:flex-col items-center sm:items-end justify-between w-full sm:w-auto gap-2">
-                  <div className="font-black text-[#0F2E23] text-sm">+₹{s.amount.toLocaleString('en-IN')}</div>
-                  <span className="text-[10px] font-black uppercase text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md">
-                    {s.status}
-                  </span>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Modal: Request Payout */}
-        {showPayoutModal && (
-          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-3 sm:p-4 animate-in fade-in duration-200">
-            <div className="bg-white rounded-2xl sm:rounded-3xl max-w-md w-full border border-slate-200 shadow-2xl max-h-[90vh] flex flex-col overflow-hidden">
-              <div className="flex justify-between items-center px-6 sm:px-8 py-5 border-b border-slate-100 shrink-0 bg-white z-10">
-                <h3 className="font-sans font-black text-base sm:text-lg text-[#0F2E23]">Transfer Payout to Bank</h3>
-                <button 
-                  type="button"
-                  onClick={() => setShowPayoutModal(false)} 
-                  className="p-1.5 text-slate-400 hover:text-slate-700 rounded-full hover:bg-slate-100 transition cursor-pointer"
-                >
-                  <X size={18} />
-                </button>
-              </div>
-
-              <div className="overflow-y-auto px-6 sm:px-8 py-6 flex-1 custom-scrollbar">
-                <form onSubmit={handleRequestPayout} className="space-y-4 text-xs">
-                <div>
-                  <label className="font-bold text-slate-700">Bank Name *</label>
-                  <input
-                    type="text"
-                    required
-                    value={payoutForm.bankName}
-                    onChange={(e) => setPayoutForm({ ...payoutForm, bankName: e.target.value })}
-                    placeholder="e.g. HDFC Bank"
-                    className="w-full mt-1 border rounded-lg p-2.5 font-bold text-slate-900"
-                  />
-                </div>
-
-                <div>
-                  <label className="font-bold text-slate-700">Bank Account Number *</label>
-                  <input
-                    type="text"
-                    required
-                    value={payoutForm.accountNumber}
-                    onChange={(e) => setPayoutForm({ ...payoutForm, accountNumber: e.target.value.replace(/[^0-9]/g, '') })}
-                    placeholder="e.g. 9845001239841"
-                    className="w-full mt-1 border rounded-lg p-2.5 font-bold text-slate-900"
-                  />
-                </div>
-
-                <div>
-                  <label className="font-bold text-slate-700">IFSC Code *</label>
-                  <input
-                    type="text"
-                    required
-                    value={payoutForm.ifsc}
-                    onChange={(e) => setPayoutForm({ ...payoutForm, ifsc: e.target.value.toUpperCase() })}
-                    placeholder="e.g. HDFC0001234"
-                    className="w-full mt-1 border rounded-lg p-2.5 font-bold text-slate-900 uppercase"
-                  />
-                </div>
-
-                <div>
-                  <label className="font-bold text-slate-700">Payout Amount (₹) *</label>
-                  <input
-                    type="number"
-                    required
-                    min="1"
-                    max={availableBalance}
-                    value={payoutForm.amount}
-                    onChange={(e) => setPayoutForm({ ...payoutForm, amount: e.target.value === '' ? '' : Number(e.target.value) })}
-                    placeholder="e.g. 5000"
-                    className="w-full mt-1 border rounded-lg p-2.5 font-black text-sm text-[#0F2E23]"
-                  />
-                  <span className="text-[10px] text-slate-400">Available: ₹{availableBalance.toLocaleString('en-IN')}</span>
-                </div>
-
-                <button
-                  type="submit"
-                  className="w-full bg-[#0F2E23] text-white font-black py-3 rounded-xl uppercase tracking-wider mt-2 cursor-pointer"
-                >
-                  Confirm Payout Transfer
-                </button>
-              </form>
-              </div>
-            </div>
-          </div>
-        )}
-
-      </div>
+      <ProviderWalletPayoutView
+        serviceCategory="Pet Transport & Relocation"
+        storageKeyPrefix="transport"
+        initialBalance={42000}
+        escrowAmount={16000}
+      />
     );
   }
 

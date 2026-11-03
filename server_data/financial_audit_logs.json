@@ -1,0 +1,134 @@
+[
+  {
+    "id": "AUDIT-1793693923392-648",
+    "timestamp": "2026-11-03T08:18:43.393Z",
+    "action": "PAYOUT_MARK_PAID",
+    "actor": {
+      "role": "SUPER_ADMIN",
+      "id": "superadmin@joshpetshub.com"
+    },
+    "refId": "PO-REQ-923361",
+    "amount": 2000,
+    "status": "SUCCESS",
+    "details": {
+      "action": "MARK_PAID",
+      "transferReference": "UTR_1793693923383",
+      "adminNotes": "IMPS Direct Bank Settlement cleared"
+    }
+  },
+  {
+    "id": "AUDIT-1793693923389-193",
+    "timestamp": "2026-11-03T08:18:43.389Z",
+    "action": "PAYOUT_DISBURSEMENT",
+    "actor": {
+      "role": "PLATFORM",
+      "id": "central-wallet"
+    },
+    "refId": "TXN-LEDGER-1793693923388-680",
+    "amount": 2000,
+    "status": "SUCCESS",
+    "details": {
+      "providerId": "prov-groom-02"
+    }
+  },
+  {
+    "id": "AUDIT-1793693923381-484",
+    "timestamp": "2026-11-03T08:18:43.381Z",
+    "action": "PAYOUT_APPROVE",
+    "actor": {
+      "role": "SUPER_ADMIN",
+      "id": "superadmin@joshpetshub.com"
+    },
+    "refId": "PO-REQ-923361",
+    "amount": 2000,
+    "status": "SUCCESS",
+    "details": {
+      "action": "APPROVE",
+      "adminNotes": "Verified against completed booking BK-GRM-TEST-23227"
+    }
+  },
+  {
+    "id": "AUDIT-1793693923369-309",
+    "timestamp": "2026-11-03T08:18:43.369Z",
+    "action": "PAYOUT_REQUESTED",
+    "actor": {
+      "role": "SERVICE_PROVIDER",
+      "id": "prov-groom-02"
+    },
+    "refId": "PO-REQ-923361",
+    "amount": 2000,
+    "status": "SUCCESS",
+    "details": {
+      "bank": "HDFC Bank Limited",
+      "masked": "••••••••0345"
+    }
+  },
+  {
+    "id": "AUDIT-1793693923354-323",
+    "timestamp": "2026-11-03T08:18:43.354Z",
+    "action": "BANK_ACCOUNT_SAVED",
+    "actor": {
+      "role": "SERVICE_PROVIDER",
+      "id": "prov-groom-02"
+    },
+    "refId": "prov-groom-02",
+    "amount": null,
+    "status": "SUCCESS",
+    "details": {
+      "bankName": "HDFC Bank Limited",
+      "maskedNumber": "••••••••0345",
+      "ifsc": "HDFC0001234"
+    }
+  },
+  {
+    "id": "AUDIT-1793693923295-462",
+    "timestamp": "2026-11-03T08:18:43.295Z",
+    "action": "PAYMENT_COLLECTION",
+    "actor": {
+      "role": "PLATFORM",
+      "id": "central-wallet"
+    },
+    "refId": "TXN-LEDGER-1793693923294-469",
+    "amount": 2500,
+    "status": "SUCCESS",
+    "details": {
+      "bookingId": "GRM-TEST-23227",
+      "providerId": "prov-groom-02",
+      "paymentId": "pay_sim_1793693923286"
+    }
+  },
+  {
+    "id": "AUDIT-1793693870845-450",
+    "timestamp": "2026-11-03T08:17:50.845Z",
+    "action": "PAYMENT_COLLECTION",
+    "actor": {
+      "role": "PLATFORM",
+      "id": "central-wallet"
+    },
+    "refId": "TXN-LEDGER-1793693870844-393",
+    "amount": 2500,
+    "status": "SUCCESS",
+    "details": {
+      "bookingId": "GRM-TEST-70773",
+      "providerId": "prov-groom-02",
+      "paymentId": "pay_sim_1793693870836"
+    }
+  },
+  {
+    "id": "AUDIT-1793693200403-222",
+    "timestamp": "2026-11-03T08:06:40.403Z",
+    "action": "PAYMENT_COLLECTION",
+    "actor": {
+      "role": "PLATFORM",
+      "id": "central-wallet"
+    },
+    "refId": "TXN-LEDGER-1793693200402-261",
+    "amount": 1500,
+    "status": "SUCCESS",
+    "details": {
+      "bookingId": "BK-TEST-001",
+      "providerId": "prov-groom-02",
+      "paymentId": "pay_sim_test_456"
+    }
+  }
+]

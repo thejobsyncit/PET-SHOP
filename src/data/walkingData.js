@@ -14,6 +14,8 @@ export const WALKING_OFFERINGS = [
 export const INITIAL_WALKING_PROVIDERS = [
   {
     id: 'WLK-101',
+    email: 'swiftpaws@joshpetshub.com',
+    providerEmail: 'swiftpaws@joshpetshub.com',
     name: 'PawSteps Pro Dog Walkers',
     tagline: 'Certified Canine Fitness Coaches & GPS Live Route Tracking',
     walkerName: 'Aditya Sen (Certified Dog Behaviorist)',

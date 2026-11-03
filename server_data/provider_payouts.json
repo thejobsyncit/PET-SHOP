@@ -1,0 +1,22 @@
+[
+  {
+    "id": "PO-REQ-923361",
+    "providerId": "prov-groom-02",
+    "providerEmail": "velvetfur@joshpetshub.com",
+    "providerName": "Velvet Fur Grooming Studio",
+    "serviceCategory": "Pet Grooming Spa",
+    "amount": 2000,
+    "status": "Paid",
+    "bankDetails": {
+      "accountHolder": "Velvet Fur Grooming Studio Enterprise",
+      "bankName": "HDFC Bank Limited",
+      "accountNumberMasked": "••••••••0345",
+      "ifsc": "HDFC0001234",
+      "upiId": "velvetfur@okhdfcbank"
+    },
+    "requestedAt": "2026-11-03T08:18:43.361Z",
+    "processedAt": "2026-11-03T08:18:43.388Z",
+    "adminNotes": "IMPS Direct Bank Settlement cleared",
+    "transferReference": "UTR_1793693923383"
+  }
+]

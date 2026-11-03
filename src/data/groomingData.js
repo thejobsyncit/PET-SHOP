@@ -193,3 +193,117 @@ export const getStoredGroomingBookings = () => {
   }
   return [];
 };
+
+export const DEFAULT_GROOMING_SCHEDULE = {
+  acceptingWalkIns: true,
+  days: {
+    Monday: { isOpen: true, start: '10:00', end: '20:00' },
+    Tuesday: { isOpen: true, start: '10:00', end: '20:00' },
+    Wednesday: { isOpen: true, start: '10:00', end: '20:00' },
+    Thursday: { isOpen: true, start: '10:00', end: '20:00' },
+    Friday: { isOpen: true, start: '10:00', end: '20:00' },
+    Saturday: { isOpen: true, start: '09:00', end: '21:00' },
+    Sunday: { isOpen: false, start: '10:00', end: '18:00' },
+  }
+};
+
+export const sanitizeGroomingSchedule = (raw) => {
+  if (!raw || typeof raw !== 'object') return DEFAULT_GROOMING_SCHEDULE;
+  const acceptingWalkIns = raw.acceptingWalkIns !== false;
+  const mergedDays = { ...DEFAULT_GROOMING_SCHEDULE.days };
+  if (raw.days && typeof raw.days === 'object') {
+    Object.keys(DEFAULT_GROOMING_SCHEDULE.days).forEach(day => {
+      if (raw.days[day]) {
+        mergedDays[day] = {
+          isOpen: Boolean(raw.days[day].isOpen),
+          start: raw.days[day].start || DEFAULT_GROOMING_SCHEDULE.days[day].start,
+          end: raw.days[day].end || DEFAULT_GROOMING_SCHEDULE.days[day].end
+        };
+      }
+    });
+  }
+  return { acceptingWalkIns, days: mergedDays };
+};
+
+export const getStoredGroomingSchedule = (user = null) => {
+  const emailKey = (user?.email || '').toLowerCase().trim();
+  const userKey = user?._id
+    ? 'joshpetshub_grooming_schedule_' + user._id
+    : emailKey
+      ? 'joshpetshub_grooming_schedule_' + emailKey
+      : null;
+
+  try {
+    if (userKey) {
+      const userSaved = localStorage.getItem(userKey);
+      if (userSaved) {
+        const parsed = JSON.parse(userSaved);
+        if (parsed && parsed.days) return sanitizeGroomingSchedule(parsed);
+      }
+    }
+
+    if (user?.groomingSchedule && user.groomingSchedule.days) {
+      return sanitizeGroomingSchedule(user.groomingSchedule);
+    }
+    if (user?.schedule && user.schedule.days) {
+      return sanitizeGroomingSchedule(user.schedule);
+    }
+
+    if (emailKey) {
+      const byEmail = localStorage.getItem('joshpetshub_grooming_schedule_' + emailKey);
+      if (byEmail) {
+        const parsed = JSON.parse(byEmail);
+        if (parsed && parsed.days) return sanitizeGroomingSchedule(parsed);
+      }
+    }
+
+    const velvetSaved = localStorage.getItem('velvet_grooming_schedule');
+    if (velvetSaved) {
+      const parsed = JSON.parse(velvetSaved);
+      if (parsed && parsed.days) return sanitizeGroomingSchedule(parsed);
+    }
+
+    if (emailKey) {
+      const regUsers = JSON.parse(localStorage.getItem('joshpetshub_registered_users') || '[]');
+      const matched = regUsers.find(u => u.email && u.email.toLowerCase() === emailKey);
+      if (matched?.groomingSchedule && matched.groomingSchedule.days) {
+        return sanitizeGroomingSchedule(matched.groomingSchedule);
+      }
+    }
+  } catch (e) {
+    console.warn('Failed to load stored grooming schedule:', e);
+  }
+
+  return DEFAULT_GROOMING_SCHEDULE;
+};
+
+export const saveGroomingSchedule = (schedule, user = null) => {
+  try {
+    const emailKey = (user?.email || 'velvetfur@joshpetshub.com').toLowerCase().trim();
+    const sanitized = sanitizeGroomingSchedule(schedule);
+    const jsonStr = JSON.stringify(sanitized);
+
+    localStorage.setItem('velvet_grooming_schedule', jsonStr);
+    if (emailKey) {
+      localStorage.setItem('joshpetshub_grooming_schedule_' + emailKey, jsonStr);
+    }
+    if (user?._id) {
+      localStorage.setItem('joshpetshub_grooming_schedule_' + user._id, jsonStr);
+    }
+
+    try {
+      const regUsers = JSON.parse(localStorage.getItem('joshpetshub_registered_users') || '[]');
+      const idx = regUsers.findIndex(u => (u.email && u.email.toLowerCase() === emailKey) || (user?._id && u._id === user._id));
+      if (idx !== -1) {
+        regUsers[idx] = { ...regUsers[idx], groomingSchedule: sanitized };
+        localStorage.setItem('joshpetshub_registered_users', JSON.stringify(regUsers));
+      }
+    } catch (_) {}
+
+    return sanitized;
+  } catch (e) {
+    console.warn('Failed to save grooming schedule:', e);
+    return schedule;
+  }
+};
+
