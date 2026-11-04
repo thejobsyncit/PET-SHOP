@@ -13,6 +13,7 @@ import {
 import { logout } from '../../../store/slices/authSlice.js';
 import { apiRequest } from '../../../services/api.js';
 import toast from 'react-hot-toast';
+import { safeSetItem, safeGetItem } from '../../../utils/safeStorage.js';
 import ProviderProfileSection from '../../../components/dashboards/ProviderProfileSection.jsx';
 import ProviderWalletPayoutView from '../../../components/dashboards/ProviderWalletPayoutView.jsx';
 import {
@@ -756,7 +757,7 @@ const PetAdoptionDashboard = ({
     };
 
     try {
-      localStorage.setItem('joshpetshub_adoption_documents', JSON.stringify(payload));
+      safeSetItem('joshpetshub_adoption_documents', JSON.stringify(payload));
       
       const updatedUser = {
         ...(user || {}),
@@ -768,7 +769,7 @@ const PetAdoptionDashboard = ({
         shelterCapacity: Number(shelterCapacity),
         bio: shelterBio
       };
-      localStorage.setItem('joshpetshub_user', JSON.stringify(updatedUser));
+      safeSetItem('joshpetshub_user', JSON.stringify(updatedUser));
     } catch (_e) {}
 
     toast.success('🛡️ Sanctuary Profile, Licenses & Verification Documents saved successfully!', {

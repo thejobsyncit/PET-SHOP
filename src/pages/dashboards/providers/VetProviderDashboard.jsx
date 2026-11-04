@@ -11,6 +11,7 @@ import { apiRequest } from '../../../services/api.js';
 import toast from 'react-hot-toast';
 import ProviderProfileSection from '../../../components/dashboards/ProviderProfileSection.jsx';
 import VetProviderContent from './content/VetProviderContent.jsx';
+import { safeSetItem, safeGetItem } from '../../../utils/safeStorage.js';
 import { 
   getVetAppointments, 
   getStoredVetWallet, 
@@ -30,7 +31,7 @@ const VetProviderDashboard = ({
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const validTabs = ['profile', 'appointments', 'services', 'records', 'messages', 'hours', 'reviews', 'wallet'];
-  const rawTab = searchParams.get('tab') || localStorage.getItem('vetDashboardTab') || 'profile';
+  const rawTab = searchParams.get('tab') || safeGetItem('vetDashboardTab') || 'profile';
   const activeTabParam = validTabs.includes(rawTab) ? rawTab : 'profile';
   const [activeTab, setActiveTab] = useState(activeTabParam);
 
@@ -67,7 +68,7 @@ const VetProviderDashboard = ({
           }
         }
         if (changed) {
-          localStorage.setItem('joshpetshub_vet_appointments', JSON.stringify(apps));
+          safeSetItem('joshpetshub_vet_appointments', JSON.stringify(apps));
         }
       }
     } catch (e) {
@@ -234,7 +235,7 @@ const VetProviderDashboard = ({
   useEffect(() => {
     if (activeTabParam) {
       setActiveTab(activeTabParam);
-      localStorage.setItem('vetDashboardTab', activeTabParam);
+      safeSetItem('vetDashboardTab', activeTabParam);
     }
   }, [activeTabParam]);
 
@@ -245,7 +246,7 @@ const VetProviderDashboard = ({
     }
     setActiveTab(tabName);
     setSearchParams({ tab: tabName });
-    localStorage.setItem('vetDashboardTab', tabName);
+    safeSetItem('vetDashboardTab', tabName);
   };
 
   const fetchListings = async () => {

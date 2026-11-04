@@ -1,3 +1,4 @@
+import { safeSetItem, safeGetItem, safeRemoveItem } from '../utils/safeStorage.js';
 /**
  * Josh Pets Hub Veterinary & Healthcare Dataset & Storage Helpers
  * Complete clinical records, doctor profiles, diagnostic packages, and booking state.
@@ -615,7 +616,7 @@ export const INITIAL_VET_DOCTORS = [
 // LocalStorage helpers with safe Quota handling
 export const getStoredVetDoctors = () => {
   try {
-    const saved = localStorage.getItem('joshpetshub_vet_doctors_v2');
+    const saved = safeGetItem('joshpetshub_vet_doctors_v2');
     if (saved) {
       const parsed = JSON.parse(saved);
       if (Array.isArray(parsed) && parsed.length > 0) return parsed;
@@ -626,8 +627,8 @@ export const getStoredVetDoctors = () => {
 
   try {
     // Clean old keys if needed
-    localStorage.removeItem('joshpetshub_vet_doctors_v1');
-    localStorage.setItem('joshpetshub_vet_doctors_v2', JSON.stringify(INITIAL_VET_DOCTORS));
+    safeRemoveItem('joshpetshub_vet_doctors_v1');
+    safeSetItem('joshpetshub_vet_doctors_v2', JSON.stringify(INITIAL_VET_DOCTORS));
   } catch (e) {
     console.warn('LocalStorage quota exceeded, using in-memory INITIAL_VET_DOCTORS', e);
   }
@@ -740,7 +741,7 @@ export const saveVetAppointment = (appointment) => {
     } else {
       updated = [appointment, ...current];
     }
-    localStorage.setItem('joshpetshub_vet_appointments', JSON.stringify(updated));
+    safeSetItem('joshpetshub_vet_appointments', JSON.stringify(updated));
     window.dispatchEvent(new CustomEvent('vet-data-updated', { detail: { type: 'appointment', action: 'create', appointment } }));
     window.dispatchEvent(new CustomEvent('service-booking-updated', { detail: appointment }));
     return updated;
@@ -752,7 +753,7 @@ export const saveVetAppointment = (appointment) => {
 
 export const getVetAppointments = () => {
   try {
-    const saved = localStorage.getItem('joshpetshub_vet_appointments');
+    const saved = safeGetItem('joshpetshub_vet_appointments');
     if (saved) {
       const parsed = JSON.parse(saved);
       if (Array.isArray(parsed) && parsed.length > 0) return parsed;
@@ -762,7 +763,7 @@ export const getVetAppointments = () => {
   }
 
   try {
-    localStorage.setItem('joshpetshub_vet_appointments', JSON.stringify(INITIAL_VET_APPOINTMENTS));
+    safeSetItem('joshpetshub_vet_appointments', JSON.stringify(INITIAL_VET_APPOINTMENTS));
   } catch (e) {}
 
   return INITIAL_VET_APPOINTMENTS;
@@ -777,7 +778,7 @@ export const updateVetAppointmentStatus = (id, newStatus, additionalData = {}) =
       }
       return app;
     });
-    localStorage.setItem('joshpetshub_vet_appointments', JSON.stringify(updated));
+    safeSetItem('joshpetshub_vet_appointments', JSON.stringify(updated));
     window.dispatchEvent(new CustomEvent('vet-data-updated', { detail: { type: 'appointment', action: 'update', id, newStatus, ...additionalData } }));
     window.dispatchEvent(new CustomEvent('service-booking-updated', { detail: { id, status: newStatus, ...additionalData } }));
     return updated;
@@ -804,7 +805,7 @@ export const updateVetProfile = (profileData) => {
       updatedDoctors = [profileData, ...currentDoctors];
     }
     
-    localStorage.setItem('joshpetshub_vet_doctors_v2', JSON.stringify(updatedDoctors));
+    safeSetItem('joshpetshub_vet_doctors_v2', JSON.stringify(updatedDoctors));
     window.dispatchEvent(new CustomEvent('vet-data-updated', { detail: { type: 'profile', profile: profileData } }));
     return updatedDoctors;
   } catch (e) {
@@ -896,7 +897,7 @@ export const INITIAL_VET_PRESCRIPTIONS = [
 
 export const getStoredVetPrescriptions = () => {
   try {
-    const saved = localStorage.getItem('joshpetshub_vet_prescriptions');
+    const saved = safeGetItem('joshpetshub_vet_prescriptions');
     if (saved) {
       const parsed = JSON.parse(saved);
       if (Array.isArray(parsed) && parsed.length > 0) return parsed;
@@ -906,7 +907,7 @@ export const getStoredVetPrescriptions = () => {
   }
 
   try {
-    localStorage.setItem('joshpetshub_vet_prescriptions', JSON.stringify(INITIAL_VET_PRESCRIPTIONS));
+    safeSetItem('joshpetshub_vet_prescriptions', JSON.stringify(INITIAL_VET_PRESCRIPTIONS));
   } catch (e) {}
 
   return INITIAL_VET_PRESCRIPTIONS;
@@ -916,7 +917,7 @@ export const saveVetPrescription = (rx) => {
   try {
     const current = getStoredVetPrescriptions();
     const updated = [rx, ...current];
-    localStorage.setItem('joshpetshub_vet_prescriptions', JSON.stringify(updated));
+    safeSetItem('joshpetshub_vet_prescriptions', JSON.stringify(updated));
     window.dispatchEvent(new CustomEvent('vet-data-updated', { detail: { type: 'prescription', rx } }));
     return updated;
   } catch (e) {
@@ -946,7 +947,7 @@ export const getStoredVetSchedule = (user = null) => {
       : null;
 
   try {
-    const saved = (userKey && localStorage.getItem(userKey)) || localStorage.getItem('joshpetshub_vet_schedule');
+    const saved = (userKey && safeGetItem(userKey)) || safeGetItem('joshpetshub_vet_schedule');
     if (saved) {
       const parsed = JSON.parse(saved);
       if (parsed && parsed.days) return parsed;
@@ -956,7 +957,7 @@ export const getStoredVetSchedule = (user = null) => {
   }
 
   try {
-    localStorage.setItem('joshpetshub_vet_schedule', JSON.stringify(INITIAL_VET_SCHEDULE));
+    safeSetItem('joshpetshub_vet_schedule', JSON.stringify(INITIAL_VET_SCHEDULE));
   } catch (e) {}
 
   return INITIAL_VET_SCHEDULE;
@@ -964,14 +965,14 @@ export const getStoredVetSchedule = (user = null) => {
 
 export const saveVetSchedule = (schedule, user = null) => {
   try {
-    localStorage.setItem('joshpetshub_vet_schedule', JSON.stringify(schedule));
+    safeSetItem('joshpetshub_vet_schedule', JSON.stringify(schedule));
     const userKey = user?._id
       ? `joshpetshub_vet_schedule_${user._id}`
       : user?.email
         ? `joshpetshub_vet_schedule_${user.email.toLowerCase().trim()}`
         : null;
     if (userKey) {
-      localStorage.setItem(userKey, JSON.stringify(schedule));
+      safeSetItem(userKey, JSON.stringify(schedule));
     }
     window.dispatchEvent(new CustomEvent('vet-data-updated', { detail: { type: 'schedule', schedule } }));
     return schedule;
@@ -999,7 +1000,7 @@ export const INITIAL_VET_WALLET = {
 
 export const getStoredVetWallet = () => {
   try {
-    const saved = localStorage.getItem('joshpetshub_vet_wallet');
+    const saved = safeGetItem('joshpetshub_vet_wallet');
     if (saved) {
       const parsed = JSON.parse(saved);
       if (parsed && typeof parsed.availableBalance === 'number') return parsed;
@@ -1009,7 +1010,7 @@ export const getStoredVetWallet = () => {
   }
 
   try {
-    localStorage.setItem('joshpetshub_vet_wallet', JSON.stringify(INITIAL_VET_WALLET));
+    safeSetItem('joshpetshub_vet_wallet', JSON.stringify(INITIAL_VET_WALLET));
   } catch (e) {}
 
   return INITIAL_VET_WALLET;
@@ -1036,7 +1037,7 @@ export const withdrawVetFunds = (amount) => {
       transactions: [newTxn, ...wallet.transactions]
     };
 
-    localStorage.setItem('joshpetshub_vet_wallet', JSON.stringify(updated));
+    safeSetItem('joshpetshub_vet_wallet', JSON.stringify(updated));
     window.dispatchEvent(new CustomEvent('vet-data-updated', { detail: { type: 'wallet', wallet: updated, newTxn } }));
     return { success: true, txn: newTxn, wallet: updated };
   } catch (e) {
@@ -1083,7 +1084,7 @@ export const INITIAL_VET_REVIEWS = [
 
 export const getStoredVetReviews = () => {
   try {
-    const saved = localStorage.getItem('joshpetshub_vet_reviews');
+    const saved = safeGetItem('joshpetshub_vet_reviews');
     if (saved) {
       const parsed = JSON.parse(saved);
       if (Array.isArray(parsed) && parsed.length > 0) return parsed;
@@ -1093,7 +1094,7 @@ export const getStoredVetReviews = () => {
   }
 
   try {
-    localStorage.setItem('joshpetshub_vet_reviews', JSON.stringify(INITIAL_VET_REVIEWS));
+    safeSetItem('joshpetshub_vet_reviews', JSON.stringify(INITIAL_VET_REVIEWS));
   } catch (e) {}
 
   return INITIAL_VET_REVIEWS;
@@ -1115,7 +1116,7 @@ export const addVetReviewReply = (reviewId, replyText) => {
       return rev;
     });
 
-    localStorage.setItem('joshpetshub_vet_reviews', JSON.stringify(updated));
+    safeSetItem('joshpetshub_vet_reviews', JSON.stringify(updated));
     window.dispatchEvent(new CustomEvent('vet-data-updated', { detail: { type: 'review', reviewId } }));
     return updated;
   } catch (e) {
@@ -1175,7 +1176,7 @@ export const INITIAL_VET_CHATS = [
 
 export const getStoredVetChats = () => {
   try {
-    const saved = localStorage.getItem('joshpetshub_vet_chats');
+    const saved = safeGetItem('joshpetshub_vet_chats');
     if (saved) {
       const parsed = JSON.parse(saved);
       if (Array.isArray(parsed) && parsed.length > 0) return parsed;
@@ -1185,7 +1186,7 @@ export const getStoredVetChats = () => {
   }
 
   try {
-    localStorage.setItem('joshpetshub_vet_chats', JSON.stringify(INITIAL_VET_CHATS));
+    safeSetItem('joshpetshub_vet_chats', JSON.stringify(INITIAL_VET_CHATS));
   } catch (e) {}
 
   return INITIAL_VET_CHATS;
@@ -1214,7 +1215,7 @@ export const sendVetChatMessage = (chatId, text, sender = 'doctor', attachment =
       return chat;
     });
 
-    localStorage.setItem('joshpetshub_vet_chats', JSON.stringify(updated));
+    safeSetItem('joshpetshub_vet_chats', JSON.stringify(updated));
     window.dispatchEvent(new CustomEvent('vet-data-updated', { detail: { type: 'chat', chatId } }));
     return updated;
   } catch (e) {
@@ -1237,7 +1238,7 @@ export const INITIAL_VET_SERVICES_FEES = {
 
 export const getStoredVetServicesFees = () => {
   try {
-    const saved = localStorage.getItem('joshpetshub_vet_services_fees');
+    const saved = safeGetItem('joshpetshub_vet_services_fees');
     if (saved) {
       const parsed = JSON.parse(saved);
       if (parsed && parsed.inClinic) return parsed;
@@ -1247,7 +1248,7 @@ export const getStoredVetServicesFees = () => {
   }
 
   try {
-    localStorage.setItem('joshpetshub_vet_services_fees', JSON.stringify(INITIAL_VET_SERVICES_FEES));
+    safeSetItem('joshpetshub_vet_services_fees', JSON.stringify(INITIAL_VET_SERVICES_FEES));
   } catch (e) {}
 
   return INITIAL_VET_SERVICES_FEES;
@@ -1259,7 +1260,7 @@ export const saveVetServicesFees = (servicesState, specializations) => {
       ...servicesState,
       specializations: specializations || INITIAL_VET_SERVICES_FEES.specializations
     };
-    localStorage.setItem('joshpetshub_vet_services_fees', JSON.stringify(data));
+    safeSetItem('joshpetshub_vet_services_fees', JSON.stringify(data));
     window.dispatchEvent(new CustomEvent('vet-data-updated', { detail: { type: 'services_fees', data } }));
     return data;
   } catch (e) {

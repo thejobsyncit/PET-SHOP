@@ -350,7 +350,7 @@ const ProductSellerDashboard = ({
   // Save changes to localStorage on productsList change
   useEffect(() => {
     try {
-      localStorage.setItem('joshpetshub_seller_products', JSON.stringify(productsList));
+      safeSetItem('joshpetshub_seller_products', JSON.stringify(productsList));
     } catch {
       // storage write error
     }
@@ -527,7 +527,7 @@ const ProductSellerDashboard = ({
         // Also update cached store products so Shop page renders it without full reload
         try {
           const cached = JSON.parse(localStorage.getItem('joshpetshub_cached_products') || '[]');
-          localStorage.setItem('joshpetshub_cached_products', JSON.stringify([created, ...cached.slice(0, 30)]));
+          safeSetItem('joshpetshub_cached_products', JSON.stringify([created, ...cached.slice(0, 30)]));
         } catch {
           // ignore cache error
         }
@@ -594,7 +594,7 @@ const ProductSellerDashboard = ({
     });
     setOrders(updated);
     try {
-      localStorage.setItem('joshpetshub_seller_orders', JSON.stringify(updated));
+      safeSetItem('joshpetshub_seller_orders', JSON.stringify(updated));
     } catch {
       // storage write error
     }
