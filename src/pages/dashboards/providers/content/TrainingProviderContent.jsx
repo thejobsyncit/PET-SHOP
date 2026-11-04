@@ -1225,44 +1225,10 @@ const TrainingProviderContent = ({ activeTab, user }) => {
                   </span>
                 </div>
 
-                {/* Preset Cover Options */}
-                <div>
-                  <span className="text-[11px] font-bold text-slate-600 block mb-2">
-                    Choose from Preset Covers
-                  </span>
-                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
-                    {PRESET_TRAINING_IMAGES.map((img, idx) => {
-                      const isSelected = serviceForm.image === img.url;
-                      return (
-                        <div
-                          key={idx}
-                          onClick={() => {
-                            setServiceForm({ ...serviceForm, image: img.url });
-                            setCoverUploadError('');
-                          }}
-                          className={`group relative rounded-xl overflow-hidden cursor-pointer border-2 transition ${
-                            isSelected ? 'border-emerald-600 ring-2 ring-emerald-500/30' : 'border-slate-200 opacity-70 hover:opacity-100'
-                          }`}
-                        >
-                          <img src={img.url} alt={img.label} className="w-full h-20 object-cover" />
-                          <span className="text-[10px] font-bold text-slate-700 p-1 block truncate text-center bg-slate-50">
-                            {img.label}
-                          </span>
-                          {isSelected && (
-                            <div className="absolute top-1 right-1 bg-emerald-600 text-white rounded-full p-0.5 shadow">
-                              <Check size={10} />
-                            </div>
-                          )}
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-
                 {/* Service Cover Image Upload Section */}
-                <div className="space-y-2 pt-2">
+                <div className="space-y-2">
                   <label className="text-xs font-bold text-slate-700 block">
-                    Upload Custom Service Cover Image
+                    Upload Service Cover Image
                   </label>
 
                   <input
@@ -1326,7 +1292,7 @@ const TrainingProviderContent = ({ activeTab, user }) => {
                           <p className="text-[11px] text-slate-500 mt-0.5 truncate">
                             {serviceForm.image.startsWith('data:') 
                               ? 'Custom uploaded image (Ready to save)' 
-                              : 'Preset photo selected'}
+                              : 'Current cover image'}
                           </p>
                         </div>
                       </div>
@@ -1338,7 +1304,7 @@ const TrainingProviderContent = ({ activeTab, user }) => {
                           className="px-3 py-1.5 rounded-xl border border-slate-200 hover:border-emerald-600 text-xs font-bold text-slate-700 hover:text-emerald-700 transition cursor-pointer flex items-center gap-1.5"
                         >
                           <Upload size={13} />
-                          <span>Upload New</span>
+                          <span>Change Photo</span>
                         </button>
                       </div>
                     </div>
