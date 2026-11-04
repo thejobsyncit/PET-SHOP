@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   GraduationCap, Calendar, MapPin, Phone, ShieldCheck, Star, Clock, 
@@ -6,7 +6,7 @@ import {
   Send, X, Edit3, Trash2, ExternalLink, SlidersHorizontal, 
   Sparkles, FileText, Check, MessageSquare, Info, Shield, 
   Eye, RefreshCw, Award, Heart, Tag, PawPrint, UserCheck, 
-  TrendingUp, Wallet, ArrowRight, MessageCircle
+  TrendingUp, Wallet, ArrowRight, MessageCircle, UploadCloud, Upload, Image as ImageIcon
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import ProviderWalletPayoutView from '../../../../components/dashboards/ProviderWalletPayoutView.jsx';
@@ -79,6 +79,55 @@ const TrainingProviderContent = ({ activeTab, user }) => {
   // 1. PROVIDER SERVICE STATE (STRICT 1 SERVICE PER PROVIDER)
   const [myService, setMyService] = useState(() => getProviderTrainingService(user?._id || user?.id || user?.email));
   const [isEditingService, setIsEditingService] = useState(false);
+
+  const coverImageInputRef = useRef(null);
+  const [coverUploadError, setCoverUploadError] = useState('');
+
+  const handleCoverImageFileChange = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file format: only jpg, jpeg, png allowed
+    const validExtensions = ['jpg', 'jpeg', 'png'];
+    const extension = file.name.split('.').pop()?.toLowerCase();
+    const isValidType = file.type === 'image/jpeg' || file.type === 'image/png' || file.type === 'image/jpg' || validExtensions.includes(extension);
+
+    if (!isValidType) {
+      const errorMsg = 'Invalid file format! Only JPG and PNG images are allowed.';
+      setCoverUploadError(errorMsg);
+      toast.error(errorMsg);
+      if (e.target) e.target.value = '';
+      return;
+    }
+
+    // Validate file size: must be less than 5MB
+    const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB in bytes
+    if (file.size >= MAX_FILE_SIZE) {
+      const errorMsg = `Image size must be less than 5MB! Selected file is ${(file.size / (1024 * 1024)).toFixed(2)}MB.`;
+      setCoverUploadError(errorMsg);
+      toast.error(errorMsg);
+      if (e.target) e.target.value = '';
+      return;
+    }
+
+    // Clear any previous error
+    setCoverUploadError('');
+
+    // Read file and update serviceForm.image
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const dataUrl = event.target?.result;
+      if (dataUrl) {
+        setServiceForm(prev => ({ ...prev, image: dataUrl }));
+        toast.success(`Cover image "${file.name}" uploaded successfully!`);
+      }
+    };
+    reader.onerror = () => {
+      toast.error('Failed to read image file. Please try again.');
+    };
+    reader.readAsDataURL(file);
+    if (e.target) e.target.value = '';
+  };
 
   // Form State for Posting / Editing Service
   const [serviceForm, setServiceForm] = useState({
@@ -1166,47 +1215,134 @@ const TrainingProviderContent = ({ activeTab, user }) => {
               </div>
 
               {/* Cover Image Selection */}
-              <div className="space-y-3 pt-4 border-t border-slate-100">
-                <h4 className="text-xs font-black uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
-                  <Sparkles size={15} className="text-amber-500" /> Service Cover Image
-                </h4>
-
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
-                  {PRESET_TRAINING_IMAGES.map((img, idx) => {
-                    const isSelected = serviceForm.image === img.url;
-                    return (
-                      <div
-                        key={idx}
-                        onClick={() => setServiceForm({ ...serviceForm, image: img.url })}
-                        className={`group relative rounded-xl overflow-hidden cursor-pointer border-2 transition ${
-                          isSelected ? 'border-emerald-600 ring-2 ring-emerald-500/30' : 'border-slate-200 opacity-70 hover:opacity-100'
-                        }`}
-                      >
-                        <img src={img.url} alt={img.label} className="w-full h-20 object-cover" />
-                        <span className="text-[10px] font-bold text-slate-700 p-1 block truncate text-center bg-slate-50">
-                          {img.label}
-                        </span>
-                        {isSelected && (
-                          <div className="absolute top-1 right-1 bg-emerald-600 text-white rounded-full p-0.5 shadow">
-                            <Check size={10} />
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })}
+              <div className="space-y-4 pt-4 border-t border-slate-100">
+                <div className="flex items-center justify-between">
+                  <h4 className="text-xs font-black uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+                    <Sparkles size={15} className="text-amber-500" /> Service Cover Image
+                  </h4>
+                  <span className="text-[11px] font-bold text-slate-400">
+                    JPG or PNG • Less than 5MB
+                  </span>
                 </div>
 
+                {/* Preset Cover Options */}
                 <div>
-                  <label className="text-xs font-bold text-slate-700 block mb-1">
-                    Or Enter Custom Image URL
+                  <span className="text-[11px] font-bold text-slate-600 block mb-2">
+                    Choose from Preset Covers
+                  </span>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
+                    {PRESET_TRAINING_IMAGES.map((img, idx) => {
+                      const isSelected = serviceForm.image === img.url;
+                      return (
+                        <div
+                          key={idx}
+                          onClick={() => {
+                            setServiceForm({ ...serviceForm, image: img.url });
+                            setCoverUploadError('');
+                          }}
+                          className={`group relative rounded-xl overflow-hidden cursor-pointer border-2 transition ${
+                            isSelected ? 'border-emerald-600 ring-2 ring-emerald-500/30' : 'border-slate-200 opacity-70 hover:opacity-100'
+                          }`}
+                        >
+                          <img src={img.url} alt={img.label} className="w-full h-20 object-cover" />
+                          <span className="text-[10px] font-bold text-slate-700 p-1 block truncate text-center bg-slate-50">
+                            {img.label}
+                          </span>
+                          {isSelected && (
+                            <div className="absolute top-1 right-1 bg-emerald-600 text-white rounded-full p-0.5 shadow">
+                              <Check size={10} />
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Service Cover Image Upload Section */}
+                <div className="space-y-2 pt-2">
+                  <label className="text-xs font-bold text-slate-700 block">
+                    Upload Custom Service Cover Image
                   </label>
+
                   <input
-                    type="url"
-                    value={serviceForm.image}
-                    onChange={(e) => setServiceForm({ ...serviceForm, image: e.target.value })}
-                    placeholder="https://images.unsplash.com/..."
-                    className="w-full text-sm px-4 py-2 rounded-xl border border-slate-200 focus:outline-none focus:border-emerald-600"
+                    type="file"
+                    ref={coverImageInputRef}
+                    accept=".jpg,.jpeg,.png,image/jpeg,image/png"
+                    onChange={handleCoverImageFileChange}
+                    className="hidden"
                   />
+
+                  {/* Upload Box */}
+                  <div
+                    onClick={() => coverImageInputRef.current?.click()}
+                    className={`border-2 border-dashed rounded-2xl p-6 text-center cursor-pointer transition-all duration-200 group ${
+                      coverUploadError 
+                        ? 'border-rose-400 bg-rose-50/40 hover:bg-rose-50/70' 
+                        : 'border-slate-300 hover:border-emerald-600 bg-slate-50/60 hover:bg-emerald-50/30'
+                    }`}
+                  >
+                    <div className="flex flex-col items-center justify-center gap-2">
+                      <div className="w-12 h-12 rounded-2xl bg-emerald-100 text-emerald-800 flex items-center justify-center group-hover:scale-110 transition duration-200 shadow-xs">
+                        <UploadCloud size={24} />
+                      </div>
+                      <div>
+                        <p className="text-xs font-black text-slate-800 group-hover:text-emerald-700 transition">
+                          Click to upload your service cover photo
+                        </p>
+                        <p className="text-[11px] text-slate-400 font-medium mt-0.5">
+                          Only <strong className="text-slate-600">JPG, PNG</strong> format • Size must be <strong className="text-slate-600">less than 5MB</strong>
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Error Message */}
+                  {coverUploadError && (
+                    <div className="flex items-center gap-2 text-rose-600 text-xs font-bold mt-2 bg-rose-50 border border-rose-200 px-3 py-2 rounded-xl">
+                      <AlertCircle size={15} className="shrink-0" />
+                      <span>{coverUploadError}</span>
+                    </div>
+                  )}
+
+                  {/* Active Selected Cover Preview */}
+                  {serviceForm.image && (
+                    <div className="mt-3 flex items-center justify-between gap-3 bg-white p-3 rounded-2xl border border-slate-200 shadow-xs">
+                      <div className="flex items-center gap-3 min-w-0">
+                        <img
+                          src={serviceForm.image}
+                          alt="Cover Preview"
+                          className="w-16 h-16 rounded-xl object-cover border border-slate-200 shrink-0 bg-slate-100"
+                        />
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs font-bold text-slate-900 truncate">
+                              Active Cover Image
+                            </span>
+                            <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-emerald-100 text-emerald-800">
+                              Selected
+                            </span>
+                          </div>
+                          <p className="text-[11px] text-slate-500 mt-0.5 truncate">
+                            {serviceForm.image.startsWith('data:') 
+                              ? 'Custom uploaded image (Ready to save)' 
+                              : 'Preset photo selected'}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-2 shrink-0">
+                        <button
+                          type="button"
+                          onClick={() => coverImageInputRef.current?.click()}
+                          className="px-3 py-1.5 rounded-xl border border-slate-200 hover:border-emerald-600 text-xs font-bold text-slate-700 hover:text-emerald-700 transition cursor-pointer flex items-center gap-1.5"
+                        >
+                          <Upload size={13} />
+                          <span>Upload New</span>
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
 
