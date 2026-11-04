@@ -14,6 +14,7 @@ import { safeSetItem, safeGetItem } from '../../../utils/safeStorage.js';
 import toast from 'react-hot-toast';
 import ProviderProfileSection from '../../../components/dashboards/ProviderProfileSection.jsx';
 import ProviderWalletPayoutView from '../../../components/dashboards/ProviderWalletPayoutView.jsx';
+import ProviderReviewsView from '../../../components/dashboards/ProviderReviewsView.jsx';
 
 
 const AppointmentsModule = ({ user }) => {
@@ -1721,7 +1722,15 @@ const WalkingProviderContent = ({ activeTab, user }) => {
     case 'appointments': return <AppointmentsModule user={user} />;
     case 'routes': return <RoutesModule />;
     case 'messages': return <MessagesModule user={user} />;
-    case 'reviews': return <ReviewsModule user={user} />;
+    case 'reviews': return (
+      <ProviderReviewsView
+        serviceCategory="Pet Walking & Fitness"
+        title="Customer Reviews"
+        subtitle="Verified pet parent feedback, walking reports, and official walker replies."
+        roleTitle="Pet Walker"
+        storageKeyPrefix="walking"
+      />
+    );
     case 'wallet': return <ProviderWalletPayoutView serviceCategory="Dog Walking & Fitness" storageKeyPrefix="walking" initialBalance={24500} escrowAmount={6000} />;
     case 'profile': return <div className="p-8 text-center text-slate-500 font-medium">Profile management coming soon...</div>;
     default: return <AppointmentsModule user={user} />;
@@ -1814,7 +1823,7 @@ const WalkingProviderDashboard = ({
     { id: 'appointments', label: 'Walk Appointments', icon: Calendar },
     { id: 'routes', label: 'Active Routes', icon: MapPin },
     { id: 'messages', label: 'Client Inquiries', icon: MessageSquare },
-    { id: 'reviews', label: 'Customer Reviews', icon: Heart },
+    { id: 'reviews', label: 'Customer Reviews', icon: Star },
     { id: 'wallet', label: 'Wallet & Payouts', icon: DollarSign }
   ];
 

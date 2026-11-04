@@ -17,6 +17,7 @@ export const SELLER_PET_BREEDS = PET_BREEDS_BY_CATEGORY;
 import { safeSetItem, safeGetItem } from '../../../utils/safeStorage.js';
 import ProviderProfileSection from '../../../components/dashboards/ProviderProfileSection.jsx';
 import ProviderWalletPayoutView from '../../../components/dashboards/ProviderWalletPayoutView.jsx';
+import ProviderReviewsView from '../../../components/dashboards/ProviderReviewsView.jsx';
 
 const PetSellerDashboard = ({ 
   currentProvider, 
@@ -602,6 +603,7 @@ const PetSellerDashboard = ({
     { id: 'inventory', label: 'My Pet Inventory', icon: PawPrint, count: activePets.length },
     { id: 'orders', label: 'Sales & Orders', icon: DollarSign },
     { id: 'inquiries', label: 'Buyer Leads', icon: MessageSquare, count: inquiries.length > 0 ? inquiries.length : undefined },
+    { id: 'reviews', label: 'Customer Reviews', icon: Star },
     { id: 'wallet', label: 'Wallet & Payouts', icon: DollarSign }
   ];
 
@@ -1127,7 +1129,19 @@ const PetSellerDashboard = ({
           )}
 
 
-          {activeTab === 'wallet' && (
+          {activeTab === 'reviews' && (
+          <div className="bg-white rounded-3xl p-8 border border-slate-200 shadow-xs">
+            <ProviderReviewsView
+              serviceCategory="Pet Seller"
+              title="Customer Reviews"
+              subtitle="Verified buyer ratings, pet health testimonials, and official seller replies."
+              roleTitle="Pet Seller"
+              storageKeyPrefix="seller"
+            />
+          </div>
+        )}
+
+        {activeTab === 'wallet' && (
             <ProviderWalletPayoutView
               serviceCategory="Pet Seller"
               storageKeyPrefix="petseller"

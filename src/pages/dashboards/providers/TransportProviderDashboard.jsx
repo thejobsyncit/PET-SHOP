@@ -144,7 +144,7 @@ const TransportProviderDashboard = ({
     { id: 'vehicles', label: 'Vehicles', fullLabel: 'Vehicles & Rates',  icon: Tag },
     { id: 'service', label: 'My Service', fullLabel: 'My Transport Service', icon: Truck },
     { id: 'messages', label: 'Inquiries', fullLabel: 'Client Inquiries',  icon: MessageSquare },
-    { id: 'reviews', label: 'Reviews', fullLabel: 'Customer Reviews', icon: Heart },
+    { id: 'reviews', label: 'Customer Reviews', fullLabel: 'Customer Reviews', icon: Star },
     { id: 'wallet', label: 'Wallet', fullLabel: 'Wallet & Payouts', icon: DollarSign }
   ];
 

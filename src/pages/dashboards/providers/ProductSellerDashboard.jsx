@@ -11,6 +11,7 @@ import {
 import toast from 'react-hot-toast';
 import ProviderProfileSection from '../../../components/dashboards/ProviderProfileSection.jsx';
 import ProviderWalletPayoutView from '../../../components/dashboards/ProviderWalletPayoutView.jsx';
+import ProviderReviewsView from '../../../components/dashboards/ProviderReviewsView.jsx';
 import { safeSetItem, safeGetItem } from '../../../utils/safeStorage.js';
 import { createProductAsync, removeProductLocally } from '../../../store/slices/productSlice.js';
 import { logout, updateProfile } from '../../../store/slices/authSlice.js';
@@ -609,6 +610,7 @@ const ProductSellerDashboard = ({
     { id: 'products', label: 'Products & Inventory', icon: Package, count: productsList.length },
     { id: 'orders', label: 'Orders & Shipping', icon: Truck, count: orders.length },
     { id: 'analytics', label: 'Revenue & Sales', icon: TrendingUp },
+    { id: 'reviews', label: 'Customer Reviews', icon: Star },
     { id: 'wallet', label: 'Wallet & Payouts', icon: DollarSign }
   ];
 
@@ -1218,6 +1220,18 @@ const ProductSellerDashboard = ({
         {/* =========================================================================
             TAB 4: WALLET & PAYOUTS
            ========================================================================= */}
+        {activeTab === 'reviews' && (
+          <div className="bg-white rounded-3xl p-8 border border-slate-200 shadow-xs">
+            <ProviderReviewsView
+              serviceCategory="Pet Products & Supplies"
+              title="Customer Reviews"
+              subtitle="Verified buyer product ratings, store experience, and merchant replies."
+              roleTitle="Store Manager"
+              storageKeyPrefix="products"
+            />
+          </div>
+        )}
+
         {activeTab === 'wallet' && (
           <div className="space-y-4">
             <ProviderWalletPayoutView

@@ -176,7 +176,7 @@ const TrainingProviderDashboard = ({
                 { id: 'courses', label: 'Courses & Pricing', icon: Tag },
                 { id: 'service', label: 'My Training Service', icon: GraduationCap },
                 { id: 'messages', label: 'Client Inquiries', icon: MessageSquare },
-                { id: 'reviews', label: 'Customer Reviews', icon: Heart },
+                { id: 'reviews', label: 'Customer Reviews', icon: Star },
                 { id: 'wallet', label: 'Wallet & Payouts', icon: DollarSign }
               ].map(item => ( 
                 <li key={item.id}>

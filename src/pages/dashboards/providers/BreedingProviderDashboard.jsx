@@ -15,6 +15,7 @@ import { safeSetItem, safeGetItem } from '../../../utils/safeStorage.js';
 import toast from 'react-hot-toast';
 import ProviderProfileSection from '../../../components/dashboards/ProviderProfileSection.jsx';
 import ProviderWalletPayoutView from '../../../components/dashboards/ProviderWalletPayoutView.jsx';
+import ProviderReviewsView from '../../../components/dashboards/ProviderReviewsView.jsx';
 
 
 const ListingsModule = ({ user }) => {
@@ -1420,7 +1421,15 @@ const BreedingProviderContent = ({ activeTab, user }) => {
     case 'listings': return <ListingsModule user={user} />;
     case 'matches': return <MatchesModule user={user} />;
     case 'messages': return <MessagesModule user={user} />;
-    case 'reviews': return <ReviewsModule user={user} />;
+    case 'reviews': return (
+      <ProviderReviewsView
+        serviceCategory="Mating & Breeding"
+        title="Customer Reviews"
+        subtitle="Verified client ratings, breeding testimonials, and official breeder replies."
+        roleTitle="Breeder"
+        storageKeyPrefix="breeding"
+      />
+    );
     case 'wallet': return <ProviderWalletPayoutView serviceCategory="Pet Mating & Breeding" storageKeyPrefix="breeder" initialBalance={38000} escrowAmount={12000} />;
     case 'profile': return <ProfileModule user={user} />;
     default: return <ListingsModule user={user} />;

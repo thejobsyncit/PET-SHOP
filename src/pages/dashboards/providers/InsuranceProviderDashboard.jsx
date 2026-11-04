@@ -11,6 +11,7 @@ import { apiRequest } from '../../../services/api.js';
 import toast from 'react-hot-toast';
 import ProviderProfileSection from '../../../components/dashboards/ProviderProfileSection.jsx';
 import ProviderWalletPayoutView from '../../../components/dashboards/ProviderWalletPayoutView.jsx';
+import ProviderReviewsView from '../../../components/dashboards/ProviderReviewsView.jsx';
 
 const InsuranceProviderContent = ({ activeTab }) => {
   if (activeTab === 'wallet') {
@@ -20,6 +21,17 @@ const InsuranceProviderContent = ({ activeTab }) => {
         storageKeyPrefix="insurance" 
         initialBalance={45000} 
         escrowAmount={15000} 
+      />
+    );
+  }
+  if (activeTab === 'reviews') {
+    return (
+      <ProviderReviewsView
+        serviceCategory="Pet Insurance"
+        title="Customer Reviews"
+        subtitle="Verified policyholder ratings, claim satisfaction feedback, and official agency replies."
+        roleTitle="Insurance Partner"
+        storageKeyPrefix="insurance"
       />
     );
   }
@@ -156,7 +168,7 @@ const InsuranceProviderDashboard = ({
                 { id: 'policies', label: 'Active Policies', icon: ShieldCheck },
                 { id: 'claims', label: 'Pending Claims', icon: AlertCircle },
                 { id: 'messages', label: 'Client Inquiries', icon: MessageSquare },
-                { id: 'reviews', label: 'Customer Reviews', icon: Heart },
+                { id: 'reviews', label: 'Customer Reviews', icon: Star },
                 { id: 'wallet', label: 'Wallet & Payouts', icon: DollarSign }
               ].map(item => ( 
                 <li key={item.id}>

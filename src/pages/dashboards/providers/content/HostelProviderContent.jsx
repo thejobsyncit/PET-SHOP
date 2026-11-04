@@ -12,6 +12,7 @@ import toast from 'react-hot-toast';
 import { safeSetItem, safeGetItem } from '../../../../utils/safeStorage.js';
 import { apiRequest } from '../../../../services/api.js';
 import { getStoredHostelBookings } from '../../../../data/hostelData.js';
+import ProviderReviewsView from '../../../../components/dashboards/ProviderReviewsView.jsx';
 import { downloadBill, printBill } from '../../../../utils/billGenerator.js';
 
 // Default Initial Bookings
@@ -2343,54 +2344,15 @@ const HostelProviderContent = ({ activeTab }) => {
         </div>
       )}
 
-      {/* 
-        ========================================================================
-        5. GUEST REVIEWS TAB
-        ========================================================================
-      */}
+            {/* 5. GUEST REVIEWS TAB */}
       {activeTab === 'reviews' && (
-        <div className="space-y-6 animate-fadeIn">
-          <div className="flex items-center justify-between border-b border-slate-100 pb-6">
-            <div>
-              <h2 className="text-xl font-black text-[#0F2E23]">Guest Reviews</h2>
-              <p className="text-sm text-slate-500 font-medium mt-1">Monitor your ratings and reply to pet parent feedback.</p>
-            </div>
-          </div>
-          <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm flex items-center justify-between">
-            <div>
-              <div className="text-5xl font-black text-[#0F2E23] flex items-baseline gap-2">4.9 <span className="text-lg font-bold text-slate-400">/ 5.0</span></div>
-              <div className="flex gap-1 text-[#ffd000] mt-2">
-                <Star size={18} fill="currentColor" />
-                <Star size={18} fill="currentColor" />
-                <Star size={18} fill="currentColor" />
-                <Star size={18} fill="currentColor" />
-                <Star size={18} fill="currentColor" />
-              </div>
-              <p className="text-xs font-black uppercase tracking-widest text-slate-500 mt-3">Based on 312 Verified Boarding Reviews</p>
-            </div>
-          </div>
-
-          <div className="space-y-4">
-            {[
-              { author: 'Rahul & Leo (Beagle)', date: '3 days ago', comment: 'Happy Paws is our go-to boarding facility whenever we travel out of Bangalore. The daily video updates and pool session gave us complete peace of mind!', rating: 5 },
-              { author: 'Meera & Oreo (Husky)', date: '1 week ago', comment: 'The VIP Suite with 24/7 CCTV live stream is worth every single penny. Clean AC room and genuine caring attendants.', rating: 5 },
-              { author: 'Karan & Bruno (Labrador)', date: '2 weeks ago', comment: 'Prompt check-in and checkout. Handled his special diet with great attention.', rating: 5 }
-            ].map((rev, idx) => (
-              <div key={idx} className="bg-white border border-slate-200 rounded-2xl p-5 shadow-xs">
-                <div className="flex justify-between items-start mb-2">
-                  <div>
-                    <h4 className="font-bold text-slate-800 text-sm">{rev.author}</h4>
-                    <span className="text-[10px] text-slate-400 font-medium">{rev.date}</span>
-                  </div>
-                  <div className="flex text-amber-400">
-                    {[...Array(rev.rating)].map((_, i) => <Star key={i} size={14} fill="currentColor" />)}
-                  </div>
-                </div>
-                <p className="text-xs text-slate-600 font-medium leading-relaxed">{rev.comment}</p>
-              </div>
-            ))}
-          </div>
-        </div>
+        <ProviderReviewsView
+          serviceCategory="Pet Hostel & Boarding"
+          title="Guest Reviews"
+          subtitle="Verified guest ratings, boarding feedback, and official host replies."
+          roleTitle="Hostel Attendant"
+          storageKeyPrefix="hostel"
+        />
       )}
 
       {/* 

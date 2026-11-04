@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import ProviderWalletPayoutView from '../../../../components/dashboards/ProviderWalletPayoutView.jsx';
+import ProviderReviewsView from '../../../../components/dashboards/ProviderReviewsView.jsx';
 import { useSelector, useDispatch } from 'react-redux';
 import { apiRequest } from '../../../../services/api.js';
 import { updateProfile } from '../../../../store/slices/authSlice.js';
@@ -1841,27 +1842,13 @@ const GroomingProviderContent = ({ activeTab }) => {
 
       {/* REVIEWS TAB */}
       {activeTab === 'reviews' && (
-        <div className="space-y-6 animate-fadeIn">
-          <div className="flex items-center justify-between border-b border-slate-100 pb-6">
-            <div>
-              <h2 className="text-xl font-black text-[#0F2E23]">Customer Reviews</h2>
-              <p className="text-sm text-slate-500 font-medium mt-1">Monitor your ratings and reply to client feedback.</p>
-            </div>
-          </div>
-          <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm flex items-center justify-between">
-            <div>
-              <div className="text-5xl font-black text-[#0F2E23] flex items-baseline gap-2">4.8 <span className="text-lg font-bold text-slate-400">/ 5.0</span></div>
-              <div className="flex gap-1 text-[#ffd000] mt-2">
-                <Star size={18} fill="currentColor" />
-                <Star size={18} fill="currentColor" />
-                <Star size={18} fill="currentColor" />
-                <Star size={18} fill="currentColor" />
-                <StarHalf size={18} fill="currentColor" />
-              </div>
-              <p className="text-xs font-black uppercase tracking-widest text-slate-500 mt-3">Based on 156 Reviews</p>
-            </div>
-          </div>
-        </div>
+        <ProviderReviewsView
+          serviceCategory="Pet Grooming Spa"
+          title="Customer Reviews"
+          subtitle="Verified client ratings, styling feedback, and official spa replies."
+          roleTitle="Groomer"
+          storageKeyPrefix="grooming"
+        />
       )}
 
       {/* WALLET TAB */}

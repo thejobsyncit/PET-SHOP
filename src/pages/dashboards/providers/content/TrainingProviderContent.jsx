@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import ProviderWalletPayoutView from '../../../../components/dashboards/ProviderWalletPayoutView.jsx';
+import ProviderReviewsView from '../../../../components/dashboards/ProviderReviewsView.jsx';
 import { apiRequest } from '../../../../services/api.js';
 import { 
   getStoredTrainingProviders,
@@ -2047,100 +2048,15 @@ const TrainingProviderContent = ({ activeTab, user }) => {
       )}
 
       {/* ========================================================================= */}
-      {/* TAB 5: CUSTOMER REVIEWS */}
-      {/* ========================================================================= */}
+            {/* TAB 5: CUSTOMER REVIEWS */}
       {activeTab === 'reviews' && (
-        <div className="space-y-6">
-          
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-6 border-b border-slate-100">
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="p-2 bg-emerald-100 text-emerald-800 rounded-xl">
-                  <Heart size={20} />
-                </span>
-                <h2 className="text-2xl font-sans font-black text-[#0F2E23]">Customer Reviews & Ratings</h2>
-              </div>
-              <p className="text-sm text-slate-500 mt-1">
-                Read pet parent feedback, success stories, and post official trainer responses.
-              </p>
-            </div>
-
-            <div className="flex items-center gap-3 bg-amber-50 border border-amber-200 px-4 py-2 rounded-2xl">
-              <Star size={20} className="fill-amber-400 text-amber-400" />
-              <div>
-                <span className="text-base font-black text-[#0F2E23]">5.0 / 5.0</span>
-                <span className="text-[10px] text-slate-500 block font-bold">100% Positive Feedback</span>
-              </div>
-            </div>
-          </div>
-
-          <div className="space-y-4">
-            {reviews.map((rev) => (
-              <div key={rev.id} className="bg-white rounded-3xl border border-slate-200 p-6 shadow-sm space-y-4">
-                <div className="flex justify-between items-start">
-                  <div>
-                    <h4 className="text-base font-black text-[#0F2E23]">{rev.customerName}</h4>
-                    <span className="text-xs font-bold text-emerald-800 block mt-0.5">
-                      Pet: {rev.petName} • Course: {rev.courseName}
-                    </span>
-                  </div>
-
-                  <div className="flex items-center gap-1 bg-amber-50 px-2.5 py-1 rounded-xl border border-amber-200">
-                    <Star size={13} className="fill-amber-400 text-amber-400" />
-                    <span className="text-xs font-black text-amber-900">{rev.rating}.0</span>
-                  </div>
-                </div>
-
-                <p className="text-xs text-slate-600 leading-relaxed bg-slate-50 p-4 rounded-2xl border border-slate-100 italic">
-                  "{rev.comment}"
-                </p>
-
-                {rev.reply ? (
-                  <div className="ml-4 pl-4 border-l-2 border-emerald-600 bg-emerald-50/60 p-3.5 rounded-r-2xl text-xs">
-                    <span className="font-black text-emerald-900 block mb-0.5">Trainer Official Reply:</span>
-                    <p className="text-emerald-800">{rev.reply}</p>
-                  </div>
-                ) : (
-                  replyingReviewId === rev.id ? (
-                    <div className="space-y-2 pt-2">
-                      <textarea
-                        rows={2}
-                        value={replyText}
-                        onChange={(e) => setReplyText(e.target.value)}
-                        placeholder="Write a supportive reply to the pet parent..."
-                        className="w-full text-xs px-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:border-emerald-600"
-                      />
-                      <div className="flex justify-end gap-2">
-                        <button
-                          onClick={() => { setReplyingReviewId(null); setReplyText(''); }}
-                          className="px-3 py-1.5 text-xs text-slate-500 hover:text-slate-700"
-                        >
-                          Cancel
-                        </button>
-                        <button
-                          onClick={() => handlePostReply(rev.id)}
-                          className="px-4 py-1.5 bg-[#0F2E23] text-white rounded-xl text-xs font-bold hover:bg-emerald-900"
-                        >
-                          Post Reply
-                        </button>
-                      </div>
-                    </div>
-                  ) : (
-                    <button
-                      onClick={() => setReplyingReviewId(rev.id)}
-                      className="text-xs font-bold text-emerald-700 hover:text-emerald-900 flex items-center gap-1"
-                    >
-                      <MessageSquare size={13} /> Reply to Review
-                    </button>
-                  )
-                )}
-
-                <span className="text-[10px] text-slate-400 block pt-1">{rev.date}</span>
-              </div>
-            ))}
-          </div>
-
-        </div>
+        <ProviderReviewsView
+          serviceCategory="Pet Training & K9 Academy"
+          title="Customer Reviews & Ratings"
+          subtitle="Read pet parent feedback, success stories, and post official trainer responses."
+          roleTitle="Trainer"
+          storageKeyPrefix="training"
+        />
       )}
 
       {/* ========================================================================= */}
