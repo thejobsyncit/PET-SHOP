@@ -33,6 +33,7 @@ import {
   Star
 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { resolveProviderWhatsApp } from '../../utils/whatsappHelper.js';
 import RazorpayBookingPaymentModal from '../../components/widgets/RazorpayBookingPaymentModal.jsx';
 import {
   VET_SERVICE_MODES,
@@ -261,10 +262,15 @@ export default function VeterinaryServices() {
       );
       return;
     }
+    const docWhatsapp = resolveProviderWhatsApp(doc) || doc.whatsapp || doc.phone || '919876543210';
     handleServiceAction({
       isAuthenticated,
       serviceType: 'Veterinary',
-      provider: { ...doc, phone: doc.whatsapp },
+      provider: { 
+        ...doc, 
+        phone: docWhatsapp,
+        whatsapp: docWhatsapp
+      },
       action: 'whatsapp'
     });
   };

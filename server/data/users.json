@@ -10,7 +10,11 @@
     "cart": [],
     "businessName": "JOSH PETS HUB",
     "mobile": "9876543210",
-    "phone": "9876543210"
+    "phone": "9876543210",
+    "whatsapp": "9876543210",
+    "whatsappNumber": "9876543210",
+    "whatsappCountryCode": "+91",
+    "mobileCountryCode": "+91"
   },
   {
     "_id": "60d5ec49ad70591244000001",
@@ -34,7 +38,11 @@
     "cart": [],
     "businessName": "Admin Hub",
     "mobile": "9876543210",
-    "phone": "9876543210"
+    "phone": "9876543210",
+    "whatsapp": "9876543210",
+    "whatsappNumber": "9876543210",
+    "whatsappCountryCode": "+91",
+    "mobileCountryCode": "+91"
   },
   {
     "_id": "2d3769a2-22b0-4cd0-b489-3d5f8de98fcb",
@@ -126,7 +134,11 @@
     "wishlist": [],
     "cart": [],
     "mobile": "9845012345",
-    "phone": "9845012345"
+    "phone": "9845012345",
+    "whatsapp": "9845012345",
+    "whatsappNumber": "9845012345",
+    "whatsappCountryCode": "+91",
+    "mobileCountryCode": "+91"
   },
   {
     "_id": "prov-vet-01",
@@ -241,7 +253,9 @@
         "paymentMethod": "Online Gateway",
         "paidAt": "2026-10-29T11:08:21.466Z"
       }
-    ]
+    ],
+    "whatsappCountryCode": "+91",
+    "mobileCountryCode": "+91"
   },
   {
     "_id": "prov-adopt-05",
@@ -356,7 +370,9 @@
     "experience": 9,
     "trainingSpecialization": null,
     "vehicleTypes": null,
-    "emergencyHelpline": null
+    "emergencyHelpline": null,
+    "whatsappCountryCode": "+91",
+    "mobileCountryCode": "+91"
   },
   {
     "_id": "6aa12ddc8cb516b3b281a3df",
@@ -402,7 +418,11 @@
       }
     ],
     "profilePicture": "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150",
-    "phone": "9845099881"
+    "phone": "9845099881",
+    "whatsapp": "9845099881",
+    "whatsappNumber": "9845099881",
+    "whatsappCountryCode": "+91",
+    "mobileCountryCode": "+91"
   },
   {
     "_id": "prov-groom-02",
@@ -558,7 +578,9 @@
         }
       }
     },
-    "schedule": null
+    "schedule": null,
+    "whatsappCountryCode": "+91",
+    "mobileCountryCode": "+91"
   },
   {
     "_id": "6aad0797f7d5a7253ba9b848",
@@ -581,7 +603,11 @@
     "cart": [],
     "prescriptionHistory": [],
     "createdAt": "2026-09-18T09:42:47.090Z",
-    "phone": "9876543210"
+    "phone": "9876543210",
+    "whatsapp": "9876543210",
+    "whatsappNumber": "9876543210",
+    "whatsappCountryCode": "+91",
+    "mobileCountryCode": "+91"
   },
   {
     "_id": "5c03a90d-6c0a-41e6-86a2-bef6e9b5bb22",
@@ -647,7 +673,11 @@
     "wishlist": [],
     "cart": [],
     "prescription_history": [],
-    "password_plain": "3629@Srm"
+    "password_plain": "3629@Srm",
+    "whatsapp": "9876543210",
+    "whatsappNumber": "9876543210",
+    "whatsappCountryCode": "+91",
+    "mobileCountryCode": "+91"
   },
   {
     "_id": "prov-hostel-03",
@@ -747,7 +777,10 @@
       }
     ],
     "phone": "9731299881",
-    "profilePicture": "data:image/png;base64,new_photo_test_1793444347583"
+    "profilePicture": "data:image/png;base64,new_photo_test_1793444347583",
+    "whatsappNumber": "9731299881",
+    "whatsappCountryCode": "+91",
+    "mobileCountryCode": "+91"
   },
   {
     "_id": "prov-seller-04",
@@ -863,7 +896,10 @@
       }
     ],
     "phone": "9945122334",
-    "profilePicture": "data:image/png;base64,new_photo_test_1793444348181"
+    "profilePicture": "data:image/png;base64,new_photo_test_1793444348181",
+    "whatsappNumber": "9945122334",
+    "whatsappCountryCode": "+91",
+    "mobileCountryCode": "+91"
   },
   {
     "_id": "prov-walk-06",
@@ -979,7 +1015,11 @@
         "paymentMethod": "Online Gateway",
         "paidAt": "2026-10-28T13:41:38.405Z"
       }
-    ]
+    ],
+    "groomingSchedule": null,
+    "schedule": null,
+    "whatsappCountryCode": "+91",
+    "mobileCountryCode": "+91"
   },
   {
     "_id": "prov-trans-07",
@@ -1043,7 +1083,11 @@
     ],
     "phone": "9845223344",
     "avatar": "data:image/png;base64,new_photo_test_1793444350207",
-    "profilePicture": "data:image/png;base64,new_photo_test_1793444350207"
+    "profilePicture": "data:image/png;base64,new_photo_test_1793444350207",
+    "whatsapp": "9845223344",
+    "whatsappNumber": "9845223344",
+    "whatsappCountryCode": "+91",
+    "mobileCountryCode": "+91"
   },
   {
     "_id": "prov-train-08",
@@ -1073,7 +1117,11 @@
     "profileCompleted": true,
     "phone": "9845334455",
     "avatar": "data:image/png;base64,new_photo_test_1793444350829",
-    "profilePicture": "data:image/png;base64,new_photo_test_1793444350829"
+    "profilePicture": "data:image/png;base64,new_photo_test_1793444350829",
+    "whatsapp": "9845334455",
+    "whatsappNumber": "9845334455",
+    "whatsappCountryCode": "+91",
+    "mobileCountryCode": "+91"
   },
   {
     "_id": "prov-insure-09",
@@ -1189,7 +1237,9 @@
       "vehicleTypes": null,
       "emergencyHelpline": "1800-PET-CARE",
       "completedAt": "2026-10-31T07:25:44.954Z"
-    }
+    },
+    "whatsappCountryCode": "+91",
+    "mobileCountryCode": "+91"
   },
   {
     "_id": "prov-breed-10",
@@ -1234,7 +1284,11 @@
       "expiryDate": "2027-10-27T11:20:12.625Z",
       "paymentId": "PAY-DEMO-YEARLY",
       "paidAt": "2026-10-27T11:20:12.625Z"
-    }
+    },
+    "whatsapp": "9845556677",
+    "whatsappNumber": "9845556677",
+    "whatsappCountryCode": "+91",
+    "mobileCountryCode": "+91"
   },
   {
     "_id": "user-pavi-01",
@@ -1280,7 +1334,11 @@
     "wishlist": [],
     "cart": [],
     "prescription_history": [],
-    "phone": "9789883629"
+    "phone": "9789883629",
+    "whatsapp": "9789883629",
+    "whatsappNumber": "9789883629",
+    "whatsappCountryCode": "+91",
+    "mobileCountryCode": "+91"
   },
   {
     "_id": "test-user-1",
@@ -1407,7 +1465,10 @@
     "requiresSubscription": true,
     "cart": [],
     "wishlist": [],
-    "phone": "9876543210"
+    "phone": "9876543210",
+    "whatsappNumber": "9876543210",
+    "whatsappCountryCode": "+91",
+    "mobileCountryCode": "+91"
   },
   {
     "_id": "prov-prod-11",
@@ -1507,7 +1568,10 @@
       }
     ],
     "phone": "9845667788",
-    "profilePicture": "data:image/png;base64,new_photo_test_1793444352797"
+    "profilePicture": "data:image/png;base64,new_photo_test_1793444352797",
+    "whatsappNumber": "9845667788",
+    "whatsappCountryCode": "+91",
+    "mobileCountryCode": "+91"
   },
   {
     "_id": "4b3f9707-d1b8-4e9e-83d3-bb6376e32ac0",
@@ -1541,7 +1605,11 @@
     "wishlist": [],
     "cart": [],
     "prescription_history": [],
-    "phone": "9876543210"
+    "phone": "9876543210",
+    "whatsapp": "9876543210",
+    "whatsappNumber": "9876543210",
+    "whatsappCountryCode": "+91",
+    "mobileCountryCode": "+91"
   },
   {
     "_id": "b2cbfc1b-8b34-43ba-8cec-2267d3ada16d",
@@ -1575,6 +1643,10 @@
     "wishlist": [],
     "cart": [],
     "prescription_history": [],
-    "phone": "9845012345"
+    "phone": "9845012345",
+    "whatsapp": "9845012345",
+    "whatsappNumber": "9845012345",
+    "whatsappCountryCode": "+91",
+    "mobileCountryCode": "+91"
   }
 ]

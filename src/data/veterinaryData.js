@@ -1,3 +1,4 @@
+import { syncRegisteredProvidersToService } from '../utils/whatsappHelper.js';
 import { safeSetItem, safeGetItem, safeRemoveItem } from '../utils/safeStorage.js';
 /**
  * Josh Pets Hub Veterinary & Healthcare Dataset & Storage Helpers
@@ -119,6 +120,51 @@ export const VET_CLINICAL_TABS = [
 ];
 
 export const INITIAL_VET_DOCTORS = [
+  {
+    id: 'vet-ramesh',
+    name: 'Dr. Ramesh Kumar',
+    degrees: 'B.V.Sc & A.H, M.V.Sc (Veterinary Surgery)',
+    title: 'Chief Veterinary Surgeon & Medical Director',
+    clinicName: 'Josh Pets Hub Luxury Vet Clinic & Diagnostic Center',
+    experienceYears: 16,
+    experienceDisplay: '16+ Years Exp.',
+    vciRegistration: 'VCI/2010/KA-08492',
+    rating: 5.0,
+    reviewsCount: 420,
+    state: 'Karnataka',
+    city: 'Bangalore',
+    area: 'MG Road & Koramangala',
+    address: 'Koramangala, Bangalore, Karnataka',
+    phone: '9845012345',
+    whatsapp: '9845012345',
+    whatsappNumber: '9845012345',
+    whatsappCountryCode: '+91',
+    email: 'dr.ramesh@joshpetshub.com',
+    providerEmail: 'dr.ramesh@joshpetshub.com',
+    avatar: 'https://images.unsplash.com/photo-1629909615184-74f495363b67?q=80&w=800&auto=format&fit=crop',
+    coverImage: 'https://images.unsplash.com/photo-1583337130417-3346a1be7dee?q=80&w=800&auto=format&fit=crop',
+    inClinicFee: 800,
+    videoConsultFee: 499,
+    homeVisitFee: 1500,
+    petCategories: ['Dogs', 'Cats', 'Birds', 'All'],
+    specializations: [
+      'Orthopedics & Soft Tissue Surgery',
+      'General Physician & Vaccines',
+      'Dermatology & Skin Allergy'
+    ],
+    isVerified: true,
+    isEmergencyAvailable: true,
+    isHomeVisitAvailable: true,
+    openTodayTiming: '09:00 AM - 09:00 PM',
+    bio: 'Renowned Chief Veterinary Surgeon at Josh Pets Hub Luxury Multi-Specialty Pet Hospital with over 16 years of advanced soft-tissue and orthopedic surgical experience.',
+    facilities: [
+      'Digital X-Ray & Color Doppler Ultrasound',
+      'Modular Surgical Suite with Isoflurane',
+      '24/7 In-Patient Oxygenated ICU',
+      'In-House Complete Hematology & Biochemistry Lab'
+    ],
+    consultationModes: ['In-Clinic Visit', '24/7 Video Tele-Consult', 'Home Visit Vet', '24/7 Emergency & ICU']
+  },
   {
     id: 'vet-1',
     name: 'Dr. Rajesh Iyer',
@@ -615,11 +661,12 @@ export const INITIAL_VET_DOCTORS = [
 
 // LocalStorage helpers with safe Quota handling
 export const getStoredVetDoctors = () => {
+  let list = INITIAL_VET_DOCTORS;
   try {
     const saved = safeGetItem('joshpetshub_vet_doctors_v2');
     if (saved) {
       const parsed = JSON.parse(saved);
-      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      if (Array.isArray(parsed) && parsed.length > 0) list = parsed;
     }
   } catch (e) {
     console.warn('Could not read vet doctors from localStorage', e);
@@ -628,12 +675,12 @@ export const getStoredVetDoctors = () => {
   try {
     // Clean old keys if needed
     safeRemoveItem('joshpetshub_vet_doctors_v1');
-    safeSetItem('joshpetshub_vet_doctors_v2', JSON.stringify(INITIAL_VET_DOCTORS));
+    safeSetItem('joshpetshub_vet_doctors_v2', JSON.stringify(list));
   } catch (e) {
     console.warn('LocalStorage quota exceeded, using in-memory INITIAL_VET_DOCTORS', e);
   }
 
-  return INITIAL_VET_DOCTORS;
+  return syncRegisteredProvidersToService(list, 'vet');
 };
 
 export const INITIAL_VET_APPOINTMENTS = [

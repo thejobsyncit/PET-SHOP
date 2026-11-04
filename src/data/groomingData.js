@@ -1,3 +1,4 @@
+import { syncRegisteredProvidersToService } from '../utils/whatsappHelper.js';
 // Grooming Service Providers Dataset & Persistent Storage Helpers
 
 export const GROOMING_OFFERINGS = [
@@ -163,13 +164,14 @@ const STORAGE_KEY_PROVIDERS = 'joshpetshub_grooming_providers_v1';
 const STORAGE_KEY_BOOKINGS = 'joshpetshub_grooming_bookings_v1';
 
 export const getStoredGroomingProviders = () => {
+  let list = INITIAL_GROOMING_PROVIDERS;
   try {
     const data = localStorage.getItem(STORAGE_KEY_PROVIDERS);
-    if (data) return JSON.parse(data);
+    if (data) list = JSON.parse(data);
   } catch (e) {
     console.error('Failed to parse grooming providers from storage', e);
   }
-  return INITIAL_GROOMING_PROVIDERS;
+  return syncRegisteredProvidersToService(list, 'groom');
 };
 
 export const saveGroomingBooking = (bookingData) => {

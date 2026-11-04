@@ -28,6 +28,7 @@ import {
   ChevronRight
 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { resolveProviderWhatsApp } from '../../utils/whatsappHelper.js';
 import {
   BREEDING_BREEDS_BY_CATEGORY,
   INITIAL_MATING_PETS,
@@ -435,10 +436,17 @@ const BreedingDirectory = () => {
       );
       return;
     }
+    const contactNum = resolveProviderWhatsApp(pet) || pet.whatsappNumber || pet.whatsapp || pet.parentPhone || pet.phone;
     handleServiceAction({
       isAuthenticated,
       serviceType: 'Breeding',
-      provider: { name: `${pet.name} (${pet.parentName})`, phone: pet.parentPhone, city: pet.city, image: pet.image },
+      provider: { 
+        name: `${pet.name} (${pet.parentName})`, 
+        phone: contactNum,
+        whatsapp: contactNum,
+        city: pet.city, 
+        image: pet.image 
+      },
       action: 'whatsapp'
     });
   };
