@@ -1808,7 +1808,7 @@ const WalkingProviderDashboard = ({
   };
 
   const displayAvatar = user?.avatar || user?.profilePicture || currentProvider?.avatar || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=800&auto=format&fit=crop';
-  const displayName = user?.name || currentProvider?.name || 'Provider';
+  const displayName = user?.name || currentProvider?.name || 'Swift Paws Walking';
 
   const currentSub = subscription || user?.subscription;
   const isSubActive = Boolean(
@@ -1832,8 +1832,42 @@ const WalkingProviderDashboard = ({
       
       {/* LEFT SIDEBAR */}
       <aside className="w-full lg:w-72 shrink-0 bg-white border-r border-slate-200 relative lg:sticky top-0 lg:top-[104px] h-auto lg:h-[calc(100vh-104px)] flex flex-col justify-between overflow-y-auto z-10 shadow-[4px_0_24px_rgba(0,0,0,0.02)]">
-        <div className="p-6 pt-6 space-y-6">
-          <nav className="space-y-1.5">
+        <div className="p-6 pt-6 lg:pt-12 space-y-8">
+          
+          {/* Profile Widget */}
+          <div className="flex flex-col items-center text-center space-y-4">
+            <div className="w-full px-4">
+              {isEditingProfile ? (
+                <form onSubmit={handleUpdateProfile} className="flex items-center gap-2 justify-center mt-2">
+                  <input
+                    type="text"
+                    value={profileName}
+                    onChange={(e) => setProfileName(e.target.value)}
+                    className="w-full text-center text-sm font-black text-[#0F2E23] border-b-2 border-[#ffd000] focus:outline-none bg-transparent"
+                    autoFocus
+                  />
+                  <button type="submit" className="text-emerald-600 hover:text-emerald-700 p-1 cursor-pointer">
+                    <Check size={16} />
+                  </button>
+                  <button type="button" onClick={() => setIsEditingProfile(false)} className="text-rose-600 hover:text-rose-700 p-1 cursor-pointer">
+                    <X size={16} />
+                  </button>
+                </form>
+              ) : (
+                <div className="flex items-center justify-center gap-2 mt-2 group/edit cursor-pointer" onClick={() => setIsEditingProfile(true)}>
+                  <h2 className="text-xl font-sans font-black text-[#0F2E23] tracking-tight leading-tight">
+                    {profileName || displayName}
+                  </h2>
+                  <Edit3 size={14} className="text-slate-300 group-hover/edit:text-[#ffd000] transition" />
+                </div>
+              )}
+              <span className="inline-flex mt-2 bg-[#ffd000]/10 text-[#0F2E23] border border-[#ffd000]/30 text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-widest items-center justify-center gap-1 shadow-sm mx-auto">
+                <ShieldCheck size={12} className="text-amber-500" /> Elite Walker
+              </span>
+            </div>
+          </div>
+
+          <nav className="space-y-1.5 pt-4">
             <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 px-3">Main Menu</div>
             <ul className="space-y-1">
               {navMenuItems.map(item => (
