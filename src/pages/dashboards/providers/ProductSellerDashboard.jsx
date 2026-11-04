@@ -1,11 +1,12 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useSearchParams, useNavigate, Link } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import {
   Package, ShoppingBag, Plus, Search, Edit3, Trash2,
   TrendingUp, DollarSign, CheckCircle2, AlertTriangle, AlertCircle,
   Truck, ArrowUpRight, Sparkles, Star, X, Check,
-  Store, ExternalLink, ShieldCheck, MapPin, CheckCircle, LogOut, Settings, Wallet
+  Store, ExternalLink, ShieldCheck, MapPin, CheckCircle, LogOut, Settings, Wallet,
+  UploadCloud, Upload, Image as ImageIcon
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import ProviderProfileSection from '../../../components/dashboards/ProviderProfileSection.jsx';
@@ -292,6 +293,54 @@ const ProductSellerDashboard = ({
   const [formStock, setFormStock] = useState('20');
   const [formSku, setFormSku] = useState('');
   const [formImages, setFormImages] = useState('');
+  const [productImageError, setProductImageError] = useState('');
+  const productImageInputRef = useRef(null);
+
+  const handleProductImageUpload = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file format
+    const validExtensions = ['jpg', 'jpeg', 'png', 'webp'];
+    const extension = file.name.split('.').pop()?.toLowerCase();
+    const isValidType = file.type.startsWith('image/') || validExtensions.includes(extension);
+
+    if (!isValidType) {
+      const errorMsg = 'Invalid file format! Only JPG, PNG, and WEBP images are allowed.';
+      setProductImageError(errorMsg);
+      toast.error(errorMsg);
+      if (e.target) e.target.value = '';
+      return;
+    }
+
+    // Validate size (< 5MB)
+    const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB in bytes
+    if (file.size >= MAX_FILE_SIZE) {
+      const errorMsg = `Image size must be less than 5MB! Selected file is ${(file.size / (1024 * 1024)).toFixed(2)}MB.`;
+      setProductImageError(errorMsg);
+      toast.error(errorMsg);
+      if (e.target) e.target.value = '';
+      return;
+    }
+
+    // Clear error
+    setProductImageError('');
+
+    // Read file via FileReader
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const dataUrl = event.target?.result;
+      if (dataUrl) {
+        setFormImages(dataUrl);
+        toast.success(`Product image "${file.name}" uploaded successfully!`);
+      }
+    };
+    reader.onerror = () => {
+      toast.error('Failed to read image file. Please try again.');
+    };
+    reader.readAsDataURL(file);
+    if (e.target) e.target.value = '';
+  };
   const [formDescription, setFormDescription] = useState('');
   const [formIngredients, setFormIngredients] = useState('');
   const [formIsFeatured, setFormIsFeatured] = useState(true);
@@ -361,7 +410,8 @@ const ProductSellerDashboard = ({
     setFormDiscountPrice('');
     setFormStock('25');
     setFormSku(`SKU-${Date.now().toString().slice(-6)}`);
-    setFormImages(PRESET_PRODUCT_IMAGES[0].url);
+    setFormImages('');
+    setProductImageError('');
     setFormDescription('Nutritious and balanced formula designed for companion vitality, strong digestion, and coat health.');
     setFormIngredients('Real protein, essential vitamins, Omega 3 & 6, prebiotic fiber, natural minerals.');
     setFormIsFeatured(true);
@@ -390,6 +440,7 @@ const ProductSellerDashboard = ({
     setFormIsFeatured(Boolean(prod.isFeatured));
     setFormIsBestSeller(Boolean(prod.isBestSeller));
     setFormRequiresPrescription(Boolean(prod.requiresPrescription));
+    setProductImageError('');
     setIsProductModalOpen(true);
   };
 
@@ -403,6 +454,12 @@ const ProductSellerDashboard = ({
     }
     if (!formPrice || Number(formPrice) <= 0) {
       toast.error('Please enter a valid price');
+      return;
+    }
+
+    if (!formImages || !formImages.trim()) {
+      toast.error('Please upload a product image');
+      setProductImageError('Please upload a product image before publishing.');
       return;
     }
 
@@ -1334,49 +1391,96 @@ const ProductSellerDashboard = ({
                 </div>
               </div>
 
-              {/* Product Image URL with Preset Pickers */}
-              <div className="space-y-1.5">
-                <label className="font-bold text-slate-700 flex items-center justify-between">
-                  <span>Product Image URL *</span>
-                  <span className="text-[10px] text-slate-400 font-normal">Click any preset below to auto-fill</span>
-                </label>
-                <div className="flex gap-2">
-                  <input
-                    type="url"
-                    placeholder="https://..."
-                    value={formImages}
-                    onChange={(e) => setFormImages(e.target.value)}
-                    required
-                    className="flex-1 px-3 py-2 border border-slate-200 rounded-xl text-xs focus:outline-none focus:border-emerald-600"
-                  />
-                  {formImages && (
-                    <img
-                      src={formImages}
-                      alt="Preview"
-                      className="w-9 h-9 rounded-lg object-cover border border-slate-200 shrink-0"
-                      onError={(e) => { e.target.src = PRESET_PRODUCT_IMAGES[0].url; }}
-                    />
-                  )}
+              {/* Product Image Upload Section */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <label className="font-bold text-slate-700 text-xs">
+                    Product Image *
+                  </label>
+                  <span className="text-[10px] text-slate-400">
+                    JPG, PNG, WEBP • Less than 5MB
+                  </span>
                 </div>
 
-                {/* Preset image buttons */}
-                <div className="flex items-center gap-1.5 overflow-x-auto py-1 scrollbar-none">
-                  {PRESET_PRODUCT_IMAGES.map((preset, idx) => (
-                    <button
-                      key={idx}
-                      type="button"
-                      onClick={() => setFormImages(preset.url)}
-                      className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg border text-[10px] shrink-0 font-medium transition cursor-pointer ${
-                        formImages === preset.url
-                          ? 'border-emerald-600 bg-emerald-50 text-emerald-800 font-bold'
-                          : 'border-slate-200 bg-slate-50 text-slate-600 hover:bg-slate-100'
-                      }`}
-                    >
-                      <img src={preset.url} alt={preset.label} className="w-4 h-4 rounded object-cover" />
-                      <span>{preset.label}</span>
-                    </button>
-                  ))}
+                <input
+                  type="file"
+                  ref={productImageInputRef}
+                  accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp"
+                  onChange={handleProductImageUpload}
+                  className="hidden"
+                />
+
+                {/* Upload Box */}
+                <div
+                  onClick={() => productImageInputRef.current?.click()}
+                  className={`border-2 border-dashed rounded-2xl p-5 text-center cursor-pointer transition-all duration-200 group ${
+                    productImageError 
+                      ? 'border-rose-400 bg-rose-50/40 hover:bg-rose-50/70' 
+                      : 'border-slate-300 hover:border-emerald-600 bg-slate-50/60 hover:bg-emerald-50/30'
+                  }`}
+                >
+                  <div className="flex flex-col items-center justify-center gap-2">
+                    <div className="w-11 h-11 rounded-2xl bg-emerald-100 text-emerald-800 flex items-center justify-center group-hover:scale-110 transition duration-200 shadow-xs">
+                      <UploadCloud size={22} />
+                    </div>
+                    <div>
+                      <p className="text-xs font-black text-slate-800 group-hover:text-emerald-700 transition">
+                        Click or drag to upload product photo
+                      </p>
+                      <p className="text-[11px] text-slate-400 font-medium mt-0.5">
+                        Only <strong className="text-slate-600">JPG, PNG, WEBP</strong> format • Max size <strong className="text-slate-600">&lt; 5MB</strong>
+                      </p>
+                    </div>
+                  </div>
                 </div>
+
+                {/* Error Message */}
+                {productImageError && (
+                  <div className="flex items-center gap-2 text-rose-600 text-xs font-bold mt-1.5 bg-rose-50 border border-rose-200 px-3 py-2 rounded-xl">
+                    <AlertCircle size={14} className="shrink-0" />
+                    <span>{productImageError}</span>
+                  </div>
+                )}
+
+                {/* Active Selected Product Image Preview */}
+                {formImages && (
+                  <div className="mt-2.5 flex items-center justify-between gap-3 bg-white p-2.5 rounded-2xl border border-slate-200 shadow-xs">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <img
+                        src={formImages}
+                        alt="Product Preview"
+                        className="w-14 h-14 rounded-xl object-cover border border-slate-200 shrink-0 bg-slate-100"
+                        onError={(e) => { e.target.src = 'https://images.unsplash.com/photo-1589924691995-400dc9ecc119?q=80&w=800'; }}
+                      />
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs font-bold text-slate-900 truncate">
+                            Selected Product Image
+                          </span>
+                          <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-emerald-100 text-emerald-800">
+                            Ready
+                          </span>
+                        </div>
+                        <p className="text-[11px] text-slate-500 mt-0.5 truncate">
+                          {formImages.startsWith('data:') 
+                            ? 'Custom uploaded image (Ready to save)' 
+                            : 'Product image set'}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2 shrink-0">
+                      <button
+                        type="button"
+                        onClick={() => productImageInputRef.current?.click()}
+                        className="px-3 py-1.5 rounded-xl border border-slate-200 hover:border-emerald-600 text-xs font-bold text-slate-700 hover:text-emerald-700 transition cursor-pointer flex items-center gap-1.5"
+                      >
+                        <Upload size={13} />
+                        <span>Change Photo</span>
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Description */}
