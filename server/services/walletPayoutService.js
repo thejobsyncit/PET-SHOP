@@ -312,7 +312,7 @@ export const getProviderEarningsData = (providerIdentifier, serviceCategory = ''
     return matchesId || matchesCategory;
   });
 
-  const COMMISSION_RATE = 0.05; // 5% Josh Pets Hub Commission
+  const COMMISSION_RATE = 0.01; // 1% Josh Pets Hub Commission
 
   let totalBookingsReceived = providerBookings.length;
   let totalPaidBookings = 0;
@@ -770,8 +770,8 @@ export const processBookingRefund = ({ bookingId, reason, adminUser }) => {
     serviceCategory: booking.serviceCategory || booking.serviceType,
     customerId: booking.userId,
     customerName: booking.ownerName,
-    platformFee: Math.round(refundAmount * 0.05),
-    providerShare: refundAmount - Math.round(refundAmount * 0.05),
+    platformFee: Math.round(refundAmount * 0.01),
+    providerShare: refundAmount - Math.round(refundAmount * 0.01),
     status: 'SUCCESS',
     description: `Refund for booking ${booking.id}: ${reason || 'Cancelled'}`
   });

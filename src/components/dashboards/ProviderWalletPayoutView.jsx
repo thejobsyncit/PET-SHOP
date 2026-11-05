@@ -318,7 +318,7 @@ const ProviderWalletPayoutView = ({
           </div>
           <div className="pt-4 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-500 font-medium">
             <span>{metrics.totalPaidBookings} Paid Bookings</span>
-            <span className="text-emerald-700 font-bold">5% Josh Fee</span>
+            <span className="text-emerald-700 font-bold">1% Josh Fee</span>
           </div>
         </div>
 
@@ -430,7 +430,7 @@ const ProviderWalletPayoutView = ({
                     <th className="px-5 py-3.5">Service Details</th>
                     <th className="px-5 py-3.5">Booking Date</th>
                     <th className="px-5 py-3.5">Service Price</th>
-                    <th className="px-5 py-3.5">Josh Fee (5%)</th>
+                    <th className="px-5 py-3.5">Josh Fee (1%)</th>
                     <th className="px-5 py-3.5">Net Payable</th>
                     <th className="px-5 py-3.5">Payment</th>
                     <th className="px-5 py-3.5">Booking Status</th>
