@@ -1103,57 +1103,59 @@ const GroomingProviderContent = ({ activeTab }) => {
 
           {/* ADD / EDIT ADD-ON SERVICE MODAL */}
           {showAddOnModal && (
-            <div className="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center z-50 p-4 overflow-y-auto animate-fadeIn">
+            <div className="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center z-50 p-3 sm:p-4 animate-fadeIn">
               <div 
-                className="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-7 shadow-2xl border border-slate-100 relative my-6 max-h-[92vh] overflow-y-auto text-slate-800"
+                className="bg-white rounded-3xl max-w-lg w-full max-h-[90vh] flex flex-col shadow-2xl border border-slate-100 relative animate-fadeIn overflow-hidden text-slate-800"
                 onClick={(e) => e.stopPropagation()}
               >
-                <button 
-                  type="button"
-                  onClick={() => setShowAddOnModal(false)}
-                  className="absolute top-5 right-5 text-slate-400 hover:text-slate-700 p-1.5 rounded-full hover:bg-slate-100 transition cursor-pointer"
-                  aria-label="Close"
-                >
-                  <X size={18} />
-                </button>
-
-                <div className="flex items-center gap-3 mb-2">
-                  <div className="w-10 h-10 rounded-2xl bg-emerald-100 text-emerald-800 flex items-center justify-center shrink-0">
-                    <Sparkles size={20} />
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-black text-[#0F2E23]">
-                      {editingAddOnId ? 'Edit Add-On Service' : 'Add New Add-On Service'}
-                    </h3>
-                    <p className="text-xs text-slate-500 font-medium">
-                      Configure extra treatments and pricing for Velvet Fur Studio.
-                    </p>
-                  </div>
-                </div>
-
-                {/* Quick Presets if adding new */}
-                {!editingAddOnId && (
-                  <div className="bg-slate-50 border border-slate-100 rounded-2xl p-3 my-4">
-                    <span className="text-[10px] font-black uppercase tracking-wider text-slate-500 block mb-2">
-                      Popular Service Suggestions (Click to autofill):
-                    </span>
-                    <div className="flex flex-wrap gap-1.5">
-                      {PRESET_ADDONS.map((preset, idx) => (
-                        <button
-                          key={idx}
-                          type="button"
-                          onClick={() => handleApplyPreset(preset)}
-                          className="px-2.5 py-1 bg-white hover:bg-emerald-50 border border-slate-200 hover:border-emerald-300 text-slate-700 hover:text-emerald-800 rounded-lg text-[11px] font-bold transition cursor-pointer text-left flex items-center gap-1 shadow-2xs"
-                        >
-                          <span>{preset.name}</span>
-                          <span className="text-emerald-600 font-black">₹{preset.price}</span>
-                        </button>
-                      ))}
+                {/* Fixed Header */}
+                <div className="flex items-center justify-between p-5 sm:p-6 border-b border-slate-100 shrink-0 bg-white">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-2xl bg-emerald-100 text-emerald-800 flex items-center justify-center shrink-0">
+                      <Sparkles size={20} />
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-black text-[#0F2E23]">
+                        {editingAddOnId ? 'Edit Add-On Service' : 'Add New Add-On Service'}
+                      </h3>
+                      <p className="text-xs text-slate-500 font-medium">
+                        Configure extra treatments and pricing for Velvet Fur Studio.
+                      </p>
                     </div>
                   </div>
-                )}
+                  <button 
+                    type="button"
+                    onClick={() => setShowAddOnModal(false)}
+                    className="text-slate-400 hover:text-slate-700 p-1.5 rounded-full hover:bg-slate-100 transition cursor-pointer shrink-0"
+                    aria-label="Close"
+                  >
+                    <X size={18} />
+                  </button>
+                </div>
 
-                <form onSubmit={handleSaveAddOn} className="space-y-4 mt-4">
+                <form onSubmit={handleSaveAddOn} className="flex flex-col flex-1 min-h-0 overflow-hidden">
+                  <div className="p-5 sm:p-6 space-y-4 overflow-y-auto flex-1">
+                    {/* Quick Presets if adding new */}
+                    {!editingAddOnId && (
+                      <div className="bg-slate-50 border border-slate-100 rounded-2xl p-3">
+                        <span className="text-[10px] font-black uppercase tracking-wider text-slate-500 block mb-2">
+                          Popular Service Suggestions (Click to autofill):
+                        </span>
+                        <div className="flex flex-wrap gap-1.5">
+                          {PRESET_ADDONS.map((preset, idx) => (
+                            <button
+                              key={idx}
+                              type="button"
+                              onClick={() => handleApplyPreset(preset)}
+                              className="px-2.5 py-1 bg-white hover:bg-emerald-50 border border-slate-200 hover:border-emerald-300 text-slate-700 hover:text-emerald-800 rounded-lg text-[11px] font-bold transition cursor-pointer text-left flex items-center gap-1 shadow-2xs"
+                            >
+                              <span>{preset.name}</span>
+                              <span className="text-emerald-600 font-black">₹{preset.price}</span>
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                   {/* Service Name */}
                   <div>
                     <label className="text-[11px] font-black text-slate-600 uppercase tracking-wider block mb-1">
@@ -1246,13 +1248,14 @@ const GroomingProviderContent = ({ activeTab }) => {
                       className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs font-medium text-slate-800 focus:outline-none focus:border-emerald-600 focus:bg-white transition resize-none"
                     />
                   </div>
+                  </div>
 
-                  {/* Modal Buttons */}
-                  <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-100">
+                  {/* Fixed Modal Footer Buttons */}
+                  <div className="p-4 sm:p-5 border-t border-slate-100 bg-slate-50/70 flex items-center justify-end gap-3 shrink-0">
                     <button
                       type="button"
                       onClick={() => setShowAddOnModal(false)}
-                      className="px-5 py-2.5 rounded-xl border border-slate-200 text-slate-600 text-xs font-black uppercase tracking-wider hover:bg-slate-50 transition cursor-pointer"
+                      className="px-5 py-2.5 rounded-xl border border-slate-200 text-slate-600 text-xs font-black uppercase tracking-wider hover:bg-white transition cursor-pointer"
                     >
                       Cancel
                     </button>
@@ -1445,26 +1448,34 @@ const GroomingProviderContent = ({ activeTab }) => {
 
           {/* Upload Photo Modal */}
           {showUploadModal && (
-            <div className="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center z-50 p-4 overflow-y-auto">
-              <div className="bg-white rounded-3xl max-w-xl w-full p-6 sm:p-8 shadow-2xl border border-slate-100 relative my-6 animate-fadeIn max-h-[92vh] overflow-y-auto text-slate-800">
-                <button 
-                  onClick={() => setShowUploadModal(false)}
-                  className="absolute top-5 right-5 text-slate-400 hover:text-slate-700 p-1.5 rounded-full hover:bg-slate-100 transition cursor-pointer"
-                >
-                  <X size={20} />
-                </button>
-
-                <div className="flex items-center gap-3 mb-1">
-                  <div className="w-10 h-10 rounded-2xl bg-emerald-100 text-emerald-800 flex items-center justify-center">
-                    <Scissors size={20} />
+            <div className="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center z-50 p-3 sm:p-4 animate-fadeIn">
+              <div 
+                className="bg-white rounded-3xl max-w-xl w-full max-h-[90vh] flex flex-col shadow-2xl border border-slate-100 relative animate-fadeIn overflow-hidden text-slate-800"
+                onClick={(e) => e.stopPropagation()}
+              >
+                {/* Fixed Modal Header */}
+                <div className="flex items-center justify-between p-5 sm:p-6 border-b border-slate-100 shrink-0 bg-white">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-2xl bg-emerald-100 text-emerald-800 flex items-center justify-center shrink-0">
+                      <Scissors size={20} />
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-black text-[#0F2E23]">Upload Before & After Transformation</h3>
+                      <p className="text-xs text-slate-500 font-medium">Showcase grooming results to pet parents booking appointments.</p>
+                    </div>
                   </div>
-                  <div>
-                    <h3 className="text-lg font-black text-[#0F2E23]">Upload Before & After Transformation</h3>
-                    <p className="text-xs text-slate-500 font-medium">Showcase grooming results to pet parents booking appointments.</p>
-                  </div>
+                  <button 
+                    type="button"
+                    onClick={() => setShowUploadModal(false)}
+                    className="text-slate-400 hover:text-slate-700 p-1.5 rounded-full hover:bg-slate-100 transition cursor-pointer shrink-0"
+                    aria-label="Close"
+                  >
+                    <X size={20} />
+                  </button>
                 </div>
 
-                <form onSubmit={handleUploadPhotoSubmit} className="space-y-4 mt-5">
+                <form onSubmit={handleUploadPhotoSubmit} className="flex flex-col flex-1 min-h-0 overflow-hidden">
+                  <div className="p-5 sm:p-6 space-y-4 overflow-y-auto flex-1">
                   {/* Title & Pet */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
@@ -1618,19 +1629,20 @@ const GroomingProviderContent = ({ activeTab }) => {
                       className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-800 resize-none focus:outline-none focus:border-emerald-500"
                     />
                   </div>
+                  </div>
 
-                  {/* Actions */}
-                  <div className="flex gap-3 pt-3">
+                  {/* Fixed Modal Footer Actions */}
+                  <div className="p-4 sm:p-5 border-t border-slate-100 bg-slate-50/70 flex gap-3 shrink-0">
                     <button 
                       type="button"
                       onClick={() => setShowUploadModal(false)}
-                      className="flex-1 py-3 rounded-xl border border-slate-200 text-slate-600 text-xs font-black uppercase tracking-wider hover:bg-slate-50 transition cursor-pointer"
+                      className="flex-1 py-2.5 rounded-xl border border-slate-200 text-slate-600 text-xs font-black uppercase tracking-wider hover:bg-white transition cursor-pointer"
                     >
                       Cancel
                     </button>
                     <button 
                       type="submit"
-                      className="flex-1 py-3 rounded-xl bg-[#0F2E23] hover:bg-[#163e30] text-white text-xs font-black uppercase tracking-wider shadow-md hover:shadow-lg transition cursor-pointer flex items-center justify-center gap-1.5"
+                      className="flex-1 py-2.5 rounded-xl bg-[#0F2E23] hover:bg-[#163e30] text-white text-xs font-black uppercase tracking-wider shadow-md hover:shadow-lg transition cursor-pointer flex items-center justify-center gap-1.5"
                     >
                       <Sparkles size={14} /> Publish to Gallery
                     </button>
@@ -1642,22 +1654,32 @@ const GroomingProviderContent = ({ activeTab }) => {
 
           {/* Full Comparison Lightbox Modal */}
           {selectedPhotoForPreview && (
-            <div className="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center z-50 p-4 overflow-y-auto">
-              <div className="bg-white rounded-3xl max-w-4xl w-full p-6 sm:p-8 shadow-2xl relative my-6 animate-fadeIn max-h-[92vh] overflow-y-auto">
-                <button 
-                  onClick={() => setSelectedPhotoForPreview(null)}
-                  className="absolute top-5 right-5 text-slate-400 hover:text-slate-700 p-2 rounded-full hover:bg-slate-100 transition cursor-pointer z-10"
-                >
-                  <X size={22} />
-                </button>
-
-                <div className="mb-4">
-                  <span className="text-[10px] font-black uppercase tracking-wider text-emerald-700 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-100">
-                    {selectedPhotoForPreview.category}
-                  </span>
-                  <h3 className="text-xl font-black text-[#0F2E23] mt-2">{selectedPhotoForPreview.title}</h3>
-                  <p className="text-xs font-bold text-slate-600 mt-0.5">🐾 {selectedPhotoForPreview.petName} • Uploaded {selectedPhotoForPreview.uploadedAt}</p>
+            <div className="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center z-50 p-3 sm:p-4 animate-fadeIn">
+              <div 
+                className="bg-white rounded-3xl max-w-4xl w-full max-h-[90vh] flex flex-col shadow-2xl relative animate-fadeIn overflow-hidden text-slate-800"
+                onClick={(e) => e.stopPropagation()}
+              >
+                {/* Fixed Header */}
+                <div className="flex items-center justify-between p-5 sm:p-6 border-b border-slate-100 shrink-0 bg-white">
+                  <div>
+                    <span className="text-[10px] font-black uppercase tracking-wider text-emerald-700 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-100">
+                      {selectedPhotoForPreview.category}
+                    </span>
+                    <h3 className="text-xl font-black text-[#0F2E23] mt-2">{selectedPhotoForPreview.title}</h3>
+                    <p className="text-xs font-bold text-slate-600 mt-0.5">🐾 {selectedPhotoForPreview.petName} • Uploaded {selectedPhotoForPreview.uploadedAt}</p>
+                  </div>
+                  <button 
+                    onClick={() => setSelectedPhotoForPreview(null)}
+                    className="text-slate-400 hover:text-slate-700 p-2 rounded-full hover:bg-slate-100 transition cursor-pointer shrink-0"
+                    aria-label="Close"
+                  >
+                    <X size={22} />
+                  </button>
                 </div>
+
+                {/* Scrollable Content Body */}
+                <div className="p-6 sm:p-8 overflow-y-auto flex-1 space-y-4">
+
 
                 {/* Side by side comparison */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 my-4">
@@ -1695,14 +1717,19 @@ const GroomingProviderContent = ({ activeTab }) => {
                   <p className="text-xs text-slate-700 leading-relaxed font-medium">{selectedPhotoForPreview.description}</p>
                 </div>
 
-                <div className="flex justify-between items-center mt-6 pt-4 border-t border-slate-100">
+                </div>
+
+                {/* Fixed Footer */}
+                <div className="flex justify-between items-center p-4 sm:p-6 border-t border-slate-100 bg-slate-50/70 shrink-0">
                   <button
+                    type="button"
                     onClick={() => handleDeletePhoto(selectedPhotoForPreview.id)}
                     className="px-4 py-2 text-rose-600 hover:bg-rose-50 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer"
                   >
                     <Trash2 size={14} /> Remove Photo
                   </button>
                   <button
+                    type="button"
                     onClick={() => setSelectedPhotoForPreview(null)}
                     className="px-6 py-2.5 bg-[#0F2E23] text-white rounded-xl text-xs font-bold uppercase tracking-wider hover:bg-[#163e30] transition cursor-pointer"
                   >
