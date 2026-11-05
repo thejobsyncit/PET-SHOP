@@ -874,7 +874,7 @@ const HostelProviderContent = ({ activeTab }) => {
   const handleUploadPhotoSubmit = (e) => {
     e.preventDefault();
     if (!newPhotoUrl.trim()) {
-      toast.error('Please enter or select an image URL or choose a file');
+      toast.error('Please choose an image file from your device');
       return;
     }
 
@@ -898,8 +898,16 @@ const HostelProviderContent = ({ activeTab }) => {
     const file = e.target.files[0];
     if (!file) return;
 
-    if (!file.type.startsWith('image/')) {
-      toast.error('Please upload an image file');
+    const validTypes = ['image/jpeg', 'image/png', 'image/jpg', 'image/webp'];
+    if (!validTypes.includes(file.type)) {
+      toast.error('Only JPG, JPEG, PNG, or WEBP images are allowed');
+      e.target.value = '';
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('Image size must be less than 5MB');
+      e.target.value = '';
       return;
     }
 
@@ -909,7 +917,7 @@ const HostelProviderContent = ({ activeTab }) => {
       if (!newPhotoTitle) {
         setNewPhotoTitle(file.name.replace(/\.[^/.]+$/, "").replace(/[-_]/g, ' '));
       }
-      toast.success('Image loaded! Click "Add to Gallery" to save.');
+      toast.success('Image uploaded successfully!');
     };
     reader.readAsDataURL(file);
   };
@@ -1804,31 +1812,13 @@ const HostelProviderContent = ({ activeTab }) => {
                     {/* File Upload Option */}
                     <div>
                       <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1">
-                        Choose Image File From Device
+                        Choose Image File From Device (JPG, PNG under 5MB) *
                       </label>
                       <input 
                         type="file" 
-                        accept="image/*"
+                        accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp"
                         onChange={handleImageFileUpload}
                         className="block w-full text-xs text-slate-500 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-emerald-50 file:text-emerald-800 hover:file:bg-emerald-100 transition cursor-pointer"
-                      />
-                    </div>
-
-                    <div className="relative flex py-1 items-center">
-                      <div className="flex-grow border-t border-slate-200"></div>
-                      <span className="flex-shrink mx-3 text-[10px] font-bold text-slate-400 uppercase tracking-wider">or image url</span>
-                      <div className="flex-grow border-t border-slate-200"></div>
-                    </div>
-
-                    {/* URL Input */}
-                    <div>
-                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1">Photo Image URL</label>
-                      <input 
-                        type="url" 
-                        placeholder="https://images.unsplash.com/..."
-                        value={newPhotoUrl}
-                        onChange={e => setNewPhotoUrl(e.target.value)}
-                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-sm text-slate-800 focus:outline-none focus:border-emerald-500"
                       />
                     </div>
 
