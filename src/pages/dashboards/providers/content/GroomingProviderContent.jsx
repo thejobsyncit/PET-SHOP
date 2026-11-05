@@ -1604,63 +1604,6 @@ const GroomingProviderContent = ({ activeTab }) => {
                     </div>
                   </div>
 
-                  {/* One-Click Quick Presets for Demo / Testing */}
-                  <div>
-                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1.5">
-                      Quick Fill Sample Transformations (1-Click Test)
-                    </span>
-                    <div className="grid grid-cols-3 gap-2">
-                      {[
-                        {
-                          label: 'Shih Tzu Cut',
-                          title: 'Shih Tzu Asian Fusion Face & Teddy Trim',
-                          pet: 'Simba (Shih Tzu, 2 yrs)',
-                          cat: 'Full Grooming & Styling',
-                          before: 'https://images.unsplash.com/photo-1541364983171-a8ba01e95cfc?q=80&w=800&auto=format&fit=crop',
-                          after: 'https://images.unsplash.com/photo-1537151625747-768eb6cf92b2?q=80&w=800&auto=format&fit=crop',
-                          desc: 'Full scissor sculpt, round muzzle styling, blueberry face scrub and silky coat gloss.'
-                        },
-                        {
-                          label: 'Retriever Spa',
-                          title: 'Golden Retriever Shed-Control & Hydrating Bath',
-                          pet: 'Oscar (Golden Retriever, 3 yrs)',
-                          cat: 'De-shedding & Spa Bath',
-                          before: 'https://images.unsplash.com/photo-1552053831-71594a27632d?q=80&w=800&auto=format&fit=crop',
-                          after: 'https://images.unsplash.com/photo-1587300003388-59208cc962cb?q=80&w=800&auto=format&fit=crop',
-                          desc: 'Undercoat blow-out, oatmeal soothing conditioning, paw wax and ear sanitation.'
-                        },
-                        {
-                          label: 'Poodle Royal',
-                          title: 'Poodle Lamb Clip & Ear Fluffing',
-                          pet: 'Koko (Toy Poodle, 1 yr)',
-                          cat: 'Creative Breed Styling',
-                          before: 'https://images.unsplash.com/photo-1516734212186-a967f81ad0d7?q=80&w=800&auto=format&fit=crop',
-                          after: 'https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?q=80&w=800&auto=format&fit=crop',
-                          desc: 'Scissored leg columns, topknot band, breath freshness treatment and vanilla mist.'
-                        }
-                      ].map((preset, idx) => (
-                        <button
-                          key={idx}
-                          type="button"
-                          onClick={() => {
-                            setNewPhotoTitle(preset.title);
-                            setNewPhotoPet(preset.pet);
-                            setNewPhotoCategory(preset.cat);
-                            setNewPhotoBeforeUrl(preset.before);
-                            setNewPhotoAfterUrl(preset.after);
-                            setNewPhotoDescription(preset.desc);
-                          }}
-                          className="p-1.5 border border-slate-200 rounded-xl hover:border-emerald-500 hover:bg-emerald-50/40 transition text-left cursor-pointer"
-                        >
-                          <div className="flex gap-1 mb-1">
-                            <img src={preset.before} alt="B" className="w-1/2 h-8 object-cover rounded" />
-                            <img src={preset.after} alt="A" className="w-1/2 h-8 object-cover rounded" />
-                          </div>
-                          <p className="text-[9px] font-bold text-slate-700 truncate">{preset.label}</p>
-                        </button>
-                      ))}
-                    </div>
-                  </div>
 
                   {/* Description */}
                   <div>
