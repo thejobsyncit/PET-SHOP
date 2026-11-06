@@ -5,7 +5,7 @@ import {
   Package, ShoppingBag, Plus, Search, Edit3, Trash2,
   TrendingUp, DollarSign, CheckCircle2, AlertTriangle, AlertCircle,
   Truck, ArrowUpRight, Sparkles, Star, X, Check,
-  Store, ExternalLink, ShieldCheck, MapPin, CheckCircle, LogOut, Settings, Wallet,
+  Store, ExternalLink, ShieldCheck, MapPin, CheckCircle, Settings, Wallet,
   UploadCloud, Upload, Image as ImageIcon
 } from 'lucide-react';
 import toast from 'react-hot-toast';
@@ -14,7 +14,7 @@ import ProviderWalletPayoutView from '../../../components/dashboards/ProviderWal
 import ProviderReviewsView from '../../../components/dashboards/ProviderReviewsView.jsx';
 import { safeSetItem, safeGetItem } from '../../../utils/safeStorage.js';
 import { createProductAsync, removeProductLocally } from '../../../store/slices/productSlice.js';
-import { logout, updateProfile } from '../../../store/slices/authSlice.js';
+import { updateProfile } from '../../../store/slices/authSlice.js';
 
 // Department categories mapping
 const PET_DEPARTMENTS = [
@@ -689,20 +689,6 @@ const ProductSellerDashboard = ({
               ))}
             </ul>
           </nav>
-        </div>
-
-        {/* Bottom Section: Logout */}
-        <div className="p-6 border-t border-slate-100 bg-slate-50/50 mt-auto">
-          <button
-            onClick={() => {
-              dispatch(logout());
-              toast.success('Logged out successfully');
-              navigate('/');
-            }}
-            className="w-full bg-white border border-rose-200 text-rose-600 hover:bg-rose-50 hover:border-rose-300 text-xs font-black uppercase tracking-widest rounded-xl px-4 py-3 flex items-center justify-center gap-2 shadow-sm transition-all cursor-pointer"
-          >
-            <LogOut size={16} /> Logout
-          </button>
         </div>
       </aside>
 
