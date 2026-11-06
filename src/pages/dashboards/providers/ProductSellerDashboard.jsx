@@ -284,18 +284,23 @@ const ProductSellerDashboard = ({
 
   // Product Form fields
   const [formName, setFormName] = useState('');
-  const [formBrand, setFormBrand] = useState('Royal Canin');
+  const [formBrand, setFormBrand] = useState('');
   const [formCustomBrand, setFormCustomBrand] = useState('');
-  const [formPetType, setFormPetType] = useState('dogs');
-  const [formCategory, setFormCategory] = useState('Dog Food');
-  const [formSubcategory, setFormSubcategory] = useState('Dry Food');
+  const [formPetType, setFormPetType] = useState('');
+  const [formCategory, setFormCategory] = useState('');
+  const [formSubcategory, setFormSubcategory] = useState('');
   const [formPrice, setFormPrice] = useState('');
   const [formDiscountPrice, setFormDiscountPrice] = useState('');
-  const [formStock, setFormStock] = useState('20');
+  const [formStock, setFormStock] = useState('');
   const [formSku, setFormSku] = useState('');
   const [formImages, setFormImages] = useState('');
   const [productImageError, setProductImageError] = useState('');
   const productImageInputRef = useRef(null);
+  const [formDescription, setFormDescription] = useState('');
+  const [formIngredients, setFormIngredients] = useState('');
+  const [formIsFeatured, setFormIsFeatured] = useState(false);
+  const [formIsBestSeller, setFormIsBestSeller] = useState(false);
+  const [formRequiresPrescription, setFormRequiresPrescription] = useState(false);
 
   const handleProductImageUpload = (e) => {
     const file = e.target.files?.[0];
@@ -342,12 +347,6 @@ const ProductSellerDashboard = ({
     reader.readAsDataURL(file);
     if (e.target) e.target.value = '';
   };
-  const [formDescription, setFormDescription] = useState('');
-  const [formIngredients, setFormIngredients] = useState('');
-  const [formIsFeatured, setFormIsFeatured] = useState(true);
-  const [formIsBestSeller, setFormIsBestSeller] = useState(false);
-  const [formRequiresPrescription, setFormRequiresPrescription] = useState(false);
-
   // Save changes to localStorage on productsList change
   useEffect(() => {
     try {
@@ -402,20 +401,20 @@ const ProductSellerDashboard = ({
     setIsEditing(false);
     setEditingId(null);
     setFormName('');
-    setFormBrand('Royal Canin');
+    setFormBrand('');
     setFormCustomBrand('');
-    setFormPetType('dogs');
-    setFormCategory('Dog Food');
-    setFormSubcategory('Dry Food');
+    setFormPetType('');
+    setFormCategory('');
+    setFormSubcategory('');
     setFormPrice('');
     setFormDiscountPrice('');
-    setFormStock('25');
-    setFormSku(`SKU-${Date.now().toString().slice(-6)}`);
+    setFormStock('');
+    setFormSku('');
     setFormImages('');
     setProductImageError('');
-    setFormDescription('Nutritious and balanced formula designed for companion vitality, strong digestion, and coat health.');
-    setFormIngredients('Real protein, essential vitamins, Omega 3 & 6, prebiotic fiber, natural minerals.');
-    setFormIsFeatured(true);
+    setFormDescription('');
+    setFormIngredients('');
+    setFormIsFeatured(false);
     setFormIsBestSeller(false);
     setFormRequiresPrescription(false);
     setIsProductModalOpen(true);
@@ -453,20 +452,36 @@ const ProductSellerDashboard = ({
       toast.error('Please enter product name');
       return;
     }
+    if (!formPetType) {
+      toast.error('Please select a pet department');
+      return;
+    }
+    if (!formCategory) {
+      toast.error('Please select a product category');
+      return;
+    }
+    const finalBrand = formBrand === 'Other' && formCustomBrand.trim() ? formCustomBrand.trim() : formBrand;
+    if (!finalBrand) {
+      toast.error('Please select or enter a brand');
+      return;
+    }
     if (!formPrice || Number(formPrice) <= 0) {
       toast.error('Please enter a valid price');
       return;
     }
+    if (formStock === '' || isNaN(Number(formStock)) || Number(formStock) < 0) {
+      toast.error('Please enter initial stock quantity');
+      return;
+    }
 
     if (!formImages || !formImages.trim()) {
-      toast.error('Please upload a product image');
-      setProductImageError('Please upload a product image before publishing.');
+      toast.error('Please upload an image or provide an image URL');
+      setProductImageError('Please upload a product image or provide an image URL before publishing.');
       return;
     }
 
     setSubmitting(true);
 
-    const finalBrand = formBrand === 'Other' && formCustomBrand.trim() ? formCustomBrand.trim() : formBrand;
     const finalImage = formImages.trim() || PRESET_PRODUCT_IMAGES[0].url;
     const regularPrice = Number(formPrice);
     const salePrice = formDiscountPrice ? Number(formDiscountPrice) : null;
@@ -1281,13 +1296,12 @@ const ProductSellerDashboard = ({
                     onChange={(e) => {
                       const newDept = e.target.value;
                       setFormPetType(newDept);
-                      const cats = DEPARTMENT_CATEGORIES_MAP[newDept] || DEPARTMENT_CATEGORIES_MAP.dogs;
-                      if (!cats.includes(formCategory)) {
-                        setFormCategory(cats[0] || 'Accessories');
-                      }
+                      setFormCategory('');
                     }}
+                    required
                     className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs font-semibold bg-slate-50 focus:outline-none focus:border-emerald-600"
                   >
+                    <option value="" disabled>Select Pet Department</option>
                     {PET_DEPARTMENTS.map(d => (
                       <option key={d.id} value={d.id}>{d.label}</option>
                     ))}
@@ -1299,9 +1313,13 @@ const ProductSellerDashboard = ({
                   <select
                     value={formCategory}
                     onChange={(e) => setFormCategory(e.target.value)}
+                    required
                     className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs font-semibold bg-slate-50 focus:outline-none focus:border-emerald-600"
                   >
-                    {(DEPARTMENT_CATEGORIES_MAP[formPetType] || DEPARTMENT_CATEGORIES_MAP.dogs).map(cat => (
+                    <option value="" disabled>
+                      {formPetType ? 'Select Product Category' : 'First Select Pet Department'}
+                    </option>
+                    {formPetType && (DEPARTMENT_CATEGORIES_MAP[formPetType] || []).map(cat => (
                       <option key={cat} value={cat}>{cat}</option>
                     ))}
                   </select>
@@ -1315,8 +1333,10 @@ const ProductSellerDashboard = ({
                   <select
                     value={formBrand}
                     onChange={(e) => setFormBrand(e.target.value)}
+                    required
                     className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs font-semibold bg-slate-50 focus:outline-none focus:border-emerald-600"
                   >
+                    <option value="" disabled>Select Brand</option>
                     {COMMON_BRANDS.map(b => (
                       <option key={b} value={b}>{b}</option>
                     ))}
@@ -1391,14 +1411,14 @@ const ProductSellerDashboard = ({
                 </div>
               </div>
 
-              {/* Product Image Upload Section */}
+              {/* Product Image Section */}
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <label className="font-bold text-slate-700 text-xs">
                     Product Image *
                   </label>
                   <span className="text-[10px] text-slate-400">
-                    JPG, PNG, WEBP • Less than 5MB
+                    Upload image or enter Image URL
                   </span>
                 </div>
 
@@ -1413,25 +1433,42 @@ const ProductSellerDashboard = ({
                 {/* Upload Box */}
                 <div
                   onClick={() => productImageInputRef.current?.click()}
-                  className={`border-2 border-dashed rounded-2xl p-5 text-center cursor-pointer transition-all duration-200 group ${
+                  className={`border-2 border-dashed rounded-2xl p-4 text-center cursor-pointer transition-all duration-200 group ${
                     productImageError 
                       ? 'border-rose-400 bg-rose-50/40 hover:bg-rose-50/70' 
                       : 'border-slate-300 hover:border-emerald-600 bg-slate-50/60 hover:bg-emerald-50/30'
                   }`}
                 >
-                  <div className="flex flex-col items-center justify-center gap-2">
-                    <div className="w-11 h-11 rounded-2xl bg-emerald-100 text-emerald-800 flex items-center justify-center group-hover:scale-110 transition duration-200 shadow-xs">
-                      <UploadCloud size={22} />
+                  <div className="flex flex-col items-center justify-center gap-1.5">
+                    <div className="w-10 h-10 rounded-2xl bg-emerald-100 text-emerald-800 flex items-center justify-center group-hover:scale-110 transition duration-200 shadow-xs">
+                      <UploadCloud size={20} />
                     </div>
                     <div>
                       <p className="text-xs font-black text-slate-800 group-hover:text-emerald-700 transition">
-                        Click or drag to upload product photo
+                        Click or drag to upload product image from device
                       </p>
-                      <p className="text-[11px] text-slate-400 font-medium mt-0.5">
-                        Only <strong className="text-slate-600">JPG, PNG, WEBP</strong> format • Max size <strong className="text-slate-600">&lt; 5MB</strong>
+                      <p className="text-[10px] text-slate-400 font-medium">
+                        Only JPG, PNG, WEBP • Max size &lt; 5MB
                       </p>
                     </div>
                   </div>
+                </div>
+
+                {/* Or Paste Image URL */}
+                <div className="space-y-1 pt-1">
+                  <label className="text-[11px] font-bold text-slate-600 block">
+                    Image URL
+                  </label>
+                  <input
+                    type="url"
+                    placeholder="https://images.unsplash.com/..."
+                    value={formImages.startsWith('data:') ? '' : formImages}
+                    onChange={(e) => {
+                      setFormImages(e.target.value);
+                      if (productImageError) setProductImageError('');
+                    }}
+                    className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs focus:outline-none focus:border-emerald-600"
+                  />
                 </div>
 
                 {/* Error Message */}
@@ -1450,7 +1487,7 @@ const ProductSellerDashboard = ({
                         src={formImages}
                         alt="Product Preview"
                         className="w-14 h-14 rounded-xl object-cover border border-slate-200 shrink-0 bg-slate-100"
-                        onError={(e) => { e.target.src = 'https://images.unsplash.com/photo-1589924691995-400dc9ecc119?q=80&w=800'; }}
+                        onError={(e) => { setProductImageError('Image URL could not be loaded. Please check the URL.'); }}
                       />
                       <div className="min-w-0">
                         <div className="flex items-center gap-2">
@@ -1472,11 +1509,13 @@ const ProductSellerDashboard = ({
                     <div className="flex items-center gap-2 shrink-0">
                       <button
                         type="button"
-                        onClick={() => productImageInputRef.current?.click()}
-                        className="px-3 py-1.5 rounded-xl border border-slate-200 hover:border-emerald-600 text-xs font-bold text-slate-700 hover:text-emerald-700 transition cursor-pointer flex items-center gap-1.5"
+                        onClick={() => {
+                          setFormImages('');
+                          if (productImageInputRef.current) productImageInputRef.current.value = '';
+                        }}
+                        className="px-2.5 py-1.5 rounded-xl border border-rose-200 text-rose-600 hover:bg-rose-50 text-xs font-bold transition cursor-pointer"
                       >
-                        <Upload size={13} />
-                        <span>Change Photo</span>
+                        Remove
                       </button>
                     </div>
                   </div>
