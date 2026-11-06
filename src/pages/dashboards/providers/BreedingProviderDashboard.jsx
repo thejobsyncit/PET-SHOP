@@ -135,7 +135,7 @@ const ListingsModule = ({ user }) => {
         age: formData.age.trim(),
         price: Number(formData.price) || 8000,
         priceDisplay: `₹${(Number(formData.price) || 8000).toLocaleString('en-IN')} Stud Fee`,
-        image: formData.image?.trim() || editingStud.image || 'https://images.unsplash.com/photo-1552053831-71594a27632d?auto=format&fit=crop&q=80&w=800',
+        image: formData.image ? formData.image.trim() : '',
         status: formData.status || 'Active',
         mateRequirement: formData.mateRequirement || '',
         description: formData.description || '',
@@ -157,7 +157,7 @@ const ListingsModule = ({ user }) => {
         age: formData.age.trim(),
         price: Number(formData.price) || 8000,
         priceDisplay: `₹${(Number(formData.price) || 8000).toLocaleString('en-IN')} Stud Fee`,
-        image: formData.image?.trim() || 'https://images.unsplash.com/photo-1552053831-71594a27632d?auto=format&fit=crop&q=80&w=800',
+        image: formData.image ? formData.image.trim() : '',
         parentName: user?.businessName || user?.name || 'Elite Breeds Hub',
         parentPhone: user?.mobile || '9845556677',
         whatsappNumber: user?.mobile || '9845556677',
@@ -211,8 +211,27 @@ const ListingsModule = ({ user }) => {
             const isPaused = (stud.status || 'Active') === 'Paused';
             return (
               <div key={stud.id} className="bg-white border border-slate-200 rounded-2xl overflow-hidden hover:shadow-lg transition-shadow duration-300 group flex flex-col">
-                <div className="h-44 overflow-hidden relative">
-                  <img src={stud.image} alt={stud.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                <div className="h-44 overflow-hidden relative bg-slate-100 flex items-center justify-center">
+                  {stud.image ? (
+                    <img 
+                      src={stud.image} 
+                      alt={stud.name} 
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                      onError={(e) => {
+                        e.target.style.display = 'none';
+                        if (e.target.nextElementSibling) {
+                          e.target.nextElementSibling.style.display = 'flex';
+                        }
+                      }}
+                    />
+                  ) : null}
+                  <div 
+                    className="w-full h-full flex flex-col items-center justify-center bg-slate-100 text-slate-400"
+                    style={{ display: stud.image ? 'none' : 'flex' }}
+                  >
+                    <PawPrint size={36} className="text-slate-300 mb-1" />
+                    <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">No Photo Provided</span>
+                  </div>
                   <div className="absolute top-3 right-3 flex items-center gap-1.5">
                     <span className={`px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider shadow-sm flex items-center gap-1.5 ${
                       !isPaused
@@ -410,15 +429,15 @@ const ListingsModule = ({ user }) => {
                 </div>
 
                 <div>
-                  <label className="font-bold text-slate-700 block mb-1">Profile Photo URL</label>
+                  <label className="font-bold text-slate-700 block mb-1">Profile Photo URL (Optional)</label>
                   <input
                     type="text"
                     value={formData.image}
                     onChange={(e) => setFormData({ ...formData, image: e.target.value })}
-                    placeholder="https://images.unsplash.com/... (leave blank for default)"
+                    placeholder="https://images.unsplash.com/... (optional)"
                     className="w-full border border-slate-200 rounded-xl p-2.5 font-medium text-slate-900 bg-slate-50 focus:bg-white focus:outline-none focus:border-[#0F2E23]"
                   />
-                  <span className="text-[10px] text-slate-400 mt-1 block">Leave empty to use a standard breed image placeholder.</span>
+                  <span className="text-[10px] text-slate-400 mt-1 block">Leave empty if no photo is available.</span>
                 </div>
 
                 <div>
