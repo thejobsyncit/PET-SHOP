@@ -1212,6 +1212,16 @@ export const updateUserProfile = async (req, res) => {
         }
         if (updateData.groomingSchedule !== undefined) demoUser.groomingSchedule = updateData.groomingSchedule;
         if (updateData.schedule !== undefined) demoUser.schedule = updateData.schedule;
+        if (updateData.breedingLicense !== undefined) demoUser.breedingLicense = updateData.breedingLicense;
+        if (updateData.kennelName !== undefined) demoUser.kennelName = updateData.kennelName;
+        if (updateData.bio !== undefined) demoUser.bio = updateData.bio;
+        if (updateData.govtProofType !== undefined) demoUser.govtProofType = updateData.govtProofType;
+        if (updateData.govtProofNumber !== undefined) demoUser.govtProofNumber = updateData.govtProofNumber;
+        if (updateData.experienceYears !== undefined) demoUser.experienceYears = updateData.experienceYears;
+        if (updateData.state !== undefined) demoUser.state = updateData.state;
+        if (updateData.city !== undefined) demoUser.city = updateData.city;
+        if (updateData.whatsapp !== undefined) demoUser.whatsapp = updateData.whatsapp;
+        if (updateData.whatsappNumber !== undefined) demoUser.whatsappNumber = updateData.whatsappNumber;
       }
 
       const finalUser = sanitizeUser({

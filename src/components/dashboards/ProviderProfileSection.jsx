@@ -47,13 +47,14 @@ const GOVT_PROOF_OPTIONS = [
  */
 export default function ProviderProfileSection({
   serviceCategory,
+  subscription: propSubscription,
   onOpenSubscriptionModal = () => {},
   onOpenPlanDetails = () => {}
 }) {
   const dispatch = useDispatch();
   const { user } = useSelector((state) => state.auth);
 
-  const subscription = user?.subscription;
+  const subscription = propSubscription || user?.subscription;
   const now = new Date();
   const expiryDate = subscription?.expiryDate ? new Date(subscription.expiryDate) : null;
   const startDate = subscription?.startDate ? new Date(subscription.startDate) : null;
@@ -108,8 +109,8 @@ export default function ProviderProfileSection({
       const { state: resolvedSt, city: resolvedCt } = resolveStateAndDistrict(user);
       setFormData((prev) => ({
         ...prev,
-        businessName: user.businessName || user.name || prev.businessName,
-        name: user.name || prev.name,
+        businessName: user.businessName !== undefined ? user.businessName : (user.name || prev.businessName),
+        name: user.name !== undefined ? user.name : prev.name,
         email: user.email || prev.email,
         mobile: resolvedPhone || prev.mobile,
         whatsapp: user.whatsapp || user.whatsappNumber || resolvedPhone || prev.whatsapp,
@@ -118,18 +119,18 @@ export default function ProviderProfileSection({
         address: user.address || user.streetAddress || user.location || prev.address,
         govtProofType: user.govtProofType || user.govt_proof_type || prev.govtProofType,
         govtProofNumber: user.govtProofNumber || user.govt_proof_number || prev.govtProofNumber,
-        experienceYears: user.experienceYears || user.experience || prev.experienceYears,
-        bio: user.bio || prev.bio,
+        experienceYears: user.experienceYears !== undefined ? user.experienceYears : (user.experience !== undefined ? user.experience : prev.experienceYears),
+        bio: user.bio !== undefined ? user.bio : prev.bio,
         avatar: user.avatar || user.profilePicture || prev.avatar,
-        degrees: user.degrees || prev.degrees,
-        vciRegistration: user.vciRegistration || prev.vciRegistration,
-        certifications: user.certifications || prev.certifications,
+        degrees: user.degrees !== undefined ? user.degrees : prev.degrees,
+        vciRegistration: user.vciRegistration !== undefined ? user.vciRegistration : prev.vciRegistration,
+        certifications: user.certifications !== undefined ? user.certifications : prev.certifications,
         capacity: user.capacity || user.shelterCapacity || prev.capacity,
-        breedingLicense: user.breedingLicense || prev.breedingLicense,
-        kennelName: user.kennelName || prev.kennelName,
-        trainingSpecialization: user.trainingSpecialization || prev.trainingSpecialization,
-        vehicleTypes: user.vehicleTypes || prev.vehicleTypes,
-        emergencyHelpline: user.emergencyHelpline || prev.emergencyHelpline
+        breedingLicense: user.breedingLicense !== undefined ? user.breedingLicense : prev.breedingLicense,
+        kennelName: user.kennelName !== undefined ? user.kennelName : prev.kennelName,
+        trainingSpecialization: user.trainingSpecialization !== undefined ? user.trainingSpecialization : prev.trainingSpecialization,
+        vehicleTypes: user.vehicleTypes !== undefined ? user.vehicleTypes : prev.vehicleTypes,
+        emergencyHelpline: user.emergencyHelpline !== undefined ? user.emergencyHelpline : prev.emergencyHelpline
       }));
     }
   }, [user]);
@@ -289,8 +290,8 @@ export default function ProviderProfileSection({
             mobile: phoneToKeep || updatedUser.mobile
           }));
         }
-        dispatch(fetchProfile());
-        dispatch(fetchSubscriptionStatus());
+        await dispatch(fetchProfile());
+        await dispatch(fetchSubscriptionStatus());
       } else {
         throw new Error(result.payload || 'Failed to save profile.');
       }

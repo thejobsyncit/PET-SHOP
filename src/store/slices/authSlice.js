@@ -341,6 +341,12 @@ export const fetchProfile = createAsyncThunk('auth/fetchProfile', async (_, thun
             profilePicture: finalAvatar,
             name: sellerName || data.user.name || saved?.name,
             businessName: data.user.businessName || saved?.businessName || sellerName || data.user.name,
+            breedingLicense: data.user.breedingLicense || saved?.breedingLicense || '',
+            kennelName: data.user.kennelName || saved?.kennelName || '',
+            bio: data.user.bio || saved?.bio || '',
+            govtProofType: data.user.govtProofType || saved?.govtProofType || '',
+            govtProofNumber: data.user.govtProofNumber || saved?.govtProofNumber || '',
+            experienceYears: data.user.experienceYears || saved?.experienceYears || 1,
             addresses: userAddresses,
             serviceMembership: existingMembership || data.user.serviceMembership || saved?.serviceMembership || null,
             subscription: data.user.subscription || saved?.subscription || null,
@@ -1023,6 +1029,16 @@ const authSlice = createSlice({
           serviceMembership: currentMem
         };
         safeSetItem('joshpetshub_user', JSON.stringify(sanitizeUserForStorage(state.user)));
+        try {
+          const registered = JSON.parse(localStorage.getItem('joshpetshub_registered_users') || '[]');
+          const idx = registered.findIndex(u => u._id === state.user._id || (u.email && state.user.email && u.email.toLowerCase() === state.user.email.toLowerCase()));
+          if (idx !== -1) {
+            registered[idx] = { ...registered[idx], ...state.user };
+          } else {
+            registered.push(state.user);
+          }
+          safeSetItem('joshpetshub_registered_users', JSON.stringify(registered));
+        } catch (e) {}
       })
       .addCase(updateProfile.rejected, (state, action) => {
         state.loading = false;

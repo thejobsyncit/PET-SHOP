@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
-import { logout, updateProfile } from '../../../store/slices/authSlice.js';
+import { logout, updateProfile, fetchProfile } from '../../../store/slices/authSlice.js';
 import {
   PawPrint, Calendar, Star, TrendingUp, DollarSign, Clock, MapPin, 
   MessageSquare, Plus, Search, ChevronRight, Phone, ShieldCheck, Mail, Heart, Settings,
@@ -45,6 +45,7 @@ const ListingsModule = ({ user }) => {
     const allPets = getStoredMatingPets() || [];
     const myPets = Array.isArray(allPets) ? allPets.filter(p => p && (
       p.parentName === user?.name || 
+      p.parentName === user?.businessName ||
       p.parentPhone === user?.mobile || 
       p.whatsappNumber === user?.mobile ||
       p.providerEmail === user?.email ||
@@ -157,7 +158,7 @@ const ListingsModule = ({ user }) => {
         price: Number(formData.price) || 8000,
         priceDisplay: `₹${(Number(formData.price) || 8000).toLocaleString('en-IN')} Stud Fee`,
         image: formData.image?.trim() || 'https://images.unsplash.com/photo-1552053831-71594a27632d?auto=format&fit=crop&q=80&w=800',
-        parentName: user?.name || 'Elite Breeds Hub',
+        parentName: user?.businessName || user?.name || 'Elite Breeds Hub',
         parentPhone: user?.mobile || '9845556677',
         whatsappNumber: user?.mobile || '9845556677',
         providerEmail: user?.email || 'elitebreed@joshpetshub.com',
@@ -1416,7 +1417,13 @@ const ProfileModule = ({ user }) => {
   );
 };
 
-const BreedingProviderContent = ({ activeTab, user }) => {
+const BreedingProviderContent = ({ 
+  activeTab, 
+  user, 
+  subscription, 
+  onOpenSubscriptionModal, 
+  onOpenPlanDetails 
+}) => {
   switch (activeTab) {
     case 'listings': return <ListingsModule user={user} />;
     case 'matches': return <MatchesModule user={user} />;
@@ -1431,7 +1438,14 @@ const BreedingProviderContent = ({ activeTab, user }) => {
       />
     );
     case 'wallet': return <ProviderWalletPayoutView serviceCategory="Pet Mating & Breeding" storageKeyPrefix="breeder" initialBalance={38000} escrowAmount={12000} />;
-    case 'profile': return <ProfileModule user={user} />;
+    case 'profile': return (
+      <ProviderProfileSection
+        serviceCategory="Mating & Breeding"
+        subscription={subscription}
+        onOpenSubscriptionModal={onOpenSubscriptionModal}
+        onOpenPlanDetails={onOpenPlanDetails}
+      />
+    );
     default: return <ListingsModule user={user} />;
   }
 };
@@ -1459,24 +1473,36 @@ const BreedingProviderDashboard = ({
 
   const { user } = useSelector(state => state.auth);
   const dispatch = useDispatch();
-  const [profileName, setProfileName] = useState(user?.name || currentProvider?.name || '');
+  const [profileName, setProfileName] = useState(user?.businessName || user?.name || currentProvider?.name || '');
   const [profileAvatar, setProfileAvatar] = useState(user?.avatar || user?.profilePicture || currentProvider?.avatar || '');
   const [isEditingProfile, setIsEditingProfile] = useState(false);
 
   useEffect(() => {
     if (user) {
-      setProfileName(user.name || currentProvider?.name || '');
+      setProfileName(user.businessName || user.name || currentProvider?.name || '');
       setProfileAvatar(user.avatar || user.profilePicture || currentProvider?.avatar || '');
     }
   }, [user, currentProvider]);
 
   const handleUpdateProfile = async (e) => {
-    e.preventDefault();
+    if (e) e.preventDefault();
+    if (!profileName?.trim()) {
+      toast.error('Provider name cannot be empty');
+      return;
+    }
     const phoneToKeep = (user?.mobile || user?.phone || '').trim();
-    const result = await dispatch(updateProfile({ name: profileName, avatar: profileAvatar, profilePicture: profileAvatar, mobile: phoneToKeep, phone: phoneToKeep }));
+    const result = await dispatch(updateProfile({ 
+      name: profileName.trim(), 
+      businessName: profileName.trim(),
+      avatar: profileAvatar, 
+      profilePicture: profileAvatar, 
+      mobile: phoneToKeep, 
+      phone: phoneToKeep 
+    }));
     if (updateProfile.fulfilled.match(result)) {
       toast.success('Profile updated successfully!');
       setIsEditingProfile(false);
+      dispatch(fetchProfile());
     } else {
       toast.error('Failed to update profile');
     }
@@ -1514,7 +1540,7 @@ const BreedingProviderDashboard = ({
   };
 
   const displayAvatar = user?.avatar || user?.profilePicture || currentProvider?.avatar || 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=800&auto=format&fit=crop';
-  const displayName = user?.name || currentProvider?.name || 'Provider';
+  const displayName = user?.businessName || user?.name || currentProvider?.name || 'Verified Breeder';
 
   return (
     <div className="min-h-[calc(100vh-104px)] bg-[#FAF9F5] text-slate-900 font-sans selection:bg-[#0F2E23]/20 selection:text-[#0F2E23] flex flex-col lg:flex-row">
@@ -1695,11 +1721,18 @@ const BreedingProviderDashboard = ({
           {activeTab === 'profile' ? (
             <ProviderProfileSection
               serviceCategory="Mating & Breeding"
+              subscription={subscription}
               onOpenSubscriptionModal={onOpenSubscriptionModal}
               onOpenPlanDetails={onOpenPlanDetails}
             />
           ) : (
-            <BreedingProviderContent activeTab={activeTab} user={user} />
+            <BreedingProviderContent 
+              activeTab={activeTab} 
+              user={user} 
+              subscription={subscription}
+              onOpenSubscriptionModal={onOpenSubscriptionModal}
+              onOpenPlanDetails={onOpenPlanDetails}
+            />
           )}
         </div>
       </main>
