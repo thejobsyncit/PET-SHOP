@@ -864,6 +864,12 @@ const AccountDashboard = () => {
       return;
     }
 
+    const cleanZip = addrZip.replace(/\D/g, '');
+    if (cleanZip.length !== 6) {
+      toast.error('Pincode must be exactly 6 numerical digits.');
+      return;
+    }
+
     const payload = {
       name: addrName.trim(),
       phone: addrPhone.trim(),
@@ -1796,11 +1802,28 @@ const AccountDashboard = () => {
                       required
                     />
                     <input
-                      type="text"
-                      placeholder="Postal Code (6 Digits)"
+                      type="tel"
+                      inputMode="numeric"
+                      pattern="[0-9]*"
+                      placeholder="Pincode (6 Digits)"
                       maxLength={6}
                       value={addrZip}
                       onChange={(e) => setAddrZip(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                      onKeyDown={(e) => {
+                        if (
+                          !/[0-9]/.test(e.key) &&
+                          !['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab', 'Enter'].includes(e.key) &&
+                          !e.ctrlKey && !e.metaKey
+                        ) {
+                          e.preventDefault();
+                        }
+                      }}
+                      onPaste={(e) => {
+                        e.preventDefault();
+                        const pasteData = (e.clipboardData || window.clipboardData).getData('text') || '';
+                        const clean = pasteData.replace(/\D/g, '').slice(0, 6);
+                        setAddrZip(clean);
+                      }}
                       className="px-3 py-2 border border-beige text-xs bg-white focus:outline-none focus:border-primary rounded-lg"
                       required
                     />
