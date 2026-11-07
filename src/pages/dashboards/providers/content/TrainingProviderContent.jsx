@@ -302,6 +302,36 @@ const TrainingProviderContent = ({ activeTab, user, subscription, onOpenSubscrip
     }));
   };
 
+const getDefaultSessionDateTime = () => {
+  const tomorrow = new Date();
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  tomorrow.setHours(10, 0, 0, 0);
+  const year = tomorrow.getFullYear();
+  const month = String(tomorrow.getMonth() + 1).padStart(2, '0');
+  const day = String(tomorrow.getDate()).padStart(2, '0');
+  const hours = String(tomorrow.getHours()).padStart(2, '0');
+  const minutes = String(tomorrow.getMinutes()).padStart(2, '0');
+  return `${year}-${month}-${day}T${hours}:${minutes}`;
+};
+
+const formatSessionDate = (rawDate) => {
+  if (!rawDate) return 'Date TBD';
+  if (typeof rawDate === 'string' && rawDate.includes('T')) {
+    const d = new Date(rawDate);
+    if (!isNaN(d.getTime())) {
+      return d.toLocaleDateString('en-IN', {
+        day: 'numeric',
+        month: 'short',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: true
+      });
+    }
+  }
+  return rawDate;
+};
+
   // 2. TRAINING SESSIONS (APPOINTMENTS) TAB STATE
   const [sessions, setSessions] = useState(() => getStoredTrainingSessions());
   const [sessionFilter, setSessionFilter] = useState('All');
@@ -317,7 +347,7 @@ const TrainingProviderContent = ({ activeTab, user, subscription, onOpenSubscrip
     customerEmail: '',
     programName: 'Basic & Advanced Obedience',
     sessionNumber: 'Session 1 of 6',
-    date: 'Tomorrow, 10:00 AM',
+    date: getDefaultSessionDateTime(),
     mode: 'At-Home 1-on-1',
     location: '',
     trainerNotes: ''
@@ -416,7 +446,13 @@ const TrainingProviderContent = ({ activeTab, user, subscription, onOpenSubscrip
       toast.error('Phone number must be a valid 10-digit numerical number');
       return;
     }
-    const created = saveTrainingSession({ ...newSession, customerPhone: cleanPhone });
+    const formattedDate = formatSessionDate(newSession.date);
+    const created = saveTrainingSession({ 
+      ...newSession, 
+      customerPhone: cleanPhone,
+      date: formattedDate,
+      dateTimeRaw: newSession.date
+    });
     if (created) {
       toast.success(`Training session scheduled for ${newSession.petName}!`);
       setShowSessionModal(false);
@@ -430,7 +466,7 @@ const TrainingProviderContent = ({ activeTab, user, subscription, onOpenSubscrip
         customerEmail: '',
         programName: 'Basic & Advanced Obedience',
         sessionNumber: 'Session 1 of 6',
-        date: 'Tomorrow, 10:00 AM',
+        date: getDefaultSessionDateTime(),
         mode: 'At-Home 1-on-1',
         location: '',
         trainerNotes: ''
@@ -1447,7 +1483,7 @@ const TrainingProviderContent = ({ activeTab, user, subscription, onOpenSubscrip
                     </div>
                     <div className="flex items-center gap-2 text-slate-500">
                       <Clock size={13} className="text-emerald-700 shrink-0" />
-                      <span>{session.date} ({session.mode})</span>
+                      <span>{formatSessionDate(session.date)} ({session.mode})</span>
                     </div>
                     {session.location && (
                       <div className="flex items-center gap-2 text-slate-500">
@@ -1616,13 +1652,13 @@ const TrainingProviderContent = ({ activeTab, user, subscription, onOpenSubscrip
 
                   <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <label className="text-xs font-bold text-slate-700 block mb-1">Date & Time</label>
+                      <label className="text-xs font-bold text-slate-700 block mb-1">Date & Time *</label>
                       <input
-                        type="text"
+                        type="datetime-local"
                         value={newSession.date}
                         onChange={(e) => setNewSession({ ...newSession, date: e.target.value })}
-                        placeholder="e.g. Tomorrow, 10:00 AM"
-                        className="w-full text-xs px-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:border-emerald-600"
+                        className="w-full text-xs px-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:border-emerald-600 bg-white"
+                        required
                       />
                     </div>
                     <div>
