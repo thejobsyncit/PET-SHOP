@@ -411,7 +411,12 @@ const TrainingProviderContent = ({ activeTab, user, subscription, onOpenSubscrip
       toast.error('Please provide at least the pet name and customer name');
       return;
     }
-    const created = saveTrainingSession(newSession);
+    const cleanPhone = (newSession.customerPhone || '').replace(/\D/g, '');
+    if (newSession.customerPhone && cleanPhone.length !== 10) {
+      toast.error('Phone number must be a valid 10-digit numerical number');
+      return;
+    }
+    const created = saveTrainingSession({ ...newSession, customerPhone: cleanPhone });
     if (created) {
       toast.success(`Training session scheduled for ${newSession.petName}!`);
       setShowSessionModal(false);
@@ -1554,9 +1559,30 @@ const TrainingProviderContent = ({ activeTab, user, subscription, onOpenSubscrip
                       <label className="text-xs font-bold text-slate-700 block mb-1">Phone Number</label>
                       <input
                         type="tel"
+                        inputMode="numeric"
+                        pattern="[0-9]*"
+                        maxLength={10}
                         value={newSession.customerPhone}
-                        onChange={(e) => setNewSession({ ...newSession, customerPhone: e.target.value })}
-                        placeholder="+91 98765 43210"
+                        onChange={(e) => {
+                          const val = e.target.value.replace(/\D/g, '').slice(0, 10);
+                          setNewSession({ ...newSession, customerPhone: val });
+                        }}
+                        onKeyDown={(e) => {
+                          if (
+                            !/[0-9]/.test(e.key) &&
+                            !['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab', 'Enter'].includes(e.key) &&
+                            !e.ctrlKey && !e.metaKey
+                          ) {
+                            e.preventDefault();
+                          }
+                        }}
+                        onPaste={(e) => {
+                          e.preventDefault();
+                          const pasteData = (e.clipboardData || window.clipboardData).getData('text') || '';
+                          const clean = pasteData.replace(/\D/g, '').slice(0, 10);
+                          setNewSession((prev) => ({ ...prev, customerPhone: clean }));
+                        }}
+                        placeholder="e.g. 9876543210"
                         className="w-full text-xs px-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:border-emerald-600"
                       />
                     </div>
