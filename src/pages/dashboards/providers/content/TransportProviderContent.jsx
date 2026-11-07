@@ -34,7 +34,7 @@ const PRESET_TRANSPORT_IMAGES = [
   { label: 'IATA Aviation Crates', url: 'https://images.unsplash.com/photo-1587300003388-59208cc962cb?q=80&w=800&auto=format&fit=crop' }
 ];
 
-const TransportProviderContent = ({ activeTab, user }) => {
+const TransportProviderContent = ({ activeTab, user, subscription, onOpenSubscriptionModal, onOpenPlanDetails }) => {
   const navigate = useNavigate();
 
   // 1. PROVIDER SERVICE STATE (STRICT 1 SERVICE PER PROVIDER)
