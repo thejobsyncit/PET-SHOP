@@ -133,6 +133,12 @@ export const getSubscriptionStatus = async (req, res) => {
 
     const isProfileComplete = Boolean(user.isProfileComplete || user.profileCompleted);
     let subscription = user.subscription || null;
+    if (!subscription && Array.isArray(DEMO_ACCOUNTS)) {
+      const demoAcct = DEMO_ACCOUNTS.find(d => (userId && (d._id === userId || d.id === userId)) || (email && d.email && d.email.toLowerCase() === email));
+      if (demoAcct?.subscription) {
+        subscription = { ...demoAcct.subscription };
+      }
+    }
     let hasActiveSubscription = false;
     let isExpired = false;
 

@@ -74,7 +74,7 @@ const AVAILABLE_CERTIFICATIONS = [
   'IAABC Member'
 ];
 
-const TrainingProviderContent = ({ activeTab, user }) => {
+const TrainingProviderContent = ({ activeTab, user, subscription, onOpenSubscriptionModal, onOpenPlanDetails }) => {
   const navigate = useNavigate();
 
   // 1. PROVIDER SERVICE STATE (STRICT 1 SERVICE PER PROVIDER)

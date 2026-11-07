@@ -1223,6 +1223,13 @@ export const updateUserProfile = async (req, res) => {
         if (updateData.whatsapp !== undefined) demoUser.whatsapp = updateData.whatsapp;
         if (updateData.whatsappNumber !== undefined) demoUser.whatsappNumber = updateData.whatsappNumber;
         if (updateData.emergencyHelpline !== undefined) demoUser.emergencyHelpline = updateData.emergencyHelpline;
+        if (updateData.trainingSpecialization !== undefined) demoUser.trainingSpecialization = updateData.trainingSpecialization;
+        if (updateData.degrees !== undefined) demoUser.degrees = updateData.degrees;
+        if (updateData.vciRegistration !== undefined) demoUser.vciRegistration = updateData.vciRegistration;
+        if (updateData.certifications !== undefined) demoUser.certifications = updateData.certifications;
+        if (updateData.capacity !== undefined) demoUser.capacity = updateData.capacity;
+        if (updateData.shelterCapacity !== undefined) demoUser.shelterCapacity = updateData.shelterCapacity;
+        if (updateData.vehicleTypes !== undefined) demoUser.vehicleTypes = updateData.vehicleTypes;
       }
 
       const finalUser = sanitizeUser({
