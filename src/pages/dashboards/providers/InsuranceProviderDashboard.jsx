@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
-import { logout, updateProfile } from '../../../store/slices/authSlice.js';
+import { logout, updateProfile, fetchProfile } from '../../../store/slices/authSlice.js';
 import {
   PawPrint, Calendar, Star, TrendingUp, DollarSign, Clock, MapPin, 
   MessageSquare, Plus, Search, ChevronRight, Phone, ShieldCheck, Mail, Heart, Settings,
@@ -13,7 +13,7 @@ import ProviderProfileSection from '../../../components/dashboards/ProviderProfi
 import ProviderWalletPayoutView from '../../../components/dashboards/ProviderWalletPayoutView.jsx';
 import ProviderReviewsView from '../../../components/dashboards/ProviderReviewsView.jsx';
 
-const InsuranceProviderContent = ({ activeTab }) => {
+const InsuranceProviderContent = ({ activeTab, user, subscription, onOpenSubscriptionModal, onOpenPlanDetails }) => {
   if (activeTab === 'wallet') {
     return (
       <ProviderWalletPayoutView 
@@ -64,13 +64,13 @@ const InsuranceProviderDashboard = ({
 
   const { user } = useSelector(state => state.auth);
   const dispatch = useDispatch();
-  const [profileName, setProfileName] = useState(user?.name || currentProvider?.name || '');
+  const [profileName, setProfileName] = useState(user?.businessName || user?.name || currentProvider?.name || '');
   const [profileAvatar, setProfileAvatar] = useState(user?.avatar || user?.profilePicture || currentProvider?.avatar || '');
   const [isEditingProfile, setIsEditingProfile] = useState(false);
 
   useEffect(() => {
     if (user) {
-      setProfileName(user.name || currentProvider?.name || '');
+      setProfileName(user.businessName || user.name || currentProvider?.name || '');
       setProfileAvatar(user.avatar || user.profilePicture || currentProvider?.avatar || '');
     }
   }, [user, currentProvider]);
@@ -78,10 +78,22 @@ const InsuranceProviderDashboard = ({
   const handleUpdateProfile = async (e) => {
     e.preventDefault();
     const phoneToKeep = (user?.mobile || user?.phone || '').trim();
-    const result = await dispatch(updateProfile({ name: profileName, avatar: profileAvatar, profilePicture: profileAvatar, mobile: phoneToKeep, phone: phoneToKeep }));
+    if (!profileName?.trim()) {
+      toast.error('Provider name cannot be empty');
+      return;
+    }
+    const result = await dispatch(updateProfile({ 
+      name: profileName.trim(), 
+      businessName: profileName.trim(), 
+      avatar: profileAvatar, 
+      profilePicture: profileAvatar, 
+      mobile: phoneToKeep, 
+      phone: phoneToKeep 
+    }));
     if (updateProfile.fulfilled.match(result)) {
       toast.success('Profile updated successfully!');
       setIsEditingProfile(false);
+      dispatch(fetchProfile());
     } else {
       toast.error('Failed to update profile');
     }
@@ -119,7 +131,7 @@ const InsuranceProviderDashboard = ({
   };
 
   const displayAvatar = user?.avatar || user?.profilePicture || currentProvider?.avatar || 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=800&auto=format&fit=crop';
-  const displayName = user?.name || currentProvider?.name || 'Provider';
+  const displayName = user?.businessName || user?.name || currentProvider?.name || 'PawProtect Insurance';
 
   return (
     <div className="min-h-[calc(100vh-104px)] bg-[#FAF9F5] text-slate-900 font-sans selection:bg-[#0F2E23]/20 selection:text-[#0F2E23] flex flex-col lg:flex-row">
@@ -300,11 +312,18 @@ const InsuranceProviderDashboard = ({
           {activeTab === 'profile' ? (
             <ProviderProfileSection
               serviceCategory="Pet Insurance"
+              subscription={subscription}
               onOpenSubscriptionModal={onOpenSubscriptionModal}
               onOpenPlanDetails={onOpenPlanDetails}
             />
           ) : (
-            <InsuranceProviderContent activeTab={activeTab} />
+            <InsuranceProviderContent 
+              activeTab={activeTab} 
+              user={user}
+              subscription={subscription}
+              onOpenSubscriptionModal={onOpenSubscriptionModal}
+              onOpenPlanDetails={onOpenPlanDetails}
+            />
           )}
         </div>
       </main>

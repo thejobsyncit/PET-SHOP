@@ -1222,6 +1222,7 @@ export const updateUserProfile = async (req, res) => {
         if (updateData.city !== undefined) demoUser.city = updateData.city;
         if (updateData.whatsapp !== undefined) demoUser.whatsapp = updateData.whatsapp;
         if (updateData.whatsappNumber !== undefined) demoUser.whatsappNumber = updateData.whatsappNumber;
+        if (updateData.emergencyHelpline !== undefined) demoUser.emergencyHelpline = updateData.emergencyHelpline;
       }
 
       const finalUser = sanitizeUser({
