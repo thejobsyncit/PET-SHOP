@@ -7,6 +7,7 @@ import {
   Sparkles, AlertCircle, ArrowRight, Lock, X
 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { formatWhatsAppTargetPhone, resolveProviderWhatsApp } from '../../utils/whatsappHelper.js';
 import {
   getStoredAdoptionPets,
   saveAdoptionApplication,
@@ -114,11 +115,8 @@ const AdoptionPetDetail = () => {
   // Direct WhatsApp chat connect with pet details
   const handleWhatsAppChat = (targetPet) => {
     const p = targetPet || pet;
-    const rawContact = p?.parentContact || p?.shelterPhone || p?.ownerPhone || '+91 98765 43210';
-    let cleanPhone = rawContact.replace(/\D/g, '') || '919876543210';
-    if (cleanPhone.length === 10) {
-      cleanPhone = `91${cleanPhone}`;
-    }
+    const rawContact = resolveProviderWhatsApp(p) || p?.parentContact || p?.shelterPhone || p?.ownerPhone || '+91 98765 43210';
+    const cleanPhone = formatWhatsAppTargetPhone(rawContact, p?.whatsappCountryCode || '+91');
     const message = encodeURIComponent(
       `Hi ${p?.parentName || 'Guardian'}, I saw ${p?.name} (${p?.breed}) on Josh Pets Hub and would love to know more details about adopting!`
     );

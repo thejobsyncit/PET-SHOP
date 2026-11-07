@@ -8,6 +8,7 @@ import {
   ShieldAlert, UserCheck, HeartHandshake, SearchCheck, BadgeCheck
 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { formatWhatsAppTargetPhone, resolveProviderWhatsApp } from '../../utils/whatsappHelper.js';
 import RazorpayBookingPaymentModal from '../../components/widgets/RazorpayBookingPaymentModal.jsx';
 import { 
   GROOMING_OFFERINGS, 
@@ -333,9 +334,8 @@ const GroomingServices = () => {
       window.dispatchEvent(new CustomEvent('open-register-modal', { detail: { tab: 'user', hideProviderTab: true, source: 'grooming' } }));
       return;
     }
-    const rawPhone = (provider?.phone || '9876543210').replace(/\s+/g, '');
-    const cleanPhone = rawPhone.replace(/[^0-9]/g, '');
-    const targetPhone = cleanPhone.length === 10 ? `91${cleanPhone}` : cleanPhone;
+    const whatsappNum = resolveProviderWhatsApp(provider) || provider?.phone || provider?.mobile || '9876543210';
+    const targetPhone = formatWhatsAppTargetPhone(whatsappNum, provider?.whatsappCountryCode || '+91');
     const text = encodeURIComponent(`Hi ${provider?.name || 'Groomer'}, I found your profile on Josh Pets Hub and would like to inquire about grooming services for my pet.`);
     toast.success(`Connecting with ${provider?.name} on WhatsApp...`, { icon: '💬' });
     window.open(`https://wa.me/${targetPhone}?text=${text}`, '_blank');

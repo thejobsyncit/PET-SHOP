@@ -532,7 +532,7 @@ const GroomingProviderDashboard = ({
                 { id: 'gallery', label: 'Before & After Gallery', icon: Star },
                 { id: 'messages', label: 'Client Inquiries', icon: MessageSquare },
                 { id: 'hours', label: 'Studio Hours & Slots', icon: Clock },
-                { id: 'reviews', label: 'Customer Reviews', icon: Heart },
+                { id: 'reviews', label: 'Customer Reviews', icon: Star },
                 { id: 'wallet', label: 'Wallet & Payouts', icon: DollarSign }
               ].map(item => ( 
                 <li key={item.id}>

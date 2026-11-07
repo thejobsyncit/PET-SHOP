@@ -331,19 +331,19 @@ const SuperAdminDashboard = () => {
     setEditingProductId(null);
     setProdName('');
     setProdBrand('');
-    setProdSku(`SKU-${Math.floor(1000 + Math.random() * 9000)}`);
+    setProdSku('');
     setProdPrice('');
     setProdDiscountPrice('');
     setProdStock('');
     setProdDescription('');
     setProdLongDescription('');
-    setProdCategory('Dog Food');
-    setProdSubcategory('Dog Food');
+    setProdCategory('');
+    setProdSubcategory('');
     setProdPetType('dogs');
     setProdRequiresPrescription(false);
     setProdIsFeatured(false);
     setProdIsBestSeller(false);
-    setProdImage('https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?q=80&w=800&auto=format&fit=crop');
+    setProdImage('');
     setShowProductModal(true);
   };
 

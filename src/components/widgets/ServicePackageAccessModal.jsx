@@ -11,6 +11,7 @@ import { safeSetItem, safeGetItem } from '../../utils/safeStorage.js';
 import { getCookie, setCookie } from '../../utils/cookieUtils.js';
 import { apiRequest } from '../../services/api.js';
 import { setServiceMembership } from '../../store/slices/authSlice.js';
+import { formatWhatsAppTargetPhone, resolveProviderWhatsApp } from '../../utils/whatsappHelper.js';
 
 /**
  * COMMON SERVICE PACKAGES FOR ALL SERVICE CATEGORIES
@@ -195,8 +196,8 @@ export const handleServiceAction = ({
     const tierName = activeMembership.tier === 'VIP' ? 'VIP All-Access Pass' : 'Standard Service Pass';
 
     if (action === 'whatsapp') {
-      const rawPhone = (provider?.phone || '+91 98765 43210').replace(/\s+/g, '');
-      const cleanPhone = rawPhone.replace(/[^0-9]/g, '');
+      const whatsappNum = resolveProviderWhatsApp(provider) || provider?.phone || provider?.mobile || '+91 98765 43210';
+      const cleanPhone = formatWhatsAppTargetPhone(whatsappNum, provider?.whatsappCountryCode || '+91');
       const text = encodeURIComponent(`Hi ${provider?.name || 'Verified Provider'}, I have an active ${tierName} on Josh Pets Hub and would like to connect for ${serviceType} services.`);
       toast.success(`${tierName} Active! Connecting on WhatsApp...`, {
         icon: '💬'
@@ -215,8 +216,8 @@ export const handleServiceAction = ({
       toast.success(`🎉 ${tierName} Active: Direct adoption inquiry connected for ${provider?.name || 'pet'}!`, {
         icon: '🐾'
       });
-      const rawPhone = (provider?.phone || '+91 98765 43210').replace(/\s+/g, '');
-      const cleanPhone = rawPhone.replace(/[^0-9]/g, '');
+      const whatsappNum = resolveProviderWhatsApp(provider) || provider?.parentContact || provider?.shelterPhone || provider?.phone || provider?.mobile || '+91 98765 43210';
+      const cleanPhone = formatWhatsAppTargetPhone(whatsappNum, provider?.whatsappCountryCode || '+91');
       const text = encodeURIComponent(`Hi ${provider?.parentName || 'Shelter'}, I have an active ${tierName} and would like to inquire about adopting ${provider?.name || 'this pet'}.`);
       window.open(`https://wa.me/${cleanPhone}?text=${text}`, '_blank');
       return true;

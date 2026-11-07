@@ -139,7 +139,7 @@ const HostelProviderDashboard = ({
     { id: 'gallery', label: 'Facility Gallery', icon: Camera },
     { id: 'messages', label: 'Pet Parent Inquiries', icon: MessageSquare },
     { id: 'hours', label: 'Check-in/Out Timings', icon: Clock },
-    { id: 'reviews', label: 'Guest Reviews', icon: Heart },
+    { id: 'reviews', label: 'Guest Reviews', icon: Star },
     { id: 'wallet', label: 'Wallet & Payouts', icon: DollarSign }
   ];
 

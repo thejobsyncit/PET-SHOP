@@ -1,3 +1,4 @@
+import { syncRegisteredProvidersToService } from '../utils/whatsappHelper.js';
 // Pet Transport & Relocation Dataset, Offerings & Persistent Storage Helpers
 
 export const TRANSPORT_MODES = [
@@ -445,14 +446,15 @@ export const INITIAL_TRANSPORT_PROVIDERS = [
 // Persistent LocalStorage Helpers
 
 export const getStoredTransportProviders = () => {
+  let list = INITIAL_TRANSPORT_PROVIDERS;
   try {
     const data = localStorage.getItem('joshpetshub_transport_providers');
     if (data) {
       const parsed = JSON.parse(data);
-      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      if (Array.isArray(parsed) && parsed.length > 0) list = parsed;
     }
   } catch (_e) {}
-  return INITIAL_TRANSPORT_PROVIDERS;
+  return syncRegisteredProvidersToService(list, 'transport');
 };
 
 export const saveStoredTransportProviders = (providers) => {

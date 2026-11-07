@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
-import { logout, updateProfile } from '../../../store/slices/authSlice.js';
+import { logout, updateProfile, fetchProfile } from '../../../store/slices/authSlice.js';
 import {
   PawPrint, Calendar, Star, TrendingUp, DollarSign, Clock, MapPin, 
   MessageSquare, Plus, Search, ChevronRight, Phone, ShieldCheck, Mail, Heart, Settings,
@@ -15,6 +15,7 @@ import { safeSetItem, safeGetItem } from '../../../utils/safeStorage.js';
 import toast from 'react-hot-toast';
 import ProviderProfileSection from '../../../components/dashboards/ProviderProfileSection.jsx';
 import ProviderWalletPayoutView from '../../../components/dashboards/ProviderWalletPayoutView.jsx';
+import ProviderReviewsView from '../../../components/dashboards/ProviderReviewsView.jsx';
 
 
 const ListingsModule = ({ user }) => {
@@ -44,6 +45,7 @@ const ListingsModule = ({ user }) => {
     const allPets = getStoredMatingPets() || [];
     const myPets = Array.isArray(allPets) ? allPets.filter(p => p && (
       p.parentName === user?.name || 
+      p.parentName === user?.businessName ||
       p.parentPhone === user?.mobile || 
       p.whatsappNumber === user?.mobile ||
       p.providerEmail === user?.email ||
@@ -133,7 +135,7 @@ const ListingsModule = ({ user }) => {
         age: formData.age.trim(),
         price: Number(formData.price) || 8000,
         priceDisplay: `₹${(Number(formData.price) || 8000).toLocaleString('en-IN')} Stud Fee`,
-        image: formData.image?.trim() || editingStud.image || 'https://images.unsplash.com/photo-1552053831-71594a27632d?auto=format&fit=crop&q=80&w=800',
+        image: formData.image ? formData.image.trim() : '',
         status: formData.status || 'Active',
         mateRequirement: formData.mateRequirement || '',
         description: formData.description || '',
@@ -155,8 +157,8 @@ const ListingsModule = ({ user }) => {
         age: formData.age.trim(),
         price: Number(formData.price) || 8000,
         priceDisplay: `₹${(Number(formData.price) || 8000).toLocaleString('en-IN')} Stud Fee`,
-        image: formData.image?.trim() || 'https://images.unsplash.com/photo-1552053831-71594a27632d?auto=format&fit=crop&q=80&w=800',
-        parentName: user?.name || 'Elite Breeds Hub',
+        image: formData.image ? formData.image.trim() : '',
+        parentName: user?.businessName || user?.name || 'Elite Breeds Hub',
         parentPhone: user?.mobile || '9845556677',
         whatsappNumber: user?.mobile || '9845556677',
         providerEmail: user?.email || 'elitebreed@joshpetshub.com',
@@ -209,8 +211,27 @@ const ListingsModule = ({ user }) => {
             const isPaused = (stud.status || 'Active') === 'Paused';
             return (
               <div key={stud.id} className="bg-white border border-slate-200 rounded-2xl overflow-hidden hover:shadow-lg transition-shadow duration-300 group flex flex-col">
-                <div className="h-44 overflow-hidden relative">
-                  <img src={stud.image} alt={stud.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                <div className="h-44 overflow-hidden relative bg-slate-100 flex items-center justify-center">
+                  {stud.image ? (
+                    <img 
+                      src={stud.image} 
+                      alt={stud.name} 
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                      onError={(e) => {
+                        e.target.style.display = 'none';
+                        if (e.target.nextElementSibling) {
+                          e.target.nextElementSibling.style.display = 'flex';
+                        }
+                      }}
+                    />
+                  ) : null}
+                  <div 
+                    className="w-full h-full flex flex-col items-center justify-center bg-slate-100 text-slate-400"
+                    style={{ display: stud.image ? 'none' : 'flex' }}
+                  >
+                    <PawPrint size={36} className="text-slate-300 mb-1" />
+                    <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">No Photo Provided</span>
+                  </div>
                   <div className="absolute top-3 right-3 flex items-center gap-1.5">
                     <span className={`px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider shadow-sm flex items-center gap-1.5 ${
                       !isPaused
@@ -408,15 +429,15 @@ const ListingsModule = ({ user }) => {
                 </div>
 
                 <div>
-                  <label className="font-bold text-slate-700 block mb-1">Profile Photo URL</label>
+                  <label className="font-bold text-slate-700 block mb-1">Profile Photo URL (Optional)</label>
                   <input
                     type="text"
                     value={formData.image}
                     onChange={(e) => setFormData({ ...formData, image: e.target.value })}
-                    placeholder="https://images.unsplash.com/... (leave blank for default)"
+                    placeholder="https://images.unsplash.com/... (optional)"
                     className="w-full border border-slate-200 rounded-xl p-2.5 font-medium text-slate-900 bg-slate-50 focus:bg-white focus:outline-none focus:border-[#0F2E23]"
                   />
-                  <span className="text-[10px] text-slate-400 mt-1 block">Leave empty to use a standard breed image placeholder.</span>
+                  <span className="text-[10px] text-slate-400 mt-1 block">Leave empty if no photo is available.</span>
                 </div>
 
                 <div>
@@ -588,7 +609,20 @@ const MessagesModule = () => {
   const [replyText, setReplyText] = useState('');
   const [showAttachMenu, setShowAttachMenu] = useState(false);
   const [showSettingsMenu, setShowSettingsMenu] = useState(false);
-  const [mutedInquiries, setMutedInquiries] = useState({});
+  const [mutedInquiries, setMutedInquiries] = useState(() => {
+    const saved = safeGetItem('breeder_muted_inquiries');
+    if (saved) {
+      try { return JSON.parse(saved); } catch (e) {}
+    }
+    return {};
+  });
+  const [blockedClients, setBlockedClients] = useState(() => {
+    const saved = safeGetItem('breeder_blocked_clients');
+    if (saved) {
+      try { return JSON.parse(saved); } catch (e) {}
+    }
+    return {};
+  });
   const fileInputRef = useRef(null);
 
   const [threads, setThreads] = useState(() => {
@@ -613,6 +647,7 @@ const MessagesModule = () => {
   });
 
   const currentInquiry = inquiries.find(i => i.id === selectedInquiryId) || inquiries[0];
+  const isCurrentBlocked = Boolean(currentInquiry && (blockedClients[currentInquiry.id] || blockedClients[String(currentInquiry.id)]));
   const currentMessages = threads[selectedInquiryId] || [];
 
   const handleSelectInquiry = (id) => {
@@ -628,6 +663,10 @@ const MessagesModule = () => {
 
   const handleSendMessage = (e) => {
     if (e) e.preventDefault();
+    if (isCurrentBlocked) {
+      toast.error(`Cannot send message: ${currentInquiry.name} is currently blocked. Please unblock them first.`);
+      return;
+    }
     const textToSend = replyText.trim();
     if (!textToSend) {
       toast.error('Please enter a message before sending.');
@@ -655,6 +694,10 @@ const MessagesModule = () => {
 
   const handleAttachItem = (type, label) => {
     setShowAttachMenu(false);
+    if (isCurrentBlocked) {
+      toast.error(`Cannot send attachment: ${currentInquiry.name} is currently blocked. Please unblock them first.`);
+      return;
+    }
     let attachedContent = '';
     if (type === 'kci') {
       attachedContent = '📎 Attached: Verified KCI Stud Certificate & Lineage Pedigree Report (PDF)';
@@ -686,6 +729,11 @@ const MessagesModule = () => {
     const file = e.target.files?.[0];
     if (!file) return;
     setShowAttachMenu(false);
+    if (isCurrentBlocked) {
+      toast.error(`Cannot upload file: ${currentInquiry.name} is currently blocked. Please unblock them first.`);
+      e.target.value = '';
+      return;
+    }
 
     const newMsg = {
       id: Date.now(),
@@ -708,21 +756,23 @@ const MessagesModule = () => {
 
   const handleToggleUnread = () => {
     setShowSettingsMenu(false);
-    setInquiries(prev => {
-      const updated = prev.map(inq => inq.id === selectedInquiryId ? { ...inq, isUnread: !inq.isUnread } : inq);
-      safeSetItem('breeder_client_inquiries', JSON.stringify(updated));
-      return updated;
-    });
+    const updated = inquiries.map(inq => inq.id === selectedInquiryId ? { ...inq, isUnread: !inq.isUnread } : inq);
+    setInquiries(updated);
+    safeSetItem('breeder_client_inquiries', JSON.stringify(updated));
     toast.success(`Toggled unread status for ${currentInquiry.name}`);
   };
 
   const handleToggleMute = () => {
     setShowSettingsMenu(false);
-    setMutedInquiries(prev => {
-      const isMutedNow = !prev[selectedInquiryId];
-      toast.success(isMutedNow ? `Muted notifications from ${currentInquiry.name}` : `Unmuted notifications from ${currentInquiry.name}`);
-      return { ...prev, [selectedInquiryId]: isMutedNow };
-    });
+    const isMutedNow = !mutedInquiries[selectedInquiryId];
+    const updated = { ...mutedInquiries, [selectedInquiryId]: isMutedNow };
+    setMutedInquiries(updated);
+    safeSetItem('breeder_muted_inquiries', JSON.stringify(updated));
+    if (isMutedNow) {
+      toast.success(`Muted notifications from ${currentInquiry.name}`);
+    } else {
+      toast.success(`Unmuted notifications from ${currentInquiry.name}`);
+    }
   };
 
   const handleExportChat = () => {
@@ -734,9 +784,22 @@ const MessagesModule = () => {
     toast.success('Chat transcript copied to clipboard!');
   };
 
-  const handleBlockClient = () => {
+  const handleToggleBlock = () => {
     setShowSettingsMenu(false);
-    toast.error(`Client ${currentInquiry.name} has been blocked.`);
+    const currentlyBlocked = Boolean(blockedClients[currentInquiry.id] || blockedClients[String(currentInquiry.id)]);
+    const willBeBlocked = !currentlyBlocked;
+    const updated = {
+      ...blockedClients,
+      [currentInquiry.id]: willBeBlocked,
+      [String(currentInquiry.id)]: willBeBlocked
+    };
+    setBlockedClients(updated);
+    safeSetItem('breeder_blocked_clients', JSON.stringify(updated));
+    if (willBeBlocked) {
+      toast.error(`Client ${currentInquiry.name} has been blocked.`);
+    } else {
+      toast.success(`Client ${currentInquiry.name} has been unblocked.`);
+    }
   };
 
   const filteredInquiries = inquiries.filter(i => 
@@ -781,6 +844,7 @@ const MessagesModule = () => {
               filteredInquiries.map((inq) => {
                 const isSelected = inq.id === selectedInquiryId;
                 const isMuted = mutedInquiries[inq.id];
+                const isBlocked = Boolean(blockedClients[inq.id] || blockedClients[String(inq.id)]);
                 return (
                   <div 
                     key={inq.id} 
@@ -792,13 +856,18 @@ const MessagesModule = () => {
                     }`}
                   >
                     <div className="flex justify-between items-start mb-1">
-                      <div className="flex items-center gap-1.5">
+                      <div className="flex items-center gap-1.5 flex-wrap">
                         <h4 className={`text-sm font-bold ${isSelected ? 'text-[#0F2E23]' : inq.isUnread ? 'text-[#0F2E23] font-black' : 'text-slate-600'}`}>
                           {inq.name}
                         </h4>
                         {isMuted && <VolumeX size={12} className="text-slate-400" />}
+                        {isBlocked && (
+                          <span className="text-[9px] bg-rose-100 text-rose-700 px-1.5 py-0.5 rounded font-bold border border-rose-200">
+                            Blocked
+                          </span>
+                        )}
                       </div>
-                      <span className="text-[10px] font-bold text-slate-400">{inq.date}</span>
+                      <span className="text-[10px] font-bold text-slate-400 shrink-0">{inq.date}</span>
                     </div>
                     <div className="text-[11px] font-bold text-emerald-600 mb-1.5 flex items-center gap-1">
                       <PawPrint size={10}/> {inq.pet}
@@ -817,10 +886,15 @@ const MessagesModule = () => {
         <div className="w-full md:w-2/3 flex flex-col bg-white">
           <div className="p-4 border-b border-slate-200 flex justify-between items-center bg-slate-50/50 relative">
             <div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 flex-wrap">
                 <h3 className="text-base font-black text-[#0F2E23]">{currentInquiry.name}</h3>
                 {mutedInquiries[currentInquiry.id] && (
                   <span className="text-[10px] bg-slate-200 text-slate-600 px-2 py-0.5 rounded font-bold">Muted</span>
+                )}
+                {isCurrentBlocked && (
+                  <span className="text-[10px] bg-rose-100 text-rose-700 border border-rose-200 px-2 py-0.5 rounded-full font-bold flex items-center gap-1">
+                    <AlertCircle size={11} /> Blocked
+                  </span>
                 )}
               </div>
               <p className="text-xs font-bold text-emerald-600">Interested in: {currentInquiry.pet}</p>
@@ -863,10 +937,22 @@ const MessagesModule = () => {
                   </button>
                   <button 
                     type="button"
-                    onClick={handleBlockClient}
-                    className="w-full text-left px-4 py-2.5 text-rose-600 hover:bg-rose-50 transition cursor-pointer flex items-center gap-2"
+                    onClick={handleToggleBlock}
+                    className={`w-full text-left px-4 py-2.5 transition cursor-pointer flex items-center gap-2 ${
+                      isCurrentBlocked 
+                        ? 'text-emerald-700 hover:bg-emerald-50' 
+                        : 'text-rose-600 hover:bg-rose-50'
+                    }`}
                   >
-                    <AlertCircle size={14} /> Block Pet Parent
+                    {isCurrentBlocked ? (
+                      <>
+                        <CheckCircle size={14} className="text-emerald-600" /> Unblock Pet Parent
+                      </>
+                    ) : (
+                      <>
+                        <AlertCircle size={14} className="text-rose-600" /> Block Pet Parent
+                      </>
+                    )}
                   </button>
                 </div>
               )}
@@ -908,6 +994,14 @@ const MessagesModule = () => {
                 </div>
               );
             })}
+
+            {isCurrentBlocked && (
+              <div className="flex flex-col items-center my-3 animate-in fade-in">
+                <span className="text-[11px] font-bold text-rose-600 bg-rose-50 border border-rose-200 px-3.5 py-1.5 rounded-full flex items-center gap-1.5 shadow-2xs">
+                  <AlertCircle size={13} /> You have blocked {currentInquiry.name}. Messaging is disabled.
+                </span>
+              </div>
+            )}
           </div>
           
           {/* Message Input with Attachment and Send */}
@@ -921,79 +1015,102 @@ const MessagesModule = () => {
               accept=".pdf,.doc,.docx,image/*"
             />
 
-            {/* Quick Attachment Dropdown Menu */}
-            {showAttachMenu && (
-              <div className="absolute bottom-full left-4 mb-2 w-64 bg-white border border-slate-200 rounded-2xl shadow-2xl z-20 overflow-hidden animate-in fade-in zoom-in-95 text-xs font-bold divide-y divide-slate-100">
-                <div className="p-2.5 bg-slate-50 text-[10px] text-slate-400 uppercase tracking-wider">
-                  Quick Attachments
+            {isCurrentBlocked ? (
+              <div className="p-3.5 bg-rose-50/90 border border-rose-200 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left animate-in fade-in">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center shrink-0">
+                    <AlertCircle size={18} />
+                  </div>
+                  <div>
+                    <h4 className="text-xs font-bold text-rose-900">Pet Parent Blocked</h4>
+                    <p className="text-[11px] text-rose-600 font-medium">You cannot send messages or attachments to this client while blocked.</p>
+                  </div>
                 </div>
                 <button
                   type="button"
-                  onClick={() => handleAttachItem('kci', 'KCI Certificate')}
-                  className="w-full text-left px-4 py-2.5 hover:bg-emerald-50 text-slate-700 hover:text-emerald-800 transition flex items-center gap-2 cursor-pointer"
+                  onClick={handleToggleBlock}
+                  className="px-3.5 py-1.5 bg-white hover:bg-rose-100 text-rose-700 text-xs font-bold rounded-xl border border-rose-300 transition-colors cursor-pointer shadow-2xs whitespace-nowrap"
                 >
-                  <ShieldCheck size={14} className="text-emerald-600" />
-                  <span>KCI Stud Certificate (PDF)</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleAttachItem('health', 'Health Screening')}
-                  className="w-full text-left px-4 py-2.5 hover:bg-emerald-50 text-slate-700 hover:text-emerald-800 transition flex items-center gap-2 cursor-pointer"
-                >
-                  <FileText size={14} className="text-blue-600" />
-                  <span>Genetic / Brucellosis Clearance</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleAttachItem('location', 'Kennel GPS Pin')}
-                  className="w-full text-left px-4 py-2.5 hover:bg-emerald-50 text-slate-700 hover:text-emerald-800 transition flex items-center gap-2 cursor-pointer"
-                >
-                  <MapPin size={14} className="text-rose-500" />
-                  <span>Share Kennel GPS Location</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => fileInputRef.current?.click()}
-                  className="w-full text-left px-4 py-2.5 hover:bg-emerald-50 text-slate-700 hover:text-emerald-800 transition flex items-center gap-2 cursor-pointer"
-                >
-                  <Paperclip size={14} className="text-purple-600" />
-                  <span>Upload Custom File / Photo</span>
+                  Unblock Pet Parent
                 </button>
               </div>
-            )}
+            ) : (
+              <>
+                {/* Quick Attachment Dropdown Menu */}
+                {showAttachMenu && (
+                  <div className="absolute bottom-full left-4 mb-2 w-64 bg-white border border-slate-200 rounded-2xl shadow-2xl z-20 overflow-hidden animate-in fade-in zoom-in-95 text-xs font-bold divide-y divide-slate-100">
+                    <div className="p-2.5 bg-slate-50 text-[10px] text-slate-400 uppercase tracking-wider">
+                      Quick Attachments
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => handleAttachItem('kci', 'KCI Certificate')}
+                      className="w-full text-left px-4 py-2.5 hover:bg-emerald-50 text-slate-700 hover:text-emerald-800 transition flex items-center gap-2 cursor-pointer"
+                    >
+                      <ShieldCheck size={14} className="text-emerald-600" />
+                      <span>KCI Stud Certificate (PDF)</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleAttachItem('health', 'Health Screening')}
+                      className="w-full text-left px-4 py-2.5 hover:bg-emerald-50 text-slate-700 hover:text-emerald-800 transition flex items-center gap-2 cursor-pointer"
+                    >
+                      <FileText size={14} className="text-blue-600" />
+                      <span>Genetic / Brucellosis Clearance</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleAttachItem('location', 'Kennel GPS Pin')}
+                      className="w-full text-left px-4 py-2.5 hover:bg-emerald-50 text-slate-700 hover:text-emerald-800 transition flex items-center gap-2 cursor-pointer"
+                    >
+                      <MapPin size={14} className="text-rose-500" />
+                      <span>Share Kennel GPS Location</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => fileInputRef.current?.click()}
+                      className="w-full text-left px-4 py-2.5 hover:bg-emerald-50 text-slate-700 hover:text-emerald-800 transition flex items-center gap-2 cursor-pointer"
+                    >
+                      <Paperclip size={14} className="text-purple-600" />
+                      <span>Upload Custom File / Photo</span>
+                    </button>
+                  </div>
+                )}
 
-            <form onSubmit={handleSendMessage} className="flex items-center gap-2">
-              <button 
-                type="button" 
-                onClick={() => setShowAttachMenu(!showAttachMenu)}
-                className={`p-2.5 rounded-xl transition-colors cursor-pointer border ${
-                  showAttachMenu ? 'bg-emerald-100 text-emerald-800 border-emerald-300' : 'bg-slate-50 text-slate-500 hover:text-emerald-600 hover:bg-slate-100 border-slate-200'
-                }`}
-                title="Add attachment / certificate"
-              >
-                <Plus size={20}/>
-              </button>
-              <input 
-                type="text" 
-                placeholder={`Type reply to ${currentInquiry.name}...`} 
-                value={replyText}
-                onChange={(e) => setReplyText(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' && !e.shiftKey) {
-                    e.preventDefault();
-                    handleSendMessage();
-                  }
-                }}
-                className="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all font-medium text-slate-800" 
-              />
-              <button 
-                type="submit" 
-                className="p-2.5 bg-[#0F2E23] text-white hover:bg-emerald-800 transition-colors rounded-xl shadow-sm cursor-pointer flex items-center justify-center shrink-0"
-                title="Send Message"
-              >
-                <Send size={18}/>
-              </button>
-            </form>
+                <form onSubmit={handleSendMessage} className="flex items-center gap-2">
+                  <button 
+                    type="button" 
+                    onClick={() => setShowAttachMenu(!showAttachMenu)}
+                    className={`p-2.5 rounded-xl transition-colors cursor-pointer border ${
+                      showAttachMenu ? 'bg-emerald-100 text-emerald-800 border-emerald-300' : 'bg-slate-50 text-slate-500 hover:text-emerald-600 hover:bg-slate-100 border-slate-200'
+                    }`}
+                    title="Add attachment / certificate"
+                  >
+                    <Plus size={20}/>
+                  </button>
+                  <input 
+                    type="text" 
+                    placeholder={`Type reply to ${currentInquiry.name}...`} 
+                    value={replyText}
+                    onChange={(e) => setReplyText(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                        handleSendMessage();
+                      }
+                    }}
+                    className="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all font-medium text-slate-800" 
+                  />
+                  <button 
+                    type="submit" 
+                    className="p-2.5 bg-[#0F2E23] text-white hover:bg-emerald-800 transition-colors rounded-xl shadow-sm cursor-pointer flex items-center justify-center shrink-0"
+                    title="Send Message"
+                  >
+                    <Send size={18}/>
+                  </button>
+                </form>
+              </>
+            )}
           </div>
         </div>
       </div>
@@ -1415,14 +1532,35 @@ const ProfileModule = ({ user }) => {
   );
 };
 
-const BreedingProviderContent = ({ activeTab, user }) => {
+const BreedingProviderContent = ({ 
+  activeTab, 
+  user, 
+  subscription, 
+  onOpenSubscriptionModal, 
+  onOpenPlanDetails 
+}) => {
   switch (activeTab) {
     case 'listings': return <ListingsModule user={user} />;
     case 'matches': return <MatchesModule user={user} />;
     case 'messages': return <MessagesModule user={user} />;
-    case 'reviews': return <ReviewsModule user={user} />;
+    case 'reviews': return (
+      <ProviderReviewsView
+        serviceCategory="Mating & Breeding"
+        title="Customer Reviews"
+        subtitle="Verified client ratings, breeding testimonials, and official breeder replies."
+        roleTitle="Breeder"
+        storageKeyPrefix="breeding"
+      />
+    );
     case 'wallet': return <ProviderWalletPayoutView serviceCategory="Pet Mating & Breeding" storageKeyPrefix="breeder" initialBalance={38000} escrowAmount={12000} />;
-    case 'profile': return <ProfileModule user={user} />;
+    case 'profile': return (
+      <ProviderProfileSection
+        serviceCategory="Mating & Breeding"
+        subscription={subscription}
+        onOpenSubscriptionModal={onOpenSubscriptionModal}
+        onOpenPlanDetails={onOpenPlanDetails}
+      />
+    );
     default: return <ListingsModule user={user} />;
   }
 };
@@ -1450,24 +1588,36 @@ const BreedingProviderDashboard = ({
 
   const { user } = useSelector(state => state.auth);
   const dispatch = useDispatch();
-  const [profileName, setProfileName] = useState(user?.name || currentProvider?.name || '');
+  const [profileName, setProfileName] = useState(user?.businessName || user?.name || currentProvider?.name || '');
   const [profileAvatar, setProfileAvatar] = useState(user?.avatar || user?.profilePicture || currentProvider?.avatar || '');
   const [isEditingProfile, setIsEditingProfile] = useState(false);
 
   useEffect(() => {
     if (user) {
-      setProfileName(user.name || currentProvider?.name || '');
+      setProfileName(user.businessName || user.name || currentProvider?.name || '');
       setProfileAvatar(user.avatar || user.profilePicture || currentProvider?.avatar || '');
     }
   }, [user, currentProvider]);
 
   const handleUpdateProfile = async (e) => {
-    e.preventDefault();
+    if (e) e.preventDefault();
+    if (!profileName?.trim()) {
+      toast.error('Provider name cannot be empty');
+      return;
+    }
     const phoneToKeep = (user?.mobile || user?.phone || '').trim();
-    const result = await dispatch(updateProfile({ name: profileName, avatar: profileAvatar, profilePicture: profileAvatar, mobile: phoneToKeep, phone: phoneToKeep }));
+    const result = await dispatch(updateProfile({ 
+      name: profileName.trim(), 
+      businessName: profileName.trim(),
+      avatar: profileAvatar, 
+      profilePicture: profileAvatar, 
+      mobile: phoneToKeep, 
+      phone: phoneToKeep 
+    }));
     if (updateProfile.fulfilled.match(result)) {
       toast.success('Profile updated successfully!');
       setIsEditingProfile(false);
+      dispatch(fetchProfile());
     } else {
       toast.error('Failed to update profile');
     }
@@ -1505,7 +1655,7 @@ const BreedingProviderDashboard = ({
   };
 
   const displayAvatar = user?.avatar || user?.profilePicture || currentProvider?.avatar || 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=800&auto=format&fit=crop';
-  const displayName = user?.name || currentProvider?.name || 'Provider';
+  const displayName = user?.businessName || user?.name || currentProvider?.name || 'Verified Breeder';
 
   return (
     <div className="min-h-[calc(100vh-104px)] bg-[#FAF9F5] text-slate-900 font-sans selection:bg-[#0F2E23]/20 selection:text-[#0F2E23] flex flex-col lg:flex-row">
@@ -1686,11 +1836,18 @@ const BreedingProviderDashboard = ({
           {activeTab === 'profile' ? (
             <ProviderProfileSection
               serviceCategory="Mating & Breeding"
+              subscription={subscription}
               onOpenSubscriptionModal={onOpenSubscriptionModal}
               onOpenPlanDetails={onOpenPlanDetails}
             />
           ) : (
-            <BreedingProviderContent activeTab={activeTab} user={user} />
+            <BreedingProviderContent 
+              activeTab={activeTab} 
+              user={user} 
+              subscription={subscription}
+              onOpenSubscriptionModal={onOpenSubscriptionModal}
+              onOpenPlanDetails={onOpenPlanDetails}
+            />
           )}
         </div>
       </main>

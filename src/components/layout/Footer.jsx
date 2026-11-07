@@ -69,10 +69,10 @@ const Footer = ({ compact = false }) => {
             </div>
 
             {/* Newsletter */}
-            <div className="lg:col-span-4 sm:col-span-2">
-              <div className="flex items-center justify-between mb-1">
+            <div className="lg:col-span-4 sm:col-span-2 lg:justify-self-end w-full max-w-[220px]">
+              <div className="flex items-center justify-between mb-1 gap-2">
                 <h4 className="text-[10px] uppercase tracking-widest text-accent font-bold">NEWSLETTER</h4>
-                <span className="text-[10px] text-secondary-dark font-light hidden sm:inline">Exclusive releases & updates</span>
+                <span className="text-[9px] text-secondary-dark font-light hidden sm:inline">Updates</span>
               </div>
               <form onSubmit={handleSubscribe} className="relative">
                 <input
@@ -80,15 +80,15 @@ const Footer = ({ compact = false }) => {
                   placeholder="Enter email address"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full bg-white/5 border border-white/10 py-1.5 pl-3 pr-8 text-xs text-white placeholder:text-gray-400 focus:outline-none focus:border-accent rounded-lg"
+                  className="w-full bg-white/5 border border-white/10 py-1 pl-2.5 pr-7 text-[11px] text-white placeholder:text-gray-400 focus:outline-none focus:border-accent rounded-md h-7.5"
                   required
                 />
                 <button
                   type="submit"
                   aria-label="Subscribe to newsletter"
-                  className="absolute right-1 top-1/2 -translate-y-1/2 p-1.5 text-accent hover:text-white transition cursor-pointer"
+                  className="absolute right-1 top-1/2 -translate-y-1/2 p-1 text-accent hover:text-white transition cursor-pointer"
                 >
-                  <Send size={13} />
+                  <Send size={11} />
                 </button>
               </form>
             </div>
@@ -174,9 +174,9 @@ const Footer = ({ compact = false }) => {
         </div>
 
         {/* Column 3: Newsletter */}
-        <div className="space-y-4">
+        <div className="space-y-3 max-w-[240px]">
           <h3 className="text-xs uppercase tracking-widest text-accent font-bold">NEWSLETTER</h3>
-          <p className="text-xs text-secondary-dark leading-relaxed">
+          <p className="text-[11px] text-secondary-dark leading-relaxed">
             Get expert pet-care tips, nutritional advice, and exclusive product releases.
           </p>
           <form onSubmit={handleSubscribe} className="relative">
@@ -185,15 +185,15 @@ const Footer = ({ compact = false }) => {
               placeholder="Enter email address"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full bg-white/5 border border-white/10 py-2.5 pl-3 pr-10 text-xs text-white placeholder:text-gray-400 focus:outline-none focus:border-accent"
+              className="w-full bg-white/5 border border-white/10 py-1.5 pl-3 pr-8 text-xs text-white placeholder:text-gray-400 focus:outline-none focus:border-accent rounded-lg"
               required
             />
             <button
               type="submit"
               aria-label="Subscribe to newsletter"
-              className="absolute right-1 top-1/2 -translate-y-1/2 p-2 text-accent hover:text-white transition cursor-pointer"
+              className="absolute right-1 top-1/2 -translate-y-1/2 p-1.5 text-accent hover:text-white transition cursor-pointer"
             >
-              <Send size={14} />
+              <Send size={12} />
             </button>
           </form>
         </div>

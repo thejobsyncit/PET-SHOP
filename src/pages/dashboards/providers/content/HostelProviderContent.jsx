@@ -12,6 +12,7 @@ import toast from 'react-hot-toast';
 import { safeSetItem, safeGetItem } from '../../../../utils/safeStorage.js';
 import { apiRequest } from '../../../../services/api.js';
 import { getStoredHostelBookings } from '../../../../data/hostelData.js';
+import ProviderReviewsView from '../../../../components/dashboards/ProviderReviewsView.jsx';
 import { downloadBill, printBill } from '../../../../utils/billGenerator.js';
 
 // Default Initial Bookings
@@ -873,7 +874,7 @@ const HostelProviderContent = ({ activeTab }) => {
   const handleUploadPhotoSubmit = (e) => {
     e.preventDefault();
     if (!newPhotoUrl.trim()) {
-      toast.error('Please enter or select an image URL or choose a file');
+      toast.error('Please choose an image file from your device');
       return;
     }
 
@@ -897,8 +898,16 @@ const HostelProviderContent = ({ activeTab }) => {
     const file = e.target.files[0];
     if (!file) return;
 
-    if (!file.type.startsWith('image/')) {
-      toast.error('Please upload an image file');
+    const validTypes = ['image/jpeg', 'image/png', 'image/jpg', 'image/webp'];
+    if (!validTypes.includes(file.type)) {
+      toast.error('Only JPG, JPEG, PNG, or WEBP images are allowed');
+      e.target.value = '';
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('Image size must be less than 5MB');
+      e.target.value = '';
       return;
     }
 
@@ -908,7 +917,7 @@ const HostelProviderContent = ({ activeTab }) => {
       if (!newPhotoTitle) {
         setNewPhotoTitle(file.name.replace(/\.[^/.]+$/, "").replace(/[-_]/g, ' '));
       }
-      toast.success('Image loaded! Click "Add to Gallery" to save.');
+      toast.success('Image uploaded successfully!');
     };
     reader.readAsDataURL(file);
   };
@@ -1777,120 +1786,88 @@ const HostelProviderContent = ({ activeTab }) => {
 
           {/* Upload Photo Modal */}
           {showUploadModal && (
-            <div className="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center z-50 p-4">
-              <div className="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-8 shadow-2xl border border-slate-100 relative animate-fadeIn max-h-[90vh] overflow-y-auto">
-                <button 
-                  onClick={() => setShowUploadModal(false)}
-                  className="absolute top-5 right-5 text-slate-400 hover:text-slate-700 p-1 rounded-full hover:bg-slate-100 transition cursor-pointer"
-                >
-                  <X size={20} />
-                </button>
-
-                <h3 className="text-lg font-black text-[#0F2E23] mb-1">Upload Facility Photo</h3>
-                <p className="text-xs text-slate-500 font-medium mb-6">Add photos of your resort rooms, yards, or play amenities.</p>
-
-                <form onSubmit={handleUploadPhotoSubmit} className="space-y-4">
-                  {/* File Upload Option */}
+            <div className="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center z-50 p-3 sm:p-4 animate-fadeIn">
+              <div 
+                className="bg-white rounded-3xl max-w-lg w-full max-h-[90vh] flex flex-col shadow-2xl border border-slate-100 relative animate-fadeIn overflow-hidden text-slate-800"
+                onClick={(e) => e.stopPropagation()}
+              >
+                {/* Fixed Header */}
+                <div className="flex items-center justify-between p-5 sm:p-6 border-b border-slate-100 shrink-0 bg-white">
                   <div>
-                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1">
-                      Choose Image File From Device
-                    </label>
-                    <input 
-                      type="file" 
-                      accept="image/*"
-                      onChange={handleImageFileUpload}
-                      className="block w-full text-xs text-slate-500 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-emerald-50 file:text-emerald-800 hover:file:bg-emerald-100 transition cursor-pointer"
-                    />
+                    <h3 className="text-lg font-black text-[#0F2E23] mb-0.5">Upload Facility Photo</h3>
+                    <p className="text-xs text-slate-500 font-medium">Add photos of your resort rooms, yards, or play amenities.</p>
                   </div>
+                  <button 
+                    type="button"
+                    onClick={() => setShowUploadModal(false)}
+                    className="text-slate-400 hover:text-slate-700 p-1.5 rounded-full hover:bg-slate-100 transition cursor-pointer shrink-0"
+                    aria-label="Close"
+                  >
+                    <X size={20} />
+                  </button>
+                </div>
 
-                  <div className="relative flex py-1 items-center">
-                    <div className="flex-grow border-t border-slate-200"></div>
-                    <span className="flex-shrink mx-3 text-[10px] font-bold text-slate-400 uppercase tracking-wider">or image url</span>
-                    <div className="flex-grow border-t border-slate-200"></div>
-                  </div>
-
-                  {/* URL Input */}
-                  <div>
-                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1">Photo Image URL</label>
-                    <input 
-                      type="url" 
-                      placeholder="https://images.unsplash.com/..."
-                      value={newPhotoUrl}
-                      onChange={e => setNewPhotoUrl(e.target.value)}
-                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-sm text-slate-800 focus:outline-none focus:border-emerald-500"
-                    />
-                  </div>
-
-                  {/* Preset quick test images */}
-                  <div>
-                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1.5">Quick Select Sample Resort Photos</span>
-                    <div className="grid grid-cols-3 gap-2">
-                      {[
-                        { title: 'Supervised Play Lawn', url: 'https://images.unsplash.com/photo-1548199973-03cce0bbc87b?q=80&w=800&auto=format&fit=crop', cat: 'Play Area' },
-                        { title: 'Luxury Private Suite', url: 'https://images.unsplash.com/photo-1587300003388-59208cc962cb?q=80&w=800&auto=format&fit=crop', cat: 'Kennels' },
-                        { title: 'Canine Splash Pool', url: 'https://images.unsplash.com/photo-1530281700549-e82e7bf110d6?q=80&w=800&auto=format&fit=crop', cat: 'Swimming Pool' }
-                      ].map((preset, idx) => (
-                        <button
-                          key={idx}
-                          type="button"
-                          onClick={() => {
-                            setNewPhotoUrl(preset.url);
-                            setNewPhotoTitle(preset.title);
-                            setNewPhotoCategory(preset.cat);
-                          }}
-                          className="p-1 border border-slate-200 rounded-xl hover:border-emerald-500 transition text-left cursor-pointer"
-                        >
-                          <img src={preset.url} alt={preset.title} className="w-full h-12 object-cover rounded-lg mb-1" />
-                          <p className="text-[9px] font-bold text-slate-700 truncate">{preset.title}</p>
-                        </button>
-                      ))}
+                <form onSubmit={handleUploadPhotoSubmit} className="flex flex-col flex-1 min-h-0 overflow-hidden">
+                  <div className="p-5 sm:p-6 space-y-4 overflow-y-auto flex-1">
+                    {/* File Upload Option */}
+                    <div>
+                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1">
+                        Choose Image File From Device (JPG, PNG under 5MB) *
+                      </label>
+                      <input 
+                        type="file" 
+                        accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp"
+                        onChange={handleImageFileUpload}
+                        className="block w-full text-xs text-slate-500 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-emerald-50 file:text-emerald-800 hover:file:bg-emerald-100 transition cursor-pointer"
+                      />
                     </div>
-                  </div>
 
-                  {/* Photo Title */}
-                  <div>
-                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1">Area / Room Title</label>
-                    <input 
-                      type="text" 
-                      placeholder="e.g. VIP Air Conditioned Suite #3"
-                      value={newPhotoTitle}
-                      onChange={e => setNewPhotoTitle(e.target.value)}
-                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-sm text-slate-800"
-                    />
-                  </div>
+                    {/* Photo Title */}
+                    <div>
+                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1">Area / Room Title</label>
+                      <input 
+                        type="text" 
+                        placeholder="e.g. VIP Air Conditioned Suite #3"
+                        value={newPhotoTitle}
+                        onChange={e => setNewPhotoTitle(e.target.value)}
+                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-sm text-slate-800"
+                      />
+                    </div>
 
-                  {/* Category Dropdown */}
-                  <div>
-                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1">Facility Category</label>
-                    <select 
-                      value={newPhotoCategory} 
-                      onChange={e => setNewPhotoCategory(e.target.value)}
-                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-sm font-medium text-slate-800"
-                    >
-                      <option value="Play Area">Play Area & Grass Turf</option>
-                      <option value="Kennels">Kennels & Accommodations</option>
-                      <option value="Swimming Pool">Swimming Pool & Splash Area</option>
-                      <option value="Indoor Lounge">Indoor Climate Lounge</option>
-                      <option value="Cattery">Cat Condos & Cattery</option>
-                      <option value="Veterinary Area">Medical / Vet Room</option>
-                    </select>
-                  </div>
+                    {/* Category Dropdown */}
+                    <div>
+                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1">Facility Category</label>
+                      <select 
+                        value={newPhotoCategory} 
+                        onChange={e => setNewPhotoCategory(e.target.value)}
+                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-sm font-medium text-slate-800"
+                      >
+                        <option value="Play Area">Play Area & Grass Turf</option>
+                        <option value="Kennels">Kennels & Accommodations</option>
+                        <option value="Swimming Pool">Swimming Pool & Splash Area</option>
+                        <option value="Indoor Lounge">Indoor Climate Lounge</option>
+                        <option value="Cattery">Cat Condos & Cattery</option>
+                        <option value="Veterinary Area">Medical / Vet Room</option>
+                      </select>
+                    </div>
 
-                  {/* Preview if provided */}
-                  {newPhotoUrl && (
-                    <div className="pt-2">
-                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1">Photo Preview</span>
-                      <div className="aspect-video w-full rounded-xl overflow-hidden border border-slate-200 bg-slate-100">
-                        <img src={newPhotoUrl} alt="Preview" className="w-full h-full object-cover" />
+                    {/* Preview if provided */}
+                    {newPhotoUrl && (
+                      <div className="pt-2">
+                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1">Photo Preview</span>
+                        <div className="aspect-video w-full rounded-xl overflow-hidden border border-slate-200 bg-slate-100">
+                          <img src={newPhotoUrl} alt="Preview" className="w-full h-full object-cover" />
+                        </div>
                       </div>
-                    </div>
-                  )}
+                    )}
+                  </div>
 
-                  <div className="flex gap-3 pt-3 border-t border-slate-100">
+                  {/* Fixed Footer */}
+                  <div className="p-4 sm:p-5 border-t border-slate-100 bg-slate-50/70 flex gap-3 shrink-0">
                     <button 
                       type="button" 
                       onClick={() => setShowUploadModal(false)}
-                      className="flex-1 py-2.5 rounded-xl border border-slate-200 text-slate-600 text-xs font-black uppercase tracking-wider hover:bg-slate-50 transition cursor-pointer"
+                      className="flex-1 py-2.5 rounded-xl border border-slate-200 text-slate-600 text-xs font-black uppercase tracking-wider hover:bg-white transition cursor-pointer"
                     >
                       Cancel
                     </button>
@@ -2343,54 +2320,15 @@ const HostelProviderContent = ({ activeTab }) => {
         </div>
       )}
 
-      {/* 
-        ========================================================================
-        5. GUEST REVIEWS TAB
-        ========================================================================
-      */}
+            {/* 5. GUEST REVIEWS TAB */}
       {activeTab === 'reviews' && (
-        <div className="space-y-6 animate-fadeIn">
-          <div className="flex items-center justify-between border-b border-slate-100 pb-6">
-            <div>
-              <h2 className="text-xl font-black text-[#0F2E23]">Guest Reviews</h2>
-              <p className="text-sm text-slate-500 font-medium mt-1">Monitor your ratings and reply to pet parent feedback.</p>
-            </div>
-          </div>
-          <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm flex items-center justify-between">
-            <div>
-              <div className="text-5xl font-black text-[#0F2E23] flex items-baseline gap-2">4.9 <span className="text-lg font-bold text-slate-400">/ 5.0</span></div>
-              <div className="flex gap-1 text-[#ffd000] mt-2">
-                <Star size={18} fill="currentColor" />
-                <Star size={18} fill="currentColor" />
-                <Star size={18} fill="currentColor" />
-                <Star size={18} fill="currentColor" />
-                <Star size={18} fill="currentColor" />
-              </div>
-              <p className="text-xs font-black uppercase tracking-widest text-slate-500 mt-3">Based on 312 Verified Boarding Reviews</p>
-            </div>
-          </div>
-
-          <div className="space-y-4">
-            {[
-              { author: 'Rahul & Leo (Beagle)', date: '3 days ago', comment: 'Happy Paws is our go-to boarding facility whenever we travel out of Bangalore. The daily video updates and pool session gave us complete peace of mind!', rating: 5 },
-              { author: 'Meera & Oreo (Husky)', date: '1 week ago', comment: 'The VIP Suite with 24/7 CCTV live stream is worth every single penny. Clean AC room and genuine caring attendants.', rating: 5 },
-              { author: 'Karan & Bruno (Labrador)', date: '2 weeks ago', comment: 'Prompt check-in and checkout. Handled his special diet with great attention.', rating: 5 }
-            ].map((rev, idx) => (
-              <div key={idx} className="bg-white border border-slate-200 rounded-2xl p-5 shadow-xs">
-                <div className="flex justify-between items-start mb-2">
-                  <div>
-                    <h4 className="font-bold text-slate-800 text-sm">{rev.author}</h4>
-                    <span className="text-[10px] text-slate-400 font-medium">{rev.date}</span>
-                  </div>
-                  <div className="flex text-amber-400">
-                    {[...Array(rev.rating)].map((_, i) => <Star key={i} size={14} fill="currentColor" />)}
-                  </div>
-                </div>
-                <p className="text-xs text-slate-600 font-medium leading-relaxed">{rev.comment}</p>
-              </div>
-            ))}
-          </div>
-        </div>
+        <ProviderReviewsView
+          serviceCategory="Pet Hostel & Boarding"
+          title="Guest Reviews"
+          subtitle="Verified guest ratings, boarding feedback, and official host replies."
+          roleTitle="Hostel Attendant"
+          storageKeyPrefix="hostel"
+        />
       )}
 
       {/* 

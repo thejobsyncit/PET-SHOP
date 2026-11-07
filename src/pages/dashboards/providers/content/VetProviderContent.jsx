@@ -8,6 +8,7 @@ import {
   Trash2, ShieldCheck, CheckCheck, Upload
 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { safeSetItem, safeGetItem } from '../../../../utils/safeStorage.js';
 import PetBreedDropdown from '../../../../components/ui/PetBreedDropdown.jsx';
 import { apiRequest } from '../../../../services/api.js';
 import { 
@@ -194,7 +195,7 @@ const VetProviderContent = ({ activeTab, currentProvider }) => {
           }
         }
         if (changed) {
-          localStorage.setItem('joshpetshub_vet_appointments', JSON.stringify(allApps));
+          safeSetItem('joshpetshub_vet_appointments', JSON.stringify(allApps));
         }
       }
     } catch (e) {

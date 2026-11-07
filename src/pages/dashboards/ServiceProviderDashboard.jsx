@@ -1247,12 +1247,17 @@ const ServiceProviderDashboard = (props) => {
 
       {/* Plan Details & Invoice Summary Modal */}
       {showPlanDetailsModal && (
-        <div className="fixed inset-0 z-[130] bg-black/75 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in duration-200">
-          <div className="bg-white rounded-3xl max-w-lg w-full overflow-hidden shadow-2xl border border-stone-200 text-slate-800">
+        <div 
+          className="fixed inset-0 z-[130] bg-black/75 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 overflow-y-auto animate-in fade-in duration-200"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setShowPlanDetailsModal(false);
+          }}
+        >
+          <div className="bg-white rounded-2xl sm:rounded-3xl max-w-lg w-full max-h-[calc(100vh-2rem)] sm:max-h-[90vh] flex flex-col shadow-2xl border border-stone-200 text-slate-800 overflow-hidden my-auto animate-in zoom-in-95 duration-150">
             {/* Modal Header */}
-            <div className="bg-[#0F2E23] text-white p-5 flex items-center justify-between">
+            <div className="bg-[#0F2E23] text-white p-4 sm:p-5 flex items-center justify-between shrink-0">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center text-amber-300">
+                <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center text-amber-300 shrink-0">
                   <Receipt size={20} />
                 </div>
                 <div>
@@ -1263,26 +1268,26 @@ const ServiceProviderDashboard = (props) => {
               <button
                 type="button"
                 onClick={() => setShowPlanDetailsModal(false)}
-                className="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition cursor-pointer"
+                className="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition cursor-pointer shrink-0"
               >
                 <X size={16} />
               </button>
             </div>
 
-            {/* Modal Body */}
-            <div className="p-6 space-y-5 text-xs">
+            {/* Modal Body - Scrollable */}
+            <div className="p-4 sm:p-6 space-y-4 text-xs overflow-y-auto flex-1 min-h-0">
               {/* Plan Badge & Status */}
-              <div className="flex items-center justify-between bg-emerald-50 border border-emerald-200 rounded-2xl p-4">
+              <div className="flex items-center justify-between bg-emerald-50 border border-emerald-200 rounded-xl sm:rounded-2xl p-3 sm:p-4">
                 <div>
                   <span className="text-[10px] font-black uppercase tracking-wider text-emerald-800 bg-emerald-200/80 px-2 py-0.5 rounded-md">
                     {activePlanBadge}
                   </span>
-                  <h4 className="font-bold text-base text-emerald-950 mt-1">{activePlanName}</h4>
+                  <h4 className="font-bold text-sm sm:text-base text-emerald-950 mt-1">{activePlanName}</h4>
                   <p className="text-[11px] text-emerald-800 mt-0.5">
                     Authorized Service: <strong>{registeredCategory}</strong>
                   </p>
                 </div>
-                <div className="text-right">
+                <div className="text-right shrink-0">
                   <span className="inline-flex items-center gap-1 text-xs font-bold text-emerald-700 bg-white px-2.5 py-1 rounded-full border border-emerald-300 shadow-xs">
                     <Check size={13} className="text-emerald-600" /> Active
                   </span>
@@ -1293,7 +1298,7 @@ const ServiceProviderDashboard = (props) => {
               </div>
 
               {/* Billing & Tax Breakdown Table */}
-              <div className="bg-stone-50 border border-stone-200 rounded-2xl p-4 space-y-2">
+              <div className="bg-stone-50 border border-stone-200 rounded-xl sm:rounded-2xl p-3 sm:p-4 space-y-2">
                 <div className="flex items-center justify-between font-bold text-slate-800 border-b border-stone-200 pb-2">
                   <span>Billing & Tax Details</span>
                   <span className="text-slate-500 font-normal">GSTIN Tax Invoice</span>
@@ -1317,20 +1322,20 @@ const ServiceProviderDashboard = (props) => {
               </div>
 
               {/* Dates & Reference IDs */}
-              <div className="grid grid-cols-2 gap-3 text-[11px]">
-                <div className="bg-slate-50 border border-slate-200 rounded-xl p-3">
+              <div className="grid grid-cols-2 gap-2 sm:gap-3 text-[11px]">
+                <div className="bg-slate-50 border border-slate-200 rounded-xl p-2.5 sm:p-3">
                   <span className="text-slate-400 block text-[10px] uppercase font-bold">Start Date</span>
                   <strong className="text-slate-800">
                     {startDate ? startDate.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : 'Today'}
                   </strong>
                 </div>
-                <div className="bg-slate-50 border border-slate-200 rounded-xl p-3">
+                <div className="bg-slate-50 border border-slate-200 rounded-xl p-2.5 sm:p-3">
                   <span className="text-slate-400 block text-[10px] uppercase font-bold">Expiry Date</span>
                   <strong className="text-slate-800">
                     {expiryDate ? expiryDate.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : 'Active'}
                   </strong>
                 </div>
-                <div className="col-span-2 bg-slate-50 border border-slate-200 rounded-xl p-3 font-mono text-[10px] text-slate-600 truncate">
+                <div className="col-span-2 bg-slate-50 border border-slate-200 rounded-xl p-2.5 sm:p-3 font-mono text-[10px] text-slate-600 truncate">
                   <span className="text-slate-400 block uppercase font-bold font-sans">Payment Reference</span>
                   {subscription?.paymentId || 'PAY_VERIFIED_ONLINE'}
                 </div>
@@ -1358,29 +1363,29 @@ const ServiceProviderDashboard = (props) => {
                   </div>
                 </div>
               </div>
+            </div>
 
-              {/* Actions */}
-              <div className="pt-2 flex items-center justify-end gap-2 border-t border-slate-100">
-                <button
-                  type="button"
-                  onClick={() => setShowPlanDetailsModal(false)}
-                  className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100 transition cursor-pointer"
-                >
-                  Close
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setShowPlanDetailsModal(false);
-                    setIsRenewalModal(true);
-                    setShowSubscriptionModal(true);
-                  }}
-                  className="bg-[#0F2E23] hover:bg-[#1D3B2E] text-white px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer flex items-center gap-1.5 shadow-sm"
-                >
-                  <RefreshCw size={13} />
-                  <span>Renew / Switch Plan</span>
-                </button>
-              </div>
+            {/* Modal Sticky Footer - Always visible */}
+            <div className="p-3 sm:p-4 bg-stone-50 border-t border-stone-200 flex items-center justify-end gap-2 shrink-0">
+              <button
+                type="button"
+                onClick={() => setShowPlanDetailsModal(false)}
+                className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-200/80 transition cursor-pointer"
+              >
+                Close
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowPlanDetailsModal(false);
+                  setIsRenewalModal(true);
+                  setShowSubscriptionModal(true);
+                }}
+                className="bg-[#0F2E23] hover:bg-[#1D3B2E] text-white px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer flex items-center gap-1.5 shadow-sm"
+              >
+                <RefreshCw size={13} />
+                <span>Renew / Switch Plan</span>
+              </button>
             </div>
           </div>
         </div>

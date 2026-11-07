@@ -133,6 +133,12 @@ export const getSubscriptionStatus = async (req, res) => {
 
     const isProfileComplete = Boolean(user.isProfileComplete || user.profileCompleted);
     let subscription = user.subscription || null;
+    if (!subscription && Array.isArray(DEMO_ACCOUNTS)) {
+      const demoAcct = DEMO_ACCOUNTS.find(d => (userId && (d._id === userId || d.id === userId)) || (email && d.email && d.email.toLowerCase() === email));
+      if (demoAcct?.subscription) {
+        subscription = { ...demoAcct.subscription };
+      }
+    }
     let hasActiveSubscription = false;
     let isExpired = false;
 
@@ -638,7 +644,25 @@ export const verifySubscriptionPayment = async (req, res) => {
 
     if (idx >= 0) {
       users[idx] = targetUser;
-      saveDiskUsers(users);
+    } else {
+      users.push(targetUser);
+    }
+    saveDiskUsers(users);
+
+    // Also sync in-memory DEMO_ACCOUNTS and inMemoryUsers
+    if (Array.isArray(DEMO_ACCOUNTS)) {
+      const demoAcct = DEMO_ACCOUNTS.find(d => (userId && (d._id === userId || d.id === userId)) || (email && d.email && d.email.toLowerCase() === email));
+      if (demoAcct) {
+        demoAcct.subscription = subscriptionRecord;
+        demoAcct.subscriptionHistory = [subscriptionRecord, ...(demoAcct.subscriptionHistory || [])];
+      }
+    }
+    if (email && inMemoryUsers) {
+      const memUser = inMemoryUsers.get(email.toLowerCase());
+      if (memUser) {
+        memUser.subscription = subscriptionRecord;
+        memUser.subscriptionHistory = [subscriptionRecord, ...(memUser.subscriptionHistory || [])];
+      }
     }
 
     if (supabase) {

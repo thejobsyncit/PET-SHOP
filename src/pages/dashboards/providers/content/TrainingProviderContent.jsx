@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   GraduationCap, Calendar, MapPin, Phone, ShieldCheck, Star, Clock, 
@@ -6,10 +6,11 @@ import {
   Send, X, Edit3, Trash2, ExternalLink, SlidersHorizontal, 
   Sparkles, FileText, Check, MessageSquare, Info, Shield, 
   Eye, RefreshCw, Award, Heart, Tag, PawPrint, UserCheck, 
-  TrendingUp, Wallet, ArrowRight, MessageCircle
+  TrendingUp, Wallet, ArrowRight, MessageCircle, UploadCloud, Upload, Image as ImageIcon
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import ProviderWalletPayoutView from '../../../../components/dashboards/ProviderWalletPayoutView.jsx';
+import ProviderReviewsView from '../../../../components/dashboards/ProviderReviewsView.jsx';
 import { apiRequest } from '../../../../services/api.js';
 import { 
   getStoredTrainingProviders,
@@ -73,12 +74,61 @@ const AVAILABLE_CERTIFICATIONS = [
   'IAABC Member'
 ];
 
-const TrainingProviderContent = ({ activeTab, user }) => {
+const TrainingProviderContent = ({ activeTab, user, subscription, onOpenSubscriptionModal, onOpenPlanDetails }) => {
   const navigate = useNavigate();
 
   // 1. PROVIDER SERVICE STATE (STRICT 1 SERVICE PER PROVIDER)
   const [myService, setMyService] = useState(() => getProviderTrainingService(user?._id || user?.id || user?.email));
   const [isEditingService, setIsEditingService] = useState(false);
+
+  const coverImageInputRef = useRef(null);
+  const [coverUploadError, setCoverUploadError] = useState('');
+
+  const handleCoverImageFileChange = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file format: only jpg, jpeg, png allowed
+    const validExtensions = ['jpg', 'jpeg', 'png'];
+    const extension = file.name.split('.').pop()?.toLowerCase();
+    const isValidType = file.type === 'image/jpeg' || file.type === 'image/png' || file.type === 'image/jpg' || validExtensions.includes(extension);
+
+    if (!isValidType) {
+      const errorMsg = 'Invalid file format! Only JPG and PNG images are allowed.';
+      setCoverUploadError(errorMsg);
+      toast.error(errorMsg);
+      if (e.target) e.target.value = '';
+      return;
+    }
+
+    // Validate file size: must be less than 5MB
+    const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB in bytes
+    if (file.size >= MAX_FILE_SIZE) {
+      const errorMsg = `Image size must be less than 5MB! Selected file is ${(file.size / (1024 * 1024)).toFixed(2)}MB.`;
+      setCoverUploadError(errorMsg);
+      toast.error(errorMsg);
+      if (e.target) e.target.value = '';
+      return;
+    }
+
+    // Clear any previous error
+    setCoverUploadError('');
+
+    // Read file and update serviceForm.image
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const dataUrl = event.target?.result;
+      if (dataUrl) {
+        setServiceForm(prev => ({ ...prev, image: dataUrl }));
+        toast.success(`Cover image "${file.name}" uploaded successfully!`);
+      }
+    };
+    reader.onerror = () => {
+      toast.error('Failed to read image file. Please try again.');
+    };
+    reader.readAsDataURL(file);
+    if (e.target) e.target.value = '';
+  };
 
   // Form State for Posting / Editing Service
   const [serviceForm, setServiceForm] = useState({
@@ -252,6 +302,36 @@ const TrainingProviderContent = ({ activeTab, user }) => {
     }));
   };
 
+const getDefaultSessionDateTime = () => {
+  const tomorrow = new Date();
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  tomorrow.setHours(10, 0, 0, 0);
+  const year = tomorrow.getFullYear();
+  const month = String(tomorrow.getMonth() + 1).padStart(2, '0');
+  const day = String(tomorrow.getDate()).padStart(2, '0');
+  const hours = String(tomorrow.getHours()).padStart(2, '0');
+  const minutes = String(tomorrow.getMinutes()).padStart(2, '0');
+  return `${year}-${month}-${day}T${hours}:${minutes}`;
+};
+
+const formatSessionDate = (rawDate) => {
+  if (!rawDate) return 'Date TBD';
+  if (typeof rawDate === 'string' && rawDate.includes('T')) {
+    const d = new Date(rawDate);
+    if (!isNaN(d.getTime())) {
+      return d.toLocaleDateString('en-IN', {
+        day: 'numeric',
+        month: 'short',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: true
+      });
+    }
+  }
+  return rawDate;
+};
+
   // 2. TRAINING SESSIONS (APPOINTMENTS) TAB STATE
   const [sessions, setSessions] = useState(() => getStoredTrainingSessions());
   const [sessionFilter, setSessionFilter] = useState('All');
@@ -267,7 +347,7 @@ const TrainingProviderContent = ({ activeTab, user }) => {
     customerEmail: '',
     programName: 'Basic & Advanced Obedience',
     sessionNumber: 'Session 1 of 6',
-    date: 'Tomorrow, 10:00 AM',
+    date: getDefaultSessionDateTime(),
     mode: 'At-Home 1-on-1',
     location: '',
     trainerNotes: ''
@@ -361,7 +441,18 @@ const TrainingProviderContent = ({ activeTab, user }) => {
       toast.error('Please provide at least the pet name and customer name');
       return;
     }
-    const created = saveTrainingSession(newSession);
+    const cleanPhone = (newSession.customerPhone || '').replace(/\D/g, '');
+    if (newSession.customerPhone && cleanPhone.length !== 10) {
+      toast.error('Phone number must be a valid 10-digit numerical number');
+      return;
+    }
+    const formattedDate = formatSessionDate(newSession.date);
+    const created = saveTrainingSession({ 
+      ...newSession, 
+      customerPhone: cleanPhone,
+      date: formattedDate,
+      dateTimeRaw: newSession.date
+    });
     if (created) {
       toast.success(`Training session scheduled for ${newSession.petName}!`);
       setShowSessionModal(false);
@@ -375,7 +466,7 @@ const TrainingProviderContent = ({ activeTab, user }) => {
         customerEmail: '',
         programName: 'Basic & Advanced Obedience',
         sessionNumber: 'Session 1 of 6',
-        date: 'Tomorrow, 10:00 AM',
+        date: getDefaultSessionDateTime(),
         mode: 'At-Home 1-on-1',
         location: '',
         trainerNotes: ''
@@ -1166,47 +1257,100 @@ const TrainingProviderContent = ({ activeTab, user }) => {
               </div>
 
               {/* Cover Image Selection */}
-              <div className="space-y-3 pt-4 border-t border-slate-100">
-                <h4 className="text-xs font-black uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
-                  <Sparkles size={15} className="text-amber-500" /> Service Cover Image
-                </h4>
-
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
-                  {PRESET_TRAINING_IMAGES.map((img, idx) => {
-                    const isSelected = serviceForm.image === img.url;
-                    return (
-                      <div
-                        key={idx}
-                        onClick={() => setServiceForm({ ...serviceForm, image: img.url })}
-                        className={`group relative rounded-xl overflow-hidden cursor-pointer border-2 transition ${
-                          isSelected ? 'border-emerald-600 ring-2 ring-emerald-500/30' : 'border-slate-200 opacity-70 hover:opacity-100'
-                        }`}
-                      >
-                        <img src={img.url} alt={img.label} className="w-full h-20 object-cover" />
-                        <span className="text-[10px] font-bold text-slate-700 p-1 block truncate text-center bg-slate-50">
-                          {img.label}
-                        </span>
-                        {isSelected && (
-                          <div className="absolute top-1 right-1 bg-emerald-600 text-white rounded-full p-0.5 shadow">
-                            <Check size={10} />
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })}
+              <div className="space-y-4 pt-4 border-t border-slate-100">
+                <div className="flex items-center justify-between">
+                  <h4 className="text-xs font-black uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+                    <Sparkles size={15} className="text-amber-500" /> Service Cover Image
+                  </h4>
+                  <span className="text-[11px] font-bold text-slate-400">
+                    JPG or PNG • Less than 5MB
+                  </span>
                 </div>
 
-                <div>
-                  <label className="text-xs font-bold text-slate-700 block mb-1">
-                    Or Enter Custom Image URL
+                {/* Service Cover Image Upload Section */}
+                <div className="space-y-2">
+                  <label className="text-xs font-bold text-slate-700 block">
+                    Upload Service Cover Image
                   </label>
+
                   <input
-                    type="url"
-                    value={serviceForm.image}
-                    onChange={(e) => setServiceForm({ ...serviceForm, image: e.target.value })}
-                    placeholder="https://images.unsplash.com/..."
-                    className="w-full text-sm px-4 py-2 rounded-xl border border-slate-200 focus:outline-none focus:border-emerald-600"
+                    type="file"
+                    ref={coverImageInputRef}
+                    accept=".jpg,.jpeg,.png,image/jpeg,image/png"
+                    onChange={handleCoverImageFileChange}
+                    className="hidden"
                   />
+
+                  {/* Upload Box */}
+                  <div
+                    onClick={() => coverImageInputRef.current?.click()}
+                    className={`border-2 border-dashed rounded-2xl p-6 text-center cursor-pointer transition-all duration-200 group ${
+                      coverUploadError 
+                        ? 'border-rose-400 bg-rose-50/40 hover:bg-rose-50/70' 
+                        : 'border-slate-300 hover:border-emerald-600 bg-slate-50/60 hover:bg-emerald-50/30'
+                    }`}
+                  >
+                    <div className="flex flex-col items-center justify-center gap-2">
+                      <div className="w-12 h-12 rounded-2xl bg-emerald-100 text-emerald-800 flex items-center justify-center group-hover:scale-110 transition duration-200 shadow-xs">
+                        <UploadCloud size={24} />
+                      </div>
+                      <div>
+                        <p className="text-xs font-black text-slate-800 group-hover:text-emerald-700 transition">
+                          Click to upload your service cover photo
+                        </p>
+                        <p className="text-[11px] text-slate-400 font-medium mt-0.5">
+                          Only <strong className="text-slate-600">JPG, PNG</strong> format • Size must be <strong className="text-slate-600">less than 5MB</strong>
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Error Message */}
+                  {coverUploadError && (
+                    <div className="flex items-center gap-2 text-rose-600 text-xs font-bold mt-2 bg-rose-50 border border-rose-200 px-3 py-2 rounded-xl">
+                      <AlertCircle size={15} className="shrink-0" />
+                      <span>{coverUploadError}</span>
+                    </div>
+                  )}
+
+                  {/* Active Selected Cover Preview */}
+                  {serviceForm.image && (
+                    <div className="mt-3 flex items-center justify-between gap-3 bg-white p-3 rounded-2xl border border-slate-200 shadow-xs">
+                      <div className="flex items-center gap-3 min-w-0">
+                        <img
+                          src={serviceForm.image}
+                          alt="Cover Preview"
+                          className="w-16 h-16 rounded-xl object-cover border border-slate-200 shrink-0 bg-slate-100"
+                        />
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs font-bold text-slate-900 truncate">
+                              Active Cover Image
+                            </span>
+                            <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-emerald-100 text-emerald-800">
+                              Selected
+                            </span>
+                          </div>
+                          <p className="text-[11px] text-slate-500 mt-0.5 truncate">
+                            {serviceForm.image.startsWith('data:') 
+                              ? 'Custom uploaded image (Ready to save)' 
+                              : 'Current cover image'}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-2 shrink-0">
+                        <button
+                          type="button"
+                          onClick={() => coverImageInputRef.current?.click()}
+                          className="px-3 py-1.5 rounded-xl border border-slate-200 hover:border-emerald-600 text-xs font-bold text-slate-700 hover:text-emerald-700 transition cursor-pointer flex items-center gap-1.5"
+                        >
+                          <Upload size={13} />
+                          <span>Change Photo</span>
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -1339,7 +1483,7 @@ const TrainingProviderContent = ({ activeTab, user }) => {
                     </div>
                     <div className="flex items-center gap-2 text-slate-500">
                       <Clock size={13} className="text-emerald-700 shrink-0" />
-                      <span>{session.date} ({session.mode})</span>
+                      <span>{formatSessionDate(session.date)} ({session.mode})</span>
                     </div>
                     {session.location && (
                       <div className="flex items-center gap-2 text-slate-500">
@@ -1451,9 +1595,30 @@ const TrainingProviderContent = ({ activeTab, user }) => {
                       <label className="text-xs font-bold text-slate-700 block mb-1">Phone Number</label>
                       <input
                         type="tel"
+                        inputMode="numeric"
+                        pattern="[0-9]*"
+                        maxLength={10}
                         value={newSession.customerPhone}
-                        onChange={(e) => setNewSession({ ...newSession, customerPhone: e.target.value })}
-                        placeholder="+91 98765 43210"
+                        onChange={(e) => {
+                          const val = e.target.value.replace(/\D/g, '').slice(0, 10);
+                          setNewSession({ ...newSession, customerPhone: val });
+                        }}
+                        onKeyDown={(e) => {
+                          if (
+                            !/[0-9]/.test(e.key) &&
+                            !['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab', 'Enter'].includes(e.key) &&
+                            !e.ctrlKey && !e.metaKey
+                          ) {
+                            e.preventDefault();
+                          }
+                        }}
+                        onPaste={(e) => {
+                          e.preventDefault();
+                          const pasteData = (e.clipboardData || window.clipboardData).getData('text') || '';
+                          const clean = pasteData.replace(/\D/g, '').slice(0, 10);
+                          setNewSession((prev) => ({ ...prev, customerPhone: clean }));
+                        }}
+                        placeholder="e.g. 9876543210"
                         className="w-full text-xs px-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:border-emerald-600"
                       />
                     </div>
@@ -1487,13 +1652,13 @@ const TrainingProviderContent = ({ activeTab, user }) => {
 
                   <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <label className="text-xs font-bold text-slate-700 block mb-1">Date & Time</label>
+                      <label className="text-xs font-bold text-slate-700 block mb-1">Date & Time *</label>
                       <input
-                        type="text"
+                        type="datetime-local"
                         value={newSession.date}
                         onChange={(e) => setNewSession({ ...newSession, date: e.target.value })}
-                        placeholder="e.g. Tomorrow, 10:00 AM"
-                        className="w-full text-xs px-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:border-emerald-600"
+                        className="w-full text-xs px-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:border-emerald-600 bg-white"
+                        required
                       />
                     </div>
                     <div>
@@ -1945,100 +2110,15 @@ const TrainingProviderContent = ({ activeTab, user }) => {
       )}
 
       {/* ========================================================================= */}
-      {/* TAB 5: CUSTOMER REVIEWS */}
-      {/* ========================================================================= */}
+            {/* TAB 5: CUSTOMER REVIEWS */}
       {activeTab === 'reviews' && (
-        <div className="space-y-6">
-          
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-6 border-b border-slate-100">
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="p-2 bg-emerald-100 text-emerald-800 rounded-xl">
-                  <Heart size={20} />
-                </span>
-                <h2 className="text-2xl font-sans font-black text-[#0F2E23]">Customer Reviews & Ratings</h2>
-              </div>
-              <p className="text-sm text-slate-500 mt-1">
-                Read pet parent feedback, success stories, and post official trainer responses.
-              </p>
-            </div>
-
-            <div className="flex items-center gap-3 bg-amber-50 border border-amber-200 px-4 py-2 rounded-2xl">
-              <Star size={20} className="fill-amber-400 text-amber-400" />
-              <div>
-                <span className="text-base font-black text-[#0F2E23]">5.0 / 5.0</span>
-                <span className="text-[10px] text-slate-500 block font-bold">100% Positive Feedback</span>
-              </div>
-            </div>
-          </div>
-
-          <div className="space-y-4">
-            {reviews.map((rev) => (
-              <div key={rev.id} className="bg-white rounded-3xl border border-slate-200 p-6 shadow-sm space-y-4">
-                <div className="flex justify-between items-start">
-                  <div>
-                    <h4 className="text-base font-black text-[#0F2E23]">{rev.customerName}</h4>
-                    <span className="text-xs font-bold text-emerald-800 block mt-0.5">
-                      Pet: {rev.petName} • Course: {rev.courseName}
-                    </span>
-                  </div>
-
-                  <div className="flex items-center gap-1 bg-amber-50 px-2.5 py-1 rounded-xl border border-amber-200">
-                    <Star size={13} className="fill-amber-400 text-amber-400" />
-                    <span className="text-xs font-black text-amber-900">{rev.rating}.0</span>
-                  </div>
-                </div>
-
-                <p className="text-xs text-slate-600 leading-relaxed bg-slate-50 p-4 rounded-2xl border border-slate-100 italic">
-                  "{rev.comment}"
-                </p>
-
-                {rev.reply ? (
-                  <div className="ml-4 pl-4 border-l-2 border-emerald-600 bg-emerald-50/60 p-3.5 rounded-r-2xl text-xs">
-                    <span className="font-black text-emerald-900 block mb-0.5">Trainer Official Reply:</span>
-                    <p className="text-emerald-800">{rev.reply}</p>
-                  </div>
-                ) : (
-                  replyingReviewId === rev.id ? (
-                    <div className="space-y-2 pt-2">
-                      <textarea
-                        rows={2}
-                        value={replyText}
-                        onChange={(e) => setReplyText(e.target.value)}
-                        placeholder="Write a supportive reply to the pet parent..."
-                        className="w-full text-xs px-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:border-emerald-600"
-                      />
-                      <div className="flex justify-end gap-2">
-                        <button
-                          onClick={() => { setReplyingReviewId(null); setReplyText(''); }}
-                          className="px-3 py-1.5 text-xs text-slate-500 hover:text-slate-700"
-                        >
-                          Cancel
-                        </button>
-                        <button
-                          onClick={() => handlePostReply(rev.id)}
-                          className="px-4 py-1.5 bg-[#0F2E23] text-white rounded-xl text-xs font-bold hover:bg-emerald-900"
-                        >
-                          Post Reply
-                        </button>
-                      </div>
-                    </div>
-                  ) : (
-                    <button
-                      onClick={() => setReplyingReviewId(rev.id)}
-                      className="text-xs font-bold text-emerald-700 hover:text-emerald-900 flex items-center gap-1"
-                    >
-                      <MessageSquare size={13} /> Reply to Review
-                    </button>
-                  )
-                )}
-
-                <span className="text-[10px] text-slate-400 block pt-1">{rev.date}</span>
-              </div>
-            ))}
-          </div>
-
-        </div>
+        <ProviderReviewsView
+          serviceCategory="Pet Training & K9 Academy"
+          title="Customer Reviews & Ratings"
+          subtitle="Read pet parent feedback, success stories, and post official trainer responses."
+          roleTitle="Trainer"
+          storageKeyPrefix="training"
+        />
       )}
 
       {/* ========================================================================= */}

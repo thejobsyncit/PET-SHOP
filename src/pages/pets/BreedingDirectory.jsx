@@ -25,9 +25,11 @@ import {
   Star,
   Info,
   ChevronDown,
-  ChevronRight
+  ChevronRight,
+  PawPrint
 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { resolveProviderWhatsApp } from '../../utils/whatsappHelper.js';
 import {
   BREEDING_BREEDS_BY_CATEGORY,
   INITIAL_MATING_PETS,
@@ -393,9 +395,7 @@ const BreedingDirectory = () => {
       vaccinated: true,
       dewormed: true,
       geneticTested: true,
-      image: newImageUrl || (newPetCategory === 'Cats' 
-        ? 'https://images.unsplash.com/photo-1495360010541-f48722b34f7d?q=80&w=800&auto=format&fit=crop'
-        : 'https://images.unsplash.com/photo-1517849845537-4d257902454a?q=80&w=800&auto=format&fit=crop'),
+      image: newImageUrl ? newImageUrl.trim() : '',
       description: newDescription || `${newPetName} is a healthy, active ${newBreed} ready for mating. Up to date on all vaccinations and deworming.`,
       sire: newSire || 'Registered Pedigree Sire',
       dam: newDam || 'Registered Pedigree Dam',
@@ -435,10 +435,17 @@ const BreedingDirectory = () => {
       );
       return;
     }
+    const contactNum = resolveProviderWhatsApp(pet) || pet.whatsappNumber || pet.whatsapp || pet.parentPhone || pet.phone;
     handleServiceAction({
       isAuthenticated,
       serviceType: 'Breeding',
-      provider: { name: `${pet.name} (${pet.parentName})`, phone: pet.parentPhone, city: pet.city, image: pet.image },
+      provider: { 
+        name: `${pet.name} (${pet.parentName})`, 
+        phone: contactNum,
+        whatsapp: contactNum,
+        city: pet.city, 
+        image: pet.image 
+      },
       action: 'whatsapp'
     });
   };
@@ -1046,12 +1053,27 @@ const BreedingDirectory = () => {
                     
                     {/* Top Section: Photo + Quality Badge + View Price Overlay */}
                     <div>
-                      <div className="relative aspect-[4/3] bg-slate-100 overflow-hidden">
-                        <img
-                          src={pet.image}
-                          alt={pet.name}
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                        />
+                      <div className="relative aspect-[4/3] bg-slate-100 overflow-hidden flex items-center justify-center">
+                        {pet.image ? (
+                          <img
+                            src={pet.image}
+                            alt={pet.name}
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                            onError={(e) => {
+                              e.target.style.display = 'none';
+                              if (e.target.nextElementSibling) {
+                                e.target.nextElementSibling.style.display = 'flex';
+                              }
+                            }}
+                          />
+                        ) : null}
+                        <div
+                          className="w-full h-full flex flex-col items-center justify-center bg-slate-100 text-slate-400"
+                          style={{ display: pet.image ? 'none' : 'flex' }}
+                        >
+                          <PawPrint size={36} className="text-slate-300 mb-1" />
+                          <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">No Photo Provided</span>
+                        </div>
 
                         {/* Top Quality Badge */}
                         <div className="absolute top-2.5 right-2.5">
@@ -1213,12 +1235,27 @@ const BreedingDirectory = () => {
               
               {/* Pet Photo & Summary Banner */}
               <div className="grid grid-cols-1 sm:grid-cols-12 gap-4 items-center bg-stone-50 p-4 rounded-2xl border border-stone-200">
-                <div className="sm:col-span-4 aspect-[4/3] rounded-xl overflow-hidden shadow-sm">
-                  <img
-                    src={selectedPetForDetails.image}
-                    alt={selectedPetForDetails.name}
-                    className="w-full h-full object-cover"
-                  />
+                <div className="sm:col-span-4 aspect-[4/3] rounded-xl overflow-hidden shadow-sm bg-slate-100 flex items-center justify-center">
+                  {selectedPetForDetails.image ? (
+                    <img
+                      src={selectedPetForDetails.image}
+                      alt={selectedPetForDetails.name}
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        e.target.style.display = 'none';
+                        if (e.target.nextElementSibling) {
+                          e.target.nextElementSibling.style.display = 'flex';
+                        }
+                      }}
+                    />
+                  ) : null}
+                  <div
+                    className="w-full h-full flex flex-col items-center justify-center bg-slate-100 text-slate-400"
+                    style={{ display: selectedPetForDetails.image ? 'none' : 'flex' }}
+                  >
+                    <PawPrint size={32} className="text-slate-300 mb-1" />
+                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">No Photo</span>
+                  </div>
                 </div>
                 <div className="sm:col-span-8 space-y-2">
                   <div className="flex justify-between items-start">

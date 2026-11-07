@@ -1,3 +1,4 @@
+import { syncRegisteredProvidersToService } from '../utils/whatsappHelper.js';
 // Walking Service Providers Dataset & Persistent Storage Helpers
 
 export const WALKING_OFFERINGS = [
@@ -181,13 +182,14 @@ const STORAGE_KEY_PROVIDERS = 'joshpetshub_walking_providers_v1';
 const STORAGE_KEY_BOOKINGS = 'joshpetshub_walking_bookings_v1';
 
 export const getStoredWalkingProviders = () => {
+  let list = INITIAL_WALKING_PROVIDERS;
   try {
     const data = localStorage.getItem(STORAGE_KEY_PROVIDERS);
-    if (data) return JSON.parse(data);
+    if (data) list = JSON.parse(data);
   } catch (e) {
     console.error('Failed to parse walking providers from storage', e);
   }
-  return INITIAL_WALKING_PROVIDERS;
+  return syncRegisteredProvidersToService(list, 'walk');
 };
 
 export const saveWalkingBooking = (bookingData) => {

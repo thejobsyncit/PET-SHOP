@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
-import { logout, updateProfile } from '../../../store/slices/authSlice.js';
+import { logout, updateProfile, fetchProfile } from '../../../store/slices/authSlice.js';
 import {
   Calendar, Star, DollarSign, Clock, MapPin, 
   MessageSquare, Plus, Search, ChevronRight, ShieldCheck, Heart,
@@ -39,7 +39,7 @@ const TransportProviderDashboard = ({
   const [activeTab, setActiveTab] = useState(activeTabParam);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  const [profileName, setProfileName] = useState(user?.name || currentProvider?.name || '');
+  const [profileName, setProfileName] = useState(user?.businessName || user?.name || currentProvider?.name || '');
   const [profileAvatar, setProfileAvatar] = useState(user?.avatar || user?.profilePicture || currentProvider?.avatar || '');
   const [isEditingProfile, setIsEditingProfile] = useState(false);
 
@@ -76,7 +76,7 @@ const TransportProviderDashboard = ({
 
   useEffect(() => {
     if (user) {
-      setProfileName(user.name || currentProvider?.name || '');
+      setProfileName(user.businessName || user.name || currentProvider?.name || '');
       setProfileAvatar(user.avatar || user.profilePicture || currentProvider?.avatar || '');
     }
   }, [user, currentProvider]);
@@ -84,10 +84,22 @@ const TransportProviderDashboard = ({
   const handleUpdateProfile = async (e) => {
     e.preventDefault();
     const phoneToKeep = (user?.mobile || user?.phone || '').trim();
-    const result = await dispatch(updateProfile({ name: profileName, avatar: profileAvatar, profilePicture: profileAvatar, mobile: phoneToKeep, phone: phoneToKeep }));
+    if (!profileName?.trim()) {
+      toast.error('Provider name cannot be empty');
+      return;
+    }
+    const result = await dispatch(updateProfile({ 
+      name: profileName.trim(), 
+      businessName: profileName.trim(), 
+      avatar: profileAvatar, 
+      profilePicture: profileAvatar, 
+      mobile: phoneToKeep, 
+      phone: phoneToKeep 
+    }));
     if (updateProfile.fulfilled.match(result)) {
       toast.success('Profile updated successfully!');
       setIsEditingProfile(false);
+      dispatch(fetchProfile());
     } else {
       toast.error('Failed to update profile');
     }
@@ -136,7 +148,7 @@ const TransportProviderDashboard = ({
   };
 
   const displayAvatar = user?.avatar || user?.profilePicture || currentProvider?.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=800&auto=format&fit=crop';
-  const displayName = user?.name || currentProvider?.name || 'Provider';
+  const displayName = user?.businessName || user?.name || currentProvider?.name || 'SafePet Transit';
 
   const menuItems = [
     { id: 'profile', label: 'Profile', fullLabel: 'Agency Profile & Plan', icon: Building },
@@ -144,7 +156,7 @@ const TransportProviderDashboard = ({
     { id: 'vehicles', label: 'Vehicles', fullLabel: 'Vehicles & Rates',  icon: Tag },
     { id: 'service', label: 'My Service', fullLabel: 'My Transport Service', icon: Truck },
     { id: 'messages', label: 'Inquiries', fullLabel: 'Client Inquiries',  icon: MessageSquare },
-    { id: 'reviews', label: 'Reviews', fullLabel: 'Customer Reviews', icon: Heart },
+    { id: 'reviews', label: 'Customer Reviews', fullLabel: 'Customer Reviews', icon: Star },
     { id: 'wallet', label: 'Wallet', fullLabel: 'Wallet & Payouts', icon: DollarSign }
   ];
 
@@ -435,11 +447,18 @@ const TransportProviderDashboard = ({
           {activeTab === 'profile' ? (
             <ProviderProfileSection
               serviceCategory="Pet Transport & Relocation"
+              subscription={subscription}
               onOpenSubscriptionModal={onOpenSubscriptionModal}
               onOpenPlanDetails={onOpenPlanDetails}
             />
           ) : (
-            <TransportProviderContent activeTab={activeTab} user={user} />
+            <TransportProviderContent 
+              activeTab={activeTab} 
+              user={user}
+              subscription={subscription}
+              onOpenSubscriptionModal={onOpenSubscriptionModal}
+              onOpenPlanDetails={onOpenPlanDetails}
+            />
           )}
         </div>
       </main>

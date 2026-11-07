@@ -1,3 +1,4 @@
+import { syncRegisteredProvidersToService } from '../utils/whatsappHelper.js';
 // Pet Hostel & Boarding Service Providers Dataset & Persistent Storage Helpers
 
 export const HOSTEL_OFFERINGS = [
@@ -163,13 +164,14 @@ const STORAGE_KEY_HOSTELS = 'joshpetshub_hostel_providers_v1';
 const STORAGE_KEY_HOSTEL_BOOKINGS = 'joshpetshub_hostel_bookings_v1';
 
 export const getStoredHostelProviders = () => {
+  let list = INITIAL_HOSTEL_PROVIDERS;
   try {
     const data = localStorage.getItem(STORAGE_KEY_HOSTELS);
-    if (data) return JSON.parse(data);
+    if (data) list = JSON.parse(data);
   } catch (e) {
     console.error('Failed to parse hostel providers from storage', e);
   }
-  return INITIAL_HOSTEL_PROVIDERS;
+  return syncRegisteredProvidersToService(list, 'hostel');
 };
 
 export const saveHostelBooking = (bookingData) => {

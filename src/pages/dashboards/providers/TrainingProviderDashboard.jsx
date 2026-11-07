@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
-import { logout, updateProfile } from '../../../store/slices/authSlice.js';
+import { logout, updateProfile, fetchProfile } from '../../../store/slices/authSlice.js';
 import {
   PawPrint, Calendar, Star, TrendingUp, DollarSign, Clock, MapPin, 
   MessageSquare, Plus, Search, ChevronRight, Phone, ShieldCheck, Mail, Heart, Settings,
@@ -36,7 +36,7 @@ const TrainingProviderDashboard = ({
 
   const { user } = useSelector(state => state.auth);
   const dispatch = useDispatch();
-  const [profileName, setProfileName] = useState(user?.name || currentProvider?.name || '');
+  const [profileName, setProfileName] = useState(user?.businessName || user?.name || currentProvider?.name || '');
   const [profileAvatar, setProfileAvatar] = useState(user?.avatar || user?.profilePicture || currentProvider?.avatar || '');
   const [isEditingProfile, setIsEditingProfile] = useState(false);
 
@@ -72,7 +72,7 @@ const TrainingProviderDashboard = ({
 
   useEffect(() => {
     if (user) {
-      setProfileName(user.name || currentProvider?.name || '');
+      setProfileName(user.businessName || user.name || currentProvider?.name || '');
       setProfileAvatar(user.avatar || user.profilePicture || currentProvider?.avatar || '');
     }
   }, [user, currentProvider]);
@@ -80,10 +80,22 @@ const TrainingProviderDashboard = ({
   const handleUpdateProfile = async (e) => {
     e.preventDefault();
     const phoneToKeep = (user?.mobile || user?.phone || '').trim();
-    const result = await dispatch(updateProfile({ name: profileName, avatar: profileAvatar, profilePicture: profileAvatar, mobile: phoneToKeep, phone: phoneToKeep }));
+    if (!profileName?.trim()) {
+      toast.error('Provider name cannot be empty');
+      return;
+    }
+    const result = await dispatch(updateProfile({ 
+      name: profileName.trim(), 
+      businessName: profileName.trim(), 
+      avatar: profileAvatar, 
+      profilePicture: profileAvatar, 
+      mobile: phoneToKeep, 
+      phone: phoneToKeep 
+    }));
     if (updateProfile.fulfilled.match(result)) {
       toast.success('Profile updated successfully!');
       setIsEditingProfile(false);
+      dispatch(fetchProfile());
     } else {
       toast.error('Failed to update profile');
     }
@@ -126,7 +138,7 @@ const TrainingProviderDashboard = ({
   };
 
   const displayAvatar = user?.avatar || user?.profilePicture || currentProvider?.avatar || 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=800&auto=format&fit=crop';
-  const displayName = user?.name || currentProvider?.name || 'Aryan Roy';
+  const displayName = user?.businessName || user?.name || currentProvider?.name || 'Clever Canines';
 
   return (
     <div className="min-h-[calc(100vh-104px)] bg-[#FAF9F5] text-slate-900 font-sans selection:bg-[#0F2E23]/20 selection:text-[#0F2E23] flex flex-col lg:flex-row">
@@ -176,7 +188,7 @@ const TrainingProviderDashboard = ({
                 { id: 'courses', label: 'Courses & Pricing', icon: Tag },
                 { id: 'service', label: 'My Training Service', icon: GraduationCap },
                 { id: 'messages', label: 'Client Inquiries', icon: MessageSquare },
-                { id: 'reviews', label: 'Customer Reviews', icon: Heart },
+                { id: 'reviews', label: 'Customer Reviews', icon: Star },
                 { id: 'wallet', label: 'Wallet & Payouts', icon: DollarSign }
               ].map(item => ( 
                 <li key={item.id}>
@@ -342,12 +354,19 @@ const TrainingProviderDashboard = ({
         <div className="bg-white rounded-3xl p-8 lg:p-4 lg:p-10 border border-slate-200 min-h-[500px] shadow-sm">
           {activeTab === 'profile' ? (
             <ProviderProfileSection
-              serviceCategory="Training & Behavior"
+              serviceCategory="Pet Training & Behavior"
+              subscription={subscription}
               onOpenSubscriptionModal={onOpenSubscriptionModal}
               onOpenPlanDetails={onOpenPlanDetails}
             />
           ) : (
-            <TrainingProviderContent activeTab={activeTab} user={user} />
+            <TrainingProviderContent 
+              activeTab={activeTab} 
+              user={user} 
+              subscription={subscription}
+              onOpenSubscriptionModal={onOpenSubscriptionModal}
+              onOpenPlanDetails={onOpenPlanDetails}
+            />
           )}
         </div>
       </main>

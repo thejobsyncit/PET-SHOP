@@ -1,3 +1,4 @@
+import { syncRegisteredProvidersToService } from '../utils/whatsappHelper.js';
 // Pet Training Providers Dataset, Modalities, Storage Helpers & Event Dispatchers
 
 export const TRAINING_TYPES = [
@@ -468,16 +469,17 @@ export const INITIAL_TRAINING_PROVIDERS = [
 // Persistent LocalStorage Helpers
 
 export const getStoredTrainingProviders = () => {
+  let list = INITIAL_TRAINING_PROVIDERS;
   try {
     const data = localStorage.getItem('joshpetshub_training_providers');
     if (data) {
       const parsed = JSON.parse(data);
-      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      if (Array.isArray(parsed) && parsed.length > 0) list = parsed;
     }
   } catch (err) {
     console.error('Failed reading stored training providers:', err);
   }
-  return INITIAL_TRAINING_PROVIDERS;
+  return syncRegisteredProvidersToService(list, 'train');
 };
 
 export const saveStoredTrainingProviders = (providers) => {

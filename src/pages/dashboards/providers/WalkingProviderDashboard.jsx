@@ -14,6 +14,7 @@ import { safeSetItem, safeGetItem } from '../../../utils/safeStorage.js';
 import toast from 'react-hot-toast';
 import ProviderProfileSection from '../../../components/dashboards/ProviderProfileSection.jsx';
 import ProviderWalletPayoutView from '../../../components/dashboards/ProviderWalletPayoutView.jsx';
+import ProviderReviewsView from '../../../components/dashboards/ProviderReviewsView.jsx';
 
 
 const AppointmentsModule = ({ user }) => {
@@ -1721,7 +1722,15 @@ const WalkingProviderContent = ({ activeTab, user }) => {
     case 'appointments': return <AppointmentsModule user={user} />;
     case 'routes': return <RoutesModule />;
     case 'messages': return <MessagesModule user={user} />;
-    case 'reviews': return <ReviewsModule user={user} />;
+    case 'reviews': return (
+      <ProviderReviewsView
+        serviceCategory="Pet Walking & Fitness"
+        title="Customer Reviews"
+        subtitle="Verified pet parent feedback, walking reports, and official walker replies."
+        roleTitle="Pet Walker"
+        storageKeyPrefix="walking"
+      />
+    );
     case 'wallet': return <ProviderWalletPayoutView serviceCategory="Dog Walking & Fitness" storageKeyPrefix="walking" initialBalance={24500} escrowAmount={6000} />;
     case 'profile': return <div className="p-8 text-center text-slate-500 font-medium">Profile management coming soon...</div>;
     default: return <AppointmentsModule user={user} />;
@@ -1799,7 +1808,7 @@ const WalkingProviderDashboard = ({
   };
 
   const displayAvatar = user?.avatar || user?.profilePicture || currentProvider?.avatar || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=800&auto=format&fit=crop';
-  const displayName = user?.name || currentProvider?.name || 'Provider';
+  const displayName = user?.name || currentProvider?.name || 'Swift Paws Walking';
 
   const currentSub = subscription || user?.subscription;
   const isSubActive = Boolean(
@@ -1814,7 +1823,7 @@ const WalkingProviderDashboard = ({
     { id: 'appointments', label: 'Walk Appointments', icon: Calendar },
     { id: 'routes', label: 'Active Routes', icon: MapPin },
     { id: 'messages', label: 'Client Inquiries', icon: MessageSquare },
-    { id: 'reviews', label: 'Customer Reviews', icon: Heart },
+    { id: 'reviews', label: 'Customer Reviews', icon: Star },
     { id: 'wallet', label: 'Wallet & Payouts', icon: DollarSign }
   ];
 
@@ -1823,8 +1832,42 @@ const WalkingProviderDashboard = ({
       
       {/* LEFT SIDEBAR */}
       <aside className="w-full lg:w-72 shrink-0 bg-white border-r border-slate-200 relative lg:sticky top-0 lg:top-[104px] h-auto lg:h-[calc(100vh-104px)] flex flex-col justify-between overflow-y-auto z-10 shadow-[4px_0_24px_rgba(0,0,0,0.02)]">
-        <div className="p-6 pt-6 space-y-6">
-          <nav className="space-y-1.5">
+        <div className="p-6 pt-6 lg:pt-12 space-y-8">
+          
+          {/* Profile Widget */}
+          <div className="flex flex-col items-center text-center space-y-4">
+            <div className="w-full px-4">
+              {isEditingProfile ? (
+                <form onSubmit={handleUpdateProfile} className="flex items-center gap-2 justify-center mt-2">
+                  <input
+                    type="text"
+                    value={profileName}
+                    onChange={(e) => setProfileName(e.target.value)}
+                    className="w-full text-center text-sm font-black text-[#0F2E23] border-b-2 border-[#ffd000] focus:outline-none bg-transparent"
+                    autoFocus
+                  />
+                  <button type="submit" className="text-emerald-600 hover:text-emerald-700 p-1 cursor-pointer">
+                    <Check size={16} />
+                  </button>
+                  <button type="button" onClick={() => setIsEditingProfile(false)} className="text-rose-600 hover:text-rose-700 p-1 cursor-pointer">
+                    <X size={16} />
+                  </button>
+                </form>
+              ) : (
+                <div className="flex items-center justify-center gap-2 mt-2 group/edit cursor-pointer" onClick={() => setIsEditingProfile(true)}>
+                  <h2 className="text-xl font-sans font-black text-[#0F2E23] tracking-tight leading-tight">
+                    {profileName || displayName}
+                  </h2>
+                  <Edit3 size={14} className="text-slate-300 group-hover/edit:text-[#ffd000] transition" />
+                </div>
+              )}
+              <span className="inline-flex mt-2 bg-[#ffd000]/10 text-[#0F2E23] border border-[#ffd000]/30 text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-widest items-center justify-center gap-1 shadow-sm mx-auto">
+                <ShieldCheck size={12} className="text-amber-500" /> Elite Walker
+              </span>
+            </div>
+          </div>
+
+          <nav className="space-y-1.5 pt-4">
             <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 px-3">Main Menu</div>
             <ul className="space-y-1">
               {navMenuItems.map(item => (

@@ -196,7 +196,7 @@ const SuperAdminPlatformWalletView = () => {
         <div className="bg-white border border-[#E3EBE5] p-5 rounded-2xl shadow-xs flex flex-col justify-between min-h-[140px]">
           <div>
             <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 block mb-1">
-              Platform Commission (5%)
+              Platform Commission (1%)
             </span>
             <div className="text-3xl font-black text-emerald-700 mt-1">
               ₹{(platformWallet?.platformCommissionEarned || 0).toLocaleString('en-IN')}

@@ -13,8 +13,10 @@ import {
 import { logout } from '../../../store/slices/authSlice.js';
 import { apiRequest } from '../../../services/api.js';
 import toast from 'react-hot-toast';
+import { safeSetItem, safeGetItem } from '../../../utils/safeStorage.js';
 import ProviderProfileSection from '../../../components/dashboards/ProviderProfileSection.jsx';
 import ProviderWalletPayoutView from '../../../components/dashboards/ProviderWalletPayoutView.jsx';
+import ProviderReviewsView from '../../../components/dashboards/ProviderReviewsView.jsx';
 import {
   getStoredAdoptionPets,
   setStoredAdoptionPets,
@@ -457,6 +459,7 @@ const PetAdoptionDashboard = ({
     { id: 'applications', label: 'Adoption Applications', icon: FileText },
     { id: 'inquiries', label: 'Buyer Leads', icon: MessageSquare },
     { id: 'rehomed', label: 'Forever Homes', icon: Home },
+    { id: 'reviews', label: 'Adopter Reviews', icon: Star },
     { id: 'wallet', label: 'Wallet & Payouts', icon: DollarSign }
   ];
 
@@ -756,7 +759,7 @@ const PetAdoptionDashboard = ({
     };
 
     try {
-      localStorage.setItem('joshpetshub_adoption_documents', JSON.stringify(payload));
+      safeSetItem('joshpetshub_adoption_documents', JSON.stringify(payload));
       
       const updatedUser = {
         ...(user || {}),
@@ -768,7 +771,7 @@ const PetAdoptionDashboard = ({
         shelterCapacity: Number(shelterCapacity),
         bio: shelterBio
       };
-      localStorage.setItem('joshpetshub_user', JSON.stringify(updatedUser));
+      safeSetItem('joshpetshub_user', JSON.stringify(updatedUser));
     } catch (_e) {}
 
     toast.success('🛡️ Sanctuary Profile, Licenses & Verification Documents saved successfully!', {
@@ -2184,7 +2187,19 @@ const PetAdoptionDashboard = ({
           </div>
         )}
 
-          {activeTab === 'wallet' && (
+          {activeTab === 'reviews' && (
+          <div className="bg-white rounded-3xl p-8 border border-slate-200 shadow-xs">
+            <ProviderReviewsView
+              serviceCategory="Animal Adoption & Shelter"
+              title="Adopter Reviews"
+              subtitle="Verified adoption stories, home placement testimonials, and official sanctuary replies."
+              roleTitle="Shelter Team"
+              storageKeyPrefix="adoption"
+            />
+          </div>
+        )}
+
+        {activeTab === 'wallet' && (
             <ProviderWalletPayoutView
               serviceCategory="Pet Adoption & Shelter"
               storageKeyPrefix="adoption"

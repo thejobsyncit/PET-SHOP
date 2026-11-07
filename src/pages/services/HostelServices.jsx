@@ -10,6 +10,7 @@ import {
   Waves, Cctv
 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { resolveProviderWhatsApp } from '../../utils/whatsappHelper.js';
 import RazorpayBookingPaymentModal from '../../components/widgets/RazorpayBookingPaymentModal.jsx';
 import { apiRequest } from '../../services/api.js';
 import {
@@ -435,16 +436,21 @@ const HostelServices = () => {
   // Direct WhatsApp Connect or Provider Visit
   const handleWhatsApp = (provider) => {
     if (!isAuthenticated) {
-      toast.error('Please register or log in first to contact pet hostels.', {
+      toast.error('Please register or log in first to contact verified hostels.', {
         icon: '🔒'
       });
       window.dispatchEvent(new CustomEvent('open-register-modal', { detail: { tab: 'user', hideProviderTab: true, source: 'hostel' } }));
       return;
     }
+    const provWhatsapp = resolveProviderWhatsApp(provider) || provider.phone;
     handleServiceAction({
       isAuthenticated,
-      serviceType: 'Hostel',
-      provider,
+      serviceType: 'Pet Hostel & Boarding',
+      provider: {
+        ...provider,
+        phone: provWhatsapp,
+        whatsapp: provWhatsapp
+      },
       action: 'whatsapp'
     });
   };

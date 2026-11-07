@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import ProviderWalletPayoutView from '../../../../components/dashboards/ProviderWalletPayoutView.jsx';
+import ProviderReviewsView from '../../../../components/dashboards/ProviderReviewsView.jsx';
 import { apiRequest } from '../../../../services/api.js';
 import { 
   getProviderTransportService,
@@ -33,7 +34,7 @@ const PRESET_TRANSPORT_IMAGES = [
   { label: 'IATA Aviation Crates', url: 'https://images.unsplash.com/photo-1587300003388-59208cc962cb?q=80&w=800&auto=format&fit=crop' }
 ];
 
-const TransportProviderContent = ({ activeTab, user }) => {
+const TransportProviderContent = ({ activeTab, user, subscription, onOpenSubscriptionModal, onOpenPlanDetails }) => {
   const navigate = useNavigate();
 
   // 1. PROVIDER SERVICE STATE (STRICT 1 SERVICE PER PROVIDER)
@@ -1549,90 +1550,16 @@ const TransportProviderContent = ({ activeTab, user }) => {
     );
   }
 
-  // TAB 5: CUSTOMER REVIEWS
+    // TAB 5: CUSTOMER REVIEWS
   if (activeTab === 'reviews') {
     return (
-      <div className="space-y-5 sm:space-y-6 animate-in fade-in duration-300">
-        
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 border-b border-slate-100 pb-4 sm:pb-5">
-          <div>
-            <h2 className="text-xl sm:text-2xl font-sans font-black text-[#0F2E23]">Customer Reviews & Ratings</h2>
-            <p className="text-xs text-slate-500 mt-0.5">Verified testimonials from pet parents whose fur babies you safely relocated.</p>
-          </div>
-          <span className="bg-amber-100 text-amber-900 text-xs font-black px-2.5 py-0.5 rounded-full flex items-center gap-1 shrink-0">
-            <Star size={12} className="fill-amber-500 text-amber-500" /> 4.9 Rating
-          </span>
-        </div>
-
-        <div className="space-y-3.5 sm:space-y-4">
-          {reviews.map((r) => (
-            <div
-              key={r.id}
-              className="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200 shadow-sm space-y-3"
-            >
-              <div className="flex justify-between items-start gap-2">
-                <div>
-                  <div className="font-bold text-slate-900 text-sm">{r.customerName}</div>
-                  <div className="text-xs text-slate-500">{r.petName} • <span className="font-medium text-[#0F2E23]">{r.route}</span></div>
-                </div>
-
-                <div className="flex items-center gap-1 bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200 shrink-0">
-                  <Star size={12} className="fill-amber-500 text-amber-500" />
-                  <span className="text-xs font-bold text-amber-900">{r.rating}.0</span>
-                </div>
-              </div>
-
-              <p className="text-xs text-slate-700 bg-slate-50 p-3 rounded-xl italic">
-                "{r.comment}"
-              </p>
-
-              {r.reply ? (
-                <div className="bg-emerald-50/70 border border-emerald-100 p-3 rounded-xl text-xs space-y-1">
-                  <div className="font-bold text-[#0F2E23] flex items-center gap-1">
-                    <ShieldCheck size={13} className="text-emerald-600" /> Your Official Response:
-                  </div>
-                  <p className="text-slate-600">{r.reply}</p>
-                </div>
-              ) : replyingReviewId === r.id ? (
-                <div className="space-y-2 pt-1">
-                  <textarea
-                    rows="2"
-                    value={replyText}
-                    onChange={(e) => setReplyText(e.target.value)}
-                    placeholder="Write a response to thank the pet parent..."
-                    className="w-full text-xs p-2.5 border rounded-xl"
-                  ></textarea>
-                  <div className="flex justify-end gap-2">
-                    <button
-                      onClick={() => setReplyingReviewId(null)}
-                      className="text-xs px-3 py-1.5 text-slate-500 cursor-pointer"
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      onClick={() => handleSendReviewReply(r.id)}
-                      className="text-xs bg-[#0F2E23] text-white font-bold px-3 py-1.5 rounded-lg cursor-pointer"
-                    >
-                      Post Reply
-                    </button>
-                  </div>
-                </div>
-              ) : (
-                <button
-                  onClick={() => {
-                    setReplyingReviewId(r.id);
-                    setReplyText('');
-                  }}
-                  className="text-xs font-bold text-slate-500 hover:text-[#0F2E23] flex items-center gap-1 cursor-pointer py-1"
-                >
-                  <Edit3 size={12} /> Reply to review
-                </button>
-              )}
-            </div>
-          ))}
-        </div>
-
-      </div>
+      <ProviderReviewsView
+        serviceCategory="Pet Transport & Relocation"
+        title="Customer Reviews & Ratings"
+        subtitle="Verified testimonials from pet parents whose fur babies you safely relocated."
+        roleTitle="Transport Partner"
+        storageKeyPrefix="transport"
+      />
     );
   }
 

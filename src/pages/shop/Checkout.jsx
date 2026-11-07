@@ -82,11 +82,13 @@ const Checkout = () => {
       setName(user.name || '');
       if (user.addresses && user.addresses.length > 0) {
         const def = user.addresses.find(a => a.isDefault) || user.addresses[0];
-        setPhone(def.phone || '');
+        setPhone((def.phone || '').replace(/\D/g, '').slice(0, 10));
         setStreetAddress(def.streetAddress || '');
         setCity(def.city || '');
         setState(def.state || '');
-        setPostalCode(def.postalCode || '');
+        setPostalCode((def.postalCode || '').replace(/\D/g, '').slice(0, 6));
+      } else if (user.phone || user.mobile) {
+        setPhone((user.phone || user.mobile || '').replace(/\D/g, '').slice(0, 10));
       }
       // Look for latest prescription if any pharmacy items exist
       const hasRxItems = items.some(i => i.product.requiresPrescription || i.product.requires_prescription);
@@ -113,6 +115,16 @@ const Checkout = () => {
     if (step === 1) {
       if (!name || !phone || !streetAddress || !city || !state || !postalCode) {
         toast.error('Please fill in all shipping details.');
+        return;
+      }
+      const cleanPhone = phone.replace(/\D/g, '');
+      if (cleanPhone.length !== 10) {
+        toast.error('Please enter a valid 10-digit numerical phone number.');
+        return;
+      }
+      const cleanPostal = (postalCode || '').replace(/\D/g, '');
+      if (cleanPostal.length !== 6) {
+        toast.error('Please enter a valid 6-digit numerical pincode.');
         return;
       }
     }
@@ -344,9 +356,31 @@ const Checkout = () => {
                   <div className="space-y-1">
                     <label className="text-xs text-gray-500 font-semibold block">Phone Number *</label>
                     <input
-                      type="text"
+                      type="tel"
+                      inputMode="numeric"
+                      pattern="[0-9]*"
+                      maxLength={10}
                       value={phone}
-                      onChange={(e) => setPhone(e.target.value)}
+                      onChange={(e) => {
+                        const val = e.target.value.replace(/\D/g, '').slice(0, 10);
+                        setPhone(val);
+                      }}
+                      onKeyDown={(e) => {
+                        if (
+                          !/[0-9]/.test(e.key) &&
+                          !['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab', 'Enter'].includes(e.key) &&
+                          !e.ctrlKey && !e.metaKey
+                        ) {
+                          e.preventDefault();
+                        }
+                      }}
+                      onPaste={(e) => {
+                        e.preventDefault();
+                        const pasteData = (e.clipboardData || window.clipboardData).getData('text') || '';
+                        const clean = pasteData.replace(/\D/g, '').slice(0, 10);
+                        setPhone(clean);
+                      }}
+                      placeholder="10-digit mobile number"
                       className="w-full px-3 py-2 border border-beige text-xs focus:outline-none focus:border-primary"
                       required
                     />
@@ -386,11 +420,33 @@ const Checkout = () => {
                     />
                   </div>
                   <div className="space-y-1">
-                    <label className="text-xs text-gray-500 font-semibold block">Postal Code *</label>
+                    <label className="text-xs text-gray-500 font-semibold block">Pincode / Postal Code *</label>
                     <input
-                      type="text"
+                      type="tel"
+                      inputMode="numeric"
+                      pattern="[0-9]*"
+                      maxLength={6}
                       value={postalCode}
-                      onChange={(e) => setPostalCode(e.target.value)}
+                      onChange={(e) => {
+                        const val = e.target.value.replace(/\D/g, '').slice(0, 6);
+                        setPostalCode(val);
+                      }}
+                      onKeyDown={(e) => {
+                        if (
+                          !/[0-9]/.test(e.key) &&
+                          !['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab', 'Enter'].includes(e.key) &&
+                          !e.ctrlKey && !e.metaKey
+                        ) {
+                          e.preventDefault();
+                        }
+                      }}
+                      onPaste={(e) => {
+                        e.preventDefault();
+                        const pasteData = (e.clipboardData || window.clipboardData).getData('text') || '';
+                        const clean = pasteData.replace(/\D/g, '').slice(0, 6);
+                        setPostalCode(clean);
+                      }}
+                      placeholder="6-digit pincode"
                       className="w-full px-3 py-2 border border-beige text-xs focus:outline-none focus:border-primary"
                       required
                     />
