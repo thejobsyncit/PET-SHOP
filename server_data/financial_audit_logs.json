@@ -1,5 +1,39 @@
 [
   {
+    "id": "AUDIT-1794221932214-828",
+    "timestamp": "2026-11-09T10:58:52.214Z",
+    "action": "PAYOUT_REQUESTED",
+    "actor": {
+      "role": "SERVICE_PROVIDER",
+      "id": "prov-walk-06"
+    },
+    "refId": "PO-REQ-932207",
+    "amount": 10000,
+    "status": "SUCCESS",
+    "details": {
+      "method": "UPI",
+      "bank": "Instant UPI",
+      "destination": "swiftpaws@okhdfcbank"
+    }
+  },
+  {
+    "id": "AUDIT-1794221903349-700",
+    "timestamp": "2026-11-09T10:58:23.349Z",
+    "action": "PAYOUT_REQUESTED",
+    "actor": {
+      "role": "SERVICE_PROVIDER",
+      "id": "prov-walk-06"
+    },
+    "refId": "PO-REQ-903274",
+    "amount": 5000,
+    "status": "SUCCESS",
+    "details": {
+      "method": "UPI",
+      "bank": "Instant UPI",
+      "destination": "swiftpaws@okhdfcbank"
+    }
+  },
+  {
     "id": "AUDIT-1793693923392-648",
     "timestamp": "2026-11-03T08:18:43.393Z",
     "action": "PAYOUT_MARK_PAID",

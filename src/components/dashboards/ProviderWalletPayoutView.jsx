@@ -405,11 +405,11 @@ const ProviderWalletPayoutView = ({
               ₹{metrics.pendingEarnings.toLocaleString('en-IN')}
             </div>
           </div>
-          <div className="pt-4 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-500 font-medium">
-            <span className="flex items-center gap-1">
-              <Clock3 size={13} className="text-amber-500" /> Central Platform Hold
+          <div className="pt-4 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-500 font-medium gap-1">
+            <span className="flex items-center gap-1 whitespace-nowrap">
+              <Clock3 size={13} className="text-amber-500 shrink-0" /> Platform Hold
             </span>
-            <span className="text-slate-400 text-[10px]">Unlocks on service</span>
+            <span className="text-slate-400 text-[10px] whitespace-nowrap">Unlocks on service</span>
           </div>
         </div>
 
@@ -417,16 +417,16 @@ const ProviderWalletPayoutView = ({
         <div className="bg-white border border-slate-200/90 p-6 rounded-2xl shadow-xs flex flex-col justify-between min-h-[170px]">
           <div>
             <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 block mb-1">
-              Total Withdrawn to Bank
+              Total Withdrawn (Bank / UPI)
             </span>
             <div className="text-3xl font-black text-emerald-800 mt-1">
               ₹{metrics.totalWithdrawn.toLocaleString('en-IN')}
             </div>
           </div>
-          <div className="pt-4 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-500 font-medium">
-            <span>{metrics.totalCompletedPayouts} Settled Transfers</span>
-            <span className="text-emerald-700 font-bold flex items-center gap-0.5">
-              <CheckCircle2 size={13} /> 100% Cleared
+          <div className="pt-4 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-500 font-medium gap-1">
+            <span className="whitespace-nowrap">{metrics.totalCompletedPayouts} Settled Transfers</span>
+            <span className="text-emerald-700 font-bold flex items-center gap-0.5 whitespace-nowrap">
+              <CheckCircle2 size={13} className="shrink-0" /> 100% Cleared
             </span>
           </div>
         </div>
