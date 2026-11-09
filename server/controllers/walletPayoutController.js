@@ -283,7 +283,7 @@ export const getBankAccount = async (req, res) => {
 // -----------------------------------------------------------------------------
 export const requestPayout = async (req, res) => {
   try {
-    const { amount, upiId } = req.body;
+    const { amount, upiId, payoutMethod } = req.body;
     const providerId = req.user?._id || req.user?.id || req.body.providerId;
     const providerEmail = req.user?.email || req.body.providerEmail;
     const providerName = req.user?.name || req.user?.businessName || req.body.providerName;
@@ -295,6 +295,7 @@ export const requestPayout = async (req, res) => {
       providerName,
       serviceCategory,
       amount,
+      payoutMethod,
       upiId
     });
 

@@ -311,13 +311,25 @@ const SuperAdminPlatformWalletView = () => {
                         ₹{Number(p.amount || 0).toLocaleString('en-IN')}
                       </td>
                       <td className="p-3.5 text-slate-700 font-mono text-[11px]">
-                        <div>
-                          <span className="font-bold text-slate-900 block">{p.bankDetails?.bankName || 'Verified Bank'}</span>
-                          <span>{p.bankDetails?.accountNumberMasked || '••••••••'} (IFSC: {p.bankDetails?.ifsc || '—'})</span>
-                          {p.bankDetails?.accountHolder && (
-                            <span className="text-[10px] text-slate-500 block">Name: {p.bankDetails.accountHolder}</span>
-                          )}
-                        </div>
+                        {p.payoutMethod === 'UPI' || p.upiId ? (
+                          <div>
+                            <span className="font-bold text-emerald-800 flex items-center gap-1">
+                              <CreditCard size={12} className="text-emerald-600" /> Instant UPI
+                            </span>
+                            <span className="text-slate-800 font-bold block">{p.upiId || p.bankDetails?.upiId}</span>
+                            {p.bankDetails?.accountHolder && (
+                              <span className="text-[10px] text-slate-500 block">Name: {p.bankDetails.accountHolder}</span>
+                            )}
+                          </div>
+                        ) : (
+                          <div>
+                            <span className="font-bold text-slate-900 block">{p.bankDetails?.bankName || 'Verified Bank'}</span>
+                            <span>{p.bankDetails?.accountNumberMasked || '••••••••'} (IFSC: {p.bankDetails?.ifsc || '—'})</span>
+                            {p.bankDetails?.accountHolder && (
+                              <span className="text-[10px] text-slate-500 block">Name: {p.bankDetails.accountHolder}</span>
+                            )}
+                          </div>
+                        )}
                       </td>
                       <td className="p-3.5 text-slate-500 text-[11px]">
                         {p.requestedAt ? new Date(p.requestedAt).toLocaleString('en-IN') : 'Recent'}

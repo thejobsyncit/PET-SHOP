@@ -10,6 +10,7 @@ import {
 import toast from 'react-hot-toast';
 import { safeSetItem, safeGetItem } from '../../../../utils/safeStorage.js';
 import PetBreedDropdown from '../../../../components/ui/PetBreedDropdown.jsx';
+import ProviderWalletPayoutView from '../../../../components/dashboards/ProviderWalletPayoutView.jsx';
 import { apiRequest } from '../../../../services/api.js';
 import { 
   updateVetProfile, 
@@ -1546,97 +1547,12 @@ const VetProviderContent = ({ activeTab, currentProvider }) => {
           TAB 7: WALLET & PAYOUTS
           ========================================================= */}
       {activeTab === 'wallet' && (
-        <div className="space-y-8 animate-in fade-in zoom-in-95 duration-300">
-          <div className="flex items-center justify-between border-b border-slate-100 pb-6">
-            <div>
-              <h2 className="text-xl font-black text-[#0F2E23]">Wallet & Payouts</h2>
-              <p className="text-sm text-slate-500 font-medium mt-1">Manage consultation earnings, available balances, and instant bank settlements.</p>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {/* Available Balance Card */}
-            <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-xs flex flex-col justify-between">
-              <div>
-                <span className="text-xs font-black text-slate-500 uppercase tracking-widest block mb-3">Available Balance</span>
-                <h3 className="text-4xl font-black text-[#0F2E23] mb-1">₹{wallet.availableBalance.toLocaleString('en-IN')}</h3>
-                <p className="text-xs font-bold text-emerald-600 mb-6 flex items-center gap-1">
-                  <CheckCircle2 size={14}/> Ready for instant bank settlement
-                </p>
-              </div>
-              <button 
-                onClick={() => {
-                  setWithdrawAmount(wallet.availableBalance.toString());
-                  setShowWithdrawModal(true);
-                }}
-                className="w-full bg-[#0F2E23] hover:bg-[#1a4a38] text-white py-3 rounded-xl text-xs font-black uppercase tracking-widest transition shadow-sm cursor-pointer flex items-center justify-center gap-2">
-                Withdraw to Bank Account →
-              </button>
-            </div>
-
-            {/* Lifetime Revenue Card */}
-            <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-xs">
-              <span className="text-xs font-black text-slate-500 uppercase tracking-widest block mb-3">Lifetime Clinical Revenue</span>
-              <h3 className="text-4xl font-black text-[#0F2E23] mb-1">₹{wallet.lifetimeRevenue.toLocaleString('en-IN')}</h3>
-              <p className="text-xs font-bold text-slate-500 mt-2">From 142 completed patient consultations</p>
-              <div className="mt-6 pt-4 border-t border-slate-100 text-xs text-slate-400 font-bold">
-                Josh Pets Hub Commission: 0% Direct Provider Tier
-              </div>
-            </div>
-
-            {/* Default Bank Account Card */}
-            <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-xs flex flex-col justify-center">
-              <span className="text-xs font-black text-slate-500 uppercase tracking-widest block mb-2">Default Settlement Account</span>
-              <h4 className="text-base font-black text-[#0F2E23] mb-1">{wallet.bankAccount?.bankName || 'HDFC Bank Limited'}</h4>
-              <p className="text-xs font-mono text-slate-500 mb-3">A/C: {wallet.bankAccount?.accountNumber} (IFSC: {wallet.bankAccount?.ifsc})</p>
-              <span className="inline-block bg-emerald-50 text-emerald-700 text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-md w-fit">
-                ✓ Verified for Instant IMPS
-              </span>
-            </div>
-          </div>
-
-          <div className="pt-4">
-            <h3 className="text-sm font-black text-[#0F2E23] uppercase tracking-widest mb-4">Recent Settlements & Payouts</h3>
-            <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-xs">
-              <div className="overflow-x-auto">
-                <table className="w-full text-left text-sm">
-                  <thead className="bg-slate-50 text-xs uppercase tracking-widest text-slate-500 font-black">
-                    <tr>
-                      <th className="px-6 py-4">Transaction ID</th>
-                      <th className="px-6 py-4">Date</th>
-                      <th className="px-6 py-4">Settled Amount</th>
-                      <th className="px-6 py-4">Payout Method</th>
-                      <th className="px-6 py-4">Status</th>
-                      <th className="px-6 py-4 text-right">Invoice / Receipt</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100 font-medium">
-                    {wallet.transactions.map((txn) => (
-                      <tr key={txn.id} className="hover:bg-slate-50/70 transition">
-                        <td className="px-6 py-4 text-slate-800 font-mono font-bold">{txn.id}</td>
-                        <td className="px-6 py-4 text-slate-500 text-xs">{txn.date}</td>
-                        <td className="px-6 py-4 text-slate-800 font-black text-sm">₹{txn.amount.toLocaleString('en-IN')}</td>
-                        <td className="px-6 py-4 text-xs font-semibold text-slate-600">{txn.type || 'Bank Payout'}</td>
-                        <td className="px-6 py-4">
-                          <span className="bg-emerald-50 text-emerald-800 border border-emerald-200 px-2.5 py-1 rounded-md text-[10px] font-black uppercase tracking-widest inline-flex items-center gap-1">
-                            <CheckCircle2 size={12}/> {txn.status}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4 text-right">
-                          <button 
-                            onClick={() => setSelectedTxnForInvoice(txn)}
-                            className="text-emerald-700 hover:text-emerald-800 font-bold text-xs uppercase tracking-widest inline-flex items-center gap-1 cursor-pointer">
-                            <Download size={14}/> Voucher
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-        </div>
+        <ProviderWalletPayoutView
+          serviceCategory="Veterinary Clinic & Care"
+          storageKeyPrefix="vet"
+          initialBalance={35897}
+          escrowAmount={9000}
+        />
       )}
 
       {/* =========================================================
@@ -2392,63 +2308,6 @@ const VetProviderContent = ({ activeTab, currentProvider }) => {
               </div>
             </div>
           </div>
-          </div>
-        </div>
-      )}
-
-      {/* =========================================================
-          MODAL 6: WITHDRAW FUNDS MODAL
-          ========================================================= */}
-      {showWithdrawModal && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl space-y-5 animate-in fade-in zoom-in-95 duration-200">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <h3 className="text-lg font-black text-[#0F2E23]">Instant Bank Settlement</h3>
-              <button onClick={() => setShowWithdrawModal(false)} className="text-slate-400 hover:text-slate-700 p-1">
-                <X size={18} />
-              </button>
-            </div>
-
-            <div className="bg-emerald-50 border border-emerald-200 p-4 rounded-2xl">
-              <span className="text-[10px] font-black text-emerald-800 uppercase tracking-widest block mb-1">Available for Payout</span>
-              <h4 className="text-3xl font-black text-[#0F2E23]">₹{wallet.availableBalance.toLocaleString('en-IN')}</h4>
-            </div>
-
-            <form onSubmit={handleConfirmWithdrawal} className="space-y-4">
-              <div>
-                <label className="text-xs font-black text-slate-700 uppercase tracking-wider block mb-1.5">Withdrawal Amount (₹)</label>
-                <input 
-                  type="number" 
-                  min="100" 
-                  max={wallet.availableBalance}
-                  value={withdrawAmount}
-                  onChange={e => setWithdrawAmount(e.target.value)}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-lg font-black text-slate-800 outline-none focus:border-[#0F2E23]"
-                  required
-                />
-              </div>
-
-              <div className="bg-slate-50 p-3.5 rounded-xl border border-slate-200 text-xs space-y-1">
-                <p className="font-black text-[#0F2E23]">{wallet.bankAccount?.bankName}</p>
-                <p className="text-slate-500 font-mono">Account: {wallet.bankAccount?.accountNumber}</p>
-                <p className="text-slate-500 font-mono">IFSC: {wallet.bankAccount?.ifsc}</p>
-                <p className="text-[10px] text-emerald-600 font-bold mt-1">✓ Instant IMPS Transfer • No platform settlement fee</p>
-              </div>
-
-              <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-100">
-                <button 
-                  type="button" 
-                  onClick={() => setShowWithdrawModal(false)}
-                  className="px-4 py-2 text-xs font-bold text-slate-500 hover:text-slate-800">
-                  Cancel
-                </button>
-                <button 
-                  type="submit"
-                  className="px-5 py-2.5 bg-[#0F2E23] hover:bg-[#163e30] text-white text-xs font-black uppercase tracking-widest rounded-xl transition shadow-sm">
-                  Confirm Transfer
-                </button>
-              </div>
-            </form>
           </div>
         </div>
       )}
