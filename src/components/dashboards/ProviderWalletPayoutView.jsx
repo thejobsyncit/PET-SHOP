@@ -340,10 +340,10 @@ const ProviderWalletPayoutView = ({
       </div>
 
       {/* 2. Primary Financial KPI Cards Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
         
         {/* Available for Payout Card */}
-        <div className="bg-gradient-to-br from-[#0F2E23] to-[#1a4a3a] text-white p-6 rounded-2xl shadow-md relative overflow-hidden flex flex-col justify-between min-h-[170px]">
+        <div className="bg-gradient-to-br from-[#0F2E23] to-[#1a4a3a] text-white p-5 rounded-2xl shadow-md relative overflow-hidden flex flex-col justify-between min-h-[170px]">
           <div className="absolute right-[-10px] bottom-[-10px] w-28 h-28 bg-emerald-500/10 rounded-full blur-2xl pointer-events-none" />
           <div>
             <span className="text-[10px] font-black uppercase tracking-widest text-emerald-300 block mb-1">
@@ -353,34 +353,34 @@ const ProviderWalletPayoutView = ({
               ₹{metrics.availablePayoutBalance.toLocaleString('en-IN')}
             </div>
           </div>
-          <div className="pt-4 flex flex-wrap items-center justify-between gap-2 border-t border-emerald-800/60">
-            <span className="text-[11px] text-emerald-200 font-medium flex items-center gap-1">
-              <ShieldCheck size={13} className="text-emerald-400" /> Ready to Withdraw
+          <div className="pt-4 flex items-center justify-between gap-1.5 border-t border-emerald-800/60 text-[11px]">
+            <span className="text-emerald-200 font-medium flex items-center gap-1 shrink-0">
+              <ShieldCheck size={13} className="text-emerald-400 shrink-0" /> Ready to Withdraw
             </span>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1.5 shrink-0">
               <button
                 type="button"
                 onClick={() => handleOpenWithdrawModal(null, 'bank')}
                 disabled={metrics.availablePayoutBalance <= 0}
-                className="text-[11px] font-bold text-amber-300 hover:text-white transition flex items-center gap-0.5 cursor-pointer disabled:opacity-50"
+                className="font-bold text-amber-300 hover:text-white transition flex items-center gap-0.5 cursor-pointer disabled:opacity-50"
               >
-                Bank <ArrowUpRight size={12} />
+                Bank <ArrowUpRight size={11} />
               </button>
               <span className="text-emerald-700 text-xs font-bold">•</span>
               <button
                 type="button"
                 onClick={() => handleOpenWithdrawModal(null, 'upi')}
                 disabled={metrics.availablePayoutBalance <= 0}
-                className="text-[11px] font-bold text-emerald-300 hover:text-white transition flex items-center gap-0.5 cursor-pointer disabled:opacity-50"
+                className="font-bold text-emerald-300 hover:text-white transition flex items-center gap-0.5 cursor-pointer disabled:opacity-50"
               >
-                UPI <ArrowUpRight size={12} />
+                UPI <ArrowUpRight size={11} />
               </button>
             </div>
           </div>
         </div>
 
         {/* Total Earnings Generated Card */}
-        <div className="bg-white border border-slate-200/90 p-6 rounded-2xl shadow-xs flex flex-col justify-between min-h-[170px]">
+        <div className="bg-white border border-slate-200/90 p-5 rounded-2xl shadow-xs overflow-hidden flex flex-col justify-between min-h-[170px]">
           <div>
             <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 block mb-1">
               Total Earnings Generated
@@ -389,14 +389,14 @@ const ProviderWalletPayoutView = ({
               ₹{metrics.totalEarningsGenerated.toLocaleString('en-IN')}
             </div>
           </div>
-          <div className="pt-4 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-500 font-medium">
-            <span>{metrics.totalPaidBookings} Paid Bookings</span>
-            <span className="text-emerald-700 font-bold">5% Josh Fee</span>
+          <div className="pt-4 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-500 font-medium gap-1">
+            <span className="truncate">{metrics.totalPaidBookings} Paid Bookings</span>
+            <span className="text-emerald-700 font-bold shrink-0">5% Josh Fee</span>
           </div>
         </div>
 
         {/* Pending Escrow Earnings Card */}
-        <div className="bg-white border border-slate-200/90 p-6 rounded-2xl shadow-xs flex flex-col justify-between min-h-[170px]">
+        <div className="bg-white border border-slate-200/90 p-5 rounded-2xl shadow-xs overflow-hidden flex flex-col justify-between min-h-[170px]">
           <div>
             <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 block mb-1">
               In Escrow (Upcoming)
@@ -406,26 +406,26 @@ const ProviderWalletPayoutView = ({
             </div>
           </div>
           <div className="pt-4 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-500 font-medium gap-1">
-            <span className="flex items-center gap-1 whitespace-nowrap">
+            <span className="flex items-center gap-1 shrink-0">
               <Clock3 size={13} className="text-amber-500 shrink-0" /> Platform Hold
             </span>
-            <span className="text-slate-400 text-[10px] whitespace-nowrap">Unlocks on service</span>
+            <span className="text-slate-400 text-[10px] shrink-0">Unlocks on service</span>
           </div>
         </div>
 
         {/* Total Settled & Withdrawn Card */}
-        <div className="bg-white border border-slate-200/90 p-6 rounded-2xl shadow-xs flex flex-col justify-between min-h-[170px]">
+        <div className="bg-white border border-slate-200/90 p-5 rounded-2xl shadow-xs overflow-hidden flex flex-col justify-between min-h-[170px]">
           <div>
             <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 block mb-1">
-              Total Withdrawn (Bank / UPI)
+              Total Withdrawn
             </span>
             <div className="text-3xl font-black text-emerald-800 mt-1">
               ₹{metrics.totalWithdrawn.toLocaleString('en-IN')}
             </div>
           </div>
           <div className="pt-4 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-500 font-medium gap-1">
-            <span className="whitespace-nowrap">{metrics.totalCompletedPayouts} Settled Transfers</span>
-            <span className="text-emerald-700 font-bold flex items-center gap-0.5 whitespace-nowrap">
+            <span className="truncate">{metrics.totalCompletedPayouts} Settled</span>
+            <span className="text-emerald-700 font-bold flex items-center gap-1 shrink-0">
               <CheckCircle2 size={13} className="shrink-0" /> 100% Cleared
             </span>
           </div>
