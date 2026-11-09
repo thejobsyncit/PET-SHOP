@@ -100,7 +100,7 @@ export const verifyBookingPayment = async (req, res) => {
     }
 
     const servicePrice = Number(bookingPayload.fee || bookingPayload.totalAmount || bookingPayload.totalPrice || bookingPayload.price || 0);
-    const platformFee = Math.round(servicePrice * 0.01); // 1% Josh Pets Hub commission
+    const platformFee = Math.round(servicePrice * 0.05); // 5% Josh Pets Hub commission
     const providerShare = servicePrice - platformFee;
 
     const bookingId = bookingPayload.id || bookingPayload._id || `BK-${Date.now().toString().slice(-6)}`;
