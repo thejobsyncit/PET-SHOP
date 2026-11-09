@@ -287,9 +287,9 @@ const ProviderWalletPayoutView = ({
     <div className="space-y-8 animate-fadeIn text-slate-800">
       
       {/* 1. Header Section */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200/80 pb-6">
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-slate-200/80 pb-6">
         <div>
-          <div className="flex items-center gap-2.5">
+          <div className="flex items-center gap-2.5 flex-wrap">
             <h2 className="text-2xl font-black text-[#0F2E23]">Earnings & Wallet</h2>
             <span className="text-[10px] bg-emerald-100 text-emerald-800 font-black px-2.5 py-0.5 rounded-full uppercase tracking-wider">
               {serviceCategory}
@@ -300,12 +300,12 @@ const ProviderWalletPayoutView = ({
           </p>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2.5">
+        <div className="flex items-center gap-2 sm:gap-2.5 shrink-0 flex-nowrap">
           <button
             type="button"
             onClick={fetchProviderFinancials}
             disabled={isLoading}
-            className="p-2.5 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-600 transition flex items-center justify-center cursor-pointer"
+            className="p-2.5 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-600 transition flex items-center justify-center cursor-pointer shrink-0"
             title="Refresh Financials"
           >
             <RefreshCw size={16} className={isLoading ? 'animate-spin text-emerald-700' : ''} />
@@ -315,7 +315,7 @@ const ProviderWalletPayoutView = ({
             type="button"
             onClick={() => handleOpenWithdrawModal(null, 'bank')}
             disabled={metrics.availablePayoutBalance <= 0}
-            className={`px-4 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider shadow-sm flex items-center gap-2 transition cursor-pointer ${
+            className={`px-4 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider shadow-sm flex items-center gap-2 transition cursor-pointer whitespace-nowrap shrink-0 ${
               metrics.availablePayoutBalance <= 0
                 ? 'bg-slate-200 text-slate-400 cursor-not-allowed shadow-none'
                 : 'bg-[#0F2E23] hover:bg-[#163e30] text-white active:scale-95'
@@ -328,7 +328,7 @@ const ProviderWalletPayoutView = ({
             type="button"
             onClick={() => handleOpenWithdrawModal(null, 'upi')}
             disabled={metrics.availablePayoutBalance <= 0}
-            className={`px-4 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider shadow-sm flex items-center gap-2 transition cursor-pointer ${
+            className={`px-4 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider shadow-sm flex items-center gap-2 transition cursor-pointer whitespace-nowrap shrink-0 ${
               metrics.availablePayoutBalance <= 0
                 ? 'bg-slate-200 text-slate-400 cursor-not-allowed shadow-none'
                 : 'bg-emerald-700 hover:bg-emerald-800 text-white active:scale-95'
