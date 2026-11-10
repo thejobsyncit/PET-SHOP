@@ -2339,13 +2339,15 @@ const AccountDashboard = () => {
                   </p>
                 </div>
 
-                <Link
-                  to="/transport?action=new-request#relocation-enquiry-form"
-                  className="px-3.5 py-2 bg-[#0F2E23] hover:bg-[#163f30] text-[#d4af37] hover:text-white rounded-lg text-xs font-bold transition flex items-center gap-1.5 shadow-sm cursor-pointer"
-                >
-                  <Plus size={14} />
-                  <span>New Relocation Request</span>
-                </Link>
+                {userTransportEnquiries.length > 0 && (
+                  <Link
+                    to="/transport?action=new-request#relocation-enquiry-form"
+                    className="px-3.5 py-2 bg-[#0F2E23] hover:bg-[#163f30] text-[#d4af37] hover:text-white rounded-lg text-xs font-bold transition flex items-center gap-1.5 shadow-sm cursor-pointer"
+                  >
+                    <Plus size={14} />
+                    <span>New Relocation Request</span>
+                  </Link>
+                )}
               </div>
 
               {userTransportEnquiries.length === 0 ? (
