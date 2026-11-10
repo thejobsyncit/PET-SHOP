@@ -13,38 +13,7 @@ import ProviderProfileSection from '../../../components/dashboards/ProviderProfi
 import ProviderWalletPayoutView from '../../../components/dashboards/ProviderWalletPayoutView.jsx';
 import ProviderReviewsView from '../../../components/dashboards/ProviderReviewsView.jsx';
 
-const InsuranceProviderContent = ({ activeTab, user, subscription, onOpenSubscriptionModal, onOpenPlanDetails }) => {
-  if (activeTab === 'wallet') {
-    return (
-      <ProviderWalletPayoutView 
-        serviceCategory="Pet Insurance" 
-        storageKeyPrefix="insurance" 
-        initialBalance={45000} 
-        escrowAmount={15000} 
-      />
-    );
-  }
-  if (activeTab === 'reviews') {
-    return (
-      <ProviderReviewsView
-        serviceCategory="Pet Insurance"
-        title="Customer Reviews"
-        subtitle="Verified policyholder ratings, claim satisfaction feedback, and official agency replies."
-        roleTitle="Insurance Partner"
-        storageKeyPrefix="insurance"
-      />
-    );
-  }
-  return (
-    <div className="flex flex-col items-center justify-center h-full min-h-[400px] text-center">
-      <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center text-slate-400 mb-4">
-        <LayoutDashboard size={24} />
-      </div>
-      <h3 className="text-xl font-bold text-slate-800 mb-2">{activeTab.charAt(0).toUpperCase() + activeTab.slice(1)} Module</h3>
-      <p className="text-slate-500 max-w-sm">This module is currently under development. Check back soon for updates!</p>
-    </div>
-  );
-};
+import InsuranceProviderContent from './content/InsuranceProviderContent.jsx';
 
 import { safeSetItem, safeGetItem } from '../../../utils/safeStorage.js';
 
@@ -117,18 +86,58 @@ const InsuranceProviderDashboard = ({
     }
   };
 
-  // Mock Stats for new dashboards
-  const stats = {
-    totalListings: 12,
-    availableStock: 3,
-    soldOutCount: 45,
-    totalOrders: 60,
-    revenue: 12500,
-    discounts: 500, 
-    inquiries: 12,
-    rating: currentProvider?.rating || 4.9,
-    reviews: currentProvider?.reviewsCount || 100
+  // Dynamic Insurance Stats synchronized with live registry & claims
+  const computeInsuranceStats = () => {
+    let polList = [];
+    let claimList = [];
+    try {
+      const savedPol = safeGetItem('joshpetshub_insurance_policies_v2');
+      if (savedPol) polList = JSON.parse(savedPol);
+    } catch (_) {}
+    try {
+      const savedClaims = safeGetItem('joshpetshub_insurance_claims_v2');
+      if (savedClaims) claimList = JSON.parse(savedClaims);
+    } catch (_) {}
+
+    const totalPolicies = Array.isArray(polList) && polList.length > 0 ? polList.length : 12;
+    const pendingClaims = Array.isArray(claimList) && claimList.length > 0
+      ? claimList.filter(c => c.status === 'Pending Review').length
+      : 3;
+    const settledClaims = Array.isArray(claimList) && claimList.length > 0
+      ? claimList.filter(c => c.status === 'Settled').length
+      : 45;
+    const premiumVolume = Array.isArray(polList) && polList.length > 0
+      ? polList.reduce((acc, p) => acc + (Number(p.annualPremium) || 0), 0)
+      : 12500;
+
+    return {
+      totalListings: totalPolicies,
+      availableStock: pendingClaims,
+      soldOutCount: settledClaims,
+      totalOrders: totalPolicies + settledClaims,
+      revenue: premiumVolume,
+      discounts: 500,
+      inquiries: 12,
+      rating: currentProvider?.rating || 4.9,
+      reviews: currentProvider?.reviewsCount || 100
+    };
   };
+
+  const [stats, setStats] = useState(computeInsuranceStats);
+
+  useEffect(() => {
+    const handleUpdate = () => {
+      setStats(computeInsuranceStats());
+    };
+    window.addEventListener('storage', handleUpdate);
+    window.addEventListener('insurance_policies_updated', handleUpdate);
+    window.addEventListener('insurance_claims_updated', handleUpdate);
+    return () => {
+      window.removeEventListener('storage', handleUpdate);
+      window.removeEventListener('insurance_policies_updated', handleUpdate);
+      window.removeEventListener('insurance_claims_updated', handleUpdate);
+    };
+  }, []);
 
   const displayAvatar = user?.avatar || user?.profilePicture || currentProvider?.avatar || 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=800&auto=format&fit=crop';
   const displayName = user?.businessName || user?.name || currentProvider?.name || 'PawProtect Insurance';
