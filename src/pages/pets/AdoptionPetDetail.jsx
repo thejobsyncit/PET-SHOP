@@ -4,7 +4,7 @@ import { useSelector } from 'react-redux';
 import {
   Heart, ArrowLeft, MapPin, MessageSquare, ShieldCheck,
   CircleCheck, Check, User, Calendar, Award, Share2, Info, Home,
-  Sparkles, AlertCircle, ArrowRight, Lock, X, Edit3
+  Sparkles, AlertCircle, ArrowRight, Lock, X, Edit3, Clock
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { formatWhatsAppTargetPhone, resolveProviderWhatsApp } from '../../utils/whatsappHelper.js';
@@ -72,6 +72,8 @@ const AdoptionPetDetail = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [existingApplication, setExistingApplication] = useState(null);
   const [showFlyingMacaw, setShowFlyingMacaw] = useState(false);
+  const [showSuccessPopup, setShowSuccessPopup] = useState(false);
+  const [autoCloseCountdown, setAutoCloseCountdown] = useState(4);
 
   // In-App Inquiry Modal State
   const [showInquiryModal, setShowInquiryModal] = useState(false);
@@ -119,6 +121,25 @@ const AdoptionPetDetail = () => {
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, [id]);
+
+  // Automatically close adoption application success popup after a short period (4 seconds)
+  useEffect(() => {
+    let timer;
+    let interval;
+    if (showSuccessPopup) {
+      setAutoCloseCountdown(4);
+      interval = setInterval(() => {
+        setAutoCloseCountdown((prev) => (prev > 1 ? prev - 1 : 1));
+      }, 1000);
+      timer = setTimeout(() => {
+        setShowSuccessPopup(false);
+      }, 4000);
+    }
+    return () => {
+      if (timer) clearTimeout(timer);
+      if (interval) clearInterval(interval);
+    };
+  }, [showSuccessPopup]);
 
   // Direct WhatsApp chat connect with pet details
   const handleWhatsAppChat = (targetPet) => {
@@ -410,6 +431,8 @@ const AdoptionPetDetail = () => {
     setExistingApplication(applicationData);
     setIsEditing(false);
     setIsSubmitted(true);
+    setShowSuccessPopup(true);
+    setAutoCloseCountdown(4);
     if (!isEditMode) {
       setShowFlyingMacaw(true);
     }
@@ -1091,6 +1114,124 @@ const AdoptionPetDetail = () => {
                   </button>
                 </div>
               </form>
+            </div>
+          </div>
+        )}
+
+        {/* Adoption Application Success Popup (Auto-closing after short period) */}
+        {showSuccessPopup && (
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="adoption-success-title"
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200"
+            onClick={() => setShowSuccessPopup(false)}
+          >
+            <div
+              onClick={(e) => e.stopPropagation()}
+              className="bg-white rounded-3xl border border-emerald-200/90 shadow-2xl max-w-md w-full overflow-hidden text-center relative animate-in zoom-in-95 duration-200 p-6 sm:p-8 space-y-5"
+            >
+              {/* Top gold & emerald gradient line */}
+              <div className="absolute top-0 left-0 right-0 h-2 bg-gradient-to-r from-emerald-500 via-[#ffd000] to-emerald-600" />
+
+              {/* Close Button (X) */}
+              <button
+                type="button"
+                onClick={() => setShowSuccessPopup(false)}
+                className="absolute top-4 right-4 text-slate-400 hover:text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-full p-1.5 transition cursor-pointer"
+                title="Close"
+                aria-label="Close"
+              >
+                <X size={16} />
+              </button>
+
+              {/* Animated Celebration Icon */}
+              <div className="relative mx-auto w-20 h-20 rounded-full bg-emerald-50 border-4 border-emerald-200 flex items-center justify-center text-emerald-600 shadow-md">
+                <Check size={40} className="stroke-[3] text-emerald-600 animate-in zoom-in duration-300" />
+                <span className="absolute -top-1 -right-1 w-7 h-7 rounded-full bg-amber-400 text-slate-900 flex items-center justify-center text-xs font-black shadow-sm">
+                  🎉
+                </span>
+              </div>
+
+              {/* Headings */}
+              <div className="space-y-1.5">
+                <div className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10.5px] font-extrabold uppercase tracking-wider border border-emerald-200">
+                  <Sparkles size={12} className="text-amber-600" />
+                  <span>Adoption Application {isEditing ? 'Updated' : 'Submitted'}</span>
+                </div>
+                <h3 id="adoption-success-title" className="text-xl sm:text-2xl font-serif font-bold text-slate-900">
+                  Application Received!
+                </h3>
+                <p className="text-xs text-slate-600 max-w-xs mx-auto leading-relaxed">
+                  Your adoption application for <strong>{pet?.name}</strong> has been submitted successfully to the pet guardian.
+                </p>
+              </div>
+
+              {/* Summary Details */}
+              <div className="bg-emerald-50/70 border border-emerald-200 rounded-2xl p-3.5 text-left text-xs space-y-1.5">
+                <div className="flex items-center justify-between text-slate-600">
+                  <span className="font-semibold">Reference ID:</span>
+                  <span className="font-mono font-bold text-emerald-800">
+                    #{existingApplication?.id}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between text-slate-600">
+                  <span className="font-semibold">Status:</span>
+                  <span className="px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded-full text-[10px] font-bold">
+                    {existingApplication?.status || 'Submitted'}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between text-slate-600">
+                  <span className="font-semibold">Applicant:</span>
+                  <span className="font-bold text-slate-800">{existingApplication?.applicantName}</span>
+                </div>
+                <div className="flex items-center justify-between text-slate-600">
+                  <span className="font-semibold">Contact:</span>
+                  <span className="font-mono text-slate-800">{existingApplication?.applicantPhone}</span>
+                </div>
+              </div>
+
+              {/* Auto-closing Countdown & Progress Bar */}
+              <div className="space-y-1.5 pt-1">
+                <div className="flex items-center justify-between text-[11px] font-medium text-slate-500">
+                  <span className="flex items-center gap-1 text-slate-600">
+                    <Clock size={12} className="text-emerald-600 animate-spin" />
+                    Auto-closing in <strong className="text-emerald-700">{autoCloseCountdown}s</strong>...
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setShowSuccessPopup(false)}
+                    className="text-[10px] font-semibold text-slate-400 hover:text-slate-700 underline cursor-pointer"
+                  >
+                    close now
+                  </button>
+                </div>
+                <div className="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
+                  <div
+                    className="bg-emerald-500 h-full transition-all duration-1000 ease-linear rounded-full"
+                    style={{ width: `${(autoCloseCountdown / 4) * 100}%` }}
+                  />
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="pt-2 flex flex-col sm:flex-row items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setShowSuccessPopup(false)}
+                  className="w-full sm:w-1/2 py-2.5 px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition cursor-pointer"
+                >
+                  OK, Got It
+                </button>
+                <Link
+                  to="/account?tab=my-applications"
+                  onClick={() => setShowSuccessPopup(false)}
+                  className="w-full sm:w-1/2 py-2.5 px-4 bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold rounded-xl shadow-md transition flex items-center justify-center gap-1.5 cursor-pointer"
+                >
+                  <span>Track in Dashboard</span>
+                  <ArrowRight size={13} />
+                </Link>
+              </div>
             </div>
           </div>
         )}
