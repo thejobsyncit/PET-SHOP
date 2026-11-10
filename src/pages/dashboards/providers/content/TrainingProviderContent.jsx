@@ -714,12 +714,6 @@ const formatSessionDate = (rawDate) => {
 
                 <div className="flex items-center gap-2 shrink-0">
                   <button
-                    onClick={() => setIsEditingService(true)}
-                    className="px-4 py-2 bg-white text-[#0F2E23] border border-emerald-300 rounded-xl text-xs font-bold hover:bg-emerald-100/50 transition shadow-sm flex items-center gap-1.5"
-                  >
-                    <Edit3 size={14} /> Edit
-                  </button>
-                  <button
                     onClick={handleDeleteService}
                     className="px-4 py-2 bg-rose-50 text-rose-700 border border-rose-200 rounded-xl text-xs font-bold hover:bg-rose-100 transition shadow-sm flex items-center gap-1.5"
                   >
