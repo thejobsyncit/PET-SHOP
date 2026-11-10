@@ -24,7 +24,8 @@ import {
   getUserTransportEnquiries, 
   getUserTransportBookings,
   getUserAllRelocationRequests,
-  getStoredTransportEnquiries 
+  getStoredTransportEnquiries,
+  saveTransportEnquiry
 } from '../../data/transportData.js';
 import { getStoredGroomingBookings } from '../../data/groomingData.js';
 import { getStoredHostelBookings } from '../../data/hostelData.js';
@@ -127,6 +128,21 @@ const AccountDashboard = () => {
 
   // Transport relocation enquiries states
   const [userTransportEnquiries, setUserTransportEnquiries] = useState([]);
+  const [showNewRelocationModal, setShowNewRelocationModal] = useState(false);
+  const [relocPetName, setRelocPetName] = useState('');
+  const [relocPetSpecies, setRelocPetSpecies] = useState('Dog');
+  const [relocPetBreed, setRelocPetBreed] = useState('');
+  const [relocPetAge, setRelocPetAge] = useState('');
+  const [relocPetWeight, setRelocPetWeight] = useState('');
+  const [relocType, setRelocType] = useState('Inter-State Relocation');
+  const [relocDepCity, setRelocDepCity] = useState('');
+  const [relocDestCity, setRelocDestCity] = useState('');
+  const [relocDate, setRelocDate] = useState('');
+  const [relocMode, setRelocMode] = useState('Road AC Pet Cab');
+  const [relocContactName, setRelocContactName] = useState('');
+  const [relocContactPhone, setRelocContactPhone] = useState('');
+  const [relocNote, setRelocNote] = useState('');
+  const [isSubmittingRelocation, setIsSubmittingRelocation] = useState(false);
 
   // Service Membership state for 199 and 499 package indications
   const [membership, setMembership] = useState(() => {
@@ -739,6 +755,71 @@ const AccountDashboard = () => {
       console.error(err);
     } finally {
       setHistoryLoading(false);
+    }
+  };
+
+  const handleCreateRelocationRequest = (e) => {
+    e.preventDefault();
+    const cleanPhone = (relocContactPhone || user?.mobile || user?.phone || '').replace(/\D/g, '');
+    if (!cleanPhone || cleanPhone.length !== 10) {
+      toast.error('Please enter a valid 10-digit mobile number.');
+      return;
+    }
+    if (!relocPetName.trim() || !relocPetBreed.trim()) {
+      toast.error('Please specify your pet name and breed.');
+      return;
+    }
+    if (!relocDepCity.trim() || !relocDestCity.trim()) {
+      toast.error('Please enter pickup and destination cities.');
+      return;
+    }
+
+    setIsSubmittingRelocation(true);
+    try {
+      saveTransportEnquiry({
+        providerId: 'TRP-101',
+        providerName: 'Josh Pets Hub Air & Road Pet Relocators (Central Hub)',
+        userId: user?._id || user?.id || 'usr-custom',
+        userName: relocContactName.trim() || user?.name || 'Pet Parent',
+        customerName: relocContactName.trim() || user?.name || 'Pet Parent',
+        userEmail: user?.email || '',
+        customerEmail: user?.email || '',
+        userPhone: cleanPhone,
+        customerPhone: cleanPhone,
+        ownerPhone: cleanPhone,
+        relocationType: relocType,
+        departureCity: relocDepCity.trim(),
+        destinationCity: relocDestCity.trim(),
+        expectedDate: relocDate || 'Flexible / Next 15 Days',
+        preferredModes: [relocMode],
+        petSpecies: relocPetSpecies,
+        petName: relocPetName.trim(),
+        petBreed: relocPetBreed.trim(),
+        petAge: relocPetAge.trim() || 'Adult',
+        petWeight: relocPetWeight.trim() || '12 kg',
+        vaccinationStatus: 'Fully Vaccinated',
+        travelFriendly: 'Yes, Travel Friendly',
+        note: relocNote.trim(),
+        requestType: 'enquiry',
+        status: 'Under Review',
+        coordinatorPhone: '+91 98765 43210'
+      });
+
+      toast.success('🎉 Your pet relocation request has been submitted successfully!');
+      setShowNewRelocationModal(false);
+      setRelocPetName('');
+      setRelocPetBreed('');
+      setRelocPetAge('');
+      setRelocPetWeight('');
+      setRelocDepCity('');
+      setRelocDestCity('');
+      setRelocDate('');
+      setRelocNote('');
+      loadTransportData();
+    } catch (err) {
+      toast.error('Could not submit relocation request. Please try again.');
+    } finally {
+      setIsSubmittingRelocation(false);
     }
   };
 
@@ -2340,13 +2421,20 @@ const AccountDashboard = () => {
                 </div>
 
                 {userTransportEnquiries.length > 0 && (
-                  <Link
-                    to="/transport?action=new-request#relocation-enquiry-form"
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (user) {
+                        setRelocContactName(user.name || '');
+                        setRelocContactPhone(user.mobile || user.phone || '');
+                      }
+                      setShowNewRelocationModal(true);
+                    }}
                     className="px-3.5 py-2 bg-[#0F2E23] hover:bg-[#163f30] text-[#d4af37] hover:text-white rounded-lg text-xs font-bold transition flex items-center gap-1.5 shadow-sm cursor-pointer"
                   >
                     <Plus size={14} />
                     <span>New Relocation Request</span>
-                  </Link>
+                  </button>
                 )}
               </div>
 
@@ -2360,13 +2448,20 @@ const AccountDashboard = () => {
                     Planning to move your dog, cat, or bird across cities? Submit a quick request or book a certified transporter for doorstep relocation.
                   </p>
                   <div className="pt-3 flex flex-wrap items-center justify-center gap-3">
-                    <Link
-                      to="/transport?action=new-request#relocation-enquiry-form"
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (user) {
+                          setRelocContactName(user.name || '');
+                          setRelocContactPhone(user.mobile || user.phone || '');
+                        }
+                        setShowNewRelocationModal(true);
+                      }}
                       className="px-5 py-2.5 bg-[#0F2E23] text-[#d4af37] hover:text-white hover:bg-[#163f30] rounded-xl text-xs font-bold shadow transition inline-flex items-center gap-1.5 cursor-pointer"
                     >
                       <Plus size={14} />
                       <span>New Relocation Request</span>
-                    </Link>
+                    </button>
                     <Link
                       to="/transport"
                       className="px-5 py-2.5 bg-white border border-[#d4af37] text-[#0F2E23] hover:bg-stone-50 rounded-xl text-xs font-bold shadow-sm transition inline-flex items-center gap-1.5 cursor-pointer"
@@ -2560,13 +2655,6 @@ const AccountDashboard = () => {
 
       </div>
 
-      <LogoutConfirmModal
-        isOpen={showLogoutConfirm}
-        onClose={() => setShowLogoutConfirm(false)}
-        onConfirm={handleConfirmLogout}
-        userName={user?.name}
-      />
-
       {/* Payment Bill / Tax Invoice Modal */}
       {showBillModal && membership && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
@@ -2657,6 +2745,231 @@ const AccountDashboard = () => {
         onConfirm={handleConfirmLogout}
         userName={user?.name}
       />
+
+      {/* ================= MODAL: NEW PET RELOCATION REQUEST ================= */}
+      {showNewRelocationModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-xs animate-in fade-in">
+          <div className="bg-white rounded-2xl sm:rounded-3xl max-w-2xl w-full p-5 sm:p-7 shadow-2xl border border-stone-200 space-y-5 max-h-[90vh] overflow-y-auto">
+            {/* Header */}
+            <div className="flex justify-between items-center border-b border-beige pb-3">
+              <div className="flex items-center gap-2.5">
+                <div className="w-10 h-10 rounded-xl bg-[#f8efcd] text-[#0F2E23] flex items-center justify-center border border-[#e6c968]">
+                  <Truck size={20} />
+                </div>
+                <div>
+                  <h3 className="font-serif font-bold text-base sm:text-lg text-[#0F2E23]">New Pet Relocation Request</h3>
+                  <p className="text-xs text-gray-500">Doorstep cab, railway 1st AC, or air shipment with veterinary care</p>
+                </div>
+              </div>
+              <button 
+                type="button"
+                onClick={() => setShowNewRelocationModal(false)}
+                className="p-1.5 rounded-full text-gray-400 hover:text-black hover:bg-gray-100 transition cursor-pointer"
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            {/* Form */}
+            <form onSubmit={handleCreateRelocationRequest} className="space-y-4 text-xs">
+              {/* 1. Pet Details */}
+              <div className="space-y-2 bg-[#fdfaf2] p-3.5 rounded-xl border border-[#e6c968]/50">
+                <span className="text-[10px] font-bold uppercase text-[#0F2E23] tracking-wider block">1. Pet Information</span>
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                  <div>
+                    <label className="text-[10px] font-semibold text-gray-500 block mb-1">Pet Species *</label>
+                    <select
+                      value={relocPetSpecies}
+                      onChange={(e) => setRelocPetSpecies(e.target.value)}
+                      className="w-full bg-white border border-stone-200 rounded-lg px-2.5 py-2 text-xs focus:outline-none focus:border-[#0F2E23]"
+                    >
+                      <option value="Dog">Dog</option>
+                      <option value="Cat">Cat</option>
+                      <option value="Bird">Bird</option>
+                      <option value="Rabbit">Rabbit</option>
+                      <option value="Other">Other Pet</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-semibold text-gray-500 block mb-1">Pet Name *</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. Bruno"
+                      required
+                      value={relocPetName}
+                      onChange={(e) => setRelocPetName(e.target.value)}
+                      className="w-full bg-white border border-stone-200 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-[#0F2E23]"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-semibold text-gray-500 block mb-1">Breed *</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. Golden Retriever"
+                      required
+                      value={relocPetBreed}
+                      onChange={(e) => setRelocPetBreed(e.target.value)}
+                      className="w-full bg-white border border-stone-200 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-[#0F2E23]"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-semibold text-gray-500 block mb-1">Age (Optional)</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. 2 Years"
+                      value={relocPetAge}
+                      onChange={(e) => setRelocPetAge(e.target.value)}
+                      className="w-full bg-white border border-stone-200 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-[#0F2E23]"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-semibold text-gray-500 block mb-1">Weight (Optional)</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. 15 kg"
+                      value={relocPetWeight}
+                      onChange={(e) => setRelocPetWeight(e.target.value)}
+                      className="w-full bg-white border border-stone-200 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-[#0F2E23]"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* 2. Route & Journey Details */}
+              <div className="space-y-2 bg-[#fdfaf2] p-3.5 rounded-xl border border-[#e6c968]/50">
+                <span className="text-[10px] font-bold uppercase text-[#0F2E23] tracking-wider block">2. Travel & Route Details</span>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-[10px] font-semibold text-gray-500 block mb-1">Relocation Type *</label>
+                    <select
+                      value={relocType}
+                      onChange={(e) => setRelocType(e.target.value)}
+                      className="w-full bg-white border border-stone-200 rounded-lg px-2.5 py-2 text-xs focus:outline-none focus:border-[#0F2E23]"
+                    >
+                      <option value="Inter-State Relocation">Inter-State Relocation</option>
+                      <option value="Intra-City Pet Taxi">Intra-City Pet Taxi</option>
+                      <option value="International Air Relocation">International Air Relocation</option>
+                      <option value="Airport Pickup & Transit">Airport Pickup & Transit</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-semibold text-gray-500 block mb-1">Preferred Transit Mode</label>
+                    <select
+                      value={relocMode}
+                      onChange={(e) => setRelocMode(e.target.value)}
+                      className="w-full bg-white border border-stone-200 rounded-lg px-2.5 py-2 text-xs focus:outline-none focus:border-[#0F2E23]"
+                    >
+                      <option value="Road AC Pet Cab">Road AC Dedicated Pet Cab</option>
+                      <option value="Indian Railways 1st AC">Indian Railways 1st AC Coupé</option>
+                      <option value="Domestic Air Flight">Domestic Air Cargo / Cabin</option>
+                      <option value="Express Doorstep Multimodal">Express Doorstep Multimodal</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-semibold text-gray-500 block mb-1">Pickup City / Hub *</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. Mumbai / Delhi"
+                      required
+                      value={relocDepCity}
+                      onChange={(e) => setRelocDepCity(e.target.value)}
+                      className="w-full bg-white border border-stone-200 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-[#0F2E23]"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-semibold text-gray-500 block mb-1">Destination City / Hub *</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. Bengaluru / Hyderabad"
+                      required
+                      value={relocDestCity}
+                      onChange={(e) => setRelocDestCity(e.target.value)}
+                      className="w-full bg-white border border-stone-200 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-[#0F2E23]"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-semibold text-gray-500 block mb-1">Expected Travel Date</label>
+                    <input
+                      type="date"
+                      min={new Date().toISOString().split('T')[0]}
+                      value={relocDate}
+                      onChange={(e) => setRelocDate(e.target.value)}
+                      className="w-full bg-white border border-stone-200 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-[#0F2E23]"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* 3. Contact & Care Notes */}
+              <div className="space-y-2 bg-[#fdfaf2] p-3.5 rounded-xl border border-[#e6c968]/50">
+                <span className="text-[10px] font-bold uppercase text-[#0F2E23] tracking-wider block">3. Contact & Special Notes</span>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-[10px] font-semibold text-gray-500 block mb-1">Contact Person Name</label>
+                    <input
+                      type="text"
+                      placeholder="Your Full Name"
+                      value={relocContactName}
+                      onChange={(e) => setRelocContactName(e.target.value)}
+                      className="w-full bg-white border border-stone-200 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-[#0F2E23]"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-semibold text-gray-500 block mb-1">10-Digit Mobile Number *</label>
+                    <input
+                      type="tel"
+                      placeholder="10-digit mobile number"
+                      required
+                      maxLength={10}
+                      value={relocContactPhone}
+                      onChange={(e) => setRelocContactPhone(e.target.value.replace(/\D/g, '').slice(0, 10))}
+                      className="w-full bg-white border border-stone-200 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-[#0F2E23]"
+                    />
+                  </div>
+                  <div className="sm:col-span-2">
+                    <label className="text-[10px] font-semibold text-gray-500 block mb-1">Notes / Health Instructions (Optional)</label>
+                    <textarea
+                      rows={2}
+                      placeholder="e.g. Pet requires frequent water breaks and familiar blanket in crate..."
+                      value={relocNote}
+                      onChange={(e) => setRelocNote(e.target.value)}
+                      className="w-full bg-white border border-stone-200 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-[#0F2E23]"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Buttons */}
+              <div className="pt-2 flex flex-col sm:flex-row justify-end gap-2 border-t border-beige">
+                <button
+                  type="button"
+                  onClick={() => setShowNewRelocationModal(false)}
+                  className="px-4 py-2.5 border border-stone-300 rounded-xl text-slate-700 font-bold hover:bg-stone-50 transition cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isSubmittingRelocation}
+                  className="px-6 py-2.5 bg-[#0F2E23] hover:bg-black text-[#ffd000] font-bold rounded-xl transition shadow-md flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50"
+                >
+                  {isSubmittingRelocation ? (
+                    <>
+                      <div className="w-3 h-3 border-2 border-[#ffd000] border-t-transparent rounded-full animate-spin"></div>
+                      SUBMITTING...
+                    </>
+                  ) : (
+                    <>
+                      <Check size={14} />
+                      <span>Submit Relocation Request</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
     </div>
   );
