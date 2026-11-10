@@ -8,7 +8,7 @@
     "amount": 10000,
     "payoutMethod": "UPI",
     "upiId": "swiftpaws@okhdfcbank",
-    "status": "Requested",
+    "status": "Paid",
     "bankDetails": {
       "accountHolder": "Swift Paws Walking",
       "bankName": "Instant UPI",
@@ -17,9 +17,9 @@
       "upiId": "swiftpaws@okhdfcbank"
     },
     "requestedAt": "2026-11-09T10:58:52.207Z",
-    "processedAt": null,
-    "adminNotes": null,
-    "transferReference": null
+    "processedAt": "2026-11-10T03:24:38.314Z",
+    "adminNotes": "Disbursed via Direct Bank Transfer",
+    "transferReference": "UTR4281076303"
   },
   {
     "id": "PO-REQ-903274",
@@ -30,7 +30,7 @@
     "amount": 5000,
     "payoutMethod": "UPI",
     "upiId": "swiftpaws@okhdfcbank",
-    "status": "Requested",
+    "status": "Paid",
     "bankDetails": {
       "accountHolder": "Swift Paws Walking",
       "bankName": "Instant UPI",
@@ -39,9 +39,9 @@
       "upiId": "swiftpaws@okhdfcbank"
     },
     "requestedAt": "2026-11-09T10:58:23.274Z",
-    "processedAt": null,
-    "adminNotes": null,
-    "transferReference": null
+    "processedAt": "2026-11-10T03:29:17.965Z",
+    "adminNotes": "Disbursed via Direct Bank Transfer",
+    "transferReference": "UTR4281356951"
   },
   {
     "id": "PO-REQ-923361",

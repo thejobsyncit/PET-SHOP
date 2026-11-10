@@ -1,5 +1,103 @@
 [
   {
+    "id": "AUDIT-1794281357970-714",
+    "timestamp": "2026-11-10T03:29:17.970Z",
+    "action": "PAYOUT_MARK_PAID",
+    "actor": {
+      "role": "SUPER_ADMIN",
+      "id": "superadmin@joshpetshub.com"
+    },
+    "refId": "PO-REQ-903274",
+    "amount": 5000,
+    "status": "SUCCESS",
+    "details": {
+      "action": "MARK_PAID",
+      "transferReference": "UTR4281356951",
+      "adminNotes": ""
+    }
+  },
+  {
+    "id": "AUDIT-1794281357966-767",
+    "timestamp": "2026-11-10T03:29:17.966Z",
+    "action": "PAYOUT_DISBURSEMENT",
+    "actor": {
+      "role": "PLATFORM",
+      "id": "central-wallet"
+    },
+    "refId": "TXN-LEDGER-1794281357965-592",
+    "amount": 5000,
+    "status": "SUCCESS",
+    "details": {
+      "providerId": "prov-walk-06"
+    }
+  },
+  {
+    "id": "AUDIT-1794281352512-290",
+    "timestamp": "2026-11-10T03:29:12.512Z",
+    "action": "PAYOUT_APPROVE",
+    "actor": {
+      "role": "SUPER_ADMIN",
+      "id": "superadmin@joshpetshub.com"
+    },
+    "refId": "PO-REQ-903274",
+    "amount": 5000,
+    "status": "SUCCESS",
+    "details": {
+      "action": "APPROVE",
+      "transferReference": "",
+      "adminNotes": "Approved by Super Admin for bank settlement"
+    }
+  },
+  {
+    "id": "AUDIT-1794281078319-325",
+    "timestamp": "2026-11-10T03:24:38.319Z",
+    "action": "PAYOUT_MARK_PAID",
+    "actor": {
+      "role": "SUPER_ADMIN",
+      "id": "superadmin@joshpetshub.com"
+    },
+    "refId": "PO-REQ-932207",
+    "amount": 10000,
+    "status": "SUCCESS",
+    "details": {
+      "action": "MARK_PAID",
+      "transferReference": "UTR4281076303",
+      "adminNotes": ""
+    }
+  },
+  {
+    "id": "AUDIT-1794281078315-366",
+    "timestamp": "2026-11-10T03:24:38.315Z",
+    "action": "PAYOUT_DISBURSEMENT",
+    "actor": {
+      "role": "PLATFORM",
+      "id": "central-wallet"
+    },
+    "refId": "TXN-LEDGER-1794281078314-458",
+    "amount": 10000,
+    "status": "SUCCESS",
+    "details": {
+      "providerId": "prov-walk-06"
+    }
+  },
+  {
+    "id": "AUDIT-1794281072768-469",
+    "timestamp": "2026-11-10T03:24:32.768Z",
+    "action": "PAYOUT_APPROVE",
+    "actor": {
+      "role": "SUPER_ADMIN",
+      "id": "superadmin@joshpetshub.com"
+    },
+    "refId": "PO-REQ-932207",
+    "amount": 10000,
+    "status": "SUCCESS",
+    "details": {
+      "action": "APPROVE",
+      "transferReference": "",
+      "adminNotes": "Approved by Super Admin for bank settlement"
+    }
+  },
+  {
     "id": "AUDIT-1794221932214-828",
     "timestamp": "2026-11-09T10:58:52.214Z",
     "action": "PAYOUT_REQUESTED",

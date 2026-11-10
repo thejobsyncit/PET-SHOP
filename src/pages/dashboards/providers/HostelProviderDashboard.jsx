@@ -17,7 +17,8 @@ import {
   Edit2,
   LogOut,
   Menu,
-  X
+  X,
+  Tag
 } from 'lucide-react';
 import { apiRequest } from '../../../services/api.js';
 import toast from 'react-hot-toast';
@@ -27,6 +28,7 @@ import { useSearchParams, useNavigate } from 'react-router-dom';
 import { updateProfile, logout } from '../../../store/slices/authSlice.js';
 
 import { safeSetItem, safeGetItem } from '../../../utils/safeStorage.js';
+import { getStoredHostelBookings } from '../../../data/hostelData.js';
 
 const HostelProviderDashboard = ({ 
   currentProvider, 
@@ -46,12 +48,62 @@ const HostelProviderDashboard = ({
   const { user } = useSelector(state => state.auth);
   const dispatch = useDispatch();
 
-  const [stats, setStats] = useState({
-    activeGuests: 8,
-    availableKennels: 12,
-    upcomingCheckins: 3,
-    totalRevenue: '₹24,500'
-  });
+  const computeHostelStats = () => {
+    let list = [];
+    try {
+      const saved = safeGetItem('hostel_provider_bookings_v2');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) list = parsed;
+      }
+    } catch (e) {}
+    try {
+      const customerBookings = getStoredHostelBookings();
+      if (Array.isArray(customerBookings) && customerBookings.length > 0) {
+        const existingIds = new Set(list.map(b => b.id || b._id));
+        for (const cb of customerBookings) {
+          const bId = cb.id || cb._id;
+          if (!existingIds.has(bId)) {
+            list.unshift(cb);
+            existingIds.add(bId);
+          }
+        }
+      }
+    } catch (e) {}
+
+    const total = list.length > 0 ? list.length : 11;
+    const pending = list.length > 0 
+      ? list.filter(b => b.status === 'pending_checkin' || b.status === 'Pending').length 
+      : 3;
+    const completed = list.length > 0 
+      ? list.filter(b => b.status === 'checked_out' || b.status === 'Completed' || b.status === 'checked_in').length 
+      : 8;
+    const rev = list.length > 0 
+      ? list.reduce((acc, curr) => acc + (Number(curr.totalPrice || curr.totalAmount || curr.fee || 0)), 0) 
+      : 24500;
+
+    return {
+      totalBookings: total,
+      pendingCheckins: pending,
+      completedStays: completed,
+      revenue: rev,
+      discounts: 1200
+    };
+  };
+
+  const [stats, setStats] = useState(computeHostelStats);
+
+  useEffect(() => {
+    const handleUpdate = () => {
+      setStats(computeHostelStats());
+    };
+    window.addEventListener('storage', handleUpdate);
+    window.addEventListener('hostel_booking_updated', handleUpdate);
+    return () => {
+      window.removeEventListener('storage', handleUpdate);
+      window.removeEventListener('hostel_booking_updated', handleUpdate);
+    };
+  }, []);
 
   const [isUploading, setIsUploading] = useState(false);
 
@@ -276,59 +328,73 @@ const HostelProviderDashboard = ({
             </div>
 
             {/* CUSTOM HOSTEL KPI METRICS */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5 mb-8">
-              <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
-                <div className="flex items-center justify-between mb-3">
-                  <span className="text-xs font-black uppercase tracking-widest text-slate-500">Active Bookings</span>
-                  <div className="w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center">
-                    <Calendar size={14} className="text-slate-400" />
+            <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 sm:gap-5 mb-10">
+              
+              <div className="bg-white border border-slate-200 p-5 rounded-2xl hover:border-[#0F2E23]/30 transition duration-300 shadow-sm hover:shadow-md group">
+                <div className="flex justify-between items-center mb-4">
+                  <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Total Boarding Bookings</span>
+                  <div className="w-8 h-8 rounded-lg bg-slate-50 text-slate-400 flex items-center justify-center group-hover:scale-110 transition duration-300 border border-slate-100">
+                    <PawPrint size={16} />
                   </div>
                 </div>
-                <div className="flex items-baseline gap-2">
-                  <h3 className="text-3xl font-black text-[#0F2E23]">8</h3>
-                  <span className="text-xs font-bold text-slate-400">PETS BOARDED</span>
+                <div className="text-3xl font-sans font-black text-[#0F2E23] mb-1">{stats.totalBookings}</div>
+                <div className="text-[10px] text-slate-500 font-black uppercase tracking-wider mt-2">All time</div>
+              </div>
+
+              <div className="bg-white border border-slate-200 p-5 rounded-2xl hover:border-emerald-500/50 transition duration-300 shadow-sm hover:shadow-md group relative overflow-hidden">
+                <div className="absolute inset-0 bg-gradient-to-br from-emerald-50/50 to-transparent pointer-events-none"></div>
+                <div className="flex justify-between items-center mb-4 relative z-10">
+                  <span className="text-[10px] font-black text-emerald-600 uppercase tracking-widest">Pending Check-ins</span>
+                  <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-500 flex items-center justify-center group-hover:scale-110 transition duration-300 border border-emerald-100">
+                    <Clock size={16} />
+                  </div>
+                </div>
+                <div className="text-3xl font-sans font-black text-[#0F2E23] mb-1 relative z-10">{stats.pendingCheckins}</div>
+                <div className="text-[10px] text-emerald-600 font-black uppercase tracking-wider mt-2 relative z-10">In queue</div>
+              </div>
+
+              <div className="bg-white border border-slate-200 p-5 rounded-2xl hover:border-rose-500/50 transition duration-300 shadow-sm hover:shadow-md group relative overflow-hidden">
+                <div className="absolute inset-0 bg-gradient-to-br from-rose-50/50 to-transparent pointer-events-none"></div>
+                <div className="flex justify-between items-center mb-4 relative z-10">
+                  <span className="text-[10px] font-black text-rose-600 uppercase tracking-widest">Completed Stays</span>
+                  <div className="w-8 h-8 rounded-lg bg-rose-50 text-rose-500 flex items-center justify-center group-hover:scale-110 transition duration-300 border border-rose-100">
+                    <CheckCircle size={16} />
+                  </div>
+                </div>
+                <div className="text-3xl font-sans font-black text-[#0F2E23] mb-1 relative z-10">{stats.completedStays}</div>
+                <div className="text-[10px] text-rose-600 font-black uppercase tracking-wider mt-2 relative z-10">Pets boarded</div>
+              </div>
+
+              <div className="bg-white border border-slate-200 p-5 rounded-2xl hover:border-[#ffd000]/80 transition duration-300 shadow-sm hover:shadow-md group relative overflow-hidden">
+                <div className="absolute inset-0 bg-gradient-to-br from-[#ffd000]/10 to-transparent pointer-events-none"></div>
+                <div className="flex justify-between items-center mb-4 relative z-10">
+                  <span className="text-[10px] font-black text-amber-600 uppercase tracking-widest">Total Earnings</span>
+                  <div className="w-8 h-8 rounded-lg bg-amber-50 text-amber-500 flex items-center justify-center group-hover:scale-110 transition duration-300 border border-amber-100">
+                    <DollarSign size={16} />
+                  </div>
+                </div>
+                <div className="flex items-end gap-2 mb-1 relative z-10">
+                  <div className="text-2xl font-sans font-black text-[#0F2E23]">₹{stats.revenue.toLocaleString('en-IN')}</div>
+                </div>
+                <div className="text-[10px] text-amber-600 font-black uppercase tracking-wider mt-2 relative z-10">
+                  {stats.completedStays} completed stays
                 </div>
               </div>
 
-              <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
-                <div className="flex items-center justify-between mb-3">
-                  <span className="text-xs font-black uppercase tracking-widest text-slate-500">Kennels Vacant</span>
-                  <div className="w-8 h-8 rounded-full bg-emerald-50 flex items-center justify-center">
-                    <Home size={14} className="text-emerald-500" />
+              <div className="bg-white border border-slate-200 p-5 rounded-2xl hover:border-sky-500/50 transition duration-300 shadow-sm hover:shadow-md group relative overflow-hidden">
+                <div className="absolute inset-0 bg-gradient-to-br from-sky-50/50 to-transparent pointer-events-none"></div>
+                <div className="flex justify-between items-center mb-4 relative z-10">
+                  <span className="text-[10px] font-black text-sky-600 uppercase tracking-widest">Discounts Given</span>
+                  <div className="w-8 h-8 rounded-lg bg-sky-50 text-sky-500 flex items-center justify-center group-hover:scale-110 transition duration-300 border border-sky-100">
+                    <Tag size={16} />
                   </div>
                 </div>
-                <div className="flex items-baseline gap-2">
-                  <h3 className="text-3xl font-black text-[#0F2E23]">12</h3>
-                  <span className="text-xs font-bold text-emerald-600">AVAILABLE</span>
+                <div className="flex items-end gap-2 mb-1 relative z-10">
+                  <div className="text-2xl font-sans font-black text-[#0F2E23]">₹{stats.discounts.toLocaleString('en-IN')}</div>
                 </div>
+                <div className="text-[10px] text-sky-600 font-black uppercase tracking-wider mt-2 relative z-10">Total savings offered</div>
               </div>
 
-              <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
-                <div className="flex items-center justify-between mb-3">
-                  <span className="text-xs font-black uppercase tracking-widest text-slate-500">Check-ins Today</span>
-                  <div className="w-8 h-8 rounded-full bg-amber-50 flex items-center justify-center">
-                    <Clock size={14} className="text-amber-500" />
-                  </div>
-                </div>
-                <div className="flex items-baseline gap-2">
-                  <h3 className="text-3xl font-black text-[#0F2E23]">3</h3>
-                  <span className="text-xs font-bold text-amber-600">UPCOMING</span>
-                </div>
-              </div>
-
-              <div className="bg-gradient-to-br from-[#ffd000]/10 to-amber-50 border border-[#ffd000]/30 rounded-2xl p-5 shadow-sm relative overflow-hidden">
-                <div className="absolute top-0 right-0 p-4 opacity-20"><DollarSign size={48} className="text-amber-600" /></div>
-                <div className="flex items-center justify-between mb-3 relative z-10">
-                  <span className="text-xs font-black uppercase tracking-widest text-amber-700">Total Earnings</span>
-                  <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center border border-amber-200">
-                    <DollarSign size={14} className="text-amber-500" />
-                  </div>
-                </div>
-                <div className="flex items-baseline gap-2 relative z-10">
-                  <h3 className="text-3xl font-black text-amber-600">₹24,500</h3>
-                  <span className="text-xs font-bold text-amber-600/70">THIS MONTH</span>
-                </div>
-              </div>
             </div>
           </>
         ) : null}
