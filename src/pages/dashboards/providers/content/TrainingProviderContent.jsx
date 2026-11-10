@@ -679,20 +679,12 @@ const formatSessionDate = (rawDate) => {
 
             <div className="flex items-center gap-3">
               {myService && !isEditingService && (
-                <>
-                  <button
-                    onClick={() => navigate('/training')}
-                    className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border border-emerald-300 text-emerald-800 hover:bg-emerald-50 text-xs font-bold transition shadow-sm"
-                  >
-                    <ExternalLink size={14} /> View Live on Directory
-                  </button>
-                  <button
-                    onClick={() => setIsEditingService(true)}
-                    className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#0F2E23] text-white hover:bg-emerald-900 text-xs font-bold transition shadow-md"
-                  >
-                    <Edit3 size={14} /> Edit Service Details
-                  </button>
-                </>
+                <button
+                  onClick={() => setIsEditingService(true)}
+                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#0F2E23] text-white hover:bg-emerald-900 text-xs font-bold transition shadow-md"
+                >
+                  <Edit3 size={14} /> Edit Service Details
+                </button>
               )}
             </div>
           </div>
