@@ -56,36 +56,54 @@ export const createOrder = async (req, res) => {
     let calculatedSubtotal = 0;
     const verifiedItems = [];
 
-    // Map order items to products in DB
-    const productIds = orderItems.map(item => item.product);
-    const { data: products, error: productError } = await supabase
-      .from('products')
-      .select('*')
-      .in('id', productIds);
+    const isPetOrder = req.body.orderType === 'PET' || req.body.orderType === 'PET_PURCHASE' || req.body.orderType === 'pet';
 
-    if (productError) throw productError;
-
-    for (const item of orderItems) {
-      const product = products?.find(p => p.id === item.product);
-      if (!product) {
-        return res.status(404).json({ success: false, message: `Product ${item.name || item.product} not found` });
+    if (isPetOrder) {
+      for (const item of orderItems) {
+        const unitPrice = Number(item.price) || 0;
+        calculatedSubtotal += unitPrice * (item.quantity || 1);
+        verifiedItems.push({
+          product: item.product || item.id || item._id,
+          name: item.name || 'Pet Companion',
+          image: item.image,
+          price: unitPrice,
+          quantity: item.quantity || 1,
+          breed: item.breed || '',
+          petType: item.petType || 'pet'
+        });
       }
-      if (product.stock < item.quantity) {
-        return res.status(400).json({ success: false, message: `Insufficient stock for product: ${product.name}` });
+    } else {
+      // Map order items to products in DB
+      const productIds = orderItems.map(item => item.product);
+      const { data: products, error: productError } = await supabase
+        .from('products')
+        .select('*')
+        .in('id', productIds);
+
+      if (productError) throw productError;
+
+      for (const item of orderItems) {
+        const product = products?.find(p => p.id === item.product);
+        if (!product) {
+          return res.status(404).json({ success: false, message: `Product ${item.name || item.product} not found` });
+        }
+        if (product.stock < item.quantity) {
+          return res.status(400).json({ success: false, message: `Insufficient stock for product: ${product.name}` });
+        }
+
+        const unitPrice = (product.discount_price !== undefined && product.discount_price !== null && product.discount_price > 0)
+          ? product.discount_price 
+          : product.price;
+
+        calculatedSubtotal += unitPrice * item.quantity;
+        verifiedItems.push({
+          product: product.id,
+          name: product.name,
+          image: product.images && product.images.length > 0 ? product.images[0] : item.image,
+          price: unitPrice,
+          quantity: item.quantity
+        });
       }
-
-      const unitPrice = (product.discount_price !== undefined && product.discount_price !== null && product.discount_price > 0)
-        ? product.discount_price 
-        : product.price;
-
-      calculatedSubtotal += unitPrice * item.quantity;
-      verifiedItems.push({
-        product: product.id,
-        name: product.name,
-        image: product.images && product.images.length > 0 ? product.images[0] : item.image,
-        price: unitPrice,
-        quantity: item.quantity
-      });
     }
 
     const shippingCost = calculatedSubtotal > 499 ? 0 : 49;
@@ -209,22 +227,45 @@ export const getOrderById = async (req, res) => {
 // @route   GET /api/orders/myorders
 // @access  Private
 export const getMyOrders = async (req, res) => {
-  const userId = req.user._id || req.user.id;
+  const userId = req.user ? (req.user._id || req.user.id) : null;
+  const userEmail = req.user ? req.user.email : null;
 
+  let allOrders = [];
   try {
-    const { data: orders, error } = await supabase
-      .from('orders')
-      .select('*')
-      .eq('user_id', userId)
-      .order('created_at', { ascending: false });
+    if (userId) {
+      const { data: orders, error } = await supabase
+        .from('orders')
+        .select('*')
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false });
 
-    if (error) throw error;
-    res.json({ success: true, orders: orders || [] });
+      if (!error && Array.isArray(orders)) {
+        allOrders = [...orders];
+      }
+    }
   } catch (error) {
     console.warn('[Orders] Supabase orders fallback:', error?.message);
-    const diskOrders = loadDiskOrders().filter(o => o.user_id === userId || o.userId === userId);
-    return res.json({ success: true, orders: diskOrders });
   }
+
+  try {
+    const diskOrders = loadDiskOrders().filter(o => 
+      (userId && (o.user_id === userId || o.userId === userId)) ||
+      (userEmail && (o.userEmail === userEmail || o.buyerEmail === userEmail))
+    );
+    const existingIds = new Set(allOrders.map(o => (o.id || o._id)?.toString()));
+    for (const d of diskOrders) {
+      const dId = (d.id || d._id)?.toString();
+      if (!existingIds.has(dId)) {
+        allOrders.push(d);
+        existingIds.add(dId);
+      }
+    }
+  } catch (err) {
+    console.warn('[Orders] Error merging disk orders:', err);
+  }
+
+  allOrders.sort((a, b) => new Date(b.created_at || b.createdAt || 0) - new Date(a.created_at || a.createdAt || 0));
+  return res.json({ success: true, orders: allOrders });
 };
 
 // @desc    Get all orders (Admin only)

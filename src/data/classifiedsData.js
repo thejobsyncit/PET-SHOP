@@ -218,3 +218,118 @@ export const getPetListingById = (id) => {
     return pid === searchId;
   }) || null;
 };
+
+/**
+ * Persist a pet purchase order in local storage for order history & invoices
+ */
+export const savePetOrder = (order) => {
+  if (!order || !(order._id || order.id)) return null;
+  try {
+    const rawAll = localStorage.getItem('joshpetshub_orders');
+    const allOrders = rawAll ? JSON.parse(rawAll) : [];
+    const targetId = order._id || order.id;
+
+    const existingIdx = allOrders.findIndex(o => (o._id || o.id) === targetId);
+    if (existingIdx >= 0) {
+      allOrders[existingIdx] = { ...allOrders[existingIdx], ...order };
+    } else {
+      allOrders.unshift(order);
+    }
+    localStorage.setItem('joshpetshub_orders', JSON.stringify(allOrders));
+
+    // Also save in user-specific namespace
+    const userIdentifier = order.userId || order.user?._id || order.user || order.userEmail || order.email;
+    if (userIdentifier) {
+      const safeKey = String(userIdentifier).replace(/[^a-zA-Z0-9]/g, '_');
+      const rawUser = localStorage.getItem(`joshpetshub_user_orders_${safeKey}`);
+      const userOrders = rawUser ? JSON.parse(rawUser) : [];
+      const userIdx = userOrders.findIndex(o => (o._id || o.id) === targetId);
+      if (userIdx >= 0) {
+        userOrders[userIdx] = { ...userOrders[userIdx], ...order };
+      } else {
+        userOrders.unshift(order);
+      }
+      localStorage.setItem(`joshpetshub_user_orders_${safeKey}`, JSON.stringify(userOrders));
+    }
+
+    if (typeof window !== 'undefined') {
+      try {
+        window.dispatchEvent(new CustomEvent('pet-order-created', { detail: order }));
+      } catch (_) {}
+    }
+
+    return order;
+  } catch (err) {
+    console.error('Error saving pet order to localStorage:', err);
+    return order;
+  }
+};
+
+/**
+ * Retrieve all pet purchase orders belonging to the user
+ */
+export const getStoredPetOrders = (currentUser) => {
+  try {
+    const rawAll = localStorage.getItem('joshpetshub_orders');
+    const allOrders = rawAll ? JSON.parse(rawAll) : [];
+
+    const userIdentifier = currentUser?._id || currentUser?.id || currentUser?.email;
+    let userSpecific = [];
+    if (userIdentifier) {
+      const safeKey = String(userIdentifier).replace(/[^a-zA-Z0-9]/g, '_');
+      const rawUser = localStorage.getItem(`joshpetshub_user_orders_${safeKey}`);
+      if (rawUser) {
+        userSpecific = JSON.parse(rawUser);
+      }
+    }
+
+    const combined = [...userSpecific];
+    const seenIds = new Set(combined.map(o => (o._id || o.id)?.toString()));
+
+    for (const o of allOrders) {
+      const oId = (o._id || o.id)?.toString();
+      if (!seenIds.has(oId)) {
+        if (!currentUser) {
+          combined.push(o);
+          seenIds.add(oId);
+        } else {
+          const match =
+            (o.userId && (o.userId === currentUser._id || o.userId === currentUser.id)) ||
+            (o.user && (o.user === currentUser._id || o.user === currentUser.id || o.user?._id === currentUser._id)) ||
+            (o.userEmail && currentUser.email && o.userEmail.toLowerCase() === currentUser.email.toLowerCase()) ||
+            (o.buyerEmail && currentUser.email && o.buyerEmail.toLowerCase() === currentUser.email.toLowerCase()) ||
+            (o.orderType === 'PET_PURCHASE'); // allow newly placed pet orders to display for current session
+
+          if (match) {
+            combined.push(o);
+            seenIds.add(oId);
+          }
+        }
+      }
+    }
+
+    return combined.sort((a, b) => new Date(b.createdAt || b.created_at || 0) - new Date(a.createdAt || a.created_at || 0));
+  } catch (err) {
+    console.warn('Error reading stored pet orders:', err);
+    return [];
+  }
+};
+
+/**
+ * Update a pet listing's status to Sold Out after purchase
+ */
+export const markPetListingAsSold = (listingId) => {
+  if (!listingId) return;
+  try {
+    const allListings = getStoredClassifieds();
+    const updated = allListings.map(l => {
+      if ((l._id || l.id)?.toString() === listingId.toString()) {
+        return { ...l, status: 'Sold Out', quantity: 0 };
+      }
+      return l;
+    });
+    localStorage.setItem('joshpetshub_classified_listings', JSON.stringify(updated));
+  } catch (e) {
+    console.warn('Could not mark listing as sold in storage:', e);
+  }
+};
