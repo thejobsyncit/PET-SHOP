@@ -1,5 +1,119 @@
 [
   {
+    "id": "NOTIF-1794281357969-316",
+    "recipientType": "PROVIDER",
+    "recipientId": "prov-walk-06",
+    "title": "Payout Request Paid",
+    "message": "🎉 ₹5,000 has been settled to your UPI ID! Ref/UTR: UTR4281356951",
+    "type": "payout",
+    "read": false,
+    "createdAt": "2026-11-10T03:29:17.969Z",
+    "metadata": {
+      "payoutId": "PO-REQ-903274",
+      "status": "Paid"
+    }
+  },
+  {
+    "id": "NOTIF-1794281352511-497",
+    "recipientType": "PROVIDER",
+    "recipientId": "prov-walk-06",
+    "title": "Payout Request Approved",
+    "message": "Your payout request of ₹5,000 is now Approved. Note: Approved by Super Admin for bank settlement",
+    "type": "payout",
+    "read": false,
+    "createdAt": "2026-11-10T03:29:12.511Z",
+    "metadata": {
+      "payoutId": "PO-REQ-903274",
+      "status": "Approved"
+    }
+  },
+  {
+    "id": "NOTIF-1794281078318-348",
+    "recipientType": "PROVIDER",
+    "recipientId": "prov-walk-06",
+    "title": "Payout Request Paid",
+    "message": "🎉 ₹10,000 has been settled to your UPI ID! Ref/UTR: UTR4281076303",
+    "type": "payout",
+    "read": false,
+    "createdAt": "2026-11-10T03:24:38.318Z",
+    "metadata": {
+      "payoutId": "PO-REQ-932207",
+      "status": "Paid"
+    }
+  },
+  {
+    "id": "NOTIF-1794281072765-501",
+    "recipientType": "PROVIDER",
+    "recipientId": "prov-walk-06",
+    "title": "Payout Request Approved",
+    "message": "Your payout request of ₹10,000 is now Approved. Note: Approved by Super Admin for bank settlement",
+    "type": "payout",
+    "read": false,
+    "createdAt": "2026-11-10T03:24:32.765Z",
+    "metadata": {
+      "payoutId": "PO-REQ-932207",
+      "status": "Approved"
+    }
+  },
+  {
+    "id": "NOTIF-1794221932212-511",
+    "recipientType": "PROVIDER",
+    "recipientId": "prov-walk-06",
+    "title": "Payout Request Submitted",
+    "message": "Your withdrawal request for ₹10,000 has been submitted for Super Admin review. Ref: PO-REQ-932207",
+    "type": "payout",
+    "read": false,
+    "createdAt": "2026-11-09T10:58:52.212Z",
+    "metadata": {
+      "payoutId": "PO-REQ-932207",
+      "amount": 10000
+    }
+  },
+  {
+    "id": "NOTIF-1794221932209-321",
+    "recipientType": "ADMIN",
+    "recipientId": "all",
+    "title": "New Payout Request",
+    "message": "Swift Paws Walking requested a payout of ₹10,000 for Pet Walking & Fitness",
+    "type": "payout",
+    "read": false,
+    "createdAt": "2026-11-09T10:58:52.209Z",
+    "metadata": {
+      "payoutId": "PO-REQ-932207",
+      "amount": 10000,
+      "providerId": "prov-walk-06"
+    }
+  },
+  {
+    "id": "NOTIF-1794221903344-925",
+    "recipientType": "PROVIDER",
+    "recipientId": "prov-walk-06",
+    "title": "Payout Request Submitted",
+    "message": "Your withdrawal request for ₹5,000 has been submitted for Super Admin review. Ref: PO-REQ-903274",
+    "type": "payout",
+    "read": false,
+    "createdAt": "2026-11-09T10:58:23.345Z",
+    "metadata": {
+      "payoutId": "PO-REQ-903274",
+      "amount": 5000
+    }
+  },
+  {
+    "id": "NOTIF-1794221903343-833",
+    "recipientType": "ADMIN",
+    "recipientId": "all",
+    "title": "New Payout Request",
+    "message": "Swift Paws Walking requested a payout of ₹5,000 for Pet Walking & Fitness",
+    "type": "payout",
+    "read": false,
+    "createdAt": "2026-11-09T10:58:23.343Z",
+    "metadata": {
+      "payoutId": "PO-REQ-903274",
+      "amount": 5000,
+      "providerId": "prov-walk-06"
+    }
+  },
+  {
     "id": "NOTIF-1793693923392-270",
     "recipientType": "PROVIDER",
     "recipientId": "prov-groom-02",

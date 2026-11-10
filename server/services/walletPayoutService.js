@@ -312,7 +312,7 @@ export const getProviderEarningsData = (providerIdentifier, serviceCategory = ''
     return matchesId || matchesCategory;
   });
 
-  const COMMISSION_RATE = 0.01; // 1% Josh Pets Hub Commission
+  const COMMISSION_RATE = 0.05; // 5% Josh Pets Hub Commission
 
   let totalBookingsReceived = providerBookings.length;
   let totalPaidBookings = 0;
@@ -541,6 +541,7 @@ export const submitProviderPayoutRequest = ({
   providerName,
   serviceCategory,
   amount,
+  payoutMethod = 'bank',
   upiId
 }) => {
   const numAmount = Number(amount);
@@ -548,10 +549,18 @@ export const submitProviderPayoutRequest = ({
     throw new Error('Minimum payout withdrawal amount is ₹500');
   }
 
-  // 1. Verify bank details are on file and verified
+  const isUpi = (payoutMethod || '').toLowerCase() === 'upi' || Boolean(upiId && (!payoutMethod || payoutMethod.toLowerCase() === 'upi'));
+
+  // 1. Verify destination details
   const bankAccount = getProviderBankAccount(providerId || providerEmail);
-  if (!bankAccount || !bankAccount.isVerified) {
-    throw new Error('You must add and verify your Bank Account details before requesting a payout.');
+  if (isUpi) {
+    if (!upiId || !upiId.includes('@')) {
+      throw new Error('Please enter a valid UPI ID (e.g. yourname@okhdfcbank or 9876543210@paytm)');
+    }
+  } else {
+    if (!bankAccount || !bankAccount.isVerified) {
+      throw new Error('You must add and verify your Bank Account details before requesting a bank payout.');
+    }
   }
 
   // 2. Verify amount does not exceed available balance
@@ -568,15 +577,17 @@ export const submitProviderPayoutRequest = ({
     id: payoutId,
     providerId: providerId || 'PROV-UNKNOWN',
     providerEmail: providerEmail || '',
-    providerName: providerName || bankAccount.accountHolder,
+    providerName: providerName || bankAccount?.accountHolder || 'Provider Partner',
     serviceCategory: serviceCategory || 'General Service',
     amount: numAmount,
+    payoutMethod: isUpi ? 'UPI' : 'Bank Transfer',
+    upiId: isUpi ? upiId : null,
     status: 'Requested', // 'Requested', 'Under Review', 'Approved', 'Processing', 'Paid', 'Rejected', 'Failed'
     bankDetails: {
-      accountHolder: bankAccount.accountHolder,
-      bankName: bankAccount.bankName,
-      accountNumberMasked: bankAccount.accountNumberMasked,
-      ifsc: bankAccount.ifsc,
+      accountHolder: bankAccount?.accountHolder || providerName || 'Provider Partner',
+      bankName: isUpi ? 'Instant UPI' : (bankAccount?.bankName || 'Primary Bank'),
+      accountNumberMasked: isUpi ? upiId : (bankAccount?.accountNumberMasked || 'N/A'),
+      ifsc: isUpi ? 'UPI' : (bankAccount?.ifsc || 'N/A'),
       upiId: upiId || null
     },
     requestedAt: new Date().toISOString(),
@@ -611,7 +622,11 @@ export const submitProviderPayoutRequest = ({
     actor: { role: 'SERVICE_PROVIDER', id: providerId || providerEmail },
     refId: payoutId,
     amount: numAmount,
-    details: { bank: bankAccount.bankName, masked: bankAccount.accountNumberMasked }
+    details: {
+      method: isUpi ? 'UPI' : 'BANK',
+      bank: isUpi ? 'Instant UPI' : (bankAccount?.bankName || 'N/A'),
+      destination: isUpi ? upiId : (bankAccount?.accountNumberMasked || 'N/A')
+    }
   });
 
   return newPayout;
@@ -670,7 +685,7 @@ export const processAdminPayout = ({
         serviceCategory: payout.serviceCategory,
         utr: payout.transferReference,
         status: 'SUCCESS',
-        description: `Bank Payout to ${payout.providerName} (${payout.bankDetails?.bankName} - ${payout.bankDetails?.accountNumberMasked})`
+        description: `${payout.payoutMethod || 'Bank'} Payout to ${payout.providerName} (${payout.payoutMethod === 'UPI' ? payout.upiId : (payout.bankDetails?.bankName + ' - ' + payout.bankDetails?.accountNumberMasked)})`
       });
 
       // Mark associated provider bookings as 'Settled'
@@ -679,7 +694,7 @@ export const processAdminPayout = ({
 
     case 'MARK_FAILED':
       payout.status = 'Failed';
-      payout.adminNotes = adminNotes || 'Bank transfer failed / returned by clearing house';
+      payout.adminNotes = adminNotes || 'Transfer failed / returned by clearing house';
       payout.processedAt = new Date().toISOString();
       // Failure releases the reserved amount back to provider available balance
       break;
@@ -697,7 +712,7 @@ export const processAdminPayout = ({
     recipientId: payout.providerId || payout.providerEmail,
     title: `Payout Request ${payout.status}`,
     message: payout.status === 'Paid'
-      ? `🎉 ₹${payout.amount.toLocaleString('en-IN')} has been settled to your bank account! UTR: ${payout.transferReference}`
+      ? `🎉 ₹${payout.amount.toLocaleString('en-IN')} has been settled to your ${payout.payoutMethod === 'UPI' ? 'UPI ID' : 'bank account'}! Ref/UTR: ${payout.transferReference}`
       : `Your payout request of ₹${payout.amount.toLocaleString('en-IN')} is now ${payout.status}. ${payout.adminNotes ? 'Note: ' + payout.adminNotes : ''}`,
     type: 'payout',
     metadata: { payoutId: payout.id, status: payout.status }
@@ -770,8 +785,8 @@ export const processBookingRefund = ({ bookingId, reason, adminUser }) => {
     serviceCategory: booking.serviceCategory || booking.serviceType,
     customerId: booking.userId,
     customerName: booking.ownerName,
-    platformFee: Math.round(refundAmount * 0.01),
-    providerShare: refundAmount - Math.round(refundAmount * 0.01),
+    platformFee: Math.round(refundAmount * 0.05),
+    providerShare: refundAmount - Math.round(refundAmount * 0.05),
     status: 'SUCCESS',
     description: `Refund for booking ${booking.id}: ${reason || 'Cancelled'}`
   });

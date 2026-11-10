@@ -44,6 +44,7 @@ import ServiceAccessLock, { isServicePathLockedForUser } from '../../components/
 import ScrollReveal from '../../components/ui/ScrollReveal.jsx';
 import PetBreedDropdown from '../../components/ui/PetBreedDropdown.jsx';
 import { handleServiceAction } from '../../components/widgets/ServicePackageAccessModal.jsx';
+import RazorpayBookingPaymentModal from '../../components/widgets/RazorpayBookingPaymentModal.jsx';
 
 const renderBenefitIcon = (iconKey) => {
   switch (iconKey) {

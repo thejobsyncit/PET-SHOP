@@ -3,7 +3,8 @@ import {
   Wallet, Landmark, ShieldCheck, Clock3, CheckCircle2, DollarSign,
   TrendingUp, RefreshCw, Calendar, User, FileText, CheckCircle,
   AlertCircle, Download, ArrowUpRight, X, Check, Lock, Filter,
-  Layers, ShoppingBag, Eye, FileSpreadsheet, AlertTriangle, Shield
+  Layers, ShoppingBag, Eye, FileSpreadsheet, AlertTriangle, Shield,
+  CreditCard
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { apiRequest } from '../../services/api.js';
@@ -196,7 +197,7 @@ const SuperAdminPlatformWalletView = () => {
         <div className="bg-white border border-[#E3EBE5] p-5 rounded-2xl shadow-xs flex flex-col justify-between min-h-[140px]">
           <div>
             <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 block mb-1">
-              Platform Commission (1%)
+              Platform Commission (5%)
             </span>
             <div className="text-3xl font-black text-emerald-700 mt-1">
               ₹{(platformWallet?.platformCommissionEarned || 0).toLocaleString('en-IN')}
@@ -311,13 +312,25 @@ const SuperAdminPlatformWalletView = () => {
                         ₹{Number(p.amount || 0).toLocaleString('en-IN')}
                       </td>
                       <td className="p-3.5 text-slate-700 font-mono text-[11px]">
-                        <div>
-                          <span className="font-bold text-slate-900 block">{p.bankDetails?.bankName || 'Verified Bank'}</span>
-                          <span>{p.bankDetails?.accountNumberMasked || '••••••••'} (IFSC: {p.bankDetails?.ifsc || '—'})</span>
-                          {p.bankDetails?.accountHolder && (
-                            <span className="text-[10px] text-slate-500 block">Name: {p.bankDetails.accountHolder}</span>
-                          )}
-                        </div>
+                        {p.payoutMethod === 'UPI' || p.upiId ? (
+                          <div>
+                            <span className="font-bold text-emerald-800 flex items-center gap-1">
+                              <CreditCard size={12} className="text-emerald-600" /> Instant UPI
+                            </span>
+                            <span className="text-slate-800 font-bold block">{p.upiId || p.bankDetails?.upiId}</span>
+                            {p.bankDetails?.accountHolder && (
+                              <span className="text-[10px] text-slate-500 block">Name: {p.bankDetails.accountHolder}</span>
+                            )}
+                          </div>
+                        ) : (
+                          <div>
+                            <span className="font-bold text-slate-900 block">{p.bankDetails?.bankName || 'Verified Bank'}</span>
+                            <span>{p.bankDetails?.accountNumberMasked || '••••••••'} (IFSC: {p.bankDetails?.ifsc || '—'})</span>
+                            {p.bankDetails?.accountHolder && (
+                              <span className="text-[10px] text-slate-500 block">Name: {p.bankDetails.accountHolder}</span>
+                            )}
+                          </div>
+                        )}
                       </td>
                       <td className="p-3.5 text-slate-500 text-[11px]">
                         {p.requestedAt ? new Date(p.requestedAt).toLocaleString('en-IN') : 'Recent'}
@@ -493,7 +506,7 @@ const SuperAdminPlatformWalletView = () => {
                 <h3 className="font-black text-base text-[#0F2E23]">
                   {payoutActionType === 'APPROVE' && 'Approve Payout Request'}
                   {payoutActionType === 'REJECT' && 'Reject Payout Request'}
-                  {payoutActionType === 'MARK_PAID' && 'Confirm Bank Disbursement (UTR)'}
+                  {payoutActionType === 'MARK_PAID' && (activePayoutForAction?.payoutMethod === 'UPI' || activePayoutForAction?.upiId ? 'Confirm UPI Disbursement (Ref/UTR)' : 'Confirm Bank Disbursement (UTR)')}
                   {payoutActionType === 'MARK_FAILED' && 'Mark Payout as Failed'}
                 </h3>
               </div>
@@ -522,30 +535,41 @@ const SuperAdminPlatformWalletView = () => {
                 </div>
               </div>
 
-              {/* Bank Account Preview */}
+              {/* Destination Preview */}
               <div className="bg-emerald-50 border border-emerald-200 p-3 rounded-xl text-emerald-900 space-y-1">
-                <span className="font-bold block text-[11px]">Destination Verified Account:</span>
+                <span className="font-bold block text-[11px]">
+                  {activePayoutForAction.payoutMethod === 'UPI' || activePayoutForAction.upiId ? 'Destination UPI ID:' : 'Destination Verified Account:'}
+                </span>
                 <p className="font-mono text-xs font-bold">
-                  {activePayoutForAction.bankDetails?.bankName} ({activePayoutForAction.bankDetails?.accountNumberMasked})
+                  {activePayoutForAction.payoutMethod === 'UPI' || activePayoutForAction.upiId
+                    ? (activePayoutForAction.upiId || activePayoutForAction.bankDetails?.upiId)
+                    : `${activePayoutForAction.bankDetails?.bankName} (${activePayoutForAction.bankDetails?.accountNumberMasked})`
+                  }
                 </p>
-                <p className="font-mono text-[10px] text-emerald-700">
-                  IFSC: {activePayoutForAction.bankDetails?.ifsc} • Name: {activePayoutForAction.bankDetails?.accountHolder}
-                </p>
+                {activePayoutForAction.payoutMethod !== 'UPI' && !activePayoutForAction.upiId && (
+                  <p className="font-mono text-[10px] text-emerald-700">
+                    IFSC: {activePayoutForAction.bankDetails?.ifsc} • Name: {activePayoutForAction.bankDetails?.accountHolder}
+                  </p>
+                )}
               </div>
 
               {/* UTR Input for MARK_PAID */}
               {payoutActionType === 'MARK_PAID' && (
                 <div>
-                  <label className="font-bold text-slate-700 block mb-1">Bank Transfer Reference / UTR Number *</label>
+                  <label className="font-bold text-slate-700 block mb-1">
+                    {activePayoutForAction.payoutMethod === 'UPI' || activePayoutForAction.upiId
+                      ? 'UPI Transfer Reference / Ref ID *'
+                      : 'Bank Transfer Reference / UTR Number *'}
+                  </label>
                   <input
                     type="text"
                     required
                     value={payoutTransferRef}
                     onChange={(e) => setPayoutTransferRef(e.target.value)}
-                    placeholder="e.g. UTR8192348123 or NEFT/IMPS Ref"
+                    placeholder={activePayoutForAction.payoutMethod === 'UPI' || activePayoutForAction.upiId ? 'e.g. UPI/123456789012 or IMPS Ref' : 'e.g. UTR8192348123 or NEFT/IMPS Ref'}
                     className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 font-bold text-slate-800 font-mono focus:outline-none focus:border-emerald-600"
                   />
-                  <span className="text-[10px] text-slate-400 mt-0.5 block">This UTR will be recorded in the platform ledger and displayed to the provider.</span>
+                  <span className="text-[10px] text-slate-400 mt-0.5 block">This reference will be recorded in the platform ledger and displayed to the provider.</span>
                 </div>
               )}
 

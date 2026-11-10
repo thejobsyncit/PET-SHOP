@@ -100,7 +100,7 @@ export const verifyBookingPayment = async (req, res) => {
     }
 
     const servicePrice = Number(bookingPayload.fee || bookingPayload.totalAmount || bookingPayload.totalPrice || bookingPayload.price || 0);
-    const platformFee = Math.round(servicePrice * 0.01); // 1% Josh Pets Hub commission
+    const platformFee = Math.round(servicePrice * 0.05); // 5% Josh Pets Hub commission
     const providerShare = servicePrice - platformFee;
 
     const bookingId = bookingPayload.id || bookingPayload._id || `BK-${Date.now().toString().slice(-6)}`;
@@ -283,7 +283,7 @@ export const getBankAccount = async (req, res) => {
 // -----------------------------------------------------------------------------
 export const requestPayout = async (req, res) => {
   try {
-    const { amount, upiId } = req.body;
+    const { amount, upiId, payoutMethod } = req.body;
     const providerId = req.user?._id || req.user?.id || req.body.providerId;
     const providerEmail = req.user?.email || req.body.providerEmail;
     const providerName = req.user?.name || req.user?.businessName || req.body.providerName;
@@ -295,6 +295,7 @@ export const requestPayout = async (req, res) => {
       providerName,
       serviceCategory,
       amount,
+      payoutMethod,
       upiId
     });
 

@@ -679,20 +679,12 @@ const formatSessionDate = (rawDate) => {
 
             <div className="flex items-center gap-3">
               {myService && !isEditingService && (
-                <>
-                  <button
-                    onClick={() => navigate('/training')}
-                    className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border border-emerald-300 text-emerald-800 hover:bg-emerald-50 text-xs font-bold transition shadow-sm"
-                  >
-                    <ExternalLink size={14} /> View Live on Directory
-                  </button>
-                  <button
-                    onClick={() => setIsEditingService(true)}
-                    className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#0F2E23] text-white hover:bg-emerald-900 text-xs font-bold transition shadow-md"
-                  >
-                    <Edit3 size={14} /> Edit Service Details
-                  </button>
-                </>
+                <button
+                  onClick={() => setIsEditingService(true)}
+                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#0F2E23] text-white hover:bg-emerald-900 text-xs font-bold transition shadow-md"
+                >
+                  <Edit3 size={14} /> Edit Service Details
+                </button>
               )}
             </div>
           </div>
@@ -721,12 +713,6 @@ const formatSessionDate = (rawDate) => {
                 </div>
 
                 <div className="flex items-center gap-2 shrink-0">
-                  <button
-                    onClick={() => setIsEditingService(true)}
-                    className="px-4 py-2 bg-white text-[#0F2E23] border border-emerald-300 rounded-xl text-xs font-bold hover:bg-emerald-100/50 transition shadow-sm flex items-center gap-1.5"
-                  >
-                    <Edit3 size={14} /> Edit
-                  </button>
                   <button
                     onClick={handleDeleteService}
                     className="px-4 py-2 bg-rose-50 text-rose-700 border border-rose-200 rounded-xl text-xs font-bold hover:bg-rose-100 transition shadow-sm flex items-center gap-1.5"
@@ -871,15 +857,6 @@ const formatSessionDate = (rawDate) => {
                     Fill out your official academy details. Once published, pet parents can find and book your training programs.
                   </p>
                 </div>
-                {myService && isEditingService && (
-                  <button
-                    type="button"
-                    onClick={() => setIsEditingService(false)}
-                    className="text-xs font-bold text-slate-500 hover:text-slate-800 px-3 py-1.5 bg-slate-100 rounded-lg transition"
-                  >
-                    Cancel Edit
-                  </button>
-                )}
               </div>
 
               {/* Basic Information */}
