@@ -92,3 +92,4 @@ export const isValidPhoneForCountry = (phone, countryCode) => {
   const requiredLength = getRequiredPhoneLength(countryCode);
   return digits.length === requiredLength;
 };
+

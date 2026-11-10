@@ -4,7 +4,7 @@ import { useSelector } from 'react-redux';
 import {
   Heart, ArrowLeft, MapPin, MessageSquare, ShieldCheck,
   CircleCheck, Check, User, Calendar, Award, Share2, Info, Home,
-  Sparkles, AlertCircle, ArrowRight, Lock, X
+  Sparkles, AlertCircle, ArrowRight, Lock, X, Edit3
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { formatWhatsAppTargetPhone, resolveProviderWhatsApp } from '../../utils/whatsappHelper.js';
@@ -68,6 +68,7 @@ const AdoptionPetDetail = () => {
   const [hasPetExperience, setHasPetExperience] = useState('Yes');
   const [adoptionReason, setAdoptionReason] = useState('');
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
   const [existingApplication, setExistingApplication] = useState(null);
   const [showFlyingMacaw, setShowFlyingMacaw] = useState(false);
 
@@ -167,38 +168,78 @@ const AdoptionPetDetail = () => {
     };
   }, [id]);
 
+  // Helper to populate form fields from an existing application
+  const populateFormFromApplication = (app) => {
+    if (!app) return;
+    if (app.applicantName) setApplicantName(app.applicantName);
+    if (app.applicantCountryCode) {
+      setApplicantCountryCode(app.applicantCountryCode);
+    }
+    const cleanDigits = app.applicantRawPhone || (app.applicantPhone ? String(app.applicantPhone).replace(/\D/g, '') : '');
+    const code = app.applicantCountryCode || '+91';
+    const reqDigits = getRequiredPhoneLength(code);
+    setApplicantPhone(cleanDigits.slice(-reqDigits));
+    if (app.applicantEmail) setApplicantEmail(app.applicantEmail);
+    if (app.homeType) setHomeType(app.homeType);
+    if (app.hasPetExperience) setHasPetExperience(app.hasPetExperience);
+    if (app.adoptionReason) setAdoptionReason(app.adoptionReason);
+  };
+
   // Pre-fill user information if authenticated & check for existing application
   useEffect(() => {
     if (user) {
-      if (user.name) {
-        setApplicantName(user.name);
-        setInquirySenderName(user.name);
+      if (!existingApplication && !isEditing) {
+        if (user.name) {
+          setApplicantName(user.name);
+          setInquirySenderName(user.name);
+        }
+        if (user.mobileCountryCode || user.countryCode) {
+          const uCode = user.mobileCountryCode || user.countryCode;
+          setApplicantCountryCode(uCode);
+          setInquiryCountryCode(uCode);
+        }
+        if (user.mobile) {
+          const uCode = user.mobileCountryCode || user.countryCode || '+91';
+          const expectedLen = getRequiredPhoneLength(uCode);
+          const cleanDigits = String(user.mobile).replace(/\D/g, '');
+          const subscriberDigits = cleanDigits.slice(-expectedLen);
+          setApplicantPhone(subscriberDigits);
+          setInquirySenderPhone(subscriberDigits);
+        }
+        if (user.email) setApplicantEmail(user.email);
       }
-      if (user.mobileCountryCode || user.countryCode) {
-        const uCode = user.mobileCountryCode || user.countryCode;
-        setApplicantCountryCode(uCode);
-        setInquiryCountryCode(uCode);
-      }
-      if (user.mobile) {
-        const uCode = user.mobileCountryCode || user.countryCode || '+91';
-        const expectedLen = getRequiredPhoneLength(uCode);
-        const cleanDigits = String(user.mobile).replace(/\D/g, '');
-        const subscriberDigits = cleanDigits.slice(-expectedLen);
-        setApplicantPhone(subscriberDigits);
-        setInquirySenderPhone(subscriberDigits);
-      }
-      if (user.email) setApplicantEmail(user.email);
 
       if (pet) {
         const userApps = getUserAdoptionApplications(user);
         const matchedApp = userApps.find((a) => String(a.petId) === String(pet.id));
         if (matchedApp) {
           setExistingApplication(matchedApp);
-          setIsSubmitted(true);
+          if (!isEditing) {
+            setIsSubmitted(true);
+            populateFormFromApplication(matchedApp);
+          }
         }
       }
     }
-  }, [user, pet]);
+  }, [user, pet, isEditing]);
+
+  // Handle start editing an already submitted application
+  const handleStartEdit = () => {
+    if (existingApplication) {
+      populateFormFromApplication(existingApplication);
+    }
+    setIsEditing(true);
+    setIsSubmitted(false);
+  };
+
+  // Handle cancel editing an already submitted application
+  const handleCancelEdit = () => {
+    if (existingApplication) {
+      populateFormFromApplication(existingApplication);
+      setIsSubmitted(true);
+    }
+    setIsEditing(false);
+  };
 
   // Handle in-app question inquiry submission
   const handleInquirySubmit = (e) => {
@@ -307,8 +348,13 @@ const AdoptionPetDetail = () => {
 
     const formattedContact = `${applicantCountryCode} ${cleanPhone}`;
 
+    const isEditMode = Boolean(isEditing && existingApplication?.id);
+    const appId = isEditMode ? existingApplication.id : ('APP-' + Date.now().toString().slice(-6));
+    const createdTimestamp = isEditMode && existingApplication?.createdAt ? existingApplication.createdAt : new Date().toISOString();
+    const currentStatus = isEditMode && existingApplication?.status ? existingApplication.status : 'Submitted';
+
     const applicationData = {
-      id: 'APP-' + Date.now().toString().slice(-6),
+      id: appId,
       petId: pet.id,
       petName: pet.name,
       petBreed: pet.breed,
@@ -327,15 +373,16 @@ const AdoptionPetDetail = () => {
       homeType,
       hasPetExperience,
       adoptionReason: adoptionReason.trim(),
-      status: 'Submitted', // 'Submitted' | 'Under Review' | 'Contacted' | 'Approved' | 'Rejected'
-      createdAt: new Date().toISOString()
+      status: currentStatus,
+      createdAt: createdTimestamp,
+      updatedAt: new Date().toISOString()
     };
 
     saveAdoptionApplication(applicationData);
 
-    // Also register as an active lead in the provider's chat inquiries
+    // Also register or update active lead in the provider's chat inquiries
     saveAdoptionInquiry({
-      id: 'lead_' + Date.now(),
+      id: isEditMode && existingApplication?.inquiryId ? existingApplication.inquiryId : ('lead_' + Date.now()),
       petId: pet.id,
       buyer: applicantName.trim() || user.name,
       pet: `${pet.name} (${pet.breed})`,
@@ -343,28 +390,38 @@ const AdoptionPetDetail = () => {
       countryCode: applicantCountryCode,
       rawPhone: cleanPhone,
       email: applicantEmail.trim() || user.email,
-      date: 'Just now',
-      message: `Adoption Screening Application: "${adoptionReason.trim()}" (Home: ${homeType}, Experience: ${hasPetExperience})`,
+      date: isEditMode ? 'Updated just now' : 'Just now',
+      message: `Adoption Screening Application (${isEditMode ? 'Updated' : 'New'}): "${adoptionReason.trim()}" (Home: ${homeType}, Experience: ${hasPetExperience})`,
       unread: true,
       applicationId: applicationData.id,
       messages: [
         {
           id: 'msg_' + Date.now(),
           sender: applicantName.trim() || user.name,
-          messageText: `Hello! I have submitted an official adoption screening application for ${pet.name}. Reason: "${adoptionReason.trim()}". Living in ${homeType}, Prior experience: ${hasPetExperience}. Looking forward to connecting with you!`,
+          messageText: isEditMode
+            ? `Hello! I have updated my adoption screening application for ${pet.name}. Updated reason: "${adoptionReason.trim()}". Living in ${homeType}, Prior experience: ${hasPetExperience}.`
+            : `Hello! I have submitted an official adoption screening application for ${pet.name}. Reason: "${adoptionReason.trim()}". Living in ${homeType}, Prior experience: ${hasPetExperience}. Looking forward to connecting with you!`,
           createdAt: new Date().toISOString()
         }
       ]
     });
 
     setExistingApplication(applicationData);
+    setIsEditing(false);
     setIsSubmitted(true);
-    setShowFlyingMacaw(true);
+    if (!isEditMode) {
+      setShowFlyingMacaw(true);
+    }
 
-    toast.success(`🎉 Adoption application for ${pet.name} submitted successfully! You can track its status in your User Dashboard.`, {
-      duration: 6000,
-      icon: '🐾'
-    });
+    toast.success(
+      isEditMode
+        ? `✓ Your adoption application for ${pet.name} has been updated successfully!`
+        : `🎉 Adoption application for ${pet.name} submitted successfully! You can track its status in your User Dashboard.`,
+      {
+        duration: 5000,
+        icon: isEditMode ? '✏️' : '🐾'
+      }
+    );
   };
 
   // Handle direct WhatsApp inquiry
@@ -714,10 +771,37 @@ const AdoptionPetDetail = () => {
                         Status: {existingApplication?.status || 'Submitted'}
                       </span>
                       <h4 className="font-bold text-emerald-900 text-sm">Adoption Application Sent!</h4>
+                      <p className="text-[11px] text-slate-500 font-mono mt-0.5">
+                        Ref: <span className="font-bold text-slate-700">#{existingApplication?.id}</span>
+                      </p>
                       <p className="text-xs text-emerald-700 mt-1 leading-relaxed">
                         The guardian will reach out on your contact number to review your profile and schedule a meet & greet.
                       </p>
                     </div>
+
+                    {/* Quick Summary Box of Submitted Details */}
+                    {existingApplication && (
+                      <div className="bg-white/80 border border-emerald-200/80 rounded-xl p-3 text-left space-y-1.5 text-[11px]">
+                        <div className="flex items-center justify-between text-slate-600">
+                          <span className="font-semibold">Applicant:</span>
+                          <span className="font-bold text-slate-800">{existingApplication.applicantName}</span>
+                        </div>
+                        <div className="flex items-center justify-between text-slate-600">
+                          <span className="font-semibold">Contact:</span>
+                          <span className="font-mono font-bold text-slate-800">{existingApplication.applicantPhone}</span>
+                        </div>
+                        <div className="flex items-center justify-between text-slate-600">
+                          <span className="font-semibold">Home & Experience:</span>
+                          <span className="text-slate-800 font-medium">{existingApplication.homeType} • {existingApplication.hasPetExperience}</span>
+                        </div>
+                        {existingApplication.adoptionReason && (
+                          <div className="pt-1 border-t border-slate-100 text-slate-600">
+                            <span className="font-semibold block text-[10px] uppercase text-slate-400">Reason:</span>
+                            <p className="text-slate-700 italic line-clamp-2">"{existingApplication.adoptionReason}"</p>
+                          </div>
+                        )}
+                      </div>
+                    )}
 
                     <div className="pt-2 flex flex-col gap-2">
                       <Link
@@ -730,16 +814,37 @@ const AdoptionPetDetail = () => {
 
                       <button
                         type="button"
-                        onClick={() => setIsSubmitted(false)}
-                        className="text-xs text-[#b89228] font-bold hover:underline py-1"
+                        onClick={handleStartEdit}
+                        className="w-full py-2.5 px-3 bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300 rounded-xl font-bold text-xs shadow-2xs transition flex items-center justify-center gap-1.5 cursor-pointer"
                       >
-                        Edit / Submit New Application
+                        <Edit3 size={13} className="text-[#b89228]" />
+                        <span>Edit Application Details</span>
                       </button>
                     </div>
                   </div>
                 ) : (
                   /* CASE 3: Active Application Form */
                   <form onSubmit={handleApplicationSubmit} className="space-y-3 text-xs">
+
+                    {/* Active Edit Mode Banner */}
+                    {isEditing && existingApplication && (
+                      <div className="p-3 bg-amber-50 border border-amber-300 rounded-xl flex items-center justify-between shadow-2xs">
+                        <div className="flex items-center gap-2">
+                          <Edit3 size={15} className="text-[#b89228] shrink-0" />
+                          <div>
+                            <p className="font-bold text-slate-800 text-xs">Editing Your Application</p>
+                            <p className="text-[10px] text-slate-500">Ref: <span className="font-mono font-bold text-[#b89228]">#{existingApplication.id}</span></p>
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={handleCancelEdit}
+                          className="text-[11px] font-bold text-slate-600 hover:text-slate-900 bg-white border border-slate-200 px-2.5 py-1 rounded-lg hover:bg-slate-50 transition cursor-pointer"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    )}
 
                     {/* Non-logged in helper prompt */}
                     {!isAuthenticated && (
@@ -822,8 +927,17 @@ const AdoptionPetDetail = () => {
                       type="submit"
                       className="w-full py-3.5 btn-adoption-submit font-bold text-xs rounded-xl shadow-lg shadow-emerald-950/20 active:scale-95 transition-all duration-300 cursor-pointer flex items-center justify-center gap-2 group"
                     >
-                      <Heart size={16} className="transition-transform group-hover:scale-110" />
-                      <span>Submit Adoption Application</span>
+                      {isEditing ? (
+                        <>
+                          <Check size={16} className="text-white" />
+                          <span>Save & Update Application</span>
+                        </>
+                      ) : (
+                        <>
+                          <Heart size={16} className="transition-transform group-hover:scale-110" />
+                          <span>Submit Adoption Application</span>
+                        </>
+                      )}
                     </button>
 
                   </form>
