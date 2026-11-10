@@ -863,15 +863,6 @@ const formatSessionDate = (rawDate) => {
                     Fill out your official academy details. Once published, pet parents can find and book your training programs.
                   </p>
                 </div>
-                {myService && isEditingService && (
-                  <button
-                    type="button"
-                    onClick={() => setIsEditingService(false)}
-                    className="text-xs font-bold text-slate-500 hover:text-slate-800 px-3 py-1.5 bg-slate-100 rounded-lg transition"
-                  >
-                    Cancel Edit
-                  </button>
-                )}
               </div>
 
               {/* Basic Information */}
