@@ -539,7 +539,12 @@ const ProviderReviewsView = ({
             <Star size={20} fill="currentColor" />
             <Star size={20} fill="currentColor" />
             <Star size={20} fill="currentColor" />
-            <StarHalf size={20} fill="currentColor" />
+            <span className="relative inline-flex items-center justify-center w-5 h-5">
+              <Star size={20} className="text-white fill-white" />
+              <span className="absolute inset-0 text-amber-300 pointer-events-none">
+                <StarHalf size={20} fill="currentColor" />
+              </span>
+            </span>
           </div>
           <p className="text-xs font-bold text-teal-100 uppercase tracking-widest">
             Based on {totalReviewsCount} reviews
