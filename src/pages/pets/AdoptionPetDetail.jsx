@@ -19,6 +19,7 @@ import {
 import FlyingMacawMessenger from '../../components/widgets/FlyingMacawMessenger.jsx';
 import CountryPhoneInput from '../../components/ui/CountryPhoneInput.jsx';
 import { getRequiredPhoneLength } from '../../data/countryCodes.js';
+import SharedItemAuthGate from '../../components/ui/SharedItemAuthGate.jsx';
 
 const WhatsAppIcon = ({ className = 'w-4 h-4', size = 18 }) => (
   <svg
@@ -492,8 +493,9 @@ const AdoptionPetDetail = () => {
       </div>
 
       {/* Main Content Layout */}
-      <div className="max-w-7xl mx-auto px-4 md:px-8 mt-6">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+      <SharedItemAuthGate itemType="adoption" itemName={pet?.name} itemCategory={pet?.type}>
+        <div className="max-w-7xl mx-auto px-4 md:px-8 mt-6">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
 
           {/* =========================================================================
               LEFT COLUMN: Pet Gallery, Bio, Medical Details (7 cols)
@@ -534,12 +536,18 @@ const AdoptionPetDetail = () => {
                   <button
                     type="button"
                     onClick={() => {
+                      const shareUrl = `${window.location.origin}/adopt/${pet.id}?shared=true`;
                       if (navigator.clipboard) {
-                        navigator.clipboard.writeText(window.location.href);
+                        navigator.clipboard.writeText(shareUrl);
                         toast.success('Listing link copied to clipboard!');
+                      } else {
+                        toast.success(`Share URL: ${shareUrl}`);
                       }
+                      try {
+                        window.history.replaceState(null, '', shareUrl);
+                      } catch (_) {}
                     }}
-                    className="bg-white/90 hover:bg-white text-slate-700 p-2.5 rounded-full shadow-md transition flex items-center gap-1.5 text-xs font-bold"
+                    className="bg-white/90 hover:bg-white text-slate-700 p-2.5 rounded-full shadow-md transition flex items-center gap-1.5 text-xs font-bold cursor-pointer"
                   >
                     <Share2 size={15} /> Share
                   </button>
@@ -1087,7 +1095,8 @@ const AdoptionPetDetail = () => {
           </div>
         )}
 
-      </div>
+        </div>
+      </SharedItemAuthGate>
 
     </div>
   );

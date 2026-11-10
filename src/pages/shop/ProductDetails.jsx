@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import { ChevronRight, ShoppingBag, Heart, Star, ShieldAlert, Award, ArrowRight, ClipboardList, Plus, Minus, Check, MessageSquare } from 'lucide-react';
+import { ChevronRight, ShoppingBag, Heart, Star, ShieldAlert, Award, ArrowRight, ClipboardList, Plus, Minus, Check, MessageSquare, Share2 } from 'lucide-react';
 import { fetchProductDetail, fetchProducts, clearProductDetail } from '../../store/slices/productSlice.js';
 import { addToCartAPI } from '../../store/slices/cartSlice.js';
 import { toggleWishlistAPI, getWishlistItemIdStr } from '../../store/slices/wishlistSlice.js';
@@ -10,6 +10,7 @@ import { apiRequest } from '../../services/api.js';
 import RatingStars from '../../components/ui/RatingStars.jsx';
 import ProductCard from '../../components/ui/ProductCard.jsx';
 import toast from 'react-hot-toast';
+import SharedItemAuthGate from '../../components/ui/SharedItemAuthGate.jsx';
 
 import ScrollReveal from '../../components/ui/ScrollReveal.jsx';
 
@@ -223,6 +224,24 @@ const ProductDetails = () => {
     });
   };
 
+  const handleShare = () => {
+    try {
+      const shareTarget = product?.slug || slug || product?._id || product?.id;
+      const shareUrl = `${window.location.origin}/product/${shareTarget}?shared=true`;
+      if (navigator.clipboard) {
+        navigator.clipboard.writeText(shareUrl);
+        toast.success('Product link copied to clipboard!');
+      } else {
+        toast.success(`Share URL: ${shareUrl}`);
+      }
+      try {
+        window.history.replaceState(null, '', shareUrl);
+      } catch (_) {}
+    } catch (_) {
+      toast.success('Product link copied to clipboard!');
+    }
+  };
+
   const handleReviewSubmit = async (e) => {
     e.preventDefault();
     if (!reviewRating || reviewRating < 1 || reviewRating > 5) {
@@ -363,7 +382,8 @@ const ProductDetails = () => {
       </ScrollReveal>
 
       {/* Main product pane */}
-      <ScrollReveal variant="slideUp" className="max-w-7xl mx-auto px-4 md:px-8">
+      <SharedItemAuthGate itemType="product" itemName={product?.name} itemCategory={product?.category || product?.petType}>
+        <ScrollReveal variant="slideUp" className="max-w-7xl mx-auto px-4 md:px-8">
         <div className="flex flex-col lg:flex-row gap-12 bg-white border border-beige p-6 md:p-4 lg:p-10 shadow-sm">
           
           {/* LEFT: Image Gallery */}
@@ -542,6 +562,17 @@ const ProductDetails = () => {
                   aria-label={isWishlisted ? "Remove from Wishlist" : "Add to Wishlist"}
                 >
                   <Heart size={18} className={isWishlisted ? "fill-red-500 text-red-500" : ""} />
+                </button>
+
+                {/* Share Button */}
+                <button
+                  onClick={handleShare}
+                  type="button"
+                  className="p-3.5 border border-beige hover:border-primary text-gray-500 hover:text-primary transition rounded-none bg-white cursor-pointer"
+                  title="Share this product"
+                  aria-label="Share this product"
+                >
+                  <Share2 size={18} />
                 </button>
               </div>
 
@@ -812,6 +843,7 @@ const ProductDetails = () => {
 
         </div>
       </ScrollReveal>
+      </SharedItemAuthGate>
 
     </div>
   );

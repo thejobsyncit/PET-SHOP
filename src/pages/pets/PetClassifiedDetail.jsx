@@ -11,6 +11,7 @@ import toast from 'react-hot-toast';
 import { apiRequest } from '../../services/api.js';
 import { getPetListingById, getStoredClassifieds, DEFAULT_CLASSIFIEDS } from '../../data/classifiedsData.js';
 import ScrollReveal from '../../components/ui/ScrollReveal.jsx';
+import SharedItemAuthGate from '../../components/ui/SharedItemAuthGate.jsx';
 
 const PetClassifiedDetail = () => {
   const { id } = useParams();
@@ -78,12 +79,17 @@ const PetClassifiedDetail = () => {
 
   const handleShare = () => {
     try {
+      const shareTarget = pet?.id || pet?._id || id;
+      const shareUrl = `${window.location.origin}/pets/${shareTarget}?shared=true`;
       if (navigator.clipboard) {
-        navigator.clipboard.writeText(window.location.href);
-        toast.success('Link copied to clipboard!');
+        navigator.clipboard.writeText(shareUrl);
+        toast.success('Share link copied to clipboard!');
       } else {
-        toast.success(`Share URL: ${window.location.href}`);
+        toast.success(`Share URL: ${shareUrl}`);
       }
+      try {
+        window.history.replaceState(null, '', shareUrl);
+      } catch (_) {}
     } catch (_) {
       toast.success('Link ready to share!');
     }
@@ -230,7 +236,8 @@ const PetClassifiedDetail = () => {
         </div>
       </div>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10">
+      <SharedItemAuthGate itemType="pet" itemName={pet?.title || pet?.breed || pet?.name} itemCategory={pet?.petType}>
+        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10">
           
           {/* ================= LEFT COLUMN: IMAGES & PET DETAILS (7 Cols) ================= */}
@@ -803,6 +810,7 @@ const PetClassifiedDetail = () => {
           </div>
         </div>
       )}
+      </SharedItemAuthGate>
 
     </div>
   );

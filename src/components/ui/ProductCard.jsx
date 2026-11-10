@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
-import { Heart, ShoppingBag, Eye, ShieldAlert, Check, X, ClipboardList, Minus, Plus } from 'lucide-react';
+import { Heart, ShoppingBag, Eye, ShieldAlert, Check, X, ClipboardList, Minus, Plus, Share2 } from 'lucide-react';
 import { addToCartAPI } from '../../store/slices/cartSlice.js';
 import { toggleWishlistAPI, getWishlistItemIdStr } from '../../store/slices/wishlistSlice.js';
 import { openAuthModal } from '../../store/slices/authSlice.js';
@@ -42,6 +42,22 @@ const ProductCard = ({ product }) => {
       }
     } else {
       toast.error('Could not update wishlist.');
+    }
+  };
+
+  const handleShare = (e) => {
+    e.stopPropagation();
+    try {
+      const targetSlug = product.slug || product._id || product.id;
+      const shareUrl = `${window.location.origin}/product/${targetSlug}?shared=true`;
+      if (navigator.clipboard) {
+        navigator.clipboard.writeText(shareUrl);
+        toast.success('Product link copied to clipboard!');
+      } else {
+        toast.success(`Share URL: ${shareUrl}`);
+      }
+    } catch (_) {
+      toast.success('Product link copied to clipboard!');
     }
   };
 
@@ -182,6 +198,17 @@ const ProductCard = ({ product }) => {
           }`}
         >
           <Heart size={16} className={isWishlisted ? "fill-red-500 text-red-500" : ""} />
+        </button>
+
+        {/* Share Button */}
+        <button
+          onClick={handleShare}
+          type="button"
+          title="Share Product"
+          aria-label="Share Product"
+          className="absolute top-16 right-4 z-20 p-2.5 bg-white/80 backdrop-blur-md border border-white hover:border-primary text-gray-400 hover:text-primary shadow-sm hover:scale-110 transition-all duration-300 rounded-full cursor-pointer"
+        >
+          <Share2 size={16} />
         </button>
 
         {/* Image Display */}
@@ -378,6 +405,16 @@ const ProductCard = ({ product }) => {
                   className="flex-grow btn-premium py-2.5 text-xs text-center justify-center gap-2 disabled:bg-gray-200 disabled:text-gray-400 disabled:cursor-not-allowed"
                 >
                   <ShoppingBag size={16} /> {isAdding ? 'ADDING...' : 'ADD TO CART'}
+                </button>
+
+                <button
+                  onClick={handleShare}
+                  type="button"
+                  className="p-2.5 border border-beige hover:border-primary text-gray-500 hover:text-primary transition rounded-none bg-white cursor-pointer"
+                  title="Share this product"
+                  aria-label="Share this product"
+                >
+                  <Share2 size={16} />
                 </button>
               </div>
             </div>
