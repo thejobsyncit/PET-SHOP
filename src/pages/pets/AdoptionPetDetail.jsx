@@ -17,6 +17,8 @@ import {
   saveAdoptionInquiry
 } from '../../data/adoptionPetsData';
 import FlyingMacawMessenger from '../../components/widgets/FlyingMacawMessenger.jsx';
+import CountryPhoneInput from '../../components/ui/CountryPhoneInput.jsx';
+import { getRequiredPhoneLength } from '../../data/countryCodes.js';
 
 const WhatsAppIcon = ({ className = 'w-4 h-4', size = 18 }) => (
   <svg
@@ -59,6 +61,8 @@ const AdoptionPetDetail = () => {
   // Application Form States
   const [applicantName, setApplicantName] = useState('');
   const [applicantPhone, setApplicantPhone] = useState('');
+  const [applicantCountryCode, setApplicantCountryCode] = useState('+91');
+  const [applicantPhoneError, setApplicantPhoneError] = useState('');
   const [applicantEmail, setApplicantEmail] = useState('');
   const [homeType, setHomeType] = useState('Apartment');
   const [hasPetExperience, setHasPetExperience] = useState('Yes');
@@ -72,6 +76,8 @@ const AdoptionPetDetail = () => {
   const [inquiryQuestion, setInquiryQuestion] = useState('');
   const [inquirySenderName, setInquirySenderName] = useState('');
   const [inquirySenderPhone, setInquirySenderPhone] = useState('');
+  const [inquiryCountryCode, setInquiryCountryCode] = useState('+91');
+  const [inquiryPhoneError, setInquiryPhoneError] = useState('');
 
   // Check if currently logged in user is the owner/creator of this pet listing
   const isPetOwner = Boolean(
@@ -168,9 +174,18 @@ const AdoptionPetDetail = () => {
         setApplicantName(user.name);
         setInquirySenderName(user.name);
       }
+      if (user.mobileCountryCode || user.countryCode) {
+        const uCode = user.mobileCountryCode || user.countryCode;
+        setApplicantCountryCode(uCode);
+        setInquiryCountryCode(uCode);
+      }
       if (user.mobile) {
-        setApplicantPhone(user.mobile);
-        setInquirySenderPhone(user.mobile);
+        const uCode = user.mobileCountryCode || user.countryCode || '+91';
+        const expectedLen = getRequiredPhoneLength(uCode);
+        const cleanDigits = String(user.mobile).replace(/\D/g, '');
+        const subscriberDigits = cleanDigits.slice(-expectedLen);
+        setApplicantPhone(subscriberDigits);
+        setInquirySenderPhone(subscriberDigits);
       }
       if (user.email) setApplicantEmail(user.email);
 
@@ -192,8 +207,24 @@ const AdoptionPetDetail = () => {
       toast.error('Please enter your question or message.');
       return;
     }
+
+    const reqDigits = getRequiredPhoneLength(inquiryCountryCode);
+    const cleanInquiryPhone = inquirySenderPhone.replace(/\D/g, '');
+    if (!cleanInquiryPhone) {
+      setInquiryPhoneError('Please enter your contact phone number.');
+      toast.error('Please enter your contact phone number.');
+      return;
+    }
+    if (cleanInquiryPhone.length !== reqDigits) {
+      const err = `Phone number must be exactly ${reqDigits} digits for ${inquiryCountryCode} (${cleanInquiryPhone.length}/${reqDigits}).`;
+      setInquiryPhoneError(err);
+      toast.error(err);
+      return;
+    }
+    setInquiryPhoneError('');
+
     const sender = inquirySenderName.trim() || user?.name || 'Prospective Adopter';
-    const contact = inquirySenderPhone.trim() || user?.mobile || '';
+    const contact = `${inquiryCountryCode} ${cleanInquiryPhone}`;
 
     saveAdoptionInquiry({
       id: 'lead_' + Date.now(),
@@ -201,6 +232,8 @@ const AdoptionPetDetail = () => {
       buyer: sender,
       pet: `${pet.name} (${pet.breed})`,
       phone: contact,
+      countryCode: inquiryCountryCode,
+      rawPhone: cleanInquiryPhone,
       email: user?.email || '',
       date: 'Just now',
       message: inquiryQuestion.trim(),
@@ -252,14 +285,27 @@ const AdoptionPetDetail = () => {
       return;
     }
 
-    if (!applicantPhone.trim()) {
+    const reqLen = getRequiredPhoneLength(applicantCountryCode);
+    const cleanPhone = String(applicantPhone || '').replace(/\D/g, '');
+    if (!cleanPhone) {
+      setApplicantPhoneError('Please enter your contact phone number.');
       toast.error('Please enter your contact phone number.');
       return;
     }
+    if (cleanPhone.length !== reqLen) {
+      const err = `Phone number must be exactly ${reqLen} digits for ${applicantCountryCode} (${cleanPhone.length}/${reqLen}).`;
+      setApplicantPhoneError(err);
+      toast.error(err);
+      return;
+    }
+    setApplicantPhoneError('');
+
     if (!adoptionReason.trim()) {
       toast.error('Please let us know why you would like to adopt this pet.');
       return;
     }
+
+    const formattedContact = `${applicantCountryCode} ${cleanPhone}`;
 
     const applicationData = {
       id: 'APP-' + Date.now().toString().slice(-6),
@@ -274,7 +320,9 @@ const AdoptionPetDetail = () => {
       guardianEmail: pet.ownerEmail || null,
       applicantId: user._id || user.id,
       applicantName: applicantName.trim() || user.name,
-      applicantPhone: applicantPhone.trim() || user.mobile,
+      applicantPhone: formattedContact,
+      applicantCountryCode,
+      applicantRawPhone: cleanPhone,
       applicantEmail: applicantEmail.trim() || user.email,
       homeType,
       hasPetExperience,
@@ -291,7 +339,9 @@ const AdoptionPetDetail = () => {
       petId: pet.id,
       buyer: applicantName.trim() || user.name,
       pet: `${pet.name} (${pet.breed})`,
-      phone: applicantPhone.trim() || user.mobile,
+      phone: formattedContact,
+      countryCode: applicantCountryCode,
+      rawPhone: cleanPhone,
       email: applicantEmail.trim() || user.email,
       date: 'Just now',
       message: `Adoption Screening Application: "${adoptionReason.trim()}" (Home: ${homeType}, Experience: ${hasPetExperience})`,
@@ -716,17 +766,18 @@ const AdoptionPetDetail = () => {
                       />
                     </div>
 
-                    <div className="space-y-1">
-                      <label className="font-bold text-slate-700 block">Your Contact Phone *</label>
-                      <input
-                        type="tel"
-                        placeholder="e.g. +91 98765 43210"
-                        value={applicantPhone}
-                        onChange={(e) => setApplicantPhone(e.target.value)}
-                        className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-xs focus:outline-none focus:border-[#d4af37] focus:ring-2 focus:ring-amber-200 font-medium"
-                        required
-                      />
-                    </div>
+                    <CountryPhoneInput
+                      id="applicant-phone"
+                      label="Your Contact Phone"
+                      required
+                      phone={applicantPhone}
+                      setPhone={setApplicantPhone}
+                      countryCode={applicantCountryCode}
+                      setCountryCode={setApplicantCountryCode}
+                      error={applicantPhoneError}
+                      setError={setApplicantPhoneError}
+                      theme="gold"
+                    />
 
                     <div className="grid grid-cols-2 gap-2">
                       <div className="space-y-1">
@@ -876,17 +927,18 @@ const AdoptionPetDetail = () => {
                   />
                 </div>
 
-                <div>
-                  <label className="text-xs font-bold text-slate-700 block mb-1">Contact Phone Number *</label>
-                  <input
-                    type="tel"
-                    value={inquirySenderPhone}
-                    onChange={(e) => setInquirySenderPhone(e.target.value)}
-                    placeholder="e.g. 9876543210"
-                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium focus:outline-none focus:border-[#d4af37]"
-                    required
-                  />
-                </div>
+                <CountryPhoneInput
+                  id="inquiry-phone"
+                  label="Contact Phone Number"
+                  required
+                  phone={inquirySenderPhone}
+                  setPhone={setInquirySenderPhone}
+                  countryCode={inquiryCountryCode}
+                  setCountryCode={setInquiryCountryCode}
+                  error={inquiryPhoneError}
+                  setError={setInquiryPhoneError}
+                  theme="gold"
+                />
 
                 <div>
                   <label className="text-xs font-bold text-slate-700 block mb-1">Your Question / Message *</label>

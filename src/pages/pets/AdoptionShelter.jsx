@@ -21,6 +21,8 @@ import {
 } from '../../data/adoptionPetsData';
 import ScrollReveal from '../../components/ui/ScrollReveal.jsx';
 import { handleServiceAction } from '../../components/widgets/ServicePackageAccessModal.jsx';
+import CountryPhoneInput from '../../components/ui/CountryPhoneInput.jsx';
+import { getRequiredPhoneLength } from '../../data/countryCodes.js';
 
 // Hero Auto-Rotating Slides (Dogs, Cats, Birds)
 const HERO_SLIDES = [
@@ -146,6 +148,8 @@ const AdoptionShelter = () => {
   const [newPetPersonality, setNewPetPersonality] = useState('Playful, Friendly, Loving');
   const [newPetGuardianName, setNewPetGuardianName] = useState('');
   const [newPetPhone, setNewPetPhone] = useState('');
+  const [newPetCountryCode, setNewPetCountryCode] = useState('+91');
+  const [newPetPhoneError, setNewPetPhoneError] = useState('');
   const [newPetImage, setNewPetImage] = useState('');
   const [newPetImageFileName, setNewPetImageFileName] = useState('');
   const [newPetImageSizeKB, setNewPetImageSizeKB] = useState(null);
@@ -190,7 +194,15 @@ const AdoptionShelter = () => {
   useEffect(() => {
     if (user && !newPetGuardianName) {
       setNewPetGuardianName(user.name || '');
-      setNewPetPhone(user.mobile || '');
+      if (user.mobileCountryCode || user.countryCode) {
+        setNewPetCountryCode(user.mobileCountryCode || user.countryCode);
+      }
+      if (user.mobile) {
+        const uCode = user.mobileCountryCode || user.countryCode || '+91';
+        const expectedLen = getRequiredPhoneLength(uCode);
+        const cleanDigits = String(user.mobile).replace(/\D/g, '');
+        setNewPetPhone(cleanDigits.slice(-expectedLen));
+      }
     }
   }, [user]);
 
@@ -412,10 +424,23 @@ const AdoptionShelter = () => {
       toast.error('Please enter the pet age (e.g. 3 Months, 1 Year).');
       return;
     }
-    if (!newPetPhone.trim()) {
+
+    const reqDigits = getRequiredPhoneLength(newPetCountryCode);
+    const cleanPhone = String(newPetPhone || '').replace(/\D/g, '');
+    if (!cleanPhone) {
+      setNewPetPhoneError('Please enter guardian contact number.');
       toast.error('Please enter guardian contact number.');
       return;
     }
+    if (cleanPhone.length !== reqDigits) {
+      const err = `Phone number must be exactly ${reqDigits} digits for ${newPetCountryCode} (${cleanPhone.length}/${reqDigits}).`;
+      setNewPetPhoneError(err);
+      toast.error(err);
+      return;
+    }
+    setNewPetPhoneError('');
+
+    const formattedContact = `${newPetCountryCode} ${cleanPhone}`;
 
     const defaultSamplePhotos = {
       dogs: 'https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?q=80&w=800&auto=format&fit=crop',
@@ -443,8 +468,8 @@ const AdoptionShelter = () => {
       ownerId: user._id || user.id,
       ownerName: user.name || (newPetGuardianName.trim() || 'Pet Guardian'),
       ownerEmail: user.email || '',
-      ownerPhone: user.mobile || newPetPhone.trim(),
-      parentContact: newPetPhone.trim() || user.mobile || '',
+      ownerPhone: formattedContact,
+      parentContact: formattedContact,
       parentName: newPetGuardianName.trim() || user.name || 'Pet Guardian',
       fee: finalFee,
       price: finalFee,
@@ -1347,17 +1372,18 @@ const AdoptionShelter = () => {
                   />
                 </div>
 
-                <div className="space-y-1">
-                  <label className="font-bold text-slate-700 block">Contact Phone *</label>
-                  <input
-                    type="tel"
-                    placeholder="e.g. +91 98765 43210"
-                    value={newPetPhone}
-                    onChange={(e) => setNewPetPhone(e.target.value)}
-                    className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-xs focus:outline-none focus:border-primary font-medium"
-                    required
-                  />
-                </div>
+                <CountryPhoneInput
+                  id="shelter-new-pet-phone"
+                  label="Contact Phone"
+                  required
+                  phone={newPetPhone}
+                  setPhone={setNewPetPhone}
+                  countryCode={newPetCountryCode}
+                  setCountryCode={setNewPetCountryCode}
+                  error={newPetPhoneError}
+                  setError={setNewPetPhoneError}
+                  theme="emerald"
+                />
               </div>
 
               {/* Pet Photo Upload from Device / Gallery (Max 5MB) */}
