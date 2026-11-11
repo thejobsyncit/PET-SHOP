@@ -397,12 +397,25 @@ export const addToCart = async (req, res) => {
           message: `Cannot add more units. You already have the maximum available stock (${availableStock} unit${availableStock === 1 ? '' : 's'}) in your cart.`
         });
       }
-      existing.quantity = Math.min(availableStock, currentQty + parsedQty);
+      if (currentQty + parsedQty > availableStock) {
+        const remaining = availableStock - currentQty;
+        return res.status(400).json({
+          success: false,
+          message: `Cannot add ${parsedQty} units. You already have ${currentQty} in cart, and only ${remaining} more can be added (total stock: ${availableStock}).`
+        });
+      }
+      existing.quantity = currentQty + parsedQty;
       if (clientProduct && typeof clientProduct === 'object') {
         existing.product = { ...clientProduct, stock: availableStock };
       }
     } else {
-      const initialQty = Math.min(availableStock, parsedQty);
+      if (parsedQty > availableStock) {
+        return res.status(400).json({
+          success: false,
+          message: `Requested quantity (${parsedQty}) exceeds available stock (${availableStock}).`
+        });
+      }
+      const initialQty = parsedQty;
       cartMap.set(cleanProductId, { 
         product: clientProduct && typeof clientProduct === 'object' ? { ...clientProduct, stock: availableStock } : productId, 
         quantity: initialQty 
@@ -468,8 +481,13 @@ export const updateCartQuantity = async (req, res) => {
       }
 
       const requestedQty = parseInt(quantity, 10) || 1;
-      const targetQty = Math.min(availableStock, Math.max(1, requestedQty));
-      cart[itemIndex].quantity = targetQty;
+      if (requestedQty > availableStock) {
+        return res.status(400).json({
+          success: false,
+          message: `Requested quantity (${requestedQty}) exceeds available stock (${availableStock}).`
+        });
+      }
+      cart[itemIndex].quantity = requestedQty;
       await saveUserCart(userId, cart, userData, userEmail);
     }
 

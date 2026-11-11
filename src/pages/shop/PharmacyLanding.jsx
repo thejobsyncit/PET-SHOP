@@ -300,13 +300,13 @@ const PharmacyLanding = () => {
         </div>
 
         {loading ? (
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {[1, 2, 3, 4].map(idx => (
               <div key={idx} className="bg-white border border-beige h-[380px] animate-pulse"></div>
             ))}
           </div>
         ) : (
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {rxProducts.map((p) => (
               <ProductCard key={p._id} product={p} />
             ))}
@@ -323,13 +323,13 @@ const PharmacyLanding = () => {
         </div>
 
         {loading ? (
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {[1, 2, 3, 4].map(idx => (
               <div key={idx} className="bg-white border border-beige h-[380px] animate-pulse"></div>
             ))}
           </div>
         ) : (
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {regularSupplements.map((p) => (
               <ProductCard key={p._id} product={p} />
             ))}

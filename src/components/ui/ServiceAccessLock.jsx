@@ -12,6 +12,15 @@ import {
  */
 export const isServicePathLockedForUser = (user, targetPath = '') => {
   if (!user || user.role !== 'SERVICE_PROVIDER') return false;
+
+  // Allow pet owners / users accessing customer relocation enquiry or action=new-request without role lock
+  if (typeof window !== 'undefined') {
+    const search = window.location.search || '';
+    const hash = window.location.hash || '';
+    if (search.includes('action=new-request') || search.includes('action=relocation-form') || hash.includes('relocation-enquiry-form')) {
+      return false;
+    }
+  }
   
   const category = (user.serviceCategory || '').toLowerCase().trim();
   const path = targetPath.toLowerCase().trim();

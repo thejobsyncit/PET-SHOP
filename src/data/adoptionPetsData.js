@@ -782,8 +782,18 @@ export const getStoredAdoptionApplications = () => {
 
 export const saveAdoptionApplication = (newApp) => {
   const current = getStoredAdoptionApplications();
-  const filtered = current.filter((a) => a.id !== newApp.id);
-  const updated = [newApp, ...filtered];
+  const existingIdx = current.findIndex((a) => a.id === newApp.id);
+  let updated;
+  if (existingIdx !== -1) {
+    updated = [...current];
+    updated[existingIdx] = {
+      ...updated[existingIdx],
+      ...newApp,
+      updatedAt: new Date().toISOString()
+    };
+  } else {
+    updated = [newApp, ...current];
+  }
   memoryApplicationsCache = updated;
 
   try {
@@ -793,6 +803,12 @@ export const saveAdoptionApplication = (newApp) => {
       sessionStorage.setItem('joshpetshub_adoption_applications', JSON.stringify(updated));
     } catch (se) {}
   }
+
+  try {
+    window.dispatchEvent(new CustomEvent('adoption-applications-updated', { detail: { application: newApp } }));
+    window.dispatchEvent(new Event('storage'));
+  } catch (_) {}
+
   return updated;
 };
 
@@ -1157,11 +1173,18 @@ export const getStoredAdoptionInquiries = () => {
 
 export const saveAdoptionInquiry = (newInquiry) => {
   const current = getStoredAdoptionInquiries();
-  const existingIdx = current.findIndex(i => i.id === newInquiry.id);
+  const existingIdx = current.findIndex(i =>
+    i.id === newInquiry.id ||
+    (newInquiry.applicationId && i.applicationId && String(i.applicationId) === String(newInquiry.applicationId))
+  );
   let updated;
   if (existingIdx !== -1) {
     updated = [...current];
-    updated[existingIdx] = { ...updated[existingIdx], ...newInquiry };
+    updated[existingIdx] = {
+      ...updated[existingIdx],
+      ...newInquiry,
+      id: updated[existingIdx].id // preserve original lead ID
+    };
   } else {
     updated = [newInquiry, ...current];
   }
@@ -1169,6 +1192,12 @@ export const saveAdoptionInquiry = (newInquiry) => {
   try {
     localStorage.setItem('joshpetshub_adoption_inquiries', JSON.stringify(updated));
   } catch (e) {}
+
+  try {
+    window.dispatchEvent(new CustomEvent('adoption-inquiries-updated', { detail: { inquiry: newInquiry } }));
+    window.dispatchEvent(new Event('storage'));
+  } catch (_) {}
+
   return updated;
 };
 

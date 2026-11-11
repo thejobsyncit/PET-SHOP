@@ -65,6 +65,98 @@ export const readPersistedMembership = () => {
   return null;
 };
 
+// Helper to normalize address objects with stable deterministic IDs
+export const normalizeAddress = (addr, index = 0) => {
+  if (!addr || typeof addr !== 'object') return null;
+  const street = (addr.streetAddress || addr.address || addr.street || '').trim();
+  const city = (addr.city || '').trim();
+  const state = (addr.state || '').trim();
+  const postal = (addr.postalCode || addr.zipCode || addr.pincode || addr.zip || '').toString().trim();
+  const name = (addr.name || '').trim();
+  const phone = (addr.phone || addr.mobile || '').toString().trim();
+  const country = (addr.country || 'India').trim();
+  const isDefault = Boolean(addr.isDefault);
+
+  const cleanName = name.toLowerCase().replace(/[^a-z0-9]/g, '');
+  const cleanStreet = street.toLowerCase().replace(/[^a-z0-9]/g, '');
+  const fallbackId = `addr_${cleanName}_${cleanStreet.slice(0, 10)}_${postal}` || `addr_${index}`;
+  const _id = addr._id || addr.id || fallbackId;
+
+  return {
+    _id,
+    id: _id,
+    name,
+    phone,
+    streetAddress: street,
+    city,
+    state,
+    postalCode: postal,
+    country,
+    isDefault
+  };
+};
+
+// Robust deduplicating address merge helper that retains user-added addresses
+export const mergeUserAddresses = (currentAddresses = [], incomingAddresses = [], emailKey = '') => {
+  const currentList = Array.isArray(currentAddresses) ? currentAddresses : [];
+  const incomingList = Array.isArray(incomingAddresses) ? incomingAddresses : [];
+
+  let removedIds = [];
+  if (emailKey && typeof localStorage !== 'undefined') {
+    try {
+      removedIds = JSON.parse(localStorage.getItem(`joshpetshub_removed_addresses_${emailKey}`) || '[]');
+    } catch (_) {}
+  }
+  const removedSet = new Set((Array.isArray(removedIds) ? removedIds : []).map(id => String(id).toLowerCase().trim()));
+
+  const combined = [...currentList, ...incomingList];
+  const mergedMap = new Map();
+
+  combined.forEach((raw, idx) => {
+    const norm = normalizeAddress(raw, idx);
+    if (!norm) return;
+
+    // Content signature: name + street + pincode
+    const sig = `${(norm.name || '').toLowerCase().trim()}|${(norm.streetAddress || '').toLowerCase().trim()}|${(norm.postalCode || '').trim()}`;
+    if (
+      removedSet.has(String(norm._id).toLowerCase().trim()) || 
+      removedSet.has(String(norm.id).toLowerCase().trim()) || 
+      removedSet.has(sig)
+    ) {
+      return;
+    }
+
+    // Deduplicate against existing by signature OR explicit ID
+    let matchKey = null;
+    for (const [key, item] of mergedMap.entries()) {
+      const itemSig = `${(item.name || '').toLowerCase().trim()}|${(item.streetAddress || '').toLowerCase().trim()}|${(item.postalCode || '').trim()}`;
+      if (itemSig === sig || (norm._id && (item._id === norm._id || item.id === norm._id))) {
+        matchKey = key;
+        break;
+      }
+    }
+
+    if (matchKey) {
+      const existing = mergedMap.get(matchKey);
+      mergedMap.set(matchKey, {
+        ...existing,
+        ...norm,
+        _id: existing._id || norm._id,
+        id: existing.id || norm.id || existing._id || norm._id,
+        isDefault: existing.isDefault || norm.isDefault
+      });
+    } else {
+      mergedMap.set(sig, norm);
+    }
+  });
+
+  const result = Array.from(mergedMap.values());
+  if (result.length > 0 && !result.some(a => a.isDefault)) {
+    result[0].isDefault = true;
+  }
+  return result;
+};
+
 // Helper to safely read saved user
 const getInitialUser = () => {
   try {
@@ -85,8 +177,8 @@ const getInitialUser = () => {
           parsed.businessName = sellerName;
         }
       }
-      if (parsed.email) {
-        const emailKey = parsed.email.toLowerCase().trim();
+      const emailKey = parsed.email ? parsed.email.toLowerCase().trim() : '';
+      if (emailKey) {
         if (!parsed.avatar) {
           const cachedAvatar = localStorage.getItem(`joshpetshub_avatar_${emailKey}`);
           if (cachedAvatar) {
@@ -100,15 +192,14 @@ const getInitialUser = () => {
           parsed.phone = parsed.phone || cachedPhone;
         }
       }
-      parsed.addresses = Array.isArray(parsed.addresses) ? parsed.addresses : [];
-      if (parsed.addresses.length === 0 && parsed.email) {
+      let cachedAddresses = [];
+      if (emailKey) {
         try {
-          const cached = JSON.parse(localStorage.getItem(`joshpetshub_addresses_${parsed.email.toLowerCase()}`) || '[]');
-          if (Array.isArray(cached) && cached.length > 0) {
-            parsed.addresses = cached;
-          }
+          const raw = localStorage.getItem(`joshpetshub_addresses_${emailKey}`);
+          if (raw) cachedAddresses = JSON.parse(raw);
         } catch (_) {}
       }
+      parsed.addresses = mergeUserAddresses(parsed.addresses, cachedAddresses, emailKey);
       if (activeMem) {
         parsed.serviceMembership = activeMem;
       }
@@ -219,15 +310,14 @@ export const login = createAsyncThunk('auth/login', async (credentials, thunkAPI
     safeSetItem('joshpetshub_token', data.token);
     if (data.user) {
       const emailKey = (data.user.email || rawId || '').toLowerCase().trim();
-      let userAddresses = Array.isArray(data.user.addresses) ? data.user.addresses : [];
-      if (userAddresses.length === 0 && emailKey) {
+      let cachedAddresses = [];
+      if (emailKey) {
         try {
-          const cached = JSON.parse(localStorage.getItem(`joshpetshub_addresses_${emailKey}`) || '[]');
-          if (Array.isArray(cached) && cached.length > 0) {
-            userAddresses = cached;
-          }
+          const raw = localStorage.getItem(`joshpetshub_addresses_${emailKey}`);
+          if (raw) cachedAddresses = JSON.parse(raw);
         } catch (_) {}
       }
+      const userAddresses = mergeUserAddresses(cachedAddresses, data.user.addresses, emailKey);
 
       // Merge any previously saved user data (avatar, name, phone, addresses, membership)
       let cachedProfile = null;
@@ -316,15 +406,18 @@ export const fetchProfile = createAsyncThunk('auth/fetchProfile', async (_, thun
           const sellerAvatar = isPetSeller ? localStorage.getItem('joshpetshub_seller_avatar') : null;
           const sellerName = isPetSeller ? localStorage.getItem('joshpetshub_seller_name') : null;
           const emailKey = (data.user.email || '').toLowerCase().trim();
-          let userAddresses = Array.isArray(data.user.addresses) ? data.user.addresses : [];
-          if (userAddresses.length === 0 && emailKey) {
+          let cachedAddresses = [];
+          if (emailKey) {
             try {
-              const cached = JSON.parse(localStorage.getItem(`joshpetshub_addresses_${emailKey}`) || '[]');
-              if (Array.isArray(cached) && cached.length > 0) {
-                userAddresses = cached;
-              }
+              const raw = localStorage.getItem(`joshpetshub_addresses_${emailKey}`);
+              if (raw) cachedAddresses = JSON.parse(raw);
             } catch (_) {}
           }
+          const userAddresses = mergeUserAddresses(
+            [...(saved?.addresses || []), ...cachedAddresses],
+            data.user.addresses,
+            emailKey
+          );
           const cachedAvatar = emailKey ? localStorage.getItem(`joshpetshub_avatar_${emailKey}`) : null;
           const cachedPhone = emailKey ? localStorage.getItem(`joshpetshub_phone_${emailKey}`) : null;
           const finalAvatar = sellerAvatar || data.user.avatar || saved?.avatar || cachedAvatar || null;
@@ -588,62 +681,122 @@ export const updateProfile = createAsyncThunk('auth/updateProfile', async (profi
 });
 
 export const addUserAddress = createAsyncThunk('auth/addUserAddress', async (addressData, thunkAPI) => {
+  const state = thunkAPI.getState();
+  const currentUser = state.auth.user || getInitialUser();
+  const emailKey = (currentUser?.email || '').toLowerCase().trim();
+
+  const currentAddresses = Array.isArray(currentUser?.addresses) ? currentUser.addresses : [];
+  const newAddress = normalizeAddress({
+    _id: (typeof crypto !== 'undefined' && crypto.randomUUID) ? crypto.randomUUID() : ('addr_' + Date.now()),
+    ...addressData,
+    isDefault: addressData.isDefault ?? currentAddresses.length === 0
+  });
+
+  let backendAddresses = null;
   try {
     const data = await apiRequest('/auth/address', {
       method: 'POST',
-      body: JSON.stringify(addressData),
+      body: JSON.stringify(newAddress),
     });
-    if (data && data.addresses) {
-      return data;
+    if (data && Array.isArray(data.addresses)) {
+      backendAddresses = data.addresses;
     }
   } catch (error) {
     console.warn('Backend address sync notice:', error.message);
   }
 
-  // Resilient fallback for demo / offline / non-persisted accounts
-  const state = thunkAPI.getState();
-  const currentUser = state.auth.user;
-  if (currentUser) {
-    const currentAddresses = Array.isArray(currentUser.addresses) ? [...currentUser.addresses] : [];
-    const newAddress = {
-      _id: 'addr_' + Date.now(),
-      ...addressData,
-      isDefault: addressData.isDefault ?? currentAddresses.length === 0
-    };
-    let updatedAddresses = currentAddresses;
-    if (newAddress.isDefault) {
-      updatedAddresses = updatedAddresses.map(a => ({ ...a, isDefault: false }));
-    }
-    updatedAddresses.push(newAddress);
-    const emailKey = (currentUser.email || '').toLowerCase().trim();
-    if (emailKey) {
-      safeSetItem(`joshpetshub_addresses_${emailKey}`, JSON.stringify(updatedAddresses));
-    }
-    return { success: true, addresses: updatedAddresses };
+  // If re-adding an address previously marked removed, clear it from removed set
+  if (emailKey) {
+    try {
+      const removed = JSON.parse(localStorage.getItem(`joshpetshub_removed_addresses_${emailKey}`) || '[]');
+      const sig = `${(newAddress.name || '').toLowerCase().trim()}|${(newAddress.streetAddress || '').toLowerCase().trim()}|${(newAddress.postalCode || '').trim()}`;
+      const filtered = removed.filter(r => r !== String(newAddress._id).toLowerCase() && r !== String(newAddress.id).toLowerCase() && r !== sig);
+      safeSetItem(`joshpetshub_removed_addresses_${emailKey}`, JSON.stringify(filtered));
+    } catch (_) {}
   }
-  return thunkAPI.rejectWithValue('Unable to save address: No active session');
+
+  let cached = [];
+  if (emailKey) {
+    try {
+      cached = JSON.parse(localStorage.getItem(`joshpetshub_addresses_${emailKey}`) || '[]');
+    } catch (_) {}
+  }
+
+  let baseList = mergeUserAddresses(currentAddresses, cached, emailKey);
+  if (newAddress.isDefault) {
+    baseList = baseList.map(a => ({ ...a, isDefault: false }));
+  }
+
+  let finalAddresses;
+  if (backendAddresses && backendAddresses.length > baseList.length) {
+    finalAddresses = mergeUserAddresses(baseList, backendAddresses, emailKey);
+  } else {
+    finalAddresses = mergeUserAddresses(baseList, [newAddress], emailKey);
+  }
+
+  if (emailKey) {
+    safeSetItem(`joshpetshub_addresses_${emailKey}`, JSON.stringify(finalAddresses));
+  }
+
+  return { success: true, addresses: finalAddresses };
 });
 
 export const removeUserAddress = createAsyncThunk('auth/removeUserAddress', async (addressId, thunkAPI) => {
+  const state = thunkAPI.getState();
+  const currentUser = state.auth.user || getInitialUser();
+  const emailKey = (currentUser?.email || '').toLowerCase().trim();
+
   try {
-    const data = await apiRequest(`/auth/address/${addressId}`, {
+    await apiRequest(`/auth/address/${addressId}`, {
       method: 'DELETE',
     });
-    if (data && data.addresses) {
-      return data;
-    }
   } catch (error) {
     console.warn('Backend address delete notice:', error.message);
   }
 
-  const state = thunkAPI.getState();
-  const currentUser = state.auth.user;
-  if (currentUser) {
-    const currentAddresses = Array.isArray(currentUser.addresses) ? currentUser.addresses : [];
-    const updatedAddresses = currentAddresses.filter(a => a._id !== addressId);
-    return { success: true, addresses: updatedAddresses };
+  const currentAddresses = Array.isArray(currentUser?.addresses) ? currentUser.addresses : [];
+  const removedAddress = currentAddresses.find(a => String(a._id) === String(addressId) || String(a.id) === String(addressId));
+  const removedSig = removedAddress ? `${(removedAddress.name || '').toLowerCase().trim()}|${(removedAddress.streetAddress || '').toLowerCase().trim()}|${(removedAddress.postalCode || '').trim()}` : null;
+
+  if (emailKey) {
+    try {
+      const removed = JSON.parse(localStorage.getItem(`joshpetshub_removed_addresses_${emailKey}`) || '[]');
+      if (addressId && !removed.includes(String(addressId).toLowerCase())) {
+        removed.push(String(addressId).toLowerCase());
+      }
+      if (removedSig && !removed.includes(removedSig)) {
+        removed.push(removedSig);
+      }
+      safeSetItem(`joshpetshub_removed_addresses_${emailKey}`, JSON.stringify(removed));
+    } catch (_) {}
   }
-  return thunkAPI.rejectWithValue('Unable to remove address: No active session');
+
+  let cached = [];
+  if (emailKey) {
+    try {
+      cached = JSON.parse(localStorage.getItem(`joshpetshub_addresses_${emailKey}`) || '[]');
+    } catch (_) {}
+  }
+  const mergedCurrent = mergeUserAddresses(currentAddresses, cached, emailKey);
+
+  const updatedAddresses = mergedCurrent.filter(a => {
+    if (String(a._id) === String(addressId) || String(a.id) === String(addressId)) return false;
+    if (removedSig) {
+      const aSig = `${(a.name || '').toLowerCase().trim()}|${(a.streetAddress || '').toLowerCase().trim()}|${(a.postalCode || '').trim()}`;
+      if (aSig === removedSig) return false;
+    }
+    return true;
+  });
+
+  if (updatedAddresses.length > 0 && !updatedAddresses.some(a => a.isDefault)) {
+    updatedAddresses[0].isDefault = true;
+  }
+
+  if (emailKey) {
+    safeSetItem(`joshpetshub_addresses_${emailKey}`, JSON.stringify(updatedAddresses));
+  }
+
+  return { success: true, addresses: updatedAddresses };
 });
 
 
@@ -898,15 +1051,14 @@ const authSlice = createSlice({
         state.token = action.payload.token;
         const incomingUser = action.payload.user;
         const emailKey = (incomingUser?.email || '').toLowerCase().trim();
-        let userAddresses = Array.isArray(incomingUser?.addresses) && incomingUser.addresses.length > 0 ? incomingUser.addresses : [];
-        if (userAddresses.length === 0 && emailKey) {
+        let cachedAddresses = [];
+        if (emailKey) {
           try {
-            const cached = JSON.parse(localStorage.getItem(`joshpetshub_addresses_${emailKey}`) || '[]');
-            if (Array.isArray(cached) && cached.length > 0) {
-              userAddresses = cached;
-            }
+            const raw = localStorage.getItem(`joshpetshub_addresses_${emailKey}`);
+            if (raw) cachedAddresses = JSON.parse(raw);
           } catch (_) {}
         }
+        const userAddresses = mergeUserAddresses(cachedAddresses, incomingUser?.addresses, emailKey);
 
         // Restore cached profile edits if server had stale or empty fields
         let cachedProfile = null;
@@ -975,13 +1127,18 @@ const authSlice = createSlice({
           }
           const mem = action.payload.user.serviceMembership || state.user?.serviceMembership || cachedProfile?.serviceMembership || rawMem || null;
           
-          let userAddresses = Array.isArray(action.payload.user.addresses) && action.payload.user.addresses.length > 0 ? action.payload.user.addresses : (state.user?.addresses || cachedProfile?.addresses || []);
-          if (userAddresses.length === 0 && emailKey) {
+          let cachedAddresses = [];
+          if (emailKey) {
             try {
-              const cached = JSON.parse(localStorage.getItem(`joshpetshub_addresses_${emailKey}`) || '[]');
-              if (Array.isArray(cached) && cached.length > 0) userAddresses = cached;
+              const raw = localStorage.getItem(`joshpetshub_addresses_${emailKey}`);
+              if (raw) cachedAddresses = JSON.parse(raw);
             } catch (_) {}
           }
+          const userAddresses = mergeUserAddresses(
+            [...(state.user?.addresses || []), ...(cachedProfile?.addresses || []), ...cachedAddresses],
+            action.payload.user.addresses,
+            emailKey
+          );
 
           state.user = {
             ...cachedProfile,

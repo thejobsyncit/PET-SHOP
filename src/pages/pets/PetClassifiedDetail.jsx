@@ -9,8 +9,9 @@ import {
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { apiRequest } from '../../services/api.js';
-import { getPetListingById, getStoredClassifieds, DEFAULT_CLASSIFIEDS } from '../../data/classifiedsData.js';
+import { getPetListingById, getStoredClassifieds, DEFAULT_CLASSIFIEDS, savePetOrder, markPetListingAsSold } from '../../data/classifiedsData.js';
 import ScrollReveal from '../../components/ui/ScrollReveal.jsx';
+import SharedItemAuthGate from '../../components/ui/SharedItemAuthGate.jsx';
 
 const PetClassifiedDetail = () => {
   const { id } = useParams();
@@ -28,6 +29,7 @@ const PetClassifiedDetail = () => {
   const [paymentMethod, setPaymentMethod] = useState('Credit Card');
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
   const [paymentStep, setPaymentStep] = useState('details'); // 'details', 'processing', 'success'
+  const [confirmedPetOrder, setConfirmedPetOrder] = useState(null);
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -78,12 +80,17 @@ const PetClassifiedDetail = () => {
 
   const handleShare = () => {
     try {
+      const shareTarget = pet?.id || pet?._id || id;
+      const shareUrl = `${window.location.origin}/pets/${shareTarget}?shared=true`;
       if (navigator.clipboard) {
-        navigator.clipboard.writeText(window.location.href);
-        toast.success('Link copied to clipboard!');
+        navigator.clipboard.writeText(shareUrl);
+        toast.success('Share link copied to clipboard!');
       } else {
-        toast.success(`Share URL: ${window.location.href}`);
+        toast.success(`Share URL: ${shareUrl}`);
       }
+      try {
+        window.history.replaceState(null, '', shareUrl);
+      } catch (_) {}
     } catch (_) {
       toast.success('Link ready to share!');
     }
@@ -152,15 +159,82 @@ const PetClassifiedDetail = () => {
     }
 
     try {
-      // Attempt backend update if route exists
+      const orderId = `ORD-PET-${Date.now().toString().slice(-8)}`;
+      const trackingCode = `TRK-PET-${Date.now().toString().slice(-6)}`;
+      const cleanPrice = Number(pet.price) || 0;
+
+      const orderRecord = {
+        _id: orderId,
+        id: orderId,
+        userId: user?._id || user?.id,
+        user: user?._id || user?.id,
+        userEmail: user?.email,
+        buyerEmail: user?.email,
+        orderType: 'PET_PURCHASE',
+        orderItems: [
+          {
+            product: pet._id || pet.id,
+            name: pet.title || `${pet.breed} (${pet.petType})`,
+            image: (pet.images && pet.images[0]) || pet.image || 'https://images.unsplash.com/photo-1548199973-03cce0bbc87b?q=80&w=800',
+            price: cleanPrice,
+            quantity: 1,
+            breed: pet.breed,
+            petType: pet.petType,
+            sellerName: pet.user?.name || pet.sellerName || 'Verified Pet Breeder / Seller',
+            sellerPhone: pet.contactPhone || pet.user?.mobile || '',
+            sellerEmail: pet.user?.email || ''
+          }
+        ],
+        pricing: {
+          subtotal: cleanPrice,
+          shipping: 0,
+          discount: 0,
+          total: cleanPrice
+        },
+        total: cleanPrice,
+        paymentMethod: paymentMethod || 'Credit Card',
+        paymentStatus: paymentMethod === 'Cash on Delivery' ? 'Pending' : 'Completed',
+        shippingStatus: 'Processing',
+        trackingNumber: trackingCode,
+        shippingAddress: {
+          streetAddress: user?.address || pet.location || 'Verified Buyer Address',
+          city: pet.location?.split(',')?.[0]?.trim() || user?.city || 'India',
+          state: pet.location?.split(',')?.[1]?.trim() || user?.state || 'India',
+          postalCode: user?.pincode || '560001',
+          country: 'India'
+        },
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
+
+      // 1. Save locally to guarantee it shows in Order History immediately
+      savePetOrder(orderRecord);
+      setConfirmedPetOrder(orderRecord);
+      markPetListingAsSold(pet._id || pet.id);
+
+      // 2. Best-effort API synchronization
       try {
         await apiRequest(`/listings/${pet._id}/buy`, { method: 'PUT' });
+      } catch (_) {}
+
+      try {
+        await apiRequest('/orders', {
+          method: 'POST',
+          body: JSON.stringify({
+            orderType: 'PET',
+            orderItems: orderRecord.orderItems,
+            shippingAddress: orderRecord.shippingAddress,
+            paymentMethod: orderRecord.paymentMethod,
+            pricing: orderRecord.pricing,
+            transactionId: `TXN-${Date.now()}`
+          })
+        });
       } catch (_) {}
 
       // Update status locally
       setPet(prev => prev ? { ...prev, status: 'Sold Out', quantity: 0 } : null);
       setPaymentStep('success');
-      toast.success('🎉 Congratulations! Your pet purchase is confirmed.');
+      toast.success('🎉 Congratulations! Your pet purchase order is confirmed.');
     } catch (err) {
       toast.error(err.message || 'Payment processing failed');
       setPaymentStep('details');
@@ -230,7 +304,8 @@ const PetClassifiedDetail = () => {
         </div>
       </div>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10">
+      <SharedItemAuthGate itemType="pet" itemName={pet?.title || pet?.breed || pet?.name} itemCategory={pet?.petType}>
+        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10">
           
           {/* ================= LEFT COLUMN: IMAGES & PET DETAILS (7 Cols) ================= */}
@@ -792,17 +867,36 @@ const PetClassifiedDetail = () => {
                 <p className="text-xs text-gray-600 max-w-xs mx-auto">
                   Your order receipt has been sent to your email. The seller ({ownerName}) has been notified to schedule delivery/pickup.
                 </p>
-                <button
-                  onClick={() => setShowCheckout(false)}
-                  className="px-6 py-3 bg-primary text-white font-bold text-xs uppercase tracking-wider rounded-xl hover:bg-black transition cursor-pointer"
-                >
-                  Done
-                </button>
+                {confirmedPetOrder && (
+                  <p className="text-xs font-mono font-bold text-primary bg-amber-50 px-3 py-1 rounded-md border border-amber-200 mt-2 inline-block">
+                    Order Ref: #{confirmedPetOrder._id}
+                  </p>
+                )}
+                <div className="pt-2 flex flex-col sm:flex-row gap-2 justify-center">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowCheckout(false);
+                      navigate('/account?tab=orders');
+                    }}
+                    className="px-6 py-3 bg-[#0F2E23] hover:bg-black text-[#ffd000] font-bold text-xs uppercase tracking-wider rounded-xl transition cursor-pointer shadow-md"
+                  >
+                    View in Order History →
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setShowCheckout(false)}
+                    className="px-6 py-3 border border-slate-200 text-slate-700 font-bold text-xs uppercase tracking-wider rounded-xl hover:bg-slate-50 transition cursor-pointer"
+                  >
+                    Done
+                  </button>
+                </div>
               </div>
             )}
           </div>
         </div>
       )}
+      </SharedItemAuthGate>
 
     </div>
   );

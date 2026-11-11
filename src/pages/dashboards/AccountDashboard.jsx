@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate, useSearchParams, useLocation, Link } from 'react-router-dom';
 import {
@@ -12,7 +12,8 @@ import {
   updateProfile, 
   addUserAddress, 
   removeUserAddress, 
-  logout 
+  logout,
+  mergeUserAddresses
 } from '../../store/slices/authSlice.js';
 import { 
   getUserAdoptionApplications, 
@@ -24,13 +25,15 @@ import {
   getUserTransportEnquiries, 
   getUserTransportBookings,
   getUserAllRelocationRequests,
-  getStoredTransportEnquiries 
+  getStoredTransportEnquiries,
+  saveTransportEnquiry
 } from '../../data/transportData.js';
 import { getStoredGroomingBookings } from '../../data/groomingData.js';
 import { getStoredHostelBookings } from '../../data/hostelData.js';
 import { getStoredWalkingBookings } from '../../data/walkingData.js';
 import { getStoredTrainingBookings } from '../../data/trainingData.js';
 import { getVetAppointments } from '../../data/veterinaryData.js';
+import { getStoredPetOrders } from '../../data/classifiedsData.js';
 import { apiRequest } from '../../services/api.js';
 import toast from 'react-hot-toast';
 import LogoutConfirmModal from '../../components/ui/LogoutConfirmModal.jsx';
@@ -113,6 +116,20 @@ const AccountDashboard = () => {
   const [showAddressForm, setShowAddressForm] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
+  // Authoritative, deduplicated addresses for current user session
+  const displayedAddresses = useMemo(() => {
+    const list = Array.isArray(user?.addresses) ? user.addresses : [];
+    const emailKey = (user?.email || '').toLowerCase().trim();
+    let cached = [];
+    if (emailKey && typeof localStorage !== 'undefined') {
+      try {
+        const raw = localStorage.getItem(`joshpetshub_addresses_${emailKey}`);
+        if (raw) cached = JSON.parse(raw);
+      } catch (_) {}
+    }
+    return mergeUserAddresses(list, cached, emailKey);
+  }, [user?.addresses, user?.email]);
+
   // History logs states
   const [orders, setOrders] = useState([]);
   const [prescriptions, setPrescriptions] = useState([]);
@@ -126,6 +143,21 @@ const AccountDashboard = () => {
 
   // Transport relocation enquiries states
   const [userTransportEnquiries, setUserTransportEnquiries] = useState([]);
+  const [showNewRelocationModal, setShowNewRelocationModal] = useState(false);
+  const [relocPetName, setRelocPetName] = useState('');
+  const [relocPetSpecies, setRelocPetSpecies] = useState('Dog');
+  const [relocPetBreed, setRelocPetBreed] = useState('');
+  const [relocPetAge, setRelocPetAge] = useState('');
+  const [relocPetWeight, setRelocPetWeight] = useState('');
+  const [relocType, setRelocType] = useState('Inter-State Relocation');
+  const [relocDepCity, setRelocDepCity] = useState('');
+  const [relocDestCity, setRelocDestCity] = useState('');
+  const [relocDate, setRelocDate] = useState('');
+  const [relocMode, setRelocMode] = useState('Road AC Pet Cab');
+  const [relocContactName, setRelocContactName] = useState('');
+  const [relocContactPhone, setRelocContactPhone] = useState('');
+  const [relocNote, setRelocNote] = useState('');
+  const [isSubmittingRelocation, setIsSubmittingRelocation] = useState(false);
 
   // Service Membership state for 199 and 499 package indications
   const [membership, setMembership] = useState(() => {
@@ -193,29 +225,31 @@ const AccountDashboard = () => {
     const cgst = Number((baseSubtotal * 0.09).toFixed(2));
     const sgst = Number((baseSubtotal * 0.09).toFixed(2));
 
-    const items = (order.orderItems || []).map((it) => ({
-      name: it.name,
+    const rawItems = order.orderItems || order.order_items || [];
+    const items = rawItems.map((it) => ({
+      name: it.name || (it.breed ? `${it.breed} (${it.petType || 'Pet'})` : 'Pet Item'),
       quantity: it.quantity || 1,
-      sacOrHsn: 'HSN: 2309',
+      sacOrHsn: order.orderType === 'PET_PURCHASE' ? 'PET-ACQ / LIVE-ANIMAL' : 'HSN: 2309',
       amount: (it.price || 0) * (it.quantity || 1),
     }));
 
+    const isPetOrder = order.orderType === 'PET_PURCHASE' || order.orderType === 'PET';
     const success = await downloadBill({
       invoiceNumber: invNo,
-      invoiceTitle: 'TAX INVOICE / ORDER RECEIPT',
+      invoiceTitle: isPetOrder ? 'TAX INVOICE / PET ACQUISITION RECEIPT' : 'TAX INVOICE / ORDER RECEIPT',
       invoiceDate: invDate,
       statusText: order.shippingStatus === 'Delivered' ? '✓ ORDER DELIVERED' : '✓ PAYMENT CONFIRMED',
       customer: {
-        name: user?.name || 'Valued Customer',
-        email: user?.email || '',
-        phone: user?.mobile ? `${user?.mobileCountryCode || '+91'} ${user?.mobile}` : '',
+        name: user?.name || order.shippingAddress?.fullName || 'Valued Pet Parent',
+        email: user?.email || order.buyerEmail || order.userEmail || '',
+        phone: user?.mobile ? `${user?.mobileCountryCode || '+91'} ${user?.mobile}` : (order.shippingAddress?.phone || ''),
         address: order.shippingAddress ? `${order.shippingAddress.streetAddress || ''}, ${order.shippingAddress.city || ''} ${order.shippingAddress.postalCode || ''}` : '',
       },
       payment: {
         method: order.paymentMethod || 'Prepaid Online',
         validity: `Tracking: ${order.trackingNumber || 'Active'}`,
       },
-      items: items.length > 0 ? items : [{ name: 'Pet Products Order', sacOrHsn: 'HSN: 2309', amount: baseSubtotal }],
+      items: items.length > 0 ? items : [{ name: isPetOrder ? 'Verified Pet Purchase' : 'Pet Products Order', sacOrHsn: isPetOrder ? 'PET-ACQ' : 'HSN: 2309', amount: baseSubtotal }],
       totals: {
         baseAmount: baseSubtotal,
         cgst: cgst,
@@ -319,10 +353,32 @@ const AccountDashboard = () => {
     };
   }, [user]);
 
+  const contentPanelRef = useRef(null);
+
+  const scrollToSection = (targetTab) => {
+    requestAnimationFrame(() => {
+      setTimeout(() => {
+        const specificSection = document.getElementById(`section-${targetTab}`);
+        const targetElement = specificSection || contentPanelRef.current || document.getElementById('dashboard-content-panel');
+        if (targetElement) {
+          const header = document.querySelector('header');
+          const headerHeight = header ? header.getBoundingClientRect().height : 90;
+          const elementPosition = targetElement.getBoundingClientRect().top;
+          const offsetPosition = elementPosition + window.pageYOffset - (headerHeight + 20);
+          window.scrollTo({
+            top: Math.max(0, offsetPosition),
+            behavior: 'smooth'
+          });
+        }
+      }, 50);
+    });
+  };
+
   // Sync tab with URL search parameter
   useEffect(() => {
     if (tabParam) {
       setActiveTab(tabParam);
+      scrollToSection(tabParam);
     } else {
       setActiveTab('profile');
     }
@@ -331,11 +387,12 @@ const AccountDashboard = () => {
   const handleTabChange = (newTab) => {
     setActiveTab(newTab);
     setSearchParams({ tab: newTab });
+    scrollToSection(newTab);
   };
 
   useEffect(() => {
     if (!isAuthenticated) {
-      navigate('/login');
+      navigate('/login', { state: { from: location.pathname + location.search } });
     } else if (user?.role === 'SERVICE_PROVIDER') {
       navigate('/provider-dashboard', { replace: true });
     } else {
@@ -354,8 +411,23 @@ const AccountDashboard = () => {
       setAvatar(user.avatar || user.profilePicture || '');
       loadAdoptionData();
       loadTransportData();
+      if (activeTab === 'orders') {
+        loadUserHistory();
+      }
     }
   }, [user, activeTab]);
+
+  useEffect(() => {
+    const handleOrderEvents = () => {
+      loadUserHistory();
+    };
+    window.addEventListener('pet-order-created', handleOrderEvents);
+    window.addEventListener('order-created', handleOrderEvents);
+    return () => {
+      window.removeEventListener('pet-order-created', handleOrderEvents);
+      window.removeEventListener('order-created', handleOrderEvents);
+    };
+  }, [user]);
 
   useEffect(() => {
     loadTransportData();
@@ -496,10 +568,33 @@ const AccountDashboard = () => {
   const loadUserHistory = async () => {
     setHistoryLoading(true);
     try {
-      const ordersData = await apiRequest('/orders/myorders');
-      if (ordersData && ordersData.success) {
-        setOrders(ordersData.orders || []);
+      let combinedOrders = [];
+      try {
+        const ordersData = await apiRequest('/orders/myorders');
+        if (ordersData && ordersData.success && Array.isArray(ordersData.orders)) {
+          combinedOrders = [...ordersData.orders];
+        }
+      } catch (err) {
+        console.warn('Could not fetch online orders:', err);
       }
+
+      // Merge local pet purchase orders & disk orders
+      try {
+        const storedPetOrders = getStoredPetOrders(user);
+        const existingOrderIds = new Set(combinedOrders.map(o => (o._id || o.id)?.toString()));
+        for (const petOrder of storedPetOrders) {
+          const pId = (petOrder._id || petOrder.id)?.toString();
+          if (!existingOrderIds.has(pId)) {
+            combinedOrders.push(petOrder);
+            existingOrderIds.add(pId);
+          }
+        }
+      } catch (e) {
+        console.warn('Error merging local pet orders:', e);
+      }
+
+      combinedOrders.sort((a, b) => new Date(b.createdAt || b.created_at || 0) - new Date(a.createdAt || a.created_at || 0));
+      setOrders(combinedOrders);
       const prescData = await apiRequest('/prescriptions/my');
       if (prescData && prescData.success) {
         setPrescriptions(prescData.prescriptions || []);
@@ -701,6 +796,71 @@ const AccountDashboard = () => {
     }
   };
 
+  const handleCreateRelocationRequest = (e) => {
+    e.preventDefault();
+    const cleanPhone = (relocContactPhone || user?.mobile || user?.phone || '').replace(/\D/g, '');
+    if (!cleanPhone || cleanPhone.length !== 10) {
+      toast.error('Please enter a valid 10-digit mobile number.');
+      return;
+    }
+    if (!relocPetName.trim() || !relocPetBreed.trim()) {
+      toast.error('Please specify your pet name and breed.');
+      return;
+    }
+    if (!relocDepCity.trim() || !relocDestCity.trim()) {
+      toast.error('Please enter pickup and destination cities.');
+      return;
+    }
+
+    setIsSubmittingRelocation(true);
+    try {
+      saveTransportEnquiry({
+        providerId: 'TRP-101',
+        providerName: 'Josh Pets Hub Air & Road Pet Relocators (Central Hub)',
+        userId: user?._id || user?.id || 'usr-custom',
+        userName: relocContactName.trim() || user?.name || 'Pet Parent',
+        customerName: relocContactName.trim() || user?.name || 'Pet Parent',
+        userEmail: user?.email || '',
+        customerEmail: user?.email || '',
+        userPhone: cleanPhone,
+        customerPhone: cleanPhone,
+        ownerPhone: cleanPhone,
+        relocationType: relocType,
+        departureCity: relocDepCity.trim(),
+        destinationCity: relocDestCity.trim(),
+        expectedDate: relocDate || 'Flexible / Next 15 Days',
+        preferredModes: [relocMode],
+        petSpecies: relocPetSpecies,
+        petName: relocPetName.trim(),
+        petBreed: relocPetBreed.trim(),
+        petAge: relocPetAge.trim() || 'Adult',
+        petWeight: relocPetWeight.trim() || '12 kg',
+        vaccinationStatus: 'Fully Vaccinated',
+        travelFriendly: 'Yes, Travel Friendly',
+        note: relocNote.trim(),
+        requestType: 'enquiry',
+        status: 'Under Review',
+        coordinatorPhone: '+91 98765 43210'
+      });
+
+      toast.success('🎉 Your pet relocation request has been submitted successfully!');
+      setShowNewRelocationModal(false);
+      setRelocPetName('');
+      setRelocPetBreed('');
+      setRelocPetAge('');
+      setRelocPetWeight('');
+      setRelocDepCity('');
+      setRelocDestCity('');
+      setRelocDate('');
+      setRelocNote('');
+      loadTransportData();
+    } catch (err) {
+      toast.error('Could not submit relocation request. Please try again.');
+    } finally {
+      setIsSubmittingRelocation(false);
+    }
+  };
+
   const loadAdoptionData = () => {
     if (user) {
       const myApps = getUserAdoptionApplications(user);
@@ -877,7 +1037,7 @@ const AccountDashboard = () => {
       city: addrCity.trim(),
       state: addrState.trim(),
       postalCode: addrZip.trim(),
-      isDefault: !user?.addresses || user.addresses.length === 0
+      isDefault: !displayedAddresses || displayedAddresses.length === 0
     };
 
     const result = await dispatch(addUserAddress(payload));
@@ -1059,13 +1219,13 @@ const AccountDashboard = () => {
         </aside>
 
         {/* Dynamic Display Panel (Right 9 Columns) */}
-        <div className="lg:col-span-9 bg-white border border-beige p-6 md:p-8 shadow-sm rounded-xl">
+        <div ref={contentPanelRef} id="dashboard-content-panel" className="lg:col-span-9 bg-white border border-beige p-6 md:p-8 shadow-sm rounded-xl">
           
           {/* =========================================================================
               TAB: SERVICE BOOKINGS
              ========================================================================= */}
           {activeTab === 'bookings' && (
-            <div className="space-y-6">
+            <div id="section-bookings" className="space-y-6 scroll-mt-24">
               <h2 className="font-serif text-lg font-bold text-primary border-b border-beige pb-2">
                 Service Bookings
               </h2>
@@ -1183,7 +1343,7 @@ const AccountDashboard = () => {
               TAB 1: ORDER HISTORY
              ========================================================================= */}
           {activeTab === 'orders' && (
-            <div className="space-y-6">
+            <div id="section-orders" className="space-y-6 scroll-mt-24">
               <h2 className="font-serif text-lg font-bold text-primary border-b border-beige pb-2">
                 Order History
               </h2>
@@ -1192,68 +1352,110 @@ const AccountDashboard = () => {
                 <p className="text-xs text-gray-400">Loading orders...</p>
               ) : orders.length > 0 ? (
                 <div className="space-y-4">
-                  {orders.map((order) => (
-                    <div key={order._id} className="border border-beige p-5 text-xs space-y-4 rounded-xl">
-                      {/* Top metadata */}
-                      <div className="flex flex-wrap justify-between items-center bg-secondary p-3 border-b border-beige gap-2 rounded-lg">
-                        <div>
-                          <p className="text-gray-400 font-medium">ORDER ID</p>
-                          <p className="font-bold text-primary">{order._id}</p>
-                        </div>
-                        <div>
-                          <p className="text-gray-400 font-medium">DATE PLACED</p>
-                          <p className="font-semibold text-primary">{new Date(order.createdAt).toLocaleDateString()}</p>
-                        </div>
-                        <div>
-                          <p className="text-gray-400 font-medium">SHIPPING STATUS</p>
-                          <span className={`font-bold uppercase ${
-                            order.shippingStatus === 'Delivered' ? 'text-green-600' :
-                            order.shippingStatus === 'Cancelled' ? 'text-red-500' : 'text-accent'
-                          }`}>{order.shippingStatus}</span>
-                        </div>
-                        <div>
-                          <p className="text-gray-400 font-medium">TOTAL AMOUNT</p>
-                          <p className="font-bold text-primary">₹{order.pricing?.total || order.total || 0}</p>
-                        </div>
-                      </div>
+                  {orders.map((order) => {
+                    const orderId = order._id || order.id || 'ORD-UNKNOWN';
+                    const orderDate = new Date(order.createdAt || order.created_at || Date.now()).toLocaleDateString('en-IN', {
+                      day: 'numeric',
+                      month: 'short',
+                      year: 'numeric'
+                    });
+                    const orderItemsList = order.orderItems || order.order_items || [];
+                    const tracking = order.trackingNumber || order.tracking_number || order.trackingCode || 'TRK-Active';
+                    const totalAmt = order.pricing?.total ?? (order.total || order.total_amount || 0);
 
-                      {/* Items Row */}
-                      <div className="space-y-3">
-                        {(order.orderItems || []).map((item, idx) => (
-                          <div key={idx} className="flex justify-between items-center gap-4">
-                            <div className="flex items-center gap-3">
-                              <img src={item.image || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=800&auto=format&fit=crop'} alt={item.name} className="w-10 h-10 object-cover bg-gray-100 border border-beige rounded-md" />
-                              <div>
-                                <p className="font-semibold text-primary truncate max-w-xs">{item.name}</p>
-                                <p className="text-[10px] text-gray-400">Qty: {item.quantity} • Price: ₹{item.price}</p>
-                              </div>
-                            </div>
-                            <span className="font-bold text-primary">₹{(item.price || 0) * (item.quantity || 1)}</span>
+                    return (
+                      <div key={orderId} className="border border-beige p-5 text-xs space-y-4 rounded-xl bg-white shadow-2xs">
+                        {/* Top metadata */}
+                        <div className="flex flex-wrap justify-between items-center bg-secondary p-3 border-b border-beige gap-2 rounded-lg">
+                          <div>
+                            <p className="text-gray-400 font-medium">ORDER ID</p>
+                            <p className="font-bold text-primary font-mono">{orderId}</p>
                           </div>
-                        ))}
-                      </div>
+                          <div>
+                            <p className="text-gray-400 font-medium">DATE PLACED</p>
+                            <p className="font-semibold text-primary">{orderDate}</p>
+                          </div>
+                          <div>
+                            <p className="text-gray-400 font-medium">SHIPPING STATUS</p>
+                            <span className={`font-bold uppercase ${
+                              (order.shippingStatus || order.shipping_status) === 'Delivered' ? 'text-green-600' :
+                              (order.shippingStatus || order.shipping_status) === 'Cancelled' ? 'text-red-500' : 'text-accent'
+                            }`}>{order.shippingStatus || order.shipping_status || 'Processing'}</span>
+                          </div>
+                          <div>
+                            <p className="text-gray-400 font-medium">TOTAL AMOUNT</p>
+                            <p className="font-bold text-primary">₹{Number(totalAmt).toLocaleString('en-IN')}</p>
+                          </div>
+                        </div>
 
-                      {/* Tracking detail */}
-                      <div className="flex flex-wrap justify-between items-center border-t border-beige pt-3 text-[11px] gap-2">
-                        <span className="text-gray-400 font-semibold">Tracking Code: <strong>{order.trackingNumber}</strong></span>
-                        <div className="flex items-center gap-2">
-                          {order.prescriptionId && (
-                            <span className="px-2 py-0.5 bg-red-50 border border-red-200 text-red-700 font-semibold uppercase text-[9px] rounded">
-                              Prescription order under review
+                        {/* Order Type Badge (e.g. Pet Purchase) */}
+                        {order.orderType === 'PET_PURCHASE' && (
+                          <div className="flex items-center gap-2">
+                            <span className="px-2.5 py-0.5 bg-amber-100 text-amber-900 border border-amber-300 rounded-md text-[10px] font-black uppercase tracking-wider flex items-center gap-1 shadow-2xs">
+                              🐾 Certified Pet Purchase
                             </span>
-                          )}
-                          <button
-                            type="button"
-                            onClick={() => handleDownloadOrderBill(order)}
-                            className="px-3 py-1 bg-[#0F2E23] hover:bg-[#163f30] text-[#D4AF37] hover:text-white rounded-lg text-[10.5px] font-bold shadow-xs transition inline-flex items-center gap-1.5 cursor-pointer active:scale-95"
-                          >
-                            <Download size={11} />
-                            <span>Download Bill</span>
-                          </button>
+                            <span className="text-[11px] text-slate-500 font-medium">
+                              Escrow Verified • Direct Breeder / Seller Listing
+                            </span>
+                          </div>
+                        )}
+
+                        {/* Items Row */}
+                        <div className="space-y-3">
+                          {orderItemsList.map((item, idx) => {
+                            const itPrice = Number(item.price) || 0;
+                            const itQty = item.quantity || 1;
+                            return (
+                              <div key={idx} className="flex justify-between items-center gap-4">
+                                <div className="flex items-center gap-3">
+                                  <img 
+                                    src={item.image || 'https://images.unsplash.com/photo-1548199973-03cce0bbc87b?q=80&w=800'} 
+                                    alt={item.name} 
+                                    className="w-12 h-12 object-cover bg-gray-100 border border-beige rounded-lg shadow-2xs" 
+                                    onError={(e) => {
+                                      e.currentTarget.onerror = null;
+                                      e.currentTarget.src = 'https://images.unsplash.com/photo-1548199973-03cce0bbc87b?q=80&w=800';
+                                    }}
+                                  />
+                                  <div>
+                                    <p className="font-bold text-primary text-xs truncate max-w-xs sm:max-w-md">{item.name}</p>
+                                    <p className="text-[10px] text-gray-500 mt-0.5">
+                                      Qty: {itQty} • Price: ₹{itPrice.toLocaleString('en-IN')}
+                                      {item.breed ? ` • Breed: ${item.breed}` : ''}
+                                      {item.sellerName ? ` • Seller: ${item.sellerName}` : ''}
+                                    </p>
+                                  </div>
+                                </div>
+                                <span className="font-bold text-primary text-xs">₹{(itPrice * itQty).toLocaleString('en-IN')}</span>
+                              </div>
+                            );
+                          })}
+                        </div>
+
+                        {/* Tracking detail */}
+                        <div className="flex flex-wrap justify-between items-center border-t border-beige pt-3 text-[11px] gap-2">
+                          <span className="text-gray-400 font-semibold">
+                            Tracking Code: <strong className="text-slate-800 font-mono">{tracking}</strong>
+                          </span>
+                          <div className="flex items-center gap-2">
+                            {order.prescriptionId && (
+                              <span className="px-2 py-0.5 bg-red-50 border border-red-200 text-red-700 font-semibold uppercase text-[9px] rounded">
+                                Prescription order under review
+                              </span>
+                            )}
+                            <button
+                              type="button"
+                              onClick={() => handleDownloadOrderBill(order)}
+                              className="px-3 py-1 bg-[#0F2E23] hover:bg-[#163f30] text-[#D4AF37] hover:text-white rounded-lg text-[10.5px] font-bold shadow-xs transition inline-flex items-center gap-1.5 cursor-pointer active:scale-95"
+                            >
+                              <Download size={11} />
+                              <span>Download Bill</span>
+                            </button>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               ) : (
                 <div className="p-4 lg:p-10 border border-dashed border-[#d4af37]/40 rounded-2xl text-center space-y-3 bg-[#fdfaf2] shadow-sm">
@@ -1282,7 +1484,7 @@ const AccountDashboard = () => {
               TAB 2: MY ADOPTION ENQUIRIES & APPLICATION STATUS
              ========================================================================= */}
           {activeTab === 'my-applications' && (
-            <div className="space-y-6">
+            <div id="section-my-applications" className="space-y-6 scroll-mt-24">
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-beige pb-3 gap-2">
                 <div>
                   <h2 className="font-serif text-lg font-bold text-primary">
@@ -1437,7 +1639,7 @@ const AccountDashboard = () => {
               TAB 3: MY LISTED PETS & RECEIVED APPLICANTS TRACKING
              ========================================================================= */}
           {activeTab === 'adoption-listings' && (
-            <div className="space-y-6">
+            <div id="section-adoption-listings" className="space-y-6 scroll-mt-24">
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-beige pb-3 gap-2">
                 <div>
                   <h2 className="font-serif text-lg font-bold text-primary">
@@ -1659,7 +1861,7 @@ const AccountDashboard = () => {
               TAB 4: PRESCRIPTION HISTORY
              ========================================================================= */}
           {activeTab === 'prescriptions' && (
-            <div className="space-y-6">
+            <div id="section-prescriptions" className="space-y-6 scroll-mt-24">
               <h2 className="font-serif text-lg font-bold text-primary border-b border-beige pb-2">
                 Prescription Uploads
               </h2>
@@ -1740,7 +1942,7 @@ const AccountDashboard = () => {
               TAB 5: ADDRESS BOOK
              ========================================================================= */}
           {activeTab === 'addresses' && (
-            <div className="space-y-6">
+            <div id="section-addresses" className="space-y-6 scroll-mt-24">
               <div className="flex justify-between items-center border-b border-beige pb-3">
                 <h2 className="font-serif text-lg font-bold text-primary">
                   Shipping Addresses
@@ -1835,33 +2037,36 @@ const AccountDashboard = () => {
               )}
 
               {/* Address list */}
-              {user.addresses && user.addresses.length > 0 ? (
+              {displayedAddresses && displayedAddresses.length > 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {user.addresses.map((a) => (
-                    <div key={a._id} className="border border-[#e6c968]/50 p-5 text-xs flex justify-between items-start rounded-2xl bg-white shadow-xs hover:border-[#d4af37] transition">
-                      <div className="flex items-start gap-3">
-                        <div className="w-9 h-9 bg-[#f8efcd] text-[#0F2E23] rounded-full flex items-center justify-center border border-[#e6c968] shrink-0 mt-0.5">
-                          <MapPin size={16} />
+                  {displayedAddresses.map((a, idx) => {
+                    const addrId = a._id || a.id || `addr-${idx}`;
+                    return (
+                      <div key={addrId} className="border border-[#e6c968]/50 p-5 text-xs flex justify-between items-start rounded-2xl bg-white shadow-xs hover:border-[#d4af37] transition">
+                        <div className="flex items-start gap-3">
+                          <div className="w-9 h-9 bg-[#f8efcd] text-[#0F2E23] rounded-full flex items-center justify-center border border-[#e6c968] shrink-0 mt-0.5">
+                            <MapPin size={16} />
+                          </div>
+                          <div className="space-y-1">
+                            <p className="font-bold text-primary flex items-center gap-2">
+                              <span>{a.name}</span> 
+                              {a.isDefault && <span className="bg-[#f8efcd] text-[#0F2E23] border border-[#e6c968] text-[9px] px-1.5 py-0.5 uppercase font-bold rounded">Default</span>}
+                            </p>
+                            <p className="text-gray-500">{a.streetAddress}</p>
+                            <p className="text-gray-500">{a.city}, {a.state} - {a.postalCode}</p>
+                            <p className="text-gray-400">Phone: {a.phone}</p>
+                          </div>
                         </div>
-                        <div className="space-y-1">
-                          <p className="font-bold text-primary flex items-center gap-2">
-                            <span>{a.name}</span> 
-                            {a.isDefault && <span className="bg-[#f8efcd] text-[#0F2E23] border border-[#e6c968] text-[9px] px-1.5 py-0.5 uppercase font-bold rounded">Default</span>}
-                          </p>
-                          <p className="text-gray-500">{a.streetAddress}</p>
-                          <p className="text-gray-500">{a.city}, {a.state} - {a.postalCode}</p>
-                          <p className="text-gray-400">Phone: {a.phone}</p>
-                        </div>
+                        <button
+                          onClick={() => handleRemoveAddress(addrId)}
+                          className="text-gray-400 hover:text-red-500 p-1 cursor-pointer transition"
+                          title="Delete Address"
+                        >
+                          <Trash2 size={16} />
+                        </button>
                       </div>
-                      <button
-                        onClick={() => handleRemoveAddress(a._id)}
-                        className="text-gray-400 hover:text-red-500 p-1 cursor-pointer transition"
-                        title="Delete Address"
-                      >
-                        <Trash2 size={16} />
-                      </button>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               ) : (
                 <div className="p-4 lg:p-10 border border-dashed border-[#d4af37]/40 rounded-2xl text-center space-y-3 bg-[#fdfaf2] shadow-sm">
@@ -1890,7 +2095,7 @@ const AccountDashboard = () => {
               TAB 6: PROFILE DETAILS
              ========================================================================= */}
           {activeTab === 'profile' && (
-            <div className="space-y-6">
+            <div id="section-profile" className="space-y-6 scroll-mt-24">
               <h2 className="font-serif text-lg font-bold text-primary border-b border-beige pb-2">
                 Profile Details
               </h2>
@@ -2245,7 +2450,7 @@ const AccountDashboard = () => {
               TAB: PET RELOCATION & TRANSPORT ENQUIRIES & BOOKINGS
              ========================================================================= */}
           {activeTab === 'transport-enquiries' && (
-            <div className="space-y-6">
+            <div id="section-transport-enquiries" className="space-y-6 scroll-mt-24">
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-beige pb-4">
                 <div>
                   <h2 className="font-serif text-lg font-bold text-primary">
@@ -2256,13 +2461,22 @@ const AccountDashboard = () => {
                   </p>
                 </div>
 
-                <Link
-                  to="/transport?action=new-request#relocation-enquiry-form"
-                  className="px-3.5 py-2 bg-[#0F2E23] hover:bg-[#163f30] text-[#d4af37] hover:text-white rounded-lg text-xs font-bold transition flex items-center gap-1.5 shadow-sm cursor-pointer"
-                >
-                  <Plus size={14} />
-                  <span>New Relocation Request</span>
-                </Link>
+                {userTransportEnquiries.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (user) {
+                        setRelocContactName(user.name || '');
+                        setRelocContactPhone(user.mobile || user.phone || '');
+                      }
+                      setShowNewRelocationModal(true);
+                    }}
+                    className="px-3.5 py-2 bg-[#0F2E23] hover:bg-[#163f30] text-[#d4af37] hover:text-white rounded-lg text-xs font-bold transition flex items-center gap-1.5 shadow-sm cursor-pointer"
+                  >
+                    <Plus size={14} />
+                    <span>New Relocation Request</span>
+                  </button>
+                )}
               </div>
 
               {userTransportEnquiries.length === 0 ? (
@@ -2275,13 +2489,20 @@ const AccountDashboard = () => {
                     Planning to move your dog, cat, or bird across cities? Submit a quick request or book a certified transporter for doorstep relocation.
                   </p>
                   <div className="pt-3 flex flex-wrap items-center justify-center gap-3">
-                    <Link
-                      to="/transport?action=new-request#relocation-enquiry-form"
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (user) {
+                          setRelocContactName(user.name || '');
+                          setRelocContactPhone(user.mobile || user.phone || '');
+                        }
+                        setShowNewRelocationModal(true);
+                      }}
                       className="px-5 py-2.5 bg-[#0F2E23] text-[#d4af37] hover:text-white hover:bg-[#163f30] rounded-xl text-xs font-bold shadow transition inline-flex items-center gap-1.5 cursor-pointer"
                     >
                       <Plus size={14} />
                       <span>New Relocation Request</span>
-                    </Link>
+                    </button>
                     <Link
                       to="/transport"
                       className="px-5 py-2.5 bg-white border border-[#d4af37] text-[#0F2E23] hover:bg-stone-50 rounded-xl text-xs font-bold shadow-sm transition inline-flex items-center gap-1.5 cursor-pointer"
@@ -2475,13 +2696,6 @@ const AccountDashboard = () => {
 
       </div>
 
-      <LogoutConfirmModal
-        isOpen={showLogoutConfirm}
-        onClose={() => setShowLogoutConfirm(false)}
-        onConfirm={handleConfirmLogout}
-        userName={user?.name}
-      />
-
       {/* Payment Bill / Tax Invoice Modal */}
       {showBillModal && membership && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
@@ -2572,6 +2786,231 @@ const AccountDashboard = () => {
         onConfirm={handleConfirmLogout}
         userName={user?.name}
       />
+
+      {/* ================= MODAL: NEW PET RELOCATION REQUEST ================= */}
+      {showNewRelocationModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-xs animate-in fade-in">
+          <div className="bg-white rounded-2xl sm:rounded-3xl max-w-2xl w-full p-5 sm:p-7 shadow-2xl border border-stone-200 space-y-5 max-h-[90vh] overflow-y-auto">
+            {/* Header */}
+            <div className="flex justify-between items-center border-b border-beige pb-3">
+              <div className="flex items-center gap-2.5">
+                <div className="w-10 h-10 rounded-xl bg-[#f8efcd] text-[#0F2E23] flex items-center justify-center border border-[#e6c968]">
+                  <Truck size={20} />
+                </div>
+                <div>
+                  <h3 className="font-serif font-bold text-base sm:text-lg text-[#0F2E23]">New Pet Relocation Request</h3>
+                  <p className="text-xs text-gray-500">Doorstep cab, railway 1st AC, or air shipment with veterinary care</p>
+                </div>
+              </div>
+              <button 
+                type="button"
+                onClick={() => setShowNewRelocationModal(false)}
+                className="p-1.5 rounded-full text-gray-400 hover:text-black hover:bg-gray-100 transition cursor-pointer"
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            {/* Form */}
+            <form onSubmit={handleCreateRelocationRequest} className="space-y-4 text-xs">
+              {/* 1. Pet Details */}
+              <div className="space-y-2 bg-[#fdfaf2] p-3.5 rounded-xl border border-[#e6c968]/50">
+                <span className="text-[10px] font-bold uppercase text-[#0F2E23] tracking-wider block">1. Pet Information</span>
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                  <div>
+                    <label className="text-[10px] font-semibold text-gray-500 block mb-1">Pet Species *</label>
+                    <select
+                      value={relocPetSpecies}
+                      onChange={(e) => setRelocPetSpecies(e.target.value)}
+                      className="w-full bg-white border border-stone-200 rounded-lg px-2.5 py-2 text-xs focus:outline-none focus:border-[#0F2E23]"
+                    >
+                      <option value="Dog">Dog</option>
+                      <option value="Cat">Cat</option>
+                      <option value="Bird">Bird</option>
+                      <option value="Rabbit">Rabbit</option>
+                      <option value="Other">Other Pet</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-semibold text-gray-500 block mb-1">Pet Name *</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. Bruno"
+                      required
+                      value={relocPetName}
+                      onChange={(e) => setRelocPetName(e.target.value)}
+                      className="w-full bg-white border border-stone-200 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-[#0F2E23]"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-semibold text-gray-500 block mb-1">Breed *</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. Golden Retriever"
+                      required
+                      value={relocPetBreed}
+                      onChange={(e) => setRelocPetBreed(e.target.value)}
+                      className="w-full bg-white border border-stone-200 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-[#0F2E23]"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-semibold text-gray-500 block mb-1">Age (Optional)</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. 2 Years"
+                      value={relocPetAge}
+                      onChange={(e) => setRelocPetAge(e.target.value)}
+                      className="w-full bg-white border border-stone-200 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-[#0F2E23]"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-semibold text-gray-500 block mb-1">Weight (Optional)</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. 15 kg"
+                      value={relocPetWeight}
+                      onChange={(e) => setRelocPetWeight(e.target.value)}
+                      className="w-full bg-white border border-stone-200 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-[#0F2E23]"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* 2. Route & Journey Details */}
+              <div className="space-y-2 bg-[#fdfaf2] p-3.5 rounded-xl border border-[#e6c968]/50">
+                <span className="text-[10px] font-bold uppercase text-[#0F2E23] tracking-wider block">2. Travel & Route Details</span>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-[10px] font-semibold text-gray-500 block mb-1">Relocation Type *</label>
+                    <select
+                      value={relocType}
+                      onChange={(e) => setRelocType(e.target.value)}
+                      className="w-full bg-white border border-stone-200 rounded-lg px-2.5 py-2 text-xs focus:outline-none focus:border-[#0F2E23]"
+                    >
+                      <option value="Inter-State Relocation">Inter-State Relocation</option>
+                      <option value="Intra-City Pet Taxi">Intra-City Pet Taxi</option>
+                      <option value="International Air Relocation">International Air Relocation</option>
+                      <option value="Airport Pickup & Transit">Airport Pickup & Transit</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-semibold text-gray-500 block mb-1">Preferred Transit Mode</label>
+                    <select
+                      value={relocMode}
+                      onChange={(e) => setRelocMode(e.target.value)}
+                      className="w-full bg-white border border-stone-200 rounded-lg px-2.5 py-2 text-xs focus:outline-none focus:border-[#0F2E23]"
+                    >
+                      <option value="Road AC Pet Cab">Road AC Dedicated Pet Cab</option>
+                      <option value="Indian Railways 1st AC">Indian Railways 1st AC Coupé</option>
+                      <option value="Domestic Air Flight">Domestic Air Cargo / Cabin</option>
+                      <option value="Express Doorstep Multimodal">Express Doorstep Multimodal</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-semibold text-gray-500 block mb-1">Pickup City / Hub *</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. Mumbai / Delhi"
+                      required
+                      value={relocDepCity}
+                      onChange={(e) => setRelocDepCity(e.target.value)}
+                      className="w-full bg-white border border-stone-200 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-[#0F2E23]"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-semibold text-gray-500 block mb-1">Destination City / Hub *</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. Bengaluru / Hyderabad"
+                      required
+                      value={relocDestCity}
+                      onChange={(e) => setRelocDestCity(e.target.value)}
+                      className="w-full bg-white border border-stone-200 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-[#0F2E23]"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-semibold text-gray-500 block mb-1">Expected Travel Date</label>
+                    <input
+                      type="date"
+                      min={new Date().toISOString().split('T')[0]}
+                      value={relocDate}
+                      onChange={(e) => setRelocDate(e.target.value)}
+                      className="w-full bg-white border border-stone-200 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-[#0F2E23]"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* 3. Contact & Care Notes */}
+              <div className="space-y-2 bg-[#fdfaf2] p-3.5 rounded-xl border border-[#e6c968]/50">
+                <span className="text-[10px] font-bold uppercase text-[#0F2E23] tracking-wider block">3. Contact & Special Notes</span>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-[10px] font-semibold text-gray-500 block mb-1">Contact Person Name</label>
+                    <input
+                      type="text"
+                      placeholder="Your Full Name"
+                      value={relocContactName}
+                      onChange={(e) => setRelocContactName(e.target.value)}
+                      className="w-full bg-white border border-stone-200 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-[#0F2E23]"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-semibold text-gray-500 block mb-1">10-Digit Mobile Number *</label>
+                    <input
+                      type="tel"
+                      placeholder="10-digit mobile number"
+                      required
+                      maxLength={10}
+                      value={relocContactPhone}
+                      onChange={(e) => setRelocContactPhone(e.target.value.replace(/\D/g, '').slice(0, 10))}
+                      className="w-full bg-white border border-stone-200 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-[#0F2E23]"
+                    />
+                  </div>
+                  <div className="sm:col-span-2">
+                    <label className="text-[10px] font-semibold text-gray-500 block mb-1">Notes / Health Instructions (Optional)</label>
+                    <textarea
+                      rows={2}
+                      placeholder="e.g. Pet requires frequent water breaks and familiar blanket in crate..."
+                      value={relocNote}
+                      onChange={(e) => setRelocNote(e.target.value)}
+                      className="w-full bg-white border border-stone-200 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-[#0F2E23]"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Buttons */}
+              <div className="pt-2 flex flex-col sm:flex-row justify-end gap-2 border-t border-beige">
+                <button
+                  type="button"
+                  onClick={() => setShowNewRelocationModal(false)}
+                  className="px-4 py-2.5 border border-stone-300 rounded-xl text-slate-700 font-bold hover:bg-stone-50 transition cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isSubmittingRelocation}
+                  className="px-6 py-2.5 bg-[#0F2E23] hover:bg-black text-[#ffd000] font-bold rounded-xl transition shadow-md flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50"
+                >
+                  {isSubmittingRelocation ? (
+                    <>
+                      <div className="w-3 h-3 border-2 border-[#ffd000] border-t-transparent rounded-full animate-spin"></div>
+                      SUBMITTING...
+                    </>
+                  ) : (
+                    <>
+                      <Check size={14} />
+                      <span>Submit Relocation Request</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
     </div>
   );

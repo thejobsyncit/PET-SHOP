@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
-import { Heart, ShoppingBag, Eye, ShieldAlert, Check, X, ClipboardList, Minus, Plus } from 'lucide-react';
+import { Heart, ShoppingBag, Eye, ShieldAlert, Check, X, ClipboardList, Minus, Plus, Share2 } from 'lucide-react';
 import { addToCartAPI } from '../../store/slices/cartSlice.js';
 import { toggleWishlistAPI, getWishlistItemIdStr } from '../../store/slices/wishlistSlice.js';
 import { openAuthModal } from '../../store/slices/authSlice.js';
@@ -42,6 +42,22 @@ const ProductCard = ({ product }) => {
       }
     } else {
       toast.error('Could not update wishlist.');
+    }
+  };
+
+  const handleShare = (e) => {
+    e.stopPropagation();
+    try {
+      const targetSlug = product.slug || product._id || product.id;
+      const shareUrl = `${window.location.origin}/product/${targetSlug}?shared=true`;
+      if (navigator.clipboard) {
+        navigator.clipboard.writeText(shareUrl);
+        toast.success('Product link copied to clipboard!');
+      } else {
+        toast.success(`Share URL: ${shareUrl}`);
+      }
+    } catch (_) {
+      toast.success('Product link copied to clipboard!');
     }
   };
 
@@ -114,7 +130,19 @@ const ProductCard = ({ product }) => {
       return;
     }
 
-    const safeQty = Math.max(1, Math.min(pStock - currentInCartQty, parseInt(quantity, 10) || 1));
+    const requestedQty = parseInt(quantity, 10) || 1;
+    if (requestedQty > pStock) {
+      toast.error(`Only ${pStock} unit${pStock === 1 ? '' : 's'} available in stock. You cannot add ${requestedQty} units.`);
+      return;
+    }
+
+    if (currentInCartQty + requestedQty > pStock) {
+      const remaining = pStock - currentInCartQty;
+      toast.error(`Only ${pStock} unit${pStock === 1 ? '' : 's'} available in total. You already have ${currentInCartQty} in cart, so you can only add ${remaining} more.`);
+      return;
+    }
+
+    const safeQty = Math.max(1, Math.min(pStock - currentInCartQty, requestedQty));
     setQuickViewOpen(false);
     setIsAdding(true);
     try {
@@ -184,6 +212,17 @@ const ProductCard = ({ product }) => {
           <Heart size={16} className={isWishlisted ? "fill-red-500 text-red-500" : ""} />
         </button>
 
+        {/* Share Button */}
+        <button
+          onClick={handleShare}
+          type="button"
+          title="Share Product"
+          aria-label="Share Product"
+          className="absolute top-16 right-4 z-20 p-2.5 bg-white/80 backdrop-blur-md border border-white hover:border-primary text-gray-400 hover:text-primary shadow-sm hover:scale-110 transition-all duration-300 rounded-full cursor-pointer"
+        >
+          <Share2 size={16} />
+        </button>
+
         {/* Image Display */}
         <div className="relative aspect-square overflow-hidden bg-white p-2">
           <img
@@ -230,7 +269,10 @@ const ProductCard = ({ product }) => {
             <span className="text-[10px] uppercase tracking-[0.25em] text-accent font-black block">
               {product.brand}
             </span>
-            <h3 className="font-serif text-base md:text-lg text-primary font-bold line-clamp-2 min-h-[48px] leading-tight group-hover:text-accent transition duration-300">
+            <h3 
+              title={product.name}
+              className="font-serif text-base md:text-lg text-primary font-bold truncate md:line-clamp-2 md:whitespace-normal min-h-0 md:min-h-[48px] leading-tight group-hover:text-accent transition duration-300"
+            >
               {product.name}
             </h3>
             
@@ -241,18 +283,22 @@ const ProductCard = ({ product }) => {
             </div>
           </div>
 
-          <div className="flex justify-between items-end pt-5 mt-4 border-t border-gray-50 border-dashed">
-            <div className="flex flex-col">
+          <div className="flex justify-between items-center gap-2 pt-4 mt-3 border-t border-gray-100">
+            <div className="flex flex-col min-w-0">
               {discountPrice ? (
-                <div className="flex items-baseline gap-2.5">
-                  <span className="text-xl font-black text-primary tracking-tight">₹{discountPrice}</span>
-                  <span className="text-sm text-gray-400 line-through font-medium">₹{price}</span>
+                <div className="flex items-baseline gap-2 flex-wrap">
+                  <span className="text-lg sm:text-xl font-black text-primary tracking-tight">₹{discountPrice}</span>
+                  <span className="text-xs sm:text-sm text-gray-400 line-through font-medium">₹{price}</span>
                 </div>
               ) : (
-                <span className="text-xl font-black text-primary tracking-tight">₹{price}</span>
+                <span className="text-lg sm:text-xl font-black text-primary tracking-tight">₹{price}</span>
               )}
             </div>
-            <span className="text-[10px] uppercase tracking-widest text-primary font-bold bg-secondary/80 px-3 py-1.5 rounded-lg shadow-sm border border-white">
+            <span className={`inline-flex items-center text-[9px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full shrink-0 border ${
+              product.petType === 'pharmacy' 
+                ? 'bg-emerald-50 text-emerald-800 border-emerald-200/80' 
+                : 'bg-stone-100 text-stone-700 border-stone-200/80'
+            }`}>
               {product.petType === 'dogs' ? 'Dogs' :
                product.petType === 'birds' ? 'Birds' :
                product.petType === 'reptiles' ? 'Reptiles' :
@@ -378,6 +424,16 @@ const ProductCard = ({ product }) => {
                   className="flex-grow btn-premium py-2.5 text-xs text-center justify-center gap-2 disabled:bg-gray-200 disabled:text-gray-400 disabled:cursor-not-allowed"
                 >
                   <ShoppingBag size={16} /> {isAdding ? 'ADDING...' : 'ADD TO CART'}
+                </button>
+
+                <button
+                  onClick={handleShare}
+                  type="button"
+                  className="p-2.5 border border-beige hover:border-primary text-gray-500 hover:text-primary transition rounded-none bg-white cursor-pointer"
+                  title="Share this product"
+                  aria-label="Share this product"
+                >
+                  <Share2 size={16} />
                 </button>
               </div>
             </div>

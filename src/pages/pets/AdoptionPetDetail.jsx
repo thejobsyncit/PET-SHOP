@@ -4,7 +4,7 @@ import { useSelector } from 'react-redux';
 import {
   Heart, ArrowLeft, MapPin, MessageSquare, ShieldCheck,
   CircleCheck, Check, User, Calendar, Award, Share2, Info, Home,
-  Sparkles, AlertCircle, ArrowRight, Lock, X
+  Sparkles, AlertCircle, ArrowRight, Lock, X, Edit3, Clock
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { formatWhatsAppTargetPhone, resolveProviderWhatsApp } from '../../utils/whatsappHelper.js';
@@ -17,6 +17,9 @@ import {
   saveAdoptionInquiry
 } from '../../data/adoptionPetsData';
 import FlyingMacawMessenger from '../../components/widgets/FlyingMacawMessenger.jsx';
+import CountryPhoneInput from '../../components/ui/CountryPhoneInput.jsx';
+import { getRequiredPhoneLength } from '../../data/countryCodes.js';
+import SharedItemAuthGate from '../../components/ui/SharedItemAuthGate.jsx';
 
 const WhatsAppIcon = ({ className = 'w-4 h-4', size = 18 }) => (
   <svg
@@ -59,19 +62,26 @@ const AdoptionPetDetail = () => {
   // Application Form States
   const [applicantName, setApplicantName] = useState('');
   const [applicantPhone, setApplicantPhone] = useState('');
+  const [applicantCountryCode, setApplicantCountryCode] = useState('+91');
+  const [applicantPhoneError, setApplicantPhoneError] = useState('');
   const [applicantEmail, setApplicantEmail] = useState('');
   const [homeType, setHomeType] = useState('Apartment');
   const [hasPetExperience, setHasPetExperience] = useState('Yes');
   const [adoptionReason, setAdoptionReason] = useState('');
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
   const [existingApplication, setExistingApplication] = useState(null);
   const [showFlyingMacaw, setShowFlyingMacaw] = useState(false);
+  const [showSuccessPopup, setShowSuccessPopup] = useState(false);
+  const [autoCloseCountdown, setAutoCloseCountdown] = useState(4);
 
   // In-App Inquiry Modal State
   const [showInquiryModal, setShowInquiryModal] = useState(false);
   const [inquiryQuestion, setInquiryQuestion] = useState('');
   const [inquirySenderName, setInquirySenderName] = useState('');
   const [inquirySenderPhone, setInquirySenderPhone] = useState('');
+  const [inquiryCountryCode, setInquiryCountryCode] = useState('+91');
+  const [inquiryPhoneError, setInquiryPhoneError] = useState('');
 
   // Check if currently logged in user is the owner/creator of this pet listing
   const isPetOwner = Boolean(
@@ -111,6 +121,25 @@ const AdoptionPetDetail = () => {
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, [id]);
+
+  // Automatically close adoption application success popup after a short period (4 seconds)
+  useEffect(() => {
+    let timer;
+    let interval;
+    if (showSuccessPopup) {
+      setAutoCloseCountdown(4);
+      interval = setInterval(() => {
+        setAutoCloseCountdown((prev) => (prev > 1 ? prev - 1 : 1));
+      }, 1000);
+      timer = setTimeout(() => {
+        setShowSuccessPopup(false);
+      }, 4000);
+    }
+    return () => {
+      if (timer) clearTimeout(timer);
+      if (interval) clearInterval(interval);
+    };
+  }, [showSuccessPopup]);
 
   // Direct WhatsApp chat connect with pet details
   const handleWhatsAppChat = (targetPet) => {
@@ -161,29 +190,78 @@ const AdoptionPetDetail = () => {
     };
   }, [id]);
 
+  // Helper to populate form fields from an existing application
+  const populateFormFromApplication = (app) => {
+    if (!app) return;
+    if (app.applicantName) setApplicantName(app.applicantName);
+    if (app.applicantCountryCode) {
+      setApplicantCountryCode(app.applicantCountryCode);
+    }
+    const cleanDigits = app.applicantRawPhone || (app.applicantPhone ? String(app.applicantPhone).replace(/\D/g, '') : '');
+    const code = app.applicantCountryCode || '+91';
+    const reqDigits = getRequiredPhoneLength(code);
+    setApplicantPhone(cleanDigits.slice(-reqDigits));
+    if (app.applicantEmail) setApplicantEmail(app.applicantEmail);
+    if (app.homeType) setHomeType(app.homeType);
+    if (app.hasPetExperience) setHasPetExperience(app.hasPetExperience);
+    if (app.adoptionReason) setAdoptionReason(app.adoptionReason);
+  };
+
   // Pre-fill user information if authenticated & check for existing application
   useEffect(() => {
     if (user) {
-      if (user.name) {
-        setApplicantName(user.name);
-        setInquirySenderName(user.name);
+      if (!existingApplication && !isEditing) {
+        if (user.name) {
+          setApplicantName(user.name);
+          setInquirySenderName(user.name);
+        }
+        if (user.mobileCountryCode || user.countryCode) {
+          const uCode = user.mobileCountryCode || user.countryCode;
+          setApplicantCountryCode(uCode);
+          setInquiryCountryCode(uCode);
+        }
+        if (user.mobile) {
+          const uCode = user.mobileCountryCode || user.countryCode || '+91';
+          const expectedLen = getRequiredPhoneLength(uCode);
+          const cleanDigits = String(user.mobile).replace(/\D/g, '');
+          const subscriberDigits = cleanDigits.slice(-expectedLen);
+          setApplicantPhone(subscriberDigits);
+          setInquirySenderPhone(subscriberDigits);
+        }
+        if (user.email) setApplicantEmail(user.email);
       }
-      if (user.mobile) {
-        setApplicantPhone(user.mobile);
-        setInquirySenderPhone(user.mobile);
-      }
-      if (user.email) setApplicantEmail(user.email);
 
       if (pet) {
         const userApps = getUserAdoptionApplications(user);
         const matchedApp = userApps.find((a) => String(a.petId) === String(pet.id));
         if (matchedApp) {
           setExistingApplication(matchedApp);
-          setIsSubmitted(true);
+          if (!isEditing) {
+            setIsSubmitted(true);
+            populateFormFromApplication(matchedApp);
+          }
         }
       }
     }
-  }, [user, pet]);
+  }, [user, pet, isEditing]);
+
+  // Handle start editing an already submitted application
+  const handleStartEdit = () => {
+    if (existingApplication) {
+      populateFormFromApplication(existingApplication);
+    }
+    setIsEditing(true);
+    setIsSubmitted(false);
+  };
+
+  // Handle cancel editing an already submitted application
+  const handleCancelEdit = () => {
+    if (existingApplication) {
+      populateFormFromApplication(existingApplication);
+      setIsSubmitted(true);
+    }
+    setIsEditing(false);
+  };
 
   // Handle in-app question inquiry submission
   const handleInquirySubmit = (e) => {
@@ -192,8 +270,24 @@ const AdoptionPetDetail = () => {
       toast.error('Please enter your question or message.');
       return;
     }
+
+    const reqDigits = getRequiredPhoneLength(inquiryCountryCode);
+    const cleanInquiryPhone = inquirySenderPhone.replace(/\D/g, '');
+    if (!cleanInquiryPhone) {
+      setInquiryPhoneError('Please enter your contact phone number.');
+      toast.error('Please enter your contact phone number.');
+      return;
+    }
+    if (cleanInquiryPhone.length !== reqDigits) {
+      const err = `Phone number must be exactly ${reqDigits} digits for ${inquiryCountryCode} (${cleanInquiryPhone.length}/${reqDigits}).`;
+      setInquiryPhoneError(err);
+      toast.error(err);
+      return;
+    }
+    setInquiryPhoneError('');
+
     const sender = inquirySenderName.trim() || user?.name || 'Prospective Adopter';
-    const contact = inquirySenderPhone.trim() || user?.mobile || '';
+    const contact = `${inquiryCountryCode} ${cleanInquiryPhone}`;
 
     saveAdoptionInquiry({
       id: 'lead_' + Date.now(),
@@ -201,6 +295,8 @@ const AdoptionPetDetail = () => {
       buyer: sender,
       pet: `${pet.name} (${pet.breed})`,
       phone: contact,
+      countryCode: inquiryCountryCode,
+      rawPhone: cleanInquiryPhone,
       email: user?.email || '',
       date: 'Just now',
       message: inquiryQuestion.trim(),
@@ -252,17 +348,35 @@ const AdoptionPetDetail = () => {
       return;
     }
 
-    if (!applicantPhone.trim()) {
+    const reqLen = getRequiredPhoneLength(applicantCountryCode);
+    const cleanPhone = String(applicantPhone || '').replace(/\D/g, '');
+    if (!cleanPhone) {
+      setApplicantPhoneError('Please enter your contact phone number.');
       toast.error('Please enter your contact phone number.');
       return;
     }
+    if (cleanPhone.length !== reqLen) {
+      const err = `Phone number must be exactly ${reqLen} digits for ${applicantCountryCode} (${cleanPhone.length}/${reqLen}).`;
+      setApplicantPhoneError(err);
+      toast.error(err);
+      return;
+    }
+    setApplicantPhoneError('');
+
     if (!adoptionReason.trim()) {
       toast.error('Please let us know why you would like to adopt this pet.');
       return;
     }
 
+    const formattedContact = `${applicantCountryCode} ${cleanPhone}`;
+
+    const isEditMode = Boolean(isEditing && existingApplication?.id);
+    const appId = isEditMode ? existingApplication.id : ('APP-' + Date.now().toString().slice(-6));
+    const createdTimestamp = isEditMode && existingApplication?.createdAt ? existingApplication.createdAt : new Date().toISOString();
+    const currentStatus = isEditMode && existingApplication?.status ? existingApplication.status : 'Submitted';
+
     const applicationData = {
-      id: 'APP-' + Date.now().toString().slice(-6),
+      id: appId,
       petId: pet.id,
       petName: pet.name,
       petBreed: pet.breed,
@@ -274,47 +388,64 @@ const AdoptionPetDetail = () => {
       guardianEmail: pet.ownerEmail || null,
       applicantId: user._id || user.id,
       applicantName: applicantName.trim() || user.name,
-      applicantPhone: applicantPhone.trim() || user.mobile,
+      applicantPhone: formattedContact,
+      applicantCountryCode,
+      applicantRawPhone: cleanPhone,
       applicantEmail: applicantEmail.trim() || user.email,
       homeType,
       hasPetExperience,
       adoptionReason: adoptionReason.trim(),
-      status: 'Submitted', // 'Submitted' | 'Under Review' | 'Contacted' | 'Approved' | 'Rejected'
-      createdAt: new Date().toISOString()
+      status: currentStatus,
+      createdAt: createdTimestamp,
+      updatedAt: new Date().toISOString()
     };
 
     saveAdoptionApplication(applicationData);
 
-    // Also register as an active lead in the provider's chat inquiries
+    // Also register or update active lead in the provider's chat inquiries
     saveAdoptionInquiry({
-      id: 'lead_' + Date.now(),
+      id: isEditMode && existingApplication?.inquiryId ? existingApplication.inquiryId : ('lead_' + Date.now()),
       petId: pet.id,
       buyer: applicantName.trim() || user.name,
       pet: `${pet.name} (${pet.breed})`,
-      phone: applicantPhone.trim() || user.mobile,
+      phone: formattedContact,
+      countryCode: applicantCountryCode,
+      rawPhone: cleanPhone,
       email: applicantEmail.trim() || user.email,
-      date: 'Just now',
-      message: `Adoption Screening Application: "${adoptionReason.trim()}" (Home: ${homeType}, Experience: ${hasPetExperience})`,
+      date: isEditMode ? 'Updated just now' : 'Just now',
+      message: `Adoption Screening Application (${isEditMode ? 'Updated' : 'New'}): "${adoptionReason.trim()}" (Home: ${homeType}, Experience: ${hasPetExperience})`,
       unread: true,
       applicationId: applicationData.id,
       messages: [
         {
           id: 'msg_' + Date.now(),
           sender: applicantName.trim() || user.name,
-          messageText: `Hello! I have submitted an official adoption screening application for ${pet.name}. Reason: "${adoptionReason.trim()}". Living in ${homeType}, Prior experience: ${hasPetExperience}. Looking forward to connecting with you!`,
+          messageText: isEditMode
+            ? `Hello! I have updated my adoption screening application for ${pet.name}. Updated reason: "${adoptionReason.trim()}". Living in ${homeType}, Prior experience: ${hasPetExperience}.`
+            : `Hello! I have submitted an official adoption screening application for ${pet.name}. Reason: "${adoptionReason.trim()}". Living in ${homeType}, Prior experience: ${hasPetExperience}. Looking forward to connecting with you!`,
           createdAt: new Date().toISOString()
         }
       ]
     });
 
     setExistingApplication(applicationData);
+    setIsEditing(false);
     setIsSubmitted(true);
-    setShowFlyingMacaw(true);
+    setShowSuccessPopup(true);
+    setAutoCloseCountdown(4);
+    if (!isEditMode) {
+      setShowFlyingMacaw(true);
+    }
 
-    toast.success(`🎉 Adoption application for ${pet.name} submitted successfully! You can track its status in your User Dashboard.`, {
-      duration: 6000,
-      icon: '🐾'
-    });
+    toast.success(
+      isEditMode
+        ? `✓ Your adoption application for ${pet.name} has been updated successfully!`
+        : `🎉 Adoption application for ${pet.name} submitted successfully! You can track its status in your User Dashboard.`,
+      {
+        duration: 5000,
+        icon: isEditMode ? '✏️' : '🐾'
+      }
+    );
   };
 
   // Handle direct WhatsApp inquiry
@@ -385,8 +516,9 @@ const AdoptionPetDetail = () => {
       </div>
 
       {/* Main Content Layout */}
-      <div className="max-w-7xl mx-auto px-4 md:px-8 mt-6">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+      <SharedItemAuthGate itemType="adoption" itemName={pet?.name} itemCategory={pet?.type}>
+        <div className="max-w-7xl mx-auto px-4 md:px-8 mt-6">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
 
           {/* =========================================================================
               LEFT COLUMN: Pet Gallery, Bio, Medical Details (7 cols)
@@ -427,12 +559,18 @@ const AdoptionPetDetail = () => {
                   <button
                     type="button"
                     onClick={() => {
+                      const shareUrl = `${window.location.origin}/adopt/${pet.id}?shared=true`;
                       if (navigator.clipboard) {
-                        navigator.clipboard.writeText(window.location.href);
+                        navigator.clipboard.writeText(shareUrl);
                         toast.success('Listing link copied to clipboard!');
+                      } else {
+                        toast.success(`Share URL: ${shareUrl}`);
                       }
+                      try {
+                        window.history.replaceState(null, '', shareUrl);
+                      } catch (_) {}
                     }}
-                    className="bg-white/90 hover:bg-white text-slate-700 p-2.5 rounded-full shadow-md transition flex items-center gap-1.5 text-xs font-bold"
+                    className="bg-white/90 hover:bg-white text-slate-700 p-2.5 rounded-full shadow-md transition flex items-center gap-1.5 text-xs font-bold cursor-pointer"
                   >
                     <Share2 size={15} /> Share
                   </button>
@@ -664,10 +802,37 @@ const AdoptionPetDetail = () => {
                         Status: {existingApplication?.status || 'Submitted'}
                       </span>
                       <h4 className="font-bold text-emerald-900 text-sm">Adoption Application Sent!</h4>
+                      <p className="text-[11px] text-slate-500 font-mono mt-0.5">
+                        Ref: <span className="font-bold text-slate-700">#{existingApplication?.id}</span>
+                      </p>
                       <p className="text-xs text-emerald-700 mt-1 leading-relaxed">
                         The guardian will reach out on your contact number to review your profile and schedule a meet & greet.
                       </p>
                     </div>
+
+                    {/* Quick Summary Box of Submitted Details */}
+                    {existingApplication && (
+                      <div className="bg-white/80 border border-emerald-200/80 rounded-xl p-3 text-left space-y-1.5 text-[11px]">
+                        <div className="flex items-center justify-between text-slate-600">
+                          <span className="font-semibold">Applicant:</span>
+                          <span className="font-bold text-slate-800">{existingApplication.applicantName}</span>
+                        </div>
+                        <div className="flex items-center justify-between text-slate-600">
+                          <span className="font-semibold">Contact:</span>
+                          <span className="font-mono font-bold text-slate-800">{existingApplication.applicantPhone}</span>
+                        </div>
+                        <div className="flex items-center justify-between text-slate-600">
+                          <span className="font-semibold">Home & Experience:</span>
+                          <span className="text-slate-800 font-medium">{existingApplication.homeType} • {existingApplication.hasPetExperience}</span>
+                        </div>
+                        {existingApplication.adoptionReason && (
+                          <div className="pt-1 border-t border-slate-100 text-slate-600">
+                            <span className="font-semibold block text-[10px] uppercase text-slate-400">Reason:</span>
+                            <p className="text-slate-700 italic line-clamp-2">"{existingApplication.adoptionReason}"</p>
+                          </div>
+                        )}
+                      </div>
+                    )}
 
                     <div className="pt-2 flex flex-col gap-2">
                       <Link
@@ -680,16 +845,37 @@ const AdoptionPetDetail = () => {
 
                       <button
                         type="button"
-                        onClick={() => setIsSubmitted(false)}
-                        className="text-xs text-[#b89228] font-bold hover:underline py-1"
+                        onClick={handleStartEdit}
+                        className="w-full py-2.5 px-3 bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300 rounded-xl font-bold text-xs shadow-2xs transition flex items-center justify-center gap-1.5 cursor-pointer"
                       >
-                        Edit / Submit New Application
+                        <Edit3 size={13} className="text-[#b89228]" />
+                        <span>Edit Application Details</span>
                       </button>
                     </div>
                   </div>
                 ) : (
                   /* CASE 3: Active Application Form */
                   <form onSubmit={handleApplicationSubmit} className="space-y-3 text-xs">
+
+                    {/* Active Edit Mode Banner */}
+                    {isEditing && existingApplication && (
+                      <div className="p-3 bg-amber-50 border border-amber-300 rounded-xl flex items-center justify-between shadow-2xs">
+                        <div className="flex items-center gap-2">
+                          <Edit3 size={15} className="text-[#b89228] shrink-0" />
+                          <div>
+                            <p className="font-bold text-slate-800 text-xs">Editing Your Application</p>
+                            <p className="text-[10px] text-slate-500">Ref: <span className="font-mono font-bold text-[#b89228]">#{existingApplication.id}</span></p>
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={handleCancelEdit}
+                          className="text-[11px] font-bold text-slate-600 hover:text-slate-900 bg-white border border-slate-200 px-2.5 py-1 rounded-lg hover:bg-slate-50 transition cursor-pointer"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    )}
 
                     {/* Non-logged in helper prompt */}
                     {!isAuthenticated && (
@@ -716,17 +902,18 @@ const AdoptionPetDetail = () => {
                       />
                     </div>
 
-                    <div className="space-y-1">
-                      <label className="font-bold text-slate-700 block">Your Contact Phone *</label>
-                      <input
-                        type="tel"
-                        placeholder="e.g. +91 98765 43210"
-                        value={applicantPhone}
-                        onChange={(e) => setApplicantPhone(e.target.value)}
-                        className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-xs focus:outline-none focus:border-[#d4af37] focus:ring-2 focus:ring-amber-200 font-medium"
-                        required
-                      />
-                    </div>
+                    <CountryPhoneInput
+                      id="applicant-phone"
+                      label="Your Contact Phone"
+                      required
+                      phone={applicantPhone}
+                      setPhone={setApplicantPhone}
+                      countryCode={applicantCountryCode}
+                      setCountryCode={setApplicantCountryCode}
+                      error={applicantPhoneError}
+                      setError={setApplicantPhoneError}
+                      theme="gold"
+                    />
 
                     <div className="grid grid-cols-2 gap-2">
                       <div className="space-y-1">
@@ -771,8 +958,17 @@ const AdoptionPetDetail = () => {
                       type="submit"
                       className="w-full py-3.5 btn-adoption-submit font-bold text-xs rounded-xl shadow-lg shadow-emerald-950/20 active:scale-95 transition-all duration-300 cursor-pointer flex items-center justify-center gap-2 group"
                     >
-                      <Heart size={16} className="transition-transform group-hover:scale-110" />
-                      <span>Submit Adoption Application</span>
+                      {isEditing ? (
+                        <>
+                          <Check size={16} className="text-white" />
+                          <span>Save & Update Application</span>
+                        </>
+                      ) : (
+                        <>
+                          <Heart size={16} className="transition-transform group-hover:scale-110" />
+                          <span>Submit Adoption Application</span>
+                        </>
+                      )}
                     </button>
 
                   </form>
@@ -876,17 +1072,18 @@ const AdoptionPetDetail = () => {
                   />
                 </div>
 
-                <div>
-                  <label className="text-xs font-bold text-slate-700 block mb-1">Contact Phone Number *</label>
-                  <input
-                    type="tel"
-                    value={inquirySenderPhone}
-                    onChange={(e) => setInquirySenderPhone(e.target.value)}
-                    placeholder="e.g. 9876543210"
-                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium focus:outline-none focus:border-[#d4af37]"
-                    required
-                  />
-                </div>
+                <CountryPhoneInput
+                  id="inquiry-phone"
+                  label="Contact Phone Number"
+                  required
+                  phone={inquirySenderPhone}
+                  setPhone={setInquirySenderPhone}
+                  countryCode={inquiryCountryCode}
+                  setCountryCode={setInquiryCountryCode}
+                  error={inquiryPhoneError}
+                  setError={setInquiryPhoneError}
+                  theme="gold"
+                />
 
                 <div>
                   <label className="text-xs font-bold text-slate-700 block mb-1">Your Question / Message *</label>
@@ -921,7 +1118,126 @@ const AdoptionPetDetail = () => {
           </div>
         )}
 
-      </div>
+        {/* Adoption Application Success Popup (Auto-closing after short period) */}
+        {showSuccessPopup && (
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="adoption-success-title"
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200"
+            onClick={() => setShowSuccessPopup(false)}
+          >
+            <div
+              onClick={(e) => e.stopPropagation()}
+              className="bg-white rounded-3xl border border-emerald-200/90 shadow-2xl max-w-md w-full overflow-hidden text-center relative animate-in zoom-in-95 duration-200 p-6 sm:p-8 space-y-5"
+            >
+              {/* Top gold & emerald gradient line */}
+              <div className="absolute top-0 left-0 right-0 h-2 bg-gradient-to-r from-emerald-500 via-[#ffd000] to-emerald-600" />
+
+              {/* Close Button (X) */}
+              <button
+                type="button"
+                onClick={() => setShowSuccessPopup(false)}
+                className="absolute top-4 right-4 text-slate-400 hover:text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-full p-1.5 transition cursor-pointer"
+                title="Close"
+                aria-label="Close"
+              >
+                <X size={16} />
+              </button>
+
+              {/* Animated Celebration Icon */}
+              <div className="relative mx-auto w-20 h-20 rounded-full bg-emerald-50 border-4 border-emerald-200 flex items-center justify-center text-emerald-600 shadow-md">
+                <Check size={40} className="stroke-[3] text-emerald-600 animate-in zoom-in duration-300" />
+                <span className="absolute -top-1 -right-1 w-7 h-7 rounded-full bg-amber-400 text-slate-900 flex items-center justify-center text-xs font-black shadow-sm">
+                  🎉
+                </span>
+              </div>
+
+              {/* Headings */}
+              <div className="space-y-1.5">
+                <div className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10.5px] font-extrabold uppercase tracking-wider border border-emerald-200">
+                  <Sparkles size={12} className="text-amber-600" />
+                  <span>Adoption Application {isEditing ? 'Updated' : 'Submitted'}</span>
+                </div>
+                <h3 id="adoption-success-title" className="text-xl sm:text-2xl font-serif font-bold text-slate-900">
+                  Application Received!
+                </h3>
+                <p className="text-xs text-slate-600 max-w-xs mx-auto leading-relaxed">
+                  Your adoption application for <strong>{pet?.name}</strong> has been submitted successfully to the pet guardian.
+                </p>
+              </div>
+
+              {/* Summary Details */}
+              <div className="bg-emerald-50/70 border border-emerald-200 rounded-2xl p-3.5 text-left text-xs space-y-1.5">
+                <div className="flex items-center justify-between text-slate-600">
+                  <span className="font-semibold">Reference ID:</span>
+                  <span className="font-mono font-bold text-emerald-800">
+                    #{existingApplication?.id}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between text-slate-600">
+                  <span className="font-semibold">Status:</span>
+                  <span className="px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded-full text-[10px] font-bold">
+                    {existingApplication?.status || 'Submitted'}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between text-slate-600">
+                  <span className="font-semibold">Applicant:</span>
+                  <span className="font-bold text-slate-800">{existingApplication?.applicantName}</span>
+                </div>
+                <div className="flex items-center justify-between text-slate-600">
+                  <span className="font-semibold">Contact:</span>
+                  <span className="font-mono text-slate-800">{existingApplication?.applicantPhone}</span>
+                </div>
+              </div>
+
+              {/* Auto-closing Countdown & Progress Bar */}
+              <div className="space-y-1.5 pt-1">
+                <div className="flex items-center justify-between text-[11px] font-medium text-slate-500">
+                  <span className="flex items-center gap-1 text-slate-600">
+                    <Clock size={12} className="text-emerald-600 animate-spin" />
+                    Auto-closing in <strong className="text-emerald-700">{autoCloseCountdown}s</strong>...
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setShowSuccessPopup(false)}
+                    className="text-[10px] font-semibold text-slate-400 hover:text-slate-700 underline cursor-pointer"
+                  >
+                    close now
+                  </button>
+                </div>
+                <div className="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
+                  <div
+                    className="bg-emerald-500 h-full transition-all duration-1000 ease-linear rounded-full"
+                    style={{ width: `${(autoCloseCountdown / 4) * 100}%` }}
+                  />
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="pt-2 flex flex-col sm:flex-row items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setShowSuccessPopup(false)}
+                  className="w-full sm:w-1/2 py-2.5 px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition cursor-pointer"
+                >
+                  OK, Got It
+                </button>
+                <Link
+                  to="/account?tab=my-applications"
+                  onClick={() => setShowSuccessPopup(false)}
+                  className="w-full sm:w-1/2 py-2.5 px-4 bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold rounded-xl shadow-md transition flex items-center justify-center gap-1.5 cursor-pointer"
+                >
+                  <span>Track in Dashboard</span>
+                  <ArrowRight size={13} />
+                </Link>
+              </div>
+            </div>
+          </div>
+        )}
+
+        </div>
+      </SharedItemAuthGate>
 
     </div>
   );

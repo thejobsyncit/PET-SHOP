@@ -22,12 +22,16 @@ const CartDrawer = ({ isOpen, onClose }) => {
   if (!isOpen) return null;
 
   const handleQuantityChange = (productId, currentQty, delta, maxStock = 999) => {
-    const effectiveStock = typeof maxStock === 'number' ? Math.max(1, maxStock) : 999;
+    const effectiveStock = typeof maxStock === 'number' && maxStock > 0 ? maxStock : 999;
     if (delta > 0 && currentQty >= effectiveStock) {
       toast.error(`Only ${effectiveStock} unit${effectiveStock === 1 ? '' : 's'} available in stock.`);
       return;
     }
     const newQty = currentQty + delta;
+    if (newQty > effectiveStock) {
+      toast.error(`Only ${effectiveStock} unit${effectiveStock === 1 ? '' : 's'} available in stock.`);
+      return;
+    }
     if (newQty >= 1) {
       dispatch(updateCartQuantityAPI({ productId, quantity: Math.min(effectiveStock, newQty) }));
     }
@@ -285,6 +289,19 @@ const CartDrawer = ({ isOpen, onClose }) => {
 
               <button 
                 onClick={() => {
+                  const overstockItem = items.find(item => {
+                    const stock = typeof item.product?.stock === 'number' 
+                      ? item.product.stock 
+                      : (item.product?.stock !== undefined && !isNaN(Number(item.product.stock)) ? Number(item.product.stock) : 999);
+                    return item.quantity > stock;
+                  });
+
+                  if (overstockItem) {
+                    const available = typeof overstockItem.product?.stock === 'number' ? overstockItem.product.stock : 0;
+                    toast.error(`"${overstockItem.product?.name || 'Item'}" quantity (${overstockItem.quantity}) exceeds available stock (${available}). Please adjust quantity before checkout.`);
+                    return;
+                  }
+
                   onClose();
                   if (!isAuthenticated) {
                     window.dispatchEvent(

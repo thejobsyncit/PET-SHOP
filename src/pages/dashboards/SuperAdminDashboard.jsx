@@ -683,6 +683,14 @@ const SuperAdminDashboard = () => {
                 onClick={() => {
                   setActiveSection(tab.id);
                   setIsMobileMenuOpen(false);
+                  requestAnimationFrame(() => {
+                    setTimeout(() => {
+                      const el = document.getElementById('superadmin-main-content');
+                      if (el) {
+                        el.scrollIntoView({ behavior: 'smooth' });
+                      }
+                    }, 50);
+                  });
                 }}
                 className={`w-full flex items-center gap-3 px-4 py-3 text-xs font-bold uppercase tracking-wider rounded-r-md rounded-l-none transition-all duration-300 cursor-pointer ${activeSection === tab.id
                     ? 'bg-white/10 backdrop-blur-md text-white border-l-4 border-accent shadow-sm'
@@ -713,7 +721,7 @@ const SuperAdminDashboard = () => {
       </aside>
 
       {/* 2. RIGHT VIEW MAIN CONSOLE */}
-      <main className="flex-grow flex flex-col h-full min-w-0 overflow-hidden">
+      <main id="superadmin-main-content" className="flex-grow flex flex-col h-full min-w-0 overflow-hidden">
 
         {/* Top bar Header */}
         <div className="shrink-0 bg-[#F4F6F4] border-b border-[#E3EBE5] px-4 lg:px-8 py-5 flex flex-col md:flex-row justify-between items-start md:items-center shadow-xs gap-4 z-20">
