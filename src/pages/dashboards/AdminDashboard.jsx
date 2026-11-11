@@ -569,7 +569,17 @@ const AdminDashboard = () => {
             ].map((tab) => (
               <button
                 key={tab.id}
-                onClick={() => setActiveSection(tab.id)}
+                onClick={() => {
+                  setActiveSection(tab.id);
+                  requestAnimationFrame(() => {
+                    setTimeout(() => {
+                      const el = document.getElementById('admin-main-content');
+                      if (el) {
+                        el.scrollIntoView({ behavior: 'smooth' });
+                      }
+                    }, 50);
+                  });
+                }}
                 className={`w-full flex items-center gap-3 px-4 py-3 text-xs font-bold uppercase tracking-wider rounded-md transition duration-200 cursor-pointer ${activeSection === tab.id
                     ? 'bg-[#7CA085] text-[#1D3B2E] shadow-sm'
                     : 'text-[#C2D3C6] hover:bg-[#2E5947] hover:text-[#FAFBF9]'
@@ -598,7 +608,7 @@ const AdminDashboard = () => {
       </aside>
 
       {/* 2. RIGHT VIEW MAIN CONSOLE */}
-      <main className="flex-grow p-8 overflow-y-auto max-h-auto lg:h-screen">
+      <main id="admin-main-content" className="flex-grow p-8 overflow-y-auto max-h-auto lg:h-screen">
 
         {/* Top bar Header */}
         <div className="flex justify-between items-center border-b border-[#E3EBE5] pb-6 mb-8">

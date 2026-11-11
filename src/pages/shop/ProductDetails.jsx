@@ -34,6 +34,13 @@ const ProductDetails = () => {
         ? Math.max(0, Number(product.stock)) 
         : 999);
 
+  const existingInCart = cartItems.find(item => {
+    const itemId = typeof item?.product === 'object' ? (item.product?._id || item.product?.id) : item?.product;
+    return String(itemId) === String(productId);
+  });
+  const inCartQty = existingInCart ? Number(existingInCart.quantity) || 0 : 0;
+  const remainingStock = Math.max(0, pStock - inCartQty);
+
   const [activeImage, setActiveImage] = useState(0);
   const [activeTab, setActiveTab] = useState('description');
   const [quantity, setQuantity] = useState(1);
@@ -67,6 +74,13 @@ const ProductDetails = () => {
       setQuantity(1);
     }
   }, [productId, dispatch]);
+
+  // Clamp quantity if it ever exceeds actual available stock
+  useEffect(() => {
+    if (pStock > 0 && quantity > pStock) {
+      setQuantity(Math.max(1, Math.min(pStock, remainingStock || 1)));
+    }
+  }, [pStock, remainingStock, quantity]);
 
   useEffect(() => {
     const target = productId || slug;
@@ -155,19 +169,23 @@ const ProductDetails = () => {
       return;
     }
 
-    const pId = product._id || product.id;
-    const existingInCart = cartItems.find(item => {
-      const itemId = typeof item?.product === 'object' ? (item.product?._id || item.product?.id) : item?.product;
-      return String(itemId) === String(pId);
-    });
-    const inCartQty = existingInCart ? Number(existingInCart.quantity) || 0 : 0;
-
     if (inCartQty >= pStock) {
       toast.error(`Cannot add more. You already have the maximum available stock (${pStock} unit${pStock === 1 ? '' : 's'}) in your cart.`);
       return;
     }
 
-    const safeQty = Math.max(1, Math.min(pStock - inCartQty, parseInt(quantity, 10) || 1));
+    const requestedQty = parseInt(quantity, 10) || 1;
+    if (requestedQty > pStock) {
+      toast.error(`Only ${pStock} unit${pStock === 1 ? '' : 's'} available in stock. You cannot add ${requestedQty} units.`);
+      return;
+    }
+
+    if (inCartQty + requestedQty > pStock) {
+      toast.error(`Cannot add ${requestedQty} units. You already have ${inCartQty} in cart, and only ${remainingStock} more can be added (total stock: ${pStock}).`);
+      return;
+    }
+
+    const safeQty = Math.max(1, Math.min(remainingStock, requestedQty));
     if (product.requiresPrescription || product.requires_prescription) {
       toast('Prescription verification needed. Order will process under Rx Review status.', { icon: '📝' });
     }
@@ -192,7 +210,24 @@ const ProductDetails = () => {
       toast.error('This product is out of stock.');
       return;
     }
-    const safeQty = Math.max(1, Math.min(pStock, parseInt(quantity, 10) || 1));
+
+    const requestedQty = parseInt(quantity, 10) || 1;
+    if (requestedQty > pStock) {
+      toast.error(`Cannot proceed to checkout. Only ${pStock} unit${pStock === 1 ? '' : 's'} available in stock, but ${requestedQty} requested.`);
+      return;
+    }
+
+    if (inCartQty >= pStock) {
+      toast.error(`Cannot proceed to checkout. You already have all available stock (${pStock} unit${pStock === 1 ? '' : 's'}) in your cart.`);
+      return;
+    }
+
+    if (inCartQty + requestedQty > pStock) {
+      toast.error(`Cannot proceed to checkout. You already have ${inCartQty} in cart, and only ${remainingStock} more unit${remainingStock === 1 ? '' : 's'} can be purchased (total stock: ${pStock}).`);
+      return;
+    }
+
+    const safeQty = Math.max(1, Math.min(pStock, requestedQty));
 
     const buyNowPayload = {
       product,
@@ -365,6 +400,15 @@ const ProductDetails = () => {
   const recommendedItems = products.filter(p => (p._id || p.id) !== currentPId).slice(0, 4);
   const frequentlyBoughtTogether = products.filter(p => (p._id || p.id) !== currentPId).slice(4, 6);
 
+  const handleNavigateToProduct = (targetProduct) => {
+    if (!targetProduct) return;
+    const targetSlug = targetProduct.slug || targetProduct._id || targetProduct.id;
+    if (targetSlug) {
+      navigate(`/product/${targetSlug}`);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
+
   return (
     <div className="pb-20 space-y-16">
       
@@ -493,15 +537,19 @@ const ProductDetails = () => {
               {/* Inventory details */}
               <div className="flex items-center gap-2 text-xs pt-2">
                 <span className="text-gray-400 font-semibold">Availability Status:</span>
-                {product.stock === 0 ? (
+                {pStock === 0 ? (
                   <span className="text-red-500 font-bold uppercase">Out of Stock</span>
-                ) : product.stock <= product.lowStockThreshold ? (
+                ) : inCartQty >= pStock ? (
+                  <span className="text-amber-600 font-bold uppercase flex items-center gap-1">
+                    <ShieldAlert size={14} /> All Available Stock ({pStock} units) in your cart
+                  </span>
+                ) : pStock <= (product.lowStockThreshold || 5) ? (
                   <span className="text-orange-500 font-bold uppercase flex items-center gap-1">
-                    <ShieldAlert size={14} /> Low Stock (Only {product.stock} items left)
+                    <ShieldAlert size={14} /> Low Stock (Only {pStock} items left)
                   </span>
                 ) : (
                   <span className="text-green-600 font-bold uppercase flex items-center gap-1">
-                    <Check size={14} /> In Stock (Shipped in 24 hours)
+                    <Check size={14} /> In Stock ({pStock} available)
                   </span>
                 )}
               </div>
@@ -515,7 +563,7 @@ const ProductDetails = () => {
                 <div className="flex items-center border border-beige bg-white">
                   <button 
                     onClick={() => setQuantity(q => Math.max(1, q - 1))}
-                    disabled={pStock === 0 || quantity <= 1}
+                    disabled={pStock === 0 || quantity <= 1 || inCartQty >= pStock}
                     className="px-4 py-2.5 text-gray-500 hover:bg-gray-100 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
                     title="Decrease quantity"
                   >
@@ -530,11 +578,21 @@ const ProductDetails = () => {
                         toast.error(`Only ${pStock} unit${pStock === 1 ? '' : 's'} available in stock.`);
                         return;
                       }
+                      if (remainingStock > 0 && quantity >= remainingStock) {
+                        toast.error(`Only ${pStock} unit${pStock === 1 ? '' : 's'} available in total (${inCartQty} already in your cart).`);
+                        return;
+                      }
                       setQuantity(q => Math.min(pStock, q + 1));
                     }}
-                    disabled={pStock === 0 || quantity >= pStock}
+                    disabled={pStock === 0 || quantity >= pStock || inCartQty >= pStock || (remainingStock > 0 && quantity >= remainingStock)}
                     className="px-4 py-2.5 text-gray-500 hover:bg-gray-100 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
-                    title={quantity >= pStock ? `Only ${pStock} unit${pStock === 1 ? '' : 's'} available in stock` : 'Increase quantity'}
+                    title={
+                      inCartQty >= pStock 
+                        ? `All available stock (${pStock}) is already in your cart` 
+                        : (quantity >= pStock || (remainingStock > 0 && quantity >= remainingStock))
+                          ? `Only ${pStock} unit${pStock === 1 ? '' : 's'} available in stock` 
+                          : 'Increase quantity'
+                    }
                   >
                     <Plus size={14} />
                   </button>
@@ -543,10 +601,10 @@ const ProductDetails = () => {
                 {/* Add to Cart button */}
                 <button
                   onClick={handleAddToCart}
-                  disabled={product.stock === 0 || isAddingToCart}
+                  disabled={pStock === 0 || isAddingToCart || inCartQty >= pStock}
                   className="flex-grow btn-premium py-3.5 text-xs text-center justify-center gap-2 disabled:bg-gray-200 disabled:border-gray-200 disabled:text-gray-400 disabled:cursor-not-allowed"
                 >
-                  <ShoppingBag size={16} /> {isAddingToCart ? 'ADDING...' : 'ADD TO CART'}
+                  <ShoppingBag size={16} /> {isAddingToCart ? 'ADDING...' : inCartQty >= pStock ? `MAX STOCK (${pStock}) IN CART` : 'ADD TO CART'}
                 </button>
 
                 {/* Wishlist Button */}
@@ -576,12 +634,13 @@ const ProductDetails = () => {
                 </button>
               </div>
 
-              {product.stock > 0 && (
+              {pStock > 0 && (
                 <button 
                   onClick={handleBuyNow}
-                  className="w-full btn-secondary-premium py-3.5 text-xs"
+                  disabled={inCartQty >= pStock || quantity > pStock}
+                  className="w-full btn-secondary-premium py-3.5 text-xs disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-gray-200 disabled:text-gray-400"
                 >
-                  BUY IT NOW
+                  {inCartQty >= pStock ? `MAX STOCK (${pStock}) IN CART` : 'BUY IT NOW'}
                 </button>
               )}
             </div>
@@ -675,10 +734,24 @@ const ProductDetails = () => {
               
               {/* Product list */}
               <div className="flex items-center gap-4 flex-wrap">
-                <div className="flex items-center gap-3 border border-beige p-3 bg-secondary">
-                  <img src={product.images[0]} alt={product.name} className="w-12 h-12 object-contain bg-white p-1 rounded border border-beige/60" />
+                <div 
+                  onClick={() => {
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                  }}
+                  className="flex items-center gap-3 border border-beige p-3 bg-secondary rounded-xl cursor-pointer hover:border-primary hover:bg-[#f8efcd]/20 transition group shadow-xs"
+                  title={`${product.name} (Current Product - Scroll to top)`}
+                >
+                  <img 
+                    src={product.images?.[0] || product.image || 'https://images.unsplash.com/photo-1548199973-03cce0bbc87b?q=80&w=800'} 
+                    alt={product.name} 
+                    onError={(e) => {
+                      e.currentTarget.onerror = null;
+                      e.currentTarget.src = 'https://images.unsplash.com/photo-1548199973-03cce0bbc87b?q=80&w=800';
+                    }}
+                    className="w-12 h-12 object-contain bg-white p-1 rounded border border-beige/60 group-hover:scale-105 transition-transform" 
+                  />
                   <div>
-                    <p className="text-[11px] font-bold text-primary truncate max-w-xs">{product.name}</p>
+                    <p className="text-[11px] font-bold text-primary truncate max-w-xs group-hover:text-accent transition">{product.name}</p>
                     <p className="text-xs font-semibold text-accent">₹{product.discountPrice || product.price}</p>
                   </div>
                 </div>
@@ -686,11 +759,23 @@ const ProductDetails = () => {
                 <span className="text-lg font-bold text-gray-400">+</span>
 
                 {frequentlyBoughtTogether.map((item) => (
-                  <React.Fragment key={item._id}>
-                    <div className="flex items-center gap-3 border border-beige p-3 bg-secondary">
-                      <img src={item.images[0]} alt={item.name} className="w-12 h-12 object-contain bg-white p-1 rounded border border-beige/60" />
+                  <React.Fragment key={item._id || item.id}>
+                    <div 
+                      onClick={() => handleNavigateToProduct(item)}
+                      className="flex items-center gap-3 border border-beige p-3 bg-secondary rounded-xl cursor-pointer hover:border-primary hover:bg-[#f8efcd]/20 transition group shadow-xs"
+                      title={`View ${item.name}`}
+                    >
+                      <img 
+                        src={item.images?.[0] || item.image || 'https://images.unsplash.com/photo-1548199973-03cce0bbc87b?q=80&w=800'} 
+                        alt={item.name} 
+                        onError={(e) => {
+                          e.currentTarget.onerror = null;
+                          e.currentTarget.src = 'https://images.unsplash.com/photo-1548199973-03cce0bbc87b?q=80&w=800';
+                        }}
+                        className="w-12 h-12 object-contain bg-white p-1 rounded border border-beige/60 group-hover:scale-105 transition-transform" 
+                      />
                       <div>
-                        <p className="text-[11px] font-bold text-primary truncate max-w-[120px]">{item.name}</p>
+                        <p className="text-[11px] font-bold text-primary truncate max-w-[140px] sm:max-w-xs group-hover:text-accent transition">{item.name}</p>
                         <p className="text-xs font-semibold text-accent">₹{item.discountPrice || item.price}</p>
                       </div>
                     </div>

@@ -896,17 +896,25 @@ export const loginUser = async (req, res) => {
           user.phone = resolvedPhone;
         }
       }
-      if (!Array.isArray(user.addresses) || user.addresses.length === 0) {
-        const dUser = diskUsers.find(u => (uId && (u._id === uId || u.id === uId)) || (u.email && u.email.toLowerCase() === uEmail));
-        if (dUser && Array.isArray(dUser.addresses) && dUser.addresses.length > 0) {
-          user.addresses = dUser.addresses;
-        } else {
-          const demoUser = DEMO_ACCOUNTS.find(d => (uId && (d._id === uId || d.id === uId)) || (d.email && d.email.toLowerCase() === uEmail));
-          if (demoUser && Array.isArray(demoUser.addresses) && demoUser.addresses.length > 0) {
-            user.addresses = demoUser.addresses;
-          }
-        }
-      }
+      const dUser = diskUsers.find(u => (uId && (u._id === uId || u.id === uId)) || (u.email && u.email.toLowerCase() === uEmail));
+      const demoUser = DEMO_ACCOUNTS.find(d => (uId && (d._id === uId || d.id === uId)) || (d.email && d.email.toLowerCase() === uEmail));
+      const memUser = inMemoryUsers.get(uEmail);
+
+      const dAddresses = Array.isArray(dUser?.addresses) ? dUser.addresses : [];
+      const memAddresses = Array.isArray(memUser?.addresses) ? memUser.addresses : [];
+      const demoAddresses = Array.isArray(demoUser?.addresses) ? demoUser.addresses : [];
+      const currentAddresses = Array.isArray(user.addresses) ? user.addresses : [];
+
+      let bestAddresses = currentAddresses;
+      if (dAddresses.length > bestAddresses.length) bestAddresses = dAddresses;
+      if (memAddresses.length > bestAddresses.length) bestAddresses = memAddresses;
+      if (demoAddresses.length > bestAddresses.length) bestAddresses = demoAddresses;
+
+      user.addresses = bestAddresses.map((a, i) => ({
+        _id: a._id || a.id || `addr_${i}_${Date.now()}`,
+        id: a.id || a._id || `addr_${i}_${Date.now()}`,
+        ...a
+      }));
     }
 
     return res.json({
@@ -939,6 +947,28 @@ export const getUserProfile = async (req, res) => {
         user.mobile = phoneNum;
         user.phone = phoneNum;
       }
+
+      // Restore complete addresses from disk / in-memory / demo accounts
+      const diskUsers = loadDiskUsers();
+      const dUser = diskUsers.find(u => (uId && (u._id === uId || u.id === uId)) || (u.email && u.email.toLowerCase() === uEmail));
+      const demoUser = DEMO_ACCOUNTS.find(d => (uId && (d._id === uId || d.id === uId)) || (d.email && d.email.toLowerCase() === uEmail));
+      const memUser = inMemoryUsers.get(uEmail);
+
+      const dAddresses = Array.isArray(dUser?.addresses) ? dUser.addresses : [];
+      const memAddresses = Array.isArray(memUser?.addresses) ? memUser.addresses : [];
+      const demoAddresses = Array.isArray(demoUser?.addresses) ? demoUser.addresses : [];
+      const currentAddresses = Array.isArray(user.addresses) ? user.addresses : [];
+
+      let bestAddresses = currentAddresses;
+      if (dAddresses.length > bestAddresses.length) bestAddresses = dAddresses;
+      if (memAddresses.length > bestAddresses.length) bestAddresses = memAddresses;
+      if (demoAddresses.length > bestAddresses.length) bestAddresses = demoAddresses;
+
+      user.addresses = bestAddresses.map((a, i) => ({
+        _id: a._id || a.id || `addr_${i}_${Date.now()}`,
+        id: a.id || a._id || `addr_${i}_${Date.now()}`,
+        ...a
+      }));
     }
     res.json({
       success: true,
@@ -1272,6 +1302,21 @@ export const addAddress = async (req, res) => {
     if (diskUserIndex >= 0 && Array.isArray(dUsers[diskUserIndex].addresses) && dUsers[diskUserIndex].addresses.length > addresses.length) {
       addresses = [...dUsers[diskUserIndex].addresses];
     }
+
+    // Check in-memory store
+    if (userEmail && inMemoryUsers.has(userEmail)) {
+      const mem = inMemoryUsers.get(userEmail);
+      if (Array.isArray(mem?.addresses) && mem.addresses.length > addresses.length) {
+        addresses = [...mem.addresses];
+      }
+    }
+
+    // Ensure all existing addresses have valid IDs
+    addresses = addresses.map((a, i) => ({
+      _id: a._id || a.id || `addr_${i}_${Date.now()}`,
+      id: a.id || a._id || `addr_${i}_${Date.now()}`,
+      ...a
+    }));
 
     // Check Supabase if available
     if (supabase && userId) {

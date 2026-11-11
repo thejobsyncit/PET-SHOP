@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { CreditCard, Truck, CircleCheck, ChevronRight, ShoppingBag, ClipboardList, Download, Zap } from 'lucide-react';
+import { CreditCard, Truck, CircleCheck, ChevronRight, ShoppingBag, ClipboardList, Download, Zap, AlertCircle } from 'lucide-react';
 import { clearCartAPI, calculateTotals } from '../../store/slices/cartSlice.js';
 import { fetchProducts } from '../../store/slices/productSlice.js';
 import { apiRequest } from '../../services/api.js';
@@ -50,6 +50,16 @@ const Checkout = () => {
     }
     return cartPricing;
   }, [isBuyNow, buyNowItem, appliedCoupon, cartPricing]);
+
+  // Check if any checkout item exceeds actual available stock
+  const overstockItem = useMemo(() => {
+    return items.find(item => {
+      const stock = typeof item.product?.stock === 'number'
+        ? item.product.stock
+        : (item.product?.stock !== undefined && item.product?.stock !== null && !isNaN(Number(item.product.stock)) ? Number(item.product.stock) : 999);
+      return (Number(item.quantity) || 1) > stock;
+    });
+  }, [items]);
 
   // Stepper state
   const [step, setStep] = useState(1);
@@ -112,6 +122,10 @@ const Checkout = () => {
   }
 
   const handleNextStep = () => {
+    if (overstockItem) {
+      toast.error(`Cannot proceed: "${overstockItem.product?.name || 'Item'}" quantity (${overstockItem.quantity}) exceeds available stock (${overstockItem.product?.stock ?? 0}).`);
+      return;
+    }
     if (step === 1) {
       if (!name || !phone || !streetAddress || !city || !state || !postalCode) {
         toast.error('Please fill in all shipping details.');
@@ -136,6 +150,10 @@ const Checkout = () => {
   };
 
   const handlePlaceOrder = async () => {
+    if (overstockItem) {
+      toast.error(`Cannot place order: "${overstockItem.product?.name || 'Item'}" quantity (${overstockItem.quantity}) exceeds available stock (${overstockItem.product?.stock ?? 0}).`);
+      return;
+    }
     setPlacingOrder(true);
     
     // Check if prescription required and missing
@@ -553,6 +571,17 @@ const Checkout = () => {
 
           {/* Invoice Summary (Right 4 Columns) */}
           <div className="lg:col-span-4 bg-white border border-beige p-6 shadow-sm space-y-6">
+            {overstockItem && (
+              <div className="p-3.5 bg-red-50 border border-red-200 text-red-700 text-xs rounded-xl space-y-1">
+                <div className="flex items-center gap-1.5 font-bold">
+                  <AlertCircle size={15} className="shrink-0 text-red-600" />
+                  <span>Insufficient Stock</span>
+                </div>
+                <p className="text-[11px] leading-relaxed">
+                  <strong>{overstockItem.product?.name}</strong> exceeds available inventory. Only <strong>{overstockItem.product?.stock ?? 0}</strong> unit(s) available in stock, but <strong>{overstockItem.quantity}</strong> requested.
+                </p>
+              </div>
+            )}
             <h3 className="font-serif text-base font-bold text-primary border-b border-beige pb-3 flex items-center justify-between">
               <span>Order Summary</span>
               {isBuyNow && (

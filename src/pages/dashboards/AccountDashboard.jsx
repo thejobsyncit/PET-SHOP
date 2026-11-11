@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate, useSearchParams, useLocation, Link } from 'react-router-dom';
 import {
@@ -12,7 +12,8 @@ import {
   updateProfile, 
   addUserAddress, 
   removeUserAddress, 
-  logout 
+  logout,
+  mergeUserAddresses
 } from '../../store/slices/authSlice.js';
 import { 
   getUserAdoptionApplications, 
@@ -114,6 +115,20 @@ const AccountDashboard = () => {
   const [addrZip, setAddrZip] = useState('');
   const [showAddressForm, setShowAddressForm] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+
+  // Authoritative, deduplicated addresses for current user session
+  const displayedAddresses = useMemo(() => {
+    const list = Array.isArray(user?.addresses) ? user.addresses : [];
+    const emailKey = (user?.email || '').toLowerCase().trim();
+    let cached = [];
+    if (emailKey && typeof localStorage !== 'undefined') {
+      try {
+        const raw = localStorage.getItem(`joshpetshub_addresses_${emailKey}`);
+        if (raw) cached = JSON.parse(raw);
+      } catch (_) {}
+    }
+    return mergeUserAddresses(list, cached, emailKey);
+  }, [user?.addresses, user?.email]);
 
   // History logs states
   const [orders, setOrders] = useState([]);
@@ -338,10 +353,32 @@ const AccountDashboard = () => {
     };
   }, [user]);
 
+  const contentPanelRef = useRef(null);
+
+  const scrollToSection = (targetTab) => {
+    requestAnimationFrame(() => {
+      setTimeout(() => {
+        const specificSection = document.getElementById(`section-${targetTab}`);
+        const targetElement = specificSection || contentPanelRef.current || document.getElementById('dashboard-content-panel');
+        if (targetElement) {
+          const header = document.querySelector('header');
+          const headerHeight = header ? header.getBoundingClientRect().height : 90;
+          const elementPosition = targetElement.getBoundingClientRect().top;
+          const offsetPosition = elementPosition + window.pageYOffset - (headerHeight + 20);
+          window.scrollTo({
+            top: Math.max(0, offsetPosition),
+            behavior: 'smooth'
+          });
+        }
+      }, 50);
+    });
+  };
+
   // Sync tab with URL search parameter
   useEffect(() => {
     if (tabParam) {
       setActiveTab(tabParam);
+      scrollToSection(tabParam);
     } else {
       setActiveTab('profile');
     }
@@ -350,6 +387,7 @@ const AccountDashboard = () => {
   const handleTabChange = (newTab) => {
     setActiveTab(newTab);
     setSearchParams({ tab: newTab });
+    scrollToSection(newTab);
   };
 
   useEffect(() => {
@@ -999,7 +1037,7 @@ const AccountDashboard = () => {
       city: addrCity.trim(),
       state: addrState.trim(),
       postalCode: addrZip.trim(),
-      isDefault: !user?.addresses || user.addresses.length === 0
+      isDefault: !displayedAddresses || displayedAddresses.length === 0
     };
 
     const result = await dispatch(addUserAddress(payload));
@@ -1181,13 +1219,13 @@ const AccountDashboard = () => {
         </aside>
 
         {/* Dynamic Display Panel (Right 9 Columns) */}
-        <div className="lg:col-span-9 bg-white border border-beige p-6 md:p-8 shadow-sm rounded-xl">
+        <div ref={contentPanelRef} id="dashboard-content-panel" className="lg:col-span-9 bg-white border border-beige p-6 md:p-8 shadow-sm rounded-xl">
           
           {/* =========================================================================
               TAB: SERVICE BOOKINGS
              ========================================================================= */}
           {activeTab === 'bookings' && (
-            <div className="space-y-6">
+            <div id="section-bookings" className="space-y-6 scroll-mt-24">
               <h2 className="font-serif text-lg font-bold text-primary border-b border-beige pb-2">
                 Service Bookings
               </h2>
@@ -1305,7 +1343,7 @@ const AccountDashboard = () => {
               TAB 1: ORDER HISTORY
              ========================================================================= */}
           {activeTab === 'orders' && (
-            <div className="space-y-6">
+            <div id="section-orders" className="space-y-6 scroll-mt-24">
               <h2 className="font-serif text-lg font-bold text-primary border-b border-beige pb-2">
                 Order History
               </h2>
@@ -1446,7 +1484,7 @@ const AccountDashboard = () => {
               TAB 2: MY ADOPTION ENQUIRIES & APPLICATION STATUS
              ========================================================================= */}
           {activeTab === 'my-applications' && (
-            <div className="space-y-6">
+            <div id="section-my-applications" className="space-y-6 scroll-mt-24">
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-beige pb-3 gap-2">
                 <div>
                   <h2 className="font-serif text-lg font-bold text-primary">
@@ -1601,7 +1639,7 @@ const AccountDashboard = () => {
               TAB 3: MY LISTED PETS & RECEIVED APPLICANTS TRACKING
              ========================================================================= */}
           {activeTab === 'adoption-listings' && (
-            <div className="space-y-6">
+            <div id="section-adoption-listings" className="space-y-6 scroll-mt-24">
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-beige pb-3 gap-2">
                 <div>
                   <h2 className="font-serif text-lg font-bold text-primary">
@@ -1823,7 +1861,7 @@ const AccountDashboard = () => {
               TAB 4: PRESCRIPTION HISTORY
              ========================================================================= */}
           {activeTab === 'prescriptions' && (
-            <div className="space-y-6">
+            <div id="section-prescriptions" className="space-y-6 scroll-mt-24">
               <h2 className="font-serif text-lg font-bold text-primary border-b border-beige pb-2">
                 Prescription Uploads
               </h2>
@@ -1904,7 +1942,7 @@ const AccountDashboard = () => {
               TAB 5: ADDRESS BOOK
              ========================================================================= */}
           {activeTab === 'addresses' && (
-            <div className="space-y-6">
+            <div id="section-addresses" className="space-y-6 scroll-mt-24">
               <div className="flex justify-between items-center border-b border-beige pb-3">
                 <h2 className="font-serif text-lg font-bold text-primary">
                   Shipping Addresses
@@ -1999,33 +2037,36 @@ const AccountDashboard = () => {
               )}
 
               {/* Address list */}
-              {user.addresses && user.addresses.length > 0 ? (
+              {displayedAddresses && displayedAddresses.length > 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {user.addresses.map((a) => (
-                    <div key={a._id} className="border border-[#e6c968]/50 p-5 text-xs flex justify-between items-start rounded-2xl bg-white shadow-xs hover:border-[#d4af37] transition">
-                      <div className="flex items-start gap-3">
-                        <div className="w-9 h-9 bg-[#f8efcd] text-[#0F2E23] rounded-full flex items-center justify-center border border-[#e6c968] shrink-0 mt-0.5">
-                          <MapPin size={16} />
+                  {displayedAddresses.map((a, idx) => {
+                    const addrId = a._id || a.id || `addr-${idx}`;
+                    return (
+                      <div key={addrId} className="border border-[#e6c968]/50 p-5 text-xs flex justify-between items-start rounded-2xl bg-white shadow-xs hover:border-[#d4af37] transition">
+                        <div className="flex items-start gap-3">
+                          <div className="w-9 h-9 bg-[#f8efcd] text-[#0F2E23] rounded-full flex items-center justify-center border border-[#e6c968] shrink-0 mt-0.5">
+                            <MapPin size={16} />
+                          </div>
+                          <div className="space-y-1">
+                            <p className="font-bold text-primary flex items-center gap-2">
+                              <span>{a.name}</span> 
+                              {a.isDefault && <span className="bg-[#f8efcd] text-[#0F2E23] border border-[#e6c968] text-[9px] px-1.5 py-0.5 uppercase font-bold rounded">Default</span>}
+                            </p>
+                            <p className="text-gray-500">{a.streetAddress}</p>
+                            <p className="text-gray-500">{a.city}, {a.state} - {a.postalCode}</p>
+                            <p className="text-gray-400">Phone: {a.phone}</p>
+                          </div>
                         </div>
-                        <div className="space-y-1">
-                          <p className="font-bold text-primary flex items-center gap-2">
-                            <span>{a.name}</span> 
-                            {a.isDefault && <span className="bg-[#f8efcd] text-[#0F2E23] border border-[#e6c968] text-[9px] px-1.5 py-0.5 uppercase font-bold rounded">Default</span>}
-                          </p>
-                          <p className="text-gray-500">{a.streetAddress}</p>
-                          <p className="text-gray-500">{a.city}, {a.state} - {a.postalCode}</p>
-                          <p className="text-gray-400">Phone: {a.phone}</p>
-                        </div>
+                        <button
+                          onClick={() => handleRemoveAddress(addrId)}
+                          className="text-gray-400 hover:text-red-500 p-1 cursor-pointer transition"
+                          title="Delete Address"
+                        >
+                          <Trash2 size={16} />
+                        </button>
                       </div>
-                      <button
-                        onClick={() => handleRemoveAddress(a._id)}
-                        className="text-gray-400 hover:text-red-500 p-1 cursor-pointer transition"
-                        title="Delete Address"
-                      >
-                        <Trash2 size={16} />
-                      </button>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               ) : (
                 <div className="p-4 lg:p-10 border border-dashed border-[#d4af37]/40 rounded-2xl text-center space-y-3 bg-[#fdfaf2] shadow-sm">
@@ -2054,7 +2095,7 @@ const AccountDashboard = () => {
               TAB 6: PROFILE DETAILS
              ========================================================================= */}
           {activeTab === 'profile' && (
-            <div className="space-y-6">
+            <div id="section-profile" className="space-y-6 scroll-mt-24">
               <h2 className="font-serif text-lg font-bold text-primary border-b border-beige pb-2">
                 Profile Details
               </h2>
@@ -2409,7 +2450,7 @@ const AccountDashboard = () => {
               TAB: PET RELOCATION & TRANSPORT ENQUIRIES & BOOKINGS
              ========================================================================= */}
           {activeTab === 'transport-enquiries' && (
-            <div className="space-y-6">
+            <div id="section-transport-enquiries" className="space-y-6 scroll-mt-24">
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-beige pb-4">
                 <div>
                   <h2 className="font-serif text-lg font-bold text-primary">

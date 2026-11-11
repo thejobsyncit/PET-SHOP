@@ -553,10 +553,10 @@ const Shop = () => {
   );
 
   return (
-    <div className="space-y-12 pb-20">
+    <div className="space-y-12 pb-20 overflow-x-hidden w-full">
       
       {/* 1. CINEMATIC HERO BANNER */}
-      <section className="relative h-[50vh] md:h-[55vh] flex items-center justify-center overflow-hidden">
+      <section className="relative h-[50vh] md:h-[55vh] flex items-center justify-center overflow-hidden w-full">
         {heroImages.map((img, idx) => (
           <div 
             key={idx} 
@@ -575,7 +575,7 @@ const Shop = () => {
           <span className="inline-block text-[10px] md:text-xs tracking-[0.25em] font-bold text-amber-400 uppercase bg-black/40 backdrop-blur-md px-4 py-1.5 rounded-full border border-white/10 shadow-2xl">
             JOSH PETS HUB LIFE EXCLUSIVE
           </span>
-          <h1 className="font-serif text-4xl md:text-6xl text-white drop-shadow-2xl tracking-tight leading-tight">
+          <h1 className="font-serif text-3xl sm:text-4xl md:text-6xl text-white drop-shadow-2xl tracking-tight leading-tight">
             {currentMeta.title}
           </h1>
           <p className="text-sm md:text-base text-gray-200 max-w-2xl mx-auto leading-relaxed font-light drop-shadow-lg">
@@ -587,14 +587,14 @@ const Shop = () => {
 
 
       {/* 3. CATALOG & FILTERS GRID */}
-      <div className="animate-in fade-in duration-700">
-        <section className="max-w-7xl mx-auto px-4 md:px-8">
+      <div className="animate-in fade-in duration-700 w-full">
+        <section className="max-w-7xl mx-auto px-4 md:px-8 w-full">
           
           {/* Mobile Filter Toggle Button */}
-          <div className="lg:hidden mb-6 flex justify-between items-center bg-white border border-gray-100 px-5 py-4 rounded-2xl shadow-sm">
+          <div className="lg:hidden mb-6 flex justify-between items-center bg-white border border-gray-100 px-4 sm:px-5 py-3.5 sm:py-4 rounded-2xl shadow-sm">
             <button
               onClick={() => setMobileFiltersOpen(true)}
-              className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-primary"
+              className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-primary cursor-pointer"
             >
               <SlidersHorizontal size={14} />
               <span>Filter Catalog ({currentAvailableBrands.length} Brands)</span>
@@ -632,7 +632,7 @@ const Shop = () => {
             </div>
           )}
   
-          <div className="flex flex-col lg:flex-row gap-8 items-start">
+          <div className="flex flex-col lg:flex-row gap-8 items-start w-full max-w-full">
             
             {/* LEFT FILTER PANEL (Desktop) */}
             <aside className="hidden lg:block w-72 shrink-0 bg-white/60 backdrop-blur-3xl border border-beige/60 p-7 space-y-6 rounded-3xl shadow-glass sticky top-32 z-10">
@@ -640,18 +640,18 @@ const Shop = () => {
             </aside>
   
             {/* RIGHT PRODUCT GRID PANEL */}
-            <div className="flex-1 min-w-0 space-y-6">
+            <div className="flex-1 min-w-0 w-full max-w-full space-y-6">
   
               {/* Premium Subcategories Image Grid */}
               {currentMeta.subcategories && currentMeta.subcategories.length > 0 && (
-                <div className="mb-8">
-                  <div className="flex items-center gap-4 overflow-x-auto pt-4 pb-5 px-3 custom-scrollbar">
+                <div className="mb-8 w-full max-w-full overflow-hidden">
+                  <div className="flex items-center gap-3 sm:gap-4 overflow-x-auto pt-4 pb-5 px-1 sm:px-3 custom-scrollbar w-full max-w-full">
                     <div 
                       onClick={() => handleFilterChange({ subcategory: '' })}
-                      className={`relative min-w-[150px] h-[110px] shrink-0 rounded-2xl overflow-hidden cursor-pointer group shadow-md transition-all duration-300 ${!filters.subcategory ? 'ring-2 ring-primary ring-offset-2 shadow-xl' : 'hover:shadow-xl hover:-translate-y-1'}`}
+                      className={`relative min-w-[130px] sm:min-w-[150px] h-[100px] sm:h-[110px] shrink-0 rounded-2xl overflow-hidden cursor-pointer group shadow-md transition-all duration-300 ${!filters.subcategory ? 'ring-2 ring-primary ring-offset-2 shadow-xl' : 'hover:shadow-xl hover:-translate-y-1'}`}
                     >
                       <img src={currentMeta.hero} alt={`All ${currentMeta.title.split(' ')[0]}`} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 filter group-hover:brightness-110" />
-                      <div className={`absolute inset-0 transition-all duration-500 flex flex-col justify-end p-4 ${!filters.subcategory ? 'bg-gradient-to-t from-primary/90 via-primary/30 to-transparent' : 'bg-gradient-to-t from-black/80 via-black/20 to-transparent group-hover:from-primary/80 group-hover:via-primary/20'}`}>
+                      <div className={`absolute inset-0 transition-all duration-500 flex flex-col justify-end p-3 sm:p-4 ${!filters.subcategory ? 'bg-gradient-to-t from-primary/90 via-primary/30 to-transparent' : 'bg-gradient-to-t from-black/80 via-black/20 to-transparent group-hover:from-primary/80 group-hover:via-primary/20'}`}>
                         <span className={`text-white font-bold text-xs uppercase tracking-wider ${!filters.subcategory ? 'translate-y-0' : 'translate-y-2 group-hover:translate-y-0'} transition-transform duration-300 drop-shadow-md`}>All {currentMeta.title.split(' ')[0]}</span>
                       </div>
                     </div>
@@ -662,10 +662,10 @@ const Shop = () => {
                         <div 
                           key={sub.name}
                           onClick={() => handleFilterChange({ subcategory: sub.name })}
-                          className={`relative min-w-[150px] h-[110px] shrink-0 rounded-2xl overflow-hidden cursor-pointer group shadow-md transition-all duration-300 ${isActive ? 'ring-2 ring-primary ring-offset-2 shadow-xl' : 'hover:shadow-xl hover:-translate-y-1'}`}
+                          className={`relative min-w-[130px] sm:min-w-[150px] h-[100px] sm:h-[110px] shrink-0 rounded-2xl overflow-hidden cursor-pointer group shadow-md transition-all duration-300 ${isActive ? 'ring-2 ring-primary ring-offset-2 shadow-xl' : 'hover:shadow-xl hover:-translate-y-1'}`}
                         >
                           <img src={sub.img} alt={sub.name} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 filter group-hover:brightness-110" />
-                          <div className={`absolute inset-0 transition-all duration-500 flex flex-col justify-end p-4 ${isActive ? 'bg-gradient-to-t from-primary/90 via-primary/30 to-transparent' : 'bg-gradient-to-t from-black/80 via-black/20 to-transparent group-hover:from-primary/80 group-hover:via-primary/20'}`}>
+                          <div className={`absolute inset-0 transition-all duration-500 flex flex-col justify-end p-3 sm:p-4 ${isActive ? 'bg-gradient-to-t from-primary/90 via-primary/30 to-transparent' : 'bg-gradient-to-t from-black/80 via-black/20 to-transparent group-hover:from-primary/80 group-hover:via-primary/20'}`}>
                             <span className={`text-white font-bold text-xs uppercase tracking-wider ${isActive ? 'translate-y-0' : 'translate-y-2 group-hover:translate-y-0'} transition-transform duration-300 drop-shadow-md`}>{sub.name}</span>
                           </div>
                         </div>
@@ -676,7 +676,7 @@ const Shop = () => {
               )}
               
               {/* Toolbar: Result Counts & Sorting */}
-              <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white/60 backdrop-blur-3xl border border-beige/60 px-7 py-5 shadow-glass rounded-2xl">
+              <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white/60 backdrop-blur-3xl border border-beige/60 px-4 sm:px-7 py-4 sm:py-5 shadow-glass rounded-2xl w-full">
                 <div className="flex items-center gap-3">
                   <span className="text-xs text-gray-500 font-bold uppercase tracking-widest">
                     Showing <span className="text-primary">{products.length}</span> of {total} products
@@ -693,11 +693,11 @@ const Shop = () => {
                     <ArrowUpDown size={14} />
                     <span>Sort:</span>
                   </div>
-                  <div className="relative group">
+                  <div className="relative group w-full sm:w-auto">
                     <select
                       value={filters.sort}
                       onChange={(e) => handleFilterChange({ sort: e.target.value })}
-                      className="appearance-none bg-secondary/50 border border-beige hover:border-primary text-primary px-4 py-2 pr-8 rounded-lg cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+                      className="appearance-none bg-secondary/50 border border-beige hover:border-primary text-primary px-4 py-2 pr-8 rounded-lg cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all w-full sm:w-auto"
                     >
                       <option value="date_desc">New Arrivals</option>
                       <option value="price_asc">Price: Low to High</option>
@@ -727,13 +727,13 @@ const Shop = () => {
   
               {/* Products grid container */}
               {loading ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 md:grid-cols-2 md:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 w-full">
                   {[1, 2, 3, 4, 5, 6].map(idx => (
                     <div key={idx} className="bg-white border border-gray-100 h-[400px] animate-pulse rounded-2xl"></div>
                   ))}
                 </div>
               ) : products.length > 0 ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 md:grid-cols-2 md:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 w-full">
                   {products.map((product) => (
                     <ProductCard key={product._id || product.id} product={product} />
                   ))}

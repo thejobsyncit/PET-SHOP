@@ -2,6 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { supabase } from '../config/supabase.js';
+import { loadDiskProducts } from './productController.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -75,20 +76,36 @@ export const createOrder = async (req, res) => {
     } else {
       // Map order items to products in DB
       const productIds = orderItems.map(item => item.product);
-      const { data: products, error: productError } = await supabase
+      let { data: products } = await supabase
         .from('products')
         .select('*')
         .in('id', productIds);
 
-      if (productError) throw productError;
+      if (!Array.isArray(products)) products = [];
+
+      // Check disk products if any IDs weren't in Supabase
+      const diskProducts = loadDiskProducts();
+      for (const pid of productIds) {
+        if (!products.some(p => String(p.id) === String(pid) || String(p._id) === String(pid))) {
+          const diskP = diskProducts.find(p => String(p.id || p._id) === String(pid));
+          if (diskP) {
+            products.push({
+              ...diskP,
+              id: diskP.id || diskP._id,
+              stock: diskP.stock !== undefined && diskP.stock !== null ? Number(diskP.stock) : 15
+            });
+          }
+        }
+      }
 
       for (const item of orderItems) {
-        const product = products?.find(p => p.id === item.product);
+        const product = products?.find(p => String(p.id) === String(item.product) || String(p._id) === String(item.product));
         if (!product) {
           return res.status(404).json({ success: false, message: `Product ${item.name || item.product} not found` });
         }
-        if (product.stock < item.quantity) {
-          return res.status(400).json({ success: false, message: `Insufficient stock for product: ${product.name}` });
+        const availableStock = typeof product.stock === 'number' ? product.stock : 15;
+        if (availableStock < item.quantity) {
+          return res.status(400).json({ success: false, message: `Insufficient stock for product: ${product.name} (Available: ${availableStock}, Requested: ${item.quantity})` });
         }
 
         const unitPrice = (product.discount_price !== undefined && product.discount_price !== null && product.discount_price > 0)

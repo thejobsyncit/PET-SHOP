@@ -155,22 +155,24 @@ export const addToCartAPI = createAsyncThunk('cart/addToCart', async ({ product,
       return thunkAPI.rejectWithValue(`Maximum available stock (${maxStock}) reached in cart`);
     }
 
-    const nextQty = Math.min(maxStock, currentQty + safeQuantity);
-    if (nextQty < currentQty + safeQuantity) {
-      toast.error(`Only ${maxStock} unit${maxStock === 1 ? '' : 's'} available in stock. Cart updated to maximum available quantity.`);
+    if (currentQty + safeQuantity > maxStock) {
+      const remaining = maxStock - currentQty;
+      toast.error(`Cannot add ${safeQuantity} units. Only ${remaining} more unit${remaining === 1 ? '' : 's'} available in stock (total stock: ${maxStock}).`);
+      return thunkAPI.rejectWithValue(`Only ${remaining} more unit(s) available in stock`);
     }
 
+    const nextQty = currentQty + safeQuantity;
     localCart[existIdx] = {
       ...existing,
       product: { ...(typeof existing.product === 'object' ? existing.product : {}), ...normProduct },
       quantity: nextQty,
     };
   } else {
-    const initialQty = Math.min(maxStock, safeQuantity);
-    if (initialQty < safeQuantity) {
-      toast.error(`Only ${maxStock} unit${maxStock === 1 ? '' : 's'} available in stock. Added ${maxStock} to cart.`);
+    if (safeQuantity > maxStock) {
+      toast.error(`Cannot add ${safeQuantity} units. Only ${maxStock} unit${maxStock === 1 ? '' : 's'} available in stock.`);
+      return thunkAPI.rejectWithValue(`Requested quantity (${safeQuantity}) exceeds available stock (${maxStock})`);
     }
-    localCart.push({ product: normProduct, quantity: initialQty });
+    localCart.push({ product: normProduct, quantity: safeQuantity });
   }
   saveLocalCart(localCart, userKey);
 
