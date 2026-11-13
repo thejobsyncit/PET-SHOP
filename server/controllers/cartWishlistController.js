@@ -194,7 +194,9 @@ const saveUserWishlist = async (userId, wishlist, userData, userEmail) => {
   const cleanEmail = (userEmail && typeof userEmail === 'string') ? userEmail.trim().toLowerCase() : (userData?.user?.email ? userData.user.email.trim().toLowerCase() : '');
   const key = cleanId || cleanEmail;
 
-  inMemoryWishlists.set(key, wishlist);
+  if (key) inMemoryWishlists.set(key, wishlist);
+  if (cleanEmail) inMemoryWishlists.set(cleanEmail, wishlist);
+  if (cleanId) inMemoryWishlists.set(cleanId, wishlist);
 
   if (userData?.source === 'supabase' && supabase && cleanId) {
     try {
@@ -225,7 +227,7 @@ const saveUserWishlist = async (userId, wishlist, userData, userEmail) => {
 
 const normalizeProduct = (p) => {
   if (!p) return null;
-  const price = Number(p.price) || 0;
+  const price = Number(p.price ?? p.fee ?? 0) || 0;
   const discountPrice = p.discount_price !== null && p.discount_price !== undefined 
     ? Number(p.discount_price) 
     : (p.discountPrice !== null && p.discountPrice !== undefined ? Number(p.discountPrice) : null);
@@ -233,18 +235,30 @@ const normalizeProduct = (p) => {
     ? Number(p.discount_percentage) 
     : (discountPrice && price > discountPrice ? Math.round(((price - discountPrice) / price) * 100) : 0);
 
+  const pId = String(p.id || p._id || '');
+  const images = Array.isArray(p.images) && p.images.length > 0 
+    ? p.images 
+    : (p.image ? [p.image] : []);
+
   return {
     ...p,
-    _id: p.id || p._id,
-    id: p.id || p._id,
+    _id: pId,
+    id: pId,
+    name: p.name || p.title || 'Product',
+    title: p.title || p.name || 'Product',
     price,
+    fee: price,
     discountPrice,
     discountPercentage,
+    images,
+    image: images[0] || p.image || '',
     stock: p.stock !== undefined && p.stock !== null && !isNaN(Number(p.stock)) ? Number(p.stock) : 15,
     isBestSeller: p.is_bestseller ?? p.isBestSeller ?? false,
     isFeatured: p.is_featured ?? p.isFeatured ?? false,
     requiresPrescription: p.requires_prescription ?? p.requiresPrescription ?? false,
     petType: p.pet_type ?? p.petType,
+    breed: p.breed,
+    isPet: Boolean(p.isPet || p.petType || p.breed || p.itemType === 'pet' || p.itemType === 'adoption')
   };
 };
 
@@ -580,6 +594,91 @@ const getWishlistItemIdStr = (item) => {
   return raw ? String(raw).trim() : '';
 };
 
+// Populate product and pet details for given wishlist items
+const populateWishlistItems = async (rawWishlist, fallbackProduct = null) => {
+  if (!Array.isArray(rawWishlist) || rawWishlist.length === 0) return [];
+  const productIds = Array.from(new Set(rawWishlist.map(getWishlistItemIdStr).filter(Boolean)));
+  const populatedProds = await populateProducts(productIds);
+
+  // Check pet listings and adoptions from disk if not found in products
+  let listings = [];
+  try {
+    const listingsFile = path.join(__dirname, '..', 'data', 'listings.json');
+    if (fs.existsSync(listingsFile)) {
+      const content = fs.readFileSync(listingsFile, 'utf8');
+      const parsed = JSON.parse(content);
+      if (Array.isArray(parsed)) listings = parsed;
+    }
+  } catch (_) {}
+
+  let adoptions = [];
+  try {
+    const adoptionsFile = path.join(__dirname, '..', 'data', 'adoptions.json');
+    if (fs.existsSync(adoptionsFile)) {
+      const content = fs.readFileSync(adoptionsFile, 'utf8');
+      const parsed = JSON.parse(content);
+      if (Array.isArray(parsed)) adoptions = parsed;
+    }
+  } catch (_) {}
+
+  return productIds.map(id => {
+    const foundProd = populatedProds.find(p => String(p.id) === String(id) || String(p._id) === String(id));
+    if (foundProd) return foundProd;
+
+    const foundListing = listings.find(l => String(l.id) === String(id) || String(l._id) === String(id));
+    if (foundListing) {
+      return normalizeProduct({
+        ...foundListing,
+        _id: foundListing._id || foundListing.id,
+        id: foundListing._id || foundListing.id,
+        name: foundListing.title || `${foundListing.breed} (${foundListing.petType})`,
+        title: foundListing.title,
+        breed: foundListing.breed,
+        petType: foundListing.petType,
+        price: Number(foundListing.price) || 0,
+        images: foundListing.images || (foundListing.image ? [foundListing.image] : []),
+        image: (foundListing.images && foundListing.images[0]) || foundListing.image || '',
+        location: foundListing.location,
+        contactPhone: foundListing.contactPhone,
+        itemType: 'pet',
+        isPet: true
+      });
+    }
+
+    const foundAdopt = adoptions.find(a => String(a.id) === String(id) || String(a._id) === String(id));
+    if (foundAdopt) {
+      return normalizeProduct({
+        ...foundAdopt,
+        _id: foundAdopt.id || foundAdopt._id,
+        id: foundAdopt.id || foundAdopt._id,
+        name: foundAdopt.name,
+        title: foundAdopt.name,
+        breed: foundAdopt.breed,
+        petType: foundAdopt.petType || foundAdopt.category || 'pet',
+        price: Number(foundAdopt.fee || foundAdopt.price) || 0,
+        fee: Number(foundAdopt.fee || foundAdopt.price) || 0,
+        quality: foundAdopt.quality,
+        images: foundAdopt.image ? [foundAdopt.image] : [],
+        image: foundAdopt.image || '',
+        city: foundAdopt.city,
+        itemType: 'adoption',
+        isPet: true
+      });
+    }
+
+    const rawObj = rawWishlist.find(item => getWishlistItemIdStr(item) === id);
+    if (typeof rawObj === 'object' && rawObj !== null) {
+      return normalizeProduct(rawObj);
+    }
+
+    if (fallbackProduct && (String(fallbackProduct._id) === String(id) || String(fallbackProduct.id) === String(id))) {
+      return normalizeProduct(fallbackProduct);
+    }
+
+    return { _id: id, id, name: 'Product', price: 0 };
+  });
+};
+
 // @desc    Get user wishlist
 // @route   GET /api/wishlist
 // @access  Private
@@ -598,18 +697,7 @@ export const getWishlist = async (req, res) => {
       return res.json({ success: true, wishlist: [] });
     }
 
-    const productIds = Array.from(new Set(rawWishlist.map(getWishlistItemIdStr).filter(Boolean)));
-    const populated = await populateProducts(productIds);
-
-    const finalWishlist = productIds.map(id => {
-      const found = populated.find(p => String(p.id) === String(id) || String(p._id) === String(id));
-      if (found) return found;
-      const rawObj = rawWishlist.find(item => getWishlistItemIdStr(item) === id);
-      return typeof rawObj === 'object' && rawObj !== null 
-        ? normalizeProduct(rawObj) 
-        : { _id: id, id, name: 'Product', price: 0 };
-    });
-
+    const finalWishlist = await populateWishlistItems(rawWishlist);
     res.json({ success: true, wishlist: finalWishlist });
   } catch (error) {
     console.error('getWishlist error:', error);
@@ -649,27 +737,67 @@ export const toggleWishlist = async (req, res) => {
       wishlist = wishlist.filter(item => getWishlistItemIdStr(item) !== targetIdStr);
     } else {
       if (!exists) {
-        wishlist.push(targetIdStr);
+        const itemToStore = product ? (normalizeProduct(product) || product) : targetIdStr;
+        wishlist.push(itemToStore);
       }
     }
 
     await saveUserWishlist(userId, wishlist, userData, userEmail);
 
-    const productIds = Array.from(new Set(wishlist.map(getWishlistItemIdStr).filter(Boolean)));
-    const populated = await populateProducts(productIds);
-
-    const finalWishlist = productIds.map(id => {
-      const found = populated.find(p => String(p.id) === String(id) || String(p._id) === String(id));
-      if (found) return found;
-      if (product && (String(product._id) === String(id) || String(product.id) === String(id))) {
-        return normalizeProduct(product);
-      }
-      return { _id: id, id, name: 'Product', price: 0 };
-    });
-
+    const finalWishlist = await populateWishlistItems(wishlist, product);
     res.json({ success: true, wishlist: finalWishlist });
   } catch (error) {
     console.error('toggleWishlist error:', error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// @desc    Sync local wishlist items to user account on login
+// @route   POST /api/wishlist/sync
+// @access  Private
+export const syncWishlist = async (req, res) => {
+  const { items } = req.body;
+  const userId = req.user?._id || req.user?.id;
+  const userEmail = req.user?.email;
+
+  if (!userId && !userEmail) {
+    return res.status(401).json({ success: false, message: 'Unauthorized' });
+  }
+
+  try {
+    const userData = await getUserData(userId, userEmail);
+    let wishlist = userData?.user?.wishlist || [];
+    if (!Array.isArray(wishlist)) wishlist = [];
+
+    const incoming = Array.isArray(items) ? items : [];
+    const wishlistMap = new Map();
+
+    // Load existing items into map
+    wishlist.forEach(item => {
+      const id = getWishlistItemIdStr(item);
+      if (id) wishlistMap.set(id, item);
+    });
+
+    // Merge incoming items
+    incoming.forEach(item => {
+      const id = getWishlistItemIdStr(item);
+      if (id) {
+        if (!wishlistMap.has(id)) {
+          wishlistMap.set(id, typeof item === 'object' ? (normalizeProduct(item) || item) : id);
+        } else if (typeof item === 'object') {
+          // If incoming has richer details (e.g. pet object), update existing
+          wishlistMap.set(id, normalizeProduct(item) || item);
+        }
+      }
+    });
+
+    const updatedWishlist = Array.from(wishlistMap.values());
+    await saveUserWishlist(userId, updatedWishlist, userData, userEmail);
+
+    const finalWishlist = await populateWishlistItems(updatedWishlist);
+    res.json({ success: true, wishlist: finalWishlist });
+  } catch (error) {
+    console.error('syncWishlist error:', error);
     res.status(500).json({ success: false, message: error.message });
   }
 };

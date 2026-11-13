@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import { 
   ArrowLeft, MapPin, Phone, MessageSquare, ShieldCheck, 
   Syringe, Clock, Heart, Share2, Check, Award, Info, 
@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { apiRequest } from '../../services/api.js';
+import { toggleWishlistAPI, getWishlistItemIdStr } from '../../store/slices/wishlistSlice.js';
 import { getPetListingById, getStoredClassifieds, DEFAULT_CLASSIFIEDS, savePetOrder, markPetListingAsSold } from '../../data/classifiedsData.js';
 import ScrollReveal from '../../components/ui/ScrollReveal.jsx';
 import SharedItemAuthGate from '../../components/ui/SharedItemAuthGate.jsx';
@@ -16,7 +17,9 @@ import SharedItemAuthGate from '../../components/ui/SharedItemAuthGate.jsx';
 const PetClassifiedDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const dispatch = useDispatch();
   const { isAuthenticated, user } = useSelector((state) => state.auth);
+  const wishlistItems = useSelector((state) => state.wishlist?.items || []);
 
   const [pet, setPet] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -277,6 +280,40 @@ const PetClassifiedDetail = () => {
   const hasVaccination = Boolean(pet.vaccinationCertificate);
   const isImageCert = typeof pet.vaccinationCertificate === 'string' && (pet.vaccinationCertificate.startsWith('data:image') || pet.vaccinationCertificate.startsWith('http'));
 
+  const petId = String(pet?._id || pet?.id || id);
+  const isWishlisted = wishlistItems.some(item => getWishlistItemIdStr(item) === petId);
+
+  const handleToggleWishlist = async () => {
+    if (!pet) return;
+    const action = isWishlisted ? 'remove' : 'add';
+    const petPayload = {
+      _id: petId,
+      id: petId,
+      name: pet.title || `${pet.breed} (${pet.petType})`,
+      title: pet.title || `${pet.breed} (${pet.petType})`,
+      breed: pet.breed || '',
+      petType: pet.petType || 'pet',
+      price: Number(pet.price) || 0,
+      fee: Number(pet.price) || 0,
+      images: Array.isArray(pet.images) && pet.images.length > 0 ? pet.images : (pet.image ? [pet.image] : []),
+      image: (pet.images && pet.images[0]) || pet.image || '',
+      location: pet.location || '',
+      contactPhone: pet.contactPhone || '',
+      itemType: 'pet',
+      isPet: true
+    };
+    const result = await dispatch(toggleWishlistAPI({ product: petPayload, action }));
+    if (toggleWishlistAPI.fulfilled.match(result)) {
+      const updatedList = result.payload?.wishlist || [];
+      const nowInWishlist = updatedList.some(item => getWishlistItemIdStr(item) === petId);
+      if (nowInWishlist) {
+        toast.success('Added pet to wishlist');
+      } else {
+        toast.success('Removed pet from wishlist');
+      }
+    }
+  };
+
   return (
     <div className="min-h-screen bg-[#FAFBF9] pb-24 text-slate-800 font-sans">
       
@@ -293,14 +330,31 @@ const PetClassifiedDetail = () => {
             <span className="text-primary truncate">{pet.breed || pet.title}</span>
           </div>
 
-          <button
-            onClick={handleShare}
-            className="flex items-center gap-1.5 px-3 py-1.5 border border-beige hover:border-primary text-gray-600 hover:text-primary text-xs font-bold rounded-lg transition shrink-0 cursor-pointer bg-white"
-            title="Share this listing"
-          >
-            <Share2 size={13} />
-            <span className="hidden xs:inline">Share</span>
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={handleToggleWishlist}
+              type="button"
+              aria-label={isWishlisted ? "Remove from Wishlist" : "Add to Wishlist"}
+              title={isWishlisted ? "Remove from Wishlist" : "Save to Wishlist"}
+              className={`flex items-center gap-1.5 px-3 py-1.5 border rounded-lg transition shrink-0 cursor-pointer ${
+                isWishlisted 
+                  ? "border-red-200 text-red-500 bg-red-50 hover:bg-red-100" 
+                  : "border-beige hover:border-primary text-gray-600 hover:text-red-500 bg-white"
+              }`}
+            >
+              <Heart size={14} className={isWishlisted ? "fill-red-500 text-red-500" : ""} />
+              <span className="text-xs font-bold">{isWishlisted ? "Saved" : "Save to Wishlist"}</span>
+            </button>
+
+            <button
+              onClick={handleShare}
+              className="flex items-center gap-1.5 px-3 py-1.5 border border-beige hover:border-primary text-gray-600 hover:text-primary text-xs font-bold rounded-lg transition shrink-0 cursor-pointer bg-white"
+              title="Share this listing"
+            >
+              <Share2 size={13} />
+              <span className="hidden xs:inline">Share</span>
+            </button>
+          </div>
         </div>
       </div>
 
@@ -338,6 +392,20 @@ const PetClassifiedDetail = () => {
                 </div>
 
                 <div className="absolute top-4 right-4 flex flex-col items-end gap-2 z-10">
+                  <button
+                    type="button"
+                    onClick={handleToggleWishlist}
+                    aria-label={isWishlisted ? "Remove from Wishlist" : "Add to Wishlist"}
+                    title={isWishlisted ? "Remove from Wishlist" : "Add to Wishlist"}
+                    className={`p-2.5 rounded-full backdrop-blur-md border shadow-md transition-all duration-300 cursor-pointer ${
+                      isWishlisted 
+                        ? "bg-white text-red-500 border-red-200 hover:bg-red-50" 
+                        : "bg-white/90 text-gray-500 hover:text-red-500 border-white hover:bg-white"
+                    }`}
+                  >
+                    <Heart size={16} className={isWishlisted ? "fill-red-500 text-red-500" : ""} />
+                  </button>
+
                   {pet.isVerified && (
                     <span className="bg-white/95 backdrop-blur-sm text-emerald-800 border border-emerald-200 text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-wider shadow-sm flex items-center gap-1">
                       <ShieldCheck size={13} className="text-emerald-600" /> 100% Verified
@@ -671,6 +739,19 @@ const PetClassifiedDetail = () => {
                     <MessageSquare size={15} /> DIRECT CHAT
                   </button>
                 </div>
+
+                <button
+                  type="button"
+                  onClick={handleToggleWishlist}
+                  className={`w-full py-3 border font-black text-xs uppercase tracking-wider rounded-xl transition flex items-center justify-center gap-2 cursor-pointer ${
+                    isWishlisted 
+                      ? "border-red-200 bg-red-50 text-red-600 hover:bg-red-100" 
+                      : "border-beige bg-white text-slate-700 hover:border-primary hover:text-primary shadow-xs"
+                  }`}
+                >
+                  <Heart size={15} className={isWishlisted ? "fill-red-500 text-red-500" : ""} />
+                  <span>{isWishlisted ? "Saved in Your Wishlist" : "Save Pet to Wishlist"}</span>
+                </button>
               </div>
 
               {/* Safety & Buyer Protection Note */}

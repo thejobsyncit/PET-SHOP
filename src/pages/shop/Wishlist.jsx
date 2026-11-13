@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
-import { Heart, ShoppingBag, Trash2, Share2 } from 'lucide-react';
+import { Heart, ShoppingBag, Trash2, Share2, Eye } from 'lucide-react';
 import { addToCartAPI } from '../../store/slices/cartSlice.js';
 import { fetchWishlist, toggleWishlistAPI } from '../../store/slices/wishlistSlice.js';
 import { openAuthModal } from '../../store/slices/authSlice.js';
@@ -157,16 +157,30 @@ const Wishlist = () => {
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
           {items.map((product) => {
             const pId = product._id || product.id;
-            const productPrice = product.discountPrice ?? product.discount_price ?? product.price;
+            const isPet = Boolean(
+              product.isPet || product.petType || product.breed || 
+              product.itemType === 'pet' || product.itemType === 'adoption' ||
+              product.sellerName || product.parentContact || product.quality
+            );
+            const isAdoption = product.itemType === 'adoption' || product.quality !== undefined;
+            const targetLink = isPet 
+              ? (isAdoption ? `/adopt/${pId}` : `/pets/${pId}`)
+              : `/product/${product.slug || pId}`;
+
+            const displayName = product.name || product.title || (isPet ? 'Verified Pet' : 'Product');
+            const displayBrand = product.breed || product.brand || (isPet ? (product.petType ? `${product.petType.toUpperCase()}` : 'PET LISTING') : '');
+            const productPrice = product.discountPrice ?? product.discount_price ?? product.price ?? product.fee ?? 0;
+            const isFree = isPet && Number(productPrice) === 0;
+
             return (
               <div 
                 key={pId}
-                className="card-premium relative bg-white flex flex-col justify-between h-[380px]"
+                className="card-premium relative bg-white flex flex-col justify-between h-[390px] border border-beige shadow-xs hover:shadow-md transition"
               >
                 {/* Remove Button */}
                 <button
                   onClick={() => handleRemove(product)}
-                  className="absolute top-3 right-3 z-10 p-2 bg-white/80 hover:bg-white text-gray-400 hover:text-red-500 rounded-full cursor-pointer shadow-sm border border-beige"
+                  className="absolute top-3 right-3 z-10 p-2 bg-white/90 hover:bg-white text-gray-400 hover:text-red-500 rounded-full cursor-pointer shadow-sm border border-beige transition"
                   title="Remove Item"
                 >
                   <Trash2 size={14} />
@@ -174,47 +188,59 @@ const Wishlist = () => {
 
                 {/* Image */}
                 <div 
-                  onClick={() => {
-                    const targetSlug = product.slug || product._id || product.id;
-                    navigate(targetSlug ? `/product/${targetSlug}` : '/shop');
-                  }}
-                  className="relative aspect-square overflow-hidden bg-white p-2 border-b border-beige cursor-pointer flex items-center justify-center"
+                  onClick={() => navigate(targetLink)}
+                  className="relative aspect-square overflow-hidden bg-white p-2 border-b border-beige cursor-pointer flex items-center justify-center group"
                 >
                   <img 
                     src={product.images?.[0] || product.image || 'https://images.unsplash.com/photo-1548199973-03cce0bbc87b?q=80&w=800'} 
-                    alt={product.name} 
+                    alt={displayName} 
                     onError={(e) => {
                       e.currentTarget.onerror = null;
                       e.currentTarget.src = 'https://images.unsplash.com/photo-1548199973-03cce0bbc87b?q=80&w=800';
                     }}
-                    className="w-full h-full object-contain" 
+                    className={`w-full h-full group-hover:scale-105 transition duration-300 ${isPet ? 'object-cover rounded-md' : 'object-contain'}`} 
                   />
+
+                  {isPet && (
+                    <span className="absolute bottom-2.5 left-2.5 bg-[#0F2E23]/90 text-amber-300 border border-amber-300/30 text-[9px] font-bold px-2 py-0.5 rounded uppercase tracking-wider backdrop-blur-xs">
+                      {isAdoption ? 'Adoption' : 'Pet Listing'}
+                    </span>
+                  )}
                 </div>
 
                 {/* Details */}
                 <div className="p-4 flex-grow flex flex-col justify-between">
                   <div>
-                    <span className="text-[10px] uppercase tracking-widest text-accent font-semibold block">{product.brand}</span>
+                    <span className="text-[10px] uppercase tracking-widest text-accent font-semibold block truncate">
+                      {displayBrand}
+                    </span>
                     <h4 
-                      onClick={() => {
-                        const targetSlug = product.slug || product._id || product.id;
-                        navigate(targetSlug ? `/product/${targetSlug}` : '/shop');
-                      }}
+                      onClick={() => navigate(targetLink)}
                       className="font-serif text-xs font-semibold text-primary truncate cursor-pointer hover:text-accent mt-0.5"
+                      title={displayName}
                     >
-                      {product.name}
+                      {displayName}
                     </h4>
                     <span className="text-xs font-bold text-primary block mt-1">
-                      ₹{productPrice}
+                      {isFree ? 'Free Adoption / Rehome' : `₹${Number(productPrice).toLocaleString('en-IN')}`}
                     </span>
                   </div>
 
-                  <button
-                    onClick={() => handleAddToCart(product)}
-                    className="w-full btn-premium py-2 text-[10px] tracking-widest uppercase flex items-center justify-center gap-1.5 mt-4"
-                  >
-                    <ShoppingBag size={12} /> ADD TO CART
-                  </button>
+                  {isPet ? (
+                    <button
+                      onClick={() => navigate(targetLink)}
+                      className="w-full btn-premium py-2 text-[10px] tracking-widest uppercase flex items-center justify-center gap-1.5 mt-4 cursor-pointer"
+                    >
+                      <Eye size={12} /> VIEW PET DETAILS
+                    </button>
+                  ) : (
+                    <button
+                      onClick={() => handleAddToCart(product)}
+                      className="w-full btn-premium py-2 text-[10px] tracking-widest uppercase flex items-center justify-center gap-1.5 mt-4 cursor-pointer"
+                    >
+                      <ShoppingBag size={12} /> ADD TO CART
+                    </button>
+                  )}
                 </div>
               </div>
             );

@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import {
   Heart, ArrowLeft, MapPin, MessageSquare, ShieldCheck,
   CircleCheck, Check, User, Calendar, Award, Share2, Info, Home,
   Sparkles, AlertCircle, ArrowRight, Lock, X, Edit3, Clock
 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { toggleWishlistAPI, getWishlistItemIdStr } from '../../store/slices/wishlistSlice.js';
 import { formatWhatsAppTargetPhone, resolveProviderWhatsApp } from '../../utils/whatsappHelper.js';
 import {
   getStoredAdoptionPets,
@@ -38,7 +39,9 @@ const WhatsAppIcon = ({ className = 'w-4 h-4', size = 18 }) => (
 const AdoptionPetDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const dispatch = useDispatch();
   const { isAuthenticated, user } = useSelector((state) => state.auth);
+  const wishlistItems = useSelector((state) => state.wishlist?.items || []);
 
   const [pets, setPets] = useState(() => getStoredAdoptionPets());
   const [pet, setPet] = useState(() => {
@@ -157,6 +160,40 @@ const AdoptionPetDetail = () => {
     if (!targetPet?.id) return;
     navigate(`/adopt/${targetPet.id}`);
     window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const petId = String(pet?.id || pet?._id || id);
+  const isWishlisted = wishlistItems.some(item => getWishlistItemIdStr(item) === petId);
+
+  const handleToggleWishlist = async () => {
+    if (!pet) return;
+    const action = isWishlisted ? 'remove' : 'add';
+    const petPayload = {
+      _id: petId,
+      id: petId,
+      name: pet.name,
+      title: pet.name,
+      breed: pet.breed || '',
+      petType: pet.petType || pet.type || pet.category || 'pet',
+      price: Number(pet.fee ?? pet.price ?? 0) || 0,
+      fee: Number(pet.fee ?? pet.price ?? 0) || 0,
+      images: pet.image ? [pet.image] : [],
+      image: pet.image || '',
+      city: pet.city || '',
+      quality: pet.quality || '',
+      itemType: 'adoption',
+      isPet: true
+    };
+    const result = await dispatch(toggleWishlistAPI({ product: petPayload, action }));
+    if (toggleWishlistAPI.fulfilled.match(result)) {
+      const updatedList = result.payload?.wishlist || [];
+      const nowInWishlist = updatedList.some(item => getWishlistItemIdStr(item) === petId);
+      if (nowInWishlist) {
+        toast.success(`Added ${pet.name} to wishlist`);
+      } else {
+        toast.success(`Removed ${pet.name} from wishlist`);
+      }
+    }
   };
 
   // Load target pet with robust ID and string matching & real-time sync
@@ -505,13 +542,29 @@ const AdoptionPetDetail = () => {
             <span className="text-[#b89228] font-bold">{pet.name}</span>
           </div>
 
-          <button
-            type="button"
-            onClick={() => navigate('/adopt')}
-            className="text-xs font-bold text-[#b89228] hover:underline flex items-center gap-1 cursor-pointer"
-          >
-            <ArrowLeft size={14} /> Back to Pets
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={handleToggleWishlist}
+              className={`px-3 py-1.5 border rounded-lg text-xs font-bold transition flex items-center gap-1.5 cursor-pointer ${
+                isWishlisted
+                  ? "border-red-200 bg-red-50 text-red-600 hover:bg-red-100"
+                  : "border-amber-200 bg-white text-slate-700 hover:border-[#b89228] hover:text-[#b89228]"
+              }`}
+              title={isWishlisted ? "Remove from Wishlist" : "Save to Wishlist"}
+            >
+              <Heart size={14} className={isWishlisted ? "fill-red-500 text-red-500" : ""} />
+              <span>{isWishlisted ? "Saved" : "Save to Wishlist"}</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => navigate('/adopt')}
+              className="text-xs font-bold text-[#b89228] hover:underline flex items-center gap-1 cursor-pointer"
+            >
+              <ArrowLeft size={14} /> Back to Pets
+            </button>
+          </div>
         </div>
       </div>
 
@@ -554,6 +607,21 @@ const AdoptionPetDetail = () => {
                     </span>
                   )}
                 </div>
+
+                {/* Wishlist Heart Button Top Right */}
+                <button
+                  type="button"
+                  onClick={handleToggleWishlist}
+                  aria-label={isWishlisted ? "Remove from Wishlist" : "Add to Wishlist"}
+                  title={isWishlisted ? "Remove from Wishlist" : "Add to Wishlist"}
+                  className={`absolute top-4 right-4 z-20 p-2.5 rounded-full backdrop-blur-md border shadow-md transition-all duration-300 cursor-pointer ${
+                    isWishlisted 
+                      ? "bg-white text-red-500 border-red-200 hover:bg-red-50" 
+                      : "bg-white/90 text-gray-500 hover:text-red-500 border-white hover:bg-white"
+                  }`}
+                >
+                  <Heart size={18} className={isWishlisted ? "fill-red-500 text-red-500" : ""} />
+                </button>
 
                 <div className="absolute bottom-4 right-4">
                   <button
@@ -743,6 +811,20 @@ const AdoptionPetDetail = () => {
                 >
                   <MessageSquare size={14} />
                   <span>In-App Chat</span>
+                </button>
+
+                {/* Save to Wishlist Button */}
+                <button
+                  type="button"
+                  onClick={handleToggleWishlist}
+                  className={`w-full py-2.5 px-3 border rounded-xl font-bold text-xs transition flex items-center justify-center gap-1.5 cursor-pointer shadow-xs ${
+                    isWishlisted 
+                      ? "border-red-200 bg-red-50 text-red-600 hover:bg-red-100" 
+                      : "border-amber-200 bg-white text-slate-700 hover:border-[#b89228] hover:text-[#b89228]"
+                  }`}
+                >
+                  <Heart size={14} className={isWishlisted ? "fill-red-500 text-red-500" : ""} />
+                  <span>{isWishlisted ? "Saved in Your Wishlist" : "Save Pet to Wishlist"}</span>
                 </button>
               </div>
 

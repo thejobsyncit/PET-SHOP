@@ -8,7 +8,13 @@
     "addresses": [],
     "wishlist": [],
     "cart": [],
-    "businessName": "JOSH PETS HUB"
+    "businessName": "JOSH PETS HUB",
+    "mobile": "9876543210",
+    "phone": "9876543210",
+    "whatsapp": "9876543210",
+    "whatsappNumber": "9876543210",
+    "whatsappCountryCode": "+91",
+    "mobileCountryCode": "+91"
   },
   {
     "_id": "60d5ec49ad70591244000001",
@@ -30,7 +36,13 @@
     ],
     "wishlist": [],
     "cart": [],
-    "businessName": "Admin Hub"
+    "businessName": "Admin Hub",
+    "mobile": "9876543210",
+    "phone": "9876543210",
+    "whatsapp": "9876543210",
+    "whatsappNumber": "9876543210",
+    "whatsappCountryCode": "+91",
+    "mobileCountryCode": "+91"
   },
   {
     "_id": "60d5ec49ad70591244000002",
@@ -62,7 +74,8 @@
     "password_plain": "Pass@1234",
     "serviceCategory": "",
     "businessName": "",
-    "verificationStatus": "Verified"
+    "verificationStatus": "Verified",
+    "phone": "1"
   },
   {
     "_id": "60d5ec49ad70591244000003",
@@ -83,7 +96,9 @@
       }
     ],
     "wishlist": [],
-    "cart": []
+    "cart": [],
+    "mobile": "9876543210",
+    "phone": "9876543210"
   },
   {
     "_id": "60d5ec49ad70591244000004",
@@ -93,7 +108,9 @@
     "role": "CUSTOMER",
     "addresses": [],
     "wishlist": [],
-    "cart": []
+    "cart": [],
+    "mobile": "9876543210",
+    "phone": "9876543210"
   },
   {
     "_id": "60d5ec49ad70591244000005",
@@ -103,7 +120,9 @@
     "role": "CUSTOMER",
     "addresses": [],
     "wishlist": [],
-    "cart": []
+    "cart": [],
+    "mobile": "9876543210",
+    "phone": "9876543210"
   },
   {
     "_id": "60d5ec49ad70591244000006",
@@ -113,7 +132,13 @@
     "role": "SERVICE_PROVIDER",
     "addresses": [],
     "wishlist": [],
-    "cart": []
+    "cart": [],
+    "mobile": "9845012345",
+    "phone": "9845012345",
+    "whatsapp": "9845012345",
+    "whatsappNumber": "9845012345",
+    "whatsappCountryCode": "+91",
+    "mobileCountryCode": "+91"
   },
   {
     "_id": "6aa1015bf1fcb3cdcbf2e2da",
@@ -228,7 +253,9 @@
         "paymentMethod": "Online Gateway",
         "paidAt": "2026-10-29T11:08:21.466Z"
       }
-    ]
+    ],
+    "whatsappCountryCode": "+91",
+    "mobileCountryCode": "+91"
   },
   {
     "_id": "6aa93dfad2902622a9e533e7",
@@ -326,7 +353,17 @@
         "paymentMethod": "Online Gateway",
         "paidAt": "2026-10-27T15:01:30.342Z"
       }
-    ]
+    ],
+    "phone": "9845577661",
+    "profilePicture": "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/4gHYSUNDX1BST0ZJTEUAAQEAAAHIAAAAAAQwAABtbnRyUkdCIFhZWiAH4AABAAEAAAAAAABhY3NwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAA9tYAAQAAAADTLQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAlkZXNjAAAA8AAAACRyWFlaAAABFAAAABRnWFlaAAABKAAAABRiWFlaAAABPAAAABR3dHB0AAABUAAAABRyVFJDAAABZAAAAChnVFJDAAABZAAAAChiVFJDAAABZAAAAChjcHJ0AAABjAAAADxtbHVjAAAAAAAAAAEAAAAMZW5VUwAAAAgAAAAcAHMAUgBHAEJYWVogAAAAAAAAb6IAADj1AAADkFhZWiAAAAAAAABimQAAt4UAABjaWFlaIAAAAAAAACSgAAAPhAAAts9YWVogAAAAAAAA9tYAAQAAAADTLXBhcmEAAAAAAAQAAAACZmYAAPKnAAANWQAAE9AAAApbAAAAAAAAAABtbHVjAAAAAAAAAAEAAAAMZW5VUwAAACAAAAAcAEcAbwBvAGcAbABlACAASQBuAGMALgAgADIAMAAxADb/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAj/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFAEBAAAAAAAAAAAAAAAAAAAAAP/EABQRAQAAAAAAAAAAAAAAAAAAAAD/2gAMAwEAAhEDEQA/AJUAB//Z",
+    "whatsappNumber": "9845577661",
+    "streetAddress": "Sarjapur Road, Bangalore, Karnataka",
+    "experience": 9,
+    "trainingSpecialization": null,
+    "vehicleTypes": null,
+    "emergencyHelpline": null,
+    "whatsappCountryCode": "+91",
+    "mobileCountryCode": "+91"
   },
   {
     "_id": "6aa12ddc8cb516b3b281a3df",
@@ -345,8 +382,147 @@
     "bio": "",
     "password": "$2b$10$rfCIMxtNEySbI2N46Jqd8OkkjMBHEC.Uc.WBY/Yn2aBOQLKbeyZNS",
     "cart": [],
-    "wishlist": [],
-    "addresses": []
+    "wishlist": [
+      "60d5ec49ad70591244000000",
+      {
+        "_id": "LIST-FISH-01",
+        "id": "LIST-FISH-01",
+        "name": "Show Grade Super Red Arowana (Microchipped with CITES Certificate)",
+        "title": "Show Grade Super Red Arowana (Microchipped with CITES Certificate)",
+        "breed": "Super Red Arowana",
+        "petType": "fish",
+        "price": 38000,
+        "fee": 38000,
+        "images": [
+          "https://images.unsplash.com/photo-1522069169874-c58ec4b76be5?q=80&w=800&auto=format&fit=crop"
+        ],
+        "image": "https://images.unsplash.com/photo-1522069169874-c58ec4b76be5?q=80&w=800&auto=format&fit=crop",
+        "location": "Bangalore, KA",
+        "contactPhone": "+91 98450 12345",
+        "itemType": "pet",
+        "isPet": true,
+        "brand": "Super Red Arowana",
+        "discountPrice": null,
+        "discountPercentage": 0,
+        "stock": 15,
+        "isBestSeller": false,
+        "isFeatured": false,
+        "requiresPrescription": false
+      },
+      {
+        "_id": "adopt_1",
+        "id": "adopt_1",
+        "name": "Prince",
+        "title": "Prince",
+        "breed": "Golden Retriever",
+        "petType": "pet",
+        "price": 0,
+        "fee": 0,
+        "images": [
+          "https://images.unsplash.com/photo-1535930891776-0c2dfb7fda1a?q=80&w=800&auto=format&fit=crop"
+        ],
+        "image": "https://images.unsplash.com/photo-1535930891776-0c2dfb7fda1a?q=80&w=800&auto=format&fit=crop",
+        "city": "Jhansi",
+        "quality": "Pet Quality",
+        "itemType": "adoption",
+        "isPet": true,
+        "brand": "Golden Retriever",
+        "discountPrice": null,
+        "discountPercentage": 0,
+        "stock": 15,
+        "isBestSeller": false,
+        "isFeatured": false,
+        "requiresPrescription": false
+      },
+      {
+        "_id": "60d5ec49ad70591244000001",
+        "name": "Drools Focus Super Premium Adult Dog Food",
+        "slug": "drools-focus-adult-dog-food",
+        "brand": "Drools",
+        "sku": "DOG-DR-FOCUS-4KG",
+        "description": "Super premium dry food with real chicken for adult dogs of all breeds.",
+        "longDescription": "Drools Focus Adult Dog Food is formulated with no wheat, corn, or soy. It uses real chicken as the #1 ingredient to support muscle maintenance and boasts prebiotics and probiotics for optimal digestion. DHA from fish oil is added to promote cognitive health and joint supplements (Glucosamine & Chondroitin) are integrated to support mobility.",
+        "ingredients": [
+          "Real Chicken",
+          "Whole Dried Egg",
+          "Long Grain Rice",
+          "Oat Meal",
+          "Flax Seed Oil",
+          "Salmon Oil"
+        ],
+        "specifications": [
+          {
+            "label": "Weight",
+            "value": "4 kg"
+          },
+          {
+            "label": "Life Stage",
+            "value": "Adult"
+          },
+          {
+            "label": "Food Type",
+            "value": "Dry Food"
+          }
+        ],
+        "price": 1800,
+        "discountPrice": 1620,
+        "rating": 5,
+        "reviewCount": 2,
+        "stock": 30,
+        "lowStockThreshold": 5,
+        "images": [
+          "https://images.unsplash.com/photo-1601758228041-f3b2795255f1?q=80&w=800"
+        ],
+        "category": "Dog Food",
+        "subcategory": "Dog Food",
+        "petType": "dogs",
+        "isFeatured": false,
+        "isBestSeller": false,
+        "requiresPrescription": false,
+        "discountPercentage": 10,
+        "review_count": 2,
+        "numReviews": 2,
+        "ratings": 5,
+        "id": "60d5ec49ad70591244000001",
+        "title": "Drools Focus Super Premium Adult Dog Food",
+        "breed": "",
+        "fee": 1800,
+        "image": "https://images.unsplash.com/photo-1601758228041-f3b2795255f1?q=80&w=800",
+        "isPet": true,
+        "itemType": "pet"
+      }
+    ],
+    "avatar": "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150",
+    "addresses": [
+      {
+        "_id": "97e1a593-bcbb-44f1-a673-ea167101d7e2",
+        "name": "Priya Residence",
+        "phone": "9876543210",
+        "streetAddress": "123 Palm Grove Road, Indiranagar",
+        "city": "Bangalore",
+        "state": "Karnataka",
+        "postalCode": "560038",
+        "country": "India",
+        "isDefault": false
+      },
+      {
+        "_id": "607f9cdb-f69b-4a00-a007-cee9afd02b8e",
+        "name": "Priya Home Bangalore",
+        "phone": "9845099881",
+        "streetAddress": "Flat 402, Green Meadows",
+        "city": "Bangalore",
+        "state": "Karnataka",
+        "postalCode": "560034",
+        "country": "India",
+        "isDefault": true
+      }
+    ],
+    "profilePicture": "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150",
+    "phone": "9845099881",
+    "whatsapp": "9845099881",
+    "whatsappNumber": "9845099881",
+    "whatsappCountryCode": "+91",
+    "mobileCountryCode": "+91"
   },
   {
     "_id": "6aa2737bee2374873b773fc9",
@@ -444,7 +620,58 @@
         "paymentMethod": "Online Gateway",
         "paidAt": "2026-10-28T11:59:53.243Z"
       }
-    ]
+    ],
+    "profilePicture": "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/4gHYSUNDX1BST0ZJTEUAAQEAAAHIAAAAAAQwAABtbnRyUkdCIFhZWiAH4AABAAEAAAAAAABhY3NwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAA9tYAAQAAAADTLQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAlkZXNjAAAA8AAAACRyWFlaAAABFAAAABRnWFlaAAABKAAAABRiWFlaAAABPAAAABR3dHB0AAABUAAAABRyVFJDAAABZAAAAChnVFJDAAABZAAAAChiVFJDAAABZAAAAChjcHJ0AAABjAAAADxtbHVjAAAAAAAAAAEAAAAMZW5VUwAAAAgAAAAcAHMAUgBHAEJYWVogAAAAAAAAb6IAADj1AAADkFhZWiAAAAAAAABimQAAt4UAABjaWFlaIAAAAAAAACSgAAAPhAAAts9YWVogAAAAAAAA9tYAAQAAAADTLXBhcmEAAAAAAAQAAAACZmYAAPKnAAANWQAAE9AAAApbAAAAAAAAAABtbHVjAAAAAAAAAAEAAAAMZW5VUwAAACAAAAAcAEcAbwBvAGcAbABlACAASQBuAGMALgAgADIAMAAxADb/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAj/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFAEBAAAAAAAAAAAAAAAAAAAAAP/EABQRAQAAAAAAAAAAAAAAAAAAAAD/2gAMAwEAAhEDEQA/AJUAB//Z",
+    "phone": "9845199882",
+    "whatsappNumber": "9845199882",
+    "streetAddress": "Indiranagar, Bangalore, Karnataka",
+    "experience": 1,
+    "trainingSpecialization": null,
+    "vehicleTypes": null,
+    "emergencyHelpline": null,
+    "groomingSchedule": {
+      "acceptingWalkIns": true,
+      "days": {
+        "Monday": {
+          "isOpen": true,
+          "start": "10:00",
+          "end": "20:00"
+        },
+        "Tuesday": {
+          "isOpen": true,
+          "start": "08:30",
+          "end": "19:30"
+        },
+        "Wednesday": {
+          "isOpen": true,
+          "start": "10:00",
+          "end": "20:00"
+        },
+        "Thursday": {
+          "isOpen": true,
+          "start": "10:00",
+          "end": "20:00"
+        },
+        "Friday": {
+          "isOpen": true,
+          "start": "10:00",
+          "end": "20:00"
+        },
+        "Saturday": {
+          "isOpen": true,
+          "start": "09:00",
+          "end": "21:00"
+        },
+        "Sunday": {
+          "isOpen": true,
+          "start": "11:00",
+          "end": "17:00"
+        }
+      }
+    },
+    "schedule": null,
+    "whatsappCountryCode": "+91",
+    "mobileCountryCode": "+91"
   },
   {
     "_id": "6aad0797f7d5a7253ba9b848",
@@ -466,7 +693,12 @@
     "wishlist": [],
     "cart": [],
     "prescriptionHistory": [],
-    "createdAt": "2026-09-18T09:42:47.090Z"
+    "createdAt": "2026-09-18T09:42:47.090Z",
+    "phone": "9876543210",
+    "whatsapp": "9876543210",
+    "whatsappNumber": "9876543210",
+    "whatsappCountryCode": "+91",
+    "mobileCountryCode": "+91"
   },
   {
     "_id": "5c03a90d-6c0a-41e6-86a2-bef6e9b5bb22",
@@ -475,6 +707,11 @@
     "email": "sooryas650@gmail.com",
     "password": "$2b$10$qKB4SAne2QbhAvDyfBlBzeHmWiogUysZ3ICtBWQR9xFV.oGsDWU8m",
     "mobile": "9876543210",
+    "phone": "1234566789",
+    "mobileCountryCode": "+91",
+    "whatsapp": "1234566789",
+    "whatsappNumber": "1234566789",
+    "whatsappCountryCode": "+91",
     "role": "CUSTOMER",
     "location": "Chennai, Tamil Nadu",
     "serviceCategory": "Product Seller",
@@ -598,7 +835,12 @@
         "paymentMethod": "Online Gateway",
         "paidAt": "2026-10-28T11:53:59.769Z"
       }
-    ]
+    ],
+    "phone": "9731299881",
+    "profilePicture": "data:image/png;base64,new_photo_test_1793444347583",
+    "whatsappNumber": "9731299881",
+    "whatsappCountryCode": "+91",
+    "mobileCountryCode": "+91"
   },
   {
     "_id": "prov-seller-04",
@@ -712,7 +954,12 @@
         "paymentMethod": "Online Gateway",
         "paidAt": "2026-10-27T12:30:40.067Z"
       }
-    ]
+    ],
+    "phone": "9945122334",
+    "profilePicture": "data:image/png;base64,new_photo_test_1793444348181",
+    "whatsappNumber": "9945122334",
+    "whatsappCountryCode": "+91",
+    "mobileCountryCode": "+91"
   },
   {
     "_id": "prov-walk-06",
@@ -828,7 +1075,11 @@
         "paymentMethod": "Online Gateway",
         "paidAt": "2026-10-28T13:41:38.405Z"
       }
-    ]
+    ],
+    "groomingSchedule": null,
+    "schedule": null,
+    "whatsappCountryCode": "+91",
+    "mobileCountryCode": "+91"
   },
   {
     "_id": "prov-trans-07",
@@ -855,7 +1106,114 @@
     "vehicleTypes": "AC Van, Climate Ambulance",
     "experienceYears": 4,
     "isProfileComplete": true,
-    "profileCompleted": true
+    "profileCompleted": true,
+    "subscription": {
+      "status": "ACTIVE",
+      "planId": "quarterly",
+      "planName": "Quarterly Plan",
+      "basePrice": 499,
+      "gstRate": 0.18,
+      "gstAmount": 89.82,
+      "totalAmount": 588.82,
+      "validityMonths": 3,
+      "startDate": "2026-11-07T05:55:28.999Z",
+      "expiryDate": "2027-02-07T05:55:28.999Z",
+      "paymentId": "PAY_SUB_1794030928991_3010",
+      "orderId": "sub_ord_1794030928987_0ee1b959",
+      "paymentMethod": "Online Gateway",
+      "paidAt": "2026-11-07T05:55:28.999Z"
+    },
+    "subscriptionHistory": [
+      {
+        "status": "ACTIVE",
+        "planId": "quarterly",
+        "planName": "Quarterly Plan",
+        "basePrice": 499,
+        "gstRate": 0.18,
+        "gstAmount": 89.82,
+        "totalAmount": 588.82,
+        "validityMonths": 3,
+        "startDate": "2026-11-07T05:55:28.999Z",
+        "expiryDate": "2027-02-07T05:55:28.999Z",
+        "paymentId": "PAY_SUB_1794030928991_3010",
+        "orderId": "sub_ord_1794030928987_0ee1b959",
+        "paymentMethod": "Online Gateway",
+        "paidAt": "2026-11-07T05:55:28.999Z"
+      },
+      {
+        "status": "ACTIVE",
+        "planId": "monthly",
+        "planName": "Monthly Plan",
+        "basePrice": 199,
+        "gstRate": 0.18,
+        "gstAmount": 35.82,
+        "totalAmount": 234.82,
+        "validityMonths": 1,
+        "startDate": "2026-10-31T06:07:18.345Z",
+        "expiryDate": "2026-11-30T06:07:18.345Z",
+        "paymentId": "PAY_SUB_1793426838338_8348",
+        "orderId": "sub_ord_1793426838334_ccb96ee8",
+        "paymentMethod": "UPI (QR Code Scan)",
+        "paidAt": "2026-10-31T06:07:18.345Z"
+      }
+    ],
+    "phone": "9845223344",
+    "avatar": "data:image/png;base64,new_photo_test_1793444350207",
+    "profilePicture": "data:image/png;base64,new_photo_test_1793444350207",
+    "whatsapp": "9845223344",
+    "whatsappNumber": "9845223344",
+    "whatsappCountryCode": "+91",
+    "mobileCountryCode": "+91",
+    "streetAddress": "Yelahanka, Bangalore, Karnataka",
+    "govtProofDoc": null,
+    "experience": 4,
+    "degrees": null,
+    "vciRegistration": null,
+    "certifications": null,
+    "facilities": [],
+    "capacity": null,
+    "shelterCapacity": null,
+    "breedingLicense": null,
+    "kennelName": null,
+    "trainingSpecialization": null,
+    "emergencyHelpline": null,
+    "completedAt": "2026-11-07T05:55:20.308Z",
+    "requiresSubscription": true,
+    "profileCompletedAt": "2026-11-07T05:55:20.308Z",
+    "profileData": {
+      "businessName": "SafePet Global Transit & Air Cargo",
+      "name": "SafePet Transit",
+      "email": "safepet@joshpetshub.com",
+      "mobile": "9845223344",
+      "phone": "9845223344",
+      "whatsapp": "9845223344",
+      "whatsappNumber": "9845223344",
+      "location": "Bengaluru Urban (Bangalore), Karnataka",
+      "state": "Karnataka",
+      "city": "Bengaluru Urban (Bangalore)",
+      "address": "Yelahanka, Bangalore, Karnataka",
+      "streetAddress": "Yelahanka, Bangalore, Karnataka",
+      "govtProofType": "Municipal Trade License",
+      "govtProofNumber": "KA/TRN/2022/4412",
+      "govtProofDoc": null,
+      "experienceYears": 4,
+      "experience": 4,
+      "bio": "International IATA-compliant domestic and overseas pet relocation, air courier transit, and door-to-door AC transport cabs.",
+      "avatar": "data:image/png;base64,new_photo_test_1793444350207",
+      "profilePicture": "data:image/png;base64,new_photo_test_1793444350207",
+      "degrees": null,
+      "vciRegistration": null,
+      "certifications": null,
+      "facilities": [],
+      "capacity": null,
+      "shelterCapacity": null,
+      "breedingLicense": null,
+      "kennelName": null,
+      "trainingSpecialization": null,
+      "vehicleTypes": "AC Climate Van, Flight Cargo Crates, Ambulance",
+      "emergencyHelpline": null,
+      "completedAt": "2026-11-07T05:55:20.308Z"
+    }
   },
   {
     "_id": "prov-train-08",
@@ -882,7 +1240,114 @@
     "trainingSpecialization": "Obedience, Behavioral, Guard Dog",
     "experienceYears": 7,
     "isProfileComplete": true,
-    "profileCompleted": true
+    "profileCompleted": true,
+    "subscription": {
+      "status": "ACTIVE",
+      "planId": "monthly",
+      "planName": "Monthly Plan",
+      "basePrice": 199,
+      "gstRate": 0.18,
+      "gstAmount": 35.82,
+      "totalAmount": 234.82,
+      "validityMonths": 1,
+      "startDate": "2026-11-07T05:37:10.795Z",
+      "expiryDate": "2026-12-07T05:37:10.795Z",
+      "paymentId": "PAY_SUB_1794029830787_2568",
+      "orderId": "sub_ord_1794029830783_1997aea0",
+      "paymentMethod": "Online Gateway",
+      "paidAt": "2026-11-07T05:37:10.795Z"
+    },
+    "subscriptionHistory": [
+      {
+        "status": "ACTIVE",
+        "planId": "monthly",
+        "planName": "Monthly Plan",
+        "basePrice": 199,
+        "gstRate": 0.18,
+        "gstAmount": 35.82,
+        "totalAmount": 234.82,
+        "validityMonths": 1,
+        "startDate": "2026-11-07T05:37:10.795Z",
+        "expiryDate": "2026-12-07T05:37:10.795Z",
+        "paymentId": "PAY_SUB_1794029830787_2568",
+        "orderId": "sub_ord_1794029830783_1997aea0",
+        "paymentMethod": "Online Gateway",
+        "paidAt": "2026-11-07T05:37:10.795Z"
+      },
+      {
+        "status": "ACTIVE",
+        "planId": "yearly",
+        "planName": "Yearly Plan",
+        "basePrice": 999,
+        "gstRate": 0.18,
+        "gstAmount": 179.82,
+        "totalAmount": 1178.82,
+        "validityMonths": 12,
+        "startDate": "2026-10-27T11:20:12.624Z",
+        "expiryDate": "2027-10-27T11:20:12.625Z",
+        "paymentId": "PAY-DEMO-YEARLY",
+        "orderId": "sub_ord_demo_train_yearly",
+        "paymentMethod": "Online Gateway",
+        "paidAt": "2026-10-27T11:20:12.625Z"
+      }
+    ],
+    "phone": "9845334455",
+    "avatar": "data:image/png;base64,new_photo_test_1793444350829",
+    "profilePicture": "data:image/png;base64,new_photo_test_1793444350829",
+    "whatsapp": "9845334455",
+    "whatsappNumber": "9845334455",
+    "whatsappCountryCode": "+91",
+    "mobileCountryCode": "+91",
+    "streetAddress": "BTM Layout, Bangalore, Karnataka",
+    "govtProofDoc": null,
+    "experience": 7,
+    "degrees": null,
+    "vciRegistration": null,
+    "certifications": null,
+    "facilities": [],
+    "capacity": null,
+    "shelterCapacity": null,
+    "breedingLicense": null,
+    "kennelName": null,
+    "vehicleTypes": null,
+    "emergencyHelpline": null,
+    "completedAt": "2026-11-07T05:36:30.620Z",
+    "requiresSubscription": true,
+    "profileCompletedAt": "2026-11-07T05:36:30.620Z",
+    "profileData": {
+      "businessName": "Clever Canines Elite K9 Academy",
+      "name": "Clever Canines",
+      "email": "clevercanines@joshpetshub.com",
+      "mobile": "9845334455",
+      "phone": "9845334455",
+      "whatsapp": "9845334455",
+      "whatsappNumber": "9845334455",
+      "location": "Bengaluru Urban (Bangalore), Karnataka",
+      "state": "Karnataka",
+      "city": "Bengaluru Urban (Bangalore)",
+      "address": "BTM Layout, Bangalore, Karnataka",
+      "streetAddress": "BTM Layout, Bangalore, Karnataka",
+      "govtProofType": "MSME / Udyam Registration Certificate",
+      "govtProofNumber": "UDYAM-KR-03-009182",
+      "govtProofDoc": null,
+      "experienceYears": 7,
+      "experience": 7,
+      "bio": "Premier K9 behavioral academy specializing in certified Schutzhund, home manners, and aggression management.",
+      "avatar": "data:image/png;base64,new_photo_test_1793444350829",
+      "profilePicture": "data:image/png;base64,new_photo_test_1793444350829",
+      "degrees": null,
+      "vciRegistration": null,
+      "certifications": null,
+      "facilities": [],
+      "capacity": null,
+      "shelterCapacity": null,
+      "breedingLicense": null,
+      "kennelName": null,
+      "trainingSpecialization": "Advanced Obedience, Protection & Guard Dog, Behavioral Therapy",
+      "vehicleTypes": null,
+      "emergencyHelpline": null,
+      "completedAt": "2026-11-07T05:36:30.620Z"
+    }
   },
   {
     "_id": "prov-insure-09",
@@ -909,7 +1374,114 @@
     "emergencyHelpline": "1800-PET-CARE",
     "experienceYears": 6,
     "isProfileComplete": true,
-    "profileCompleted": true
+    "profileCompleted": true,
+    "subscription": {
+      "status": "ACTIVE",
+      "planId": "quarterly",
+      "planName": "Quarterly Plan",
+      "basePrice": 499,
+      "gstRate": 0.18,
+      "gstAmount": 89.82,
+      "totalAmount": 588.82,
+      "validityMonths": 3,
+      "startDate": "2026-11-07T05:26:15.090Z",
+      "expiryDate": "2027-02-07T05:26:15.090Z",
+      "paymentId": "PAY_SUB_1794029175081_3223",
+      "orderId": "sub_ord_1794029175077_469712e1",
+      "paymentMethod": "Online Gateway",
+      "paidAt": "2026-11-07T05:26:15.090Z"
+    },
+    "subscriptionHistory": [
+      {
+        "status": "ACTIVE",
+        "planId": "quarterly",
+        "planName": "Quarterly Plan",
+        "basePrice": 499,
+        "gstRate": 0.18,
+        "gstAmount": 89.82,
+        "totalAmount": 588.82,
+        "validityMonths": 3,
+        "startDate": "2026-11-07T05:26:15.090Z",
+        "expiryDate": "2027-02-07T05:26:15.090Z",
+        "paymentId": "PAY_SUB_1794029175081_3223",
+        "orderId": "sub_ord_1794029175077_469712e1",
+        "paymentMethod": "Online Gateway",
+        "paidAt": "2026-11-07T05:26:15.090Z"
+      },
+      {
+        "status": "ACTIVE",
+        "planId": "monthly",
+        "planName": "Monthly Plan",
+        "basePrice": 199,
+        "gstRate": 0.18,
+        "gstAmount": 35.82,
+        "totalAmount": 234.82,
+        "validityMonths": 1,
+        "startDate": "2026-10-31T06:09:34.091Z",
+        "expiryDate": "2026-11-30T06:09:34.091Z",
+        "paymentId": "PAY_SUB_1793426974082_3338",
+        "orderId": "sub_ord_1793426974076_2eec26f4",
+        "paymentMethod": "UPI (QR Code Scan)",
+        "paidAt": "2026-10-31T06:09:34.091Z"
+      }
+    ],
+    "phone": "9845445566",
+    "whatsapp": "9845445566",
+    "whatsappNumber": "9845445566",
+    "streetAddress": "MG Road, Bangalore, Karnataka",
+    "govtProofDoc": null,
+    "experience": 6,
+    "avatar": "data:image/png;base64,new_photo_test_1793444351552",
+    "profilePicture": "data:image/png;base64,new_photo_test_1793444351552",
+    "degrees": null,
+    "vciRegistration": null,
+    "certifications": null,
+    "facilities": [],
+    "capacity": null,
+    "shelterCapacity": null,
+    "breedingLicense": null,
+    "kennelName": null,
+    "trainingSpecialization": null,
+    "vehicleTypes": null,
+    "completedAt": "2026-11-07T05:24:36.467Z",
+    "requiresSubscription": true,
+    "profileCompletedAt": "2026-11-07T05:24:36.467Z",
+    "profileData": {
+      "businessName": "PawProtect Premium Pet Insurance Agency",
+      "name": "PawProtect Insurance",
+      "email": "pawinsure@joshpetshub.com",
+      "mobile": "9845445566",
+      "phone": "9845445566",
+      "whatsapp": "9845445566",
+      "whatsappNumber": "9845445566",
+      "location": "Bengaluru Urban (Bangalore), Karnataka",
+      "state": "Karnataka",
+      "city": "Bengaluru Urban (Bangalore)",
+      "address": "MG Road, Bangalore, Karnataka",
+      "streetAddress": "MG Road, Bangalore, Karnataka",
+      "govtProofType": "GSTIN Registration Certificate",
+      "govtProofNumber": "29AABCP1330K1Z2",
+      "govtProofDoc": null,
+      "experienceYears": 6,
+      "experience": 6,
+      "bio": "Official IRDAI-compliant comprehensive pet medical cover provider in India with instant cashless clinic claims.",
+      "avatar": "data:image/png;base64,new_photo_test_1793444351552",
+      "profilePicture": "data:image/png;base64,new_photo_test_1793444351552",
+      "degrees": null,
+      "vciRegistration": null,
+      "certifications": null,
+      "facilities": [],
+      "capacity": null,
+      "shelterCapacity": null,
+      "breedingLicense": null,
+      "kennelName": null,
+      "trainingSpecialization": null,
+      "vehicleTypes": null,
+      "emergencyHelpline": "1800-PET-CARE",
+      "completedAt": "2026-11-07T05:24:36.467Z"
+    },
+    "whatsappCountryCode": "+91",
+    "mobileCountryCode": "+91"
   },
   {
     "_id": "prov-breed-10",
@@ -937,7 +1509,28 @@
     "kennelName": "Elite Pedigree Champions",
     "experienceYears": 10,
     "isProfileComplete": true,
-    "profileCompleted": true
+    "profileCompleted": true,
+    "phone": "9845556677",
+    "avatar": "data:image/png;base64,new_photo_test_1793444352268",
+    "profilePicture": "data:image/png;base64,new_photo_test_1793444352268",
+    "subscription": {
+      "status": "ACTIVE",
+      "planId": "yearly",
+      "planName": "Yearly Plan",
+      "basePrice": 999,
+      "gstRate": 0.18,
+      "gstAmount": 179.82,
+      "totalAmount": 1178.82,
+      "validityMonths": 12,
+      "startDate": "2026-10-27T11:20:12.624Z",
+      "expiryDate": "2027-10-27T11:20:12.625Z",
+      "paymentId": "PAY-DEMO-YEARLY",
+      "paidAt": "2026-10-27T11:20:12.625Z"
+    },
+    "whatsapp": "9845556677",
+    "whatsappNumber": "9845556677",
+    "whatsappCountryCode": "+91",
+    "mobileCountryCode": "+91"
   },
   {
     "_id": "user-pavi-01",
@@ -952,7 +1545,8 @@
     "verificationStatus": "Verified",
     "addresses": [],
     "wishlist": [],
-    "cart": []
+    "cart": [],
+    "phone": "9876543210"
   },
   {
     "_id": "bd4bfbab-9be6-4d07-8312-536dfb92a40f",
@@ -981,7 +1575,12 @@
     "addresses": [],
     "wishlist": [],
     "cart": [],
-    "prescription_history": []
+    "prescription_history": [],
+    "phone": "9789883629",
+    "whatsapp": "9789883629",
+    "whatsappNumber": "9789883629",
+    "whatsappCountryCode": "+91",
+    "mobileCountryCode": "+91"
   },
   {
     "_id": "test-user-1",
@@ -1108,6 +1707,10 @@
     "requiresSubscription": true,
     "cart": [],
     "wishlist": [],
+    "phone": "9876543210",
+    "whatsappNumber": "9876543210",
+    "whatsappCountryCode": "+91",
+    "mobileCountryCode": "+91",
     "addresses": []
   },
   {
@@ -1206,7 +1809,12 @@
         "paymentMethod": "Online Gateway",
         "paidAt": "2026-10-27T11:20:12.625Z"
       }
-    ]
+    ],
+    "phone": "9845667788",
+    "profilePicture": "data:image/png;base64,new_photo_test_1793444352797",
+    "whatsappNumber": "9845667788",
+    "whatsappCountryCode": "+91",
+    "mobileCountryCode": "+91"
   },
   {
     "_id": "4b3f9707-d1b8-4e9e-83d3-bb6376e32ac0",
@@ -1239,7 +1847,12 @@
     "addresses": [],
     "wishlist": [],
     "cart": [],
-    "prescription_history": []
+    "prescription_history": [],
+    "phone": "9876543210",
+    "whatsapp": "9876543210",
+    "whatsappNumber": "9876543210",
+    "whatsappCountryCode": "+91",
+    "mobileCountryCode": "+91"
   },
   {
     "_id": "b2cbfc1b-8b34-43ba-8cec-2267d3ada16d",
@@ -1272,7 +1885,12 @@
     "addresses": [],
     "wishlist": [],
     "cart": [],
-    "prescription_history": []
+    "prescription_history": [],
+    "phone": "9845012345",
+    "whatsapp": "9845012345",
+    "whatsappNumber": "9845012345",
+    "whatsappCountryCode": "+91",
+    "mobileCountryCode": "+91"
   },
   {
     "_id": "superadmin-demo-01",

@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import { Link, useNavigate } from 'react-router-dom';
 import {
   Heart, MapPin, Search, Phone, MessageSquare, Info, ShieldCheck,
@@ -8,6 +8,7 @@ import {
   UploadCloud, Camera, Image as ImageIcon, AlertTriangle, ArrowUpDown, ChevronDown
 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { toggleWishlistAPI, getWishlistItemIdStr } from '../../store/slices/wishlistSlice.js';
 import {
   INDIAN_STATES_CITIES,
   POPULAR_BREEDS,
@@ -101,7 +102,42 @@ const CozyHomeIcon = ({ className = 'w-6 h-6' }) => (
 
 const AdoptionShelter = () => {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
   const { isAuthenticated, user } = useSelector((state) => state.auth);
+  const wishlistItems = useSelector((state) => state.wishlist?.items || []);
+
+  const handleToggleWishlist = async (e, targetPet) => {
+    e.stopPropagation();
+    const pId = String(targetPet.id || targetPet._id);
+    const isCurrentlyWishlisted = wishlistItems.some(item => getWishlistItemIdStr(item) === pId);
+    const action = isCurrentlyWishlisted ? 'remove' : 'add';
+    const petPayload = {
+      _id: pId,
+      id: pId,
+      name: targetPet.name,
+      title: targetPet.name,
+      breed: targetPet.breed || '',
+      petType: targetPet.petType || targetPet.category || 'pet',
+      price: Number(targetPet.fee ?? targetPet.price ?? 0) || 0,
+      fee: Number(targetPet.fee ?? targetPet.price ?? 0) || 0,
+      images: targetPet.image ? [targetPet.image] : [],
+      image: targetPet.image || '',
+      city: targetPet.city || '',
+      quality: targetPet.quality || '',
+      itemType: 'adoption',
+      isPet: true
+    };
+    const result = await dispatch(toggleWishlistAPI({ product: petPayload, action }));
+    if (toggleWishlistAPI.fulfilled.match(result)) {
+      const updatedList = result.payload?.wishlist || [];
+      const nowInWishlist = updatedList.some(item => getWishlistItemIdStr(item) === pId);
+      if (nowInWishlist) {
+        toast.success(`Added ${targetPet.name} to wishlist`);
+      } else {
+        toast.success(`Removed ${targetPet.name} from wishlist`);
+      }
+    }
+  };
 
   // Pets state with persistence
   const [petsList, setPetsList] = useState(getStoredAdoptionPets);
@@ -959,34 +995,53 @@ const AdoptionShelter = () => {
                  ========================================================================= */}
               {sortedPets.length > 0 ? (
                 <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
-                  {sortedPets.map((pet) => (
-                    <div
-                      key={pet.id}
-                      className="bg-white rounded-2xl border border-beige/90 shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden flex flex-col justify-between group hover:-translate-y-1"
-                    >
-                      
-                      {/* Card Top: Image with Quality & Pricing Badges */}
-                      <div 
-                        onClick={() => handleKnowMore(pet)} 
-                        className="relative aspect-[4/3] overflow-hidden bg-sand block cursor-pointer group"
-                      >
-                        <img
-                          src={pet.image}
-                          alt={pet.name}
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                          loading="lazy"
-                        />
-                        
-                        {/* Quality Pill Badge Top Right */}
-                        <span className="absolute top-3 right-3 bg-primary/90 backdrop-blur-xs text-white text-[10px] font-bold px-2.5 py-0.5 rounded-md shadow-sm uppercase tracking-wider">
-                          {pet.quality}
-                        </span>
+                  {sortedPets.map((pet) => {
+                    const pId = String(pet.id || pet._id);
+                    const isWishlisted = wishlistItems.some(item => getWishlistItemIdStr(item) === pId);
 
-                        {/* Pricing / Free Adoption Badge Top Left */}
-                        <span className={`absolute top-3 left-3 ${(pet.fee > 0 || pet.price > 0) ? 'bg-[#0F2E23]/95 text-amber-300 border border-amber-300/30' : 'bg-emerald-600/95 text-white'} backdrop-blur-xs text-[10px] font-black px-2.5 py-0.5 rounded-md shadow-sm uppercase tracking-wider`}>
-                          {(pet.fee > 0 || pet.price > 0) ? `₹${pet.fee || pet.price} Fee` : 'Free Adoption'}
-                        </span>
-                      </div>
+                    return (
+                      <div
+                        key={pet.id}
+                        className="bg-white rounded-2xl border border-beige/90 shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden flex flex-col justify-between group hover:-translate-y-1 relative"
+                      >
+                        
+                        {/* Card Top: Image with Quality & Pricing Badges */}
+                        <div 
+                          onClick={() => handleKnowMore(pet)} 
+                          className="relative aspect-[4/3] overflow-hidden bg-sand block cursor-pointer group"
+                        >
+                          <img
+                            src={pet.image}
+                            alt={pet.name}
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                            loading="lazy"
+                          />
+
+                          {/* Wishlist Heart Button */}
+                          <button
+                            type="button"
+                            onClick={(e) => handleToggleWishlist(e, pet)}
+                            aria-label={isWishlisted ? "Remove from Wishlist" : "Add to Wishlist"}
+                            title={isWishlisted ? "Remove from Wishlist" : "Add to Wishlist"}
+                            className={`absolute top-2.5 right-2.5 z-20 p-2 rounded-full backdrop-blur-md border shadow-sm transition-all duration-300 cursor-pointer ${
+                              isWishlisted 
+                                ? "bg-white text-red-500 border-red-200 hover:bg-red-50" 
+                                : "bg-white/90 text-gray-500 hover:text-red-500 border-white hover:bg-white"
+                            }`}
+                          >
+                            <Heart size={14} className={isWishlisted ? "fill-red-500 text-red-500" : ""} />
+                          </button>
+                          
+                          {/* Quality Pill Badge Top Right */}
+                          <span className="absolute top-11 right-2.5 bg-primary/90 backdrop-blur-xs text-white text-[10px] font-bold px-2.5 py-0.5 rounded-md shadow-sm uppercase tracking-wider">
+                            {pet.quality}
+                          </span>
+
+                          {/* Pricing / Free Adoption Badge Top Left */}
+                          <span className={`absolute top-3 left-3 ${(pet.fee > 0 || pet.price > 0) ? 'bg-[#0F2E23]/95 text-amber-300 border border-amber-300/30' : 'bg-emerald-600/95 text-white'} backdrop-blur-xs text-[10px] font-black px-2.5 py-0.5 rounded-md shadow-sm uppercase tracking-wider`}>
+                            {(pet.fee > 0 || pet.price > 0) ? `₹${pet.fee || pet.price} Fee` : 'Free Adoption'}
+                          </span>
+                        </div>
   
                       {/* Card Body: Details */}
                       <div className="p-4 space-y-2.5 flex-1 flex flex-col justify-between">
@@ -1046,8 +1101,9 @@ const AdoptionShelter = () => {
   
                       </div>
   
-                    </div>
-                  ))}
+                      </div>
+                    );
+                  })}
                 </div>
               ) : (
                 <div className="bg-white rounded-2xl border border-beige p-4 lg:p-12 text-center space-y-3">

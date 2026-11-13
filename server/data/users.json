@@ -391,7 +391,116 @@
     "bio": "",
     "password": "$2b$10$rfCIMxtNEySbI2N46Jqd8OkkjMBHEC.Uc.WBY/Yn2aBOQLKbeyZNS",
     "cart": [],
-    "wishlist": [],
+    "wishlist": [
+      "60d5ec49ad70591244000000",
+      {
+        "_id": "LIST-FISH-01",
+        "id": "LIST-FISH-01",
+        "name": "Show Grade Super Red Arowana (Microchipped with CITES Certificate)",
+        "title": "Show Grade Super Red Arowana (Microchipped with CITES Certificate)",
+        "breed": "Super Red Arowana",
+        "petType": "fish",
+        "price": 38000,
+        "fee": 38000,
+        "images": [
+          "https://images.unsplash.com/photo-1522069169874-c58ec4b76be5?q=80&w=800&auto=format&fit=crop"
+        ],
+        "image": "https://images.unsplash.com/photo-1522069169874-c58ec4b76be5?q=80&w=800&auto=format&fit=crop",
+        "location": "Bangalore, KA",
+        "contactPhone": "+91 98450 12345",
+        "itemType": "pet",
+        "isPet": true,
+        "brand": "Super Red Arowana",
+        "discountPrice": null,
+        "discountPercentage": 0,
+        "stock": 15,
+        "isBestSeller": false,
+        "isFeatured": false,
+        "requiresPrescription": false
+      },
+      {
+        "_id": "adopt_1",
+        "id": "adopt_1",
+        "name": "Prince",
+        "title": "Prince",
+        "breed": "Golden Retriever",
+        "petType": "pet",
+        "price": 0,
+        "fee": 0,
+        "images": [
+          "https://images.unsplash.com/photo-1535930891776-0c2dfb7fda1a?q=80&w=800&auto=format&fit=crop"
+        ],
+        "image": "https://images.unsplash.com/photo-1535930891776-0c2dfb7fda1a?q=80&w=800&auto=format&fit=crop",
+        "city": "Jhansi",
+        "quality": "Pet Quality",
+        "itemType": "adoption",
+        "isPet": true,
+        "brand": "Golden Retriever",
+        "discountPrice": null,
+        "discountPercentage": 0,
+        "stock": 15,
+        "isBestSeller": false,
+        "isFeatured": false,
+        "requiresPrescription": false
+      },
+      {
+        "_id": "60d5ec49ad70591244000001",
+        "name": "Drools Focus Super Premium Adult Dog Food",
+        "slug": "drools-focus-adult-dog-food",
+        "brand": "Drools",
+        "sku": "DOG-DR-FOCUS-4KG",
+        "description": "Super premium dry food with real chicken for adult dogs of all breeds.",
+        "longDescription": "Drools Focus Adult Dog Food is formulated with no wheat, corn, or soy. It uses real chicken as the #1 ingredient to support muscle maintenance and boasts prebiotics and probiotics for optimal digestion. DHA from fish oil is added to promote cognitive health and joint supplements (Glucosamine & Chondroitin) are integrated to support mobility.",
+        "ingredients": [
+          "Real Chicken",
+          "Whole Dried Egg",
+          "Long Grain Rice",
+          "Oat Meal",
+          "Flax Seed Oil",
+          "Salmon Oil"
+        ],
+        "specifications": [
+          {
+            "label": "Weight",
+            "value": "4 kg"
+          },
+          {
+            "label": "Life Stage",
+            "value": "Adult"
+          },
+          {
+            "label": "Food Type",
+            "value": "Dry Food"
+          }
+        ],
+        "price": 1800,
+        "discountPrice": 1620,
+        "rating": 5,
+        "reviewCount": 2,
+        "stock": 30,
+        "lowStockThreshold": 5,
+        "images": [
+          "https://images.unsplash.com/photo-1601758228041-f3b2795255f1?q=80&w=800"
+        ],
+        "category": "Dog Food",
+        "subcategory": "Dog Food",
+        "petType": "dogs",
+        "isFeatured": false,
+        "isBestSeller": false,
+        "requiresPrescription": false,
+        "discountPercentage": 10,
+        "review_count": 2,
+        "numReviews": 2,
+        "ratings": 5,
+        "id": "60d5ec49ad70591244000001",
+        "title": "Drools Focus Super Premium Adult Dog Food",
+        "breed": "",
+        "fee": 1800,
+        "image": "https://images.unsplash.com/photo-1601758228041-f3b2795255f1?q=80&w=800",
+        "isPet": true,
+        "itemType": "pet"
+      }
+    ],
     "avatar": "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150",
     "addresses": [
       {
