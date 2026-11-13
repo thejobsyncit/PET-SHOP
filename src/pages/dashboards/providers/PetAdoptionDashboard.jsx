@@ -132,37 +132,43 @@ const PetAdoptionDashboard = ({
   // Document 1: AWBI Certificate
   const [awbiNumber, setAwbiNumber] = useState(savedDocsData?.awbiNumber || 'AWBI/KAR/2023/NGO-88942');
   const [awbiExpiry, setAwbiExpiry] = useState(savedDocsData?.awbiExpiry || '2028-12-31');
-  const [awbiDocUrl, setAwbiDocUrl] = useState(savedDocsData?.awbiDocUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=800&auto=format&fit=crop');
+  const [awbiDocUrl, setAwbiDocUrl] = useState(savedDocsData?.awbiDocUrl || 'data:application/pdf;base64,JVBERi0xLjMKMSAwIG9iajw8L1R5cGUvQ2F0YWxvZy9QYWdlcyAyIDAgUj4+ZW5kb2JqCjIgMCBvYmo8PC9UeXBlL1BhZ2VzL0tpZHNbMyAwIFJdL0NvdW50IDE+PmVuZG9iagozIDAgb2JqPDwvVHlwZS9QYWdlL01lZGlhQm94WzAgMCA2MTIgNzkyXS9QYXJlbnQgMiAwIFIvUmVzb3VyY2VzPDw+Pj4+ZW5kb2JqCnhyZWYKMCA0CjAwMDAwMDAwMDAgNjU1MzUgZiAKMDAwMDAwMDAxOCAwMDAwMCBuIAowMDAwMDAwMDY5IDAwMDAwIG4gCjAwMDAwMDAxMjIgMDAwMDAgbiAKdHJhaWxlcjw8L1NpemUgND4+CnN0YXJ0eHJlZgoyMTIKJSVFT0Y=');
+  const [awbiDocName, setAwbiDocName] = useState(savedDocsData?.awbiDocName || 'AWBI_Registration_Certificate.pdf');
   const [awbiStatus, setAwbiStatus] = useState(savedDocsData?.awbiStatus || 'Verified');
 
   // Document 2: NGO / Society / Trust Registration
   const [ngoRegType, setNgoRegType] = useState(savedDocsData?.ngoRegType || 'Section 8 Non-Profit Company');
   const [ngoRegNumber, setNgoRegNumber] = useState(savedDocsData?.ngoRegNumber || 'U85300KA2021NPL144210');
-  const [ngoDocUrl, setNgoDocUrl] = useState(savedDocsData?.ngoDocUrl || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=800&auto=format&fit=crop');
+  const [ngoDocUrl, setNgoDocUrl] = useState(savedDocsData?.ngoDocUrl || 'data:application/pdf;base64,JVBERi0xLjMKMSAwIG9iajw8L1R5cGUvQ2F0YWxvZy9QYWdlcyAyIDAgUj4+ZW5kb2JqCjIgMCBvYmo8PC9UeXBlL1BhZ2VzL0tpZHNbMyAwIFJdL0NvdW50IDE+PmVuZG9iagozIDAgb2JqPDwvVHlwZS9QYWdlL01lZGlhQm94WzAgMCA2MTIgNzkyXS9QYXJlbnQgMiAwIFIvUmVzb3VyY2VzPDw+Pj4+ZW5kb2JqCnhyZWYKMCA0CjAwMDAwMDAwMDAgNjU1MzUgZiAKMDAwMDAwMDAxOCAwMDAwMCBuIAowMDAwMDAwMDY5IDAwMDAwIG4gCjAwMDAwMDAxMjIgMDAwMDAgbiAKdHJhaWxlcjw8L1NpemUgND4+CnN0YXJ0eHJlZgoyMTIKJSVFT0Y=');
+  const [ngoDocName, setNgoDocName] = useState(savedDocsData?.ngoDocName || 'NGO_Incorporation_TrustDeed.pdf');
   const [ngoStatus, setNgoStatus] = useState(savedDocsData?.ngoStatus || 'Verified');
 
   // Document 3: Municipal Corporation Shelter License / NOC
   const [municipalBody, setMunicipalBody] = useState(savedDocsData?.municipalBody || 'BBMP Animal Husbandry Dept');
   const [municipalLicenseNo, setMunicipalLicenseNo] = useState(savedDocsData?.municipalLicenseNo || 'BBMP/AH/SHELTER/2024/091');
-  const [municipalDocUrl, setMunicipalDocUrl] = useState(savedDocsData?.municipalDocUrl || 'https://images.unsplash.com/photo-1580489944761-15a19d654956?q=80&w=800&auto=format&fit=crop');
+  const [municipalDocUrl, setMunicipalDocUrl] = useState(savedDocsData?.municipalDocUrl || 'data:application/pdf;base64,JVBERi0xLjMKMSAwIG9iajw8L1R5cGUvQ2F0YWxvZy9QYWdlcyAyIDAgUj4+ZW5kb2JqCjIgMCBvYmo8PC9UeXBlL1BhZ2VzL0tpZHNbMyAwIFJdL0NvdW50IDE+PmVuZG9iagozIDAgb2JqPDwvVHlwZS9QYWdlL01lZGlhQm94WzAgMCA2MTIgNzkyXS9QYXJlbnQgMiAwIFIvUmVzb3VyY2VzPDw+Pj4+ZW5kb2JqCnhyZWYKMCA0CjAwMDAwMDAwMDAgNjU1MzUgZiAKMDAwMDAwMDAxOCAwMDAwMCBuIAowMDAwMDAwMDY5IDAwMDAwIG4gCjAwMDAwMDAxMjIgMDAwMDAgbiAKdHJhaWxlcjw8L1NpemUgND4+CnN0YXJ0eHJlZgoyMTIKJSVFT0Y=');
+  const [municipalDocName, setMunicipalDocName] = useState(savedDocsData?.municipalDocName || 'Municipal_Shelter_NOC.pdf');
   const [municipalStatus, setMunicipalStatus] = useState(savedDocsData?.municipalStatus || 'Verified');
 
   // Document 4: Veterinary Medical Officer MOU / Tie-Up
   const [vetDoctorName, setVetDoctorName] = useState(savedDocsData?.vetDoctorName || 'Dr. Sneha Hegde (B.V.Sc, M.V.Sc)');
   const [vetRegNumber, setVetRegNumber] = useState(savedDocsData?.vetRegNumber || 'KVC-7841/2016');
-  const [vetDocUrl, setVetDocUrl] = useState(savedDocsData?.vetDocUrl || 'https://images.unsplash.com/photo-1583337130417-3346a1be7dee?q=80&w=800&auto=format&fit=crop');
+  const [vetDocUrl, setVetDocUrl] = useState(savedDocsData?.vetDocUrl || 'data:application/pdf;base64,JVBERi0xLjMKMSAwIG9iajw8L1R5cGUvQ2F0YWxvZy9QYWdlcyAyIDAgUj4+ZW5kb2JqCjIgMCBvYmo8PC9UeXBlL1BhZ2VzL0tpZHNbMyAwIFJdL0NvdW50IDE+PmVuZG9iagozIDAgb2JqPDwvVHlwZS9QYWdlL01lZGlhQm94WzAgMCA2MTIgNzkyXS9QYXJlbnQgMiAwIFIvUmVzb3VyY2VzPDw+Pj4+ZW5kb2JqCnhyZWYKMCA0CjAwMDAwMDAwMDAgNjU1MzUgZiAKMDAwMDAwMDAxOCAwMDAwMCBuIAowMDAwMDAwMDY5IDAwMDAwIG4gCjAwMDAwMDAxMjIgMDAwMDAgbiAKdHJhaWxlcjw8L1NpemUgND4+CnN0YXJ0eHJlZgoyMTIKJSVFT0Y=');
+  const [vetDocName, setVetDocName] = useState(savedDocsData?.vetDocName || 'Veterinary_MOU_Affiliation.pdf');
   const [vetStatus, setVetStatus] = useState(savedDocsData?.vetStatus || 'Verified');
 
   // Document 5: Founder / Trustee Govt Identity Proof
   const [founderIdType, setFounderIdType] = useState(savedDocsData?.founderIdType || 'Aadhaar Card (UIDAI)');
   const [founderIdNumber, setFounderIdNumber] = useState(savedDocsData?.founderIdNumber || 'XXXX-XXXX-4819');
-  const [founderDocUrl, setFounderDocUrl] = useState(savedDocsData?.founderDocUrl || 'https://images.unsplash.com/photo-1633332755192-727a05c4013d?q=80&w=800&auto=format&fit=crop');
+  const [founderDocUrl, setFounderDocUrl] = useState(savedDocsData?.founderDocUrl || 'data:application/pdf;base64,JVBERi0xLjMKMSAwIG9iajw8L1R5cGUvQ2F0YWxvZy9QYWdlcyAyIDAgUj4+ZW5kb2JqCjIgMCBvYmo8PC9UeXBlL1BhZ2VzL0tpZHNbMyAwIFJdL0NvdW50IDE+PmVuZG9iagozIDAgb2JqPDwvVHlwZS9QYWdlL01lZGlhQm94WzAgMCA2MTIgNzkyXS9QYXJlbnQgMiAwIFIvUmVzb3VyY2VzPDw+Pj4+ZW5kb2JqCnhyZWYKMCA0CjAwMDAwMDAwMDAgNjU1MzUgZiAKMDAwMDAwMDAxOCAwMDAwMCBuIAowMDAwMDAwMDY5IDAwMDAwIG4gCjAwMDAwMDAxMjIgMDAwMDAgbiAKdHJhaWxlcjw8L1NpemUgND4+CnN0YXJ0eHJlZgoyMTIKJSVFT0Y=');
+  const [founderDocName, setFounderDocName] = useState(savedDocsData?.founderDocName || 'Trustee_Government_ID.pdf');
   const [founderStatus, setFounderStatus] = useState(savedDocsData?.founderStatus || 'Verified');
 
   // Document 6: Bank & 80G Tax Exemption Certificate
   const [bankAccountInfo, setBankAccountInfo] = useState(savedDocsData?.bankAccountInfo || 'HDFC Bank - A/C 50100449102844 • IFSC: HDFC0000240');
   const [taxExemption80G, setTaxExemption80G] = useState(savedDocsData?.taxExemption80G || 'CIT(E)/BLR/80G/2022-23/AABCH8821N');
-  const [bankDocUrl, setBankDocUrl] = useState(savedDocsData?.bankDocUrl || 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=800&auto=format&fit=crop');
+  const [bankDocUrl, setBankDocUrl] = useState(savedDocsData?.bankDocUrl || 'data:application/pdf;base64,JVBERi0xLjMKMSAwIG9iajw8L1R5cGUvQ2F0YWxvZy9QYWdlcyAyIDAgUj4+ZW5kb2JqCjIgMCBvYmo8PC9UeXBlL1BhZ2VzL0tpZHNbMyAwIFJdL0NvdW50IDE+PmVuZG9iagozIDAgb2JqPDwvVHlwZS9QYWdlL01lZGlhQm94WzAgMCA2MTIgNzkyXS9QYXJlbnQgMiAwIFIvUmVzb3VyY2VzPDw+Pj4+ZW5kb2JqCnhyZWYKMCA0CjAwMDAwMDAwMDAgNjU1MzUgZiAKMDAwMDAwMDAxOCAwMDAwMCBuIAowMDAwMDAwMDY5IDAwMDAwIG4gCjAwMDAwMDAxMjIgMDAwMDAgbiAKdHJhaWxlcjw8L1NpemUgND4+CnN0YXJ0eHJlZgoyMTIKJSVFT0Y=');
+  const [bankDocName, setBankDocName] = useState(savedDocsData?.bankDocName || 'Cancelled_Cheque_80G_Certificate.pdf');
   const [bankStatus, setBankStatus] = useState(savedDocsData?.bankStatus || 'Verified');
 
   // Sync tab with URL
@@ -485,25 +491,39 @@ const PetAdoptionDashboard = ({
     }
   };
 
-  // Generic Document Upload Handler
-  const handleDocUpload = async (e, setterFn, statusSetterFn, docTitle) => {
-    const file = e.target.files[0];
+  // Generic Document Upload Handler (Restricted strictly to PDF format only)
+  const handleDocUpload = (e, setterFn, statusSetterFn, docTitle, nameSetterFn) => {
+    const file = e.target.files?.[0];
     if (!file) return;
 
+    // Strict validation: Only PDF files (.pdf extension or application/pdf MIME type)
+    const isPdfType = file.type === 'application/pdf';
+    const isPdfExt = file.name.toLowerCase().endsWith('.pdf');
+    if (!isPdfType && !isPdfExt) {
+      toast.error(`Invalid file format for ${docTitle}. Only PDF (.pdf) documents are accepted.`);
+      e.target.value = ''; // Reset file input
+      return;
+    }
+
+    // Maximum file size limit: 10MB
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error('File size exceeds 10MB limit. Please upload a smaller PDF document.');
+      e.target.value = '';
+      return;
+    }
+
     try {
-      if (file.type.startsWith('image/')) {
-        const compressed = await compressImageFile(file, 1200, 0.85);
-        setterFn(compressed);
-      } else {
-        // Read as data URL for PDF
-        const reader = new FileReader();
-        reader.onload = (event) => {
-          setterFn(event.target.result);
-        };
-        reader.readAsDataURL(file);
-      }
-      if (statusSetterFn) statusSetterFn('Uploaded & Pending Review');
-      toast.success(`📄 ${docTitle} uploaded successfully!`);
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        setterFn(event.target.result);
+        if (nameSetterFn) nameSetterFn(file.name);
+        if (statusSetterFn) statusSetterFn('Uploaded & Pending Review');
+        toast.success(`📄 ${docTitle} (PDF) uploaded successfully!`);
+      };
+      reader.onerror = () => {
+        toast.error(`Failed to read ${docTitle}. Please try again.`);
+      };
+      reader.readAsDataURL(file);
     } catch (err) {
       toast.error(`Failed to upload ${docTitle}. Please try again.`);
     }
@@ -734,26 +754,32 @@ const PetAdoptionDashboard = ({
       awbiNumber,
       awbiExpiry,
       awbiDocUrl,
+      awbiDocName,
       awbiStatus,
       ngoRegType,
       ngoRegNumber,
       ngoDocUrl,
+      ngoDocName,
       ngoStatus,
       municipalBody,
       municipalLicenseNo,
       municipalDocUrl,
+      municipalDocName,
       municipalStatus,
       vetDoctorName,
       vetRegNumber,
       vetDocUrl,
+      vetDocName,
       vetStatus,
       founderIdType,
       founderIdNumber,
       founderDocUrl,
+      founderDocName,
       founderStatus,
       bankAccountInfo,
       taxExemption80G,
       bankDocUrl,
+      bankDocName,
       bankStatus,
       updatedAt: new Date().toISOString()
     };
@@ -1680,7 +1706,7 @@ const PetAdoptionDashboard = ({
                     <h3 className="text-sm font-black text-[#0F2E23] uppercase tracking-wider flex items-center gap-2">
                       <FileCheck size={18} className="text-emerald-600" /> 2. Government Licenses & Official Document Uploads
                     </h3>
-                    <span className="text-[11px] text-slate-400 font-bold">PDF, JPG, PNG up to 10MB</span>
+                    <span className="text-[11px] text-slate-400 font-bold">PDF format only (up to 10MB)</span>
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
@@ -1730,7 +1756,7 @@ const PetAdoptionDashboard = ({
                         <div className="flex items-center gap-2 truncate">
                           <FileText size={16} className="text-slate-400 shrink-0" />
                           <span className="truncate font-bold text-slate-700">
-                            {awbiDocUrl ? 'AWBI_Registration_Certificate.pdf' : 'No document uploaded'}
+                            {awbiDocUrl ? (awbiDocName || 'AWBI_Registration_Certificate.pdf') : 'No document uploaded'}
                           </span>
                         </div>
                         <div className="flex items-center gap-1.5 shrink-0">
@@ -1747,8 +1773,8 @@ const PetAdoptionDashboard = ({
                             <Upload size={11} /> {awbiDocUrl ? 'Replace' : 'Upload'}
                             <input 
                               type="file" 
-                              onChange={(e) => handleDocUpload(e, setAwbiDocUrl, setAwbiStatus, 'AWBI Recognition Certificate')} 
-                              accept="image/*,application/pdf" 
+                              onChange={(e) => handleDocUpload(e, setAwbiDocUrl, setAwbiStatus, 'AWBI Recognition Certificate', setAwbiDocName)} 
+                              accept=".pdf,application/pdf" 
                               className="hidden" 
                             />
                           </label>
@@ -1805,7 +1831,7 @@ const PetAdoptionDashboard = ({
                         <div className="flex items-center gap-2 truncate">
                           <FileText size={16} className="text-slate-400 shrink-0" />
                           <span className="truncate font-bold text-slate-700">
-                            {ngoDocUrl ? 'NGO_Incorporation_TrustDeed.pdf' : 'No document uploaded'}
+                            {ngoDocUrl ? (ngoDocName || 'NGO_Incorporation_TrustDeed.pdf') : 'No document uploaded'}
                           </span>
                         </div>
                         <div className="flex items-center gap-1.5 shrink-0">
@@ -1822,8 +1848,8 @@ const PetAdoptionDashboard = ({
                             <Upload size={11} /> {ngoDocUrl ? 'Replace' : 'Upload'}
                             <input 
                               type="file" 
-                              onChange={(e) => handleDocUpload(e, setNgoDocUrl, setNgoStatus, 'NGO Registration Deed')} 
-                              accept="image/*,application/pdf" 
+                              onChange={(e) => handleDocUpload(e, setNgoDocUrl, setNgoStatus, 'NGO Registration Deed', setNgoDocName)} 
+                              accept=".pdf,application/pdf" 
                               className="hidden" 
                             />
                           </label>
@@ -1876,7 +1902,7 @@ const PetAdoptionDashboard = ({
                         <div className="flex items-center gap-2 truncate">
                           <FileText size={16} className="text-slate-400 shrink-0" />
                           <span className="truncate font-bold text-slate-700">
-                            {municipalDocUrl ? 'Municipal_Shelter_NOC.pdf' : 'No document uploaded'}
+                            {municipalDocUrl ? (municipalDocName || 'Municipal_Shelter_NOC.pdf') : 'No document uploaded'}
                           </span>
                         </div>
                         <div className="flex items-center gap-1.5 shrink-0">
@@ -1893,8 +1919,8 @@ const PetAdoptionDashboard = ({
                             <Upload size={11} /> {municipalDocUrl ? 'Replace' : 'Upload'}
                             <input 
                               type="file" 
-                              onChange={(e) => handleDocUpload(e, setMunicipalDocUrl, setMunicipalStatus, 'Municipal Shelter License')} 
-                              accept="image/*,application/pdf" 
+                              onChange={(e) => handleDocUpload(e, setMunicipalDocUrl, setMunicipalStatus, 'Municipal Shelter License', setMunicipalDocName)} 
+                              accept=".pdf,application/pdf" 
                               className="hidden" 
                             />
                           </label>
@@ -1947,7 +1973,7 @@ const PetAdoptionDashboard = ({
                         <div className="flex items-center gap-2 truncate">
                           <FileText size={16} className="text-slate-400 shrink-0" />
                           <span className="truncate font-bold text-slate-700">
-                            {vetDocUrl ? 'Veterinary_MOU_Affiliation.pdf' : 'No document uploaded'}
+                            {vetDocUrl ? (vetDocName || 'Veterinary_MOU_Affiliation.pdf') : 'No document uploaded'}
                           </span>
                         </div>
                         <div className="flex items-center gap-1.5 shrink-0">
@@ -1964,8 +1990,8 @@ const PetAdoptionDashboard = ({
                             <Upload size={11} /> {vetDocUrl ? 'Replace' : 'Upload'}
                             <input 
                               type="file" 
-                              onChange={(e) => handleDocUpload(e, setVetDocUrl, setVetStatus, 'Veterinary MOU')} 
-                              accept="image/*,application/pdf" 
+                              onChange={(e) => handleDocUpload(e, setVetDocUrl, setVetStatus, 'Veterinary MOU', setVetDocName)} 
+                              accept=".pdf,application/pdf" 
                               className="hidden" 
                             />
                           </label>
@@ -2018,7 +2044,7 @@ const PetAdoptionDashboard = ({
                         <div className="flex items-center gap-2 truncate">
                           <FileText size={16} className="text-slate-400 shrink-0" />
                           <span className="truncate font-bold text-slate-700">
-                            {founderDocUrl ? 'Trustee_Government_ID.pdf' : 'No document uploaded'}
+                            {founderDocUrl ? (founderDocName || 'Trustee_Government_ID.pdf') : 'No document uploaded'}
                           </span>
                         </div>
                         <div className="flex items-center gap-1.5 shrink-0">
@@ -2035,8 +2061,8 @@ const PetAdoptionDashboard = ({
                             <Upload size={11} /> {founderDocUrl ? 'Replace' : 'Upload'}
                             <input 
                               type="file" 
-                              onChange={(e) => handleDocUpload(e, setFounderDocUrl, setFounderStatus, 'Founder Government ID')} 
-                              accept="image/*,application/pdf" 
+                              onChange={(e) => handleDocUpload(e, setFounderDocUrl, setFounderStatus, 'Founder Government ID', setFounderDocName)} 
+                              accept=".pdf,application/pdf" 
                               className="hidden" 
                             />
                           </label>
@@ -2089,7 +2115,7 @@ const PetAdoptionDashboard = ({
                         <div className="flex items-center gap-2 truncate">
                           <FileText size={16} className="text-slate-400 shrink-0" />
                           <span className="truncate font-bold text-slate-700">
-                            {bankDocUrl ? 'Cancelled_Cheque_80G_Certificate.pdf' : 'No document uploaded'}
+                            {bankDocUrl ? (bankDocName || 'Cancelled_Cheque_80G_Certificate.pdf') : 'No document uploaded'}
                           </span>
                         </div>
                         <div className="flex items-center gap-1.5 shrink-0">
@@ -2106,8 +2132,8 @@ const PetAdoptionDashboard = ({
                             <Upload size={11} /> {bankDocUrl ? 'Replace' : 'Upload'}
                             <input 
                               type="file" 
-                              onChange={(e) => handleDocUpload(e, setBankDocUrl, setBankStatus, 'Bank Cheque & 80G Certificate')} 
-                              accept="image/*,application/pdf" 
+                              onChange={(e) => handleDocUpload(e, setBankDocUrl, setBankStatus, 'Bank Cheque & 80G Certificate', setBankDocName)} 
+                              accept=".pdf,application/pdf" 
                               className="hidden" 
                             />
                           </label>
@@ -2839,10 +2865,14 @@ const PetAdoptionDashboard = ({
 
             <div className="overflow-y-auto p-6 space-y-4 flex-1 custom-scrollbar">
               <div className="rounded-2xl overflow-hidden border border-slate-200 bg-slate-100 flex items-center justify-center min-h-[300px]">
-                {viewingDocument.url?.startsWith('data:application/pdf') ? (
+                {viewingDocument.url?.startsWith('data:application/pdf') || viewingDocument.url?.includes('.pdf') ? (
                   <iframe src={viewingDocument.url} title={viewingDocument.title} className="w-full h-96 border-none" />
                 ) : (
-                  <img src={viewingDocument.url} alt={viewingDocument.title} className="max-h-[450px] w-auto object-contain rounded-xl" />
+                  <div className="flex flex-col items-center justify-center p-8 text-center text-slate-500">
+                    <FileText size={48} className="text-emerald-700 mb-2" />
+                    <p className="font-bold text-sm text-[#0F2E23]">{viewingDocument.title}</p>
+                    <p className="text-xs text-slate-400 mt-1">Official PDF Document Attached</p>
+                  </div>
                 )}
               </div>
             </div>
