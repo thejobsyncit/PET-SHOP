@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
-import { Search, MapPin, MessageSquare, ShieldCheck, Tag, Phone, X, Heart, Lock, ShieldAlert, Briefcase, Clock, Syringe, CreditCard, Check, Shield, ChevronRight } from 'lucide-react';
+import { Search, MapPin, MessageSquare, ShieldCheck, Tag, Phone, X, Heart, Lock, ShieldAlert, Briefcase, Clock, Syringe, CreditCard, Check, Shield, ChevronRight, ShoppingCart } from 'lucide-react';
 import { apiRequest } from '../../services/api.js';
 import toast from 'react-hot-toast';
 import { toggleWishlistAPI, getWishlistItemIdStr } from '../../store/slices/wishlistSlice.js';
+import { addToCartAPI } from '../../store/slices/cartSlice.js';
 import { SELLER_PET_BREEDS } from '../dashboards/providers/PetSellerDashboard.jsx';
 import ScrollReveal from '../../components/ui/ScrollReveal.jsx';
 import { DEFAULT_CLASSIFIEDS, savePetOrder, markPetListingAsSold } from '../../data/classifiedsData.js';
@@ -242,6 +243,37 @@ const PetClassifieds = () => {
     }
 
     setCheckoutPet(pet);
+  };
+
+  const handleAddToCart = (pet) => {
+    if (user?.role === 'SERVICE_PROVIDER' && (user?.serviceCategory || '').toLowerCase() === 'pet seller') {
+      toast.error('Sellers cannot buy pets.');
+      return;
+    }
+    const ownerId = pet.user?._id || (typeof pet.user === 'string' ? pet.user : null);
+    if (ownerId && user?._id && ownerId === user._id) {
+      toast.error('You cannot add your own pet listing to cart.');
+      return;
+    }
+    const petObj = {
+      _id: pet._id || pet.id,
+      id: pet._id || pet.id,
+      name: pet.title || `${pet.breed} (${pet.petType})`,
+      title: pet.title,
+      price: Number(pet.price) || 0,
+      fee: Number(pet.price) || 0,
+      breed: pet.breed,
+      petType: pet.petType,
+      images: pet.images || (pet.image ? [pet.image] : []),
+      image: (pet.images && pet.images[0]) || pet.image || '',
+      sellerName: pet.user?.name || pet.sellerName || 'Verified Seller',
+      location: pet.location,
+      contactPhone: pet.contactPhone,
+      isPet: true,
+      itemType: 'pet',
+      stock: 1
+    };
+    dispatch(addToCartAPI({ product: petObj, quantity: 1 }));
   };
 
   const handleConfirmPurchase = async () => {
@@ -602,17 +634,27 @@ const PetClassifieds = () => {
                   </button>
                 </div>
                 
-                {/* Buy Action */}
+                {/* Buy / Cart Actions */}
                 {l.status !== 'Sold Out' && l.quantity !== 0 && (
-                  <div className="pt-2" onClick={(e) => e.stopPropagation()}>
+                  <div className="pt-2 grid grid-cols-2 gap-2" onClick={(e) => e.stopPropagation()}>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleAddToCart(l);
+                      }}
+                      className="py-2 bg-primary hover:bg-primary-light text-white text-[10px] font-black tracking-wider uppercase rounded-md transition cursor-pointer shadow-sm flex items-center justify-center gap-1.5"
+                    >
+                      <ShoppingCart size={13} />
+                      ADD CART
+                    </button>
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
                         handleBuy(l);
                       }}
-                      className="w-full py-2 bg-[#ffd000] hover:bg-[#e6bb00] text-[#0F2E23] text-[11px] font-black tracking-widest uppercase rounded-md transition cursor-pointer shadow-sm flex items-center justify-center gap-2"
+                      className="py-2 bg-[#ffd000] hover:bg-[#e6bb00] text-[#0F2E23] text-[10px] font-black tracking-wider uppercase rounded-md transition cursor-pointer shadow-sm flex items-center justify-center gap-1.5"
                     >
-                      <CreditCard size={14} />
+                      <CreditCard size={13} />
                       BUY NOW
                     </button>
                   </div>

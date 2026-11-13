@@ -5,11 +5,12 @@ import {
   ArrowLeft, MapPin, Phone, MessageSquare, ShieldCheck, 
   Syringe, Clock, Heart, Share2, Check, Award, Info, 
   CreditCard, Sparkles, AlertCircle, FileText, ExternalLink,
-  ChevronRight, Shield, X, Eye
+  ChevronRight, Shield, X, Eye, ShoppingCart
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { apiRequest } from '../../services/api.js';
 import { toggleWishlistAPI, getWishlistItemIdStr } from '../../store/slices/wishlistSlice.js';
+import { addToCartAPI } from '../../store/slices/cartSlice.js';
 import { getPetListingById, getStoredClassifieds, DEFAULT_CLASSIFIEDS, savePetOrder, markPetListingAsSold } from '../../data/classifiedsData.js';
 import ScrollReveal from '../../components/ui/ScrollReveal.jsx';
 import SharedItemAuthGate from '../../components/ui/SharedItemAuthGate.jsx';
@@ -151,6 +152,40 @@ const PetClassifiedDetail = () => {
 
     setShowCheckout(true);
     setPaymentStep('details');
+  };
+
+  const handleAddToCart = () => {
+    if (!pet) return;
+    if (user?.role === 'SERVICE_PROVIDER' && (user?.serviceCategory || '').toLowerCase() === 'pet seller') {
+      toast.error('Sellers cannot buy pets.');
+      return;
+    }
+
+    const ownerId = pet?.user?._id || (typeof pet?.user === 'string' ? pet?.user : null);
+    if (ownerId && user?._id && ownerId === user._id) {
+      toast.error('You cannot add your own pet listing to cart.');
+      return;
+    }
+
+    const petObj = {
+      _id: pet._id || pet.id,
+      id: pet._id || pet.id,
+      name: pet.title || `${pet.breed} (${pet.petType})`,
+      title: pet.title,
+      price: Number(pet.price) || 0,
+      fee: Number(pet.price) || 0,
+      breed: pet.breed,
+      petType: pet.petType,
+      images: pet.images || (pet.image ? [pet.image] : []),
+      image: (pet.images && pet.images[0]) || pet.image || '',
+      sellerName: pet.user?.name || pet.sellerName || 'Verified Seller',
+      location: pet.location,
+      contactPhone: contactPhone,
+      isPet: true,
+      itemType: 'pet',
+      stock: 1
+    };
+    dispatch(addToCartAPI({ product: petObj, quantity: 1 }));
   };
 
   const handleConfirmPurchase = async () => {
@@ -711,15 +746,23 @@ const PetClassifiedDetail = () => {
                 </div>
               </div>
 
-              {/* Action Buttons: CALL, CHAT, BUY NOW */}
+              {/* Action Buttons: ADD TO CART, BUY NOW, CALL, CHAT */}
               <div className="space-y-3 pt-2">
                 {!isSoldOut && (
-                  <button
-                    onClick={handleBuyNow}
-                    className="w-full py-4 bg-[#ffd000] hover:bg-[#e6bb00] text-[#0F2E23] font-black text-sm tracking-wider uppercase rounded-xl transition shadow-md hover:shadow-lg flex items-center justify-center gap-2 cursor-pointer border border-amber-300 active:scale-98"
-                  >
-                    <CreditCard size={18} /> BUY THIS PET NOW
-                  </button>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <button
+                      onClick={handleAddToCart}
+                      className="w-full py-4 bg-primary hover:bg-primary-light text-white font-black text-xs sm:text-sm tracking-wider uppercase rounded-xl transition shadow-md flex items-center justify-center gap-2 cursor-pointer border border-primary/20 active:scale-98"
+                    >
+                      <ShoppingCart size={16} /> ADD PET TO CART
+                    </button>
+                    <button
+                      onClick={handleBuyNow}
+                      className="w-full py-4 bg-[#ffd000] hover:bg-[#e6bb00] text-[#0F2E23] font-black text-xs sm:text-sm tracking-wider uppercase rounded-xl transition shadow-md hover:shadow-lg flex items-center justify-center gap-2 cursor-pointer border border-amber-300 active:scale-98"
+                    >
+                      <CreditCard size={16} /> BUY THIS PET NOW
+                    </button>
+                  </div>
                 )}
 
                 <div className="grid grid-cols-2 gap-3">

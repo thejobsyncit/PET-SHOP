@@ -65,7 +65,111 @@
     "wishlist": [],
     "cart": [
       {
-        "product": "60d5ec49ad70591244000000",
+        "product": {
+          "_id": "60d5ec49ad70591244000000",
+          "name": "Royal Canin Size Health Nutrition Maxi Adult Dog Food",
+          "slug": "royal-canin-maxi-adult-dog-food",
+          "brand": "Royal Canin",
+          "sku": "DOG-RC-MAXI-15KG",
+          "description": "Dry food tailored for large breed adult dogs (26 to 44 kg) from 15 months to 5 years old.",
+          "longDescription": "Formulated with high-quality protein and a balanced fiber blend, Royal Canin Maxi Adult supports optimal digestibility. It helps support large breed dogs' healthy bones and joints, which can be placed under stress by body weight. It is also enriched with Omega-3 fatty acids (EPA and DHA) to maintain healthy skin and coat.",
+          "ingredients": [
+            "Dehydrated poultry protein",
+            "Maize",
+            "Maize flour",
+            "Animal fats",
+            "Wheat",
+            "Rice",
+            "Hydrolyzed animal proteins"
+          ],
+          "specifications": [
+            {
+              "label": "Weight",
+              "value": "15 kg"
+            },
+            {
+              "label": "Life Stage",
+              "value": "Adult"
+            },
+            {
+              "label": "Breed Size",
+              "value": "Maxi (Large)"
+            },
+            {
+              "label": "Food Type",
+              "value": "Dry Food"
+            }
+          ],
+          "price": 6400,
+          "discountPrice": 5760,
+          "rating": 4.9,
+          "reviewCount": 9,
+          "stock": 1,
+          "lowStockThreshold": 4,
+          "images": [
+            "https://images.unsplash.com/photo-1589924691995-400dc9ecc119?q=80&w=800",
+            "https://images.unsplash.com/photo-1548199973-03cce0bbc87b?q=80&w=800"
+          ],
+          "category": "Dog Food",
+          "subcategory": "Dog Food",
+          "petType": "dogs",
+          "isFeatured": true,
+          "isBestSeller": true,
+          "requiresPrescription": false,
+          "discountPercentage": 10,
+          "review_count": 9,
+          "numReviews": 9,
+          "ratings": 4.9,
+          "id": "60d5ec49ad70591244000000",
+          "title": "Royal Canin Size Health Nutrition Maxi Adult Dog Food",
+          "fee": 6400,
+          "image": "https://images.unsplash.com/photo-1589924691995-400dc9ecc119?q=80&w=800",
+          "isPet": true,
+          "breed": "",
+          "itemType": "pet"
+        },
+        "quantity": 1
+      },
+      {
+        "product": {
+          "_id": "LIST-FISH-01",
+          "user": {
+            "_id": "seller-aqua-01",
+            "name": "Karthik Raja (Aqua Exotics)",
+            "email": "aqua.exotics@joshpetshub.com"
+          },
+          "title": "Show Grade Super Red Arowana (Microchipped with CITES Certificate)",
+          "petType": "fish",
+          "breed": "Super Red Arowana",
+          "age": "1.5 years",
+          "price": 38000,
+          "quantity": 2,
+          "description": "High-back Super Red Arowana with vibrant crimson gill covers and broad pectoral fins. Comes with international microchip certificate, CITES registration, and pristine water test records. Fed on premium Hikari sticks.",
+          "images": [
+            "https://images.unsplash.com/photo-1522069169874-c58ec4b76be5?q=80&w=800&auto=format&fit=crop"
+          ],
+          "location": "Bangalore, KA",
+          "contactPhone": "+91 98765 43210",
+          "isVerified": true,
+          "status": "Available",
+          "vaccinationCertificate": "Water Quarantine & Parasite Free Certified",
+          "createdAt": "2026-09-18T05:21:35.204Z",
+          "paymentStatus": "paid",
+          "paymentAmount": 200,
+          "id": "LIST-FISH-01",
+          "name": "Show Grade Super Red Arowana (Microchipped with CITES Certificate)",
+          "fee": 38000,
+          "image": "https://images.unsplash.com/photo-1522069169874-c58ec4b76be5?q=80&w=800&auto=format&fit=crop",
+          "itemType": "pet",
+          "isPet": true,
+          "stock": 1,
+          "discountPrice": null,
+          "discountPercentage": 0,
+          "isBestSeller": false,
+          "isFeatured": false,
+          "requiresPrescription": false,
+          "brand": "Super Red Arowana"
+        },
         "quantity": 1
       }
     ],
@@ -78,10 +182,10 @@
     "phone": "1"
   },
   {
-    "_id": "60d5ec49ad70591244000003",
+    "_id": "02a4e571-841b-426f-b8dd-8aeaebce83b2",
     "name": "Ananya Iyer",
     "email": "customer2@joshpetshub.com",
-    "password": "$2b$10$XzXiqR1v7PUz9U5L6SS/mO6PWVFVWcitAr9JUD1XxhWP/t5FNb.x2",
+    "password": "$2b$10$HQpBgFYDtOtlEBW/38cM9.fHnRDgVodvU6QjJr3jnsjZJ2EmHA0By",
     "role": "CUSTOMER",
     "addresses": [
       {
@@ -96,9 +200,81 @@
       }
     ],
     "wishlist": [],
-    "cart": [],
+    "cart": [
+      {
+        "product": {
+          "_id": "60d5ec49ad70591244000000",
+          "name": "Royal Canin Size Health Nutrition Maxi Adult Dog Food",
+          "slug": "royal-canin-maxi-adult-dog-food",
+          "brand": "Royal Canin",
+          "sku": "DOG-RC-MAXI-15KG",
+          "description": "Dry food tailored for large breed adult dogs (26 to 44 kg) from 15 months to 5 years old.",
+          "longDescription": "Formulated with high-quality protein and a balanced fiber blend, Royal Canin Maxi Adult supports optimal digestibility. It helps support large breed dogs' healthy bones and joints, which can be placed under stress by body weight. It is also enriched with Omega-3 fatty acids (EPA and DHA) to maintain healthy skin and coat.",
+          "ingredients": [
+            "Dehydrated poultry protein",
+            "Maize",
+            "Maize flour",
+            "Animal fats",
+            "Wheat",
+            "Rice",
+            "Hydrolyzed animal proteins"
+          ],
+          "specifications": [
+            {
+              "label": "Weight",
+              "value": "15 kg"
+            },
+            {
+              "label": "Life Stage",
+              "value": "Adult"
+            },
+            {
+              "label": "Breed Size",
+              "value": "Maxi (Large)"
+            },
+            {
+              "label": "Food Type",
+              "value": "Dry Food"
+            }
+          ],
+          "price": 6400,
+          "discountPrice": 5760,
+          "rating": 4.9,
+          "reviewCount": 9,
+          "stock": 1,
+          "lowStockThreshold": 4,
+          "images": [
+            "https://images.unsplash.com/photo-1589924691995-400dc9ecc119?q=80&w=800",
+            "https://images.unsplash.com/photo-1548199973-03cce0bbc87b?q=80&w=800"
+          ],
+          "category": "Dog Food",
+          "subcategory": "Dog Food",
+          "petType": "dogs",
+          "isFeatured": true,
+          "isBestSeller": true,
+          "requiresPrescription": false,
+          "discountPercentage": 10,
+          "review_count": 9,
+          "numReviews": 9,
+          "ratings": 4.9,
+          "id": "60d5ec49ad70591244000000",
+          "title": "Royal Canin Size Health Nutrition Maxi Adult Dog Food",
+          "breed": "",
+          "fee": 6400,
+          "image": "https://images.unsplash.com/photo-1589924691995-400dc9ecc119?q=80&w=800",
+          "isPet": true,
+          "itemType": "pet"
+        },
+        "quantity": 1
+      }
+    ],
     "mobile": "9876543210",
-    "phone": "9876543210"
+    "phone": "9876543210",
+    "id": "02a4e571-841b-426f-b8dd-8aeaebce83b2",
+    "password_plain": "Pass@1234",
+    "serviceCategory": "",
+    "businessName": "",
+    "verificationStatus": "Verified"
   },
   {
     "_id": "60d5ec49ad70591244000004",

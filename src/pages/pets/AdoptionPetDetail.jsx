@@ -4,10 +4,11 @@ import { useSelector, useDispatch } from 'react-redux';
 import {
   Heart, ArrowLeft, MapPin, MessageSquare, ShieldCheck,
   CircleCheck, Check, User, Calendar, Award, Share2, Info, Home,
-  Sparkles, AlertCircle, ArrowRight, Lock, X, Edit3, Clock
+  Sparkles, AlertCircle, ArrowRight, Lock, X, Edit3, Clock, ShoppingCart
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { toggleWishlistAPI, getWishlistItemIdStr } from '../../store/slices/wishlistSlice.js';
+import { addToCartAPI } from '../../store/slices/cartSlice.js';
 import { formatWhatsAppTargetPhone, resolveProviderWhatsApp } from '../../utils/whatsappHelper.js';
 import {
   getStoredAdoptionPets,
@@ -194,6 +195,33 @@ const AdoptionPetDetail = () => {
         toast.success(`Removed ${pet.name} from wishlist`);
       }
     }
+  };
+
+  const handleAddToCart = () => {
+    if (!pet) return;
+    if (isPetOwner) {
+      toast.error('You cannot adopt or add your own pet listing to cart.');
+      return;
+    }
+    const cleanFee = Number(pet.fee ?? pet.price ?? 0) || 0;
+    const petObj = {
+      _id: petId,
+      id: petId,
+      name: pet.name,
+      title: pet.name,
+      price: cleanFee,
+      fee: cleanFee,
+      breed: pet.breed || '',
+      petType: pet.petType || pet.type || pet.category || 'pet',
+      quality: pet.quality || '',
+      images: pet.image ? [pet.image] : [],
+      image: pet.image || '',
+      city: pet.city || '',
+      isPet: true,
+      itemType: 'adoption',
+      stock: 1
+    };
+    dispatch(addToCartAPI({ product: petObj, quantity: 1 }));
   };
 
   // Load target pet with robust ID and string matching & real-time sync
@@ -813,19 +841,30 @@ const AdoptionPetDetail = () => {
                   <span>In-App Chat</span>
                 </button>
 
-                {/* Save to Wishlist Button */}
-                <button
-                  type="button"
-                  onClick={handleToggleWishlist}
-                  className={`w-full py-2.5 px-3 border rounded-xl font-bold text-xs transition flex items-center justify-center gap-1.5 cursor-pointer shadow-xs ${
-                    isWishlisted 
-                      ? "border-red-200 bg-red-50 text-red-600 hover:bg-red-100" 
-                      : "border-amber-200 bg-white text-slate-700 hover:border-[#b89228] hover:text-[#b89228]"
-                  }`}
-                >
-                  <Heart size={14} className={isWishlisted ? "fill-red-500 text-red-500" : ""} />
-                  <span>{isWishlisted ? "Saved in Your Wishlist" : "Save Pet to Wishlist"}</span>
-                </button>
+                {/* Add to Cart & Save to Wishlist Buttons Grid */}
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={handleAddToCart}
+                    className="w-full py-2.5 px-3 bg-primary hover:bg-primary-light text-white rounded-xl font-bold text-xs transition flex items-center justify-center gap-1.5 cursor-pointer shadow-xs"
+                  >
+                    <ShoppingCart size={14} />
+                    <span>Add to Cart</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={handleToggleWishlist}
+                    className={`w-full py-2.5 px-3 border rounded-xl font-bold text-xs transition flex items-center justify-center gap-1.5 cursor-pointer shadow-xs ${
+                      isWishlisted 
+                        ? "border-red-200 bg-red-50 text-red-600 hover:bg-red-100" 
+                        : "border-amber-200 bg-white text-slate-700 hover:border-[#b89228] hover:text-[#b89228]"
+                    }`}
+                  >
+                    <Heart size={14} className={isWishlisted ? "fill-red-500 text-red-500" : ""} />
+                    <span>{isWishlisted ? "Saved Wishlist" : "Wishlist"}</span>
+                  </button>
+                </div>
               </div>
 
               {/* Adoption Application Form Section */}

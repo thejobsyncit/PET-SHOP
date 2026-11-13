@@ -159,7 +159,9 @@ const saveUserCart = async (userId, cart, userData, userEmail) => {
   const cleanEmail = (userEmail && typeof userEmail === 'string') ? userEmail.trim().toLowerCase() : (userData?.user?.email ? userData.user.email.trim().toLowerCase() : '');
   const key = cleanId || cleanEmail;
 
-  inMemoryCarts.set(key, cart);
+  if (key) inMemoryCarts.set(key, cart);
+  if (cleanEmail) inMemoryCarts.set(cleanEmail, cart);
+  if (cleanId) inMemoryCarts.set(cleanId, cart);
 
   if (userData?.source === 'supabase' && supabase && cleanId) {
     try {
@@ -300,6 +302,116 @@ const populateProducts = async (rawProductIds) => {
 // CART CONTROLLERS
 // ==========================================
 
+const getCartItemIdStr = (item) => {
+  if (!item) return '';
+  if (typeof item === 'string' || typeof item === 'number') return String(item).trim();
+  const raw = (item.product && typeof item.product === 'object')
+    ? (item.product._id || item.product.id)
+    : (item.product || item.productId || item._id || item.id);
+  return raw ? String(raw).trim() : '';
+};
+
+// Populate product and pet details for given cart items
+export const populateCartItems = async (rawCart) => {
+  if (!Array.isArray(rawCart) || rawCart.length === 0) return [];
+  
+  const productIds = Array.from(new Set(rawCart.map(getCartItemIdStr).filter(Boolean)));
+  const populatedProds = await populateProducts(productIds);
+
+  let listings = [];
+  try {
+    const listingsFile = path.join(__dirname, '..', 'data', 'listings.json');
+    if (fs.existsSync(listingsFile)) {
+      const content = fs.readFileSync(listingsFile, 'utf8');
+      const parsed = JSON.parse(content);
+      if (Array.isArray(parsed)) listings = parsed;
+    }
+  } catch (_) {}
+
+  let adoptions = [];
+  try {
+    const adoptionsFile = path.join(__dirname, '..', 'data', 'adoptions.json');
+    if (fs.existsSync(adoptionsFile)) {
+      const content = fs.readFileSync(adoptionsFile, 'utf8');
+      const parsed = JSON.parse(content);
+      if (Array.isArray(parsed)) adoptions = parsed;
+    }
+  } catch (_) {}
+
+  return rawCart.map(item => {
+    if (!item) return null;
+    const pId = getCartItemIdStr(item);
+    const quantity = Math.max(1, Number(item.quantity) || 1);
+
+    const foundProd = populatedProds.find(p => String(p.id) === pId || String(p._id) === pId);
+    if (foundProd) {
+      return { product: foundProd, quantity };
+    }
+
+    const foundListing = listings.find(l => String(l.id) === pId || String(l._id) === pId);
+    if (foundListing) {
+      return {
+        product: normalizeProduct({
+          ...foundListing,
+          _id: foundListing._id || foundListing.id,
+          id: foundListing._id || foundListing.id,
+          name: foundListing.title || `${foundListing.breed} (${foundListing.petType})`,
+          title: foundListing.title,
+          breed: foundListing.breed,
+          petType: foundListing.petType,
+          price: Number(foundListing.price) || 0,
+          fee: Number(foundListing.price) || 0,
+          images: foundListing.images || (foundListing.image ? [foundListing.image] : []),
+          image: (foundListing.images && foundListing.images[0]) || foundListing.image || '',
+          location: foundListing.location,
+          contactPhone: foundListing.contactPhone,
+          itemType: 'pet',
+          isPet: true,
+          stock: 1
+        }),
+        quantity
+      };
+    }
+
+    const foundAdopt = adoptions.find(a => String(a.id) === pId || String(a._id) === pId);
+    if (foundAdopt) {
+      return {
+        product: normalizeProduct({
+          ...foundAdopt,
+          _id: foundAdopt.id || foundAdopt._id,
+          id: foundAdopt.id || foundAdopt._id,
+          name: foundAdopt.name,
+          title: foundAdopt.name,
+          breed: foundAdopt.breed,
+          petType: foundAdopt.petType || foundAdopt.category || 'pet',
+          price: Number(foundAdopt.fee || foundAdopt.price) || 0,
+          fee: Number(foundAdopt.fee || foundAdopt.price) || 0,
+          quality: foundAdopt.quality,
+          images: foundAdopt.image ? [foundAdopt.image] : [],
+          image: foundAdopt.image || '',
+          city: foundAdopt.city,
+          itemType: 'adoption',
+          isPet: true,
+          stock: 1
+        }),
+        quantity
+      };
+    }
+
+    if (typeof item.product === 'object' && item.product) {
+      return {
+        product: normalizeProduct(item.product),
+        quantity
+      };
+    }
+
+    return {
+      product: { _id: pId, id: pId, name: 'Product / Pet', price: 0, stock: 1 },
+      quantity
+    };
+  }).filter(Boolean);
+};
+
 // @desc    Get logged in user's cart
 // @route   GET /api/cart
 // @access  Private
@@ -314,35 +426,27 @@ export const getCart = async (req, res) => {
   try {
     const userData = await getUserData(userId, userEmail);
     const rawCart = userData?.user?.cart || [];
-    if (rawCart.length === 0) {
+    if (!Array.isArray(rawCart) || rawCart.length === 0) {
       return res.json({ success: true, cart: [] });
     }
 
-    // Deduplicate cart rows by productId
+    // Deduplicate cart rows by item ID
     const cartMap = new Map();
     for (const item of rawCart) {
-      const pId = typeof item.product === 'object' ? (item.product.id || item.product._id) : item.product;
-      const key = String(pId);
-      if (cartMap.has(key)) {
-        const existing = cartMap.get(key);
+      const pId = getCartItemIdStr(item);
+      if (!pId) continue;
+      if (cartMap.has(pId)) {
+        const existing = cartMap.get(pId);
         existing.quantity = Math.max(Number(existing.quantity) || 1, Number(item.quantity) || 1);
+        if (typeof item.product === 'object' && item.product) {
+          existing.product = item.product;
+        }
       } else {
-        cartMap.set(key, { ...item, quantity: Number(item.quantity) || 1 });
+        cartMap.set(pId, { ...item, quantity: Number(item.quantity) || 1 });
       }
     }
     const cart = Array.from(cartMap.values());
-
-    const productIds = cart.map(item => typeof item.product === 'object' ? (item.product.id || item.product._id) : item.product);
-    const products = await populateProducts(productIds);
-
-    const populatedCart = cart.map(item => {
-      const pId = typeof item.product === 'object' ? (item.product.id || item.product._id) : item.product;
-      const prod = products?.find(p => String(p.id) === String(pId) || String(p._id) === String(pId));
-      return {
-        product: prod || (typeof item.product === 'object' ? normalizeProduct(item.product) : { _id: pId, id: pId, name: 'Product', price: 0 }),
-        quantity: item.quantity
-      };
-    }).filter(item => item.product !== null);
+    const populatedCart = await populateCartItems(cart);
 
     res.json({ success: true, cart: populatedCart });
   } catch (error) {
@@ -351,7 +455,7 @@ export const getCart = async (req, res) => {
   }
 };
 
-// @desc    Add product to cart
+// @desc    Add product or pet to cart
 // @route   POST /api/cart
 // @access  Private
 export const addToCart = async (req, res) => {
@@ -363,8 +467,9 @@ export const addToCart = async (req, res) => {
     return res.status(401).json({ success: false, message: 'Unauthorized' });
   }
 
-  if (!productId) {
-    return res.status(400).json({ success: false, message: 'Product ID is required' });
+  const targetId = productId || (clientProduct?._id || clientProduct?.id);
+  if (!targetId) {
+    return res.status(400).json({ success: false, message: 'Product or Pet ID is required' });
   }
 
   try {
@@ -374,53 +479,71 @@ export const addToCart = async (req, res) => {
     // Deduplicate cart rows by productId
     const cartMap = new Map();
     for (const item of rawCart) {
-      const pId = typeof item.product === 'object' ? (item.product.id || item.product._id) : item.product;
-      const key = String(pId);
-      if (cartMap.has(key)) {
-        const existing = cartMap.get(key);
+      const pId = getCartItemIdStr(item);
+      if (!pId) continue;
+      if (cartMap.has(pId)) {
+        const existing = cartMap.get(pId);
         existing.quantity = Math.max(Number(existing.quantity) || 1, Number(item.quantity) || 1);
+        if (typeof item.product === 'object' && item.product) {
+          existing.product = item.product;
+        }
       } else {
-        cartMap.set(key, { ...item, quantity: Number(item.quantity) || 1 });
+        cartMap.set(pId, { ...item, quantity: Number(item.quantity) || 1 });
       }
     }
 
-    const cleanProductId = String(productId);
-    const parsedQty = Math.max(1, parseInt(quantity, 10) || 1);
+    const cleanProductId = String(targetId).trim();
+    const isPet = Boolean(
+      clientProduct?.isPet || clientProduct?.petType || clientProduct?.breed ||
+      clientProduct?.itemType === 'pet' || clientProduct?.itemType === 'adoption'
+    );
+    const parsedQty = isPet ? 1 : Math.max(1, parseInt(quantity, 10) || 1);
 
     // Stock verification
-    let availableStock = 999;
-    if (clientProduct && (typeof clientProduct.stock === 'number' || clientProduct.stock !== undefined)) {
-      availableStock = Math.max(0, Number(clientProduct.stock));
-    } else {
-      const dbProds = await populateProducts([cleanProductId]);
-      if (dbProds && dbProds[0] && dbProds[0].stock !== undefined) {
-        availableStock = Math.max(0, Number(dbProds[0].stock));
+    let availableStock = isPet ? 1 : 999;
+    if (!isPet) {
+      if (clientProduct && (typeof clientProduct.stock === 'number' || clientProduct.stock !== undefined)) {
+        availableStock = Math.max(0, Number(clientProduct.stock));
+      } else {
+        const dbProds = await populateProducts([cleanProductId]);
+        if (dbProds && dbProds[0] && dbProds[0].stock !== undefined) {
+          availableStock = Math.max(0, Number(dbProds[0].stock));
+        }
       }
     }
 
     if (availableStock <= 0) {
-      return res.status(400).json({ success: false, message: 'This product is currently out of stock.' });
+      return res.status(400).json({ success: false, message: 'This item is currently out of stock.' });
     }
 
     if (cartMap.has(cleanProductId)) {
-      const existing = cartMap.get(cleanProductId);
-      const currentQty = Number(existing.quantity) || 0;
-      if (currentQty >= availableStock) {
-        return res.status(400).json({
-          success: false,
-          message: `Cannot add more units. You already have the maximum available stock (${availableStock} unit${availableStock === 1 ? '' : 's'}) in your cart.`
-        });
-      }
-      if (currentQty + parsedQty > availableStock) {
-        const remaining = availableStock - currentQty;
-        return res.status(400).json({
-          success: false,
-          message: `Cannot add ${parsedQty} units. You already have ${currentQty} in cart, and only ${remaining} more can be added (total stock: ${availableStock}).`
-        });
-      }
-      existing.quantity = currentQty + parsedQty;
-      if (clientProduct && typeof clientProduct === 'object') {
-        existing.product = { ...clientProduct, stock: availableStock };
+      if (isPet) {
+        // Pet is already in cart, return existing cart cleanly
+        const existing = cartMap.get(cleanProductId);
+        existing.quantity = 1;
+        if (clientProduct && typeof clientProduct === 'object') {
+          existing.product = normalizeProduct(clientProduct);
+        }
+      } else {
+        const existing = cartMap.get(cleanProductId);
+        const currentQty = Number(existing.quantity) || 0;
+        if (currentQty >= availableStock) {
+          return res.status(400).json({
+            success: false,
+            message: `Cannot add more units. You already have the maximum available stock (${availableStock} unit${availableStock === 1 ? '' : 's'}) in your cart.`
+          });
+        }
+        if (currentQty + parsedQty > availableStock) {
+          const remaining = availableStock - currentQty;
+          return res.status(400).json({
+            success: false,
+            message: `Cannot add ${parsedQty} units. You already have ${currentQty} in cart, and only ${remaining} more can be added (total stock: ${availableStock}).`
+          });
+        }
+        existing.quantity = currentQty + parsedQty;
+        if (clientProduct && typeof clientProduct === 'object') {
+          existing.product = { ...clientProduct, stock: availableStock };
+        }
       }
     } else {
       if (parsedQty > availableStock) {
@@ -429,28 +552,16 @@ export const addToCart = async (req, res) => {
           message: `Requested quantity (${parsedQty}) exceeds available stock (${availableStock}).`
         });
       }
-      const initialQty = parsedQty;
       cartMap.set(cleanProductId, { 
-        product: clientProduct && typeof clientProduct === 'object' ? { ...clientProduct, stock: availableStock } : productId, 
-        quantity: initialQty 
+        product: clientProduct && typeof clientProduct === 'object' ? normalizeProduct(clientProduct) : cleanProductId, 
+        quantity: parsedQty 
       });
     }
 
     const updatedCart = Array.from(cartMap.values());
     await saveUserCart(userId, updatedCart, userData, userEmail);
 
-    const productIds = updatedCart.map(item => typeof item.product === 'object' ? (item.product.id || item.product._id) : item.product);
-    const products = await populateProducts(productIds);
-    
-    const populatedCart = updatedCart.map(item => {
-      const pId = typeof item.product === 'object' ? (item.product.id || item.product._id) : item.product;
-      const prod = products?.find(p => String(p.id) === String(pId) || String(p._id) === String(pId));
-      return {
-        product: prod || (typeof item.product === 'object' ? normalizeProduct(item.product) : { _id: pId, id: pId, name: 'Product', price: 0 }),
-        quantity: item.quantity
-      };
-    });
-
+    const populatedCart = await populateCartItems(updatedCart);
     res.json({ success: true, cart: populatedCart });
   } catch (error) {
     console.error('addToCart error:', error);
@@ -477,18 +588,18 @@ export const updateCartQuantity = async (req, res) => {
   try {
     const userData = await getUserData(userId, userEmail);
     let cart = userData?.user?.cart || [];
-    const itemIndex = cart.findIndex(item => {
-      const pId = typeof item.product === 'object' ? (item.product.id || item.product._id) : item.product;
-      return pId === productId;
-    });
+    const itemIndex = cart.findIndex(item => getCartItemIdStr(item) === String(productId));
 
     if (itemIndex > -1) {
       const item = cart[itemIndex];
       let availableStock = 999;
-      if (typeof item.product === 'object' && item.product.stock !== undefined) {
+      const isPet = Boolean(item.product?.isPet || item.product?.breed || item.product?.petType);
+      if (isPet) {
+        availableStock = 1;
+      } else if (typeof item.product === 'object' && item.product.stock !== undefined) {
         availableStock = Math.max(0, Number(item.product.stock));
       } else {
-        const dbProds = await populateProducts([productId]);
+        const dbProds = await populateProducts([String(productId)]);
         if (dbProds && dbProds[0] && dbProds[0].stock !== undefined) {
           availableStock = Math.max(0, Number(dbProds[0].stock));
         }
@@ -505,18 +616,7 @@ export const updateCartQuantity = async (req, res) => {
       await saveUserCart(userId, cart, userData, userEmail);
     }
 
-    const productIds = cart.map(item => typeof item.product === 'object' ? (item.product.id || item.product._id) : item.product);
-    const products = await populateProducts(productIds);
-    
-    const populatedCart = cart.map(item => {
-      const pId = typeof item.product === 'object' ? (item.product.id || item.product._id) : item.product;
-      const prod = products?.find(p => p.id === pId || p._id === pId);
-      return {
-        product: prod || (typeof item.product === 'object' ? normalizeProduct(item.product) : { _id: pId, id: pId, name: 'Product', price: 0 }),
-        quantity: item.quantity
-      };
-    });
-
+    const populatedCart = await populateCartItems(cart);
     res.json({ success: true, cart: populatedCart });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
@@ -538,25 +638,11 @@ export const removeFromCart = async (req, res) => {
   try {
     const userData = await getUserData(userId, userEmail);
     let cart = userData?.user?.cart || [];
-    cart = cart.filter(item => {
-      const pId = typeof item.product === 'object' ? (item.product.id || item.product._id) : item.product;
-      return pId !== productId;
-    });
+    cart = cart.filter(item => getCartItemIdStr(item) !== String(productId));
 
     await saveUserCart(userId, cart, userData, userEmail);
 
-    const productIds = cart.map(item => typeof item.product === 'object' ? (item.product.id || item.product._id) : item.product);
-    const products = await populateProducts(productIds);
-    
-    const populatedCart = cart.map(item => {
-      const pId = typeof item.product === 'object' ? (item.product.id || item.product._id) : item.product;
-      const prod = products?.find(p => p.id === pId || p._id === pId);
-      return {
-        product: prod || (typeof item.product === 'object' ? normalizeProduct(item.product) : { _id: pId, id: pId, name: 'Product', price: 0 }),
-        quantity: item.quantity
-      };
-    });
-
+    const populatedCart = await populateCartItems(cart);
     res.json({ success: true, cart: populatedCart });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
@@ -579,6 +665,68 @@ export const clearCart = async (req, res) => {
     await saveUserCart(userId, [], userData, userEmail);
     res.json({ success: true, cart: [] });
   } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// @desc    Sync local cart items to user account on login
+// @route   POST /api/cart/sync
+// @access  Private
+export const syncCart = async (req, res) => {
+  const { items } = req.body;
+  const userId = req.user?._id || req.user?.id;
+  const userEmail = req.user?.email;
+
+  if (!userId && !userEmail) {
+    return res.status(401).json({ success: false, message: 'Unauthorized' });
+  }
+
+  try {
+    const userData = await getUserData(userId, userEmail);
+    let cart = userData?.user?.cart || [];
+    if (!Array.isArray(cart)) cart = [];
+
+    const incoming = Array.isArray(items) ? items : [];
+    const cartMap = new Map();
+
+    // Load existing items into map
+    cart.forEach(item => {
+      const id = getCartItemIdStr(item);
+      if (id) {
+        cartMap.set(id, {
+          product: item.product,
+          quantity: Math.max(1, Number(item.quantity) || 1)
+        });
+      }
+    });
+
+    // Merge incoming items
+    incoming.forEach(item => {
+      const id = getCartItemIdStr(item);
+      if (id) {
+        const inQty = Math.max(1, Number(item.quantity) || 1);
+        if (!cartMap.has(id)) {
+          cartMap.set(id, {
+            product: typeof item.product === 'object' ? (normalizeProduct(item.product) || item.product) : id,
+            quantity: inQty
+          });
+        } else {
+          const existing = cartMap.get(id);
+          existing.quantity = Math.max(Number(existing.quantity) || 1, inQty);
+          if (typeof item.product === 'object' && item.product) {
+            existing.product = normalizeProduct(item.product) || item.product;
+          }
+        }
+      }
+    });
+
+    const updatedCart = Array.from(cartMap.values());
+    await saveUserCart(userId, updatedCart, userData, userEmail);
+
+    const populatedCart = await populateCartItems(updatedCart);
+    res.json({ success: true, cart: populatedCart });
+  } catch (error) {
+    console.error('syncCart error:', error);
     res.status(500).json({ success: false, message: error.message });
   }
 };

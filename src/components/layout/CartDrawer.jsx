@@ -287,40 +287,52 @@ const CartDrawer = ({ isOpen, onClose }) => {
                 </div>
               </div>
 
-              <button 
-                onClick={() => {
-                  const overstockItem = items.find(item => {
-                    const stock = typeof item.product?.stock === 'number' 
-                      ? item.product.stock 
-                      : (item.product?.stock !== undefined && !isNaN(Number(item.product.stock)) ? Number(item.product.stock) : 999);
-                    return item.quantity > stock;
-                  });
+              <div className="space-y-2">
+                <button 
+                  onClick={() => {
+                    const overstockItem = items.find(item => {
+                      const stock = typeof item.product?.stock === 'number' 
+                        ? item.product.stock 
+                        : (item.product?.stock !== undefined && !isNaN(Number(item.product.stock)) ? Number(item.product.stock) : 999);
+                      return item.quantity > stock;
+                    });
 
-                  if (overstockItem) {
-                    const available = typeof overstockItem.product?.stock === 'number' ? overstockItem.product.stock : 0;
-                    toast.error(`"${overstockItem.product?.name || 'Item'}" quantity (${overstockItem.quantity}) exceeds available stock (${available}). Please adjust quantity before checkout.`);
-                    return;
-                  }
+                    if (overstockItem) {
+                      const available = typeof overstockItem.product?.stock === 'number' ? overstockItem.product.stock : 0;
+                      toast.error(`"${overstockItem.product?.name || 'Item'}" quantity (${overstockItem.quantity}) exceeds available stock (${available}). Please adjust quantity before checkout.`);
+                      return;
+                    }
 
-                  onClose();
-                  if (!isAuthenticated) {
-                    window.dispatchEvent(
-                      new CustomEvent('open-register-modal', {
-                        detail: { tab: 'user', hideProviderTab: true, source: 'checkout' }
-                      })
-                    );
-                    return;
-                  }
-                  try {
-                    sessionStorage.removeItem('joshpetshub_buynow_item');
-                    sessionStorage.removeItem('joshpetshub_buynow_active');
-                  } catch (_) {}
-                  navigate('/checkout', { state: { isBuyNow: false } });
-                }}
-                className="w-full py-3.5 bg-primary text-white font-medium text-xs tracking-widest hover:bg-primary-light transition duration-300 uppercase cursor-pointer"
-              >
-                PROCEED TO CHECKOUT
-              </button>
+                    onClose();
+                    if (!isAuthenticated) {
+                      window.dispatchEvent(
+                        new CustomEvent('open-register-modal', {
+                          detail: { tab: 'user', hideProviderTab: true, source: 'checkout' }
+                        })
+                      );
+                      return;
+                    }
+                    try {
+                      sessionStorage.removeItem('joshpetshub_buynow_item');
+                      sessionStorage.removeItem('joshpetshub_buynow_active');
+                    } catch (_) {}
+                    navigate('/checkout', { state: { isBuyNow: false } });
+                  }}
+                  className="w-full py-3.5 bg-primary text-white font-medium text-xs tracking-widest hover:bg-primary-light transition duration-300 uppercase cursor-pointer"
+                >
+                  PROCEED TO CHECKOUT
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    onClose();
+                    navigate('/cart');
+                  }}
+                  className="w-full py-2.5 border border-primary text-primary font-bold text-xs tracking-widest hover:bg-primary hover:text-white transition uppercase cursor-pointer text-center"
+                >
+                  VIEW FULL CART PAGE
+                </button>
+              </div>
             </div>
           )}
         </div>
