@@ -1,5 +1,22 @@
 [
   {
+    "_id": "rev_1794539928157_v6xky",
+    "id": "rev_1794539928157_v6xky",
+    "user": "cust-1",
+    "user_id": "cust-1",
+    "userName": "Pooja Nair",
+    "product": "60d5ec49ad70591244000002",
+    "product_id": "60d5ec49ad70591244000002",
+    "productId": "60d5ec49ad70591244000002",
+    "productSlug": "pedigree-dentastix-medium-treats",
+    "slug": "pedigree-dentastix-medium-treats",
+    "rating": 5,
+    "title": "Excellent Oral Care For Pups",
+    "comment": "My dog has fresh breath and clean teeth after just one week of daily sticks.",
+    "verifiedPurchase": true,
+    "createdAt": "2026-11-13T03:18:48.157Z"
+  },
+  {
     "_id": "rev_1793690401748_lu45q",
     "id": "rev_1793690401748_lu45q",
     "user": "2d3769a2-22b0-4cd0-b489-3d5f8de98fcb",

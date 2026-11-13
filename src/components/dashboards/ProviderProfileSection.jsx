@@ -7,6 +7,7 @@ import {
   RefreshCw,
   ShieldCheck,
   CheckCircle2,
+  TrendingUp,
   Building2,
   User,
   Mail,
@@ -61,6 +62,10 @@ export default function ProviderProfileSection({
   const daysRemaining = expiryDate
     ? Math.max(0, Math.ceil((expiryDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)))
     : 0;
+
+  const renewalWindowDays = subscription?.planId === 'monthly' ? 7 : 30;
+  const isNearRenewal = daysRemaining <= renewalWindowDays;
+  const hasUpgradeOptions = subscription?.planId === 'monthly' || subscription?.planId === 'quarterly';
 
   const activePlanName = subscription?.planName || (subscription?.planId ? `${subscription.planId.toUpperCase()} Plan` : 'Active Partner Plan');
   const activePlanBadge = subscription?.planId === 'yearly' ? 'Yearly (Best Value)' : subscription?.planId === 'quarterly' ? 'Quarterly' : 'Monthly';
@@ -369,14 +374,30 @@ export default function ProviderProfileSection({
               <span>Plan Details & Invoice</span>
             </button>
 
-            <button
-              type="button"
-              onClick={onOpenSubscriptionModal}
-              className="flex-1 sm:flex-none bg-amber-400 hover:bg-amber-300 text-slate-900 font-extrabold text-xs px-5 py-2.5 rounded-xl shadow-md transition cursor-pointer flex items-center justify-center gap-2"
-            >
-              <RefreshCw size={14} />
-              <span>Renew / Upgrade Plan</span>
-            </button>
+            {!hasUpgradeOptions && !isNearRenewal ? (
+              <button
+                type="button"
+                onClick={onOpenSubscriptionModal}
+                className="flex-1 sm:flex-none bg-emerald-900/60 hover:bg-emerald-900 text-emerald-100 font-bold text-xs px-4 py-2.5 rounded-xl border border-emerald-500/40 shadow-xs transition cursor-pointer flex items-center justify-center gap-2"
+                title="View active plan details and renewal window"
+              >
+                <Sparkles size={14} className="text-amber-300" />
+                <span>Yearly Plan Active ({daysRemaining}d left)</span>
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={onOpenSubscriptionModal}
+                className="flex-1 sm:flex-none bg-amber-400 hover:bg-amber-300 text-slate-900 font-extrabold text-xs px-5 py-2.5 rounded-xl shadow-md transition cursor-pointer flex items-center justify-center gap-2"
+              >
+                {isNearRenewal ? <RefreshCw size={14} /> : <TrendingUp size={14} />}
+                <span>
+                  {isNearRenewal
+                    ? (hasUpgradeOptions ? 'Renew / Upgrade Plan' : 'Renew Plan')
+                    : 'Upgrade Plan'}
+                </span>
+              </button>
+            )}
           </div>
         </div>
 

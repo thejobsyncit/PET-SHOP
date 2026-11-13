@@ -432,18 +432,40 @@ export const createSubscriptionOrder = async (req, res) => {
       });
     }
 
-    // Restrict selecting or renewing the currently active plan while it is still valid
+    // Validate target user's active subscription status and downgrade restrictions
     const email = (req.user?.email || '').toLowerCase().trim();
     const users = loadDiskUsers();
     const targetUser = users.find(u => (userId && (u._id === userId || u.id === userId)) || (email && u.email && u.email.toLowerCase() === email)) || req.user;
-    if (targetUser?.subscription && targetUser.subscription.status === 'ACTIVE' && targetUser.subscription.planId === planId) {
-      const now = new Date();
-      const expiry = targetUser.subscription.expiryDate ? new Date(targetUser.subscription.expiryDate) : null;
-      if (expiry && expiry > now) {
+
+    const currentSub = targetUser?.subscription;
+    const now = new Date();
+    const currentExpiry = currentSub?.expiryDate ? new Date(currentSub.expiryDate) : null;
+    const isCurrentActive = Boolean(currentSub && currentSub.status === 'ACTIVE' && currentExpiry && currentExpiry > now);
+    const currentPlan = isCurrentActive && currentSub.planId ? SUBSCRIPTION_PLANS[currentSub.planId] : null;
+    const targetPlan = SUBSCRIPTION_PLANS[planId];
+
+    // Restrict downgrading to a lesser-priced plan while an active plan is valid
+    if (isCurrentActive && currentPlan) {
+      if (targetPlan.basePrice < currentPlan.basePrice) {
         return res.status(400).json({
           success: false,
-          message: `You already have an active ${targetUser.subscription.planName || 'plan'} subscription. Please select a different plan to upgrade or switch.`
+          message: `Cannot switch to a lower tier plan (${targetPlan.name}) while your active ${currentPlan.name} is valid. You can renew your current plan or upgrade to a higher tier.`
         });
+      }
+
+      // Restrict renewing when not near the renewal period or month
+      if (targetPlan.id === currentPlan.id) {
+        const renewalWindowDays = currentPlan.id === 'monthly' ? 7 : 30;
+        const daysRemaining = currentExpiry
+          ? Math.max(0, Math.ceil((currentExpiry.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)))
+          : 0;
+
+        if (daysRemaining > renewalWindowDays) {
+          return res.status(400).json({
+            success: false,
+            message: `Plan renewal is only permitted within ${renewalWindowDays} days of expiration. Your ${currentPlan.name} is active until ${currentExpiry.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })} (${daysRemaining} days remaining).`
+          });
+        }
       }
     }
 
@@ -599,18 +621,36 @@ export const verifySubscriptionPayment = async (req, res) => {
     const idx = users.findIndex(u => (userId && (u._id === userId || u.id === userId)) || (email && u.email && u.email.toLowerCase() === email));
     const targetUser = idx >= 0 ? users[idx] : req.user;
 
-    if (targetUser?.subscription && targetUser.subscription.status === 'ACTIVE' && targetUser.subscription.planId === planId) {
-      const now = new Date();
-      const expiry = targetUser.subscription.expiryDate ? new Date(targetUser.subscription.expiryDate) : null;
-      if (expiry && expiry > now) {
+    const currentSub = targetUser?.subscription;
+    const now = new Date();
+    const currentExpiry = currentSub?.expiryDate ? new Date(currentSub.expiryDate) : null;
+    const isCurrentActive = Boolean(currentSub && currentSub.status === 'ACTIVE' && currentExpiry && currentExpiry > now);
+    const currentPlan = isCurrentActive && currentSub.planId ? SUBSCRIPTION_PLANS[currentSub.planId] : null;
+
+    // Restrict downgrading to a lesser-priced plan while an active plan is valid
+    if (isCurrentActive && currentPlan && plan.basePrice < currentPlan.basePrice) {
+      return res.status(400).json({
+        success: false,
+        message: `Cannot switch to a lower tier plan (${plan.name}) while your active ${currentPlan.name} is valid. You can renew your current plan or upgrade to a higher tier.`
+      });
+    }
+
+    // Restrict renewing when not near the renewal period or month
+    if (isCurrentActive && currentPlan && plan.id === currentPlan.id) {
+      const renewalWindowDays = currentPlan.id === 'monthly' ? 7 : 30;
+      const daysRemaining = currentExpiry
+        ? Math.max(0, Math.ceil((currentExpiry.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)))
+        : 0;
+
+      if (daysRemaining > renewalWindowDays) {
         return res.status(400).json({
           success: false,
-          message: `You already have an active ${targetUser.subscription.planName || 'plan'} subscription. Please select a different plan to upgrade or switch.`
+          message: `Plan renewal is only permitted within ${renewalWindowDays} days of expiration. Your ${currentPlan.name} is active until ${currentExpiry.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })} (${daysRemaining} days remaining).`
         });
       }
     }
 
-    const existingHistory = targetUser.subscriptionHistory || [];
+    const existingHistory = targetUser?.subscriptionHistory || [];
     if (existingHistory.some(s => s.paymentId === paymentId)) {
       return res.status(400).json({
         success: false,
@@ -618,9 +658,12 @@ export const verifySubscriptionPayment = async (req, res) => {
       });
     }
 
-    // Exact calendar-month expiration date
-    const startDate = new Date();
-    const expiryDate = calculateCalendarExpiry(startDate, plan.validityMonths);
+    // Determine if this is a renewal of the currently active plan
+    const isRenewal = isCurrentActive && currentSub.planId === plan.id;
+    const paidAt = new Date();
+    // If it's a renewal of an active subscription, extend from the current expiry date; otherwise from now
+    const baseExpiryDate = (isRenewal && currentExpiry && currentExpiry > paidAt) ? currentExpiry : paidAt;
+    const expiryDate = calculateCalendarExpiry(baseExpiryDate, plan.validityMonths);
 
     const subscriptionRecord = {
       status: 'ACTIVE',
@@ -631,12 +674,12 @@ export const verifySubscriptionPayment = async (req, res) => {
       gstAmount,
       totalAmount,
       validityMonths: plan.validityMonths,
-      startDate: startDate.toISOString(),
+      startDate: isRenewal ? (currentSub.startDate || paidAt.toISOString()) : paidAt.toISOString(),
       expiryDate: expiryDate.toISOString(),
       paymentId,
       orderId,
       paymentMethod: signature ? 'Razorpay' : (req.body.paymentMethod || 'Online Gateway'),
-      paidAt: startDate.toISOString()
+      paidAt: paidAt.toISOString()
     };
 
     targetUser.subscription = subscriptionRecord;

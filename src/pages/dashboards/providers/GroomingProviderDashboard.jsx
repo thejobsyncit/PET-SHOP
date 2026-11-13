@@ -641,7 +641,7 @@ const GroomingProviderDashboard = ({
               </div>
             </div>
             <div className="flex items-end gap-2 mb-1 relative z-10">
-              <div className="text-2xl font-sans font-black text-[#0F2E23]">â‚¹{stats.revenue.toLocaleString('en-IN')}</div>
+              <div className="text-2xl font-sans font-black text-[#0F2E23]">₹{stats.revenue.toLocaleString('en-IN')}</div>
             </div>
             <div className="text-[10px] text-amber-600 font-black uppercase tracking-wider mt-2 relative z-10">
               {stats.totalOrders} total sessions
@@ -657,7 +657,7 @@ const GroomingProviderDashboard = ({
               </div>
             </div>
             <div className="flex items-end gap-2 mb-1 relative z-10">
-              <div className="text-2xl font-sans font-black text-[#0F2E23]">â‚¹{stats.discounts.toLocaleString('en-IN')}</div>
+              <div className="text-2xl font-sans font-black text-[#0F2E23]">₹{stats.discounts.toLocaleString('en-IN')}</div>
             </div>
             <div className="text-[10px] text-sky-600 font-black uppercase tracking-wider mt-2 relative z-10">Total savings offered</div>
           </div>

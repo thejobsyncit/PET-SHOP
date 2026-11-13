@@ -26,6 +26,14 @@ const ProductCard = ({ product }) => {
     : (product.stock !== undefined && product.stock !== null && !isNaN(Number(product.stock))
         ? Math.max(0, Number(product.stock))
         : 999);
+  const displayReviewCount = typeof product.reviewCount === 'number'
+    ? product.reviewCount
+    : (typeof product.review_count === 'number'
+        ? product.review_count
+        : (typeof product.numReviews === 'number'
+            ? product.numReviews
+            : (Array.isArray(product.reviews) ? product.reviews.length : 0)));
+  const displayRating = Number(product.rating !== undefined ? product.rating : (product.ratings !== undefined ? product.ratings : 0)) || 0;
 
   const handleToggleWishlist = async (e) => {
     e.stopPropagation();
@@ -278,8 +286,10 @@ const ProductCard = ({ product }) => {
             
             {/* Reviews display */}
             <div className="flex items-center gap-2 pt-1">
-              <RatingStars rating={product.rating} size={14} />
-              <span className="text-xs text-gray-400 font-medium tracking-wide">({product.reviewCount} Reviews)</span>
+              <RatingStars rating={displayRating} size={14} />
+              <span className="text-xs text-gray-400 font-medium tracking-wide">
+                ({displayReviewCount} {displayReviewCount === 1 ? 'Review' : 'Reviews'})
+              </span>
             </div>
           </div>
 
@@ -345,8 +355,10 @@ const ProductCard = ({ product }) => {
                 </h2>
                 
                 <div className="flex items-center gap-2 mb-4">
-                  <RatingStars rating={product.rating} size={14} />
-                  <span className="text-xs text-gray-500 font-medium">({product.reviewCount} customer reviews)</span>
+                  <RatingStars rating={displayRating} size={14} />
+                  <span className="text-xs text-gray-500 font-medium">
+                    ({displayReviewCount} {displayReviewCount === 1 ? 'customer review' : 'customer reviews'})
+                  </span>
                 </div>
 
                 <div className="flex items-baseline gap-2 mb-4">

@@ -36,8 +36,8 @@
     ],
     "price": 6400,
     "discountPrice": 5760,
-    "rating": 4.8,
-    "reviewCount": 42,
+    "rating": 4.9,
+    "reviewCount": 9,
     "stock": 25,
     "lowStockThreshold": 4,
     "images": [
@@ -50,7 +50,10 @@
     "isFeatured": true,
     "isBestSeller": true,
     "requiresPrescription": false,
-    "discountPercentage": 10
+    "discountPercentage": 10,
+    "review_count": 9,
+    "numReviews": 9,
+    "ratings": 4.9
   },
   {
     "_id": "60d5ec49ad70591244000001",
@@ -84,8 +87,8 @@
     ],
     "price": 1800,
     "discountPrice": 1620,
-    "rating": 4.4,
-    "reviewCount": 15,
+    "rating": 5,
+    "reviewCount": 2,
     "stock": 30,
     "lowStockThreshold": 5,
     "images": [
@@ -97,7 +100,10 @@
     "isFeatured": false,
     "isBestSeller": false,
     "requiresPrescription": false,
-    "discountPercentage": 10
+    "discountPercentage": 10,
+    "review_count": 2,
+    "numReviews": 2,
+    "ratings": 5
   },
   {
     "_id": "60d5ec49ad70591244000002",
@@ -129,8 +135,8 @@
     ],
     "price": 699,
     "discountPrice": 629,
-    "rating": 4.6,
-    "reviewCount": 30,
+    "rating": 5,
+    "reviewCount": 1,
     "stock": 120,
     "lowStockThreshold": 10,
     "images": [
@@ -142,7 +148,10 @@
     "isFeatured": true,
     "isBestSeller": true,
     "requiresPrescription": false,
-    "discountPercentage": 10
+    "discountPercentage": 10,
+    "review_count": 1,
+    "numReviews": 1,
+    "ratings": 5
   },
   {
     "_id": "60d5ec49ad70591244000003",
@@ -174,7 +183,7 @@
     "price": 4999,
     "discountPrice": 4249,
     "rating": 4.9,
-    "reviewCount": 22,
+    "reviewCount": 0,
     "stock": 8,
     "lowStockThreshold": 2,
     "images": [
@@ -186,7 +195,10 @@
     "isFeatured": true,
     "isBestSeller": false,
     "requiresPrescription": false,
-    "discountPercentage": 15
+    "discountPercentage": 15,
+    "review_count": 0,
+    "numReviews": 0,
+    "ratings": 4.9
   },
   {
     "_id": "60d5ec49ad70591244000004",
@@ -214,7 +226,7 @@
     "price": 1499,
     "discountPrice": 1299,
     "rating": 4.7,
-    "reviewCount": 18,
+    "reviewCount": 0,
     "stock": 45,
     "lowStockThreshold": 5,
     "images": [
@@ -226,7 +238,10 @@
     "isFeatured": false,
     "isBestSeller": false,
     "requiresPrescription": false,
-    "discountPercentage": 13
+    "discountPercentage": 13,
+    "review_count": 0,
+    "numReviews": 0,
+    "ratings": 4.7
   },
   {
     "_id": "60d5ec49ad70591244000005",
@@ -254,7 +269,7 @@
     "price": 1299,
     "discountPrice": 1099,
     "rating": 4.5,
-    "reviewCount": 26,
+    "reviewCount": 0,
     "stock": 50,
     "lowStockThreshold": 6,
     "images": [
@@ -266,7 +281,10 @@
     "isFeatured": true,
     "isBestSeller": false,
     "requiresPrescription": false,
-    "discountPercentage": 15
+    "discountPercentage": 15,
+    "review_count": 0,
+    "numReviews": 0,
+    "ratings": 4.5
   },
   {
     "_id": "60d5ec49ad70591244000006",
@@ -299,7 +317,7 @@
     "price": 899,
     "discountPrice": 799,
     "rating": 4.3,
-    "reviewCount": 14,
+    "reviewCount": 0,
     "stock": 35,
     "lowStockThreshold": 5,
     "images": [
@@ -311,7 +329,10 @@
     "isFeatured": false,
     "isBestSeller": false,
     "requiresPrescription": false,
-    "discountPercentage": 11
+    "discountPercentage": 11,
+    "review_count": 0,
+    "numReviews": 0,
+    "ratings": 4.3
   },
   {
     "_id": "60d5ec49ad70591244000007",
@@ -346,7 +367,7 @@
     "price": 999,
     "discountPrice": 899,
     "rating": 4.6,
-    "reviewCount": 22,
+    "reviewCount": 0,
     "stock": 15,
     "lowStockThreshold": 3,
     "images": [
@@ -358,7 +379,10 @@
     "isFeatured": false,
     "isBestSeller": true,
     "requiresPrescription": false,
-    "discountPercentage": 10
+    "discountPercentage": 10,
+    "review_count": 0,
+    "numReviews": 0,
+    "ratings": 4.6
   },
   {
     "_id": "60d5ec49ad70591244000008",
@@ -386,7 +410,7 @@
     "price": 1999,
     "discountPrice": 1799,
     "rating": 4.7,
-    "reviewCount": 16,
+    "reviewCount": 0,
     "stock": 22,
     "lowStockThreshold": 4,
     "images": [
@@ -398,7 +422,10 @@
     "isFeatured": false,
     "isBestSeller": false,
     "requiresPrescription": false,
-    "discountPercentage": 10
+    "discountPercentage": 10,
+    "review_count": 0,
+    "numReviews": 0,
+    "ratings": 4.7
   },
   {
     "_id": "60d5ec49ad70591244000009",
@@ -432,7 +459,7 @@
     "price": 350,
     "discountPrice": 315,
     "rating": 4.5,
-    "reviewCount": 35,
+    "reviewCount": 0,
     "stock": 90,
     "lowStockThreshold": 10,
     "images": [
@@ -444,7 +471,10 @@
     "isFeatured": false,
     "isBestSeller": true,
     "requiresPrescription": false,
-    "discountPercentage": 10
+    "discountPercentage": 10,
+    "review_count": 0,
+    "numReviews": 0,
+    "ratings": 4.5
   },
   {
     "_id": "60d5ec49ad7059124400000a",
@@ -479,7 +509,7 @@
     "price": 1899,
     "discountPrice": 1699,
     "rating": 4.8,
-    "reviewCount": 19,
+    "reviewCount": 0,
     "stock": 40,
     "lowStockThreshold": 5,
     "images": [
@@ -491,7 +521,10 @@
     "isFeatured": true,
     "isBestSeller": true,
     "requiresPrescription": false,
-    "discountPercentage": 11
+    "discountPercentage": 11,
+    "review_count": 0,
+    "numReviews": 0,
+    "ratings": 4.8
   },
   {
     "_id": "60d5ec49ad7059124400000b",
@@ -519,7 +552,7 @@
     "price": 1199,
     "discountPrice": 999,
     "rating": 4.7,
-    "reviewCount": 12,
+    "reviewCount": 0,
     "stock": 25,
     "lowStockThreshold": 3,
     "images": [
@@ -531,7 +564,10 @@
     "isFeatured": false,
     "isBestSeller": false,
     "requiresPrescription": false,
-    "discountPercentage": 17
+    "discountPercentage": 17,
+    "review_count": 0,
+    "numReviews": 0,
+    "ratings": 4.7
   },
   {
     "_id": "60d5ec49ad7059124400000c",
@@ -559,7 +595,7 @@
     "price": 12499,
     "discountPrice": 10999,
     "rating": 4.9,
-    "reviewCount": 8,
+    "reviewCount": 0,
     "stock": 5,
     "lowStockThreshold": 1,
     "images": [
@@ -571,7 +607,10 @@
     "isFeatured": true,
     "isBestSeller": false,
     "requiresPrescription": false,
-    "discountPercentage": 12
+    "discountPercentage": 12,
+    "review_count": 0,
+    "numReviews": 0,
+    "ratings": 4.9
   },
   {
     "_id": "60d5ec49ad7059124400000d",
@@ -604,7 +643,7 @@
     "price": 399,
     "discountPrice": 349,
     "rating": 4.4,
-    "reviewCount": 25,
+    "reviewCount": 0,
     "stock": 150,
     "lowStockThreshold": 15,
     "images": [
@@ -616,7 +655,10 @@
     "isFeatured": false,
     "isBestSeller": true,
     "requiresPrescription": false,
-    "discountPercentage": 13
+    "discountPercentage": 13,
+    "review_count": 0,
+    "numReviews": 0,
+    "ratings": 4.4
   },
   {
     "_id": "60d5ec49ad7059124400000e",
@@ -644,7 +686,7 @@
     "price": 699,
     "discountPrice": 599,
     "rating": 4.5,
-    "reviewCount": 14,
+    "reviewCount": 0,
     "stock": 65,
     "lowStockThreshold": 8,
     "images": [
@@ -656,7 +698,10 @@
     "isFeatured": false,
     "isBestSeller": false,
     "requiresPrescription": false,
-    "discountPercentage": 14
+    "discountPercentage": 14,
+    "review_count": 0,
+    "numReviews": 0,
+    "ratings": 4.5
   },
   {
     "_id": "60d5ec49ad7059124400000f",
@@ -691,7 +736,7 @@
     "price": 890,
     "discountPrice": 799,
     "rating": 4.7,
-    "reviewCount": 16,
+    "reviewCount": 0,
     "stock": 55,
     "lowStockThreshold": 5,
     "images": [
@@ -703,7 +748,10 @@
     "isFeatured": false,
     "isBestSeller": true,
     "requiresPrescription": false,
-    "discountPercentage": 10
+    "discountPercentage": 10,
+    "review_count": 0,
+    "numReviews": 0,
+    "ratings": 4.7
   },
   {
     "_id": "60d5ec49ad70591244000010",
@@ -730,8 +778,8 @@
     ],
     "price": 999,
     "discountPrice": 849,
-    "rating": 4.3,
-    "reviewCount": 11,
+    "rating": 5,
+    "reviewCount": 1,
     "stock": 48,
     "lowStockThreshold": 4,
     "images": [
@@ -743,7 +791,10 @@
     "isFeatured": false,
     "isBestSeller": false,
     "requiresPrescription": false,
-    "discountPercentage": 15
+    "discountPercentage": 15,
+    "review_count": 1,
+    "numReviews": 1,
+    "ratings": 5
   },
   {
     "_id": "60d5ec49ad70591244000011",
@@ -776,7 +827,7 @@
     "price": 450,
     "discountPrice": 399,
     "rating": 4.5,
-    "reviewCount": 18,
+    "reviewCount": 0,
     "stock": 72,
     "lowStockThreshold": 6,
     "images": [
@@ -788,7 +839,10 @@
     "isFeatured": false,
     "isBestSeller": false,
     "requiresPrescription": false,
-    "discountPercentage": 11
+    "discountPercentage": 11,
+    "review_count": 0,
+    "numReviews": 0,
+    "ratings": 4.5
   },
   {
     "_id": "60d5ec49ad70591244000012",
@@ -816,7 +870,7 @@
     "price": 18500,
     "discountPrice": 16650,
     "rating": 4.9,
-    "reviewCount": 15,
+    "reviewCount": 0,
     "stock": 4,
     "lowStockThreshold": 1,
     "images": [
@@ -828,7 +882,10 @@
     "isFeatured": true,
     "isBestSeller": true,
     "requiresPrescription": false,
-    "discountPercentage": 10
+    "discountPercentage": 10,
+    "review_count": 0,
+    "numReviews": 0,
+    "ratings": 4.9
   },
   {
     "_id": "60d5ec49ad70591244000013",
@@ -860,7 +917,7 @@
     "price": 2999,
     "discountPrice": 2699,
     "rating": 4.8,
-    "reviewCount": 22,
+    "reviewCount": 0,
     "stock": 35,
     "lowStockThreshold": 4,
     "images": [
@@ -872,7 +929,10 @@
     "isFeatured": true,
     "isBestSeller": true,
     "requiresPrescription": false,
-    "discountPercentage": 10
+    "discountPercentage": 10,
+    "review_count": 0,
+    "numReviews": 0,
+    "ratings": 4.8
   },
   {
     "_id": "60d5ec49ad70591244000014",
@@ -902,7 +962,7 @@
     "price": 899,
     "discountPrice": 799,
     "rating": 4.6,
-    "reviewCount": 17,
+    "reviewCount": 0,
     "stock": 80,
     "lowStockThreshold": 8,
     "images": [
@@ -914,7 +974,10 @@
     "isFeatured": false,
     "isBestSeller": false,
     "requiresPrescription": false,
-    "discountPercentage": 11
+    "discountPercentage": 11,
+    "review_count": 0,
+    "numReviews": 0,
+    "ratings": 4.6
   },
   {
     "_id": "60d5ec49ad70591244000015",
@@ -945,8 +1008,8 @@
     ],
     "price": 699,
     "discountPrice": 599,
-    "rating": 4.7,
-    "reviewCount": 29,
+    "rating": 5,
+    "reviewCount": 1,
     "stock": 95,
     "lowStockThreshold": 10,
     "images": [
@@ -958,7 +1021,10 @@
     "isFeatured": false,
     "isBestSeller": true,
     "requiresPrescription": false,
-    "discountPercentage": 14
+    "discountPercentage": 14,
+    "review_count": 1,
+    "numReviews": 1,
+    "ratings": 5
   },
   {
     "_id": "60d5ec49ad70591244000016",
@@ -990,7 +1056,7 @@
     "price": 2499,
     "discountPrice": 2199,
     "rating": 4.5,
-    "reviewCount": 14,
+    "reviewCount": 0,
     "stock": 28,
     "lowStockThreshold": 3,
     "images": [
@@ -1002,7 +1068,10 @@
     "isFeatured": false,
     "isBestSeller": false,
     "requiresPrescription": false,
-    "discountPercentage": 12
+    "discountPercentage": 12,
+    "review_count": 0,
+    "numReviews": 0,
+    "ratings": 4.5
   },
   {
     "_id": "60d5ec49ad70591244000017",
@@ -1032,7 +1101,7 @@
     "price": 599,
     "discountPrice": 539,
     "rating": 4.7,
-    "reviewCount": 11,
+    "reviewCount": 0,
     "stock": 50,
     "lowStockThreshold": 5,
     "images": [
@@ -1044,7 +1113,10 @@
     "isFeatured": false,
     "isBestSeller": false,
     "requiresPrescription": false,
-    "discountPercentage": 10
+    "discountPercentage": 10,
+    "review_count": 0,
+    "numReviews": 0,
+    "ratings": 4.7
   },
   {
     "_id": "60d5ec49ad70591244000018",
@@ -1071,8 +1143,8 @@
     ],
     "price": 1199,
     "discountPrice": 999,
-    "rating": 4.4,
-    "reviewCount": 20,
+    "rating": 5,
+    "reviewCount": 1,
     "stock": 45,
     "lowStockThreshold": 5,
     "images": [
@@ -1084,7 +1156,10 @@
     "isFeatured": false,
     "isBestSeller": false,
     "requiresPrescription": false,
-    "discountPercentage": 17
+    "discountPercentage": 17,
+    "review_count": 1,
+    "numReviews": 1,
+    "ratings": 5
   },
   {
     "_id": "60d5ec49ad70591244000019",
@@ -1112,7 +1187,7 @@
     "price": 899,
     "discountPrice": 799,
     "rating": 4.3,
-    "reviewCount": 9,
+    "reviewCount": 0,
     "stock": 60,
     "lowStockThreshold": 5,
     "images": [
@@ -1124,7 +1199,10 @@
     "isFeatured": false,
     "isBestSeller": false,
     "requiresPrescription": false,
-    "discountPercentage": 11
+    "discountPercentage": 11,
+    "review_count": 0,
+    "numReviews": 0,
+    "ratings": 4.3
   },
   {
     "_id": "60d5ec49ad7059124400001a",
@@ -1156,7 +1234,7 @@
     "price": 999,
     "discountPrice": 899,
     "rating": 4.8,
-    "reviewCount": 38,
+    "reviewCount": 0,
     "stock": 85,
     "lowStockThreshold": 8,
     "images": [
@@ -1168,7 +1246,10 @@
     "isFeatured": true,
     "isBestSeller": true,
     "requiresPrescription": false,
-    "discountPercentage": 10
+    "discountPercentage": 10,
+    "review_count": 0,
+    "numReviews": 0,
+    "ratings": 4.8
   },
   {
     "_id": "60d5ec49ad7059124400001b",
@@ -1203,7 +1284,7 @@
     "price": 699,
     "discountPrice": 629,
     "rating": 4.7,
-    "reviewCount": 26,
+    "reviewCount": 0,
     "stock": 120,
     "lowStockThreshold": 10,
     "images": [
@@ -1215,7 +1296,10 @@
     "isFeatured": true,
     "isBestSeller": true,
     "requiresPrescription": false,
-    "discountPercentage": 10
+    "discountPercentage": 10,
+    "review_count": 0,
+    "numReviews": 0,
+    "ratings": 4.7
   },
   {
     "_id": "60d5ec49ad7059124400001c",
@@ -1243,7 +1327,7 @@
     "price": 3499,
     "discountPrice": 2999,
     "rating": 4.6,
-    "reviewCount": 14,
+    "reviewCount": 0,
     "stock": 6,
     "lowStockThreshold": 1,
     "images": [
@@ -1255,7 +1339,10 @@
     "isFeatured": true,
     "isBestSeller": false,
     "requiresPrescription": false,
-    "discountPercentage": 14
+    "discountPercentage": 14,
+    "review_count": 0,
+    "numReviews": 0,
+    "ratings": 4.6
   },
   {
     "_id": "60d5ec49ad7059124400001d",
@@ -1283,7 +1370,7 @@
     "price": 1599,
     "discountPrice": 1399,
     "rating": 4.4,
-    "reviewCount": 31,
+    "reviewCount": 0,
     "stock": 35,
     "lowStockThreshold": 4,
     "images": [
@@ -1295,7 +1382,10 @@
     "isFeatured": false,
     "isBestSeller": false,
     "requiresPrescription": false,
-    "discountPercentage": 13
+    "discountPercentage": 13,
+    "review_count": 0,
+    "numReviews": 0,
+    "ratings": 4.4
   },
   {
     "_id": "60d5ec49ad7059124400001e",
@@ -1323,7 +1413,7 @@
     "price": 899,
     "discountPrice": 799,
     "rating": 4.3,
-    "reviewCount": 19,
+    "reviewCount": 0,
     "stock": 50,
     "lowStockThreshold": 6,
     "images": [
@@ -1335,7 +1425,10 @@
     "isFeatured": false,
     "isBestSeller": false,
     "requiresPrescription": false,
-    "discountPercentage": 11
+    "discountPercentage": 11,
+    "review_count": 0,
+    "numReviews": 0,
+    "ratings": 4.3
   },
   {
     "_id": "60d5ec49ad7059124400001f",
@@ -1363,7 +1456,7 @@
     "price": 2499,
     "discountPrice": 1999,
     "rating": 4.7,
-    "reviewCount": 15,
+    "reviewCount": 0,
     "stock": 20,
     "lowStockThreshold": 2,
     "images": [
@@ -1375,7 +1468,10 @@
     "isFeatured": false,
     "isBestSeller": false,
     "requiresPrescription": false,
-    "discountPercentage": 20
+    "discountPercentage": 20,
+    "review_count": 0,
+    "numReviews": 0,
+    "ratings": 4.7
   },
   {
     "_id": "60d5ec49ad70591244000020",
@@ -1403,7 +1499,7 @@
     "price": 599,
     "discountPrice": 499,
     "rating": 4.5,
-    "reviewCount": 22,
+    "reviewCount": 0,
     "stock": 12,
     "lowStockThreshold": 2,
     "images": [
@@ -1415,7 +1511,10 @@
     "isFeatured": false,
     "isBestSeller": true,
     "requiresPrescription": false,
-    "discountPercentage": 17
+    "discountPercentage": 17,
+    "review_count": 0,
+    "numReviews": 0,
+    "ratings": 4.5
   },
   {
     "_id": "60d5ec49ad70591244000021",
@@ -1448,7 +1547,7 @@
     "price": 1899,
     "discountPrice": 1699,
     "rating": 4.8,
-    "reviewCount": 27,
+    "reviewCount": 0,
     "stock": 65,
     "lowStockThreshold": 8,
     "images": [
@@ -1460,7 +1559,10 @@
     "isFeatured": true,
     "isBestSeller": true,
     "requiresPrescription": false,
-    "discountPercentage": 11
+    "discountPercentage": 11,
+    "review_count": 0,
+    "numReviews": 0,
+    "ratings": 4.8
   },
   {
     "_id": "60d5ec49ad70591244000022",
@@ -1493,7 +1595,7 @@
     "price": 499,
     "discountPrice": 449,
     "rating": 4.6,
-    "reviewCount": 33,
+    "reviewCount": 0,
     "stock": 140,
     "lowStockThreshold": 15,
     "images": [
@@ -1505,7 +1607,10 @@
     "isFeatured": true,
     "isBestSeller": true,
     "requiresPrescription": false,
-    "discountPercentage": 10
+    "discountPercentage": 10,
+    "review_count": 0,
+    "numReviews": 0,
+    "ratings": 4.6
   },
   {
     "_id": "60d5ec49ad70591244000023",
@@ -1537,7 +1642,7 @@
     "price": 220,
     "discountPrice": 199,
     "rating": 4.5,
-    "reviewCount": 16,
+    "reviewCount": 0,
     "stock": 90,
     "lowStockThreshold": 10,
     "images": [
@@ -1549,7 +1654,10 @@
     "isFeatured": false,
     "isBestSeller": false,
     "requiresPrescription": false,
-    "discountPercentage": 10
+    "discountPercentage": 10,
+    "review_count": 0,
+    "numReviews": 0,
+    "ratings": 4.5
   },
   {
     "_id": "60d5ec49ad70591244000024",
@@ -1577,7 +1685,7 @@
     "price": 1499,
     "discountPrice": 1299,
     "rating": 4.9,
-    "reviewCount": 11,
+    "reviewCount": 0,
     "stock": 30,
     "lowStockThreshold": 3,
     "images": [
@@ -1589,7 +1697,10 @@
     "isFeatured": true,
     "isBestSeller": false,
     "requiresPrescription": false,
-    "discountPercentage": 13
+    "discountPercentage": 13,
+    "review_count": 0,
+    "numReviews": 0,
+    "ratings": 4.9
   },
   {
     "_id": "60d5ec49ad70591244000025",
@@ -1619,7 +1730,7 @@
     "price": 180,
     "discountPrice": 160,
     "rating": 4.7,
-    "reviewCount": 9,
+    "reviewCount": 0,
     "stock": 50,
     "lowStockThreshold": 10,
     "images": [
@@ -1631,7 +1742,10 @@
     "isFeatured": false,
     "isBestSeller": false,
     "requiresPrescription": true,
-    "discountPercentage": 11
+    "discountPercentage": 11,
+    "review_count": 0,
+    "numReviews": 0,
+    "ratings": 4.7
   },
   {
     "_id": "60d5ec49ad70591244000026",
@@ -1661,7 +1775,7 @@
     "price": 320,
     "discountPrice": 299,
     "rating": 4.6,
-    "reviewCount": 7,
+    "reviewCount": 0,
     "stock": 40,
     "lowStockThreshold": 8,
     "images": [
@@ -1673,7 +1787,10 @@
     "isFeatured": false,
     "isBestSeller": false,
     "requiresPrescription": true,
-    "discountPercentage": 7
+    "discountPercentage": 7,
+    "review_count": 0,
+    "numReviews": 0,
+    "ratings": 4.6
   },
   {
     "_id": "60d5ec49ad70591244000027",
@@ -1703,7 +1820,7 @@
     "price": 280,
     "discountPrice": 250,
     "rating": 4.8,
-    "reviewCount": 5,
+    "reviewCount": 0,
     "stock": 35,
     "lowStockThreshold": 5,
     "images": [
@@ -1715,7 +1832,10 @@
     "isFeatured": false,
     "isBestSeller": false,
     "requiresPrescription": true,
-    "discountPercentage": 11
+    "discountPercentage": 11,
+    "review_count": 0,
+    "numReviews": 0,
+    "ratings": 4.8
   },
   {
     "_id": "60d5ec49ad70591244000028",
@@ -1745,7 +1865,7 @@
     "price": 2450,
     "discountPrice": 2200,
     "rating": 4.5,
-    "reviewCount": 4,
+    "reviewCount": 0,
     "stock": 20,
     "lowStockThreshold": 2,
     "images": [
@@ -1757,6 +1877,9 @@
     "isFeatured": false,
     "isBestSeller": false,
     "requiresPrescription": true,
-    "discountPercentage": 10
+    "discountPercentage": 10,
+    "review_count": 0,
+    "numReviews": 0,
+    "ratings": 4.5
   }
 ]

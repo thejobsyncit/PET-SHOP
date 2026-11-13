@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   X, ShieldCheck, CheckCircle2, Lock, Landmark, AlertCircle,
   CreditCard, Loader2, ArrowRight, Receipt, Calendar, Clock,
@@ -38,6 +38,66 @@ const RazorpayBookingPaymentModal = ({
   const [completedBooking, setCompletedBooking] = useState(null);
   const [showSimulatedGateway, setShowSimulatedGateway] = useState(false);
   const [simulatedOrderInfo, setSimulatedOrderInfo] = useState(null);
+
+  const isCancelledRef = useRef(false);
+  const abortControllerRef = useRef(null);
+
+  useEffect(() => {
+    if (!isOpen) {
+      isCancelledRef.current = true;
+      if (abortControllerRef.current) {
+        try { abortControllerRef.current.abort(); } catch (_) {}
+        abortControllerRef.current = null;
+      }
+      setIsProcessing(false);
+      setCompletedBooking(null);
+      setShowSimulatedGateway(false);
+      setSimulatedOrderInfo(null);
+    } else {
+      isCancelledRef.current = false;
+    }
+  }, [isOpen]);
+
+  // Handle closing modal with graceful abort of ongoing verification
+  const handleModalClose = () => {
+    isCancelledRef.current = true;
+    if (abortControllerRef.current) {
+      try { abortControllerRef.current.abort(); } catch (_) {}
+      abortControllerRef.current = null;
+    }
+    const wasProcessing = isProcessing;
+    setIsProcessing(false);
+    setShowSimulatedGateway(false);
+    if (wasProcessing) {
+      toast('Payment verification cancelled.', { icon: 'ℹ️' });
+    }
+    if (typeof onClose === 'function') {
+      onClose();
+    }
+  };
+
+  // Handle cancellation inside the simulated gateway
+  const handleCancelSimulation = () => {
+    isCancelledRef.current = true;
+    if (abortControllerRef.current) {
+      try { abortControllerRef.current.abort(); } catch (_) {}
+      abortControllerRef.current = null;
+    }
+    setIsProcessing(false);
+    setShowSimulatedGateway(false);
+    toast('Payment verification cancelled. Your booking was not confirmed.', { icon: 'ℹ️' });
+  };
+
+  // Escape key handler
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape' && isOpen) {
+        handleModalClose();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen]);
 
   if (!isOpen || !bookingData) return null;
 
@@ -120,6 +180,7 @@ const RazorpayBookingPaymentModal = ({
 
       // 3. Fallback: Automated Secure Sandbox Simulator
       setSimulatedOrderInfo(orderRes);
+      setIsProcessing(false);
       setShowSimulatedGateway(true);
 
     } catch (err) {
@@ -130,9 +191,13 @@ const RazorpayBookingPaymentModal = ({
   };
 
   const verifyAndFinalizePayment = async ({ orderId, paymentId, signature }) => {
+    isCancelledRef.current = false;
+    abortControllerRef.current = new AbortController();
+    setIsProcessing(true);
     try {
       const verifyRes = await apiRequest('/wallet-payouts/verify-booking-payment', {
         method: 'POST',
+        signal: abortControllerRef.current.signal,
         body: JSON.stringify({
           razorpay_order_id: orderId,
           razorpay_payment_id: paymentId,
@@ -145,6 +210,10 @@ const RazorpayBookingPaymentModal = ({
           }
         })
       });
+
+      if (isCancelledRef.current) {
+        return;
+      }
 
       if (!verifyRes || !verifyRes.success) {
         throw new Error(verifyRes?.message || 'Cryptographic verification failed.');
@@ -166,9 +235,15 @@ const RazorpayBookingPaymentModal = ({
         onSuccess(verifyRes.booking);
       }
     } catch (err) {
+      if (isCancelledRef.current || err?.name === 'AbortError') {
+        console.log('Payment verification aborted by user.');
+        return;
+      }
       console.error('Payment verification error:', err);
       toast.error(err.message || 'Payment verification failed.');
       setIsProcessing(false);
+    } finally {
+      abortControllerRef.current = null;
     }
   };
 
@@ -185,7 +260,10 @@ const RazorpayBookingPaymentModal = ({
   };
 
   return (
-    <div className="fixed inset-0 z-[200] bg-black/75 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 animate-in fade-in duration-200">
+    <div 
+      className="fixed inset-0 z-[200] bg-black/75 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 animate-in fade-in duration-200"
+      onClick={handleModalClose}
+    >
       <div 
         className="bg-white rounded-3xl max-w-lg w-full border border-slate-200 shadow-2xl overflow-hidden flex flex-col max-h-[92vh]"
         onClick={(e) => e.stopPropagation()}
@@ -202,9 +280,10 @@ const RazorpayBookingPaymentModal = ({
             </div>
           </div>
           <button
-            onClick={onClose}
-            disabled={isProcessing}
+            type="button"
+            onClick={handleModalClose}
             className="p-1.5 rounded-full text-slate-300 hover:text-white hover:bg-white/10 transition cursor-pointer"
+            title="Close"
           >
             <X size={18} />
           </button>
@@ -260,7 +339,7 @@ const RazorpayBookingPaymentModal = ({
 
               <button
                 type="button"
-                onClick={onClose}
+                onClick={handleModalClose}
                 className="w-full bg-[#0F2E23] hover:bg-[#163e30] text-white py-3 rounded-xl font-black uppercase tracking-wider text-xs shadow-md transition cursor-pointer"
               >
                 Close & View Booking
@@ -297,9 +376,8 @@ const RazorpayBookingPaymentModal = ({
               <div className="flex gap-2 pt-2">
                 <button
                   type="button"
-                  onClick={() => setShowSimulatedGateway(false)}
-                  disabled={isProcessing}
-                  className="flex-1 py-3 border border-slate-200 rounded-xl font-bold text-slate-600 hover:bg-slate-50 transition cursor-pointer"
+                  onClick={handleCancelSimulation}
+                  className="flex-1 py-3 border border-slate-200 rounded-xl font-bold text-slate-600 hover:bg-slate-100 hover:text-slate-800 transition cursor-pointer"
                 >
                   Cancel
                 </button>
@@ -307,7 +385,7 @@ const RazorpayBookingPaymentModal = ({
                   type="button"
                   onClick={handleSimulatedPaymentConfirm}
                   disabled={isProcessing}
-                  className="flex-2 py-3 bg-[#0F2E23] hover:bg-[#163e30] text-white rounded-xl font-black uppercase tracking-wider text-xs shadow-md flex items-center justify-center gap-2 transition cursor-pointer"
+                  className="flex-2 py-3 bg-[#0F2E23] hover:bg-[#163e30] text-white rounded-xl font-black uppercase tracking-wider text-xs shadow-md flex items-center justify-center gap-2 transition cursor-pointer disabled:opacity-75"
                 >
                   {isProcessing ? (
                     <>

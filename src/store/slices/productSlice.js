@@ -57,6 +57,15 @@ export const normalizeProduct = (p) => {
     ? Number(p.discount_percentage) 
     : (discountPrice && price > discountPrice ? Math.round(((price - discountPrice) / price) * 100) : 0);
 
+  const reviewCount = typeof p.reviewCount === 'number' 
+    ? p.reviewCount 
+    : (typeof p.review_count === 'number' 
+        ? p.review_count 
+        : (typeof p.numReviews === 'number' 
+            ? p.numReviews 
+            : (Array.isArray(p.reviews) ? p.reviews.length : 0)));
+  const rating = Number(p.rating !== undefined ? p.rating : (p.ratings !== undefined ? p.ratings : 0)) || 0;
+
   return {
     ...p,
     _id: p._id || p.id,
@@ -68,6 +77,11 @@ export const normalizeProduct = (p) => {
     isFeatured: p.is_featured ?? p.isFeatured ?? false,
     requiresPrescription: p.requires_prescription ?? p.requiresPrescription ?? false,
     petType: p.pet_type ?? p.petType,
+    rating,
+    ratings: rating,
+    reviewCount,
+    review_count: reviewCount,
+    numReviews: reviewCount,
   };
 };
 
@@ -167,6 +181,46 @@ const productSlice = createSlice({
         localStorage.setItem('joshpetshub_seller_products', JSON.stringify(filtered));
         localStorage.setItem('joshpetshub_cached_products', JSON.stringify(state.items.slice(0, 30)));
       } catch (_) {}
+    },
+    updateProductReviewStats(state, action) {
+      const { productId, productSlug, reviewCount, rating } = action.payload || {};
+      const targetId = String(productId || '').trim().toLowerCase();
+      const targetSlug = String(productSlug || '').trim().toLowerCase();
+
+      state.items = state.items.map(p => {
+        const pId = String(p._id || p.id || '').trim().toLowerCase();
+        const pSlug = String(p.slug || '').trim().toLowerCase();
+        if ((targetId && pId === targetId) || (targetSlug && pSlug === targetSlug)) {
+          return {
+            ...p,
+            reviewCount: typeof reviewCount === 'number' ? reviewCount : p.reviewCount,
+            review_count: typeof reviewCount === 'number' ? reviewCount : p.review_count,
+            numReviews: typeof reviewCount === 'number' ? reviewCount : p.numReviews,
+            rating: typeof rating === 'number' ? rating : p.rating,
+            ratings: typeof rating === 'number' ? rating : p.ratings
+          };
+        }
+        return p;
+      });
+
+      if (state.currentProduct) {
+        const cId = String(state.currentProduct._id || state.currentProduct.id || '').trim().toLowerCase();
+        const cSlug = String(state.currentProduct.slug || '').trim().toLowerCase();
+        if ((targetId && cId === targetId) || (targetSlug && cSlug === targetSlug)) {
+          state.currentProduct = {
+            ...state.currentProduct,
+            reviewCount: typeof reviewCount === 'number' ? reviewCount : state.currentProduct.reviewCount,
+            review_count: typeof reviewCount === 'number' ? reviewCount : state.currentProduct.review_count,
+            numReviews: typeof reviewCount === 'number' ? reviewCount : state.currentProduct.numReviews,
+            rating: typeof rating === 'number' ? rating : state.currentProduct.rating,
+            ratings: typeof rating === 'number' ? rating : state.currentProduct.ratings
+          };
+        }
+      }
+
+      try {
+        localStorage.setItem('joshpetshub_cached_products', JSON.stringify(state.items.slice(0, 30)));
+      } catch (_) {}
     }
   },
   extraReducers: (builder) => {
@@ -239,5 +293,5 @@ const productSlice = createSlice({
   },
 });
 
-export const { setFilter, resetFilters, clearProductDetail, addProductLocally, removeProductLocally } = productSlice.actions;
+export const { setFilter, resetFilters, clearProductDetail, addProductLocally, removeProductLocally, updateProductReviewStats } = productSlice.actions;
 export default productSlice.reducer;

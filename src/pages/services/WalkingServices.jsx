@@ -109,13 +109,52 @@ const WalkingServices = () => {
   const [petBreed, setPetBreed] = useState('');
   const [petAge, setPetAge] = useState('2 Years');
   const [dogSize, setDogSize] = useState('Medium');
-  const [ownerPhone, setOwnerPhone] = useState(user?.mobile || '');
+  const [ownerPhone, setOwnerPhone] = useState(() => (user?.mobile || user?.phone || '').toString().replace(/\D/g, '').slice(0, 10));
   const [pickupAddress, setPickupAddress] = useState('');
   const [specialNotes, setSpecialNotes] = useState('');
   const [showBookingModal, setShowBookingModal] = useState(false);
   const [pendingPaymentBooking, setPendingPaymentBooking] = useState(null);
 
-  const providers = getStoredWalkingProviders();
+  useEffect(() => {
+    if (user?.mobile || user?.phone) {
+      setOwnerPhone((user.mobile || user.phone || '').toString().replace(/\D/g, '').slice(0, 10));
+    }
+  }, [user]);
+
+  const rawProviders = getStoredWalkingProviders();
+  const providers = useMemo(() => {
+    return (rawProviders || []).map((p, idx) => ({
+      ...p,
+      id: p.id || `walking-fallback-${idx}`,
+      name: p.name || 'Professional Pet Walker',
+      tagline: p.tagline || 'Reliable & Active Daily Walking Service',
+      walkerName: p.walkerName || p.name || 'Certified Walker',
+      experience: p.experience || '4+ Years Exp',
+      verified: p.verified ?? true,
+      rating: Number(p.rating) || 4.9,
+      reviews: Number(p.reviews) || 10,
+      petTypes: Array.isArray(p.petTypes) && p.petTypes.length > 0 ? p.petTypes : ['Dogs'],
+      dogSizes: Array.isArray(p.dogSizes) && p.dogSizes.length > 0 ? p.dogSizes : ['Small', 'Medium', 'Large'],
+      state: p.state || 'Karnataka',
+      city: p.city || 'Bangalore',
+      area: p.area || p.city || 'Main City',
+      serviceMode: p.serviceMode || 'Solo & Pack Walking',
+      price: Number(p.price) || 399,
+      discountPrice: Number(p.discountPrice) || 299,
+      image: p.image || p.avatar || 'https://images.unsplash.com/photo-1601758228041-f3b2795255f1?q=80&w=800&auto=format&fit=crop',
+      phone: p.phone || p.mobile || '9876543210',
+      offerings: Array.isArray(p.offerings) && p.offerings.length > 0 ? p.offerings : [
+        'Solo 1-on-1 Walk', 'Pack / Group Stride', 'Puppy Potty & Play', 'GPS Tracked Power Walk'
+      ],
+      features: Array.isArray(p.features) && p.features.length > 0 ? p.features : [
+        'Live GPS Tracking', 'Route & Pee/Poop Card', 'Water & Paw Sanitization'
+      ],
+      packages: Array.isArray(p.packages) && p.packages.length > 0 ? p.packages : [
+        { name: 'Single 30-Min Solo Walk', price: Number(p.discountPrice) || Number(p.price) || 299, duration: '30 mins', desc: '1-on-1 personalized neighborhood walk, waste cleanup & hydration' },
+        { name: 'Monthly 30-Day Stride Pass', price: (Number(p.discountPrice) || 299) * 20, duration: '30 Days', desc: 'Daily morning or evening walks, GPS tracking card and weekend playtime' }
+      ]
+    }));
+  }, [rawProviders]);
 
   // Scroll to top on mount
   useEffect(() => {
@@ -143,9 +182,9 @@ const WalkingServices = () => {
     const counts = {};
     WALKING_OFFERINGS.forEach(off => {
       if (off.id === 'all') {
-        counts[off.id] = providers.length;
+        counts[off.id] = (providers || []).length;
       } else {
-        counts[off.id] = providers.filter(p => p.offerings.includes(off.name)).length;
+        counts[off.id] = (providers || []).filter(p => (p.offerings || []).includes(off.name)).length;
       }
     });
     return counts;
@@ -158,18 +197,19 @@ const WalkingServices = () => {
 
   // Helper to find the best matching package based on selected offering
   const getFeaturedPackageForOffering = (provider, offeringId) => {
-    if (!provider.packages || provider.packages.length === 0) return null;
-    if (offeringId === 'all') return provider.packages[0];
+    const pkgs = provider?.packages || [];
+    if (!pkgs || pkgs.length === 0) return null;
+    if (offeringId === 'all') return pkgs[0];
 
     const target = WALKING_OFFERINGS.find(o => o.id === offeringId);
-    if (!target) return provider.packages[0];
+    if (!target) return pkgs[0];
 
-    const offeringName = target.name.toLowerCase();
+    const offeringName = (target.name || '').toLowerCase();
     
     // Look for matching package by name or description
-    const match = provider.packages.find(pkg => {
-      const pName = pkg.name.toLowerCase();
-      const pDesc = pkg.desc.toLowerCase();
+    const match = pkgs.find(pkg => {
+      const pName = (pkg?.name || '').toLowerCase();
+      const pDesc = (pkg?.desc || '').toLowerCase();
       
       if (offeringId === 'solo-walk') {
         return pName.includes('solo') || pDesc.includes('solo') || pDesc.includes('1-on-1');
@@ -196,24 +236,24 @@ const WalkingServices = () => {
       return pName.includes(offeringName) || pDesc.includes(offeringName);
     });
 
-    return match || provider.packages[0];
+    return match || pkgs[0];
   };
 
   // Filter & Sort Providers
   const filteredProviders = useMemo(() => {
-    return providers.filter((p) => {
+    return (providers || []).filter((p) => {
       // 1. Pet Type Filter
       if (selectedPetType !== 'All') {
-        const matchesPet = p.petTypes.some(
-          (t) => t.toLowerCase() === selectedPetType.toLowerCase()
+        const matchesPet = (p.petTypes || []).some(
+          (t) => (t || '').toLowerCase() === selectedPetType.toLowerCase()
         );
         if (!matchesPet) return false;
       }
 
       // 2. Dog Size Filter
       if (selectedDogSize !== 'All') {
-        const matchesSize = p.dogSizes && p.dogSizes.some(
-          (s) => s.toLowerCase() === selectedDogSize.toLowerCase()
+        const matchesSize = (p.dogSizes || []).some(
+          (s) => (s || '').toLowerCase() === selectedDogSize.toLowerCase()
         );
         if (!matchesSize) return false;
       }
@@ -224,27 +264,27 @@ const WalkingServices = () => {
       }
 
       // 4. City Filter
-      if (selectedCity !== 'All Cities' && p.city.toLowerCase() !== selectedCity.toLowerCase()) {
+      if (selectedCity !== 'All Cities' && (p.city || '').toLowerCase() !== selectedCity.toLowerCase()) {
         return false;
       }
 
       // 5. Offering Filter
       if (selectedOffering !== 'all') {
         const targetOfferingName = WALKING_OFFERINGS.find(o => o.id === selectedOffering)?.name;
-        if (targetOfferingName && !p.offerings.includes(targetOfferingName)) {
+        if (targetOfferingName && !(p.offerings || []).includes(targetOfferingName)) {
           return false;
         }
       }
 
       // 6. Price Filter
-      const effectivePrice = p.discountPrice || p.price;
+      const effectivePrice = p.discountPrice || p.price || 0;
       if (priceRange === 'under-300' && effectivePrice >= 300) return false;
       if (priceRange === '300-499' && (effectivePrice < 300 || effectivePrice > 499)) return false;
       if (priceRange === '500-999' && (effectivePrice < 500 || effectivePrice > 999)) return false;
       if (priceRange === '1000-plus' && effectivePrice < 1000) return false;
 
       // 7. Service Mode Filter
-      if (selectedServiceMode !== 'All' && !p.serviceMode.toLowerCase().includes(selectedServiceMode.toLowerCase())) {
+      if (selectedServiceMode !== 'All' && !(p.serviceMode || '').toLowerCase().includes(selectedServiceMode.toLowerCase())) {
         return false;
       }
 
@@ -252,23 +292,23 @@ const WalkingServices = () => {
       if (searchKeyword.trim()) {
         const query = searchKeyword.toLowerCase();
         const matchesKeyword = 
-          p.name.toLowerCase().includes(query) ||
-          p.area.toLowerCase().includes(query) ||
-          p.city.toLowerCase().includes(query) ||
-          p.tagline.toLowerCase().includes(query) ||
-          p.walkerName.toLowerCase().includes(query);
+          (p.name || '').toLowerCase().includes(query) ||
+          (p.area || '').toLowerCase().includes(query) ||
+          (p.city || '').toLowerCase().includes(query) ||
+          (p.tagline || '').toLowerCase().includes(query) ||
+          (p.walkerName || '').toLowerCase().includes(query);
         if (!matchesKeyword) return false;
       }
 
       return true;
     }).sort((a, b) => {
-      const priceA = a.discountPrice || a.price;
-      const priceB = b.discountPrice || b.price;
+      const priceA = a.discountPrice || a.price || 0;
+      const priceB = b.discountPrice || b.price || 0;
 
       if (sortBy === 'price-low') return priceA - priceB;
       if (sortBy === 'price-high') return priceB - priceA;
-      if (sortBy === 'rating') return b.rating - a.rating;
-      if (sortBy === 'reviews') return b.reviews - a.reviews;
+      if (sortBy === 'rating') return (b.rating || 0) - (a.rating || 0);
+      if (sortBy === 'reviews') return (b.reviews || 0) - (a.reviews || 0);
       return 0; // recommended
     });
   }, [
@@ -304,8 +344,13 @@ const WalkingServices = () => {
       toast.error('Please provide your dog name and breed.');
       return;
     }
-    if (!ownerPhone.trim()) {
+    const cleanPhone = ownerPhone.replace(/\D/g, '');
+    if (!cleanPhone) {
       toast.error('Please provide your contact phone number.');
+      return;
+    }
+    if (cleanPhone.length !== 10) {
+      toast.error('Please enter a valid 10-digit mobile number.');
       return;
     }
 
@@ -338,7 +383,7 @@ const WalkingServices = () => {
         size: dogSize
       },
       ownerName: user?.name || 'Pet Parent',
-      ownerPhone,
+      ownerPhone: cleanPhone,
       ownerEmail: user?.email || '',
       userId: user?._id || user?.id || '',
       userEmail: user?.email || '',
@@ -360,7 +405,7 @@ const WalkingServices = () => {
       date: bookingDate,
       timeSlot: bookingTime,
       ownerName: user?.name || 'Pet Parent',
-      ownerPhone,
+      ownerPhone: cleanPhone,
       ownerEmail: user?.email || '',
       petDetails: {
         name: petName,
@@ -867,7 +912,7 @@ const WalkingServices = () => {
                               Walks Offered:
                             </span>
                             <div className="flex flex-wrap gap-1.5">
-                              {provider.offerings.map((offering, idx) => {
+                              {(provider.offerings || []).map((offering, idx) => {
                                 const isMatched = selectedOffering !== 'all' && targetOfferingName === offering;
                                 const matchedOffering = WALKING_OFFERINGS.find(o => o.name === offering);
                                 return (
@@ -892,7 +937,7 @@ const WalkingServices = () => {
 
                           {/* Features Badges */}
                           <div className="grid grid-cols-2 gap-1.5 pt-1">
-                            {provider.features.map((feat, idx) => (
+                            {(provider.features || []).map((feat, idx) => (
                               <div key={idx} className="text-[10px] font-semibold text-slate-600 flex items-center gap-1">
                                 <CircleCheck size={11} className="text-emerald-500 shrink-0" />
                                 <span className="truncate">{feat}</span>
@@ -1177,7 +1222,7 @@ const WalkingServices = () => {
               <div className="space-y-2">
                 <label className="text-xs font-extrabold text-slate-700">Choose Walking Package / Plan</label>
                 <div className="space-y-2">
-                  {selectedProvider.packages.map((pkg, idx) => (
+                  {(selectedProvider?.packages || []).map((pkg, idx) => (
                     <label
                       key={idx}
                       onClick={() => setSelectedPackage(pkg)}
@@ -1283,13 +1328,59 @@ const WalkingServices = () => {
               {/* Contact Phone & Address */}
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1">
-                  <label className="text-[11px] font-bold text-slate-700">Your Phone Number *</label>
+                  <div className="flex items-center justify-between">
+                    <label className="text-[11px] font-bold text-slate-700">Your Phone Number *</label>
+                    <span className="text-[10px] text-gray-400 font-medium">{ownerPhone.length}/10 digits</span>
+                  </div>
                   <input
                     type="tel"
+                    inputMode="numeric"
                     required
-                    placeholder="e.g. 9876543210"
+                    maxLength={10}
+                    pattern="[0-9]{10}"
+                    placeholder="10-digit mobile number"
                     value={ownerPhone}
-                    onChange={(e) => setOwnerPhone(e.target.value)}
+                    onBeforeInput={(e) => {
+                      if (e.data && !/^\d+$/.test(e.data)) {
+                        e.preventDefault();
+                      }
+                    }}
+                    onKeyDown={(e) => {
+                      if (
+                        ['Backspace', 'Delete', 'Tab', 'Escape', 'Enter', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Home', 'End'].includes(e.key) ||
+                        (e.ctrlKey || e.metaKey)
+                      ) {
+                        return;
+                      }
+                      if (!/^[0-9]$/.test(e.key)) {
+                        e.preventDefault();
+                      }
+                    }}
+                    onPaste={(e) => {
+                      e.preventDefault();
+                      const pasted = (e.clipboardData || window.clipboardData)?.getData('text') || '';
+                      const clean = pasted.replace(/\D/g, '').slice(0, 10);
+                      e.target.value = clean;
+                      setOwnerPhone(clean);
+                    }}
+                    onDrop={(e) => {
+                      e.preventDefault();
+                      const dropped = e.dataTransfer?.getData('text') || '';
+                      const clean = dropped.replace(/\D/g, '').slice(0, 10);
+                      e.target.value = clean;
+                      setOwnerPhone(clean);
+                    }}
+                    onInput={(e) => {
+                      const clean = e.target.value.replace(/\D/g, '').slice(0, 10);
+                      if (e.target.value !== clean) {
+                        e.target.value = clean;
+                      }
+                    }}
+                    onChange={(e) => {
+                      const clean = e.target.value.replace(/\D/g, '').slice(0, 10);
+                      e.target.value = clean;
+                      setOwnerPhone(clean);
+                    }}
                     className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-medium text-slate-800 focus:outline-none focus:border-[#1D3B2E]"
                   />
                 </div>

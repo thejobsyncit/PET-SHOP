@@ -3,7 +3,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate, useSearchParams, useLocation, Link } from 'react-router-dom';
 import {
   User, MapPin, ClipboardList, ShoppingBag, Plus, Trash2, CircleCheck,
-  ShieldAlert, Clock, LogOut, Heart, ShieldCheck, MessageSquare, Phone,
+  ShieldAlert, Clock, LogOut, Heart, HeartHandshake, ShieldCheck, MessageSquare, Phone,
   ExternalLink, Check, AlertCircle, ArrowRight, Sparkles, Filter, ChevronRight,
   Truck, Calendar, Eye, EyeOff, Lock, KeyRound, Download, FileText, Printer, X
 } from 'lucide-react';
@@ -138,6 +138,7 @@ const AccountDashboard = () => {
 
   // Adoption applications & listed pets states
   const [userAdoptionApps, setUserAdoptionApps] = useState([]);
+  const [userMatingProposals, setUserMatingProposals] = useState([]);
   const [guardianPets, setGuardianPets] = useState([]);
   const [guardianApps, setGuardianApps] = useState([]);
 
@@ -400,6 +401,7 @@ const AccountDashboard = () => {
       loadUserHistory();
       loadAdoptionData();
       loadTransportData();
+      loadMatingData();
     }
   }, [isAuthenticated, user?.role, dispatch, navigate]);
 
@@ -411,11 +413,26 @@ const AccountDashboard = () => {
       setAvatar(user.avatar || user.profilePicture || '');
       loadAdoptionData();
       loadTransportData();
+      loadMatingData();
       if (activeTab === 'orders') {
         loadUserHistory();
       }
     }
   }, [user, activeTab]);
+
+  useEffect(() => {
+    const handleMatingEvents = () => {
+      loadMatingData();
+    };
+    window.addEventListener('breeding-proposal-created', handleMatingEvents);
+    window.addEventListener('breeding-proposal-updated', handleMatingEvents);
+    window.addEventListener('storage', handleMatingEvents);
+    return () => {
+      window.removeEventListener('breeding-proposal-created', handleMatingEvents);
+      window.removeEventListener('breeding-proposal-updated', handleMatingEvents);
+      window.removeEventListener('storage', handleMatingEvents);
+    };
+  }, [user]);
 
   useEffect(() => {
     const handleOrderEvents = () => {
@@ -874,6 +891,26 @@ const AccountDashboard = () => {
     }
   };
 
+  const loadMatingData = () => {
+    if (user) {
+      try {
+        const all = JSON.parse(localStorage.getItem('joshpetshub_mating_enquiries') || '[]');
+        const userPhone = (user.mobile || user.phone || '').replace(/\D/g, '');
+        const myProposals = all.filter(p => {
+          if (!p) return false;
+          const senderPhone = (p.senderPhone || p.ownerPhone || '').replace(/\D/g, '');
+          const isPhoneMatch = Boolean(userPhone && senderPhone && (userPhone.includes(senderPhone) || senderPhone.includes(userPhone)));
+          const isEmailMatch = Boolean(user.email && p.senderEmail && user.email.toLowerCase() === p.senderEmail.toLowerCase());
+          const isNameMatch = Boolean(user.name && (p.senderName === user.name || p.ownerName === user.name));
+          return isPhoneMatch || isEmailMatch || isNameMatch;
+        });
+        setUserMatingProposals(myProposals);
+      } catch (_) {
+        setUserMatingProposals([]);
+      }
+    }
+  };
+
   const handleUpdateApplicantStatus = (appId, newStatus) => {
     updateAdoptionApplicationStatus(appId, newStatus);
     loadAdoptionData();
@@ -1178,6 +1215,11 @@ const AccountDashboard = () => {
               id: 'my-applications', 
               label: `My Adoption Enquiries (${userAdoptionApps.length})`, 
               icon: <Heart size={16} /> 
+            },
+            { 
+              id: 'mating-proposals', 
+              label: `Mating Proposals (${userMatingProposals.length})`, 
+              icon: <HeartHandshake size={16} /> 
             },
             { 
               id: 'adoption-listings', 
@@ -1628,6 +1670,132 @@ const AccountDashboard = () => {
                     >
                       <Sparkles size={14} />
                       <span>Explore Free Adoption Pets</span>
+                    </Link>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* =========================================================================
+              TAB: MY MATING PROPOSALS & STUD INQUIRIES
+             ========================================================================= */}
+          {activeTab === 'mating-proposals' && (
+            <div id="section-mating-proposals" className="space-y-6 scroll-mt-24">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-beige pb-3 gap-2">
+                <div>
+                  <h2 className="font-serif text-lg font-bold text-primary">
+                    My Mating Proposals ({userMatingProposals.length})
+                  </h2>
+                  <p className="text-xs text-gray-500 mt-0.5">
+                    Track all breeding proposals and mating requests you have submitted to certified studs and pet guardians.
+                  </p>
+                </div>
+                <Link
+                  to="/breeding"
+                  className="px-4 py-2 bg-[#0F2E23] text-[#d4af37] hover:text-white hover:bg-[#163f30] rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-sm"
+                >
+                  <Sparkles size={14} />
+                  <span>Browse Breeding Studs</span>
+                </Link>
+              </div>
+
+              {userMatingProposals.length > 0 ? (
+                <div className="space-y-4">
+                  {userMatingProposals.map((prop) => (
+                    <div
+                      key={prop.id}
+                      className="bg-[#fcfbf7] border border-[#e6dfcb] rounded-2xl p-5 hover:border-[#1D3B2E]/40 transition shadow-xs space-y-4"
+                    >
+                      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <span className="text-[11px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 rounded-md">
+                              {prop.id}
+                            </span>
+                            <span className="text-xs text-gray-400">•</span>
+                            <span className="text-xs font-bold text-slate-700">
+                              Target Stud: <span className="text-[#1D3B2E] font-black">{prop.targetPetName}</span>
+                            </span>
+                          </div>
+                          <p className="text-xs text-slate-500 mt-1">
+                            Guardian: <span className="font-semibold text-slate-700">{prop.targetParentName || 'Verified Guardian'}</span>
+                            {prop.targetParentPhone && ` (${prop.targetParentPhone})`}
+                          </p>
+                        </div>
+
+                        <span
+                          className={`text-xs font-bold px-3 py-1 rounded-full border ${
+                            prop.status === 'Accepted'
+                              ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                              : prop.status === 'Declined'
+                              ? 'bg-rose-50 text-rose-700 border-rose-200'
+                              : 'bg-amber-50 text-amber-700 border-amber-200'
+                          }`}
+                        >
+                          {prop.status === 'Accepted' ? 'Proposal Accepted 🎉' : prop.status === 'Declined' ? 'Declined' : 'Pending Review'}
+                        </span>
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 bg-white p-3.5 rounded-xl border border-slate-100 text-xs">
+                        <div>
+                          <span className="text-[10px] uppercase font-bold text-slate-400 block">Your Pet</span>
+                          <span className="font-bold text-slate-800">{prop.petName || prop.senderPetName}</span>
+                          <span className="text-slate-500 block text-[11px]">{prop.petBreed || prop.senderPetBreed}</span>
+                        </div>
+                        <div>
+                          <span className="text-[10px] uppercase font-bold text-slate-400 block">Your Contact</span>
+                          <span className="font-bold text-slate-800">{prop.ownerName || prop.senderName}</span>
+                          <span className="text-slate-500 block text-[11px]">{prop.ownerPhone || prop.senderPhone}</span>
+                        </div>
+                        <div>
+                          <span className="text-[10px] uppercase font-bold text-slate-400 block">Date Submitted</span>
+                          <span className="font-bold text-slate-800">
+                            {prop.createdAt ? new Date(prop.createdAt).toLocaleDateString() : 'Recent'}
+                          </span>
+                        </div>
+                      </div>
+
+                      {prop.message && (
+                        <div className="bg-slate-50 p-3 rounded-xl border border-slate-100 text-xs text-slate-600 italic">
+                          "{prop.message}"
+                        </div>
+                      )}
+
+                      {prop.targetParentPhone && (
+                        <div className="flex justify-end pt-1">
+                          <a
+                            href={`https://wa.me/${prop.targetParentPhone.replace(/\D/g, '')}?text=${encodeURIComponent(
+                              `Hello ${prop.targetParentName || 'Guardian'}, I am following up on my mating proposal for "${prop.targetPetName}" on Josh Pets Hub (Ref: ${prop.id}).`
+                            )}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#25D366] hover:bg-[#1ebd5b] text-white text-xs font-bold rounded-lg transition shadow-xs"
+                          >
+                            <MessageSquare size={13} />
+                            <span>Chat with Guardian on WhatsApp</span>
+                          </a>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="p-4 lg:p-10 border border-dashed border-[#d4af37]/40 rounded-2xl text-center space-y-3 bg-[#fdfaf2] shadow-sm">
+                  <div className="w-14 h-14 bg-[#f8efcd] text-[#0F2E23] rounded-full flex items-center justify-center mx-auto border border-[#e6c968]">
+                    <HeartHandshake size={24} />
+                  </div>
+                  <h3 className="font-serif text-lg font-bold text-[#0F2E23]">No Mating Proposals Yet</h3>
+                  <p className="text-xs text-gray-500 max-w-md mx-auto leading-relaxed">
+                    You have not sent any mating proposals yet. Explore verified champion studs with KCI lineage, vet clearances, and health testing!
+                  </p>
+                  <div className="pt-3">
+                    <Link
+                      to="/breeding"
+                      className="px-5 py-2.5 bg-[#0F2E23] text-[#d4af37] hover:text-white hover:bg-[#163f30] rounded-xl text-xs font-bold shadow transition inline-flex items-center gap-1.5"
+                    >
+                      <Sparkles size={14} />
+                      <span>Browse Breeding Directory</span>
                     </Link>
                   </div>
                 </div>

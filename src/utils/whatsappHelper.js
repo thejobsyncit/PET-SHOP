@@ -207,6 +207,48 @@ export const syncRegisteredProvidersToService = (initialList = [], categoryKeywo
             address: u.address || u.location || '',
             image: u.avatar || u.profilePicture || 'https://images.unsplash.com/photo-1543466835-00a7907e9de1?q=80&w=800&auto=format&fit=crop',
             avatar: u.avatar || u.profilePicture || 'https://images.unsplash.com/photo-1543466835-00a7907e9de1?q=80&w=800&auto=format&fit=crop',
+            // Grooming specific defaults
+            offerings: Array.isArray(u.offerings) && u.offerings.length > 0 ? u.offerings : ['Spa Bath', 'Full Grooming', 'Nail Clipping', 'Anti-Tick Treatment', 'Hair Cuts'],
+            packages: Array.isArray(u.packages) && u.packages.length > 0 ? u.packages : [
+              { name: 'Basic Bath & Dry', price: 799, duration: '45 mins', desc: 'Organic herbal shampoo, blow dry, ear cleaning & paw sanitization' },
+              { name: 'Complete Full Grooming', price: 1499, duration: '90 mins', desc: 'Full body haircut, sanitary trim, nail filing, bath & perfume' }
+            ],
+            petTypes: Array.isArray(u.petTypes) ? u.petTypes : ['Dogs', 'Cats'],
+            serviceMode: u.serviceMode || 'Salon Studio & Home Visit',
+            tagline: u.tagline || u.bio || 'Professional Organic Pet Grooming & Spa Care',
+            experience: u.experience || u.experienceDisplay || '5+ Years Exp',
+            price: Number(u.price) || 799,
+            discountPrice: Number(u.discountPrice) || 599,
+            // Hostel specific defaults
+            amenities: Array.isArray(u.amenities) && u.amenities.length > 0 ? u.amenities : [
+              'AC Suites', '24/7 CCTV Live Stream', 'Outdoor Lawn & Play Area', 'Vet On Call', 'Daily Video Updates', 'Customized Meals'
+            ],
+            hostName: u.hostName || u.name || 'Certified Caretaker',
+            stayType: u.stayType || 'AC Suite & Private Garden',
+            pricePerNight: Number(u.pricePerNight) || Number(u.price) || 799,
+            // Walking specific defaults
+            features: Array.isArray(u.features) && u.features.length > 0 ? u.features : ['Live GPS Tracking', 'Route & Pee/Poop Card', 'Water & Paw Sanitization'],
+            // Training specific defaults
+            courses: Array.isArray(u.courses) && u.courses.length > 0 ? u.courses : [
+              { id: 'c1', title: 'Basic Puppy Obedience', price: 4999, duration: '4 Weeks', level: 'Beginner' }
+            ],
+            leadTrainer: u.leadTrainer || u.name || 'Certified Dog Behaviorist',
+            specialties: Array.isArray(u.specialties) && u.specialties.length > 0 ? u.specialties : ['Basic Obedience', 'Puppy Socialization', 'Leash Manners'],
+            sessionModes: Array.isArray(u.sessionModes) && u.sessionModes.length > 0 ? u.sessionModes : ['At-Home 1-on-1', 'Training Center / Camp'],
+            pricePerSession: Number(u.pricePerSession) || 850,
+            packageStarting: Number(u.packageStarting) || 4999,
+            certifications: Array.isArray(u.certifications) ? u.certifications : ['Certified Force-Free Professional'],
+            // Transport specific defaults
+            modes: Array.isArray(u.modes) && u.modes.length > 0 ? u.modes : ['Road Transport', 'Air Transport', 'Rail Transport'],
+            corridors: Array.isArray(u.corridors) && u.corridors.length > 0 ? u.corridors : ['Intra-City Doorstep Cab', 'Interstate AC Pet Van', 'Pan-India Express Flights'],
+            leadCoordinator: u.leadCoordinator || u.name || 'Certified Pet Safety Coordinator',
+            coverage: u.coverage || 'Pan-India & Doorstep Relocation',
+            vehicleTypes: Array.isArray(u.vehicleTypes) && u.vehicleTypes.length > 0 ? u.vehicleTypes : ['AC Pet Ambulance & Van', 'Sanitized IATA Flight Crates', '1st AC Train Escort'],
+            basePrice: Number(u.basePrice) || 1200,
+            pricePerKm: Number(u.pricePerKm) || 25,
+            interstateMin: Number(u.interstateMin) || 6500,
+            iataCertified: u.iataCertified ?? true,
+            // Vet specific defaults
             degrees: u.degrees || 'B.V.Sc & A.H, M.V.Sc',
             experienceDisplay: u.experienceDisplay || '10+ Years Exp.',
             clinicName: u.businessName || `${u.name} Pet Care`,

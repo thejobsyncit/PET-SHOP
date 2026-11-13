@@ -22,7 +22,7 @@
     },
     "location": "Bangalore, KA",
     "contactPhone": "+91 94444 33333",
-    "isVerified": false,
+    "isVerified": true,
     "createdAt": "2026-08-27T10:59:20.779Z"
   },
   {
@@ -48,7 +48,7 @@
     },
     "location": "Chennai, Tamil Nadu",
     "contactPhone": "+91 98765 43210",
-    "isVerified": false,
+    "isVerified": true,
     "createdAt": "2026-08-28T14:00:00.000Z"
   },
   {

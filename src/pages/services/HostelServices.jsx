@@ -190,7 +190,36 @@ const HostelServices = () => {
     }));
   };
 
-  const providers = getStoredHostelProviders();
+  const rawProviders = getStoredHostelProviders();
+  const providers = useMemo(() => {
+    return (rawProviders || []).map((p, idx) => ({
+      ...p,
+      id: p.id || `hostel-fallback-${idx}`,
+      name: p.name || 'Verified Pet Hostel & Boarding',
+      tagline: p.tagline || 'Loving & Secure Pet Boarding',
+      hostName: p.hostName || p.name || 'Certified Caretaker',
+      experience: p.experience || '5+ Years Boarding',
+      verified: p.verified ?? true,
+      rating: Number(p.rating) || 4.9,
+      reviews: Number(p.reviews) || 15,
+      petTypes: Array.isArray(p.petTypes) && p.petTypes.length > 0 ? p.petTypes : ['Dogs', 'Cats'],
+      state: p.state || 'Karnataka',
+      city: p.city || 'Bangalore',
+      area: p.area || p.city || 'Main City',
+      stayType: p.stayType || 'AC Suite & Private Garden',
+      pricePerNight: Number(p.pricePerNight) || Number(p.price) || 799,
+      discountPrice: Number(p.discountPrice) || Number(p.price) || 599,
+      image: p.image || p.avatar || 'https://images.unsplash.com/photo-1589924691995-400dc9ecc119?q=80&w=800&auto=format&fit=crop',
+      phone: p.phone || p.mobile || '9876543210',
+      amenities: Array.isArray(p.amenities) && p.amenities.length > 0 ? p.amenities : [
+        'AC Suites', '24/7 CCTV Live Stream', 'Outdoor Lawn & Play Area', 'Vet On Call', 'Daily Video Updates', 'Customized Meals'
+      ],
+      packages: Array.isArray(p.packages) && p.packages.length > 0 ? p.packages : [
+        { name: 'Deluxe AC Room (Single Pet)', price: Number(p.discountPrice) || Number(p.pricePerNight) || 799, desc: 'Climate controlled private room, 3 fresh meals, 3 daily walks & video updates' },
+        { name: 'Royal Presidential Suite', price: (Number(p.discountPrice) || 799) + 400, desc: 'Large suite with sofa, CCTV mobile access, pool time & complimentary bath' }
+      ]
+    }));
+  }, [rawProviders]);
 
   // Scroll to top on mount
   useEffect(() => {
@@ -224,9 +253,9 @@ const HostelServices = () => {
     const counts = {};
     HOSTEL_OFFERINGS.forEach(off => {
       if (off.id === 'all') {
-        counts[off.id] = providers.length;
+        counts[off.id] = (providers || []).length;
       } else {
-        counts[off.id] = providers.filter(p => p.amenities.includes(off.name)).length;
+        counts[off.id] = (providers || []).filter(p => (p.amenities || []).includes(off.name)).length;
       }
     });
     return counts;
@@ -239,16 +268,17 @@ const HostelServices = () => {
 
   // Helper to find the best matching package based on selected offering
   const getFeaturedPackageForOffering = (provider, offeringId) => {
-    if (!provider.packages || provider.packages.length === 0) return null;
-    if (offeringId === 'all') return provider.packages[0];
+    const pkgs = provider?.packages || [];
+    if (!pkgs || pkgs.length === 0) return null;
+    if (offeringId === 'all') return pkgs[0];
 
     const target = HOSTEL_OFFERINGS.find(o => o.id === offeringId);
-    if (!target) return provider.packages[0];
+    if (!target) return pkgs[0];
 
-    const offeringName = target.name.toLowerCase();
-    const match = provider.packages.find(pkg => {
-      const pName = pkg.name.toLowerCase();
-      const pDesc = pkg.desc.toLowerCase();
+    const offeringName = (target.name || '').toLowerCase();
+    const match = pkgs.find(pkg => {
+      const pName = (pkg?.name || '').toLowerCase();
+      const pDesc = (pkg?.desc || '').toLowerCase();
       if (offeringId === 'ac-rooms') return pName.includes('ac') || pDesc.includes('climate') || pDesc.includes('ac');
       if (offeringId === 'cctv') return pName.includes('cctv') || pDesc.includes('cctv') || pDesc.includes('video');
       if (offeringId === 'swimming-pool') return pName.includes('pool') || pDesc.includes('pool') || pDesc.includes('splash');
@@ -258,16 +288,16 @@ const HostelServices = () => {
       if (offeringId === 'video-updates') return pName.includes('video') || pDesc.includes('video') || pDesc.includes('whatsapp');
       return pName.includes(offeringName) || pDesc.includes(offeringName);
     });
-    return match || provider.packages[0];
+    return match || pkgs[0];
   };
 
   // Filter & Sort Providers
   const filteredProviders = useMemo(() => {
-    return providers.filter((p) => {
+    return (providers || []).filter((p) => {
       // 1. Pet Type Filter
       if (selectedPetType !== 'All') {
-        const matchesPet = p.petTypes.some(
-          (t) => t.toLowerCase() === selectedPetType.toLowerCase()
+        const matchesPet = (p.petTypes || []).some(
+          (t) => (t || '').toLowerCase() === selectedPetType.toLowerCase()
         );
         if (!matchesPet) return false;
       }
@@ -278,27 +308,27 @@ const HostelServices = () => {
       }
 
       // 3. City Filter
-      if (selectedCity !== 'All Cities' && p.city.toLowerCase() !== selectedCity.toLowerCase()) {
+      if (selectedCity !== 'All Cities' && (p.city || '').toLowerCase() !== selectedCity.toLowerCase()) {
         return false;
       }
 
       // 4. Amenity Filter
       if (selectedAmenity !== 'all') {
         const targetAmenityName = HOSTEL_AMENITIES.find(a => a.id === selectedAmenity)?.name;
-        if (targetAmenityName && !p.amenities.includes(targetAmenityName)) {
+        if (targetAmenityName && !(p.amenities || []).includes(targetAmenityName)) {
           return false;
         }
       }
 
       // 5. Price Filter (per night)
-      const effectivePrice = p.discountPrice || p.pricePerNight;
+      const effectivePrice = p.discountPrice || p.pricePerNight || 0;
       if (priceRange === 'under-500' && effectivePrice >= 500) return false;
       if (priceRange === '500-899' && (effectivePrice < 500 || effectivePrice > 899)) return false;
       if (priceRange === '900-1499' && (effectivePrice < 900 || effectivePrice > 1499)) return false;
       if (priceRange === '1500-plus' && effectivePrice < 1500) return false;
 
       // 6. Stay Type Filter
-      if (selectedStayType !== 'All' && !p.stayType.toLowerCase().includes(selectedStayType.toLowerCase())) {
+      if (selectedStayType !== 'All' && !(p.stayType || '').toLowerCase().includes(selectedStayType.toLowerCase())) {
         return false;
       }
 
@@ -306,23 +336,23 @@ const HostelServices = () => {
       if (searchKeyword.trim()) {
         const query = searchKeyword.toLowerCase();
         const matchesKeyword =
-          p.name.toLowerCase().includes(query) ||
-          p.area.toLowerCase().includes(query) ||
-          p.city.toLowerCase().includes(query) ||
-          p.tagline.toLowerCase().includes(query) ||
-          p.hostName.toLowerCase().includes(query);
+          (p.name || '').toLowerCase().includes(query) ||
+          (p.area || '').toLowerCase().includes(query) ||
+          (p.city || '').toLowerCase().includes(query) ||
+          (p.tagline || '').toLowerCase().includes(query) ||
+          (p.hostName || '').toLowerCase().includes(query);
         if (!matchesKeyword) return false;
       }
 
       return true;
     }).sort((a, b) => {
-      const priceA = a.discountPrice || a.pricePerNight;
-      const priceB = b.discountPrice || b.pricePerNight;
+      const priceA = a.discountPrice || a.pricePerNight || 0;
+      const priceB = b.discountPrice || b.pricePerNight || 0;
 
       if (sortBy === 'price-low') return priceA - priceB;
       if (sortBy === 'price-high') return priceB - priceA;
-      if (sortBy === 'rating') return b.rating - a.rating;
-      if (sortBy === 'reviews') return b.reviews - a.reviews;
+      if (sortBy === 'rating') return (b.rating || 0) - (a.rating || 0);
+      if (sortBy === 'reviews') return (b.reviews || 0) - (a.reviews || 0);
       return 0; // recommended
     });
   }, [
@@ -362,8 +392,13 @@ const HostelServices = () => {
       toast.error('Please provide your pet name and breed.');
       return;
     }
-    if (!ownerPhone.trim()) {
+    const cleanPhone = ownerPhone.replace(/\D/g, '');
+    if (!cleanPhone) {
       toast.error('Please provide your contact phone number.');
+      return;
+    }
+    if (cleanPhone.length !== 10) {
+      toast.error('Please enter a valid 10-digit mobile number.');
       return;
     }
 
@@ -399,7 +434,7 @@ const HostelServices = () => {
       specialDiet,
       dietaryNotes: specialDiet || 'Standard wholesome meals',
       ownerName: user?.name || 'Pet Parent',
-      ownerPhone,
+      ownerPhone: cleanPhone,
       ownerEmail: user?.email || '',
       userId: user?._id || user?.id || '',
       userEmail: user?.email || '',
@@ -423,7 +458,7 @@ const HostelServices = () => {
       date: checkInDate,
       timeSlot: `${nights} Night(s) Stay`,
       ownerName: user?.name || 'Pet Parent',
-      ownerPhone,
+      ownerPhone: cleanPhone,
       ownerEmail: user?.email || '',
       petDetails: {
         name: petName,
@@ -987,7 +1022,7 @@ const HostelServices = () => {
                             <div className="space-y-2">
                               <div className="flex items-center justify-between gap-2 text-xs pt-0.5">
                                 <div className="flex flex-wrap items-center gap-1.5 overflow-hidden">
-                                  {provider.amenities.slice(0, 2).map((amenity, idx) => (
+                                  {(provider.amenities || []).slice(0, 2).map((amenity, idx) => (
                                     <span
                                       key={idx}
                                       className="text-[10px] font-semibold px-2 py-0.5 rounded-lg bg-slate-50 text-slate-700 border border-slate-200/70 truncate max-w-[130px]"
@@ -995,9 +1030,9 @@ const HostelServices = () => {
                                       {amenity}
                                     </span>
                                   ))}
-                                  {provider.amenities.length > 2 && (
+                                  {(provider.amenities || []).length > 2 && (
                                     <span className="text-[10px] font-bold text-[#7c56dc] bg-purple-50 px-2 py-0.5 rounded-lg border border-purple-100">
-                                      +{provider.amenities.length - 2} more
+                                      +{(provider.amenities || []).length - 2} more
                                     </span>
                                   )}
                                 </div>
@@ -1037,10 +1072,10 @@ const HostelServices = () => {
                               {/* Amenities Included Pills with Matched Highlighting */}
                               <div className="space-y-1.5">
                                 <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block">
-                                  All Hostel Amenities ({provider.amenities.length}):
+                                  All Hostel Amenities ({(provider.amenities || []).length}):
                                 </span>
                                 <div className="flex flex-wrap gap-1.5">
-                                  {provider.amenities.map((amenity, idx) => {
+                                  {(provider.amenities || []).map((amenity, idx) => {
                                     const isMatched = selectedAmenity !== 'all' && targetAmenityName === amenity;
                                     const matchedOffering = HOSTEL_OFFERINGS.find(o => o.name === amenity);
                                     return (
@@ -1301,7 +1336,7 @@ const HostelServices = () => {
                       <span className="text-[10px] uppercase font-bold text-[#7c56dc] tracking-wider block">
                         Verified Assurances:
                       </span>
-                      {item.highlights.map((h, i) => (
+                      {(item?.highlights || []).map((h, i) => (
                         <div key={i} className="flex items-start gap-1.5 text-[11px] text-slate-700 font-medium">
                           <CircleCheck size={13} className="text-emerald-500 shrink-0 mt-0.5" />
                           <span>{h}</span>
@@ -1431,7 +1466,7 @@ const HostelServices = () => {
               <div className="space-y-2">
                 <label className="text-xs font-extrabold text-slate-700">Choose Room Type / Package</label>
                 <div className="space-y-2">
-                  {selectedProvider.packages.map((pkg, idx) => (
+                  {(selectedProvider?.packages || []).map((pkg, idx) => (
                     <label
                       key={idx}
                       onClick={() => setSelectedPackage(pkg)}
@@ -1540,13 +1575,59 @@ const HostelServices = () => {
 
               {/* Contact Phone */}
               <div className="space-y-1">
-                <label className="text-[11px] font-bold text-slate-700">Your Contact Phone *</label>
+                <div className="flex items-center justify-between">
+                  <label className="text-[11px] font-bold text-slate-700">Your Contact Phone *</label>
+                  <span className="text-[10px] text-gray-400 font-medium">{ownerPhone.length}/10 digits</span>
+                </div>
                 <input
                   type="tel"
+                  inputMode="numeric"
                   required
+                  maxLength={10}
+                  pattern="[0-9]{10}"
                   placeholder="10-digit mobile number"
                   value={ownerPhone}
-                  onChange={(e) => setOwnerPhone(e.target.value)}
+                  onBeforeInput={(e) => {
+                    if (e.data && !/^\d+$/.test(e.data)) {
+                      e.preventDefault();
+                    }
+                  }}
+                  onKeyDown={(e) => {
+                    if (
+                      ['Backspace', 'Delete', 'Tab', 'Escape', 'Enter', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Home', 'End'].includes(e.key) ||
+                      (e.ctrlKey || e.metaKey)
+                    ) {
+                      return;
+                    }
+                    if (!/^[0-9]$/.test(e.key)) {
+                      e.preventDefault();
+                    }
+                  }}
+                  onPaste={(e) => {
+                    e.preventDefault();
+                    const pasted = (e.clipboardData || window.clipboardData)?.getData('text') || '';
+                    const clean = pasted.replace(/\D/g, '').slice(0, 10);
+                    e.target.value = clean;
+                    setOwnerPhone(clean);
+                  }}
+                  onDrop={(e) => {
+                    e.preventDefault();
+                    const dropped = e.dataTransfer?.getData('text') || '';
+                    const clean = dropped.replace(/\D/g, '').slice(0, 10);
+                    e.target.value = clean;
+                    setOwnerPhone(clean);
+                  }}
+                  onInput={(e) => {
+                    const clean = e.target.value.replace(/\D/g, '').slice(0, 10);
+                    if (e.target.value !== clean) {
+                      e.target.value = clean;
+                    }
+                  }}
+                  onChange={(e) => {
+                    const clean = e.target.value.replace(/\D/g, '').slice(0, 10);
+                    e.target.value = clean;
+                    setOwnerPhone(clean);
+                  }}
                   className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-medium text-slate-800 focus:outline-none focus:border-[#7c56dc]"
                 />
               </div>
@@ -1618,7 +1699,7 @@ const HostelServices = () => {
                   Safety Standards and Guarantees:
                 </span>
                 <div className="grid grid-cols-1 gap-2">
-                  {selectedReasonModal.highlights.map((h, i) => (
+                  {(selectedReasonModal?.highlights || []).map((h, i) => (
                     <div key={i} className="flex items-center gap-2 p-2 bg-slate-50 rounded-xl border border-slate-100">
                       <CircleCheck size={15} className="text-emerald-500 shrink-0" />
                       <span className="font-medium text-slate-700">{h}</span>
