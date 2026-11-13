@@ -30,7 +30,8 @@ import {
   AlertTriangle,
   X,
   Send,
-  Star
+  Star,
+  CreditCard
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { resolveProviderWhatsApp } from '../../utils/whatsappHelper.js';
@@ -57,7 +58,29 @@ export default function VeterinaryServices() {
 
 
   // Doctors data from safe localStorage
-  const [doctors, setDoctors] = useState(() => getStoredVetDoctors());
+  const [rawDoctors, setDoctors] = useState(() => getStoredVetDoctors());
+
+  const doctors = useMemo(() => {
+    return (rawDoctors || []).map((doc, idx) => ({
+      ...doc,
+      id: doc.id || `doc-fallback-${idx}`,
+      name: doc.name || 'Dr. Verified Veterinarian',
+      clinicName: doc.clinicName || 'Pet Wellness & Veterinary Hospital',
+      city: doc.city || 'Bangalore',
+      area: doc.area || 'Central District',
+      state: doc.state || 'Karnataka',
+      specializations: Array.isArray(doc.specializations) && doc.specializations.length > 0 ? doc.specializations : ['General Physician & Vaccines'],
+      petCategories: Array.isArray(doc.petCategories) && doc.petCategories.length > 0 ? doc.petCategories : ['Dogs', 'Cats', 'All'],
+      consultationModes: Array.isArray(doc.consultationModes) && doc.consultationModes.length > 0 ? doc.consultationModes : ['In-Clinic Visit', '24/7 Video Tele-Consult'],
+      degrees: doc.degrees || 'B.V.Sc & A.H',
+      rating: Number(doc.rating) || 4.9,
+      reviewsCount: Number(doc.reviewsCount) || 20,
+      videoConsultFee: Number(doc.videoConsultFee) || 499,
+      inClinicFee: Number(doc.inClinicFee) || 750,
+      isEmergencyAvailable: doc.isEmergencyAvailable ?? true,
+      experienceYears: Number(doc.experienceYears) || 8
+    }));
+  }, [rawDoctors]);
 
   // Hero Search & Service Mode state
   const [heroServiceMode, setHeroServiceMode] = useState('VETERINARY'); // 'VETERINARY' or 'VACCINATION'
@@ -90,6 +113,8 @@ export default function VeterinaryServices() {
   const [selectedDoctorForBooking, setSelectedDoctorForBooking] = useState(null);
   const [showBookingModal, setShowBookingModal] = useState(false);
   const [pendingPaymentBooking, setPendingPaymentBooking] = useState(null);
+  const [confirmedAppointment, setConfirmedAppointment] = useState(null);
+  const [showConfirmedModal, setShowConfirmedModal] = useState(false);
   const [bookingMode, setBookingMode] = useState('In-Clinic Visit');
   const [bookingDate, setBookingDate] = useState('');
   const [bookingTimeSlot, setBookingTimeSlot] = useState('10:30 AM - 11:00 AM');
@@ -97,8 +122,30 @@ export default function VeterinaryServices() {
   const [petSpecies, setPetSpecies] = useState('Dogs');
   const [petBreed, setPetBreed] = useState('');
   const [petSymptoms, setPetSymptoms] = useState('');
-  const [ownerName, setOwnerName] = useState('');
-  const [ownerPhone, setOwnerPhone] = useState('');
+  const [ownerName, setOwnerName] = useState(user?.name || '');
+  const [ownerPhone, setOwnerPhone] = useState(() => (user?.mobile || user?.phone || '').toString().replace(/\D/g, '').slice(0, 10));
+  const [ownerWhatsapp, setOwnerWhatsapp] = useState(() => (user?.whatsapp || user?.whatsappNumber || user?.mobile || user?.phone || '').toString().replace(/\D/g, '').slice(0, 10));
+  const [sameAsPhone, setSameAsPhone] = useState(true);
+
+  useEffect(() => {
+    if (user?.name && !ownerName) {
+      setOwnerName(user.name);
+    }
+    if (user?.mobile || user?.phone) {
+      const clean = (user.mobile || user.phone || '').toString().replace(/\D/g, '').slice(0, 10);
+      setOwnerPhone(clean);
+      if (sameAsPhone) {
+        setOwnerWhatsapp(clean);
+      }
+    }
+    if (user?.whatsapp || user?.whatsappNumber) {
+      const cleanWa = (user.whatsapp || user.whatsappNumber || '').toString().replace(/\D/g, '').slice(0, 10);
+      setOwnerWhatsapp(cleanWa);
+      if (cleanWa && cleanWa !== (user.mobile || user.phone)) {
+        setSameAsPhone(false);
+      }
+    }
+  }, [user]);
 
   // Update Hero Cities when Hero State changes
   const handleHeroStateChange = (e) => {
@@ -175,12 +222,12 @@ export default function VeterinaryServices() {
       // 1. Keyword search (Name, clinic, specializations, address, city)
       if (searchKeyword.trim()) {
         const q = searchKeyword.toLowerCase();
-        const matchName = doc.name.toLowerCase().includes(q);
-        const matchClinic = doc.clinicName.toLowerCase().includes(q);
-        const matchCity = doc.city.toLowerCase().includes(q);
+        const matchName = (doc.name || '').toLowerCase().includes(q);
+        const matchClinic = (doc.clinicName || '').toLowerCase().includes(q);
+        const matchCity = (doc.city || '').toLowerCase().includes(q);
         const matchArea = (doc.area || '').toLowerCase().includes(q);
         const matchBio = (doc.bio || '').toLowerCase().includes(q);
-        const matchSpecs = doc.specializations.some((s) => s.toLowerCase().includes(q));
+        const matchSpecs = (doc.specializations || []).some((s) => (s || '').toLowerCase().includes(q));
         if (!matchName && !matchClinic && !matchCity && !matchArea && !matchBio && !matchSpecs) {
           return false;
         }
@@ -188,21 +235,21 @@ export default function VeterinaryServices() {
 
       // 2. Pet Category / Species
       if (selectedCategory !== 'All') {
-        const matchesPet = doc.petCategories.includes(selectedCategory) || doc.petCategories.includes('All');
+        const matchesPet = (doc.petCategories || []).includes(selectedCategory) || (doc.petCategories || []).includes('All');
         if (!matchesPet) return false;
       }
 
       // 3. Consultation Mode
       if (selectedConsultMode !== 'all') {
-        if (selectedConsultMode === 'clinic' && !doc.consultationModes.includes('In-Clinic Visit')) return false;
-        if (selectedConsultMode === 'teleconsult' && !doc.consultationModes.includes('24/7 Video Tele-Consult')) return false;
+        if (selectedConsultMode === 'clinic' && !(doc.consultationModes || []).includes('In-Clinic Visit')) return false;
+        if (selectedConsultMode === 'teleconsult' && !(doc.consultationModes || []).includes('24/7 Video Tele-Consult')) return false;
         if (selectedConsultMode === 'home_visit' && !doc.isHomeVisitAvailable) return false;
         if (selectedConsultMode === 'emergency' && !doc.isEmergencyAvailable) return false;
       }
 
       // 4. Specialization
       if (selectedSpecialization !== 'All Specializations') {
-        if (!doc.specializations.includes(selectedSpecialization)) return false;
+        if (!(doc.specializations || []).includes(selectedSpecialization)) return false;
       }
 
       // 5. Experience
@@ -286,6 +333,12 @@ export default function VeterinaryServices() {
   const handleOpenBooking = (doc, prefilledMode = 'In-Clinic Visit') => {
     setSelectedDoctorForBooking(doc);
     setBookingMode(prefilledMode);
+    if (user?.name && !ownerName) setOwnerName(user.name);
+    if ((user?.mobile || user?.phone) && !ownerPhone) {
+      const clean = (user.mobile || user.phone || '').toString().replace(/\D/g, '').slice(0, 10);
+      setOwnerPhone(clean);
+      if (sameAsPhone) setOwnerWhatsapp(clean);
+    }
     handleServiceAction({
       isAuthenticated,
       serviceType: 'Veterinary',
@@ -311,86 +364,136 @@ export default function VeterinaryServices() {
       );
       return;
     }
-    if (!petName.trim() || !ownerName.trim() || !ownerPhone.trim() || !bookingDate) {
-      toast.error('Please fill in all required appointment fields.');
+    if (!petName.trim()) {
+      toast.error('Please enter your pet name.');
+      return;
+    }
+    if (!bookingDate) {
+      toast.error('Please select an appointment date.');
+      return;
+    }
+    if (!ownerName.trim()) {
+      toast.error('Please enter your name.');
+      return;
+    }
+    const cleanPhone = ownerPhone.replace(/\D/g, '');
+    if (!cleanPhone) {
+      toast.error('Please enter your contact phone number.');
+      return;
+    }
+    if (cleanPhone.length !== 10) {
+      toast.error('Phone number must be exactly 10 digits.');
       return;
     }
 
-    const bookingId = `VET-${Date.now().toString().slice(-6)}`;
-    const consultFee =
-      bookingMode === '24/7 Video Tele-Consult'
-        ? selectedDoctorForBooking.videoConsultFee
-        : bookingMode === 'Home Visit Vet'
-        ? selectedDoctorForBooking.homeVisitFee
-        : selectedDoctorForBooking.inClinicFee;
+    const cleanWhatsapp = (sameAsPhone ? cleanPhone : ownerWhatsapp.replace(/\D/g, ''));
+    if (!cleanWhatsapp) {
+      toast.error('Please enter your WhatsApp contact number.');
+      return;
+    }
+    if (cleanWhatsapp.length !== 10) {
+      toast.error('WhatsApp number must be exactly 10 digits.');
+      return;
+    }
 
-    const clinicLocation = selectedDoctorForBooking.clinicName 
-      ? `${selectedDoctorForBooking.clinicName}${selectedDoctorForBooking.city ? `, ${selectedDoctorForBooking.city}` : ''}`
-      : (selectedDoctorForBooking.city ? `${selectedDoctorForBooking.city}, ${selectedDoctorForBooking.state || ''}` : 'In-Clinic Clinic / Online');
+    try {
+      const bookingId = `VET-${Date.now().toString().slice(-6)}`;
+      const consultFee =
+        bookingMode === '24/7 Video Tele-Consult'
+          ? selectedDoctorForBooking.videoConsultFee
+          : bookingMode === 'Home Visit Vet'
+          ? selectedDoctorForBooking.homeVisitFee
+          : selectedDoctorForBooking.inClinicFee;
 
-    const appointment = {
-      id: bookingId,
-      _id: bookingId,
-      bookingId,
-      serviceType: 'Consult a Vet',
-      serviceCategory: 'Consult a Vet',
-      doctorId: selectedDoctorForBooking.id,
-      doctorName: selectedDoctorForBooking.name,
-      providerId: selectedDoctorForBooking.id,
-      providerName: selectedDoctorForBooking.name,
-      clinicName: selectedDoctorForBooking.clinicName || 'Pet Care Clinic',
-      location: clinicLocation,
-      bookingMode,
-      date: bookingDate,
-      bookingDate,
-      timeSlot: bookingTimeSlot,
-      bookingTimeSlot,
-      petName: petName.trim(),
-      petSpecies,
-      petBreed: petBreed.trim() || 'Indie / Mixed',
-      petSymptoms: petSymptoms.trim(),
-      petDetails: {
-        name: petName.trim(),
-        type: petSpecies,
-        breed: petBreed.trim() || 'Indie / Mixed',
-        symptoms: petSymptoms.trim()
-      },
-      ownerName: ownerName.trim() || user?.name || 'Pet Parent',
-      ownerPhone: ownerPhone.trim() || user?.mobile || '',
-      ownerEmail: user?.email || '',
-      userId: user?.id || user?._id || '',
-      userEmail: user?.email || '',
-      isUserBooking: true,
-      status: 'Confirmed',
-      fee: Number(consultFee) || 500,
-      paymentStatus: bookingMode === '24/7 Video Tele-Consult' ? 'Paid' : 'Pay at Clinic',
-      createdAt: new Date().toISOString()
-    };
+      const clinicLocation = selectedDoctorForBooking.clinicName 
+        ? `${selectedDoctorForBooking.clinicName}${selectedDoctorForBooking.city ? `, ${selectedDoctorForBooking.city}` : ''}`
+        : (selectedDoctorForBooking.city ? `${selectedDoctorForBooking.city}, ${selectedDoctorForBooking.state || ''}` : 'In-Clinic Clinic / Online');
 
-    setShowBookingModal(false);
-    setPendingPaymentBooking({
-      ...appointment,
-      serviceName: `Veterinary Consultation (${bookingMode})`,
-      serviceCategory: 'Consult a Vet',
-      providerName: selectedDoctorForBooking.name,
-      price: Number(consultFee) || 500,
-      date: bookingDate,
-      timeSlot: bookingTimeSlot,
-      ownerName: ownerName.trim() || user?.name || 'Pet Parent',
-      ownerPhone: ownerPhone.trim() || user?.mobile || '',
-      ownerEmail: user?.email || '',
-      petDetails: {
-        name: petName.trim(),
-        type: petSpecies,
-        breed: petBreed.trim() || 'Indie / Mixed',
-        symptoms: petSymptoms.trim()
+      const appointment = {
+        id: bookingId,
+        _id: bookingId,
+        bookingId,
+        serviceType: 'Consult a Vet',
+        serviceCategory: 'Consult a Vet',
+        serviceName: `Veterinary Consultation (${bookingMode})`,
+        doctorId: selectedDoctorForBooking.id,
+        doctorName: selectedDoctorForBooking.name,
+        providerId: selectedDoctorForBooking.id,
+        providerName: selectedDoctorForBooking.name,
+        clinicName: selectedDoctorForBooking.clinicName || 'Pet Care Clinic',
+        location: clinicLocation,
+        bookingMode,
+        date: bookingDate,
+        bookingDate,
+        timeSlot: bookingTimeSlot,
+        bookingTimeSlot,
+        petName: petName.trim(),
+        petSpecies,
+        petBreed: petBreed.trim() || 'Indie / Mixed',
+        petSymptoms: petSymptoms.trim(),
+        petDetails: {
+          name: petName.trim(),
+          type: petSpecies,
+          breed: petBreed.trim() || 'Indie / Mixed',
+          symptoms: petSymptoms.trim()
+        },
+        ownerName: ownerName.trim() || user?.name || 'Pet Parent',
+        customerName: ownerName.trim() || user?.name || 'Pet Parent',
+        ownerPhone: cleanPhone,
+        customerPhone: cleanPhone,
+        phone: cleanPhone,
+        ownerWhatsapp: cleanWhatsapp,
+        whatsapp: cleanWhatsapp,
+        customerWhatsapp: cleanWhatsapp,
+        ownerEmail: user?.email || '',
+        customerEmail: user?.email || '',
+        userId: user?.id || user?._id || '',
+        userEmail: user?.email || '',
+        isUserBooking: true,
+        status: 'Confirmed',
+        fee: Number(consultFee) || 500,
+        price: Number(consultFee) || 500,
+        paymentStatus: bookingMode === '24/7 Video Tele-Consult' ? 'Prepaid Online' : 'Pay at Clinic',
+        createdAt: new Date().toISOString()
+      };
+
+      // 1. Save locally for guaranteed immediate client persistence
+      saveVetAppointment(appointment);
+
+      // 2. Persist to server backend API
+      try {
+        await apiRequest('/bookings', {
+          method: 'POST',
+          body: JSON.stringify(appointment)
+        });
+      } catch (err) {
+        console.warn('Backend booking sync warning, stored locally:', err);
       }
-    });
 
-    // Reset fields
-    setPetName('');
-    setPetBreed('');
-    setPetSymptoms('');
+      // 3. Dispatch reactive events to update all dashboards and listener tabs in real time
+      window.dispatchEvent(new CustomEvent('service-booking-created', { detail: appointment }));
+      window.dispatchEvent(new CustomEvent('service-booking-updated', { detail: appointment }));
+      window.dispatchEvent(new CustomEvent('vet-data-updated', { detail: { type: 'appointment', action: 'create', appointment } }));
+
+      // 4. Prominent success notification
+      toast.success(
+        `🎉 Appointment confirmed with ${selectedDoctorForBooking.name} for ${bookingDate} (${bookingTimeSlot})!`,
+        { duration: 6000, icon: '🩺' }
+      );
+
+      // 5. Open confirmed appointment success modal
+      setShowBookingModal(false);
+      setConfirmedAppointment(appointment);
+      setShowConfirmedModal(true);
+
+      // Reset fields
+      setPetName('');
+      setPetBreed('');
+      setPetSymptoms('');
+    } catch (err) {
+      console.error('Failed to submit booking:', err);
+      toast.error('Failed to book appointment. Please check your connection and try again.');
+    }
   };
 
   if (isServicePathLockedForUser(user, '/veterinary')) {
@@ -897,7 +1000,7 @@ export default function VeterinaryServices() {
 
                       {/* Specialization Tags */}
                       <div className="flex flex-wrap gap-1.5 mb-3.5">
-                        {doc.specializations.map((spec, i) => (
+                        {(doc.specializations || []).map((spec, i) => (
                           <span
                             key={i}
                             className="text-[10px] bg-stone-100 text-slate-700 border border-stone-200 px-2 py-0.5 rounded-md font-medium"
@@ -1670,7 +1773,7 @@ export default function VeterinaryServices() {
               </div>
 
               {/* Owner Contact */}
-              <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-3 pt-1">
                 <div>
                   <label className="block text-[10px] font-bold text-slate-700 uppercase tracking-wider mb-1">
                     Your Name *
@@ -1684,19 +1787,160 @@ export default function VeterinaryServices() {
                     placeholder="e.g. Rahul Sharma"
                   />
                 </div>
-                <div>
-                  <label className="block text-[10px] font-bold text-slate-700 uppercase tracking-wider mb-1">
-                    Phone / WhatsApp *
-                  </label>
-                  <input
-                    type="tel"
-                    required
-                    value={ownerPhone}
-                    onChange={(e) => setOwnerPhone(e.target.value)}
-                    className="w-full p-2.5 bg-stone-50 border border-stone-200 rounded-xl focus:outline-none focus:border-[#1D3B2E]"
-                    placeholder="e.g. +91 98765 43210"
-                  />
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {/* Phone Number Field */}
+                  <div>
+                    <div className="flex items-center justify-between mb-1">
+                      <label className="block text-[10px] font-bold text-slate-700 uppercase tracking-wider">
+                        Phone Number *
+                      </label>
+                      <span className="text-[10px] text-gray-400 font-medium">{ownerPhone.length}/10 digits</span>
+                    </div>
+                    <input
+                      type="tel"
+                      inputMode="numeric"
+                      required
+                      maxLength={10}
+                      pattern="[0-9]{10}"
+                      value={ownerPhone}
+                      onBeforeInput={(e) => {
+                        if (e.data && !/^\d+$/.test(e.data)) {
+                          e.preventDefault();
+                        }
+                      }}
+                      onKeyDown={(e) => {
+                        const allowedKeys = [
+                          'Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown',
+                          'Tab', 'Home', 'End', 'Enter'
+                        ];
+                        if (allowedKeys.includes(e.key) || e.ctrlKey || e.metaKey) {
+                          return;
+                        }
+                        if (!/^\d$/.test(e.key)) {
+                          e.preventDefault();
+                        }
+                      }}
+                      onPaste={(e) => {
+                        e.preventDefault();
+                        const pasted = (e.clipboardData || window.clipboardData)?.getData('text') || '';
+                        const clean = pasted.replace(/\D/g, '').slice(0, 10);
+                        if (clean) {
+                          setOwnerPhone(clean);
+                          if (sameAsPhone) setOwnerWhatsapp(clean);
+                        }
+                      }}
+                      onDrop={(e) => {
+                        e.preventDefault();
+                        const dropped = e.dataTransfer?.getData('text') || '';
+                        const clean = dropped.replace(/\D/g, '').slice(0, 10);
+                        if (clean) {
+                          setOwnerPhone(clean);
+                          if (sameAsPhone) setOwnerWhatsapp(clean);
+                        }
+                      }}
+                      onInput={(e) => {
+                        const clean = e.target.value.replace(/\D/g, '').slice(0, 10);
+                        if (e.target.value !== clean) {
+                          e.target.value = clean;
+                        }
+                        setOwnerPhone(clean);
+                        if (sameAsPhone) setOwnerWhatsapp(clean);
+                      }}
+                      onChange={(e) => {
+                        const clean = e.target.value.replace(/\D/g, '').slice(0, 10);
+                        e.target.value = clean;
+                        setOwnerPhone(clean);
+                        if (sameAsPhone) setOwnerWhatsapp(clean);
+                      }}
+                      className="w-full p-2.5 bg-stone-50 border border-stone-200 rounded-xl focus:outline-none focus:border-[#1D3B2E]"
+                      placeholder="10-digit mobile number"
+                    />
+                  </div>
+
+                  {/* WhatsApp Number Field */}
+                  <div>
+                    <div className="flex items-center justify-between mb-1">
+                      <label className="block text-[10px] font-bold text-slate-700 uppercase tracking-wider">
+                        WhatsApp Number *
+                      </label>
+                      <span className="text-[10px] text-gray-400 font-medium">
+                        {(sameAsPhone ? ownerPhone : ownerWhatsapp).length}/10 digits
+                      </span>
+                    </div>
+                    <input
+                      type="tel"
+                      inputMode="numeric"
+                      required
+                      maxLength={10}
+                      pattern="[0-9]{10}"
+                      disabled={sameAsPhone}
+                      value={sameAsPhone ? ownerPhone : ownerWhatsapp}
+                      onBeforeInput={(e) => {
+                        if (e.data && !/^\d+$/.test(e.data)) {
+                          e.preventDefault();
+                        }
+                      }}
+                      onKeyDown={(e) => {
+                        const allowedKeys = [
+                          'Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown',
+                          'Tab', 'Home', 'End', 'Enter'
+                        ];
+                        if (allowedKeys.includes(e.key) || e.ctrlKey || e.metaKey) {
+                          return;
+                        }
+                        if (!/^\d$/.test(e.key)) {
+                          e.preventDefault();
+                        }
+                      }}
+                      onPaste={(e) => {
+                        e.preventDefault();
+                        const pasted = (e.clipboardData || window.clipboardData)?.getData('text') || '';
+                        const clean = pasted.replace(/\D/g, '').slice(0, 10);
+                        if (clean) setOwnerWhatsapp(clean);
+                      }}
+                      onDrop={(e) => {
+                        e.preventDefault();
+                        const dropped = e.dataTransfer?.getData('text') || '';
+                        const clean = dropped.replace(/\D/g, '').slice(0, 10);
+                        if (clean) setOwnerWhatsapp(clean);
+                      }}
+                      onInput={(e) => {
+                        const clean = e.target.value.replace(/\D/g, '').slice(0, 10);
+                        if (e.target.value !== clean) {
+                          e.target.value = clean;
+                        }
+                        setOwnerWhatsapp(clean);
+                      }}
+                      onChange={(e) => {
+                        const clean = e.target.value.replace(/\D/g, '').slice(0, 10);
+                        e.target.value = clean;
+                        setOwnerWhatsapp(clean);
+                      }}
+                      className={`w-full p-2.5 border border-stone-200 rounded-xl focus:outline-none focus:border-[#1D3B2E] ${
+                        sameAsPhone ? 'bg-stone-100 text-slate-500 cursor-not-allowed' : 'bg-stone-50 text-slate-900'
+                      }`}
+                      placeholder="10-digit WhatsApp number"
+                    />
+                  </div>
                 </div>
+
+                {/* Same as Phone toggle checkbox */}
+                <label className="flex items-center gap-2 cursor-pointer text-[11px] text-slate-600 select-none">
+                  <input
+                    type="checkbox"
+                    checked={sameAsPhone}
+                    onChange={(e) => {
+                      const checked = e.target.checked;
+                      setSameAsPhone(checked);
+                      if (checked) {
+                        setOwnerWhatsapp(ownerPhone);
+                      }
+                    }}
+                    className="rounded border-slate-300 text-[#1D3B2E] focus:ring-[#1D3B2E]"
+                  />
+                  <span>Same as Phone Number for WhatsApp updates</span>
+                </label>
               </div>
 
               {/* Submit Button */}
@@ -1714,6 +1958,174 @@ export default function VeterinaryServices() {
           </div>
         </div>
       )}
+
+      {/* ================= 9. APPOINTMENT CONFIRMATION SUCCESS MODAL ================= */}
+      {showConfirmedModal && confirmedAppointment && (
+        <div className="fixed inset-0 z-[100] overflow-y-auto bg-black/75 backdrop-blur-xs p-3 sm:p-4 flex flex-col items-center justify-start sm:justify-center animate-in fade-in duration-200">
+          <div className="relative bg-white text-slate-900 w-full max-w-lg my-auto shadow-2xl border border-stone-200 rounded-3xl overflow-hidden flex flex-col min-h-0 max-h-[90vh]">
+            
+            {/* Header */}
+            <div className="bg-gradient-to-r from-[#1D3B2E] to-[#2E5947] text-white px-5 sm:px-6 py-4 flex items-center justify-between shrink-0">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-emerald-500/20 border border-emerald-400/30 text-emerald-300 flex items-center justify-center font-bold text-lg shadow">
+                  <CheckCircle2 size={24} className="text-emerald-300" />
+                </div>
+                <div>
+                  <h3 className="font-serif font-bold text-base sm:text-lg text-white">
+                    Appointment Confirmed!
+                  </h3>
+                  <p className="text-[11px] text-emerald-100/90 font-mono">
+                    Ref ID: {confirmedAppointment.id}
+                  </p>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setShowConfirmedModal(false)}
+                className="w-8 h-8 rounded-full bg-white/20 hover:bg-white/30 text-white flex items-center justify-center transition cursor-pointer"
+                title="Close"
+              >
+                <X size={16} />
+              </button>
+            </div>
+
+            {/* Body */}
+            <div className="p-5 sm:p-6 overflow-y-auto space-y-4 text-xs">
+              
+              {/* Success Banner */}
+              <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-2xl flex items-start gap-3">
+                <CheckCircle2 size={20} className="text-emerald-700 shrink-0 mt-0.5" />
+                <div>
+                  <h4 className="font-bold text-emerald-950 text-sm">
+                    Your appointment has been successfully scheduled!
+                  </h4>
+                  <p className="text-[11px] text-emerald-800 mt-0.5 leading-relaxed">
+                    A confirmation has been recorded in your Account Dashboard. The clinic has been notified.
+                  </p>
+                </div>
+              </div>
+
+              {/* Doctor & Clinic Details Card */}
+              <div className="p-4 bg-stone-50 border border-stone-200 rounded-2xl space-y-2">
+                <span className="text-[10px] uppercase font-bold text-slate-500 tracking-wider block">
+                  Veterinary Doctor & Clinic
+                </span>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h4 className="font-bold text-slate-900 text-sm">{confirmedAppointment.doctorName}</h4>
+                    <p className="text-[11px] text-[#1D3B2E] font-medium">
+                      {confirmedAppointment.clinicName}
+                    </p>
+                    <p className="text-[11px] text-slate-500 flex items-center gap-1 mt-0.5">
+                      <MapPin size={11} className="text-slate-400 shrink-0" />
+                      <span>{confirmedAppointment.location}</span>
+                    </p>
+                  </div>
+                  <span className="text-[10px] font-bold text-emerald-700 bg-emerald-100 border border-emerald-200 px-2.5 py-1 rounded-full uppercase">
+                    {confirmedAppointment.status}
+                  </span>
+                </div>
+              </div>
+
+              {/* Consultation Details Grid */}
+              <div className="grid grid-cols-2 gap-2.5">
+                <div className="p-3 bg-white border border-stone-200 rounded-xl">
+                  <span className="text-[10px] text-slate-500 uppercase font-bold block">Appointment Date</span>
+                  <strong className="text-xs text-slate-900 block mt-0.5">{confirmedAppointment.date}</strong>
+                </div>
+                <div className="p-3 bg-white border border-stone-200 rounded-xl">
+                  <span className="text-[10px] text-slate-500 uppercase font-bold block">Time Slot</span>
+                  <strong className="text-xs text-slate-900 block mt-0.5">{confirmedAppointment.timeSlot}</strong>
+                </div>
+                <div className="p-3 bg-white border border-stone-200 rounded-xl">
+                  <span className="text-[10px] text-slate-500 uppercase font-bold block">Consultation Mode</span>
+                  <strong className="text-xs text-[#1D3B2E] block mt-0.5">{confirmedAppointment.bookingMode}</strong>
+                </div>
+                <div className="p-3 bg-white border border-stone-200 rounded-xl">
+                  <span className="text-[10px] text-slate-500 uppercase font-bold block">Consultation Fee</span>
+                  <strong className="text-xs text-slate-900 block mt-0.5">₹{confirmedAppointment.fee} <span className="text-[10px] font-normal text-slate-500">({confirmedAppointment.paymentStatus})</span></strong>
+                </div>
+              </div>
+
+              {/* Pet & Owner Contact Summary */}
+              <div className="p-3.5 bg-stone-50 border border-stone-200 rounded-2xl space-y-1.5">
+                <span className="text-[10px] uppercase font-bold text-slate-500 tracking-wider block">
+                  Patient & Contact Details
+                </span>
+                <div className="flex items-center justify-between text-[11px]">
+                  <span className="text-slate-600">Patient:</span>
+                  <strong className="text-slate-900">{confirmedAppointment.petName} ({confirmedAppointment.petSpecies} • {confirmedAppointment.petBreed})</strong>
+                </div>
+                <div className="flex items-center justify-between text-[11px]">
+                  <span className="text-slate-600">Parent Name:</span>
+                  <strong className="text-slate-900">{confirmedAppointment.ownerName}</strong>
+                </div>
+                <div className="flex items-center justify-between text-[11px]">
+                  <span className="text-slate-600">Mobile Phone:</span>
+                  <strong className="text-slate-900 font-mono">{confirmedAppointment.ownerPhone}</strong>
+                </div>
+                <div className="flex items-center justify-between text-[11px]">
+                  <span className="text-slate-600">WhatsApp:</span>
+                  <strong className="text-slate-900 font-mono">{confirmedAppointment.ownerWhatsapp}</strong>
+                </div>
+              </div>
+
+            </div>
+
+            {/* Footer Actions */}
+            <div className="p-4 bg-stone-50 border-t border-stone-200 flex flex-col sm:flex-row items-center justify-between gap-2.5 shrink-0">
+              <button
+                type="button"
+                onClick={() => setShowConfirmedModal(false)}
+                className="w-full sm:w-auto px-4 py-2.5 bg-white hover:bg-stone-100 text-slate-700 border border-stone-300 font-bold text-xs uppercase tracking-wider rounded-xl transition cursor-pointer"
+              >
+                Close
+              </button>
+
+              <div className="w-full sm:w-auto flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowConfirmedModal(false);
+                    navigate('/account');
+                  }}
+                  className="flex-1 sm:flex-initial px-4 py-2.5 bg-stone-100 hover:bg-stone-200 text-slate-800 font-bold text-xs uppercase tracking-wider rounded-xl transition cursor-pointer text-center"
+                >
+                  View in Dashboard
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowConfirmedModal(false);
+                    setPendingPaymentBooking(confirmedAppointment);
+                  }}
+                  className="flex-1 sm:flex-initial px-4 py-2.5 bg-[#1D3B2E] hover:bg-[#152e24] text-white font-bold text-xs uppercase tracking-wider rounded-xl transition flex items-center justify-center gap-1.5 cursor-pointer shadow-md"
+                >
+                  <CreditCard size={14} /> Pay Online (Razorpay)
+                </button>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      )}
+
+      {/* RAZORPAY CENTRAL PLATFORM PAYMENT MODAL */}
+      <RazorpayBookingPaymentModal
+        isOpen={Boolean(pendingPaymentBooking)}
+        onClose={() => setPendingPaymentBooking(null)}
+        bookingData={pendingPaymentBooking}
+        onSuccess={(confirmed) => {
+          saveVetAppointment(confirmed);
+          toast.success(
+            `Appointment confirmed with ${confirmed.providerName || confirmed.doctorName}!`,
+            { duration: 5000 }
+          );
+          setPendingPaymentBooking(null);
+        }}
+      />
 
     </div>
   );

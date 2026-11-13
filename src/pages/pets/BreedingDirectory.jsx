@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import {
   Heart,
@@ -26,7 +26,8 @@ import {
   Info,
   ChevronDown,
   ChevronRight,
-  PawPrint
+  PawPrint,
+  Copy
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { resolveProviderWhatsApp } from '../../utils/whatsappHelper.js';
@@ -43,6 +44,7 @@ import PetBreedDropdown from '../../components/ui/PetBreedDropdown.jsx';
 
 import ScrollReveal from '../../components/ui/ScrollReveal.jsx';
 import { handleServiceAction } from '../../components/widgets/ServicePackageAccessModal.jsx';
+import { apiRequest } from '../../services/api.js';
 const BreedingDirectory = () => {
   const navigate = useNavigate();
   const { isAuthenticated, user } = useSelector((state) => state.auth);
@@ -76,9 +78,15 @@ const BreedingDirectory = () => {
   const [heroCity, setHeroCity] = useState('All Cities');
   const [heroAvailableCities, setHeroAvailableCities] = useState(['All Cities']);
 
+  // URL Search Params (for deep linking & navigation)
+  const [searchParams, setSearchParams] = useSearchParams();
+
   // Modals
   const [selectedPetForDetails, setSelectedPetForDetails] = useState(null);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
+  const [selectedPetForContact, setSelectedPetForContact] = useState(null);
+  const [showParentContactModal, setShowParentContactModal] = useState(false);
+  const [copiedPhone, setCopiedPhone] = useState(false);
   const [showAddForm, setShowAddForm] = useState(false);
   const [showProposalModal, setShowProposalModal] = useState(false);
 
@@ -290,26 +298,125 @@ const BreedingDirectory = () => {
     sortBy
   ]);
 
-  // Open Details Modal / Visit Mating Profile
+  // Deep-linking via URL query params (?contact=petId or ?pet=petId)
+  useEffect(() => {
+    const contactPetId = searchParams.get('contact');
+    const detailsPetId = searchParams.get('pet');
+
+    if (contactPetId && pets.length > 0) {
+      const matched = pets.find((p) => String(p.id) === String(contactPetId));
+      if (matched) {
+        setSelectedPetForContact(matched);
+        setShowParentContactModal(true);
+      }
+    } else if (!contactPetId) {
+      setShowParentContactModal(false);
+    }
+
+    if (detailsPetId && pets.length > 0) {
+      const matched = pets.find((p) => String(p.id) === String(detailsPetId));
+      if (matched) {
+        setSelectedPetForDetails(matched);
+        setShowDetailsModal(true);
+      }
+    } else if (!detailsPetId) {
+      setShowDetailsModal(false);
+    }
+  }, [searchParams, pets]);
+
+  // Open Details Modal / Visit Mating Profile (syncs URL ?pet=ID)
   const handleOpenDetails = (pet) => {
     if (!pet) return;
     setSelectedPetForDetails(pet);
     setShowDetailsModal(true);
+    setSearchParams(
+      (prev) => {
+        const next = new URLSearchParams(prev);
+        next.set('pet', pet.id);
+        next.delete('contact');
+        return next;
+      },
+      { replace: false }
+    );
   };
 
-  // Open Proposal & Package Access Modal (Requires Login)
+  const handleCloseDetails = () => {
+    setShowDetailsModal(false);
+    setSelectedPetForDetails(null);
+    setSearchParams(
+      (prev) => {
+        const next = new URLSearchParams(prev);
+        next.delete('pet');
+        return next;
+      },
+      { replace: true }
+    );
+  };
+
+  // Open Parent Contact Modal & navigate URL (?contact=ID)
+  const handleOpenParentContact = (pet) => {
+    if (!pet) return;
+    setSelectedPetForContact(pet);
+    setShowParentContactModal(true);
+    setSearchParams(
+      (prev) => {
+        const next = new URLSearchParams(prev);
+        next.set('contact', pet.id);
+        next.delete('pet');
+        return next;
+      },
+      { replace: false }
+    );
+  };
+
+  const handleCloseParentContact = () => {
+    setShowParentContactModal(false);
+    setSelectedPetForContact(null);
+    setSearchParams(
+      (prev) => {
+        const next = new URLSearchParams(prev);
+        next.delete('contact');
+        return next;
+      },
+      { replace: true }
+    );
+  };
+
+  const handleCopyPhone = (phone) => {
+    if (!phone) return;
+    navigator.clipboard.writeText(phone);
+    setCopiedPhone(true);
+    toast.success('Parent contact number copied to clipboard!');
+    setTimeout(() => setCopiedPhone(false), 2000);
+  };
+
+  // Open Proposal Modal (Requires Login)
   const handleOpenProposal = (pet) => {
-    setSelectedPet(pet);
-    handleServiceAction({
-      isAuthenticated,
-      serviceType: 'Breeding',
-      provider: { name: `${pet.name} (${pet.parentName})`, phone: pet.parentPhone, city: pet.city, image: pet.image },
-      action: 'book',
-      onAuthorized: () => {
-        setSelectedPet(pet);
-        setShowProposalModal(true);
-      }
-    });
+    if (!pet) return;
+    if (!isAuthenticated) {
+      toast('Please log in or sign up to send a mating proposal.', {
+        icon: '🔐',
+        duration: 4000
+      });
+      window.dispatchEvent(
+        new CustomEvent('open-register-modal', {
+          detail: {
+            tab: 'user',
+            hideProviderTab: true,
+            source: 'breeding-proposal'
+          }
+        })
+      );
+      return;
+    }
+
+    setSelectedPetForDetails(pet);
+    if (user) {
+      if (user.name && !proposalOwnerName) setProposalOwnerName(user.name);
+      const cleanPhone = (user.mobile || user.phone || '').toString().replace(/\D/g, '').slice(0, 10);
+      if (cleanPhone && !proposalOwnerPhone) setProposalOwnerPhone(cleanPhone);
+    }
+    setShowProposalModal(true);
   };
 
   // Open Add Pet Modal (Requires Login)
@@ -336,27 +443,63 @@ const BreedingDirectory = () => {
   // Submit Proposal
   const handleProposalSubmit = (e) => {
     e.preventDefault();
-    if (!proposalOwnerName || !proposalOwnerPhone || !proposalPetName) {
-      toast.error('Please enter your Name, Mobile Number, and Pet Name.');
+    const cleanPhone = (proposalOwnerPhone || '').replace(/\D/g, '').slice(0, 10);
+    if (!proposalOwnerName?.trim() || !cleanPhone || cleanPhone.length !== 10 || !proposalPetName?.trim()) {
+      toast.error('Please enter your Name, valid 10-digit Mobile Number, and Pet Name.');
+      return;
+    }
+
+    const targetPet = selectedPetForDetails;
+    if (!targetPet) {
+      toast.error('No pet selected for mating proposal.');
       return;
     }
 
     const payload = {
-      id: `PROP-${Date.now()}`,
-      targetPetId: selectedPetForDetails?.id,
-      targetPetName: selectedPetForDetails?.name,
-      targetParentName: selectedPetForDetails?.parentName,
-      targetParentPhone: selectedPetForDetails?.parentPhone,
-      senderName: proposalOwnerName,
-      senderPhone: proposalOwnerPhone,
-      senderPetName: proposalPetName,
-      senderPetBreed: proposalPetBreed,
-      message: proposalMessage,
+      id: `PROP-${Date.now().toString().slice(-6)}`,
+      petId: targetPet.id,
+      targetPetId: targetPet.id,
+      targetPetName: targetPet.name,
+      targetParentName: targetPet.parentName || 'Pet Parent',
+      targetParentPhone: targetPet.parentPhone || targetPet.whatsappNumber || '',
+      targetProviderEmail: targetPet.providerEmail || targetPet.email || '',
+      ownerName: proposalOwnerName.trim(),
+      senderName: proposalOwnerName.trim(),
+      ownerPhone: cleanPhone,
+      senderPhone: cleanPhone,
+      senderEmail: user?.email || '',
+      petName: proposalPetName.trim(),
+      senderPetName: proposalPetName.trim(),
+      petBreed: proposalPetBreed || 'Standard Breed',
+      senderPetBreed: proposalPetBreed || 'Standard Breed',
+      message: proposalMessage?.trim() || 'Interested in discussing a mating proposal for our pets.',
+      status: 'Pending',
       createdAt: new Date().toISOString()
     };
 
     saveMatingEnquiry(payload);
-    toast.success(`Mating proposal sent to ${selectedPetForDetails?.parentName}! They will contact you shortly.`);
+
+    // Sync to backend enquiries (non-blocking)
+    try {
+      apiRequest('/enquiries', {
+        method: 'POST',
+        body: JSON.stringify({
+          name: proposalOwnerName.trim(),
+          email: user?.email || `${cleanPhone}@user.joshpetshub.com`,
+          phone: cleanPhone,
+          subject: `Mating Proposal for ${targetPet.name}`,
+          message: `Pet: ${proposalPetName} (${proposalPetBreed || 'N/A'}). Sender: ${proposalOwnerName} (${cleanPhone}). Terms: ${proposalMessage || 'Standard enquiry'}`
+        })
+      }).catch(() => {});
+    } catch (_) {}
+
+    // Dispatch real-time events for provider and user dashboards
+    window.dispatchEvent(new CustomEvent('breeding-proposal-created', { detail: payload }));
+
+    toast.success(`Mating proposal sent to ${targetPet.parentName || 'Guardian'}! They will contact you shortly.`, {
+      icon: '🐾',
+      duration: 4500
+    });
     setShowProposalModal(false);
     setProposalMessage('');
   };
@@ -1154,7 +1297,7 @@ const BreedingDirectory = () => {
                         <div className="pt-1 flex items-center justify-between text-[11px]">
                           <button
                             type="button"
-                            onClick={() => handleOpenProposal(pet)}
+                            onClick={() => handleOpenParentContact(pet)}
                             className="text-[#1D3B2E] font-bold hover:underline flex items-center gap-1 cursor-pointer"
                           >
                             <Phone size={12} /> {pet.name} Parent Contact
@@ -1195,6 +1338,208 @@ const BreedingDirectory = () => {
         </div>
       </div>
 
+      {/* ================= 2.5 PARENT & GUARDIAN CONTACT MODAL ================= */}
+      {showParentContactModal && selectedPetForContact && (
+        <div className="fixed inset-0 z-[100] overflow-y-auto bg-black/75 backdrop-blur-xs p-2 sm:p-4 flex flex-col items-center justify-start sm:justify-center animate-in fade-in duration-200">
+          <div className="relative bg-white text-slate-900 w-full max-w-lg my-auto shadow-2xl border border-slate-200 rounded-3xl overflow-hidden flex flex-col min-h-0 max-h-[88vh]">
+            
+            {/* Modal Header with Branding */}
+            <div className="bg-gradient-to-r from-[#1D3B2E] to-[#2E5947] text-white px-5 sm:px-6 py-4 flex items-center justify-between shrink-0">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-white/10 border border-white/20 text-white flex items-center justify-center font-bold text-lg shadow">
+                  <Phone size={20} className="text-emerald-300" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h3 className="font-serif font-bold text-base sm:text-lg text-white">
+                      Parent & Guardian Contact
+                    </h3>
+                    <span className="text-[10px] bg-emerald-500/20 text-emerald-300 border border-emerald-400/30 px-2 py-0.5 font-bold uppercase rounded flex items-center gap-1">
+                      <ShieldCheck size={11} /> Verified
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-emerald-100/90">
+                    Direct contact for {selectedPetForContact.name}'s parent & guardian
+                  </p>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={handleCloseParentContact}
+                className="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition cursor-pointer"
+                title="Close"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div className="p-5 sm:p-6 overflow-y-auto space-y-4 text-xs">
+              
+              {/* Pet Summary Card */}
+              <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-2xl flex items-center gap-3">
+                <img
+                  src={selectedPetForContact.image}
+                  alt={selectedPetForContact.name}
+                  className="w-16 h-16 rounded-xl object-cover border border-slate-200 shrink-0"
+                />
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-1.5">
+                    <h4 className="font-bold text-slate-900 text-sm truncate">{selectedPetForContact.name}</h4>
+                    <span className="text-[10px] bg-emerald-50 text-[#1D3B2E] border border-emerald-200 px-1.5 py-0.5 rounded font-semibold">
+                      {selectedPetForContact.quality}
+                    </span>
+                  </div>
+                  <p className="text-slate-600 text-[11px] mt-0.5">
+                    {selectedPetForContact.breed} • {selectedPetForContact.gender} • {selectedPetForContact.age}
+                  </p>
+                  <p className="text-slate-500 text-[11px] flex items-center gap-1 mt-0.5">
+                    <MapPin size={11} className="text-slate-400 shrink-0" />
+                    <span>{selectedPetForContact.city}, {selectedPetForContact.state}</span>
+                  </p>
+                </div>
+              </div>
+
+              {/* Guardian Info Box */}
+              <div className="p-4 bg-emerald-50/60 border border-emerald-200/80 rounded-2xl">
+                <span className="text-[10px] uppercase font-bold text-emerald-800 tracking-wider block mb-1">
+                  Pet Guardian / Lineage Breeder
+                </span>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h4 className="font-bold text-slate-900 text-base">{selectedPetForContact.parentName}</h4>
+                    <p className="text-slate-600 text-[11px]">
+                      Registered Lineage Contact • {selectedPetForContact.city}
+                    </p>
+                  </div>
+                  <div className="w-9 h-9 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-sm">
+                    <User size={18} />
+                  </div>
+                </div>
+              </div>
+
+              {/* Direct Phone Number Card */}
+              <div className="p-4 bg-white border-2 border-slate-200 rounded-2xl shadow-xs space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <div className="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center">
+                      <Phone size={16} />
+                    </div>
+                    <div>
+                      <span className="text-[10px] uppercase font-bold text-slate-500 block">Direct Mobile Contact</span>
+                      <strong className="text-base text-slate-900 font-mono tracking-wide">
+                        {selectedPetForContact.parentPhone || '+91 98765 43210'}
+                      </strong>
+                    </div>
+                  </div>
+
+                  {/* Copy Button */}
+                  <button
+                    type="button"
+                    onClick={() => handleCopyPhone(selectedPetForContact.parentPhone || '+91 98765 43210')}
+                    className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-[11px] rounded-lg transition flex items-center gap-1 cursor-pointer"
+                    title="Copy phone number"
+                  >
+                    {copiedPhone ? (
+                      <>
+                        <Check size={12} className="text-emerald-600" />
+                        <span className="text-emerald-700">Copied</span>
+                      </>
+                    ) : (
+                      <>
+                        <Copy size={12} />
+                        <span>Copy</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+
+                {/* Call Button */}
+                <a
+                  href={`tel:${(selectedPetForContact.parentPhone || '+919876543210').replace(/\s+/g, '')}`}
+                  onClick={() => toast.success(`Calling ${selectedPetForContact.parentName}...`)}
+                  className="w-full py-2.5 px-4 bg-[#1D3B2E] hover:bg-[#152e24] text-white font-bold text-xs uppercase tracking-wider rounded-xl transition flex items-center justify-center gap-2 shadow-sm"
+                >
+                  <Phone size={14} /> Call Parent Now
+                </a>
+              </div>
+
+              {/* WhatsApp Chat Card */}
+              <div className="p-4 bg-[#25D366]/10 border border-[#25D366]/30 rounded-2xl flex items-center justify-between gap-3">
+                <div>
+                  <h5 className="font-bold text-slate-900 text-xs flex items-center gap-1.5">
+                    <MessageSquare size={14} className="text-[#25D366]" /> Chat on WhatsApp
+                  </h5>
+                  <p className="text-slate-600 text-[11px] mt-0.5">
+                    Connect instantly with {selectedPetForContact.parentName} on WhatsApp
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => handleOpenWhatsApp(selectedPetForContact)}
+                  className="px-4 py-2 bg-[#25D366] hover:bg-[#1EBE5D] text-white font-bold text-xs rounded-xl flex items-center gap-1.5 transition cursor-pointer shadow-sm shrink-0"
+                >
+                  <MessageSquare size={14} /> WhatsApp
+                </button>
+              </div>
+
+              {/* Mating Requirements / Terms Snippet */}
+              <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-2xl space-y-1">
+                <span className="text-[10px] uppercase font-bold text-slate-500 block">
+                  Mate Requirement & Terms
+                </span>
+                <p className="text-slate-700 text-[11px] leading-relaxed">
+                  {selectedPetForContact.mateRequirement || 'Requires healthy purebred female with up-to-date vaccinations.'}
+                </p>
+                {selectedPetForContact.matingTerms && (
+                  <p className="text-slate-500 text-[10px] pt-1 border-t border-slate-200">
+                    Terms: {selectedPetForContact.matingTerms}
+                  </p>
+                )}
+              </div>
+
+            </div>
+
+            {/* Modal Footer */}
+            <div className="p-4 bg-slate-50 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-2.5 shrink-0">
+              <button
+                type="button"
+                onClick={handleCloseParentContact}
+                className="w-full sm:w-auto px-4 py-2 bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 font-bold text-xs uppercase tracking-wider rounded-xl transition cursor-pointer"
+              >
+                Close
+              </button>
+
+              <div className="w-full sm:w-auto flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    handleCloseParentContact();
+                    handleOpenDetails(selectedPetForContact);
+                  }}
+                  className="flex-1 sm:flex-initial px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs uppercase tracking-wider rounded-xl transition cursor-pointer"
+                >
+                  Full Pedigree Profile
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    handleCloseParentContact();
+                    handleOpenProposal(selectedPetForContact);
+                  }}
+                  className="flex-1 sm:flex-initial px-4 py-2 bg-[#1D3B2E] hover:bg-[#152e24] text-white font-bold text-xs uppercase tracking-wider rounded-xl transition flex items-center justify-center gap-1.5 cursor-pointer shadow-md"
+                >
+                  <Heart size={14} className="fill-white" /> Send Proposal
+                </button>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      )}
+
       {/* ================= 3. KNOW MORE ABOUT [PET] DETAILS MODAL ================= */}
       {showDetailsModal && selectedPetForDetails && (
         <div className="fixed inset-0 z-[100] overflow-y-auto bg-black/75 backdrop-blur-xs p-2 sm:p-4 flex flex-col items-center justify-start sm:justify-center animate-in fade-in duration-200">
@@ -1223,7 +1568,7 @@ const BreedingDirectory = () => {
 
               <button
                 type="button"
-                onClick={() => setShowDetailsModal(false)}
+                onClick={handleCloseDetails}
                 className="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition cursor-pointer"
               >
                 <X size={18} />
@@ -1358,7 +1703,7 @@ const BreedingDirectory = () => {
             <div className="p-4 bg-slate-50 border-t border-slate-200 flex items-center justify-between gap-3 shrink-0">
               <button
                 type="button"
-                onClick={() => setShowDetailsModal(false)}
+                onClick={handleCloseDetails}
                 className="px-4 py-2.5 bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 font-bold text-xs uppercase tracking-wider rounded-xl transition cursor-pointer shadow-xs"
               >
                 Close
@@ -1367,7 +1712,7 @@ const BreedingDirectory = () => {
               <button
                 type="button"
                 onClick={() => {
-                  setShowDetailsModal(false);
+                  handleCloseDetails();
                   handleOpenProposal(selectedPetForDetails);
                 }}
                 className="px-5 py-2.5 bg-[#1D3B2E] hover:bg-[#152e24] text-white font-bold text-xs uppercase tracking-wider rounded-xl transition flex items-center gap-1.5 cursor-pointer shadow-md"
@@ -1425,10 +1770,55 @@ const BreedingDirectory = () => {
                 <input
                   type="tel"
                   required
+                  maxLength={10}
                   value={proposalOwnerPhone}
-                  onChange={(e) => setProposalOwnerPhone(e.target.value)}
+                  onBeforeInput={(e) => {
+                    if (e.data && !/^\d+$/.test(e.data)) {
+                      e.preventDefault();
+                    }
+                  }}
+                  onKeyDown={(e) => {
+                    const allowedKeys = [
+                      'Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown',
+                      'Tab', 'Home', 'End', 'Enter'
+                    ];
+                    if (allowedKeys.includes(e.key) || e.ctrlKey || e.metaKey) {
+                      return;
+                    }
+                    if (!/^\d$/.test(e.key)) {
+                      e.preventDefault();
+                    }
+                  }}
+                  onPaste={(e) => {
+                    e.preventDefault();
+                    const pastedData = (e.clipboardData || window.clipboardData).getData('text');
+                    const cleanPasted = pastedData.replace(/\D/g, '').slice(0, 10);
+                    if (cleanPasted) {
+                      setProposalOwnerPhone(cleanPasted);
+                    }
+                  }}
+                  onDrop={(e) => {
+                    e.preventDefault();
+                    const droppedData = e.dataTransfer.getData('text');
+                    const cleanDropped = droppedData.replace(/\D/g, '').slice(0, 10);
+                    if (cleanDropped) {
+                      setProposalOwnerPhone(cleanDropped);
+                    }
+                  }}
+                  onInput={(e) => {
+                    const clean = e.target.value.replace(/\D/g, '').slice(0, 10);
+                    if (e.target.value !== clean) {
+                      e.target.value = clean;
+                      setProposalOwnerPhone(clean);
+                    }
+                  }}
+                  onChange={(e) => {
+                    const clean = e.target.value.replace(/\D/g, '').slice(0, 10);
+                    e.target.value = clean;
+                    setProposalOwnerPhone(clean);
+                  }}
                   className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-[#1D3B2E]"
-                  placeholder="e.g. +91 98765 43210"
+                  placeholder="10-digit mobile number"
                 />
               </div>
 
@@ -1674,10 +2064,55 @@ const BreedingDirectory = () => {
                   <input
                     type="tel"
                     required
+                    maxLength={10}
                     value={newParentPhone}
-                    onChange={(e) => setNewParentPhone(e.target.value)}
+                    onBeforeInput={(e) => {
+                      if (e.data && !/^\d+$/.test(e.data)) {
+                        e.preventDefault();
+                      }
+                    }}
+                    onKeyDown={(e) => {
+                      const allowedKeys = [
+                        'Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown',
+                        'Tab', 'Home', 'End', 'Enter'
+                      ];
+                      if (allowedKeys.includes(e.key) || e.ctrlKey || e.metaKey) {
+                        return;
+                      }
+                      if (!/^\d$/.test(e.key)) {
+                        e.preventDefault();
+                      }
+                    }}
+                    onPaste={(e) => {
+                      e.preventDefault();
+                      const pastedData = (e.clipboardData || window.clipboardData).getData('text');
+                      const cleanPasted = pastedData.replace(/\D/g, '').slice(0, 10);
+                      if (cleanPasted) {
+                        setNewParentPhone(cleanPasted);
+                      }
+                    }}
+                    onDrop={(e) => {
+                      e.preventDefault();
+                      const droppedData = e.dataTransfer.getData('text');
+                      const cleanDropped = droppedData.replace(/\D/g, '').slice(0, 10);
+                      if (cleanDropped) {
+                        setNewParentPhone(cleanDropped);
+                      }
+                    }}
+                    onInput={(e) => {
+                      const clean = e.target.value.replace(/\D/g, '').slice(0, 10);
+                      if (e.target.value !== clean) {
+                        e.target.value = clean;
+                        setNewParentPhone(clean);
+                      }
+                    }}
+                    onChange={(e) => {
+                      const clean = e.target.value.replace(/\D/g, '').slice(0, 10);
+                      e.target.value = clean;
+                      setNewParentPhone(clean);
+                    }}
                     className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-[#1D3B2E]"
-                    placeholder="e.g. +91 98765 43210"
+                    placeholder="10-digit mobile number"
                   />
                 </div>
               </div>

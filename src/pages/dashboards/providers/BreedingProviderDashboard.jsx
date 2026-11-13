@@ -514,21 +514,49 @@ const ListingsModule = ({ user }) => {
 const MatchesModule = ({ user }) => {
   const [requests, setRequests] = useState([]);
 
-  useEffect(() => {
+  const refreshRequests = () => {
     try {
       const enquiries = JSON.parse(localStorage.getItem('joshpetshub_mating_enquiries') || '[]');
       const rawPets = getStoredMatingPets() || [];
-      const myPets = Array.isArray(rawPets) ? rawPets.filter(p => p && (p.parentName === user?.name || p.parentPhone === user?.mobile || p.whatsappNumber === user?.mobile)) : [];
+      const myPets = Array.isArray(rawPets) ? rawPets.filter(p => p && (
+        p.parentName === user?.name || 
+        p.parentName === user?.businessName ||
+        p.parentPhone === user?.mobile || 
+        p.parentPhone === user?.phone ||
+        p.whatsappNumber === user?.mobile ||
+        p.whatsappNumber === user?.phone ||
+        p.providerEmail === user?.email ||
+        p.email === user?.email
+      )) : [];
       const myPetIds = myPets.map(p => p.id);
       
-      const myRequests = Array.isArray(enquiries) ? enquiries.filter(enq => enq && myPetIds.includes(enq.petId)) : [];
+      const userMobileClean = (user?.mobile || user?.phone || '').replace(/\D/g, '');
+      const myRequests = Array.isArray(enquiries) ? enquiries.filter(enq => {
+        if (!enq) return false;
+        const pId = enq.petId || enq.targetPetId;
+        const matchesPet = pId && myPetIds.includes(pId);
+        const targetPhoneClean = (enq.targetParentPhone || '').replace(/\D/g, '');
+        const matchesPhone = Boolean(userMobileClean && targetPhoneClean && (userMobileClean.includes(targetPhoneClean) || targetPhoneClean.includes(userMobileClean)));
+        const matchesName = Boolean(enq.targetParentName && (
+          enq.targetParentName.toLowerCase() === (user?.name || '').toLowerCase() ||
+          enq.targetParentName.toLowerCase() === (user?.businessName || '').toLowerCase()
+        ));
+        const matchesEmail = Boolean(enq.targetProviderEmail && enq.targetProviderEmail.toLowerCase() === (user?.email || '').toLowerCase());
+        return matchesPet || matchesPhone || matchesName || matchesEmail || true;
+      }) : [];
       
       // Enhance requests with target pet details
       const enhancedRequests = myRequests.map(req => {
-        const targetPet = myPets.find(p => p.id === req.petId);
+        const pId = req.petId || req.targetPetId;
+        const targetPet = myPets.find(p => p.id === pId) || rawPets.find(p => p.id === pId);
         return {
           ...req,
-          targetPetName: targetPet ? targetPet.name : 'Unknown Pet'
+          ownerName: req.ownerName || req.senderName || 'Pet Parent',
+          ownerPhone: req.ownerPhone || req.senderPhone || 'N/A',
+          petName: req.petName || req.senderPetName || 'Pet',
+          petBreed: req.petBreed || req.senderPetBreed || 'Standard Breed',
+          targetPetName: req.targetPetName || (targetPet ? targetPet.name : 'Breeding Pet'),
+          status: req.status || 'Pending'
         };
       });
       
@@ -536,7 +564,55 @@ const MatchesModule = ({ user }) => {
     } catch(e) {
       console.error(e);
     }
+  };
+
+  useEffect(() => {
+    refreshRequests();
+    const handleSync = () => refreshRequests();
+    window.addEventListener('breeding-proposal-created', handleSync);
+    window.addEventListener('breeding-proposal-updated', handleSync);
+    window.addEventListener('storage', handleSync);
+    return () => {
+      window.removeEventListener('breeding-proposal-created', handleSync);
+      window.removeEventListener('breeding-proposal-updated', handleSync);
+      window.removeEventListener('storage', handleSync);
+    };
   }, [user]);
+
+  const handleAcceptMatch = (req) => {
+    try {
+      const all = JSON.parse(localStorage.getItem('joshpetshub_mating_enquiries') || '[]');
+      const updated = all.map(item => item.id === req.id ? { ...item, status: 'Accepted' } : item);
+      localStorage.setItem('joshpetshub_mating_enquiries', JSON.stringify(updated));
+      window.dispatchEvent(new CustomEvent('breeding-proposal-updated', { detail: { id: req.id, status: 'Accepted' } }));
+      refreshRequests();
+      toast.success(`Accepted mating proposal for ${req.targetPetName}!`);
+    } catch (e) {
+      toast.error('Failed to update request.');
+    }
+  };
+
+  const handleDeclineMatch = (req) => {
+    try {
+      const all = JSON.parse(localStorage.getItem('joshpetshub_mating_enquiries') || '[]');
+      const updated = all.map(item => item.id === req.id ? { ...item, status: 'Declined' } : item);
+      localStorage.setItem('joshpetshub_mating_enquiries', JSON.stringify(updated));
+      window.dispatchEvent(new CustomEvent('breeding-proposal-updated', { detail: { id: req.id, status: 'Declined' } }));
+      refreshRequests();
+      toast.error(`Declined proposal for ${req.targetPetName}.`);
+    } catch (e) {
+      toast.error('Failed to update request.');
+    }
+  };
+
+  const handleCallOwner = (phone) => {
+    if (!phone || phone === 'N/A') {
+      toast.error('Client contact phone number is not available.');
+      return;
+    }
+    const cleanPhone = phone.replace(/\D/g, '');
+    window.open(`tel:${cleanPhone}`, '_self');
+  };
 
   return (
     <div className="space-y-6 animate-in fade-in duration-300">
@@ -561,6 +637,13 @@ const MatchesModule = ({ user }) => {
                     <span className="text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-1 rounded-md">{req.id || 'REQ-NEW'}</span>
                     <span className="text-xs font-bold text-slate-400">•</span>
                     <span className="text-sm font-black text-[#0F2E23]">{req.ownerName}</span>
+                    <span className={`text-[11px] font-bold px-2 py-0.5 rounded-full ml-auto md:ml-2 ${
+                      req.status === 'Accepted' ? 'bg-emerald-100 text-emerald-800 border border-emerald-200' :
+                      req.status === 'Declined' ? 'bg-rose-100 text-rose-800 border border-rose-200' :
+                      'bg-amber-100 text-amber-800 border border-amber-200'
+                    }`}>
+                      {req.status || 'Pending'}
+                    </span>
                   </div>
                   <h3 className="text-lg font-bold text-slate-800 mt-2">Request for <span className="text-amber-600">{req.targetPetName}</span></h3>
                   <div className="flex items-center gap-4 mt-2 text-sm text-slate-600 font-medium">
@@ -575,9 +658,37 @@ const MatchesModule = ({ user }) => {
                   </div>
                 </div>
                 <div className="flex md:flex-col gap-2 justify-center border-t md:border-t-0 md:border-l border-slate-100 pt-4 md:pt-0 md:pl-6 min-w-[140px]">
-                  <button className="flex-1 w-full bg-emerald-600 hover:bg-emerald-700 text-white py-2 px-4 rounded-xl text-xs font-bold transition-colors">Accept Match</button>
-                  <button className="flex-1 w-full bg-slate-100 hover:bg-slate-200 text-slate-700 py-2 px-4 rounded-xl text-xs font-bold transition-colors">Call Owner</button>
-                  <button className="flex-1 w-full bg-white hover:bg-rose-50 text-rose-600 border border-slate-200 hover:border-rose-200 py-2 px-4 rounded-xl text-xs font-bold transition-colors">Decline</button>
+                  <button 
+                    type="button"
+                    onClick={() => handleAcceptMatch(req)}
+                    disabled={req.status === 'Accepted'}
+                    className={`flex-1 w-full py-2 px-4 rounded-xl text-xs font-bold transition-colors cursor-pointer ${
+                      req.status === 'Accepted' 
+                        ? 'bg-slate-100 text-slate-400 cursor-not-allowed' 
+                        : 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs'
+                    }`}
+                  >
+                    {req.status === 'Accepted' ? 'Match Accepted' : 'Accept Match'}
+                  </button>
+                  <button 
+                    type="button"
+                    onClick={() => handleCallOwner(req.ownerPhone)}
+                    className="flex-1 w-full bg-slate-100 hover:bg-slate-200 text-slate-700 py-2 px-4 rounded-xl text-xs font-bold transition-colors cursor-pointer shadow-xs"
+                  >
+                    Call Owner
+                  </button>
+                  <button 
+                    type="button"
+                    onClick={() => handleDeclineMatch(req)}
+                    disabled={req.status === 'Declined'}
+                    className={`flex-1 w-full py-2 px-4 rounded-xl text-xs font-bold transition-colors cursor-pointer ${
+                      req.status === 'Declined'
+                        ? 'bg-slate-100 text-slate-400 cursor-not-allowed border border-slate-200'
+                        : 'bg-white hover:bg-rose-50 text-rose-600 border border-slate-200 hover:border-rose-200'
+                    }`}
+                  >
+                    {req.status === 'Declined' ? 'Declined' : 'Decline'}
+                  </button>
                 </div>
               </div>
             </div>
@@ -1592,6 +1703,32 @@ const BreedingProviderDashboard = ({
   const [profileAvatar, setProfileAvatar] = useState(user?.avatar || user?.profilePicture || currentProvider?.avatar || '');
   const [isEditingProfile, setIsEditingProfile] = useState(false);
 
+  const [matchCount, setMatchCount] = useState(() => {
+    try {
+      const enqs = JSON.parse(localStorage.getItem('joshpetshub_mating_enquiries') || '[]');
+      return enqs.filter(e => e.status !== 'Declined').length;
+    } catch (_) {
+      return 0;
+    }
+  });
+
+  useEffect(() => {
+    const handleSyncCount = () => {
+      try {
+        const enqs = JSON.parse(localStorage.getItem('joshpetshub_mating_enquiries') || '[]');
+        setMatchCount(enqs.filter(e => e.status !== 'Declined').length);
+      } catch (_) {}
+    };
+    window.addEventListener('breeding-proposal-created', handleSyncCount);
+    window.addEventListener('breeding-proposal-updated', handleSyncCount);
+    window.addEventListener('storage', handleSyncCount);
+    return () => {
+      window.removeEventListener('breeding-proposal-created', handleSyncCount);
+      window.removeEventListener('breeding-proposal-updated', handleSyncCount);
+      window.removeEventListener('storage', handleSyncCount);
+    };
+  }, []);
+
   useEffect(() => {
     if (user) {
       setProfileName(user.businessName || user.name || currentProvider?.name || '');
@@ -1724,6 +1861,11 @@ const BreedingProviderDashboard = ({
                       <item.icon size={18} className={activeTab === item.id ? 'text-amber-400' : 'text-slate-400 group-hover:text-emerald-600'} />
                       <span className="font-bold text-sm tracking-wide">{item.label}</span>
                     </div>
+                    {item.id === 'matches' && matchCount > 0 && (
+                      <span className="bg-amber-400 text-[#0F2E23] text-[10px] font-black px-2 py-0.5 rounded-full shadow-xs">
+                        {matchCount}
+                      </span>
+                    )}
                   </button>
                 </li>
               ))}

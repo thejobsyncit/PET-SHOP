@@ -2,6 +2,8 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { supabase } from '../config/supabase.js';
+import { clearProductCache } from './productController.js';
+import { syncProductDiskReviewStats, getReviewStatsForProduct } from '../services/reviewStatsService.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -282,7 +284,21 @@ export const createReview = async (req, res) => {
     currentReviews.unshift(newReview);
     saveReviews(currentReviews);
 
-    res.status(201).json({ success: true, review: newReview });
+    // 3. Invalidate product cache & synchronize disk review counts
+    try {
+      clearProductCache();
+      syncProductDiskReviewStats();
+    } catch (_) {}
+
+    // 4. Calculate accurate fresh stats for the product
+    const stats = getReviewStatsForProduct(resolvedId || targetIdentifier, resolvedSlug);
+
+    res.status(201).json({ 
+      success: true, 
+      review: newReview,
+      reviewCount: stats.reviewCount,
+      rating: stats.rating
+    });
   } catch (error) {
     console.error('[ReviewController] createReview error:', error);
     res.status(500).json({ success: false, message: error.message });

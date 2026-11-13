@@ -12,6 +12,7 @@ import {
   UserCheck,
   CheckCircle2,
   RefreshCw,
+  TrendingUp,
   Edit3,
   Calendar,
   ArrowRight,
@@ -192,6 +193,10 @@ const ServiceProviderDashboard = (props) => {
   const daysRemaining = expiryDate
     ? Math.max(0, Math.ceil((expiryDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)))
     : 0;
+
+  const renewalWindowDays = subscription?.planId === 'monthly' ? 7 : 30;
+  const isDashboardNearRenewal = isSubscriptionActive && daysRemaining <= renewalWindowDays;
+  const hasDashboardUpgradeOptions = isSubscriptionActive && (subscription?.planId === 'monthly' || subscription?.planId === 'quarterly');
 
   // Safe defaults for provider props
   const defaultProvider = {
@@ -1374,18 +1379,25 @@ const ServiceProviderDashboard = (props) => {
               >
                 Close
               </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setShowPlanDetailsModal(false);
-                  setIsRenewalModal(true);
-                  setShowSubscriptionModal(true);
-                }}
-                className="bg-[#0F2E23] hover:bg-[#1D3B2E] text-white px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer flex items-center gap-1.5 shadow-sm"
-              >
-                <RefreshCw size={13} />
-                <span>Renew / Switch Plan</span>
-              </button>
+              {!hasDashboardUpgradeOptions && !isDashboardNearRenewal ? (
+                <div className="bg-emerald-100 text-emerald-900 border border-emerald-300 px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5">
+                  <ShieldCheck size={13} className="text-emerald-700" />
+                  <span>Yearly Plan Active ({daysRemaining}d left)</span>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowPlanDetailsModal(false);
+                    setIsRenewalModal(isDashboardNearRenewal);
+                    setShowSubscriptionModal(true);
+                  }}
+                  className="bg-[#0F2E23] hover:bg-[#1D3B2E] text-white px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer flex items-center gap-1.5 shadow-sm"
+                >
+                  {isDashboardNearRenewal ? <RefreshCw size={13} /> : <TrendingUp size={13} />}
+                  <span>{isDashboardNearRenewal ? (hasDashboardUpgradeOptions ? 'Renew / Upgrade Plan' : 'Renew Plan') : 'Upgrade Plan'}</span>
+                </button>
+              )}
             </div>
           </div>
         </div>
@@ -1399,6 +1411,7 @@ const ServiceProviderDashboard = (props) => {
         onSubscriptionSuccess={handleSubscriptionSuccess}
         isRenewal={isRenewalModal}
         currentSubscription={subscription}
+        onOpenPlanDetails={() => setShowPlanDetailsModal(true)}
       />
     </div>
   );

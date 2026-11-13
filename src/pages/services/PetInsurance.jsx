@@ -223,7 +223,9 @@ const PetInsurance = () => {
   const [microchipNumber, setMicrochipNumber] = useState('');
   const [hasPreExisting, setHasPreExisting] = useState('No');
   const [ownerName, setOwnerName] = useState(user?.name || '');
-  const [ownerPhone, setOwnerPhone] = useState(user?.mobile || '');
+  const [ownerPhone, setOwnerPhone] = useState(() => 
+    (user?.mobile || user?.phone || '').toString().replace(/\D/g, '').slice(0, 10)
+  );
   const [ownerEmail, setOwnerEmail] = useState(user?.email || '');
   const [ownerCity, setOwnerCity] = useState(user?.city || 'Bangalore');
   const [ownerState, setOwnerState] = useState(user?.state || 'Karnataka');
@@ -253,11 +255,14 @@ const PetInsurance = () => {
   // Sync owner info when user logs in/registers
   useEffect(() => {
     if (user) {
-      if (user.name) setOwnerName(user.name);
-      if (user.mobile || user.phone) setOwnerPhone(user.mobile || user.phone);
-      if (user.email) setOwnerEmail(user.email);
-      if (user.city) setOwnerCity(user.city);
-      if (user.state) setOwnerState(user.state);
+      if (user.name) setOwnerName((prev) => prev || user.name);
+      if (user.mobile || user.phone) {
+        const clean = (user.mobile || user.phone || '').toString().replace(/\D/g, '').slice(0, 10);
+        setOwnerPhone((prev) => prev || clean);
+      }
+      if (user.email) setOwnerEmail((prev) => prev || user.email);
+      if (user.city) setOwnerCity((prev) => prev || user.city);
+      if (user.state) setOwnerState((prev) => prev || user.state);
     }
   }, [user]);
 
@@ -579,11 +584,22 @@ const PetInsurance = () => {
 
   // Open Application & Package Access Modal
   const handleOpenApplyModal = (provider) => {
+    if (!provider) return;
+    setSelectedProviderForApply(provider);
+    setSubmittedApplication(null);
+    if (!ownerPhone && (user?.mobile || user?.phone)) {
+      setOwnerPhone((user.mobile || user.phone || '').toString().replace(/\D/g, '').slice(0, 10));
+    }
     handleServiceAction({
       isAuthenticated,
       serviceType: 'Insurance',
       provider,
-      action: 'book'
+      action: 'book',
+      onAuthorized: () => {
+        setSelectedProviderForApply(provider);
+        setShowDetailsModal(false);
+        setShowApplyModal(true);
+      }
     });
   };
 
@@ -596,8 +612,18 @@ const PetInsurance = () => {
   // Submit Policy Application
   const handleApplySubmit = (e) => {
     e.preventDefault();
-    if (!petName || !ownerName || !ownerPhone) {
+    if (!petName.trim() || !ownerName.trim() || !ownerPhone.trim()) {
       toast.error('Please fill in Pet Name, Guardian Name, and Mobile Number.');
+      return;
+    }
+
+    const cleanPhone = ownerPhone.replace(/\D/g, '');
+    if (!cleanPhone) {
+      toast.error('Please provide a contact mobile number.');
+      return;
+    }
+    if (cleanPhone.length !== 10) {
+      toast.error('Please enter a valid 10-digit mobile number.');
       return;
     }
 
@@ -630,7 +656,7 @@ const PetInsurance = () => {
       },
       guardianDetails: {
         name: ownerName,
-        phone: ownerPhone,
+        phone: cleanPhone,
         email: ownerEmail,
         city: ownerCity,
         state: ownerState
@@ -1886,13 +1912,59 @@ const PetInsurance = () => {
                         />
                       </div>
                       <div>
-                        <label className="block text-[10px] font-medium text-slate-600 mb-1">Mobile Number *</label>
+                        <div className="flex items-center justify-between mb-1">
+                          <label className="block text-[10px] font-medium text-slate-600">Mobile Number *</label>
+                          <span className="text-[10px] text-gray-400 font-medium">{ownerPhone.length}/10</span>
+                        </div>
                         <input
                           type="tel"
+                          inputMode="numeric"
                           required
-                          placeholder="+91 98765 43210"
+                          maxLength={10}
+                          pattern="[0-9]{10}"
+                          placeholder="10-digit mobile number"
                           value={ownerPhone}
-                          onChange={(e) => setOwnerPhone(e.target.value)}
+                          onBeforeInput={(e) => {
+                            if (e.data && !/^\d+$/.test(e.data)) {
+                              e.preventDefault();
+                            }
+                          }}
+                          onKeyDown={(e) => {
+                            if (
+                              ['Backspace', 'Delete', 'Tab', 'Escape', 'Enter', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Home', 'End'].includes(e.key) ||
+                              (e.ctrlKey || e.metaKey)
+                            ) {
+                              return;
+                            }
+                            if (!/^[0-9]$/.test(e.key)) {
+                              e.preventDefault();
+                            }
+                          }}
+                          onPaste={(e) => {
+                            e.preventDefault();
+                            const pasted = (e.clipboardData || window.clipboardData)?.getData('text') || '';
+                            const clean = pasted.replace(/\D/g, '').slice(0, 10);
+                            e.target.value = clean;
+                            setOwnerPhone(clean);
+                          }}
+                          onDrop={(e) => {
+                            e.preventDefault();
+                            const dropped = e.dataTransfer?.getData('text') || '';
+                            const clean = dropped.replace(/\D/g, '').slice(0, 10);
+                            e.target.value = clean;
+                            setOwnerPhone(clean);
+                          }}
+                          onInput={(e) => {
+                            const clean = e.target.value.replace(/\D/g, '').slice(0, 10);
+                            if (e.target.value !== clean) {
+                              e.target.value = clean;
+                            }
+                          }}
+                          onChange={(e) => {
+                            const clean = e.target.value.replace(/\D/g, '').slice(0, 10);
+                            e.target.value = clean;
+                            setOwnerPhone(clean);
+                          }}
                           className="w-full p-2 bg-gray-50 border border-gray-200 focus:outline-none focus:border-primary text-xs"
                         />
                       </div>

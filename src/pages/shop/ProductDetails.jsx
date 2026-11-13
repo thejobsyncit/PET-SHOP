@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { ChevronRight, ShoppingBag, Heart, Star, ShieldAlert, Award, ArrowRight, ClipboardList, Plus, Minus, Check, MessageSquare, Share2 } from 'lucide-react';
-import { fetchProductDetail, fetchProducts, clearProductDetail } from '../../store/slices/productSlice.js';
+import { fetchProductDetail, fetchProducts, clearProductDetail, updateProductReviewStats } from '../../store/slices/productSlice.js';
 import { addToCartAPI } from '../../store/slices/cartSlice.js';
 import { toggleWishlistAPI, getWishlistItemIdStr } from '../../store/slices/wishlistSlice.js';
 import { openAuthModal } from '../../store/slices/authSlice.js';
@@ -130,6 +130,19 @@ const ProductDetails = () => {
           try {
             const cacheKey = `product_reviews_${slug || target}`;
             localStorage.setItem(cacheKey, JSON.stringify(merged.slice(0, 50)));
+          } catch (_) {}
+
+          // Synchronize confirmed review count and average rating with Redux store
+          try {
+            const avgRating = merged.length > 0
+              ? Number((merged.reduce((s, r) => s + (Number(r.rating) || 5), 0) / merged.length).toFixed(1))
+              : 0;
+            dispatch(updateProductReviewStats({
+              productId: target,
+              productSlug: slug,
+              reviewCount: merged.length,
+              rating: avgRating
+            }));
           } catch (_) {}
 
           return merged;
@@ -336,17 +349,28 @@ const ProductDetails = () => {
         
         // Optimistically / immediately prepend the review so it appears in Customer Reviews with zero delay
         if (data.review) {
-          setReviews(prev => [
+          const updatedList = [
             data.review,
-            ...prev.filter(r => (r._id || r.id) !== (data.review._id || data.review.id))
-          ]);
+            ...reviews.filter(r => (r._id || r.id) !== (data.review._id || data.review.id))
+          ];
+          setReviews(updatedList);
 
           try {
             const cacheKey = `product_reviews_${currentSlug || currentTargetId}`;
-            const existing = JSON.parse(localStorage.getItem(cacheKey) || '[]');
-            const updated = [data.review, ...existing.filter(r => (r._id || r.id) !== (data.review._id || data.review.id))];
-            localStorage.setItem(cacheKey, JSON.stringify(updated.slice(0, 50)));
+            localStorage.setItem(cacheKey, JSON.stringify(updatedList.slice(0, 50)));
           } catch (_) {}
+
+          const newCount = typeof data.reviewCount === 'number' ? data.reviewCount : updatedList.length;
+          const newAvgRating = typeof data.rating === 'number'
+            ? data.rating
+            : Number((updatedList.reduce((s, r) => s + (Number(r.rating) || 5), 0) / updatedList.length).toFixed(1));
+
+          dispatch(updateProductReviewStats({
+            productId: currentTargetId,
+            productSlug: currentSlug,
+            reviewCount: newCount,
+            rating: newAvgRating
+          }));
         }
 
         // Background reload from server to sync canonical state without flashing loading UI
@@ -408,6 +432,18 @@ const ProductDetails = () => {
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   };
+
+  const effectiveReviewCount = reviews.length > 0
+    ? reviews.length
+    : (typeof product?.reviewCount === 'number'
+        ? product.reviewCount
+        : (typeof product?.review_count === 'number'
+            ? product.review_count
+            : (Array.isArray(product?.reviews) ? product.reviews.length : 0)));
+
+  const effectiveRating = reviews.length > 0
+    ? Number((reviews.reduce((acc, r) => acc + (Number(r.rating) || 5), 0) / reviews.length).toFixed(1))
+    : Number(product?.rating !== undefined ? product.rating : (product?.ratings !== undefined ? product.ratings : 0)) || 0;
 
   return (
     <div className="pb-20 space-y-16">
@@ -484,8 +520,10 @@ const ProductDetails = () => {
                 </h1>
                 
                 <div className="flex items-center gap-2 mt-2">
-                  <RatingStars rating={product.rating} size={14} />
-                  <span className="text-xs text-gray-500 font-medium">({reviews.length} customer reviews)</span>
+                  <RatingStars rating={effectiveRating} size={14} />
+                  <span className="text-xs text-gray-500 font-medium">
+                    ({effectiveReviewCount} {effectiveReviewCount === 1 ? 'customer review' : 'customer reviews'})
+                  </span>
                 </div>
               </div>
 
@@ -826,7 +864,9 @@ const ProductDetails = () => {
           
           {/* Reviews list column */}
           <div className="lg:col-span-2 space-y-6">
-            <h2 className="font-serif text-lg font-bold text-primary">Customer Reviews</h2>
+            <h2 className="font-serif text-lg font-bold text-primary">
+              Customer Reviews {effectiveReviewCount > 0 && <span className="text-sm font-normal text-gray-400 font-sans">({effectiveReviewCount})</span>}
+            </h2>
             
             {reviewsLoading && reviews.length === 0 ? (
               <p className="text-xs text-gray-400">Loading reviews...</p>

@@ -93,14 +93,18 @@ const PetTraining = () => {
   const [bookingPetBreed, setBookingPetBreed] = useState('');
   const [bookingPetAge, setBookingPetAge] = useState('');
   const [bookingAddress, setBookingAddress] = useState('');
-  const [bookingOwnerPhone, setBookingOwnerPhone] = useState('');
+  const [bookingOwnerPhone, setBookingOwnerPhone] = useState(() => 
+    (user?.mobile || user?.phone || '').toString().replace(/\D/g, '').slice(0, 10)
+  );
   const [bookingBehaviorNotes, setBookingBehaviorNotes] = useState('');
 
   // Per-Provider Enquiry Modal
   const [showEnquiryModal, setShowEnquiryModal] = useState(false);
   const [selectedProviderForEnquiry, setSelectedProviderForEnquiry] = useState(null);
   const [enqFullName, setEnqFullName] = useState(user?.name || '');
-  const [enqPhone, setEnqPhone] = useState(user?.phone || '');
+  const [enqPhone, setEnqPhone] = useState(() => 
+    (user?.mobile || user?.phone || '').toString().replace(/\D/g, '').slice(0, 10)
+  );
   const [enqEmail, setEnqEmail] = useState(user?.email || '');
   const [enqCity, setEnqCity] = useState('');
   const [enqPetBreed, setEnqPetBreed] = useState('');
@@ -109,14 +113,33 @@ const PetTraining = () => {
   const [enqNotes, setEnqNotes] = useState('');
 
   // Global Bottom Enquiry Form
-  const [bottomFullName, setBottomFullName] = useState('');
-  const [bottomPhone, setBottomPhone] = useState('');
+  const [bottomFullName, setBottomFullName] = useState(user?.name || '');
+  const [bottomPhone, setBottomPhone] = useState(() => 
+    (user?.mobile || user?.phone || '').toString().replace(/\D/g, '').slice(0, 10)
+  );
   const [bottomCity, setBottomCity] = useState('');
   const [bottomPetSpecies, setBottomPetSpecies] = useState('Dog');
   const [bottomPetBreed, setBottomPetBreed] = useState('');
   const [bottomTrainingType, setBottomTrainingType] = useState('Puppy Socialization & Potty Basics');
   const [bottomPreferredSlot, setBottomPreferredSlot] = useState('Weekend Morning');
   const [bottomNotes, setBottomNotes] = useState('');
+
+  // Sync phone and profile info when user changes
+  useEffect(() => {
+    if (user?.mobile || user?.phone) {
+      const clean = (user.mobile || user.phone || '').toString().replace(/\D/g, '').slice(0, 10);
+      setBookingOwnerPhone((prev) => prev || clean);
+      setEnqPhone((prev) => prev || clean);
+      setBottomPhone((prev) => prev || clean);
+    }
+    if (user?.name) {
+      setEnqFullName((prev) => prev || user.name);
+      setBottomFullName((prev) => prev || user.name);
+    }
+    if (user?.email) {
+      setEnqEmail((prev) => prev || user.email);
+    }
+  }, [user]);
 
   // Load Providers on Mount & Realtime Sync
   useEffect(() => {
@@ -231,6 +254,9 @@ const PetTraining = () => {
   const handleOpenBookingModal = (provider, pkg = null) => {
     setSelectedProviderForBooking(provider);
     if (pkg) setSelectedPackage(pkg);
+    if (!bookingOwnerPhone && (user?.mobile || user?.phone)) {
+      setBookingOwnerPhone((user.mobile || user.phone || '').toString().replace(/\D/g, '').slice(0, 10));
+    }
     handleServiceAction({
       isAuthenticated,
       serviceType: 'Training',
@@ -255,8 +281,13 @@ const PetTraining = () => {
       toast.error('Please enter your pet name and breed.');
       return;
     }
-    if (!bookingOwnerPhone.trim()) {
+    const cleanPhone = bookingOwnerPhone.replace(/\D/g, '');
+    if (!cleanPhone) {
       toast.error('Please provide a contact phone number.');
+      return;
+    }
+    if (cleanPhone.length !== 10) {
+      toast.error('Please enter a valid 10-digit mobile number.');
       return;
     }
 
@@ -289,8 +320,8 @@ const PetTraining = () => {
       location: bookingAddress || `${selectedProviderForBooking.area || ''}, ${selectedProviderForBooking.city || ''}`,
       customerName: user?.name || 'Pet Parent',
       ownerName: user?.name || 'Pet Parent',
-      customerPhone: bookingOwnerPhone,
-      ownerPhone: bookingOwnerPhone,
+      customerPhone: cleanPhone,
+      ownerPhone: cleanPhone,
       customerEmail: user?.email || '',
       ownerEmail: user?.email || '',
       userId: user?._id || user?.id || '',
@@ -313,7 +344,7 @@ const PetTraining = () => {
       date: bookingDate,
       timeSlot: bookingTimeSlot,
       ownerName: user?.name || 'Pet Parent',
-      ownerPhone: bookingOwnerPhone,
+      ownerPhone: cleanPhone,
       ownerEmail: user?.email || '',
       petDetails: {
         name: bookingPetName,
@@ -341,8 +372,17 @@ const PetTraining = () => {
   // Submit Provider Enquiry
   const handleSubmitProviderEnquiry = (e) => {
     e.preventDefault();
-    if (!enqPhone.trim() || !enqFullName.trim()) {
-      toast.error('Please provide your name and contact phone number.');
+    if (!enqFullName.trim()) {
+      toast.error('Please provide your name.');
+      return;
+    }
+    const cleanPhone = enqPhone.replace(/\D/g, '');
+    if (!cleanPhone) {
+      toast.error('Please provide your contact phone number.');
+      return;
+    }
+    if (cleanPhone.length !== 10) {
+      toast.error('Please enter a valid 10-digit mobile number.');
       return;
     }
     if (!enqPetBreed.trim()) {
@@ -356,7 +396,7 @@ const PetTraining = () => {
       userId: user?._id || user?.id || 'usr-custom',
       userName: enqFullName,
       userEmail: enqEmail,
-      userPhone: enqPhone,
+      userPhone: cleanPhone,
       city: enqCity,
       petBreed: enqPetBreed,
       petAge: enqPetAge,
@@ -375,8 +415,17 @@ const PetTraining = () => {
   // Submit Global Bottom Enquiry
   const handleSubmitBottomEnquiry = (e) => {
     e.preventDefault();
-    if (!bottomPhone.trim() || !bottomFullName.trim()) {
-      toast.error('Please provide your name and phone number.');
+    if (!bottomFullName.trim()) {
+      toast.error('Please provide your name.');
+      return;
+    }
+    const cleanPhone = bottomPhone.replace(/\D/g, '');
+    if (!cleanPhone) {
+      toast.error('Please provide your contact mobile number.');
+      return;
+    }
+    if (cleanPhone.length !== 10) {
+      toast.error('Please enter a valid 10-digit mobile number.');
       return;
     }
 
@@ -393,7 +442,7 @@ const PetTraining = () => {
       providerName: 'Josh Pets Hub Central Dog Training Network',
       userId: user?._id || user?.id || 'usr-custom',
       userName: bottomFullName,
-      userPhone: bottomPhone,
+      userPhone: cleanPhone,
       city: bottomCity,
       petSpecies: bottomPetSpecies,
       petBreed: bottomPetBreed,
@@ -1121,13 +1170,59 @@ const PetTraining = () => {
               </div>
 
               <div>
-                <label className="block text-[10px] font-bold uppercase text-gray-500 mb-1">Phone Number (WhatsApp) *</label>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="block text-[10px] font-bold uppercase text-gray-500">Mobile Number *</label>
+                  <span className="text-[10px] text-gray-400 font-medium">{bottomPhone.length}/10</span>
+                </div>
                 <input
                   type="tel"
+                  inputMode="numeric"
                   required
-                  placeholder="+91..."
+                  maxLength={10}
+                  pattern="[0-9]{10}"
+                  placeholder="10-digit mobile number"
                   value={bottomPhone}
-                  onChange={(e) => setBottomPhone(e.target.value)}
+                  onBeforeInput={(e) => {
+                    if (e.data && !/^\d+$/.test(e.data)) {
+                      e.preventDefault();
+                    }
+                  }}
+                  onKeyDown={(e) => {
+                    if (
+                      ['Backspace', 'Delete', 'Tab', 'Escape', 'Enter', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Home', 'End'].includes(e.key) ||
+                      (e.ctrlKey || e.metaKey)
+                    ) {
+                      return;
+                    }
+                    if (!/^[0-9]$/.test(e.key)) {
+                      e.preventDefault();
+                    }
+                  }}
+                  onPaste={(e) => {
+                    e.preventDefault();
+                    const pasted = (e.clipboardData || window.clipboardData)?.getData('text') || '';
+                    const clean = pasted.replace(/\D/g, '').slice(0, 10);
+                    e.target.value = clean;
+                    setBottomPhone(clean);
+                  }}
+                  onDrop={(e) => {
+                    e.preventDefault();
+                    const dropped = e.dataTransfer?.getData('text') || '';
+                    const clean = dropped.replace(/\D/g, '').slice(0, 10);
+                    e.target.value = clean;
+                    setBottomPhone(clean);
+                  }}
+                  onInput={(e) => {
+                    const clean = e.target.value.replace(/\D/g, '').slice(0, 10);
+                    if (e.target.value !== clean) {
+                      e.target.value = clean;
+                    }
+                  }}
+                  onChange={(e) => {
+                    const clean = e.target.value.replace(/\D/g, '').slice(0, 10);
+                    e.target.value = clean;
+                    setBottomPhone(clean);
+                  }}
                   className="w-full bg-stone-50 border border-stone-200 rounded-xl px-3 py-2 text-slate-800 focus:outline-none focus:border-[#1D3B2E]"
                 />
               </div>
@@ -1259,12 +1354,12 @@ const PetTraining = () => {
                 <select
                   value={selectedPackage?.id || ''}
                   onChange={(e) => {
-                    const pkg = selectedProviderForBooking.packages.find((p) => p.id === e.target.value);
+                    const pkg = (selectedProviderForBooking?.packages || []).find((p) => p.id === e.target.value);
                     if (pkg) setSelectedPackage(pkg);
                   }}
                   className="w-full bg-white border border-[#1D3B2E]/30 text-xs font-bold rounded-lg px-2.5 py-1.5 text-slate-900"
                 >
-                  {selectedProviderForBooking.packages.map((pkg) => (
+                  {(selectedProviderForBooking?.packages || []).map((pkg) => (
                     <option key={pkg.id} value={pkg.id}>
                       {pkg.name} — ₹{pkg.price} ({pkg.sessions})
                     </option>
@@ -1350,13 +1445,59 @@ const PetTraining = () => {
                   />
                 </div>
                 <div>
-                  <label className="block text-[10px] font-bold uppercase text-gray-500 mb-1">Contact Number *</label>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="block text-[10px] font-bold uppercase text-gray-500">Contact Number *</label>
+                    <span className="text-[10px] text-gray-400 font-medium">{bookingOwnerPhone.length}/10</span>
+                  </div>
                   <input
                     type="tel"
+                    inputMode="numeric"
                     required
-                    placeholder="+91..."
+                    maxLength={10}
+                    pattern="[0-9]{10}"
+                    placeholder="10-digit mobile number"
                     value={bookingOwnerPhone}
-                    onChange={(e) => setBookingOwnerPhone(e.target.value)}
+                    onBeforeInput={(e) => {
+                      if (e.data && !/^\d+$/.test(e.data)) {
+                        e.preventDefault();
+                      }
+                    }}
+                    onKeyDown={(e) => {
+                      if (
+                        ['Backspace', 'Delete', 'Tab', 'Escape', 'Enter', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Home', 'End'].includes(e.key) ||
+                        (e.ctrlKey || e.metaKey)
+                      ) {
+                        return;
+                      }
+                      if (!/^[0-9]$/.test(e.key)) {
+                        e.preventDefault();
+                      }
+                    }}
+                    onPaste={(e) => {
+                      e.preventDefault();
+                      const pasted = (e.clipboardData || window.clipboardData)?.getData('text') || '';
+                      const clean = pasted.replace(/\D/g, '').slice(0, 10);
+                      e.target.value = clean;
+                      setBookingOwnerPhone(clean);
+                    }}
+                    onDrop={(e) => {
+                      e.preventDefault();
+                      const dropped = e.dataTransfer?.getData('text') || '';
+                      const clean = dropped.replace(/\D/g, '').slice(0, 10);
+                      e.target.value = clean;
+                      setBookingOwnerPhone(clean);
+                    }}
+                    onInput={(e) => {
+                      const clean = e.target.value.replace(/\D/g, '').slice(0, 10);
+                      if (e.target.value !== clean) {
+                        e.target.value = clean;
+                      }
+                    }}
+                    onChange={(e) => {
+                      const clean = e.target.value.replace(/\D/g, '').slice(0, 10);
+                      e.target.value = clean;
+                      setBookingOwnerPhone(clean);
+                    }}
                     className="w-full bg-stone-50 border border-stone-200 rounded-lg px-2.5 py-1.5 text-slate-800 focus:outline-none focus:border-[#1D3B2E]"
                   />
                 </div>
@@ -1421,12 +1562,59 @@ const PetTraining = () => {
                   />
                 </div>
                 <div>
-                  <label className="block text-[10px] font-bold uppercase text-gray-500 mb-1">Phone Number *</label>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="block text-[10px] font-bold uppercase text-gray-500">Mobile Number *</label>
+                    <span className="text-[10px] text-gray-400 font-medium">{enqPhone.length}/10</span>
+                  </div>
                   <input
                     type="tel"
+                    inputMode="numeric"
                     required
+                    maxLength={10}
+                    pattern="[0-9]{10}"
+                    placeholder="10-digit mobile number"
                     value={enqPhone}
-                    onChange={(e) => setEnqPhone(e.target.value)}
+                    onBeforeInput={(e) => {
+                      if (e.data && !/^\d+$/.test(e.data)) {
+                        e.preventDefault();
+                      }
+                    }}
+                    onKeyDown={(e) => {
+                      if (
+                        ['Backspace', 'Delete', 'Tab', 'Escape', 'Enter', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Home', 'End'].includes(e.key) ||
+                        (e.ctrlKey || e.metaKey)
+                      ) {
+                        return;
+                      }
+                      if (!/^[0-9]$/.test(e.key)) {
+                        e.preventDefault();
+                      }
+                    }}
+                    onPaste={(e) => {
+                      e.preventDefault();
+                      const pasted = (e.clipboardData || window.clipboardData)?.getData('text') || '';
+                      const clean = pasted.replace(/\D/g, '').slice(0, 10);
+                      e.target.value = clean;
+                      setEnqPhone(clean);
+                    }}
+                    onDrop={(e) => {
+                      e.preventDefault();
+                      const dropped = e.dataTransfer?.getData('text') || '';
+                      const clean = dropped.replace(/\D/g, '').slice(0, 10);
+                      e.target.value = clean;
+                      setEnqPhone(clean);
+                    }}
+                    onInput={(e) => {
+                      const clean = e.target.value.replace(/\D/g, '').slice(0, 10);
+                      if (e.target.value !== clean) {
+                        e.target.value = clean;
+                      }
+                    }}
+                    onChange={(e) => {
+                      const clean = e.target.value.replace(/\D/g, '').slice(0, 10);
+                      e.target.value = clean;
+                      setEnqPhone(clean);
+                    }}
                     className="w-full bg-stone-50 border border-stone-200 rounded-lg px-2.5 py-1.5 text-slate-800 focus:outline-none focus:border-[#1D3B2E]"
                   />
                 </div>

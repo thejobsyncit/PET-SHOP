@@ -104,7 +104,41 @@ const GroomingServices = () => {
   const [pendingPaymentBooking, setPendingPaymentBooking] = useState(null);
   const [isSubmittingBooking, setIsSubmittingBooking] = useState(false);
 
-  const providers = getStoredGroomingProviders();
+  const rawProviders = getStoredGroomingProviders();
+  // Safe normalization of all provider properties so rendering never fails
+  const providers = useMemo(() => {
+    return (rawProviders || []).map((p) => {
+      const fallbackOfferings = ['Spa Bath', 'Full Grooming', 'Nail Clipping', 'Anti-Tick Treatment', 'Hair Cuts'];
+      const offerings = Array.isArray(p.offerings) && p.offerings.length > 0 ? p.offerings : fallbackOfferings;
+      const petTypes = Array.isArray(p.petTypes) && p.petTypes.length > 0 ? p.petTypes : ['Dogs', 'Cats'];
+      const defaultPrice = Number(p.price) || 799;
+      const defaultDiscount = p.discountPrice ? Number(p.discountPrice) : 599;
+      const packages = Array.isArray(p.packages) && p.packages.length > 0
+        ? p.packages
+        : [
+            { name: 'Basic Bath & Dry', price: defaultDiscount || defaultPrice, duration: '45 mins', desc: 'Organic herbal shampoo, blow dry, ear cleaning & paw sanitization' },
+            { name: 'Complete Full Grooming', price: (defaultDiscount || defaultPrice) + 400, duration: '90 mins', desc: 'Full body haircut, sanitary trim, nail filing, bath & perfume' }
+          ];
+
+      return {
+        ...p,
+        offerings,
+        petTypes,
+        packages,
+        serviceMode: p.serviceMode || 'Salon Studio & Home Visit',
+        tagline: p.tagline || 'Professional Organic Pet Grooming & Spa Care',
+        experience: p.experience || p.experienceDisplay || '5+ Years Exp',
+        area: p.area || p.location || p.city || 'Central Area',
+        city: p.city || 'Bangalore',
+        state: p.state || 'Karnataka',
+        price: defaultPrice,
+        discountPrice: defaultDiscount,
+        rating: p.rating || 4.9,
+        reviews: p.reviews || p.reviewsCount || 18,
+        image: p.image || p.avatar || 'https://images.unsplash.com/photo-1516734212186-a967f81ad0d7?q=80&w=800&auto=format&fit=crop'
+      };
+    });
+  }, [rawProviders]);
 
   // Scroll to top on mount
   useEffect(() => {
@@ -144,7 +178,7 @@ const GroomingServices = () => {
     return providers.filter((p) => {
       // 1. Pet Type Filter
       if (selectedPetType !== 'All') {
-        const matchesPet = p.petTypes.some(
+        const matchesPet = (p.petTypes || []).some(
           (t) => t.toLowerCase() === selectedPetType.toLowerCase()
         );
         if (!matchesPet) return false;
@@ -156,14 +190,14 @@ const GroomingServices = () => {
       }
 
       // 3. City Filter
-      if (selectedCity !== 'All Cities' && p.city.toLowerCase() !== selectedCity.toLowerCase()) {
+      if (selectedCity !== 'All Cities' && (p.city || '').toLowerCase() !== selectedCity.toLowerCase()) {
         return false;
       }
 
       // 4. Offering Filter
       if (selectedOffering !== 'all') {
         const targetOfferingName = GROOMING_OFFERINGS.find(o => o.id === selectedOffering)?.name;
-        if (targetOfferingName && !p.offerings.includes(targetOfferingName)) {
+        if (targetOfferingName && !(p.offerings || []).includes(targetOfferingName)) {
           return false;
         }
       }
@@ -176,7 +210,7 @@ const GroomingServices = () => {
       if (priceRange === '1500-plus' && effectivePrice < 1500) return false;
 
       // 6. Service Mode Filter
-      if (selectedServiceMode !== 'All' && !p.serviceMode.toLowerCase().includes(selectedServiceMode.toLowerCase())) {
+      if (selectedServiceMode !== 'All' && !(p.serviceMode || '').toLowerCase().includes(selectedServiceMode.toLowerCase())) {
         return false;
       }
 
@@ -184,11 +218,11 @@ const GroomingServices = () => {
       if (searchKeyword.trim()) {
         const query = searchKeyword.toLowerCase();
         const matchesKeyword = 
-          p.name.toLowerCase().includes(query) ||
-          p.area.toLowerCase().includes(query) ||
-          p.city.toLowerCase().includes(query) ||
-          p.tagline.toLowerCase().includes(query) ||
-          p.groomerName.toLowerCase().includes(query);
+          (p.name || '').toLowerCase().includes(query) ||
+          (p.area || '').toLowerCase().includes(query) ||
+          (p.city || '').toLowerCase().includes(query) ||
+          (p.tagline || '').toLowerCase().includes(query) ||
+          (p.groomerName || '').toLowerCase().includes(query);
         if (!matchesKeyword) return false;
       }
 
@@ -266,8 +300,13 @@ const GroomingServices = () => {
       toast.error('Please provide your pet name and breed.');
       return;
     }
-    if (!ownerPhone.trim()) {
+    const cleanPhone = ownerPhone.replace(/\D/g, '');
+    if (!cleanPhone) {
       toast.error('Please provide your contact phone number.');
+      return;
+    }
+    if (cleanPhone.length !== 10) {
+      toast.error('Please enter a valid 10-digit mobile number.');
       return;
     }
 
@@ -294,7 +333,7 @@ const GroomingServices = () => {
         age: petAge
       },
       ownerName: user?.name || 'Pet Parent',
-      ownerPhone: ownerPhone.trim(),
+      ownerPhone: cleanPhone,
       ownerEmail: user?.email || '',
       specialNotes: specialNotes.trim(),
       fee: bookingFee,
@@ -320,7 +359,7 @@ const GroomingServices = () => {
         age: petAge
       },
       ownerName: user?.name || 'Pet Parent',
-      ownerPhone: ownerPhone.trim(),
+      ownerPhone: cleanPhone,
       ownerEmail: user?.email || ''
     });
   };
@@ -582,7 +621,7 @@ const GroomingServices = () => {
                       </p>
 
                       <ul className="space-y-1.5 text-[11px] text-slate-950 font-bold">
-                        {item.points.map((pt, i) => (
+                        {(item.points || []).map((pt, i) => (
                           <li key={i} className="flex items-center gap-1.5">
                             <span className="text-[#1D3B2E] text-xs font-black">✓</span>
                             <span>{pt}</span>
@@ -973,26 +1012,28 @@ const GroomingServices = () => {
                           </p>
 
                           {/* Services Included Pills */}
-                          <div className="space-y-1.5">
-                            <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block">
-                              Offerings Included:
-                            </span>
-                            <div className="flex flex-wrap gap-1.5">
-                              {provider.offerings.slice(0, 4).map((off, idx) => (
-                                <span
-                                  key={idx}
-                                  className="text-[10px] font-bold bg-sand text-primary px-2.5 py-1 rounded-lg border border-beige"
-                                >
-                                  {off}
-                                </span>
-                              ))}
-                              {provider.offerings.length > 4 && (
-                                <span className="text-[10px] font-bold bg-slate-50 text-slate-500 px-2 py-1 rounded-lg">
-                                  +{provider.offerings.length - 4} more
-                                </span>
-                              )}
+                          {Array.isArray(provider.offerings) && provider.offerings.length > 0 && (
+                            <div className="space-y-1.5">
+                              <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block">
+                                Offerings Included:
+                              </span>
+                              <div className="flex flex-wrap gap-1.5">
+                                {(provider.offerings || []).slice(0, 4).map((off, idx) => (
+                                  <span
+                                    key={idx}
+                                    className="text-[10px] font-bold bg-sand text-primary px-2.5 py-1 rounded-lg border border-beige"
+                                  >
+                                    {off}
+                                  </span>
+                                ))}
+                                {(provider.offerings || []).length > 4 && (
+                                  <span className="text-[10px] font-bold bg-slate-50 text-slate-500 px-2 py-1 rounded-lg">
+                                    +{(provider.offerings || []).length - 4} more
+                                  </span>
+                                )}
+                              </div>
                             </div>
-                          </div>
+                          )}
 
                           {/* Popular Package Preview */}
                           {provider.packages && provider.packages.length > 0 && (
@@ -1238,13 +1279,59 @@ const GroomingServices = () => {
 
               {/* Contact Phone */}
               <div className="space-y-1">
-                <label className="text-[11px] font-bold text-slate-700">Your Contact Phone *</label>
+                <div className="flex items-center justify-between">
+                  <label className="text-[11px] font-bold text-slate-700">Your Contact Phone *</label>
+                  <span className="text-[10px] text-gray-400 font-medium">{ownerPhone.length}/10 digits</span>
+                </div>
                 <input
                   type="tel"
+                  inputMode="numeric"
                   required
+                  maxLength={10}
+                  pattern="[0-9]{10}"
                   placeholder="10-digit mobile number"
                   value={ownerPhone}
-                  onChange={(e) => setOwnerPhone(e.target.value)}
+                  onBeforeInput={(e) => {
+                    if (e.data && !/^\d+$/.test(e.data)) {
+                      e.preventDefault();
+                    }
+                  }}
+                  onKeyDown={(e) => {
+                    if (
+                      ['Backspace', 'Delete', 'Tab', 'Escape', 'Enter', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Home', 'End'].includes(e.key) ||
+                      (e.ctrlKey || e.metaKey)
+                    ) {
+                      return;
+                    }
+                    if (!/^[0-9]$/.test(e.key)) {
+                      e.preventDefault();
+                    }
+                  }}
+                  onPaste={(e) => {
+                    e.preventDefault();
+                    const pasted = (e.clipboardData || window.clipboardData)?.getData('text') || '';
+                    const clean = pasted.replace(/\D/g, '').slice(0, 10);
+                    e.target.value = clean;
+                    setOwnerPhone(clean);
+                  }}
+                  onDrop={(e) => {
+                    e.preventDefault();
+                    const dropped = e.dataTransfer?.getData('text') || '';
+                    const clean = dropped.replace(/\D/g, '').slice(0, 10);
+                    e.target.value = clean;
+                    setOwnerPhone(clean);
+                  }}
+                  onInput={(e) => {
+                    const clean = e.target.value.replace(/\D/g, '').slice(0, 10);
+                    if (e.target.value !== clean) {
+                      e.target.value = clean;
+                    }
+                  }}
+                  onChange={(e) => {
+                    const clean = e.target.value.replace(/\D/g, '').slice(0, 10);
+                    e.target.value = clean;
+                    setOwnerPhone(clean);
+                  }}
                   className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-medium text-slate-800 focus:outline-none focus:border-primary"
                 />
               </div>

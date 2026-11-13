@@ -2,6 +2,7 @@ import { supabase } from '../config/supabase.js';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { getProductReviewStatsMap } from '../services/reviewStatsService.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -38,7 +39,7 @@ export const clearProductCache = () => {
   productCache.clear();
 };
 
-export const normalizeProduct = (p) => {
+export const normalizeProduct = (p, statsMap = null) => {
   if (!p) return null;
   const price = Number(p.price) || 0;
   const discountPrice = p.discount_price !== null && p.discount_price !== undefined 
@@ -47,6 +48,30 @@ export const normalizeProduct = (p) => {
   const discountPercentage = p.discount_percentage !== undefined 
     ? Number(p.discount_percentage) 
     : (discountPrice && price > discountPrice ? Math.round(((price - discountPrice) / price) * 100) : 0);
+
+  const pId = String(p.id || p._id || '').trim().toLowerCase();
+  const pSlug = String(p.slug || '').trim().toLowerCase();
+
+  let reviewCount = typeof p.reviewCount === 'number' 
+    ? p.reviewCount 
+    : (typeof p.review_count === 'number' 
+        ? p.review_count 
+        : (typeof p.numReviews === 'number' 
+            ? p.numReviews 
+            : (typeof p.num_reviews === 'number' ? p.num_reviews : 0)));
+  let rating = Number(p.rating !== undefined ? p.rating : (p.ratings !== undefined ? p.ratings : 0)) || 0;
+
+  if (statsMap) {
+    const stat = (pId && statsMap.get(pId)) || (pSlug && statsMap.get(pSlug));
+    if (stat) {
+      reviewCount = stat.reviewCount;
+      if (stat.reviewCount > 0) {
+        rating = stat.rating;
+      }
+    } else {
+      reviewCount = 0;
+    }
+  }
 
   return {
     ...p,
@@ -59,6 +84,11 @@ export const normalizeProduct = (p) => {
     isFeatured: p.is_featured ?? p.isFeatured ?? false,
     requiresPrescription: p.requires_prescription ?? p.requiresPrescription ?? false,
     petType: p.pet_type ?? p.petType,
+    rating,
+    ratings: rating,
+    reviewCount,
+    review_count: reviewCount,
+    numReviews: reviewCount
   };
 };
 
@@ -166,10 +196,11 @@ export const getProducts = async (req, res) => {
     query = query.range(from, to);
 
     const { data: dbProducts, count: total, error } = await query;
+    const statsMap = getProductReviewStatsMap();
     
     let finalProducts = [];
     if (!error && Array.isArray(dbProducts)) {
-      finalProducts = dbProducts.map(normalizeProduct);
+      finalProducts = dbProducts.map(p => normalizeProduct(p, statsMap));
     }
 
     // Merge any products from disk (e.g. newly added by Product Sellers)
@@ -185,7 +216,7 @@ export const getProducts = async (req, res) => {
       if (category) extra = extra.filter(p => (p.category || '').toLowerCase().includes(category.toLowerCase()));
       if (search) extra = extra.filter(p => (p.name || '').toLowerCase().includes(search.toLowerCase()) || (p.brand || '').toLowerCase().includes(search.toLowerCase()));
 
-      finalProducts = [...extra.map(normalizeProduct), ...finalProducts];
+      finalProducts = [...extra.map(p => normalizeProduct(p, statsMap)), ...finalProducts];
     }
 
     const totalCount = (total || 0) + (finalProducts.length > (dbProducts?.length || 0) ? (finalProducts.length - (dbProducts?.length || 0)) : 0);
@@ -206,13 +237,14 @@ export const getProducts = async (req, res) => {
   } catch (error) {
     console.warn('[GetProducts] Supabase notice, falling back to disk products:', error?.message);
     const disk = loadDiskProducts();
+    const statsMap = getProductReviewStatsMap();
     res.json({
       success: true,
       count: disk.length,
       total: disk.length,
       page: 1,
       pages: 1,
-      products: disk.map(normalizeProduct)
+      products: disk.map(p => normalizeProduct(p, statsMap))
     });
   }
 };
@@ -248,7 +280,8 @@ export const getProductBySlug = async (req, res) => {
     if (!product) {
       return res.status(404).json({ success: false, message: 'Product not found' });
     }
-    res.json({ success: true, product: normalizeProduct(product) });
+    const statsMap = getProductReviewStatsMap();
+    res.json({ success: true, product: normalizeProduct(product, statsMap) });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
@@ -277,7 +310,8 @@ export const getProductById = async (req, res) => {
     if (!product) {
       return res.status(404).json({ success: false, message: 'Product not found' });
     }
-    res.json({ success: true, product: normalizeProduct(product) });
+    const statsMap = getProductReviewStatsMap();
+    res.json({ success: true, product: normalizeProduct(product, statsMap) });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
