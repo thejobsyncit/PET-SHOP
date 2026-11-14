@@ -376,9 +376,10 @@ export const downloadBill = async (billData) => {
     doc.text('GSTIN: 29AAAAA0000A1Z5 | support@joshpetshub.com', margin, y);
 
     // Right: Invoice Title & Status Badge Box
-    const boxX = 110;
+    const colWidth = (contentWidth - 6) / 2;
+    const boxX = margin + colWidth + 6; // 108mm (aligns with right-hand card below)
     const boxY = 10.5;
-    const boxW = pageWidth - margin - boxX; // 196 - 110 = 86mm
+    const boxW = colWidth;              // 88mm
     const boxH = 20;
 
     doc.setFillColor(248, 250, 252);
@@ -386,23 +387,28 @@ export const downloadBill = async (billData) => {
     doc.setLineWidth(0.4);
     doc.roundedRect(boxX, boxY, boxW, boxH, 2, 2, 'FD');
 
-    // Title text right-aligned inside box with 4mm padding
+    const boxCenterX = boxX + (boxW / 2);
+
+    // Title text centered inside box with balanced margin
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(8.5);
     doc.setTextColor(15, 46, 35);
     const titleText = String(billData.invoiceTitle || 'TAX INVOICE').slice(0, 38);
-    doc.text(titleText, boxX + boxW - 4, boxY + 6.5, { align: 'right' });
+    doc.text(titleText, boxCenterX, boxY + 6.5, { align: 'center' });
 
-    // Status Badge Pill (Right aligned within box)
-    const status = String(billData.statusText || 'PAYMENT COMPLETED').trim();
-    const isPaid = /paid|completed|confirmed|success/i.test(status);
+    // Status Badge Pill (Centered below invoice title inside section box)
+    const rawStatus = String(billData.statusText || 'PAYMENT COMPLETED').trim();
+    const cleanStatus = rawStatus.replace(/^[✓✔\s]+/, '').trim();
+    const isPaid = /paid|completed|confirmed|success|delivered/i.test(cleanStatus);
 
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(7.5);
-    const badgeTextWidth = doc.getTextWidth(status);
-    const badgeW = Math.max(badgeTextWidth + 8, 34);
-    const badgeH = 5.5;
-    const badgeX = boxX + boxW - 4 - badgeW;
+    const badgeTextWidth = doc.getTextWidth(cleanStatus);
+    const hasIcon = isPaid;
+    const iconSpace = hasIcon ? 4.5 : 0;
+    const badgeW = Math.max(badgeTextWidth + 10 + iconSpace, 36);
+    const badgeH = 5.8;
+    const badgeX = boxCenterX - (badgeW / 2);
     const badgeY = boxY + 10.5;
 
     if (isPaid) {
@@ -416,7 +422,22 @@ export const downloadBill = async (billData) => {
     }
 
     doc.roundedRect(badgeX, badgeY, badgeW, badgeH, 1.5, 1.5, 'FD');
-    doc.text(status, badgeX + (badgeW / 2), badgeY + 3.8, { align: 'center' });
+
+    if (hasIcon) {
+      // Center icon + text together within the badge
+      const contentW = iconSpace + badgeTextWidth;
+      const startX = boxCenterX - (contentW / 2);
+      const checkMidY = badgeY + (badgeH / 2);
+
+      doc.setDrawColor(5, 150, 105);
+      doc.setLineWidth(0.5);
+      doc.line(startX, checkMidY + 0.2, startX + 1.1, checkMidY + 1.3);
+      doc.line(startX + 1.1, checkMidY + 1.3, startX + 3.0, checkMidY - 1.2);
+
+      doc.text(cleanStatus, startX + iconSpace, badgeY + (badgeH / 2) + 0.3, { align: 'left', baseline: 'middle' });
+    } else {
+      doc.text(cleanStatus, boxCenterX, badgeY + (badgeH / 2) + 0.3, { align: 'center', baseline: 'middle' });
+    }
 
     // Divider line below header
     y = 33;
@@ -427,7 +448,6 @@ export const downloadBill = async (billData) => {
     // Customer & Invoice Details Cards
     y += 4;
     const cardY = y;
-    const colWidth = (contentWidth - 6) / 2;
 
     // Left Card: Customer Details
     doc.setFillColor(248, 250, 252);
@@ -458,7 +478,8 @@ export const downloadBill = async (billData) => {
     doc.setFontSize(8);
     doc.setTextColor(71, 85, 105);
     doc.text('Invoice No: ' + String(billData.invoiceNumber || 'N/A').slice(0, 30), rightCardX + 4, cardY + 11.5);
-    doc.text('Date: ' + String(billData.invoiceDate || 'N/A').slice(0, 30), rightCardX + 4, cardY + 16.5);
+    const invoiceDateStr = billData.invoiceDate || new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+    doc.text('Date: ' + String(invoiceDateStr).slice(0, 30), rightCardX + 4, cardY + 16.5);
     doc.text('Payment: ' + String(billData.payment?.method || 'Online / App').slice(0, 30), rightCardX + 4, cardY + 21.5);
 
     // Line Items Table Header
