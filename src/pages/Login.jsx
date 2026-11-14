@@ -480,7 +480,7 @@ const Login = () => {
     // Never auto-fill password on login for security
     setLoginPassword('');
     if (location.state?.resetSuccess) {
-      toast.success('Password reset successfully! Please sign in with your new password.', { duration: 5000 });
+      toast.success('Password reset successfully! Please sign in with your new password.', { duration: 2000 });
       window.history.replaceState({}, document.title);
     }
   }, [isSignUp, registerRoleTab, dispatch, location.state]);
@@ -844,13 +844,13 @@ const Login = () => {
       if (res?.otp) {
         setForgotGeneratedOtp(res.otp);
       }
-      toast.success(res?.message || ("Recovery code sent to " + cleanId + "! (Valid for 10 min)"), { icon: "🔑", duration: 5000 });
+      toast.success(res?.message || ("Recovery code sent to " + cleanId + "! (Valid for 10 min)"), { icon: "🔑", duration: 2000 });
       setForgotOtpStep(true);
       setForgotTimer(60);
       setForgotExpiresAt(Date.now() + 10 * 60 * 1000);
     } catch (err) {
       console.warn("Backend forgot-password note (using demo code):", err.message);
-      toast.success("Recovery code sent to " + cleanId + "! (Code: " + demoCode + ", Valid for 10 min)", { icon: "🔑", duration: 7000 });
+      toast.success("Recovery code sent to " + cleanId + "! (Code: " + demoCode + ", Valid for 10 min)", { icon: "🔑", duration: 2000 });
       setForgotOtpStep(true);
       setForgotTimer(60);
       setForgotExpiresAt(Date.now() + 10 * 60 * 1000);
@@ -927,7 +927,7 @@ const Login = () => {
       }
     } catch (_) { }
     setForgotLoading(false);
-    toast.success("🎉 Password has been reset successfully! Please sign in with your new password.", { duration: 5000 });
+    toast.success("🎉 Password has been reset successfully! Please sign in with your new password.", { duration: 2000 });
     setLoginIdentifier(cleanId);
     setLoginPassword('');
     setForgotNewPassword('');
@@ -1117,9 +1117,9 @@ const Login = () => {
         if (res?.otp) setGeneratedOtp(res.otp);
         if (res && !res.simulated) {
           setIsRealEmailSent(true);
-          toast.success(`📧 Verification OTP sent to ${targetEmail}! Check your inbox.`, { duration: 6000, icon: '📧' });
+          toast.success(`📧 Verification OTP sent to ${targetEmail}! Check your inbox.`, { duration: 2000, icon: '📧' });
         } else {
-          toast.success(`📲 OTP generated for ${targetEmail}!`, { duration: 5000 });
+          toast.success(`📲 OTP generated for ${targetEmail}!`, { duration: 2000 });
         }
         setIsRealEmailSent(Boolean(res && !res.simulated));
         setPendingUserData(payload);
@@ -1147,7 +1147,7 @@ const Login = () => {
       setOtpExpiresAt(Date.now() + 10 * 60 * 1000);
       setOtpPurpose('register');
       setIsOtpStep(true);
-      toast.success(`📲 OTP sent to ${userCountryCode} ${userMobileNo}! (Valid for 10 min)`, { duration: 6000, icon: '📲' });
+      toast.success(`📲 OTP sent to ${userCountryCode} ${userMobileNo}! (Valid for 10 min)`, { duration: 2000, icon: '📲' });
     }
   };
 
@@ -1249,9 +1249,9 @@ const Login = () => {
         if (res?.otp) setGeneratedOtp(res.otp);
         if (res && !res.simulated) {
           setIsRealEmailSent(true);
-          toast.success(`📧 Verification OTP sent to ${targetEmail}! Check your inbox.`, { duration: 6000, icon: '📧' });
+          toast.success(`📧 Verification OTP sent to ${targetEmail}! Check your inbox.`, { duration: 2000, icon: '📧' });
         } else {
-          toast.success(`📲 OTP generated for ${targetEmail}!`, { duration: 5000 });
+          toast.success(`📲 OTP generated for ${targetEmail}!`, { duration: 2000 });
         }
         setIsRealEmailSent(Boolean(res && !res.simulated));
         setPendingUserData(payload);
@@ -1279,7 +1279,7 @@ const Login = () => {
       setOtpExpiresAt(Date.now() + 10 * 60 * 1000);
       setOtpPurpose('register');
       setIsOtpStep(true);
-      toast.success(`📲 OTP sent to ${providerCountryCode} ${providerMobileNo}! (Valid for 10 min)`, { duration: 6000, icon: '📲' });
+      toast.success(`📲 OTP sent to ${providerCountryCode} ${providerMobileNo}! (Valid for 10 min)`, { duration: 2000, icon: '📲' });
     }
   };
 
@@ -1373,15 +1373,15 @@ const Login = () => {
       if (res?.otp) setGeneratedOtp(res.otp);
       if (res && !res.simulated && targetEmail) {
         setIsRealEmailSent(true);
-        toast.success(`📧 New OTP sent to ${targetEmail}! (Valid for 10 min)`, { duration: 6000, icon: '📧' });
+        toast.success(`📧 New OTP sent to ${targetEmail}! (Valid for 10 min)`, { duration: 2000, icon: '📧' });
       } else {
-        toast.success(`📲 New OTP sent! (Valid for 10 min)`, { duration: 5000, icon: '📲' });
+        toast.success(`📲 New OTP sent! (Valid for 10 min)`, { duration: 2000, icon: '📲' });
       }
     }).catch(() => {
       if (targetEmail) {
-        toast.success(`📧 New OTP sent to ${targetEmail}! (Valid for 10 min)`, { duration: 5000, icon: '📧' });
+        toast.success(`📧 New OTP sent to ${targetEmail}! (Valid for 10 min)`, { duration: 2000, icon: '📧' });
       } else {
-        toast.success(`📲 New OTP sent to ${targetCode} ${targetNum}! (Valid for 10 min)`, { duration: 5000, icon: '📲' });
+        toast.success(`📲 New OTP sent to ${targetCode} ${targetNum}! (Valid for 10 min)`, { duration: 2000, icon: '📲' });
       }
     });
   };

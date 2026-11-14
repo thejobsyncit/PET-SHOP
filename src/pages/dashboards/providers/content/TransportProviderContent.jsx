@@ -129,7 +129,7 @@ const TransportProviderContent = ({ activeTab, user, subscription, onOpenSubscri
         myService 
           ? 'Transport service updated successfully!' 
           : '🎉 Transport service published! It is now live on the public Pet Transport page.',
-        { duration: 4500 }
+        { duration: 2000 }
       );
     } else {
       toast.error('Could not save service listing. Please try again.');

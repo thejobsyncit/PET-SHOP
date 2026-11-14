@@ -612,14 +612,24 @@ const AccountDashboard = () => {
 
       combinedOrders.sort((a, b) => new Date(b.createdAt || b.created_at || 0) - new Date(a.createdAt || a.created_at || 0));
       setOrders(combinedOrders);
-      const prescData = await apiRequest('/prescriptions/my');
-      if (prescData && prescData.success) {
-        setPrescriptions(prescData.prescriptions || []);
+
+      try {
+        const prescData = await apiRequest('/prescriptions/my');
+        if (prescData && prescData.success) {
+          setPrescriptions(prescData.prescriptions || []);
+        }
+      } catch (e) {
+        console.warn('Error fetching prescriptions:', e);
       }
-      const bookingsData = await apiRequest(`/bookings/my${user?.email ? `?email=${encodeURIComponent(user.email)}` : ''}`);
+
       let combinedBookings = [];
-      if (bookingsData && bookingsData.success && Array.isArray(bookingsData.bookings)) {
-        combinedBookings = bookingsData.bookings.filter((b) => isBookingOwnedByUser(b, user));
+      try {
+        const bookingsData = await apiRequest(`/bookings/my${user?.email ? `?email=${encodeURIComponent(user.email)}` : ''}`);
+        if (bookingsData && bookingsData.success && Array.isArray(bookingsData.bookings)) {
+          combinedBookings = bookingsData.bookings.filter((b) => isBookingOwnedByUser(b, user));
+        }
+      } catch (e) {
+        console.warn('Error fetching backend bookings:', e);
       }
 
       // Merge local grooming bookings
@@ -1261,7 +1271,7 @@ const AccountDashboard = () => {
         </aside>
 
         {/* Dynamic Display Panel (Right 9 Columns) */}
-        <div ref={contentPanelRef} id="dashboard-content-panel" className="lg:col-span-9 bg-white border border-beige p-6 md:p-8 shadow-sm rounded-xl">
+        <div ref={contentPanelRef} id="dashboard-content-panel" className="lg:col-span-9 bg-white border border-beige p-4 sm:p-6 md:p-8 shadow-sm rounded-xl">
           
           {/* =========================================================================
               TAB: SERVICE BOOKINGS
@@ -1277,8 +1287,8 @@ const AccountDashboard = () => {
               ) : bookings.length > 0 ? (
                 <div className="space-y-4">
                   {bookings.map((booking) => (
-                    <div key={booking._id || booking.id} className="border border-beige p-5 text-xs space-y-4 rounded-xl">
-                      <div className="flex flex-wrap justify-between items-center bg-secondary p-3 border-b border-beige gap-2 rounded-lg">
+                    <div key={booking._id || booking.id} className="border border-beige p-4 sm:p-5 text-xs space-y-4 rounded-xl">
+                      <div className="grid grid-cols-2 sm:flex sm:flex-wrap justify-between items-center bg-secondary p-3 border-b border-beige gap-2.5 rounded-lg">
                         <div>
                           <p className="text-gray-400 font-medium">BOOKING ID</p>
                           <p className="font-bold text-primary">{booking._id || booking.id}</p>
@@ -1308,28 +1318,31 @@ const AccountDashboard = () => {
                         </div>
                       </div>
 
-                      <div className="flex justify-between items-center gap-4">
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 bg-[#f8efcd] text-[#0F2E23] rounded-full flex items-center justify-center border border-[#e6c968]">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3.5 pt-1">
+                        <div className="flex items-center gap-3 min-w-0">
+                          <div className="w-10 h-10 bg-[#f8efcd] text-[#0F2E23] rounded-full flex items-center justify-center border border-[#e6c968] shrink-0">
                             <Calendar size={18} />
                           </div>
-                          <div>
-                            <p className="font-semibold text-primary truncate max-w-xs">{booking.providerName}</p>
-                            <p className="text-[10px] text-gray-400">Location: {booking.location}</p>
+                          <div className="min-w-0 flex-1">
+                            <p className="font-semibold text-primary truncate text-xs sm:text-sm">{booking.providerName}</p>
+                            <p className="text-[10px] text-gray-400 truncate">Location: {booking.location}</p>
                           </div>
                         </div>
-                        <div className="text-right space-y-1">
-                          <span className="font-bold text-primary block">₹{booking.fee}</span>
-                          <span className={`text-[10px] uppercase font-bold block ${booking.paymentStatus === 'Paid' ? 'text-green-600' : 'text-amber-500'}`}>
-                            {booking.paymentStatus}
-                          </span>
+
+                        <div className="flex items-center justify-between sm:justify-end gap-3 pt-2.5 sm:pt-0 border-t border-slate-100 sm:border-0 shrink-0">
+                          <div className="text-left sm:text-right">
+                            <span className="font-bold text-primary block text-xs sm:text-sm">₹{booking.fee}</span>
+                            <span className={`text-[10px] uppercase font-bold block ${booking.paymentStatus === 'Paid' ? 'text-green-600' : 'text-amber-500'}`}>
+                              {booking.paymentStatus}
+                            </span>
+                          </div>
                           <button
                             type="button"
                             onClick={() => handleDownloadBookingBill(booking)}
-                            className="px-2.5 py-1 bg-[#0F2E23] hover:bg-[#163f30] text-[#D4AF37] hover:text-white rounded-lg text-[10px] font-bold shadow-xs transition inline-flex items-center gap-1 cursor-pointer active:scale-95"
+                            className="px-3 py-1.5 bg-[#0F2E23] hover:bg-[#163f30] text-[#D4AF37] hover:text-white rounded-lg text-[10.5px] font-bold shadow-xs transition inline-flex items-center gap-1.5 cursor-pointer active:scale-95 shrink-0 whitespace-nowrap"
                             title="Download official bill in PDF format"
                           >
-                            <Download size={10} />
+                            <Download size={11} />
                             <span>Download Bill (PDF)</span>
                           </button>
                         </div>
@@ -1406,9 +1419,9 @@ const AccountDashboard = () => {
                     const totalAmt = order.pricing?.total ?? (order.total || order.total_amount || 0);
 
                     return (
-                      <div key={orderId} className="border border-beige p-5 text-xs space-y-4 rounded-xl bg-white shadow-2xs">
+                      <div key={orderId} className="border border-beige p-4 sm:p-5 text-xs space-y-4 rounded-xl bg-white shadow-2xs">
                         {/* Top metadata */}
-                        <div className="flex flex-wrap justify-between items-center bg-secondary p-3 border-b border-beige gap-2 rounded-lg">
+                        <div className="grid grid-cols-2 sm:flex sm:flex-wrap justify-between items-center bg-secondary p-3 border-b border-beige gap-2.5 rounded-lg">
                           <div>
                             <p className="text-gray-400 font-medium">ORDER ID</p>
                             <p className="font-bold text-primary font-mono">{orderId}</p>
@@ -1443,52 +1456,73 @@ const AccountDashboard = () => {
                         )}
 
                         {/* Items Row */}
-                        <div className="space-y-3">
+                        <div className="space-y-3 divide-y divide-slate-100">
                           {orderItemsList.map((item, idx) => {
                             const itPrice = Number(item.price) || 0;
                             const itQty = item.quantity || 1;
                             return (
-                              <div key={idx} className="flex justify-between items-center gap-4">
-                                <div className="flex items-center gap-3">
+                              <div key={idx} className="flex items-start sm:items-center justify-between gap-3 pt-3 first:pt-0">
+                                <div className="flex items-start sm:items-center gap-3 min-w-0 flex-1">
                                   <img 
                                     src={item.image || 'https://images.unsplash.com/photo-1548199973-03cce0bbc87b?q=80&w=800'} 
                                     alt={item.name} 
-                                    className="w-12 h-12 object-cover bg-gray-100 border border-beige rounded-lg shadow-2xs" 
+                                    className="w-12 h-12 sm:w-14 sm:h-14 object-cover bg-gray-100 border border-beige rounded-lg shadow-2xs shrink-0 mt-0.5 sm:mt-0" 
                                     onError={(e) => {
                                       e.currentTarget.onerror = null;
                                       e.currentTarget.src = 'https://images.unsplash.com/photo-1548199973-03cce0bbc87b?q=80&w=800';
                                     }}
                                   />
-                                  <div>
-                                    <p className="font-bold text-primary text-xs truncate max-w-xs sm:max-w-md">{item.name}</p>
-                                    <p className="text-[10px] text-gray-500 mt-0.5">
-                                      Qty: {itQty} • Price: ₹{itPrice.toLocaleString('en-IN')}
-                                      {item.breed ? ` • Breed: ${item.breed}` : ''}
-                                      {item.sellerName ? ` • Seller: ${item.sellerName}` : ''}
+                                  <div className="min-w-0 flex-1">
+                                    <p 
+                                      className="font-bold text-primary text-xs sm:text-sm leading-snug break-words line-clamp-2"
+                                      title={item.name}
+                                    >
+                                      {item.name}
                                     </p>
+                                    <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[10.5px] text-gray-500 mt-1">
+                                      <span>Qty: <strong className="text-primary font-semibold">{itQty}</strong></span>
+                                      <span>•</span>
+                                      <span>Price: ₹{itPrice.toLocaleString('en-IN')}</span>
+                                      {item.breed && (
+                                        <>
+                                          <span>•</span>
+                                          <span className="truncate">Breed: {item.breed}</span>
+                                        </>
+                                      )}
+                                      {item.sellerName && (
+                                        <>
+                                          <span>•</span>
+                                          <span className="truncate">Seller: {item.sellerName}</span>
+                                        </>
+                                      )}
+                                    </div>
                                   </div>
                                 </div>
-                                <span className="font-bold text-primary text-xs">₹{(itPrice * itQty).toLocaleString('en-IN')}</span>
+                                <div className="text-right shrink-0 pt-0.5 sm:pt-0">
+                                  <span className="font-bold text-primary text-xs sm:text-sm whitespace-nowrap block">
+                                    ₹{(itPrice * itQty).toLocaleString('en-IN')}
+                                  </span>
+                                </div>
                               </div>
                             );
                           })}
                         </div>
 
                         {/* Tracking detail */}
-                        <div className="flex flex-wrap justify-between items-center border-t border-beige pt-3 text-[11px] gap-2">
-                          <span className="text-gray-400 font-semibold">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between border-t border-beige pt-3 text-[11px] gap-2.5">
+                          <span className="text-gray-400 font-semibold truncate">
                             Tracking Code: <strong className="text-slate-800 font-mono">{tracking}</strong>
                           </span>
-                          <div className="flex items-center gap-2">
+                          <div className="flex items-center justify-between sm:justify-end gap-2 w-full sm:w-auto shrink-0">
                             {order.prescriptionId && (
-                              <span className="px-2 py-0.5 bg-red-50 border border-red-200 text-red-700 font-semibold uppercase text-[9px] rounded">
+                              <span className="px-2 py-0.5 bg-red-50 border border-red-200 text-red-700 font-semibold uppercase text-[9px] rounded shrink-0">
                                 Prescription order under review
                               </span>
                             )}
                             <button
                               type="button"
                               onClick={() => handleDownloadOrderBill(order)}
-                              className="px-3 py-1 bg-[#0F2E23] hover:bg-[#163f30] text-[#D4AF37] hover:text-white rounded-lg text-[10.5px] font-bold shadow-xs transition inline-flex items-center gap-1.5 cursor-pointer active:scale-95"
+                              className="px-3 py-1.5 bg-[#0F2E23] hover:bg-[#163f30] text-[#D4AF37] hover:text-white rounded-lg text-[10.5px] font-bold shadow-xs transition inline-flex items-center gap-1.5 cursor-pointer active:scale-95 shrink-0 whitespace-nowrap"
                             >
                               <Download size={11} />
                               <span>Download Bill</span>
@@ -2796,15 +2830,15 @@ const AccountDashboard = () => {
                               {enq.providerReply || `Booking confirmed! Assigned coordinator (${enq.leadCoordinator || 'Logistics Lead'}) will coordinate pre-transit pickup for ${enq.petName || 'your pet'}.`}
                             </p>
 
-                            <div className="pt-2 flex flex-wrap items-center justify-between gap-2">
+                            <div className="pt-2 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
                               <span className="text-[10px] text-emerald-700 font-semibold">
                                 ✓ Sanitized Crate & Live WhatsApp Updates Included
                               </span>
-                              <div className="flex items-center gap-2">
+                              <div className="flex flex-wrap items-center justify-between sm:justify-end gap-2 w-full sm:w-auto">
                                 <button
                                   type="button"
                                   onClick={() => handleDownloadBookingBill(enq)}
-                                  className="bg-[#0F2E23] hover:bg-[#163f30] text-[#D4AF37] hover:text-white font-bold text-[11px] uppercase tracking-wider px-3 py-1.5 rounded-lg transition inline-flex items-center gap-1.5 cursor-pointer shadow-xs active:scale-95"
+                                  className="bg-[#0F2E23] hover:bg-[#163f30] text-[#D4AF37] hover:text-white font-bold text-[11px] uppercase tracking-wider px-3 py-1.5 rounded-lg transition inline-flex items-center gap-1.5 cursor-pointer shadow-xs active:scale-95 shrink-0"
                                   title="Download official bill in PDF format"
                                 >
                                   <Download size={12} />
@@ -2831,18 +2865,18 @@ const AccountDashboard = () => {
                             </div>
                           </div>
                         ) : (
-                          <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-amber-700 bg-amber-50 p-3 rounded-xl border border-amber-200">
+                          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 text-xs text-amber-700 bg-amber-50 p-3 rounded-xl border border-amber-200">
                             <span className="flex items-center gap-1.5 font-semibold">
-                              <Clock size={14} className="animate-spin text-amber-600" />
+                              <Clock size={14} className="animate-spin text-amber-600 shrink-0" />
                               Transporter is reviewing vehicle availability & formulating your quote.
                             </span>
-                            <div className="flex items-center gap-2">
+                            <div className="flex items-center justify-between sm:justify-end gap-2 w-full sm:w-auto pt-1 sm:pt-0 border-t border-amber-200/60 sm:border-0">
                               <span className="text-[10px] text-gray-500 font-medium">Expected in 1-2 hours</span>
                               {(enq.fee || enq.quoteAmount) && (
                                 <button
                                   type="button"
                                   onClick={() => handleDownloadBookingBill(enq)}
-                                  className="px-2.5 py-1 bg-[#0F2E23] text-[#D4AF37] hover:text-white rounded-md text-[10px] font-bold transition inline-flex items-center gap-1 cursor-pointer"
+                                  className="px-2.5 py-1 bg-[#0F2E23] text-[#D4AF37] hover:text-white rounded-md text-[10px] font-bold transition inline-flex items-center gap-1 cursor-pointer shrink-0"
                                   title="Download bill in PDF format"
                                 >
                                   <Download size={10} /> Bill (PDF)

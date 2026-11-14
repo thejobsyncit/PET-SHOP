@@ -247,7 +247,7 @@ const GroomingServices = () => {
     if (!isAuthenticated) {
       toast('Please log in or register as a Pet Parent to book a grooming appointment.', {
         icon: '🔒',
-        duration: 4000
+        duration: 2000
       });
       window.dispatchEvent(
         new CustomEvent('open-register-modal', {

@@ -406,7 +406,7 @@ const PetTraining = () => {
 
     saveTrainingEnquiry(enquiryData);
     toast.success(`Enquiry sent to ${selectedProviderForEnquiry.name}! The trainer will reach out to you directly.`, {
-      duration: 5000,
+      duration: 2000,
       icon: '📬'
     });
     setShowEnquiryModal(false);
@@ -453,7 +453,7 @@ const PetTraining = () => {
 
     saveTrainingEnquiry(enquiryData);
     toast.success('🎉 Custom training request submitted! Our master behaviorists will review and connect with you shortly.', {
-      duration: 5000,
+      duration: 2000,
       icon: '🐾'
     });
     setBottomFullName('');

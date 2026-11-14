@@ -35,6 +35,17 @@ const PetClassifiedDetail = () => {
   const [paymentStep, setPaymentStep] = useState('details'); // 'details', 'processing', 'success'
   const [confirmedPetOrder, setConfirmedPetOrder] = useState(null);
 
+  // Auto-close success popup promptly after 2 seconds
+  useEffect(() => {
+    if (paymentStep === 'success' && showCheckout) {
+      const timer = setTimeout(() => {
+        setShowCheckout(false);
+        setPaymentStep('details');
+      }, 2000);
+      return () => clearTimeout(timer);
+    }
+  }, [paymentStep, showCheckout]);
+
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
     loadPetDetail();
@@ -272,7 +283,7 @@ const PetClassifiedDetail = () => {
       // Update status locally
       setPet(prev => prev ? { ...prev, status: 'Sold Out', quantity: 0 } : null);
       setPaymentStep('success');
-      toast.success('🎉 Congratulations! Your pet purchase order is confirmed.');
+      toast.success('🎉 Congratulations! Your pet purchase order is confirmed.', { duration: 2000 });
     } catch (err) {
       toast.error(err.message || 'Payment processing failed');
       setPaymentStep('details');

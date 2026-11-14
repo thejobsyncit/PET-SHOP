@@ -305,8 +305,9 @@ const Checkout = () => {
                 const total = confirmedOrder.pricing?.total || 0;
                 const base = Number((total / 1.18).toFixed(2));
                 downloadBill({
-                  invoiceNumber: confirmedOrder.trackingNumber || `ORD-${confirmedOrder._id?.slice(-8)}`,
+                  invoiceNumber: confirmedOrder.trackingNumber || (confirmedOrder._id ? `ORD-${String(confirmedOrder._id).slice(-8)}` : `ORD-${Date.now().toString().slice(-8)}`),
                   invoiceTitle: 'TAX INVOICE / ORDER RECEIPT',
+                  invoiceDate: confirmedOrder.createdAt ? new Date(confirmedOrder.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }),
                   statusText: '✓ PAYMENT COMPLETED',
                   customer: {
                     name: confirmedOrder.shippingAddress?.fullName || name || user?.name || 'Customer',
@@ -315,8 +316,8 @@ const Checkout = () => {
                     address: `${confirmedOrder.shippingAddress?.streetAddress || streetAddress || ''}, ${confirmedOrder.shippingAddress?.city || city || ''} ${confirmedOrder.shippingAddress?.postalCode || postalCode || ''}`,
                   },
                   payment: {
-                    method: 'Prepaid Online',
-                    validity: `Tracking: ${confirmedOrder.trackingNumber}`,
+                    method: confirmedOrder.paymentMethod || paymentMethod || 'Prepaid Online',
+                    validity: `Tracking: ${confirmedOrder.trackingNumber || 'Active'}`,
                   },
                   items: (confirmedOrder.orderItems || []).map((it) => ({
                     name: it.name,

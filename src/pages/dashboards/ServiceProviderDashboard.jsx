@@ -253,7 +253,7 @@ const ServiceProviderDashboard = (props) => {
     setShowSubscriptionModal(false);
     dispatch(fetchProfile());
     dispatch(fetchSubscriptionStatus());
-    toast.success('🎉 Subscription activated! Welcome to your active dashboard.', { duration: 5000 });
+    toast.success('🎉 Subscription activated! Welcome to your active dashboard.', { duration: 2000 });
   };
 
   // Input formatters for Card & UPI

@@ -478,7 +478,7 @@ export default function VeterinaryServices() {
       // 4. Prominent success notification
       toast.success(
         `🎉 Appointment confirmed with ${selectedDoctorForBooking.name} for ${bookingDate} (${bookingTimeSlot})!`,
-        { duration: 6000, icon: '🩺' }
+        { duration: 2000, icon: '🩺' }
       );
 
       // 5. Open confirmed appointment success modal
@@ -2121,7 +2121,7 @@ export default function VeterinaryServices() {
           saveVetAppointment(confirmed);
           toast.success(
             `Appointment confirmed with ${confirmed.providerName || confirmed.doctorName}!`,
-            { duration: 5000 }
+            { duration: 2000 }
           );
           setPendingPaymentBooking(null);
         }}
