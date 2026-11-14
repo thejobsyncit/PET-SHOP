@@ -1097,9 +1097,9 @@ const PetTransport = () => {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
           
           {/* LEFT FILTER SIDEBAR (Compact & Sleek) */}
-          <aside className="lg:col-span-3 xl:col-span-3 bg-white p-4 rounded-2xl border border-stone-200 shadow-sm space-y-4 sticky top-24 max-h-[calc(100vh-140px)] overflow-y-auto custom-scrollbar">
+          <aside className="lg:col-span-3 xl:col-span-3 bg-white p-4 rounded-2xl border border-stone-200 shadow-sm space-y-4 relative lg:sticky lg:top-24 max-h-none lg:max-h-[calc(100vh-140px)] overflow-y-visible lg:overflow-y-auto custom-scrollbar">
             
-            <div className="sticky -top-4 bg-white pt-0.5 pb-2.5 border-b border-stone-100 z-10 flex items-center justify-between">
+            <div className="relative lg:sticky lg:-top-4 bg-white pt-0.5 pb-2.5 border-b border-stone-100 z-10 flex items-center justify-between">
               <div className="flex items-center gap-1.5 text-[11px] font-bold text-[#0F2E23] uppercase tracking-wider">
                 <SlidersHorizontal size={13} />
                 <span>Filter Transporters</span>

@@ -14,6 +14,7 @@ const Home = lazy(() => import('./pages/Home.jsx'));
 const Shop = lazy(() => import('./pages/shop/Shop.jsx'));
 const ProductDetails = lazy(() => import('./pages/shop/ProductDetails.jsx'));
 const PharmacyLanding = lazy(() => import('./pages/shop/PharmacyLanding.jsx'));
+const Cart = lazy(() => import('./pages/shop/Cart.jsx'));
 const Checkout = lazy(() => import('./pages/shop/Checkout.jsx'));
 const AccountDashboard = lazy(() => import('./pages/dashboards/AccountDashboard.jsx'));
 const Wishlist = lazy(() => import('./pages/shop/Wishlist.jsx'));
@@ -90,6 +91,7 @@ function App() {
               <Route path="pharmacy" element={<PharmacyLanding />} />
               
               {/* Cart & Checkout */}
+              <Route path="cart" element={<Cart />} />
               <Route path="checkout" element={<Checkout />} />
               <Route path="wishlist" element={<Wishlist />} />
               

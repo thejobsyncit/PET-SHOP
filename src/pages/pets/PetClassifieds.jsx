@@ -1,17 +1,21 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { useSelector } from 'react-redux';
-import { Search, MapPin, MessageSquare, ShieldCheck, Tag, Phone, X, Heart, Lock, ShieldAlert, Briefcase, Clock, Syringe, CreditCard, Check, Shield, ChevronRight } from 'lucide-react';
+import { useSelector, useDispatch } from 'react-redux';
+import { Search, MapPin, MessageSquare, ShieldCheck, Tag, Phone, X, Heart, Lock, ShieldAlert, Briefcase, Clock, Syringe, CreditCard, Check, Shield, ChevronRight, ShoppingCart } from 'lucide-react';
 import { apiRequest } from '../../services/api.js';
 import toast from 'react-hot-toast';
+import { toggleWishlistAPI, getWishlistItemIdStr } from '../../store/slices/wishlistSlice.js';
+import { addToCartAPI } from '../../store/slices/cartSlice.js';
 import { SELLER_PET_BREEDS } from '../dashboards/providers/PetSellerDashboard.jsx';
 import ScrollReveal from '../../components/ui/ScrollReveal.jsx';
 import { DEFAULT_CLASSIFIEDS, savePetOrder, markPetListingAsSold } from '../../data/classifiedsData.js';
 
 const PetClassifieds = () => {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
   const [searchParams, setSearchParams] = useSearchParams();
   const { isAuthenticated, user } = useSelector((state) => state.auth);
+  const wishlistItems = useSelector((state) => state.wishlist?.items || []);
 
   const [listings, setListings] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -187,6 +191,39 @@ const PetClassifieds = () => {
     });
   };
 
+  const handleToggleWishlist = async (e, petItem) => {
+    e.stopPropagation();
+    const pId = String(petItem._id || petItem.id);
+    const isCurrentlyWishlisted = wishlistItems.some(item => getWishlistItemIdStr(item) === pId);
+    const action = isCurrentlyWishlisted ? 'remove' : 'add';
+    const petPayload = {
+      _id: pId,
+      id: pId,
+      name: petItem.title || `${petItem.breed} (${petItem.petType})`,
+      title: petItem.title || `${petItem.breed} (${petItem.petType})`,
+      breed: petItem.breed || '',
+      petType: petItem.petType || 'pet',
+      price: Number(petItem.price) || 0,
+      fee: Number(petItem.price) || 0,
+      images: Array.isArray(petItem.images) && petItem.images.length > 0 ? petItem.images : (petItem.image ? [petItem.image] : []),
+      image: (petItem.images && petItem.images[0]) || petItem.image || '',
+      location: petItem.location || '',
+      contactPhone: petItem.contactPhone || '',
+      itemType: 'pet',
+      isPet: true
+    };
+    const result = await dispatch(toggleWishlistAPI({ product: petPayload, action }));
+    if (toggleWishlistAPI.fulfilled.match(result)) {
+      const updatedList = result.payload?.wishlist || [];
+      const nowInWishlist = updatedList.some(item => getWishlistItemIdStr(item) === pId);
+      if (nowInWishlist) {
+        toast.success('Added pet to wishlist');
+      } else {
+        toast.success('Removed pet from wishlist');
+      }
+    }
+  };
+
   const handleBuy = (pet) => {
     if (!isAuthenticated) {
       toast.error('Please login to purchase a pet.');
@@ -206,6 +243,37 @@ const PetClassifieds = () => {
     }
 
     setCheckoutPet(pet);
+  };
+
+  const handleAddToCart = (pet) => {
+    if (user?.role === 'SERVICE_PROVIDER' && (user?.serviceCategory || '').toLowerCase() === 'pet seller') {
+      toast.error('Sellers cannot buy pets.');
+      return;
+    }
+    const ownerId = pet.user?._id || (typeof pet.user === 'string' ? pet.user : null);
+    if (ownerId && user?._id && ownerId === user._id) {
+      toast.error('You cannot add your own pet listing to cart.');
+      return;
+    }
+    const petObj = {
+      _id: pet._id || pet.id,
+      id: pet._id || pet.id,
+      name: pet.title || `${pet.breed} (${pet.petType})`,
+      title: pet.title,
+      price: Number(pet.price) || 0,
+      fee: Number(pet.price) || 0,
+      breed: pet.breed,
+      petType: pet.petType,
+      images: pet.images || (pet.image ? [pet.image] : []),
+      image: (pet.images && pet.images[0]) || pet.image || '',
+      sellerName: pet.user?.name || pet.sellerName || 'Verified Seller',
+      location: pet.location,
+      contactPhone: pet.contactPhone,
+      isPet: true,
+      itemType: 'pet',
+      stock: 1
+    };
+    dispatch(addToCartAPI({ product: petObj, quantity: 1 }));
   };
 
   const handleConfirmPurchase = async () => {
@@ -449,39 +517,58 @@ const PetClassifieds = () => {
         </div>
       ) : filteredListings.length > 0 ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-          {filteredListings.map((l) => (
-            <div 
-              key={l._id} 
-              onClick={() => navigate(`/pets/${l._id}`)}
-              className="card-premium bg-white flex flex-col justify-between h-full border border-beige shadow-sm hover:shadow-xl transition-all duration-300 cursor-pointer group hover:-translate-y-1"
-            >
-              <div>
-                {/* Image */}
-                <div className="aspect-[16/10] sm:aspect-[4/3] overflow-hidden bg-gray-100 border-b border-beige relative">
-                  <img src={l.images[0]} alt={l.title} className="w-full h-full object-cover group-hover:scale-105 transition duration-500" loading="lazy" />
-                  
-                  {/* Rehome / Price Tag */}
-                  <span className="absolute bottom-2.5 left-2.5 bg-primary text-white text-[10px] sm:text-[11px] font-bold px-2.5 py-1 uppercase tracking-wider shadow-sm">
-                    {l.price === 0 ? 'Rehome (Free)' : `₹${l.price.toLocaleString('en-IN')}`}
-                  </span>
+          {filteredListings.map((l) => {
+            const petId = String(l._id || l.id);
+            const isWishlisted = wishlistItems.some(item => getWishlistItemIdStr(item) === petId);
 
-                  {/* Verification Badge */}
-                  {l.isVerified ? (
-                    <span className="absolute top-3 right-3 bg-green-600 text-white text-[8px] font-bold px-2 py-0.5 uppercase tracking-widest flex items-center gap-0.5">
-                      <ShieldCheck size={10} /> Verified
-                    </span>
-                  ) : (
-                    <span className="absolute top-3 right-3 bg-orange-100 text-orange-800 border border-orange-200 text-[8px] font-bold px-2 py-0.5 uppercase tracking-widest flex items-center gap-0.5">
-                      <Clock size={10} /> Pending
-                    </span>
-                  )}
+            return (
+              <div 
+                key={l._id} 
+                onClick={() => navigate(`/pets/${l._id}`)}
+                className="card-premium bg-white flex flex-col justify-between h-full border border-beige shadow-sm hover:shadow-xl transition-all duration-300 cursor-pointer group hover:-translate-y-1 relative"
+              >
+                <div>
+                  {/* Image */}
+                  <div className="aspect-[16/10] sm:aspect-[4/3] overflow-hidden bg-gray-100 border-b border-beige relative">
+                    <img src={l.images[0]} alt={l.title} className="w-full h-full object-cover group-hover:scale-105 transition duration-500" loading="lazy" />
+                    
+                    {/* Wishlist Heart Button */}
+                    <button
+                      type="button"
+                      onClick={(e) => handleToggleWishlist(e, l)}
+                      aria-label={isWishlisted ? "Remove from Wishlist" : "Add to Wishlist"}
+                      title={isWishlisted ? "Remove from Wishlist" : "Add to Wishlist"}
+                      className={`absolute top-2.5 right-2.5 z-20 p-2 rounded-full backdrop-blur-md border shadow-sm transition-all duration-300 cursor-pointer ${
+                        isWishlisted 
+                          ? "bg-white text-red-500 border-red-200 hover:bg-red-50" 
+                          : "bg-white/90 text-gray-400 hover:text-red-500 border-white hover:bg-white"
+                      }`}
+                    >
+                      <Heart size={14} className={isWishlisted ? "fill-red-500 text-red-500" : ""} />
+                    </button>
 
-                  {/* Vaccinated Badge */}
-                  {l.vaccinationCertificate && (
-                    <span className="absolute top-10 right-3 bg-blue-100 text-blue-800 border border-blue-200 text-[8px] font-bold px-2 py-0.5 uppercase tracking-widest flex items-center gap-0.5 mt-1">
-                      <Syringe size={10} /> Vaccinated
+                    {/* Rehome / Price Tag */}
+                    <span className="absolute bottom-2.5 left-2.5 bg-primary text-white text-[10px] sm:text-[11px] font-bold px-2.5 py-1 uppercase tracking-wider shadow-sm">
+                      {l.price === 0 ? 'Rehome (Free)' : `₹${l.price.toLocaleString('en-IN')}`}
                     </span>
-                  )}
+
+                    {/* Verification Badge */}
+                    {l.isVerified ? (
+                      <span className="absolute top-3 right-11 bg-green-600 text-white text-[8px] font-bold px-2 py-0.5 uppercase tracking-widest flex items-center gap-0.5 shadow-xs">
+                        <ShieldCheck size={10} /> Verified
+                      </span>
+                    ) : (
+                      <span className="absolute top-3 right-11 bg-orange-100 text-orange-800 border border-orange-200 text-[8px] font-bold px-2 py-0.5 uppercase tracking-widest flex items-center gap-0.5">
+                        <Clock size={10} /> Pending
+                      </span>
+                    )}
+
+                    {/* Vaccinated Badge */}
+                    {l.vaccinationCertificate && (
+                      <span className="absolute top-10 right-11 bg-blue-100 text-blue-800 border border-blue-200 text-[8px] font-bold px-2 py-0.5 uppercase tracking-widest flex items-center gap-0.5 mt-1">
+                        <Syringe size={10} /> Vaccinated
+                      </span>
+                    )}
 
                   {/* Sold Out / Quantity Badge */}
                   {l.status === 'Sold Out' || l.quantity === 0 ? (
@@ -547,24 +634,35 @@ const PetClassifieds = () => {
                   </button>
                 </div>
                 
-                {/* Buy Action */}
+                {/* Buy / Cart Actions */}
                 {l.status !== 'Sold Out' && l.quantity !== 0 && (
-                  <div className="pt-2" onClick={(e) => e.stopPropagation()}>
+                  <div className="pt-2 grid grid-cols-2 gap-2" onClick={(e) => e.stopPropagation()}>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleAddToCart(l);
+                      }}
+                      className="py-2 bg-primary hover:bg-primary-light text-white text-[10px] font-black tracking-wider uppercase rounded-md transition cursor-pointer shadow-sm flex items-center justify-center gap-1.5"
+                    >
+                      <ShoppingCart size={13} />
+                      ADD CART
+                    </button>
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
                         handleBuy(l);
                       }}
-                      className="w-full py-2 bg-[#ffd000] hover:bg-[#e6bb00] text-[#0F2E23] text-[11px] font-black tracking-widest uppercase rounded-md transition cursor-pointer shadow-sm flex items-center justify-center gap-2"
+                      className="py-2 bg-[#ffd000] hover:bg-[#e6bb00] text-[#0F2E23] text-[10px] font-black tracking-wider uppercase rounded-md transition cursor-pointer shadow-sm flex items-center justify-center gap-1.5"
                     >
-                      <CreditCard size={14} />
+                      <CreditCard size={13} />
                       BUY NOW
                     </button>
                   </div>
                 )}
               </div>
             </div>
-          ))}
+          );
+        })}
         </div>
       ) : (
         <div className="text-center py-8 lg:py-16 sm:py-10 lg:py-20 bg-white border border-beige max-w-md mx-auto px-4 text-gray-500 text-xs sm:text-sm">

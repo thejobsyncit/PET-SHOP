@@ -695,7 +695,7 @@ const WalkingServices = () => {
           {/* =====================================================================
               LEFT FILTER PANEL (Screenshot 2 Match)
              ===================================================================== */}
-          <aside className="lg:col-span-3 bg-white p-5 rounded-3xl border border-[#1D3B2E]/15 shadow-sm sticky top-24 max-h-[calc(100vh-120px)] flex flex-col">
+          <aside className="lg:col-span-3 bg-white p-5 rounded-3xl border border-[#1D3B2E]/15 shadow-sm relative lg:sticky lg:top-24 max-h-none lg:max-h-[calc(100vh-120px)] flex flex-col">
             
             {/* Fixed Filter Header */}
             <div className="flex justify-between items-center border-b border-slate-100 pb-3 mb-3 shrink-0">
@@ -718,7 +718,7 @@ const WalkingServices = () => {
             </div>
 
             {/* Dedicated Scrollable Filter Container */}
-            <div className="overflow-y-auto pr-1.5 space-y-5 flex-1 custom-scrollbar">
+            <div className="overflow-y-visible lg:overflow-y-auto pr-0 lg:pr-1.5 space-y-5 flex-1 custom-scrollbar">
               
               {/* 1. TOP SEARCH BAR */}
               <div className="space-y-1.5">
