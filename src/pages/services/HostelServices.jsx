@@ -173,16 +173,6 @@ const HostelServices = () => {
   const [expandedReasons, setExpandedReasons] = useState({});
   const [selectedReasonModal, setSelectedReasonModal] = useState(null);
 
-  // Compact Hostel Card Expansion State: cards are small by default, expand on click
-  const [expandedHostelCards, setExpandedHostelCards] = useState({});
-
-  const toggleHostelCard = (providerId) => {
-    setExpandedHostelCards((prev) => ({
-      ...prev,
-      [providerId]: !prev[providerId]
-    }));
-  };
-
   const toggleReason = (id) => {
     setExpandedReasons((prev) => ({
       ...prev,
@@ -937,21 +927,15 @@ const HostelServices = () => {
             {filteredProviders.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {filteredProviders.map((provider) => {
-                  const targetAmenityName = HOSTEL_OFFERINGS.find(o => o.id === selectedAmenity)?.name;
                   const featuredPkg = getFeaturedPackageForOffering(provider, selectedAmenity);
                   const effectivePrice = featuredPkg ? featuredPkg.price : (provider.discountPrice || provider.pricePerNight);
-                  const isExpanded = Boolean(expandedHostelCards[provider.id]);
 
                   return (
                     <div
                       key={provider.id}
-                      onClick={() => toggleHostelCard(provider.id)}
-                      className={`bg-white rounded-3xl border transition-all duration-300 overflow-hidden flex flex-col justify-between group cursor-pointer ${
-                        isExpanded
-                          ? 'border-[#7c56dc]/60 shadow-xl ring-2 ring-[#7c56dc]/20'
-                          : 'border-purple-100 shadow-sm hover:shadow-lg hover:border-purple-300'
-                      }`}
-                      title={isExpanded ? "Click card to collapse details" : "Click card to view all details & amenities"}
+                      onClick={() => navigate(`/hostel/${provider.id}`)}
+                      className="bg-white rounded-3xl border border-purple-100 shadow-sm hover:shadow-xl hover:border-purple-300 transition-all duration-300 overflow-hidden flex flex-col justify-between group cursor-pointer hover:-translate-y-1"
+                      title="Click card to view all amenities & details on separate page"
                     >
                       <div>
                         {/* Provider Header Image & Badges: Entire card is clickable */}
@@ -975,15 +959,11 @@ const HostelServices = () => {
                             <span>Verified</span>
                           </div>
 
-                          {/* Click to expand indicator pill */}
+                          {/* View details indicator pill */}
                           <div className="absolute top-11 right-3">
-                            <span className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full shadow-md backdrop-blur-xs flex items-center gap-1 transition ${
-                              isExpanded
-                                ? 'bg-[#7c56dc] !text-white'
-                                : 'bg-black/60 !text-white hover:bg-black/80'
-                            }`}>
-                              <span>{isExpanded ? 'Full info' : 'Click for info'}</span>
-                              <span>{isExpanded ? '↑' : '↓'}</span>
+                            <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full shadow-md backdrop-blur-xs flex items-center gap-1 transition bg-black/60 !text-white group-hover:bg-[#7c56dc]">
+                              <span>View details</span>
+                              <span>→</span>
                             </span>
                           </div>
 
@@ -1017,122 +997,37 @@ const HostelServices = () => {
                             </div>
                           </div>
 
-                          {/* Compact Preview (When NOT Expanded): shows 2 amenities + more badge */}
-                          {!isExpanded && (
-                            <div className="space-y-2">
-                              <div className="flex items-center justify-between gap-2 text-xs pt-0.5">
-                                <div className="flex flex-wrap items-center gap-1.5 overflow-hidden">
-                                  {(provider.amenities || []).slice(0, 2).map((amenity, idx) => (
-                                    <span
-                                      key={idx}
-                                      className="text-[10px] font-semibold px-2 py-0.5 rounded-lg bg-slate-50 text-slate-700 border border-slate-200/70 truncate max-w-[130px]"
-                                    >
-                                      {amenity}
-                                    </span>
-                                  ))}
-                                  {(provider.amenities || []).length > 2 && (
-                                    <span className="text-[10px] font-bold text-[#7c56dc] bg-purple-50 px-2 py-0.5 rounded-lg border border-purple-100">
-                                      +{(provider.amenities || []).length - 2} more
-                                    </span>
-                                  )}
-                                </div>
-
-                                <span className="text-[10px] font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-lg shrink-0">
-                                  {provider.experience}
-                                </span>
+                          {/* Compact Preview: shows 2 amenities + more badge & View details hint */}
+                          <div className="space-y-2">
+                            <div className="flex items-center justify-between gap-2 text-xs pt-0.5">
+                              <div className="flex flex-wrap items-center gap-1.5 overflow-hidden">
+                                {(provider.amenities || []).slice(0, 2).map((amenity, idx) => (
+                                  <span
+                                    key={idx}
+                                    className="text-[10px] font-semibold px-2 py-0.5 rounded-lg bg-slate-50 text-slate-700 border border-slate-200/70 truncate max-w-[130px]"
+                                  >
+                                    {amenity}
+                                  </span>
+                                ))}
+                                {(provider.amenities || []).length > 2 && (
+                                  <span className="text-[10px] font-bold text-[#7c56dc] bg-purple-50 px-2 py-0.5 rounded-lg border border-purple-100">
+                                    +{(provider.amenities || []).length - 2} more
+                                  </span>
+                                )}
                               </div>
 
-                              <div className="text-center pt-1">
-                                <span className="text-[11px] font-bold text-[#7c56dc] group-hover:text-purple-700 transition flex items-center justify-center gap-1">
-                                  <span>Click card to view all amenities & details</span>
-                                  <span>↓</span>
-                                </span>
-                              </div>
+                              <span className="text-[10px] font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-lg shrink-0">
+                                {provider.experience}
+                              </span>
                             </div>
-                          )}
 
-                          {/* FULL DETAILS (ONLY SHOWN WHEN THE USER CLICKS THE CARD) */}
-                          {isExpanded && (
-                            <div className="pt-2 border-t border-purple-100/70 space-y-3.5 animate-in fade-in duration-200">
-                              {/* Host & Experience */}
-                              <div className="flex items-center justify-between text-xs bg-slate-50 p-2.5 rounded-xl border border-slate-100">
-                                <p className="text-[11px] text-slate-600 font-medium">
-                                  <span className="font-bold text-slate-800">Host:</span> {provider.hostName}
-                                </p>
-                                <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-100">
-                                  {provider.experience} Boarding
-                                </span>
-                              </div>
-
-                              {/* Tagline */}
-                              <p className="text-xs text-slate-700 font-medium italic bg-purple-50/40 p-2.5 rounded-xl border border-purple-100/60 leading-relaxed">
-                                "{provider.tagline}"
-                              </p>
-
-                              {/* Amenities Included Pills with Matched Highlighting */}
-                              <div className="space-y-1.5">
-                                <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block">
-                                  All Hostel Amenities ({(provider.amenities || []).length}):
-                                </span>
-                                <div className="flex flex-wrap gap-1.5">
-                                  {(provider.amenities || []).map((amenity, idx) => {
-                                    const isMatched = selectedAmenity !== 'all' && targetAmenityName === amenity;
-                                    const matchedOffering = HOSTEL_OFFERINGS.find(o => o.name === amenity);
-                                    return (
-                                      <span
-                                        key={idx}
-                                        style={isMatched ? { background: 'linear-gradient(135deg, #d4af37 0%, #fef08a 50%, #b89228 100%)' } : {}}
-                                        className={`text-[10px] font-bold px-2.5 py-1 rounded-lg border flex items-center gap-1.5 transition ${isMatched
-                                            ? 'text-slate-950 border-[#b89228] shadow-xs scale-105 ring-2 ring-[#fef08a] font-black'
-                                            : 'bg-slate-50 text-slate-700 border-slate-200/80'
-                                          }`}
-                                      >
-                                        <span className="shrink-0">
-                                          {matchedOffering ? renderOfferingIcon(matchedOffering.id, { size: 12, isActive: isMatched }) : <Check size={11} className="text-emerald-600" />}
-                                        </span>
-                                        <span>{amenity}</span>
-                                      </span>
-                                    );
-                                  })}
-                                </div>
-                              </div>
-
-                              {/* Dynamic Stay Package Preview */}
-                              {featuredPkg && (
-                                <div className={`p-3 rounded-2xl space-y-1 transition ${selectedAmenity !== 'all'
-                                    ? 'bg-amber-50/90 border border-amber-300'
-                                    : 'bg-amber-50/70 border border-amber-200/60'
-                                  }`}>
-                                  <div className="flex justify-between items-center">
-                                    <span className="text-[10px] font-extrabold uppercase tracking-wide flex items-center gap-1.5 text-amber-900">
-                                      <Sparkles size={12} className="text-amber-600 shrink-0" />
-                                      <span>{selectedAmenity !== 'all' ? `Matched ${targetAmenityName} Package` : 'Featured Stay Package'}</span>
-                                    </span>
-                                    <span className={`text-xs font-extrabold ${selectedAmenity !== 'all' ? 'text-amber-800' : 'text-slate-900'
-                                      }`}>
-                                      ₹{featuredPkg.price}/night
-                                    </span>
-                                  </div>
-                                  <p className="text-[11px] font-bold text-slate-800">{featuredPkg.name}</p>
-                                  <p className="text-[10px] text-slate-600 leading-tight">{featuredPkg.desc}</p>
-                                </div>
-                              )}
-
-                              {/* 24/7 CCTV & Meals Included Badge */}
-                              <div className="flex items-center justify-between text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2.5 py-1.5 rounded-lg border border-emerald-100">
-                                <span>✓ 24/7 CCTV Live Stream</span>
-                                <span>✓ Meals Included</span>
-                              </div>
-
-                              {/* Collapse hint */}
-                              <div className="text-center pt-1">
-                                <span className="text-[11px] font-bold text-slate-400 group-hover:text-[#7c56dc] transition flex items-center justify-center gap-1">
-                                  <span>Click card to collapse details</span>
-                                  <span>↑</span>
-                                </span>
-                              </div>
+                            <div className="text-center pt-1">
+                              <span className="text-[11px] font-bold text-[#7c56dc] group-hover:text-purple-700 transition flex items-center justify-center gap-1">
+                                <span>Click card to view all amenities & details</span>
+                                <ArrowRight size={12} />
+                              </span>
                             </div>
-                          )}
+                          </div>
 
                         </div>
                       </div>
@@ -1722,7 +1617,23 @@ const HostelServices = () => {
           </div>
         </div>
       )}
-</div>
+
+      {/* RAZORPAY CENTRAL PLATFORM PAYMENT MODAL */}
+      <RazorpayBookingPaymentModal
+        isOpen={Boolean(pendingPaymentBooking)}
+        onClose={() => setPendingPaymentBooking(null)}
+        bookingData={pendingPaymentBooking}
+        onSuccess={(confirmed) => {
+          saveHostelBooking(confirmed);
+          setPendingPaymentBooking(null);
+          setPetName('');
+          setPetBreed('');
+          setSpecialNotes('');
+          toast.success('Hostel reservation confirmed! View in My Bookings.', { icon: '🎉' });
+        }}
+      />
+
+    </div>
   );
 };
 

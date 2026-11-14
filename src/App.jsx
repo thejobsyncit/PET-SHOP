@@ -38,6 +38,7 @@ const BreedingDirectory = lazy(() => import('./pages/pets/BreedingDirectory.jsx'
 const ServiceBooking = lazy(() => import('./pages/services/ServiceBooking.jsx'));
 const GroomingServices = lazy(() => import('./pages/services/GroomingServices.jsx'));
 const HostelServices = lazy(() => import('./pages/services/HostelServices.jsx'));
+const HostelDetail = lazy(() => import('./pages/services/HostelDetail.jsx'));
 const WalkingServices = lazy(() => import('./pages/services/WalkingServices.jsx'));
 const PetTransport = lazy(() => import('./pages/services/PetTransport.jsx'));
 const PetTraining = lazy(() => import('./pages/services/PetTraining.jsx'));
@@ -125,7 +126,9 @@ function App() {
               <Route path="grooming" element={<GroomingServices />} />
               <Route path="services/grooming" element={<GroomingServices />} />
               <Route path="hostel" element={<HostelServices />} />
+              <Route path="hostel/:id" element={<HostelDetail />} />
               <Route path="services/hostel" element={<HostelServices />} />
+              <Route path="services/hostel/:id" element={<HostelDetail />} />
               <Route path="walking" element={<WalkingServices />} />
               <Route path="services/walking" element={<WalkingServices />} />
               <Route path="dog-walking" element={<WalkingServices />} />

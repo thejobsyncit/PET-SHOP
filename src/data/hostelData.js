@@ -174,6 +174,49 @@ export const getStoredHostelProviders = () => {
   return syncRegisteredProvidersToService(list, 'hostel');
 };
 
+export const getHostelProviderById = (id) => {
+  if (!id) return null;
+  const rawList = getStoredHostelProviders();
+  const decodedId = decodeURIComponent(id || '').trim();
+  const found = (rawList || []).find((p) =>
+    p && (
+      p.id === id ||
+      String(p.id) === String(id) ||
+      String(p.id).toLowerCase() === decodedId.toLowerCase() ||
+      p._id === id ||
+      String(p._id) === String(id)
+    )
+  );
+  if (!found) return null;
+  return {
+    ...found,
+    id: found.id || found._id,
+    name: found.name || 'Verified Pet Hostel & Boarding',
+    tagline: found.tagline || 'Loving & Secure Pet Boarding',
+    hostName: found.hostName || found.name || 'Certified Caretaker',
+    experience: found.experience || '5+ Years Boarding',
+    verified: found.verified ?? true,
+    rating: Number(found.rating) || 4.9,
+    reviews: Number(found.reviews) || 15,
+    petTypes: Array.isArray(found.petTypes) && found.petTypes.length > 0 ? found.petTypes : ['Dogs', 'Cats'],
+    state: found.state || 'Karnataka',
+    city: found.city || 'Bangalore',
+    area: found.area || found.city || 'Main City',
+    stayType: found.stayType || 'AC Suite & Private Garden',
+    pricePerNight: Number(found.pricePerNight) || Number(found.price) || 799,
+    discountPrice: Number(found.discountPrice) || Number(found.price) || 599,
+    image: found.image || found.avatar || 'https://images.unsplash.com/photo-1589924691995-400dc9ecc119?q=80&w=800&auto=format&fit=crop',
+    phone: found.phone || found.mobile || '9876543210',
+    amenities: Array.isArray(found.amenities) && found.amenities.length > 0 ? found.amenities : [
+      'AC Suites', '24/7 CCTV Live Stream', 'Outdoor Lawn & Play Area', 'Vet On Call', 'Daily Video Updates', 'Customized Meals'
+    ],
+    packages: Array.isArray(found.packages) && found.packages.length > 0 ? found.packages : [
+      { name: 'Deluxe AC Room (Single Pet)', price: Number(found.discountPrice) || Number(found.pricePerNight) || 799, desc: 'Climate controlled private room, 3 fresh meals, 3 daily walks & video updates' },
+      { name: 'Royal Presidential Suite', price: (Number(found.discountPrice) || 799) + 400, desc: 'Large suite with sofa, CCTV mobile access, pool time & complimentary bath' }
+    ]
+  };
+};
+
 export const saveHostelBooking = (bookingData) => {
   try {
     const existing = getStoredHostelBookings();
