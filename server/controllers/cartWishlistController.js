@@ -32,9 +32,11 @@ const loadDiskUsers = () => {
       userMap.set(existingKey, {
         ...existing,
         ...u,
-        cart: Array.isArray(u.cart) ? u.cart : (existing.cart || []),
+        _id: existing._id || u._id || existing.id || u.id,
+        id: existing.id || existing._id || u.id || u._id,
+        cart: (Array.isArray(u.cart) && u.cart.length > 0) ? u.cart : (existing.cart || []),
         addresses: (Array.isArray(u.addresses) && u.addresses.length > 0) ? u.addresses : (existing.addresses || []),
-        wishlist: Array.isArray(u.wishlist) ? u.wishlist : (existing.wishlist || [])
+        wishlist: (Array.isArray(u.wishlist) && u.wishlist.length > 0) ? u.wishlist : (existing.wishlist || [])
       });
     } else {
       userMap.set(key, { ...u });
@@ -100,8 +102,58 @@ const saveDiskUsers = (users) => {
 };
 
 // In-memory registries for fast session continuity across requests
+let diskLockQueue = Promise.resolve();
+const withDiskLock = (fn) => {
+  const next = diskLockQueue.then(() => fn());
+  diskLockQueue = next.catch(() => {});
+  return next;
+};
+
+// In-memory registries for fast session continuity across requests
 const inMemoryWishlists = new Map();
 const inMemoryCarts = new Map();
+
+const getMemCart = (...keys) => {
+  for (const k of keys) {
+    if (!k) continue;
+    const str = String(k).trim();
+    if (inMemoryCarts.has(str)) return inMemoryCarts.get(str);
+    const lower = str.toLowerCase();
+    if (inMemoryCarts.has(lower)) return inMemoryCarts.get(lower);
+  }
+  return null;
+};
+
+const setMemCart = (cart, ...keys) => {
+  const safeCart = Array.isArray(cart) ? cart : [];
+  for (const k of keys) {
+    if (!k) continue;
+    const str = String(k).trim();
+    inMemoryCarts.set(str, safeCart);
+    inMemoryCarts.set(str.toLowerCase(), safeCart);
+  }
+};
+
+const getMemWishlist = (...keys) => {
+  for (const k of keys) {
+    if (!k) continue;
+    const str = String(k).trim();
+    if (inMemoryWishlists.has(str)) return inMemoryWishlists.get(str);
+    const lower = str.toLowerCase();
+    if (inMemoryWishlists.has(lower)) return inMemoryWishlists.get(lower);
+  }
+  return null;
+};
+
+const setMemWishlist = (wishlist, ...keys) => {
+  const safeWishlist = Array.isArray(wishlist) ? wishlist : [];
+  for (const k of keys) {
+    if (!k) continue;
+    const str = String(k).trim();
+    inMemoryWishlists.set(str, safeWishlist);
+    inMemoryWishlists.set(str.toLowerCase(), safeWishlist);
+  }
+};
 
 // Retrieve user record from Supabase or disk users.json
 const getUserData = async (userId, userEmail) => {
@@ -112,35 +164,51 @@ const getUserData = async (userId, userEmail) => {
     throw new Error('User identity missing');
   }
 
+  let user = null;
+  let source = 'disk';
+
   if (supabase && cleanId) {
     try {
-      const { data: user, error } = await supabase.from('users').select('*').eq('id', cleanId).single();
-      if (!error && user) {
-        return { user, source: 'supabase' };
+      const { data: dbUser, error } = await supabase.from('users').select('*').eq('id', cleanId).single();
+      if (!error && dbUser) {
+        user = dbUser;
+        source = 'supabase';
       }
     } catch (e) {}
   }
 
-  const diskUsers = loadDiskUsers();
-  const diskUser = diskUsers.find(u => 
-    (cleanId && (String(u._id) === cleanId || String(u.id) === cleanId)) ||
-    (cleanEmail && u.email && u.email.toLowerCase() === cleanEmail)
-  );
+  if (!user) {
+    const diskUsers = loadDiskUsers();
+    user = diskUsers.find(u => 
+      (cleanId && (String(u._id) === cleanId || String(u.id) === cleanId)) ||
+      (cleanEmail && u.email && u.email.toLowerCase() === cleanEmail)
+    );
+  }
 
-  if (diskUser) {
-    const key = cleanId || String(diskUser._id || diskUser.id || cleanEmail);
-    if (inMemoryWishlists.has(key) && (!diskUser.wishlist || diskUser.wishlist.length === 0)) {
-      diskUser.wishlist = inMemoryWishlists.get(key);
+  if (user) {
+    const userKeys = [cleanId, cleanEmail, user._id, user.id, user.email].filter(Boolean);
+    const memWish = getMemWishlist(...userKeys);
+    const memC = getMemCart(...userKeys);
+
+    if ((!user.wishlist || user.wishlist.length === 0) && Array.isArray(memWish) && memWish.length > 0) {
+      user.wishlist = memWish;
+    } else if (Array.isArray(user.wishlist) && user.wishlist.length > 0) {
+      setMemWishlist(user.wishlist, ...userKeys);
     }
-    if (inMemoryCarts.has(key) && (!diskUser.cart || diskUser.cart.length === 0)) {
-      diskUser.cart = inMemoryCarts.get(key);
+
+    if ((!user.cart || user.cart.length === 0) && Array.isArray(memC) && memC.length > 0) {
+      user.cart = memC;
+    } else if (Array.isArray(user.cart) && user.cart.length > 0) {
+      setMemCart(user.cart, ...userKeys);
     }
-    return { user: diskUser, source: 'disk' };
+
+    return { user, source };
   }
 
   const effectiveKey = cleanId || cleanEmail;
-  const memWishlist = inMemoryWishlists.get(effectiveKey) || [];
-  const memCart = inMemoryCarts.get(effectiveKey) || [];
+  const userKeys = [cleanId, cleanEmail].filter(Boolean);
+  const memWishlist = getMemWishlist(...userKeys) || [];
+  const memCart = getMemCart(...userKeys) || [];
   return {
     user: {
       _id: effectiveKey,
@@ -155,76 +223,98 @@ const getUserData = async (userId, userEmail) => {
 
 // Save user cart state
 const saveUserCart = async (userId, cart, userData, userEmail) => {
-  const cleanId = (userId && String(userId) !== 'undefined' && String(userId) !== 'null') ? String(userId) : '';
-  const cleanEmail = (userEmail && typeof userEmail === 'string') ? userEmail.trim().toLowerCase() : (userData?.user?.email ? userData.user.email.trim().toLowerCase() : '');
-  const key = cleanId || cleanEmail;
+  return withDiskLock(async () => {
+    const cleanId = (userId && String(userId) !== 'undefined' && String(userId) !== 'null') ? String(userId) : '';
+    const cleanEmail = (userEmail && typeof userEmail === 'string') ? userEmail.trim().toLowerCase() : (userData?.user?.email ? userData.user.email.trim().toLowerCase() : '');
+    const userObjId = userData?.user?._id || userData?.user?.id;
+    const safeCart = Array.isArray(cart) ? cart : [];
 
-  if (key) inMemoryCarts.set(key, cart);
-  if (cleanEmail) inMemoryCarts.set(cleanEmail, cart);
-  if (cleanId) inMemoryCarts.set(cleanId, cart);
+    // Cache cart in memory under all user identifiers
+    setMemCart(safeCart, cleanId, cleanEmail, userObjId);
 
-  if (userData?.source === 'supabase' && supabase && cleanId) {
-    try {
-      await supabase.from('users').update({ cart }).eq('id', cleanId);
-    } catch (e) {}
-  }
+    if (userData?.source === 'supabase' && supabase && cleanId) {
+      try {
+        await supabase.from('users').update({ cart: safeCart }).eq('id', cleanId);
+      } catch (e) {}
+    }
 
-  const diskUsers = loadDiskUsers();
-  const idx = diskUsers.findIndex(u => 
-    (cleanId && (String(u._id) === cleanId || String(u.id) === cleanId)) ||
-    (cleanEmail && u.email && u.email.toLowerCase() === cleanEmail)
-  );
+    const diskUsers = loadDiskUsers();
+    const idx = diskUsers.findIndex(u => 
+      (cleanId && (String(u._id) === cleanId || String(u.id) === cleanId)) ||
+      (userObjId && (String(u._id) === String(userObjId) || String(u.id) === String(userObjId))) ||
+      (cleanEmail && u.email && u.email.toLowerCase() === cleanEmail)
+    );
 
-  if (idx > -1) {
-    diskUsers[idx].cart = cart;
-  } else {
-    diskUsers.push({
-      _id: cleanId || key,
-      id: cleanId || key,
-      email: cleanEmail || `user_${key.slice(0, 8)}@joshpetshub.com`,
-      role: userData?.user?.role || 'CUSTOMER',
-      cart: cart,
-      wishlist: inMemoryWishlists.get(key) || userData?.user?.wishlist || []
-    });
-  }
-  saveDiskUsers(diskUsers);
+    if (idx > -1) {
+      diskUsers[idx].cart = safeCart;
+      // Cross-preservation: Never let wishlist be erased when saving cart!
+      const memWish = getMemWishlist(cleanId, cleanEmail, userObjId, diskUsers[idx]._id, diskUsers[idx].id, diskUsers[idx].email);
+      if ((!diskUsers[idx].wishlist || diskUsers[idx].wishlist.length === 0) && Array.isArray(memWish) && memWish.length > 0) {
+        diskUsers[idx].wishlist = memWish;
+      }
+      setMemWishlist(diskUsers[idx].wishlist, cleanId, cleanEmail, userObjId, diskUsers[idx]._id, diskUsers[idx].id);
+    } else {
+      const memWish = getMemWishlist(cleanId, cleanEmail, userObjId) || userData?.user?.wishlist || [];
+      diskUsers.push({
+        _id: cleanId || userObjId || `user_${Date.now()}`,
+        id: cleanId || userObjId || `user_${Date.now()}`,
+        email: cleanEmail || `user_${(cleanId || 'guest').slice(0, 8)}@joshpetshub.com`,
+        role: userData?.user?.role || 'CUSTOMER',
+        cart: safeCart,
+        wishlist: memWish
+      });
+      setMemWishlist(memWish, cleanId, cleanEmail, userObjId);
+    }
+    saveDiskUsers(diskUsers);
+  });
 };
 
 // Save user wishlist state
 const saveUserWishlist = async (userId, wishlist, userData, userEmail) => {
-  const cleanId = (userId && String(userId) !== 'undefined' && String(userId) !== 'null') ? String(userId) : '';
-  const cleanEmail = (userEmail && typeof userEmail === 'string') ? userEmail.trim().toLowerCase() : (userData?.user?.email ? userData.user.email.trim().toLowerCase() : '');
-  const key = cleanId || cleanEmail;
+  return withDiskLock(async () => {
+    const cleanId = (userId && String(userId) !== 'undefined' && String(userId) !== 'null') ? String(userId) : '';
+    const cleanEmail = (userEmail && typeof userEmail === 'string') ? userEmail.trim().toLowerCase() : (userData?.user?.email ? userData.user.email.trim().toLowerCase() : '');
+    const userObjId = userData?.user?._id || userData?.user?.id;
+    const safeWishlist = Array.isArray(wishlist) ? wishlist : [];
 
-  if (key) inMemoryWishlists.set(key, wishlist);
-  if (cleanEmail) inMemoryWishlists.set(cleanEmail, wishlist);
-  if (cleanId) inMemoryWishlists.set(cleanId, wishlist);
+    // Cache wishlist in memory under all user identifiers
+    setMemWishlist(safeWishlist, cleanId, cleanEmail, userObjId);
 
-  if (userData?.source === 'supabase' && supabase && cleanId) {
-    try {
-      await supabase.from('users').update({ wishlist }).eq('id', cleanId);
-    } catch (e) {}
-  }
+    if (userData?.source === 'supabase' && supabase && cleanId) {
+      try {
+        await supabase.from('users').update({ wishlist: safeWishlist }).eq('id', cleanId);
+      } catch (e) {}
+    }
 
-  const diskUsers = loadDiskUsers();
-  const idx = diskUsers.findIndex(u => 
-    (cleanId && (String(u._id) === cleanId || String(u.id) === cleanId)) ||
-    (cleanEmail && u.email && u.email.toLowerCase() === cleanEmail)
-  );
+    const diskUsers = loadDiskUsers();
+    const idx = diskUsers.findIndex(u => 
+      (cleanId && (String(u._id) === cleanId || String(u.id) === cleanId)) ||
+      (userObjId && (String(u._id) === String(userObjId) || String(u.id) === String(userObjId))) ||
+      (cleanEmail && u.email && u.email.toLowerCase() === cleanEmail)
+    );
 
-  if (idx > -1) {
-    diskUsers[idx].wishlist = wishlist;
-  } else {
-    diskUsers.push({
-      _id: cleanId || key,
-      id: cleanId || key,
-      email: cleanEmail || `user_${key.slice(0, 8)}@joshpetshub.com`,
-      role: userData?.user?.role || 'CUSTOMER',
-      cart: inMemoryCarts.get(key) || userData?.user?.cart || [],
-      wishlist: wishlist
-    });
-  }
-  saveDiskUsers(diskUsers);
+    if (idx > -1) {
+      diskUsers[idx].wishlist = safeWishlist;
+      // Cross-preservation: Never let cart be erased when saving wishlist!
+      const memC = getMemCart(cleanId, cleanEmail, userObjId, diskUsers[idx]._id, diskUsers[idx].id, diskUsers[idx].email);
+      if ((!diskUsers[idx].cart || diskUsers[idx].cart.length === 0) && Array.isArray(memC) && memC.length > 0) {
+        diskUsers[idx].cart = memC;
+      }
+      setMemCart(diskUsers[idx].cart, cleanId, cleanEmail, userObjId, diskUsers[idx]._id, diskUsers[idx].id);
+    } else {
+      const memC = getMemCart(cleanId, cleanEmail, userObjId) || userData?.user?.cart || [];
+      diskUsers.push({
+        _id: cleanId || userObjId || `user_${Date.now()}`,
+        id: cleanId || userObjId || `user_${Date.now()}`,
+        email: cleanEmail || `user_${(cleanId || 'guest').slice(0, 8)}@joshpetshub.com`,
+        role: userData?.user?.role || 'CUSTOMER',
+        cart: memC,
+        wishlist: safeWishlist
+      });
+      setMemCart(memC, cleanId, cleanEmail, userObjId);
+    }
+    saveDiskUsers(diskUsers);
+  });
 };
 
 const normalizeProduct = (p) => {

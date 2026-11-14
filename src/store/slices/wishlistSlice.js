@@ -308,7 +308,8 @@ export const toggleWishlistAPI = createAsyncThunk('wishlist/toggle', async (payl
 const getInitialStateWishlist = () => {
   if (typeof window === 'undefined') return [];
   const userKey = getActiveWishlistUserKey();
-  return getInitialWishlist(userKey);
+  const raw = getInitialWishlist(userKey);
+  return (Array.isArray(raw) ? raw : []).map(normalizeWishlistProduct).filter(Boolean);
 };
 
 const initialState = {
@@ -362,8 +363,10 @@ const wishlistSlice = createSlice({
           saveLocalWishlist(merged, key);
           clearLocalWishlist('guest');
           apiRequest('/wishlist/sync', { method: 'POST', body: JSON.stringify({ items: merged }) }).catch(() => {});
+        } else if (userWishlist.length > 0) {
+          apiRequest('/wishlist/sync', { method: 'POST', body: JSON.stringify({ items: userWishlist }) }).catch(() => {});
         }
-        state.items = merged;
+        state.items = merged.map(item => normalizeWishlistProduct(item)).filter(Boolean);
       })
       .addCase('auth/login/fulfilled', (state, action) => {
         const u = action.payload?.user;
@@ -380,8 +383,10 @@ const wishlistSlice = createSlice({
           saveLocalWishlist(merged, key);
           clearLocalWishlist('guest');
           apiRequest('/wishlist/sync', { method: 'POST', body: JSON.stringify({ items: merged }) }).catch(() => {});
+        } else if (userWishlist.length > 0) {
+          apiRequest('/wishlist/sync', { method: 'POST', body: JSON.stringify({ items: userWishlist }) }).catch(() => {});
         }
-        state.items = merged;
+        state.items = merged.map(item => normalizeWishlistProduct(item)).filter(Boolean);
       })
       .addCase('auth/register/fulfilled', (state) => {
         state.items = [];
