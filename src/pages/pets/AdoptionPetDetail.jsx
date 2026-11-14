@@ -126,18 +126,18 @@ const AdoptionPetDetail = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, [id]);
 
-  // Automatically close adoption application success popup after a short period (4 seconds)
+  // Automatically close adoption application success popup after a short period (2 seconds)
   useEffect(() => {
     let timer;
     let interval;
     if (showSuccessPopup) {
-      setAutoCloseCountdown(4);
+      setAutoCloseCountdown(2);
       interval = setInterval(() => {
         setAutoCloseCountdown((prev) => (prev > 1 ? prev - 1 : 1));
       }, 1000);
       timer = setTimeout(() => {
         setShowSuccessPopup(false);
-      }, 4000);
+      }, 2000);
     }
     return () => {
       if (timer) clearTimeout(timer);
@@ -379,7 +379,7 @@ const AdoptionPetDetail = () => {
     setShowInquiryModal(false);
     setInquiryQuestion('');
     toast.success(`✉️ Your inquiry for ${pet.name} was sent directly to the shelter! They will review and reply in their dashboard.`, {
-      duration: 5000,
+      duration: 2000,
       icon: '💬'
     });
   };
@@ -391,7 +391,7 @@ const AdoptionPetDetail = () => {
     // 1. Without login: Do not submit, show registration popup with identical template & format
     if (!isAuthenticated || !user) {
       toast.error('Please register or log in as a user to submit an adoption application.', {
-        duration: 5000,
+        duration: 2000,
         icon: '🔒'
       });
       window.dispatchEvent(new CustomEvent('open-register-modal', {
@@ -407,7 +407,7 @@ const AdoptionPetDetail = () => {
     // 2. Prevent Pet Owner from applying for their own pet
     if (isPetOwner) {
       toast.error('You are the guardian of this pet and cannot apply to adopt your own listing.', {
-        duration: 5000,
+        duration: 2000,
         icon: '🛡️'
       });
       return;
@@ -497,7 +497,7 @@ const AdoptionPetDetail = () => {
     setIsEditing(false);
     setIsSubmitted(true);
     setShowSuccessPopup(true);
-    setAutoCloseCountdown(4);
+    setAutoCloseCountdown(2);
     if (!isEditMode) {
       setShowFlyingMacaw(true);
     }
@@ -507,7 +507,7 @@ const AdoptionPetDetail = () => {
         ? `✓ Your adoption application for ${pet.name} has been updated successfully!`
         : `🎉 Adoption application for ${pet.name} submitted successfully! You can track its status in your User Dashboard.`,
       {
-        duration: 5000,
+        duration: 2000,
         icon: isEditMode ? '✏️' : '🐾'
       }
     );
@@ -1330,7 +1330,7 @@ const AdoptionPetDetail = () => {
                 <div className="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
                   <div
                     className="bg-emerald-500 h-full transition-all duration-1000 ease-linear rounded-full"
-                    style={{ width: `${(autoCloseCountdown / 4) * 100}%` }}
+                    style={{ width: `${(autoCloseCountdown / 2) * 100}%` }}
                   />
                 </div>
               </div>

@@ -375,7 +375,7 @@ const AdoptionShelter = () => {
   const handleOpenAddPet = () => {
     if (!isAuthenticated || !user) {
       toast.error('Please log in or register to post a pet for free adoption.', {
-        duration: 5000,
+        duration: 2000,
         icon: '🔒'
       });
       window.dispatchEvent(new CustomEvent('open-register-modal', {
@@ -395,7 +395,7 @@ const AdoptionShelter = () => {
     if (existingPet) {
       setShowLimitReachedModal(true);
       toast.error('Posting limit reached: You can only list 1 pet for free adoption at a time.', {
-        duration: 5000,
+        duration: 2000,
         icon: '⚠️'
       });
       return;
@@ -425,7 +425,7 @@ const AdoptionShelter = () => {
 
     if (!isAuthenticated || !user) {
       toast.error('Please log in or register to post a pet for free adoption.', {
-        duration: 5000,
+        duration: 2000,
         icon: '🔒'
       });
       window.dispatchEvent(new CustomEvent('open-register-modal', {
@@ -446,7 +446,7 @@ const AdoptionShelter = () => {
       setShowAddPetModal(false);
       setShowLimitReachedModal(true);
       toast.error('Posting limit reached: You can only list 1 pet for free adoption at a time.', {
-        duration: 5000,
+        duration: 2000,
         icon: '⚠️'
       });
       return;
@@ -521,7 +521,7 @@ const AdoptionShelter = () => {
     setPetsList(getStoredAdoptionPets());
 
     toast.success(`🎉 "${newPetName}" has been listed for adoption successfully!`, {
-      duration: 6000,
+      duration: 2000,
       icon: '🐾'
     });
 

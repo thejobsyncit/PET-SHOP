@@ -634,7 +634,7 @@ const HostelProviderContent = ({ activeTab }) => {
       setShowWithdrawModal(false);
       toast.success(
         `Withdrawal of ₹${numAmount.toLocaleString('en-IN')} requested successfully! Funds will credit to ${newRecord.destination} shortly.`,
-        { duration: 5000 }
+        { duration: 2000 }
       );
     }, 500);
   };

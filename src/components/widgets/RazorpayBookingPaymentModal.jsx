@@ -88,6 +88,16 @@ const RazorpayBookingPaymentModal = ({
     toast('Payment verification cancelled. Your booking was not confirmed.', { icon: 'ℹ️' });
   };
 
+  // Auto-close confirmation screen promptly after 2 seconds
+  useEffect(() => {
+    if (completedBooking) {
+      const timer = setTimeout(() => {
+        handleModalClose();
+      }, 2000);
+      return () => clearTimeout(timer);
+    }
+  }, [completedBooking]);
+
   // Escape key handler
   useEffect(() => {
     const handleKeyDown = (e) => {
@@ -229,7 +239,10 @@ const RazorpayBookingPaymentModal = ({
         window.dispatchEvent(new CustomEvent('service-booking-updated', { detail: verifyRes.booking }));
       }
 
-      toast.success(`🎉 Booking Confirmed! Payment of ₹${numPrice} collected by Josh Pet Hub.`);
+      toast.success(
+        `🎉 Booking Confirmed! Payment of ₹${numPrice} collected by Josh Pet Hub.`,
+        { duration: 2000 }
+      );
 
       if (onSuccess) {
         onSuccess(verifyRes.booking);

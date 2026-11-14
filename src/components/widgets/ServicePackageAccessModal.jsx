@@ -245,7 +245,7 @@ export const handleServiceAction = ({
   if (!isAuthenticated) {
     toast.error('Please register or log in first to access verified service providers.', {
       icon: '🔒',
-      duration: 4000
+      duration: 2000
     });
     window.dispatchEvent(
       new CustomEvent('open-register-modal', {
@@ -368,6 +368,23 @@ const ServicePackageAccessModal = () => {
     };
   }, [user]);
 
+  const closeModal = () => {
+    setIsOpen(false);
+    setIsUpgradeFlow(false);
+    setStep(1);
+    setConfirmedBooking(null);
+  };
+
+  // Auto-close confirmation popup promptly after 2 seconds
+  useEffect(() => {
+    if (step === 3 && isOpen) {
+      const timer = setTimeout(() => {
+        closeModal();
+      }, 2000);
+      return () => clearTimeout(timer);
+    }
+  }, [step, isOpen]);
+
   if (!isOpen) return null;
 
   const handleSelectPackage = (pkg) => {
@@ -470,7 +487,7 @@ const ServicePackageAccessModal = () => {
           ? '🎉 VIP All-Access Pass Activated!'
           : '🎉 Standard Service Pass Activated!',
         {
-          duration: 4000,
+          duration: 2000,
           icon: isVipTier ? '👑' : '✅'
         }
       );
@@ -479,13 +496,6 @@ const ServicePackageAccessModal = () => {
     } finally {
       setIsProcessingPayment(false);
     }
-  };
-
-  const closeModal = () => {
-    setIsOpen(false);
-    setIsUpgradeFlow(false);
-    setStep(1);
-    setConfirmedBooking(null);
   };
 
   return (

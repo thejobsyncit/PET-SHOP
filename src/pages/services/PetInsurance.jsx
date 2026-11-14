@@ -312,7 +312,7 @@ const PetInsurance = () => {
     } else {
       if (comparedProviders.length >= 3) {
         toast.error('You can compare a maximum of 3 insurance providers simultaneously. Please remove one provider to add another.', {
-          duration: 4000,
+          duration: 2000,
           icon: '⚖️'
         });
         return;

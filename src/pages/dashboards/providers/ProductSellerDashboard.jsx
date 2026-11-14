@@ -563,7 +563,7 @@ const ProductSellerDashboard = ({
               </button>
             </div>
           ),
-          { duration: 5000 }
+          { duration: 2000 }
         );
       }
 

@@ -177,7 +177,7 @@ export const executeSubscriptionCheckout = async ({
       const planName = orderRes.plan?.name || 'Subscription Plan';
       toast.success(
         `🎉 ${planName} processed successfully! Valid through your subscription period.`,
-        { duration: 5000 }
+        { duration: 2000 }
       );
       onSuccess(verifyRes.subscription);
       return verifyRes.subscription;

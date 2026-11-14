@@ -396,7 +396,7 @@ const BreedingDirectory = () => {
     if (!isAuthenticated) {
       toast('Please log in or sign up to send a mating proposal.', {
         icon: '🔐',
-        duration: 4000
+        duration: 2000
       });
       window.dispatchEvent(
         new CustomEvent('open-register-modal', {
@@ -424,7 +424,7 @@ const BreedingDirectory = () => {
     if (!isAuthenticated) {
       toast('Please sign up or log in to list your pet for mating & breeding.', {
         icon: '🔐',
-        duration: 4000
+        duration: 2000
       });
       window.dispatchEvent(
         new CustomEvent('open-register-modal', {
@@ -498,7 +498,7 @@ const BreedingDirectory = () => {
 
     toast.success(`Mating proposal sent to ${targetPet.parentName || 'Guardian'}! They will contact you shortly.`, {
       icon: '🐾',
-      duration: 4500
+      duration: 2000
     });
     setShowProposalModal(false);
     setProposalMessage('');
@@ -564,7 +564,7 @@ const BreedingDirectory = () => {
     if (!isAuthenticated) {
       toast('Please sign up or log in first to contact pet parents.', {
         icon: '🔐',
-        duration: 4000
+        duration: 2000
       });
       window.dispatchEvent(
         new CustomEvent('open-register-modal', {

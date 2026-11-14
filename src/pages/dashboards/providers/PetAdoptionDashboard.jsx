@@ -725,7 +725,7 @@ const PetAdoptionDashboard = ({
     setStoredAdoptionPets(updated);
     refreshAdoptionData();
     toast.success('🎊 Congratulations! Pet successfully marked as Adopted & Rehomed to a Forever Home!', {
-      duration: 5000,
+      duration: 2000,
       icon: '🏡'
     });
   };
@@ -801,7 +801,7 @@ const PetAdoptionDashboard = ({
     } catch (_e) {}
 
     toast.success('🛡️ Sanctuary Profile, Licenses & Verification Documents saved successfully!', {
-      duration: 4000,
+      duration: 2000,
       icon: '✅'
     });
   };

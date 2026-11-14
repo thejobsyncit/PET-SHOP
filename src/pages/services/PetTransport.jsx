@@ -307,7 +307,7 @@ const PetTransport = () => {
       if (comparedProviders.length >= 3) {
         toast.error('You can compare a maximum of 3 service providers at once. Remove one to add another.', {
           icon: '⚖️',
-          duration: 4000
+          duration: 2000
         });
         return;
       }
@@ -485,7 +485,7 @@ const PetTransport = () => {
           </button>
         </div>
       ),
-      { duration: 6000, icon: '🚐' }
+      { duration: 2000, icon: '🚐' }
     );
     setShowBookingModal(false);
     // Reset fields
@@ -570,7 +570,7 @@ const PetTransport = () => {
           </button>
         </div>
       ),
-      { duration: 6000, icon: '📬' }
+      { duration: 2000, icon: '📬' }
     );
     setShowEnquiryModal(false);
 
@@ -695,7 +695,7 @@ const PetTransport = () => {
           </button>
         </div>
       ),
-      { duration: 6000, icon: '🚀' }
+      { duration: 2000, icon: '🚀' }
     );
 
     // Reset all enquiry fields so previously submitted data does not appear when adding new details
