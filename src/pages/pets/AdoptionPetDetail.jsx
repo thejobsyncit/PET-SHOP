@@ -800,7 +800,7 @@ const AdoptionPetDetail = () => {
           <div className="lg:col-span-5 space-y-6">
 
             {/* Guardian & Direct Contact Card */}
-            <div className="bg-white rounded-3xl border border-amber-200/60 shadow-md p-6 space-y-5 sticky top-24">
+            <div className="bg-white rounded-3xl border border-amber-200/60 shadow-md p-6 space-y-5 relative lg:sticky lg:top-24">
 
               <div className="flex items-center justify-between border-b border-slate-100 pb-3">
                 <div className="flex items-center gap-3">

@@ -680,8 +680,8 @@ const PetClassifiedDetail = () => {
           {/* ================= RIGHT COLUMN: STICKY OWNER DETAILS & ACTIONS (5 Cols) ================= */}
           <div className="lg:col-span-5 space-y-6">
             
-            {/* Owner Details & Contact Card (Sticky) */}
-            <div className="bg-white p-6 sm:p-8 rounded-3xl border border-beige shadow-lg sticky top-28 space-y-6">
+            {/* Owner Details & Contact Card (Sticky on desktop, relative on mobile) */}
+            <div className="bg-white p-6 sm:p-8 rounded-3xl border border-beige shadow-lg relative lg:sticky lg:top-28 space-y-6">
               
               {/* Pet Title & Pricing Header */}
               <div className="border-b border-beige pb-6 space-y-2">

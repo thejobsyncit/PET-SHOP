@@ -46,7 +46,7 @@ const MainLayout = () => {
       <Navbar />
 
       {/* Main Outlet page Content */}
-      <main className="flex-grow">
+      <main className="flex-grow pb-20 lg:pb-0">
         <ErrorBoundary>
           <Outlet />
         </ErrorBoundary>

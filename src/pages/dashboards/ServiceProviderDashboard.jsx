@@ -937,7 +937,7 @@ const ServiceProviderDashboard = (props) => {
               <div className="lg:col-span-5 space-y-4">
                 
                 {/* Order Summary Card */}
-                <div className="bg-gradient-to-b from-[#0F2E23] via-[#143D2F] to-[#0F2E23] text-white rounded-3xl p-5 sm:p-6 shadow-xl border border-emerald-800/80 sticky top-20 space-y-4">
+                <div className="bg-gradient-to-b from-[#0F2E23] via-[#143D2F] to-[#0F2E23] text-white rounded-3xl p-5 sm:p-6 shadow-xl border border-emerald-800/80 relative lg:sticky lg:top-20 space-y-4">
                   <div className="flex items-center justify-between border-b border-white/10 pb-3">
                     <div>
                       <span className="text-[10px] font-black uppercase tracking-wider text-amber-300">
