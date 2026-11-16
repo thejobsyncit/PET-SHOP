@@ -78,27 +78,33 @@ const normalizeBlog = (b) => {
 export const getBlogs = async (req, res) => {
   try {
     const { petType } = req.query;
-    let blogsList = [];
+    let diskBlogs = loadDiskBlogs();
+    let blogsList = [...diskBlogs];
 
     if (supabase) {
       try {
         let query = supabase.from('blogs').select('*').order('published_date', { ascending: false });
-        if (petType && petType !== 'all') {
-          query = query.eq('pet_type', petType);
-        }
         const { data, error } = await query;
         if (!error && Array.isArray(data) && data.length > 0) {
-          blogsList = data;
+          const map = new Map();
+          for (const b of diskBlogs) {
+            if (b.slug || b._id || b.id) map.set(b.slug || b._id || b.id, b);
+          }
+          for (const b of data) {
+            const key = b.slug || b.id || b._id;
+            if (key) map.set(key, { ...map.get(key), ...b });
+          }
+          blogsList = Array.from(map.values());
         }
       } catch (_) {}
     }
 
-    if (blogsList.length === 0) {
-      let diskBlogs = loadDiskBlogs();
-      if (petType && petType !== 'all') {
-        diskBlogs = diskBlogs.filter(b => (b.petType === petType || b.pet_type === petType));
-      }
-      blogsList = diskBlogs;
+    if (petType && petType !== 'all') {
+      const target = petType.toLowerCase();
+      blogsList = blogsList.filter(b => {
+        const pt = (b.petType || b.pet_type || '').toLowerCase();
+        return pt === target;
+      });
     }
 
     const normalized = blogsList.map(normalizeBlog);
@@ -188,30 +194,49 @@ export const createBlog = async (req, res) => {
     return res.status(400).json({ success: false, message: 'Title and content are required' });
   }
 
-  const slug = title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
+  let slug = req.body.slug 
+    ? String(req.body.slug).toLowerCase().trim().replace(/[^a-z0-9-]+/g, '')
+    : title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
+  
+  if (!slug) {
+    slug = `article-${Date.now().toString().slice(-6)}`;
+  }
+
+  const currentBlogs = loadDiskBlogs();
+  if (currentBlogs.some(b => b.slug === slug)) {
+    slug = `${slug}-${Date.now().toString().slice(-4)}`;
+  }
+
   const now = new Date().toISOString();
+  const id = `BLG-${Date.now().toString().slice(-6)}`;
+
+  const parsedTags = Array.isArray(tags) 
+    ? tags 
+    : (typeof tags === 'string' ? tags.split(',').map(t => t.trim()).filter(Boolean) : []);
 
   const newBlog = normalizeBlog({
-    _id: `BLG-${Date.now().toString().slice(-6)}`,
-    title,
+    _id: id,
+    id: id,
+    title: title.trim(),
     slug,
-    summary: summary || '',
-    content,
-    author: author || 'JOSH PETS HUB Editorial Team',
-    featuredImage: featuredImage || 'https://images.unsplash.com/photo-1548199973-03cce0bbc87b?auto=format&fit=crop&q=80&w=1200',
+    summary: summary ? summary.trim() : '',
+    content: content.trim(),
+    author: author ? author.trim() : 'JOSH PETS HUB Editorial Team',
+    featuredImage: featuredImage && featuredImage.trim() 
+      ? featuredImage.trim() 
+      : 'https://images.unsplash.com/photo-1548199973-03cce0bbc87b?auto=format&fit=crop&q=80&w=1200',
     petType: petType || 'dogs',
-    tags: tags || [],
-    readTime: readTime || '5 min read',
-    faqs: faqs || [],
-    relatedProducts: relatedProducts || [],
+    tags: parsedTags,
+    readTime: readTime ? readTime.trim() : '5 min read',
+    faqs: Array.isArray(faqs) ? faqs : [],
+    relatedProducts: Array.isArray(relatedProducts) ? relatedProducts : [],
     publishedDate: now,
     createdAt: now
   });
 
   // Save to disk
   try {
-    const currentBlogs = loadDiskBlogs();
-    const updated = [newBlog, ...currentBlogs.filter(b => b.slug !== slug)];
+    const updated = [newBlog, ...currentBlogs.filter(b => b.slug !== slug && b.id !== id && b._id !== id)];
     saveDiskBlogs(updated);
   } catch (err) {
     console.error('[Blogs] Failed writing to disk:', err);
@@ -221,6 +246,7 @@ export const createBlog = async (req, res) => {
   if (supabase) {
     try {
       await supabase.from('blogs').insert([{
+        id: newBlog.id,
         title: newBlog.title,
         slug: newBlog.slug,
         summary: newBlog.summary,
@@ -239,4 +265,107 @@ export const createBlog = async (req, res) => {
   }
 
   return res.status(201).json({ success: true, blog: newBlog });
+};
+
+// @desc    Update a blog article (Admin only)
+// @route   PUT /api/blogs/:id
+// @access  Private/Admin
+export const updateBlog = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { title, summary, content, author, featuredImage, petType, tags, readTime, faqs, relatedProducts, slug } = req.body;
+    
+    const currentBlogs = loadDiskBlogs();
+    const index = currentBlogs.findIndex(b => 
+      String(b._id || b.id || '').toLowerCase() === String(id).toLowerCase() ||
+      String(b.slug || '').toLowerCase() === String(id).toLowerCase()
+    );
+
+    if (index === -1) {
+      return res.status(404).json({ success: false, message: 'Article not found' });
+    }
+
+    const existing = currentBlogs[index];
+    const updatedSlug = slug 
+      ? String(slug).toLowerCase().trim().replace(/[^a-z0-9-]+/g, '') 
+      : existing.slug;
+
+    const parsedTags = tags !== undefined 
+      ? (Array.isArray(tags) ? tags : String(tags).split(',').map(t => t.trim()).filter(Boolean)) 
+      : existing.tags;
+
+    const updatedBlog = normalizeBlog({
+      ...existing,
+      title: title !== undefined ? title.trim() : existing.title,
+      slug: updatedSlug,
+      summary: summary !== undefined ? summary.trim() : existing.summary,
+      content: content !== undefined ? content.trim() : existing.content,
+      author: author !== undefined ? author.trim() : existing.author,
+      featuredImage: featuredImage !== undefined ? featuredImage.trim() : (existing.featuredImage || existing.featured_image),
+      petType: petType !== undefined ? petType : (existing.petType || existing.pet_type),
+      tags: parsedTags,
+      readTime: readTime !== undefined ? readTime.trim() : (existing.readTime || existing.read_time),
+      faqs: faqs !== undefined ? faqs : existing.faqs,
+      relatedProducts: relatedProducts !== undefined ? relatedProducts : existing.relatedProducts,
+      updatedAt: new Date().toISOString()
+    });
+
+    currentBlogs[index] = updatedBlog;
+    saveDiskBlogs(currentBlogs);
+
+    if (supabase) {
+      try {
+        await supabase.from('blogs').update({
+          title: updatedBlog.title,
+          slug: updatedBlog.slug,
+          summary: updatedBlog.summary,
+          content: updatedBlog.content,
+          author: updatedBlog.author,
+          featured_image: updatedBlog.featuredImage,
+          pet_type: updatedBlog.petType,
+          tags: updatedBlog.tags,
+          read_time: updatedBlog.readTime,
+          faqs: updatedBlog.faqs,
+          related_products: updatedBlog.relatedProducts,
+          updated_at: new Date().toISOString()
+        }).or(`slug.eq.${existing.slug},id.eq.${existing.id}`);
+      } catch (_) {}
+    }
+
+    return res.json({ success: true, blog: updatedBlog });
+  } catch (error) {
+    console.error('[Blogs] Error in updateBlog:', error);
+    return res.status(500).json({ success: false, message: 'Server error updating blog' });
+  }
+};
+
+// @desc    Delete a blog article (Admin only)
+// @route   DELETE /api/blogs/:id
+// @access  Private/Admin
+export const deleteBlog = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const currentBlogs = loadDiskBlogs();
+    const filtered = currentBlogs.filter(b => 
+      String(b._id || b.id || '').toLowerCase() !== String(id).toLowerCase() &&
+      String(b.slug || '').toLowerCase() !== String(id).toLowerCase()
+    );
+
+    if (filtered.length === currentBlogs.length) {
+      return res.status(404).json({ success: false, message: 'Article not found' });
+    }
+
+    saveDiskBlogs(filtered);
+
+    if (supabase) {
+      try {
+        await supabase.from('blogs').delete().or(`slug.eq.${id},id.eq.${id}`);
+      } catch (_) {}
+    }
+
+    return res.json({ success: true, message: 'Article deleted successfully' });
+  } catch (error) {
+    console.error('[Blogs] Error in deleteBlog:', error);
+    return res.status(500).json({ success: false, message: 'Server error deleting blog' });
+  }
 };
