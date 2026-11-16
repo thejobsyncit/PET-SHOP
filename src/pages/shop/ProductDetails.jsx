@@ -183,6 +183,11 @@ const ProductDetails = () => {
       return;
     }
 
+    if (existingInCart) {
+      toast.success(product.isPet ? 'Pet is already in your cart.' : 'Product is already in your cart.');
+      return;
+    }
+
     if (inCartQty >= pStock) {
       toast.error(`Cannot add more. You already have the maximum available stock (${pStock} unit${pStock === 1 ? '' : 's'}) in your cart.`);
       return;
@@ -206,9 +211,7 @@ const ProductDetails = () => {
     setIsAddingToCart(true);
     try {
       const result = await dispatch(addToCartAPI({ product, quantity: safeQty }));
-      if (addToCartAPI.fulfilled.match(result)) {
-        toast.success('Added to cart!');
-      } else if (result.payload && !String(result.payload).includes('reached')) {
+      if (!addToCartAPI.fulfilled.match(result) && result.payload && !String(result.payload).includes('reached')) {
         toast.error(result.payload || 'Could not add to cart.');
       }
     } catch (err) {

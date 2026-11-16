@@ -63,9 +63,7 @@ const Wishlist = () => {
     }
     try {
       const result = await dispatch(addToCartAPI({ product, quantity: 1 }));
-      if (addToCartAPI.fulfilled.match(result)) {
-        toast.success('Added to cart!');
-      } else if (result.payload && !String(result.payload).includes('reached')) {
+      if (!addToCartAPI.fulfilled.match(result) && result.payload && !String(result.payload).includes('reached')) {
         toast.error(result.payload || 'Could not add to cart.');
       }
     } catch (_) {

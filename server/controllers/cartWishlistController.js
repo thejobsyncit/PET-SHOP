@@ -350,7 +350,7 @@ const normalizeProduct = (p) => {
     requiresPrescription: p.requires_prescription ?? p.requiresPrescription ?? false,
     petType: p.pet_type ?? p.petType,
     breed: p.breed,
-    isPet: Boolean(p.isPet || p.petType || p.breed || p.itemType === 'pet' || p.itemType === 'adoption')
+    isPet: Boolean(!p.sku && !p.category && (p.isPet === true || p.itemType === 'pet' || p.itemType === 'adoption'))
   };
 };
 

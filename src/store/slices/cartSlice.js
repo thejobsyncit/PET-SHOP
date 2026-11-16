@@ -47,10 +47,16 @@ export const normalizeCartProduct = (p) => {
     ? p.images 
     : (p.image ? [p.image] : []);
 
+  const isProduct = Boolean(p.sku || p.category || (p.brand && p.brand !== 'Verified Pet Seller') || p.itemType === 'product');
   const isPet = Boolean(
-    p.isPet || p.petType || p.breed || 
-    p.itemType === 'pet' || p.itemType === 'adoption' ||
-    p.quality || p.sellerName || p.parentContact
+    !isProduct && (
+      p.isPet === true || 
+      p.itemType === 'pet' || 
+      p.itemType === 'adoption' ||
+      p.quality || 
+      p.sellerName || 
+      p.parentContact
+    )
   );
 
   return {
@@ -320,30 +326,12 @@ export const addToCartAPI = createAsyncThunk('cart/addToCart', async ({ product,
   const existIdx = localCart.findIndex(item => getCartItemIdStr(item) === productId);
 
   if (existIdx > -1) {
-    const existing = localCart[existIdx];
     if (isPet) {
       toast.success('Pet is already in your cart.');
     } else {
-      const currentQty = Number(existing.quantity) || 0;
-      if (currentQty >= maxStock) {
-        toast.error(`Cannot add more. You already have the maximum available stock (${maxStock} unit${maxStock === 1 ? '' : 's'}) in your cart.`);
-        return thunkAPI.rejectWithValue(`Maximum available stock (${maxStock}) reached in cart`);
-      }
-
-      if (currentQty + safeQuantity > maxStock) {
-        const remaining = maxStock - currentQty;
-        toast.error(`Cannot add ${safeQuantity} units. Only ${remaining} more unit${remaining === 1 ? '' : 's'} available in stock (total stock: ${maxStock}).`);
-        return thunkAPI.rejectWithValue(`Only ${remaining} more unit(s) available in stock`);
-      }
-
-      const nextQty = currentQty + safeQuantity;
-      localCart[existIdx] = {
-        ...existing,
-        product: { ...(typeof existing.product === 'object' ? existing.product : {}), ...normProduct },
-        quantity: nextQty,
-      };
-      toast.success(`Updated cart quantity (${nextQty}).`);
+      toast.success('Product is already in your cart.');
     }
+    return { cart: localCart, alreadyInCart: true, isPet };
   } else {
     if (safeQuantity > maxStock) {
       toast.error(`Cannot add ${safeQuantity} units. Only ${maxStock} unit${maxStock === 1 ? '' : 's'} available in stock.`);
@@ -385,7 +373,8 @@ export const updateCartQuantityAPI = createAsyncThunk('cart/updateQuantity', asy
 
   if (existIdx > -1) {
     const item = localCart[existIdx];
-    const isPet = Boolean(item.product?.isPet || item.product?.breed || item.product?.petType);
+    const isProduct = Boolean(item.product?.sku || item.product?.category || item.product?.itemType === 'product');
+    const isPet = Boolean(!isProduct && (item.product?.isPet === true || item.product?.itemType === 'pet' || item.product?.itemType === 'adoption'));
     const maxStock = isPet 
       ? 1 
       : (typeof item?.product?.stock === 'number'
