@@ -39,6 +39,21 @@ export const clearProductCache = () => {
   productCache.clear();
 };
 
+let diskProductsMap = null;
+const getDiskProductsMap = () => {
+  if (!diskProductsMap) {
+    diskProductsMap = new Map();
+    const diskList = loadDiskProducts();
+    diskList.forEach(dp => {
+      if (dp.slug) diskProductsMap.set(dp.slug.toLowerCase(), dp);
+      if (dp.id) diskProductsMap.set(String(dp.id).toLowerCase(), dp);
+      if (dp._id) diskProductsMap.set(String(dp._id).toLowerCase(), dp);
+      if (dp.name) diskProductsMap.set(dp.name.toLowerCase().trim(), dp);
+    });
+  }
+  return diskProductsMap;
+};
+
 export const normalizeProduct = (p, statsMap = null) => {
   if (!p) return null;
   const price = Number(p.price) || 0;
@@ -73,6 +88,55 @@ export const normalizeProduct = (p, statsMap = null) => {
     }
   }
 
+  // Lookup disk fallback for rich specifications and ingredients if missing from DB
+  const diskMap = getDiskProductsMap();
+  const diskFallback = (pSlug && diskMap.get(pSlug)) || (pId && diskMap.get(pId)) || (p.name && diskMap.get(p.name.toLowerCase().trim())) || null;
+
+  let specifications = [];
+  if (Array.isArray(p.specifications) && p.specifications.length > 0) {
+    specifications = p.specifications;
+  } else if (diskFallback && Array.isArray(diskFallback.specifications)) {
+    specifications = diskFallback.specifications;
+  } else if (typeof p.specifications === 'string') {
+    try {
+      const parsed = JSON.parse(p.specifications);
+      if (Array.isArray(parsed)) specifications = parsed;
+    } catch (_) {}
+  }
+
+  let ingredients = [];
+  if (Array.isArray(p.ingredients) && p.ingredients.length > 0) {
+    ingredients = p.ingredients;
+  } else if (diskFallback && Array.isArray(diskFallback.ingredients)) {
+    ingredients = diskFallback.ingredients;
+  } else if (typeof p.ingredients === 'string') {
+    try {
+      const parsed = JSON.parse(p.ingredients);
+      if (Array.isArray(parsed)) ingredients = parsed;
+      else ingredients = p.ingredients.split(',').map(s => s.trim()).filter(Boolean);
+    } catch (_) {
+      ingredients = p.ingredients.split(',').map(s => s.trim()).filter(Boolean);
+    }
+  }
+
+  let images = [];
+  if (Array.isArray(p.images) && p.images.length > 0) {
+    images = p.images;
+  } else if (typeof p.images === 'string') {
+    try {
+      const parsed = JSON.parse(p.images);
+      if (Array.isArray(parsed)) images = parsed;
+    } catch (_) {}
+  }
+  if (images.length === 0 && p.image) {
+    images = [p.image];
+  }
+  if (images.length === 0 && diskFallback) {
+    images = Array.isArray(diskFallback.images) ? diskFallback.images : (diskFallback.image ? [diskFallback.image] : []);
+  }
+
+  const longDescription = p.longDescription || p.long_description || (diskFallback && diskFallback.longDescription) || p.description || '';
+
   return {
     ...p,
     _id: p.id || p._id,
@@ -83,12 +147,18 @@ export const normalizeProduct = (p, statsMap = null) => {
     isBestSeller: p.is_bestseller ?? p.isBestSeller ?? false,
     isFeatured: p.is_featured ?? p.isFeatured ?? false,
     requiresPrescription: p.requires_prescription ?? p.requiresPrescription ?? false,
-    petType: p.pet_type ?? p.petType,
+    petType: p.pet_type ?? p.petType ?? 'dogs',
     rating,
     ratings: rating,
     reviewCount,
     review_count: reviewCount,
-    numReviews: reviewCount
+    numReviews: reviewCount,
+    specifications,
+    ingredients,
+    images,
+    image: images[0] || p.image || '',
+    longDescription,
+    description: p.description || longDescription
   };
 };
 

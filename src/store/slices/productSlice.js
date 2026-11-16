@@ -66,6 +66,48 @@ export const normalizeProduct = (p) => {
             : (Array.isArray(p.reviews) ? p.reviews.length : 0)));
   const rating = Number(p.rating !== undefined ? p.rating : (p.ratings !== undefined ? p.ratings : 0)) || 0;
 
+  // Safe Array Normalization for images, specifications, and ingredients
+  let images = [];
+  if (Array.isArray(p.images)) {
+    images = p.images;
+  } else if (typeof p.images === 'string') {
+    try {
+      const parsed = JSON.parse(p.images);
+      if (Array.isArray(parsed)) images = parsed;
+      else if (typeof parsed === 'string') images = [parsed];
+    } catch (_) {
+      if (p.images) images = [p.images];
+    }
+  }
+  if (images.length === 0 && p.image) {
+    images = [p.image];
+  }
+
+  let specifications = [];
+  if (Array.isArray(p.specifications)) {
+    specifications = p.specifications;
+  } else if (typeof p.specifications === 'string') {
+    try {
+      const parsed = JSON.parse(p.specifications);
+      if (Array.isArray(parsed)) specifications = parsed;
+    } catch (_) {}
+  } else if (p.specifications && typeof p.specifications === 'object') {
+    specifications = Object.entries(p.specifications).map(([label, value]) => ({ label, value }));
+  }
+
+  let ingredients = [];
+  if (Array.isArray(p.ingredients)) {
+    ingredients = p.ingredients;
+  } else if (typeof p.ingredients === 'string') {
+    try {
+      const parsed = JSON.parse(p.ingredients);
+      if (Array.isArray(parsed)) ingredients = parsed;
+      else ingredients = p.ingredients.split(',').map(s => s.trim()).filter(Boolean);
+    } catch (_) {
+      ingredients = p.ingredients.split(',').map(s => s.trim()).filter(Boolean);
+    }
+  }
+
   return {
     ...p,
     _id: p._id || p.id,
@@ -76,12 +118,18 @@ export const normalizeProduct = (p) => {
     isBestSeller: p.is_bestseller ?? p.isBestSeller ?? false,
     isFeatured: p.is_featured ?? p.isFeatured ?? false,
     requiresPrescription: p.requires_prescription ?? p.requiresPrescription ?? false,
-    petType: p.pet_type ?? p.petType,
+    petType: p.pet_type ?? p.petType ?? 'dogs',
     rating,
     ratings: rating,
     reviewCount,
     review_count: reviewCount,
     numReviews: reviewCount,
+    images,
+    image: images[0] || p.image || '',
+    specifications,
+    ingredients,
+    description: p.description || p.long_description || p.longDescription || '',
+    longDescription: p.longDescription || p.long_description || p.description || ''
   };
 };
 

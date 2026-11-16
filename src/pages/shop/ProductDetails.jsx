@@ -1,8 +1,8 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { ChevronRight, ShoppingBag, Heart, Star, ShieldAlert, Award, ArrowRight, ClipboardList, Plus, Minus, Check, MessageSquare, Share2 } from 'lucide-react';
-import { fetchProductDetail, fetchProducts, clearProductDetail, updateProductReviewStats } from '../../store/slices/productSlice.js';
+import { fetchProductDetail, fetchProducts, clearProductDetail, updateProductReviewStats, normalizeProduct } from '../../store/slices/productSlice.js';
 import { addToCartAPI } from '../../store/slices/cartSlice.js';
 import { toggleWishlistAPI, getWishlistItemIdStr } from '../../store/slices/wishlistSlice.js';
 import { openAuthModal } from '../../store/slices/authSlice.js';
@@ -25,7 +25,8 @@ const ProductDetails = () => {
   const cartItems = useSelector((state) => state.cart.items || []);
   
   // Safe fallback to finding product from cached store products or wishlist while detail API request resolves
-  const product = productFromStore || products.find(p => p.slug === slug || getWishlistItemIdStr(p) === slug) || wishlistItems.find(p => p.slug === slug || getWishlistItemIdStr(p) === slug);
+  const rawProduct = productFromStore || (products || []).find(p => p && (p.slug === slug || getWishlistItemIdStr(p) === slug)) || (wishlistItems || []).find(p => p && (p.slug === slug || getWishlistItemIdStr(p) === slug));
+  const product = useMemo(() => (rawProduct ? normalizeProduct(rawProduct) : null), [rawProduct]);
   const productId = getWishlistItemIdStr(product);
   const isWishlisted = Boolean(productId && wishlistItems.some(item => getWishlistItemIdStr(item) === productId));
   const pStock = typeof product?.stock === 'number' 
@@ -421,8 +422,8 @@ const ProductDetails = () => {
 
   // Filter recommendations
   const currentPId = product._id || product.id;
-  const recommendedItems = products.filter(p => (p._id || p.id) !== currentPId).slice(0, 4);
-  const frequentlyBoughtTogether = products.filter(p => (p._id || p.id) !== currentPId).slice(4, 6);
+  const recommendedItems = (products || []).filter(p => p && (p._id || p.id) !== currentPId).slice(0, 4);
+  const frequentlyBoughtTogether = (products || []).filter(p => p && (p._id || p.id) !== currentPId).slice(4, 6);
 
   const handleNavigateToProduct = (targetProduct) => {
     if (!targetProduct) return;
@@ -433,7 +434,7 @@ const ProductDetails = () => {
     }
   };
 
-  const effectiveReviewCount = reviews.length > 0
+  const effectiveReviewCount = (reviews || []).length > 0
     ? reviews.length
     : (typeof product?.reviewCount === 'number'
         ? product.reviewCount
@@ -441,7 +442,7 @@ const ProductDetails = () => {
             ? product.review_count
             : (Array.isArray(product?.reviews) ? product.reviews.length : 0)));
 
-  const effectiveRating = reviews.length > 0
+  const effectiveRating = (reviews || []).length > 0
     ? Number((reviews.reduce((acc, r) => acc + (Number(r.rating) || 5), 0) / reviews.length).toFixed(1))
     : Number(product?.rating !== undefined ? product.rating : (product?.ratings !== undefined ? product.ratings : 0)) || 0;
 
@@ -470,7 +471,7 @@ const ProductDetails = () => {
           <div className="w-full lg:w-1/2 space-y-4">
             <div className="aspect-square bg-white border border-beige overflow-hidden flex items-center justify-center p-3 rounded-xl shadow-xs">
               <img 
-                src={product.images?.[activeImage] || product.image || 'https://images.unsplash.com/photo-1548199973-03cce0bbc87b?q=80&w=800'} 
+                src={(product.images && product.images[activeImage]) || product.image || 'https://images.unsplash.com/photo-1548199973-03cce0bbc87b?q=80&w=800'} 
                 alt={product.name} 
                 onError={(e) => {
                   e.currentTarget.onerror = null;
@@ -481,9 +482,9 @@ const ProductDetails = () => {
             </div>
             
             {/* Gallery thumbnails */}
-            {product.images && product.images.length > 1 && (
+            {(product.images || []).length > 1 && (
               <div className="flex gap-2">
-                {product.images.map((img, idx) => (
+                {(product.images || []).map((img, idx) => (
                   <button
                     key={idx}
                     onClick={() => setActiveImage(idx)}
@@ -561,11 +562,11 @@ const ProductDetails = () => {
               </p>
 
               {/* Specifications snippet */}
-              {product.specifications.length > 0 && (
+              {(product.specifications || []).length > 0 && (
                 <div className="grid grid-cols-2 gap-x-6 gap-y-2 border-t border-beige pt-4">
-                  {product.specifications.map((spec) => (
-                    <div key={spec.label} className="text-xs flex gap-2">
-                      <span className="text-gray-400 font-medium">{spec.label}:</span>
+                  {(product.specifications || []).map((spec, idx) => (
+                    <div key={spec.label || spec.name || idx} className="text-xs flex gap-2">
+                      <span className="text-gray-400 font-medium">{spec.label || spec.name}:</span>
                       <span className="text-primary font-semibold">{spec.value}</span>
                     </div>
                   ))}
@@ -717,7 +718,9 @@ const ProductDetails = () => {
             {activeTab === 'description' && (
               <div className="space-y-3">
                 <p className="font-semibold text-primary font-serif text-sm">Product Overview</p>
-                <div className="whitespace-pre-line text-[11px] leading-relaxed">{product.longDescription}</div>
+                <div className="whitespace-pre-line text-[11px] leading-relaxed">
+                  {product.longDescription || product.long_description || product.description || 'Comprehensive clinical formulation details and feeding guides.'}
+                </div>
               </div>
             )}
             
@@ -736,11 +739,11 @@ const ProductDetails = () => {
             {activeTab === 'ingredients' && (
               <div className="space-y-3">
                 <p className="font-semibold text-primary font-serif text-sm">Nutritional Composition & Ingredients</p>
-                {product.ingredients.length > 0 ? (
+                {(product.ingredients || []).length > 0 ? (
                   <div className="flex flex-wrap gap-2 pt-1">
-                    {product.ingredients.map((ing) => (
-                      <span key={ing} className="px-3 py-1 bg-secondary text-primary text-[10px] font-medium border border-beige">
-                        {ing}
+                    {(product.ingredients || []).map((ing, idx) => (
+                      <span key={idx} className="px-3 py-1 bg-secondary text-primary text-[10px] font-medium border border-beige">
+                        {typeof ing === 'string' ? ing : (ing?.name || JSON.stringify(ing))}
                       </span>
                     ))}
                   </div>
@@ -764,7 +767,7 @@ const ProductDetails = () => {
       </ScrollReveal>
 
       {/* Frequently bought together */}
-      {frequentlyBoughtTogether.length > 0 && (
+      {(frequentlyBoughtTogether || []).length > 0 && (
         <ScrollReveal variant="slideUp" className="max-w-7xl mx-auto px-4 md:px-8">
           <div className="bg-white border border-beige p-6 md:p-8 shadow-sm space-y-6">
             <h3 className="font-serif text-base font-bold text-primary">Frequently Bought Together</h3>
@@ -780,7 +783,7 @@ const ProductDetails = () => {
                   title={`${product.name} (Current Product - Scroll to top)`}
                 >
                   <img 
-                    src={product.images?.[0] || product.image || 'https://images.unsplash.com/photo-1548199973-03cce0bbc87b?q=80&w=800'} 
+                    src={(product.images && product.images[0]) || product.image || 'https://images.unsplash.com/photo-1548199973-03cce0bbc87b?q=80&w=800'} 
                     alt={product.name} 
                     onError={(e) => {
                       e.currentTarget.onerror = null;
@@ -804,7 +807,7 @@ const ProductDetails = () => {
                       title={`View ${item.name}`}
                     >
                       <img 
-                        src={item.images?.[0] || item.image || 'https://images.unsplash.com/photo-1548199973-03cce0bbc87b?q=80&w=800'} 
+                        src={(item.images && item.images[0]) || item.image || 'https://images.unsplash.com/photo-1548199973-03cce0bbc87b?q=80&w=800'} 
                         alt={item.name} 
                         onError={(e) => {
                           e.currentTarget.onerror = null;
@@ -825,7 +828,7 @@ const ProductDetails = () => {
               <div className="lg:border-l lg:border-beige lg:pl-6 py-2 flex flex-col justify-center space-y-3 shrink-0">
                 <p className="text-xs text-gray-500 font-semibold">Total bundle cost:</p>
                 <p className="text-xl font-bold text-primary">
-                  ₹{frequentlyBoughtTogether.reduce((sum, item) => sum + (item.discountPrice || item.price), product.discountPrice || product.price)}
+                  ₹{frequentlyBoughtTogether.reduce((sum, item) => sum + (Number(item?.discountPrice) || Number(item?.price) || 0), Number(product.discountPrice) || Number(product.price) || 0)}
                 </p>
                 <button
                   onClick={() => {
@@ -847,7 +850,7 @@ const ProductDetails = () => {
       )}
 
       {/* Recommendations carousels */}
-      {recommendedItems.length > 0 && (
+      {(recommendedItems || []).length > 0 && (
         <ScrollReveal variant="slideUp" className="max-w-7xl mx-auto px-4 md:px-8 space-y-6">
           <h2 className="font-serif text-lg font-bold text-primary">You May Also Like</h2>
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
@@ -868,9 +871,9 @@ const ProductDetails = () => {
               Customer Reviews {effectiveReviewCount > 0 && <span className="text-sm font-normal text-gray-400 font-sans">({effectiveReviewCount})</span>}
             </h2>
             
-            {reviewsLoading && reviews.length === 0 ? (
+            {reviewsLoading && (reviews || []).length === 0 ? (
               <p className="text-xs text-gray-400">Loading reviews...</p>
-            ) : reviews.length > 0 ? (
+            ) : (reviews || []).length > 0 ? (
               <div className="space-y-4">
                 {reviews.map((r, i) => (
                   <div key={r._id || r.id || i} className="bg-white border border-beige p-5 shadow-sm space-y-2">
