@@ -61,13 +61,20 @@ const BlogDetail = () => {
     );
   }
 
-  // Parse sections for table of contents
+  // Parse sections for table of contents dynamically
+  const hasLegacySections = Boolean(blog.content && blog.content.includes('### 1.'));
   const sections = [
-    { id: 'sec-1', label: '1. Core Overview' },
-    { id: 'sec-2', label: '2. Environmental Criteria' },
-    { id: 'sec-3', label: '3. Nutrition & Feed' },
-    { id: 'faq-sec', label: '4. Common FAQs' }
+    { id: 'sec-1', label: hasLegacySections ? '1. Core Overview' : '1. Article Insights' }
   ];
+  if (hasLegacySections) {
+    sections.push({ id: 'sec-2', label: '2. Environmental Criteria' });
+    if (blog.content.includes('### 3.')) {
+      sections.push({ id: 'sec-3', label: '3. Nutrition & Health' });
+    }
+  }
+  if (blog.faqs && blog.faqs.length > 0) {
+    sections.push({ id: 'faq-sec', label: `${sections.length + 1}. Common FAQs` });
+  }
 
   return (
     <div className="pb-20 space-y-12">
@@ -141,29 +148,39 @@ const BlogDetail = () => {
           {/* Article Text Content (Right 9 Columns) */}
           <article className="lg:col-span-9 space-y-10 bg-white border border-beige p-6 md:p-4 lg:p-10 shadow-sm">
             
-            {/* Structured Content blocks mapping standard Markdown outputs */}
+            {/* Structured Content blocks */}
             <div className="text-xs text-gray-600 leading-relaxed space-y-6">
-              <div id="sec-1" className="space-y-3 scroll-mt-24">
-                <h2 className="font-serif text-base font-bold text-primary">1. Core Overview & Foundations</h2>
-                <div className="whitespace-pre-line text-[11px] leading-relaxed">
-                  {blog.content.split('### 1.')[0]}
-                </div>
-              </div>
-
-              {blog.content.includes('### 1.') && (
-                <div id="sec-2" className="space-y-3 scroll-mt-24">
-                  <h2 className="font-serif text-base font-bold text-primary">2. Environmental and Care Criteria</h2>
-                  <div className="whitespace-pre-line text-[11px] leading-relaxed">
-                    {'### 1.' + blog.content.split('### 1.')[1].split('### 3.')[0]}
+              {hasLegacySections ? (
+                <>
+                  <div id="sec-1" className="space-y-3 scroll-mt-24">
+                    <h2 className="font-serif text-base font-bold text-primary">1. Core Overview & Foundations</h2>
+                    <div className="whitespace-pre-line text-[11px] leading-relaxed">
+                      {blog.content.split('### 1.')[0]}
+                    </div>
                   </div>
-                </div>
-              )}
 
-              {blog.content.includes('### 3.') && (
-                <div id="sec-3" className="space-y-3 scroll-mt-24">
-                  <h2 className="font-serif text-base font-bold text-primary">3. Diet, Health, & Longevity Practices</h2>
-                  <div className="whitespace-pre-line text-[11px] leading-relaxed">
-                    {'### 3.' + blog.content.split('### 3.')[1]}
+                  {blog.content.includes('### 1.') && (
+                    <div id="sec-2" className="space-y-3 scroll-mt-24">
+                      <h2 className="font-serif text-base font-bold text-primary">2. Environmental and Care Criteria</h2>
+                      <div className="whitespace-pre-line text-[11px] leading-relaxed">
+                        {'### 1.' + blog.content.split('### 1.')[1].split('### 3.')[0]}
+                      </div>
+                    </div>
+                  )}
+
+                  {blog.content.includes('### 3.') && (
+                    <div id="sec-3" className="space-y-3 scroll-mt-24">
+                      <h2 className="font-serif text-base font-bold text-primary">3. Diet, Health, & Longevity Practices</h2>
+                      <div className="whitespace-pre-line text-[11px] leading-relaxed">
+                        {'### 3.' + blog.content.split('### 3.')[1]}
+                      </div>
+                    </div>
+                  )}
+                </>
+              ) : (
+                <div id="sec-1" className="space-y-4 scroll-mt-24">
+                  <div className="whitespace-pre-line text-xs leading-relaxed text-gray-700 font-normal">
+                    {blog.content}
                   </div>
                 </div>
               )}
@@ -172,12 +189,12 @@ const BlogDetail = () => {
             {/* Author Profile block */}
             <div className="border-t border-beige pt-8 mt-8 flex items-center gap-4 bg-secondary p-5 border border-beige">
               <div className="w-12 h-12 bg-primary text-accent rounded-full flex items-center justify-center font-bold text-sm shrink-0">
-                MD
+                {(blog.author || 'JP').split(' ').filter(Boolean).map(n => n[0]).slice(0, 2).join('').toUpperCase() || 'JP'}
               </div>
               <div className="text-xs">
-                <p className="font-bold text-primary uppercase tracking-wider">{blog.author}</p>
-                <p className="text-gray-400">Veterinary Science Advisory Board Member at Josh Pets Hub</p>
-                <p className="text-gray-500 mt-1 leading-relaxed">Specializing in preventative care medicine and customized companion habitats.</p>
+                <p className="font-bold text-primary uppercase tracking-wider">{blog.author || 'JOSH PETS HUB Editorial Team'}</p>
+                <p className="text-gray-400">Pet Health & Care Editorial Advisory at Josh Pets Hub</p>
+                <p className="text-gray-500 mt-1 leading-relaxed">Providing pet owners with expert veterinary knowledge and verified wellness recommendations.</p>
               </div>
             </div>
 

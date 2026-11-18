@@ -7,14 +7,18 @@ import {
 } from 'recharts';
 import {
   TrendingUp, ShoppingBag, Users, Layers, AlertTriangle, Clock,
-  Plus, Edit, Trash, Check, X, FileText, CheckCircle, RefreshCw, ChevronRight, MessageSquare, Heart, Lock, Mail, ShieldAlert, Award, ShieldCheck, Menu, Cookie
+  Plus, Edit, Trash, Check, X, FileText, CheckCircle, RefreshCw, ChevronRight, MessageSquare, Heart, Lock, Mail, ShieldAlert, Award, ShieldCheck, Menu, Cookie, BookOpen, ExternalLink,
+  Landmark, Megaphone, Tag, Briefcase
 } from 'lucide-react';
 import { apiRequest } from '../../services/api.js';
 import { login, logout } from '../../store/slices/authSlice.js';
 import { getStoredMatingPets } from '../../data/breedingData.js';
 import toast from 'react-hot-toast';
 import SuperAdminPlatformWalletView from '../../components/dashboards/SuperAdminPlatformWalletView.jsx';
-import { Landmark } from 'lucide-react';
+import AnnouncementsManagerView from '../../components/dashboards/AnnouncementsManagerView.jsx';
+import CouponsManagerView from '../../components/dashboards/CouponsManagerView.jsx';
+import BlogsManagerView from '../../components/dashboards/BlogsManagerView.jsx';
+import CrmAccessManagerView from '../../components/dashboards/CrmAccessManagerView.jsx';
 
 const SuperAdminDashboard = () => {
   const navigate = useNavigate();
@@ -35,7 +39,6 @@ const SuperAdminDashboard = () => {
   const [stats, setStats] = useState(null);
   const [recentOrders, setRecentOrders] = useState([]);
   const [charts, setCharts] = useState(null);
-  const [productsList, setProductsList] = useState([]);
   const [ordersList, setOrdersList] = useState([]);
   const [prescriptionsList, setPrescriptionsList] = useState([]);
   const [listingsList, setListingsList] = useState([]);
@@ -46,25 +49,6 @@ const SuperAdminDashboard = () => {
   const [consentsList, setConsentsList] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Add/Edit Product form states
-  const [showProductModal, setShowProductModal] = useState(false);
-  const [editingProductId, setEditingProductId] = useState(null);
-  const [prodName, setProdName] = useState('');
-  const [prodBrand, setProdBrand] = useState('');
-  const [prodSku, setProdSku] = useState('');
-  const [prodPrice, setProdPrice] = useState('');
-  const [prodDiscountPrice, setProdDiscountPrice] = useState('');
-  const [prodStock, setProdStock] = useState('');
-  const [prodDescription, setProdDescription] = useState('');
-  const [prodLongDescription, setProdLongDescription] = useState('');
-  const [prodCategory, setProdCategory] = useState('');
-  const [prodSubcategory, setProdSubcategory] = useState('');
-  const [prodPetType, setProdPetType] = useState('dogs');
-  const [prodRequiresPrescription, setProdRequiresPrescription] = useState(false);
-  const [prodIsFeatured, setProdIsFeatured] = useState(false);
-  const [prodIsBestSeller, setProdIsBestSeller] = useState(false);
-  const [prodImage, setProdImage] = useState('');
-
   // Prescription verification modal state
   const [showPrescModal, setShowPrescModal] = useState(false);
   const [activePresc, setActivePresc] = useState(null);
@@ -73,7 +57,6 @@ const SuperAdminDashboard = () => {
   useEffect(() => {
     if (isAuthenticated && user && user.role === 'SUPERADMIN') {
       loadStats();
-      loadProducts();
       loadOrders();
       loadPrescriptions();
       loadAdminMarketplaceData();
@@ -107,17 +90,6 @@ const SuperAdminDashboard = () => {
       console.error('Failed to load dashboard stats:', err);
     } finally {
       setLoading(false);
-    }
-  };
-
-  const loadProducts = async () => {
-    try {
-      const data = await apiRequest('/products?limit=100');
-      if (data && data.success) {
-        setProductsList(Array.isArray(data.products) ? data.products : []);
-      }
-    } catch (err) {
-      console.error(err);
     }
   };
 
@@ -320,116 +292,6 @@ const SuperAdminDashboard = () => {
       }
     } else {
       toast.error(result.payload || 'Invalid administrator credentials.');
-    }
-  };
-
-  // ==========================================
-  // PRODUCT CRUD HANDLERS
-  // ==========================================
-
-  const handleOpenAddProduct = () => {
-    setEditingProductId(null);
-    setProdName('');
-    setProdBrand('');
-    setProdSku('');
-    setProdPrice('');
-    setProdDiscountPrice('');
-    setProdStock('');
-    setProdDescription('');
-    setProdLongDescription('');
-    setProdCategory('');
-    setProdSubcategory('');
-    setProdPetType('dogs');
-    setProdRequiresPrescription(false);
-    setProdIsFeatured(false);
-    setProdIsBestSeller(false);
-    setProdImage('');
-    setShowProductModal(true);
-  };
-
-  const handleOpenEditProduct = (p) => {
-    setEditingProductId(p._id);
-    setProdName(p.name);
-    setProdBrand(p.brand);
-    setProdSku(p.sku);
-    setProdPrice(p.price);
-    setProdDiscountPrice(p.discountPrice || '');
-    setProdStock(p.stock);
-    setProdDescription(p.description);
-    setProdLongDescription(p.longDescription);
-    setProdCategory(p.category);
-    setProdSubcategory(p.subcategory);
-    setProdPetType(p.petType);
-    setProdRequiresPrescription(p.requiresPrescription);
-    setProdIsFeatured(p.isFeatured);
-    setProdIsBestSeller(p.isBestSeller);
-    setProdImage(p.images[0]);
-    setShowProductModal(true);
-  };
-
-  const handleSaveProduct = async (e) => {
-    e.preventDefault();
-    if (!prodName || !prodBrand || !prodPrice || !prodStock || !prodCategory || !prodSubcategory) {
-      toast.error('Please enter all required fields.');
-      return;
-    }
-
-    const payload = {
-      name: prodName,
-      brand: prodBrand,
-      sku: prodSku,
-      price: parseFloat(prodPrice),
-      discountPrice: prodDiscountPrice ? parseFloat(prodDiscountPrice) : undefined,
-      stock: parseInt(prodStock),
-      description: prodDescription,
-      longDescription: prodLongDescription,
-      category: prodCategory,
-      subcategory: prodSubcategory,
-      petType: prodPetType,
-      requiresPrescription: prodRequiresPrescription,
-      isFeatured: prodIsFeatured,
-      isBestSeller: prodIsBestSeller,
-      images: [prodImage]
-    };
-
-    try {
-      let data;
-      if (editingProductId) {
-        data = await apiRequest(`/products/${editingProductId}`, {
-          method: 'PUT',
-          body: JSON.stringify(payload)
-        });
-      } else {
-        data = await apiRequest('/products', {
-          method: 'POST',
-          body: JSON.stringify(payload)
-        });
-      }
-
-      if (data.success) {
-        toast.success(editingProductId ? 'Product details updated!' : 'Product added successfully!');
-        setShowProductModal(false);
-        loadProducts();
-        loadStats();
-      }
-    } catch (err) {
-      toast.error(err.message || 'Saving product failed.');
-    }
-  };
-
-  const handleDeleteProduct = async (productId) => {
-    if (!window.confirm('Are you sure you want to delete this product?')) return;
-    try {
-      const data = await apiRequest(`/products/${productId}`, {
-        method: 'DELETE'
-      });
-      if (data.success) {
-        toast.success('Product deleted.');
-        loadProducts();
-        loadStats();
-      }
-    } catch (err) {
-      toast.error(err.message || 'Deletion failed.');
     }
   };
 
@@ -667,8 +529,11 @@ const SuperAdminDashboard = () => {
             <nav className="space-y-1">
             {[
               { id: 'overview', label: 'Stats Overview', icon: <TrendingUp size={15} /> },
+              { id: 'crm_access', label: 'CRM Staff & Roles', icon: <Briefcase size={15} /> },
               { id: 'wallet', label: 'Central Wallet & Payouts', icon: <Landmark size={15} /> },
-              { id: 'products', label: 'Manage Products', icon: <Layers size={15} /> },
+              { id: 'announcements', label: 'Announcement Bar', icon: <Megaphone size={15} /> },
+              { id: 'coupons', label: 'Offer Codes & Discounts', icon: <Tag size={15} /> },
+              { id: 'blogs', label: 'Pet Care Blogs', icon: <BookOpen size={15} /> },
               { id: 'orders', label: 'Client Orders', icon: <ShoppingBag size={15} /> },
               { id: 'prescriptions', label: 'Rx Verifications', icon: <FileText size={15} /> },
               { id: 'listings', label: 'Moderate Listings', icon: <Heart size={15} /> },
@@ -729,8 +594,11 @@ const SuperAdminDashboard = () => {
             <span className="text-[10px] uppercase tracking-widest text-[#7CA085] font-bold block">ADMINISTRATION PORTAL</span>
             <h2 className="font-serif text-3xl text-primary font-bold mt-1">
               {activeSection === 'overview' && 'Executive Metrics Overview'}
+              {activeSection === 'crm_access' && 'CRM Access Control & Staff Roles Manager'}
               {activeSection === 'wallet' && 'Central Platform Wallet & Service Provider Payouts'}
-              {activeSection === 'products' && 'Product Catalogue Manager'}
+              {activeSection === 'announcements' && 'Header Announcement Bar & Offers Ticker'}
+              {activeSection === 'coupons' && 'Offer Codes & Promotional Discounts Manager'}
+              {activeSection === 'blogs' && 'Pet Care Blogs & Articles Manager'}
               {activeSection === 'orders' && 'Client Transaction Logs'}
               {activeSection === 'prescriptions' && 'Vet Prescriptions Review'}
               {activeSection === 'listings' && 'Classified Listings Moderation'}
@@ -742,14 +610,22 @@ const SuperAdminDashboard = () => {
             </h2>
           </div>
 
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3">
+            <a
+              href="/?preview=guest"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="btn-secondary-premium !py-2 !px-4 !text-[10px] gap-2 flex items-center hover:bg-white/10"
+              title="Open public home page without login in a new tab"
+            >
+              <ExternalLink size={14} /> VIEW LIVE SITE
+            </a>
             <button
               onClick={() => { 
                 loadStats(); 
                 loadAdminMarketplaceData(); 
                 loadUsers(); 
                 loadEnquiries(); 
-                loadProducts(); 
                 loadOrders(); 
                 loadPrescriptions(); 
                 loadConsents();
@@ -787,29 +663,29 @@ const SuperAdminDashboard = () => {
           <>
             {/* SECTION 1: OVERVIEW */}
             {activeSection === 'overview' && stats && (
-              <div className="space-y-12 animate-in fade-in duration-200">
+              <div className="space-y-8 animate-in fade-in duration-200">
 
-                {/* Summary Cards Row with premium tiles */}
-                <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
+                {/* Summary Cards Row with compact tiles */}
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-3 xl:grid-cols-5 gap-3.5">
                   {[
-                    { label: 'Total Revenue', value: `₹${stats.totalRevenue}`, icon: <TrendingUp size={20} />, iconBg: 'bg-emerald-50 text-emerald-600' },
-                    { label: 'Total Orders', value: stats.ordersCount, icon: <ShoppingBag size={20} />, iconBg: 'bg-blue-50 text-blue-600' },
-                    { label: 'Customers', value: stats.usersCount, icon: <Users size={20} />, iconBg: 'bg-purple-50 text-purple-600' },
-                    { label: 'Total SKU Count', value: stats.productsCount, icon: <Layers size={20} />, iconBg: 'bg-amber-50 text-amber-600' },
-                    { label: 'Products Sold', value: stats.soldProductsCount || 0, icon: <CheckCircle size={20} />, iconBg: 'bg-teal-50 text-teal-600' },
-                    { label: 'Unsold Products', value: stats.unsoldProductsCount || 0, icon: <X size={20} />, iconBg: 'bg-gray-100 text-gray-600' },
-                    { label: 'Pending Orders', value: stats.pendingOrdersCount, icon: <Clock size={20} />, iconBg: 'bg-orange-50 text-orange-600' },
-                    { label: 'Low Stock Alert', value: stats.lowStockCount, icon: <AlertTriangle size={20} />, iconBg: 'bg-rose-50 text-rose-600' },
-                    { label: 'New Enquiries', value: stats.enquiriesCount || 0, icon: <Mail size={20} />, iconBg: 'bg-indigo-50 text-indigo-600' }
+                    { label: 'Total Revenue', value: `₹${stats.totalRevenue}`, icon: <TrendingUp size={16} />, iconBg: 'bg-emerald-50 text-emerald-600' },
+                    { label: 'Total Orders', value: stats.ordersCount, icon: <ShoppingBag size={16} />, iconBg: 'bg-blue-50 text-blue-600' },
+                    { label: 'Customers', value: stats.usersCount, icon: <Users size={16} />, iconBg: 'bg-purple-50 text-purple-600' },
+                    { label: 'Total SKU Count', value: stats.productsCount, icon: <Layers size={16} />, iconBg: 'bg-amber-50 text-amber-600' },
+                    { label: 'Products Sold', value: stats.soldProductsCount || 0, icon: <CheckCircle size={16} />, iconBg: 'bg-teal-50 text-teal-600' },
+                    { label: 'Unsold Products', value: stats.unsoldProductsCount || 0, icon: <X size={16} />, iconBg: 'bg-gray-100 text-gray-600' },
+                    { label: 'Pending Orders', value: stats.pendingOrdersCount, icon: <Clock size={16} />, iconBg: 'bg-orange-50 text-orange-600' },
+                    { label: 'Low Stock Alert', value: stats.lowStockCount, icon: <AlertTriangle size={16} />, iconBg: 'bg-rose-50 text-rose-600' },
+                    { label: 'New Enquiries', value: stats.enquiriesCount || 0, icon: <Mail size={16} />, iconBg: 'bg-indigo-50 text-indigo-600' }
                   ].map((c) => (
-                    <div key={c.label} className="card-premium p-6 flex flex-col justify-between">
-                      <div className="flex justify-between items-start mb-6">
-                        <span className="text-[10px] uppercase font-bold text-gray-500 tracking-wider w-2/3 leading-tight">{c.label}</span>
-                        <div className={`w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 shadow-sm ${c.iconBg}`}>
+                    <div key={c.label} className="card-premium p-3.5 sm:p-4 flex flex-col justify-between hover:shadow-sm transition-shadow">
+                      <div className="flex justify-between items-start mb-2.5">
+                        <span className="text-[9.5px] uppercase font-bold text-gray-500 tracking-wider w-2/3 leading-tight">{c.label}</span>
+                        <div className={`w-7 h-7 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center shrink-0 shadow-2xs ${c.iconBg}`}>
                           {c.icon}
                         </div>
                       </div>
-                      <p className="text-3xl font-bold font-serif text-primary truncate">{c.value}</p>
+                      <p className="text-xl sm:text-2xl font-bold font-serif text-primary truncate">{c.value}</p>
                     </div>
                   ))}
                 </div>
@@ -882,15 +758,15 @@ const SuperAdminDashboard = () => {
                       </thead>
                       <tbody className="divide-y divide-[#E3EBE5]">
                         {recentOrders.map((o) => (
-                          <tr key={o._id} className="hover:bg-[#F9FAF9] transition-colors duration-300">
-                            <td className="p-4 font-semibold text-primary">{o._id}</td>
+                          <tr key={o._id || o.id} className="hover:bg-[#F9FAF9] transition-colors duration-300">
+                            <td className="p-4 font-semibold text-primary">{o._id || o.id || o.orderNumber}</td>
                             <td className="p-4">
-                              <p className="font-bold text-sm">{o.user.name}</p>
-                              <p className="text-[10px] text-gray-500">{o.user.email}</p>
+                              <p className="font-bold text-sm">{o.user?.name || o.customer?.name || 'Customer'}</p>
+                              <p className="text-[10px] text-gray-500">{o.user?.email || o.customer?.email || 'N/A'}</p>
                             </td>
-                            <td className="p-4 text-xs font-medium text-gray-600">{o.paymentMethod}</td>
-                            <td className="p-4 font-bold uppercase text-[10px] tracking-wider text-accent">{o.shippingStatus}</td>
-                            <td className="p-4 text-right font-bold text-primary text-sm">₹{o.pricing.total}</td>
+                            <td className="p-4 text-xs font-medium text-gray-600">{o.paymentMethod || o.payment_method || 'COD'}</td>
+                            <td className="p-4 font-bold uppercase text-[10px] tracking-wider text-accent">{o.shippingStatus || o.shipping_status || 'Pending'}</td>
+                            <td className="p-4 text-right font-bold text-primary text-sm">₹{o.pricing?.total ?? o.grand_total ?? o.grandTotal ?? o.totalPrice ?? 0}</td>
                           </tr>
                         ))}
                       </tbody>
@@ -901,81 +777,24 @@ const SuperAdminDashboard = () => {
               </div>
             )}
 
+            {/* SECTION: CRM ACCESS & STAFF ROLES */}
+            {activeSection === 'crm_access' && (
+              <CrmAccessManagerView />
+            )}
+
             {/* SECTION: PLATFORM WALLET & PAYOUTS */}
             {activeSection === 'wallet' && (
               <SuperAdminPlatformWalletView />
             )}
 
-            {/* SECTION 2: PRODUCTS MANAGER */}
-            {activeSection === 'products' && (
-              <div className="space-y-6 animate-in fade-in duration-200">
-                <div className="flex justify-between items-center border-b border-[#E3EBE5] pb-3">
-                  <h2 className="font-serif text-lg font-bold text-primary">Product Catalogue ({productsList.length})</h2>
-                  <button
-                    onClick={handleOpenAddProduct}
-                    className="px-4 py-2 bg-primary text-white font-bold tracking-widest text-xs hover:bg-[#7CA085] hover:text-primary transition uppercase flex items-center gap-1.5 cursor-pointer rounded-md"
-                  >
-                    <Plus size={14} /> ADD NEW PRODUCT
-                  </button>
-                </div>
+            {/* SECTION: ANNOUNCEMENT BAR & OFFERS TICKER */}
+            {activeSection === 'announcements' && (
+              <AnnouncementsManagerView />
+            )}
 
-                <div className="card-premium overflow-x-auto">
-                  <table className="w-full text-left text-xs border-collapse">
-                    <thead>
-                      <tr className="bg-[#F1F6F2] text-primary font-bold border-b border-[#E3EBE5]">
-                        <th className="p-4 uppercase tracking-wider text-[10px]">Image</th>
-                        <th className="p-4 uppercase tracking-wider text-[10px]">Product details</th>
-                        <th className="p-4 uppercase tracking-wider text-[10px]">SKU</th>
-                        <th className="p-4 uppercase tracking-wider text-[10px]">Pricing</th>
-                        <th className="p-4 uppercase tracking-wider text-[10px]">Stock count</th>
-                        <th className="p-4 uppercase tracking-wider text-[10px] text-center">Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-[#E3EBE5]">
-                      {productsList.map((p) => (
-                        <tr key={p._id} className="hover:bg-[#F9FAF9] transition-colors duration-300">
-                          <td className="p-4">
-                            <img src={p.images[0]} alt={p.name} className="w-12 h-12 object-cover bg-gray-50 border border-[#E3EBE5]" />
-                          </td>
-                          <td className="p-4 space-y-1">
-                            <p className="font-bold text-primary truncate max-w-xs">{p.name}</p>
-                            <p className="text-[10px] text-accent uppercase font-bold tracking-wider">{p.brand} • {p.petType}</p>
-                            {p.requiresPrescription && <span className="text-[9px] bg-red-100 text-red-800 font-bold px-1.5 py-0.5 rounded-full">Rx Required</span>}
-                          </td>
-                          <td className="p-4 font-semibold text-gray-500">{p.sku}</td>
-                          <td className="p-4">
-                            <p className="font-bold text-primary">₹{p.discountPrice || p.price}</p>
-                            {p.discountPrice && <p className="text-[10px] text-gray-400 line-through">₹{p.price}</p>}
-                          </td>
-                          <td className="p-4">
-                            <span className={`font-bold ${p.stock === 0 ? 'text-red-500' : p.stock <= p.lowStockThreshold ? 'text-orange-500' : 'text-green-600'}`}>
-                              {p.stock} units
-                            </span>
-                          </td>
-                          <td className="p-4 text-center">
-                            <div className="flex justify-center gap-2">
-                              <button
-                                onClick={() => handleOpenEditProduct(p)}
-                                className="p-2 border border-[#E3EBE5] hover:border-primary hover:bg-[#FAFBF9] transition cursor-pointer text-gray-500"
-                                title="Edit product"
-                              >
-                                <Edit size={12} />
-                              </button>
-                              <button
-                                onClick={() => handleDeleteProduct(p._id)}
-                                className="p-2 border border-[#E3EBE5] hover:border-red-500 hover:text-red-500 transition cursor-pointer text-gray-500"
-                                title="Delete product"
-                              >
-                                <Trash size={12} />
-                              </button>
-                            </div>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
+            {/* SECTION: OFFER CODES & DISCOUNTS */}
+            {activeSection === 'coupons' && (
+              <CouponsManagerView />
             )}
 
             {/* SECTION 3: CLIENT ORDERS MANAGER */}
@@ -997,14 +816,14 @@ const SuperAdminDashboard = () => {
                     </thead>
                     <tbody className="divide-y divide-[#E3EBE5]">
                       {ordersList.map((o) => (
-                        <tr key={o._id} className="hover:bg-[#F9FAF9] transition-colors duration-300">
-                          <td className="p-4 font-semibold text-primary">{o._id}</td>
-                          <td className="p-4">{new Date(o.createdAt).toLocaleDateString()}</td>
+                        <tr key={o._id || o.id} className="hover:bg-[#F9FAF9] transition-colors duration-300">
+                          <td className="p-4 font-semibold text-primary">{o._id || o.id || o.orderNumber}</td>
+                          <td className="p-4">{o.createdAt || o.created_at ? new Date(o.createdAt || o.created_at).toLocaleDateString() : 'Recent'}</td>
                           <td className="p-4">
-                            <p className="font-bold">{o.user?.name || 'Guest user'}</p>
-                            <p className="text-[10px] text-gray-400">{o.user?.email}</p>
+                            <p className="font-bold">{o.user?.name || o.customer?.name || 'Customer'}</p>
+                            <p className="text-[10px] text-gray-400">{o.user?.email || o.customer?.email || 'N/A'}</p>
                           </td>
-                          <td className="p-4 text-right font-bold text-primary text-sm">₹{o.pricing.total}</td>
+                          <td className="p-4 text-right font-bold text-primary text-sm">₹{o.pricing?.total ?? o.grand_total ?? o.grandTotal ?? o.totalPrice ?? 0}</td>
                           <td className="p-4">
                             <span className={`font-bold uppercase text-[10px] ${o.shippingStatus === 'Delivered' ? 'text-green-600' :
                                 o.shippingStatus === 'Cancelled' ? 'text-red-500' : 'text-accent'
@@ -1058,8 +877,8 @@ const SuperAdminDashboard = () => {
                           <td className="p-4 font-semibold text-primary">{p._id}</td>
                           <td className="p-4">{new Date(p.createdAt).toLocaleDateString()}</td>
                           <td className="p-4">
-                            <p className="font-bold">{p.user?.name}</p>
-                            <p className="text-[10px] text-gray-400">{p.user?.email}</p>
+                            <p className="font-bold">{p.user?.name || p.patientName || p.doctor_name || 'Customer'}</p>
+                            <p className="text-[10px] text-gray-400">{p.user?.email || p.clinicName || 'N/A'}</p>
                           </td>
                           <td className="p-4">
                             <p className="font-bold text-primary">Pet: {p.patientName}</p>
@@ -1124,8 +943,8 @@ const SuperAdminDashboard = () => {
                             )}
                           </td>
                           <td className="p-4">
-                            <p className="font-semibold">{l.user?.name}</p>
-                            <p className="text-[10px] text-gray-400">{l.contactPhone}</p>
+                            <p className="font-semibold">{l.user?.name || l.title || 'Pet Owner'}</p>
+                            <p className="text-[10px] text-gray-400">{l.contactPhone || 'N/A'}</p>
                           </td>
                           <td className="p-3 font-bold text-primary">
                             {l.price === 0 ? 'Free Rehoming' : `₹${l.price}`}
@@ -1240,8 +1059,8 @@ const SuperAdminDashboard = () => {
                             <p className="text-[10px] text-gray-400">Dr./Groomer: {b.providerName}</p>
                           </td>
                           <td className="p-4">
-                            <p className="font-semibold">{b.user?.name || 'Client'}</p>
-                            <p className="text-[10px] text-[#7CA085] uppercase font-bold">Pet: {b.petDetails?.name} ({b.petDetails?.breed})</p>
+                            <p className="font-semibold">{b.user?.name || b.customerName || b.ownerName || 'Client'}</p>
+                            <p className="text-[10px] text-[#7CA085] uppercase font-bold">Pet: {b.petDetails?.name || b.petName || 'Pet'} ({b.petDetails?.breed || b.petBreed || 'Breed'})</p>
                           </td>
                           <td className="p-4 space-y-1">
                             <p className="font-semibold">{b.date}</p>
@@ -1497,214 +1316,16 @@ const SuperAdminDashboard = () => {
               </div>
             )}
 
+            {/* PILLAR TAB 11: PET CARE BLOGS & ARTICLES */}
+            {activeSection === 'blogs' && (
+              <BlogsManagerView />
+            )}
+
           </>
         )}
 
         </div>
       </main>
-
-      {/* POPUP MODAL: ADD / EDIT PRODUCT */}
-      {showProductModal && (
-        <div className="fixed inset-0 z-[100] overflow-y-auto bg-primary/60 backdrop-blur-xs p-2 sm:p-4 flex flex-col items-center justify-start sm:justify-center animate-in fade-in duration-200">
-          <div onClick={() => setShowProductModal(false)} className="fixed inset-0 bg-transparent"></div>
-
-          <form
-            onSubmit={handleSaveProduct}
-            className="relative bg-white w-full max-w-2xl border border-beige shadow-2xl flex flex-col min-h-0 max-h-[85vh] sm:max-h-[88vh] z-10 my-auto overflow-hidden"
-          >
-            <div className="px-4 sm:px-6 py-3.5 bg-primary text-white flex justify-between items-center border-b border-white/10 shrink-0">
-              <h3 className="font-serif text-sm font-bold tracking-wider text-accent uppercase">
-                {editingProductId ? 'Edit Product Parameters' : 'Add New Product Record'}
-              </h3>
-              <button type="button" onClick={() => setShowProductModal(false)} className="text-white hover:text-accent cursor-pointer">
-                <X size={18} />
-              </button>
-            </div>
-
-            <div className="p-4 sm:p-6 overflow-y-auto flex-1 min-h-0 space-y-4 text-xs">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-1">
-                  <label className="text-gray-500 font-semibold block">Product Name *</label>
-                  <input
-                    type="text"
-                    value={prodName}
-                    onChange={(e) => setProdName(e.target.value)}
-                    className="w-full px-3 py-2 border border-beige text-xs focus:outline-none focus:border-primary"
-                    required
-                  />
-                </div>
-                <div className="space-y-1">
-                  <label className="text-gray-500 font-semibold block">Brand *</label>
-                  <input
-                    type="text"
-                    value={prodBrand}
-                    onChange={(e) => setProdBrand(e.target.value)}
-                    className="w-full px-3 py-2 border border-beige text-xs focus:outline-none focus:border-primary"
-                    required
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <div className="space-y-1">
-                  <label className="text-gray-500 font-semibold block">SKU *</label>
-                  <input
-                    type="text"
-                    value={prodSku}
-                    onChange={(e) => setProdSku(e.target.value)}
-                    className="w-full px-3 py-2 border border-beige text-xs focus:outline-none focus:border-primary"
-                    required
-                  />
-                </div>
-                <div className="space-y-1">
-                  <label className="text-gray-500 font-semibold block">Price (INR) *</label>
-                  <input
-                    type="number"
-                    value={prodPrice}
-                    onChange={(e) => setProdPrice(e.target.value)}
-                    className="w-full px-3 py-2 border border-beige text-xs focus:outline-none focus:border-primary"
-                    required
-                  />
-                </div>
-                <div className="space-y-1">
-                  <label className="text-gray-500 font-semibold block">Discount Price</label>
-                  <input
-                    type="number"
-                    value={prodDiscountPrice}
-                    onChange={(e) => setProdDiscountPrice(e.target.value)}
-                    className="w-full px-3 py-2 border border-beige text-xs focus:outline-none focus:border-primary"
-                  />
-                </div>
-                <div className="space-y-1">
-                  <label className="text-gray-500 font-semibold block">Stock Units *</label>
-                  <input
-                    type="number"
-                    value={prodStock}
-                    onChange={(e) => setProdStock(e.target.value)}
-                    className="w-full px-3 py-2 border border-beige text-xs focus:outline-none focus:border-primary"
-                    required
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="space-y-1">
-                  <label className="text-gray-500 font-semibold block">Pet Department *</label>
-                  <select
-                    value={prodPetType}
-                    onChange={(e) => setProdPetType(e.target.value)}
-                    className="w-full px-3 py-2 border border-beige text-xs bg-white focus:outline-none focus:border-primary"
-                  >
-                    <option value="dogs">Dogs</option>
-                    <option value="cats">Cats</option>
-                    <option value="birds">Birds</option>
-                    <option value="reptiles">Reptiles</option>
-                    <option value="fish">Fish</option>
-                    <option value="pharmacy">Pharmacy</option>
-                  </select>
-                </div>
-                <div className="space-y-1">
-                  <label className="text-gray-500 font-semibold block">Category *</label>
-                  <input
-                    type="text"
-                    value={prodCategory}
-                    onChange={(e) => setProdCategory(e.target.value)}
-                    className="w-full px-3 py-2 border border-beige text-xs focus:outline-none focus:border-primary"
-                    required
-                  />
-                </div>
-                <div className="space-y-1">
-                  <label className="text-gray-500 font-semibold block">Subcategory *</label>
-                  <input
-                    type="text"
-                    value={prodSubcategory}
-                    onChange={(e) => setProdSubcategory(e.target.value)}
-                    className="w-full px-3 py-2 border border-beige text-xs focus:outline-none focus:border-primary"
-                    required
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-1">
-                <label className="text-gray-500 font-semibold block">Main Image URL *</label>
-                <input
-                  type="text"
-                  value={prodImage}
-                  onChange={(e) => setProdImage(e.target.value)}
-                  className="w-full px-3 py-2 border border-beige text-xs focus:outline-none focus:border-primary"
-                  required
-                />
-              </div>
-
-              <div className="space-y-1">
-                <label className="text-gray-500 font-semibold block">Short Description</label>
-                <textarea
-                  rows={2}
-                  value={prodDescription}
-                  onChange={(e) => setProdDescription(e.target.value)}
-                  className="w-full px-3 py-2 border border-beige text-xs focus:outline-none focus:border-primary"
-                ></textarea>
-              </div>
-
-              <div className="space-y-1">
-                <label className="text-gray-500 font-semibold block">Long Detailed Description</label>
-                <textarea
-                  rows={3}
-                  value={prodLongDescription}
-                  onChange={(e) => setProdLongDescription(e.target.value)}
-                  className="w-full px-3 py-2 border border-beige text-xs focus:outline-none focus:border-primary"
-                ></textarea>
-              </div>
-
-              <div className="flex gap-6 pt-2">
-                <label className="flex items-center gap-2 cursor-pointer font-semibold">
-                  <input
-                    type="checkbox"
-                    checked={prodRequiresPrescription}
-                    onChange={(e) => setProdRequiresPrescription(e.target.checked)}
-                    className="rounded-none border-beige text-primary focus:ring-0"
-                  />
-                  <span>Requires Vet Prescription (Rx)</span>
-                </label>
-                <label className="flex items-center gap-2 cursor-pointer font-semibold">
-                  <input
-                    type="checkbox"
-                    checked={prodIsFeatured}
-                    onChange={(e) => setProdIsFeatured(e.target.checked)}
-                    className="rounded-none border-beige text-primary focus:ring-0"
-                  />
-                  <span>Featured Product</span>
-                </label>
-                <label className="flex items-center gap-2 cursor-pointer font-semibold">
-                  <input
-                    type="checkbox"
-                    checked={prodIsBestSeller}
-                    onChange={(e) => setProdIsBestSeller(e.target.checked)}
-                    className="rounded-none border-beige text-primary focus:ring-0"
-                  />
-                  <span>Bestseller</span>
-                </label>
-              </div>
-            </div>
-
-            <div className="bg-secondary px-6 py-4 border-t border-beige flex justify-end gap-3 shrink-0">
-              <button
-                type="button"
-                onClick={() => setShowProductModal(false)}
-                className="btn-secondary-premium py-2 text-xs"
-              >
-                CANCEL
-              </button>
-              <button
-                type="submit"
-                className="btn-premium py-2 text-xs"
-              >
-                SAVE CATALOG RECORD
-              </button>
-            </div>
-          </form>
-        </div>
-      )}
 
       {/* POPUP MODAL: EVALUATE PRESCRIPTION */}
       {showPrescModal && activePresc && (

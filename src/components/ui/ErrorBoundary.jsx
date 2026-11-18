@@ -19,15 +19,18 @@ class ErrorBoundary extends React.Component {
     console.error('ErrorBoundary caught an unhandled error:', error, errorInfo);
     
     // Automatically reload the page if a dynamically imported chunk fails to load 
-    // (usually happens after a new deployment when users have a stale index.html)
+    // (usually happens after a new deployment or HMR code edit when users have a stale module reference)
     const isChunkLoadError = 
       error?.message?.includes('Failed to fetch dynamically imported module') ||
-      error?.message?.includes('Importing a module script failed');
+      error?.message?.includes('Importing a module script failed') ||
+      error?.message?.includes('dynamically imported');
 
     if (isChunkLoadError) {
-      const hasReloaded = sessionStorage.getItem('chunk_load_error_reloaded');
-      if (!hasReloaded) {
-        sessionStorage.setItem('chunk_load_error_reloaded', 'true');
+      const lastReload = parseInt(sessionStorage.getItem('chunk_load_last_reload') || '0', 10);
+      const now = Date.now();
+      // Auto-reload once if not reloaded in the last 15 seconds
+      if (now - lastReload > 15000) {
+        sessionStorage.setItem('chunk_load_last_reload', String(now));
         window.location.reload();
         return;
       }
@@ -37,6 +40,10 @@ class ErrorBoundary extends React.Component {
   }
 
   handleReload = () => {
+    try {
+      sessionStorage.removeItem('chunk_load_last_reload');
+      sessionStorage.removeItem('chunk_load_error_reloaded');
+    } catch (_) {}
     this.setState({ hasError: false, error: null, errorInfo: null });
     window.location.reload();
   };

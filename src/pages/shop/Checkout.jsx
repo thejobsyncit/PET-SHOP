@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { CreditCard, Truck, CircleCheck, ChevronRight, ShoppingBag, ClipboardList, Download, Zap, AlertCircle } from 'lucide-react';
-import { clearCartAPI, calculateTotals } from '../../store/slices/cartSlice.js';
+import { CreditCard, Truck, CircleCheck, ChevronRight, ShoppingBag, ClipboardList, Download, Zap, AlertCircle, Tag, Check, X, Sparkles } from 'lucide-react';
+import { clearCartAPI, calculateTotals, applyCouponCode, removeCoupon } from '../../store/slices/cartSlice.js';
 import { fetchProducts } from '../../store/slices/productSlice.js';
 import { apiRequest } from '../../services/api.js';
 import { downloadBill } from '../../utils/billGenerator.js';
@@ -48,8 +48,8 @@ const Checkout = () => {
     if (isBuyNow && buyNowItem?.product) {
       return calculateTotals([buyNowItem], appliedCoupon);
     }
-    return cartPricing;
-  }, [isBuyNow, buyNowItem, appliedCoupon, cartPricing]);
+    return calculateTotals(items, appliedCoupon);
+  }, [isBuyNow, buyNowItem, items, appliedCoupon]);
 
   // Check if any checkout item exceeds actual available stock
   const overstockItem = useMemo(() => {
@@ -75,6 +75,55 @@ const Checkout = () => {
   const [prescriptionId, setPrescriptionId] = useState('');
   const [placingOrder, setPlacingOrder] = useState(false);
   const [confirmedOrder, setConfirmedOrder] = useState(null);
+
+  // Coupon / Offer code state
+  const [couponInput, setCouponInput] = useState('');
+  const [couponError, setCouponError] = useState('');
+  const [isApplyingCoupon, setIsApplyingCoupon] = useState(false);
+  const [availableCoupons, setAvailableCoupons] = useState([]);
+
+  // Load available active coupons for quick-suggestion pills
+  useEffect(() => {
+    apiRequest('/coupons')
+      .then((res) => {
+        if (res && res.success && Array.isArray(res.coupons)) {
+          setAvailableCoupons(res.coupons.filter(c => c.isActive !== false));
+        }
+      })
+      .catch(() => {});
+  }, []);
+
+  const handleApplyOfferCode = async (rawCode) => {
+    const code = (typeof rawCode === 'string' ? rawCode : couponInput || '').trim();
+    if (!code) {
+      setCouponError('Please enter an offer code.');
+      return;
+    }
+    setCouponError('');
+    setIsApplyingCoupon(true);
+    try {
+      const activeSubtotal = pricing.subtotal;
+      const res = await dispatch(applyCouponCode({ code, cartTotal: activeSubtotal })).unwrap();
+      const disc = res.calculatedDiscount !== undefined ? res.calculatedDiscount : (res.discountValue || 0);
+      toast.success(`🎉 Offer code "${res.code}" applied! You save ₹${disc}.`, {
+        icon: '🏷️',
+        id: 'checkout-coupon-success'
+      });
+      setCouponInput('');
+    } catch (err) {
+      const msg = typeof err === 'string' ? err : (err?.message || 'Invalid or inapplicable offer code.');
+      setCouponError(msg);
+      toast.error(msg, { id: 'checkout-coupon-error' });
+    } finally {
+      setIsApplyingCoupon(false);
+    }
+  };
+
+  const handleRemoveOfferCode = () => {
+    dispatch(removeCoupon());
+    setCouponError('');
+    toast('Offer code removed', { icon: 'ℹ️' });
+  };
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -189,6 +238,7 @@ const Checkout = () => {
         tax: pricing.tax,
         total: pricing.total
       },
+      couponCode: appliedCoupon?.code || undefined,
       prescriptionId: prescriptionId || undefined
     };
 
@@ -287,6 +337,14 @@ const Checkout = () => {
               <span className="text-gray-400 font-medium">Shipping Status:</span>
               <span className="font-bold text-accent uppercase">{confirmedOrder.shippingStatus}</span>
             </div>
+            {confirmedOrder.pricing?.discount > 0 && (
+              <div className="flex justify-between text-emerald-700 font-bold">
+                <span className="text-emerald-700 font-medium flex items-center gap-1">
+                  <Tag size={13} /> Offer Discount ({confirmedOrder.couponCode || appliedCoupon?.code || 'Promo'}):
+                </span>
+                <span>-₹{confirmedOrder.pricing.discount}</span>
+              </div>
+            )}
             <div className="flex justify-between">
               <span className="text-gray-400 font-medium">Total Paid Amount:</span>
               <span className="font-bold text-primary">₹{confirmedOrder.pricing.total}</span>
@@ -303,6 +361,7 @@ const Checkout = () => {
             <button
               onClick={() => {
                 const total = confirmedOrder.pricing?.total || 0;
+                const discount = confirmedOrder.pricing?.discount || pricing.discount || 0;
                 const base = Number((total / 1.18).toFixed(2));
                 downloadBill({
                   invoiceNumber: confirmedOrder.trackingNumber || (confirmedOrder._id ? `ORD-${String(confirmedOrder._id).slice(-8)}` : `ORD-${Date.now().toString().slice(-8)}`),
@@ -329,6 +388,7 @@ const Checkout = () => {
                     baseAmount: base,
                     cgst: Number((base * 0.09).toFixed(2)),
                     sgst: Number((base * 0.09).toFixed(2)),
+                    discount: discount,
                     total: total,
                   }
                 });
@@ -518,6 +578,44 @@ const Checkout = () => {
                   <CreditCard size={18} className="text-accent" /> Select Payment Method
                 </h2>
 
+                {/* Offer Status Banner right above payment method */}
+                {appliedCoupon ? (
+                  <div className="p-3.5 bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs rounded-xl flex items-center justify-between shadow-2xs">
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-6 h-6 rounded-full bg-emerald-600 text-white flex items-center justify-center shrink-0">
+                        <Check size={14} />
+                      </div>
+                      <div>
+                        <p className="font-bold text-emerald-900">
+                          Offer Code Applied: <span className="font-mono uppercase">{appliedCoupon.code}</span>
+                        </p>
+                        <p className="text-[11px] text-emerald-700">
+                          {pricing.discount > 0 ? `₹${pricing.discount} has been discounted from your payable total!` : 'Discount applied to this order'}
+                        </p>
+                      </div>
+                    </div>
+                    <span className="font-mono font-black text-emerald-900 bg-emerald-100 px-2.5 py-1 rounded-md text-xs">
+                      FINAL: ₹{pricing.total}
+                    </span>
+                  </div>
+                ) : (
+                  <div className="p-3.5 bg-amber-50/80 border border-amber-200 text-amber-900 text-xs rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-2 shadow-2xs">
+                    <div className="flex items-center gap-2">
+                      <Tag size={16} className="text-amber-600 shrink-0" />
+                      <span>
+                        Have an offer code? Apply <strong>PAWFIRST</strong> for 15% OFF your order.
+                      </span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => handleApplyOfferCode('PAWFIRST')}
+                      className="px-3 py-1 bg-amber-600 hover:bg-amber-700 text-white font-bold text-[10px] rounded-lg uppercase tracking-wider transition cursor-pointer self-start sm:self-auto shrink-0 shadow-2xs active:scale-95"
+                    >
+                      Apply PAWFIRST (15% OFF)
+                    </button>
+                  </div>
+                )}
+
                 <div className="space-y-3">
                   {['Credit Card', 'Debit Card', 'UPI', 'Net Banking', 'Cash on Delivery'].map((method) => (
                     <label 
@@ -561,7 +659,7 @@ const Checkout = () => {
                   <button 
                     onClick={handlePlaceOrder}
                     disabled={placingOrder}
-                    className="btn-premium py-2.5 text-xs flex-grow uppercase"
+                    className="btn-premium py-2.5 text-xs flex-grow uppercase font-black tracking-wider"
                   >
                     {placingOrder ? 'PROCESSING PAYMENT...' : `PLACE ORDER (₹${pricing.total})`}
                   </button>
@@ -612,6 +710,124 @@ const Checkout = () => {
               })}
             </div>
 
+            {/* Dedicated Promo / Offer Code Input Section (Always visible across Address, Delivery & Payment) */}
+            <div className="border-t border-beige pt-4 space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-primary flex items-center gap-1.5">
+                  <Tag size={13} className="text-accent" /> Offer / Promo Code
+                </span>
+                {appliedCoupon && (
+                  <span className="text-[10px] bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">
+                    Applied
+                  </span>
+                )}
+              </div>
+
+              {appliedCoupon ? (
+                <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl flex items-center justify-between text-xs transition-all shadow-2xs">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-7 h-7 rounded-full bg-emerald-600 text-white flex items-center justify-center shrink-0 shadow-xs">
+                      <Check size={14} />
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-1.5">
+                        <span className="font-mono font-black text-emerald-900 tracking-wider text-xs">
+                          {appliedCoupon.code}
+                        </span>
+                        <span className="text-[9px] bg-emerald-200 text-emerald-800 font-black px-1.5 py-0.2 rounded uppercase">
+                          {appliedCoupon.discountType === 'percentage' ? `${appliedCoupon.discountValue}% OFF` : `₹${appliedCoupon.discountValue} OFF`}
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-emerald-700 font-semibold mt-0.5">
+                        {pricing.discount > 0 ? `You are saving ₹${pricing.discount} on this order!` : 'Offer applied'}
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleRemoveOfferCode}
+                    className="p-1.5 rounded-lg text-gray-400 hover:text-rose-600 hover:bg-rose-50 transition cursor-pointer"
+                    title="Remove coupon code"
+                    aria-label="Remove coupon code"
+                  >
+                    <X size={15} />
+                  </button>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  <form 
+                    onSubmit={(e) => {
+                      e.preventDefault();
+                      handleApplyOfferCode();
+                    }}
+                    className="flex gap-2"
+                  >
+                    <div className="relative flex-grow">
+                      <input
+                        type="text"
+                        value={couponInput}
+                        onChange={(e) => {
+                          setCouponInput(e.target.value.toUpperCase());
+                          if (couponError) setCouponError('');
+                        }}
+                        placeholder="Enter code (e.g. PAWFIRST)"
+                        className="w-full pl-3 pr-8 py-2 border border-beige text-xs uppercase tracking-wider font-mono placeholder:normal-case placeholder:font-sans focus:outline-none focus:border-primary rounded-sm bg-white"
+                      />
+                      {couponInput && (
+                        <button
+                          type="button"
+                          onClick={() => setCouponInput('')}
+                          className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 cursor-pointer"
+                          aria-label="Clear input"
+                        >
+                          <X size={13} />
+                        </button>
+                      )}
+                    </div>
+                    <button
+                      type="submit"
+                      disabled={isApplyingCoupon || !couponInput.trim()}
+                      className="px-4 py-2 bg-primary hover:bg-[#163a2d] text-white text-xs font-bold uppercase tracking-wider transition disabled:opacity-50 cursor-pointer shrink-0 rounded-sm"
+                    >
+                      {isApplyingCoupon ? '...' : 'APPLY'}
+                    </button>
+                  </form>
+
+                  {couponError && (
+                    <p className="text-[11px] font-semibold text-rose-600 flex items-center gap-1">
+                      <AlertCircle size={12} className="shrink-0" /> {couponError}
+                    </p>
+                  )}
+
+                  {/* Available quick offer suggestion pills */}
+                  {availableCoupons.length > 0 && (
+                    <div className="pt-1 space-y-1.5">
+                      <span className="text-[10px] text-gray-400 uppercase tracking-widest font-bold block">
+                        ACTIVE OFFERS (TAP TO APPLY):
+                      </span>
+                      <div className="flex flex-wrap gap-1.5">
+                        {availableCoupons.slice(0, 3).map((cp) => (
+                          <button
+                            key={cp.code}
+                            type="button"
+                            onClick={() => handleApplyOfferCode(cp.code)}
+                            className="inline-flex items-center gap-1 px-2.5 py-1 bg-amber-50 hover:bg-amber-100 border border-amber-200/80 text-amber-900 rounded-md text-[10px] font-bold tracking-wide transition cursor-pointer shadow-2xs hover:scale-102 active:scale-95"
+                            title={`Click to apply ${cp.code}: ${cp.description || (cp.discountType === 'percentage' ? `${cp.discountValue}% OFF` : `₹${cp.discountValue} OFF`)}`}
+                          >
+                            <Sparkles size={11} className="text-amber-600 fill-amber-500" />
+                            <span className="font-mono uppercase font-black">{cp.code}</span>
+                            <span className="text-amber-700">
+                              ({cp.discountType === 'percentage' ? `${cp.discountValue}% OFF` : `₹${cp.discountValue} OFF`})
+                            </span>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+
             {/* Calculations summaries */}
             <div className="border-t border-beige pt-4 space-y-2 text-xs">
               <div className="flex justify-between text-gray-500">
@@ -619,8 +835,10 @@ const Checkout = () => {
                 <span>₹{pricing.subtotal}</span>
               </div>
               {pricing.discount > 0 && (
-                <div className="flex justify-between text-accent font-semibold">
-                  <span>Promo Discount</span>
+                <div className="flex justify-between text-emerald-700 font-bold bg-emerald-50/60 px-2 py-1 rounded">
+                  <span className="flex items-center gap-1">
+                    <Tag size={12} /> Promo Discount ({appliedCoupon?.code || 'Offer'}):
+                  </span>
                   <span>-₹{pricing.discount}</span>
                 </div>
               )}
@@ -634,7 +852,7 @@ const Checkout = () => {
               </div>
               <div className="flex justify-between text-sm font-bold text-primary border-t border-beige pt-3">
                 <span>Grand Total</span>
-                <span>₹{pricing.total}</span>
+                <span className="text-base text-primary font-serif font-black">₹{pricing.total}</span>
               </div>
             </div>
           </div>

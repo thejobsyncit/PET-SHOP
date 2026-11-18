@@ -845,14 +845,30 @@ export const verifySubscriptionPayment = createAsyncThunk('auth/verifySubscripti
   }
 });
 
-const initialUser = getInitialUser();
-const savedToken = localStorage.getItem('joshpetshub_token');
+const checkGuestPreview = () => {
+  if (typeof window === 'undefined') return false;
+  try {
+    const urlParams = new URLSearchParams(window.location.search);
+    const hasParam = urlParams.get('preview') === 'guest' || urlParams.get('guest') === 'true';
+    if (hasParam && typeof sessionStorage !== 'undefined') {
+      sessionStorage.setItem('joshpetshub_guest_preview', 'true');
+    }
+    return hasParam || (typeof sessionStorage !== 'undefined' && sessionStorage.getItem('joshpetshub_guest_preview') === 'true');
+  } catch (_) {
+    return false;
+  }
+};
+
+const isGuestPreview = checkGuestPreview();
+const initialUser = isGuestPreview ? null : getInitialUser();
+const savedToken = isGuestPreview ? null : localStorage.getItem('joshpetshub_token');
 const isValidToken = savedToken && savedToken !== 'undefined' && savedToken !== 'null';
 
 const initialState = {
   token: isValidToken ? savedToken : null,
   isAuthenticated: Boolean(initialUser && isValidToken),
   user: isValidToken ? initialUser : null,
+  isGuestPreview: Boolean(isGuestPreview),
   loading: false,
   error: null,
   authModal: {

@@ -1,21 +1,44 @@
 [
   {
+    "_id": "coupon_pawfirst_default",
+    "id": "coupon_pawfirst_default",
+    "code": "PAWFIRST",
+    "description": "15% off on your 1st order",
+    "discountType": "percentage",
+    "discountValue": 15,
+    "minOrderValue": 0,
+    "maxDiscount": 2000,
+    "expiresAt": "2027-12-31T23:59:59.999Z",
+    "isActive": true,
+    "usageCount": 2,
+    "createdAt": "2026-01-01T00:00:00.000Z"
+  },
+  {
     "_id": "60d5ec49ad70591248000001",
+    "id": "60d5ec49ad70591248000001",
     "code": "JOSHPETSHUB10",
+    "description": "10% off on all pet products",
     "discountType": "percentage",
     "discountValue": 10,
     "minOrderValue": 999,
     "maxDiscount": 500,
-    "expiresAt": "2027-03-08T12:05:36.694Z",
-    "isActive": true
+    "expiresAt": "2027-12-31T23:59:59.999Z",
+    "isActive": true,
+    "usageCount": 0,
+    "createdAt": "2026-01-01T00:00:00.000Z"
   },
   {
     "_id": "60d5ec49ad70591248000002",
+    "id": "60d5ec49ad70591248000002",
     "code": "WELCOME300",
+    "description": "Flat ₹300 off on orders above ₹2499",
     "discountType": "flat",
     "discountValue": 300,
     "minOrderValue": 2499,
-    "expiresAt": "2027-03-08T12:05:36.694Z",
-    "isActive": true
+    "maxDiscount": null,
+    "expiresAt": "2027-12-31T23:59:59.999Z",
+    "isActive": true,
+    "usageCount": 2,
+    "createdAt": "2026-01-01T00:00:00.000Z"
   }
 ]

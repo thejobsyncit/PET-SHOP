@@ -1,0 +1,57 @@
+[
+  {
+    "id": "TASK-2052",
+    "title": "va da",
+    "description": "dadad",
+    "assignedTo": "Pooja Sharma",
+    "customerName": "23e22312331313",
+    "customerPhone": "",
+    "dueDate": "2026-11-18T07:25:32.052Z",
+    "priority": "Medium",
+    "completed": true,
+    "createdAt": "2026-11-17T07:25:32.052Z",
+    "updatedAt": "2026-11-18T04:20:24.987Z"
+  },
+  {
+    "id": "TASK-501",
+    "title": "Call Priya Sharma regarding Express Delivery Confirmation",
+    "description": "Confirm dispatch tracking ID and ensure receiver is available tomorrow morning.",
+    "assignedTo": "Kavya Menon",
+    "assignedToId": "crm_usr_102",
+    "customerName": "Priya Sharma",
+    "customerPhone": "+91 98450 99881",
+    "dueDate": "2026-11-17T17:00:00.000Z",
+    "priority": "High",
+    "completed": true,
+    "createdAt": "2026-11-17T07:00:00.000Z",
+    "updatedAt": "2026-11-18T04:20:25.907Z"
+  },
+  {
+    "id": "TASK-502",
+    "title": "Verify vaccination card for Golden Retriever hostel check-in",
+    "description": "Amit Roy's pet Bruno hostel booking starts this Friday. Verify DHPPi and Anti-Rabies certificates.",
+    "assignedTo": "Pooja Sharma",
+    "assignedToId": "crm_usr_101",
+    "customerName": "Amit Roy",
+    "customerPhone": "+91 98234 11223",
+    "dueDate": "2026-11-18T12:00:00.000Z",
+    "priority": "Medium",
+    "completed": true,
+    "createdAt": "2026-11-17T08:00:00.000Z",
+    "updatedAt": "2026-11-18T04:20:27.390Z"
+  },
+  {
+    "id": "TASK-503",
+    "title": "Follow up with Persian kitten adoption inquiry",
+    "description": "Send adoption application questionnaire and schedule weekend shelter visit.",
+    "assignedTo": "Rahul Verma",
+    "assignedToId": "crm_usr_103",
+    "customerName": "Vikram Sethi",
+    "customerPhone": "+91 98771 22334",
+    "dueDate": "2026-11-18T16:00:00.000Z",
+    "priority": "Normal",
+    "completed": true,
+    "createdAt": "2026-11-17T09:00:00.000Z",
+    "updatedAt": "2026-11-18T04:20:29.262Z"
+  }
+]

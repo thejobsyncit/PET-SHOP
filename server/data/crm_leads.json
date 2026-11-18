@@ -1,0 +1,51 @@
+[
+  {
+    "id": "LEAD-301",
+    "name": "Dr. Ramesh Gupta",
+    "email": "dr.ramesh@gmail.com",
+    "phone": "+91 98334 55667",
+    "petInterest": "Beagle Puppy (KCI Certified)",
+    "source": "Website Breeder Directory",
+    "budget": "₹35,000",
+    "stage": "Contacted",
+    "priority": "High",
+    "assignedTo": "Rahul Verma",
+    "assignedToId": "crm_usr_103",
+    "notes": "Looking for family-friendly tri-color male Beagle. Shared certified kennel pedigree details.",
+    "createdAt": "2026-11-16T11:00:00.000Z",
+    "updatedAt": "2026-11-17T09:30:00.000Z"
+  },
+  {
+    "id": "LEAD-302",
+    "name": "Meera Krishnan",
+    "email": "meera.k@gmail.com",
+    "phone": "+91 97112 33445",
+    "petInterest": "Monthly Dog Grooming Subscription Pass",
+    "source": "Contact Form",
+    "budget": "₹4,999 / mo",
+    "stage": "Proposal Sent",
+    "priority": "Medium",
+    "assignedTo": "Pooja Sharma",
+    "assignedToId": "crm_usr_101",
+    "notes": "Has 2 Shih Tzus in Indiranagar. Requested doorstep grooming package discount.",
+    "createdAt": "2026-11-15T15:20:00.000Z",
+    "updatedAt": "2026-11-16T16:00:00.000Z"
+  },
+  {
+    "id": "LEAD-303",
+    "name": "Arjun Patel",
+    "email": "arjun.patel@yahoo.com",
+    "phone": "+91 98989 12345",
+    "petInterest": "Pet Relocation (Bangalore to Mumbai)",
+    "source": "Pet Transport Page",
+    "budget": "₹18,000",
+    "stage": "New",
+    "priority": "Urgent",
+    "assignedTo": "Rahul Verma",
+    "assignedToId": "crm_usr_103",
+    "notes": "Relocating Labrador in AC crate next Monday. Needs vet fitness certificate and doorstep pickup.",
+    "createdAt": "2026-11-17T07:45:00.000Z",
+    "updatedAt": "2026-11-17T07:45:00.000Z"
+  }
+]
+

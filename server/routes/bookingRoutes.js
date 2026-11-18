@@ -98,6 +98,8 @@ router.post('/', async (req, res) => {
     const newBooking = {
       _id: bookingId,
       id: bookingId,
+      bookingId: bookingId,
+      service_type: body.service_type || body.serviceType || body.serviceCategory || 'Service',
       ...body,
       status: body.status || 'Confirmed',
       paymentStatus: body.paymentStatus || ((body.serviceType && body.serviceType.toLowerCase().includes('vet')) ? 'Pay at Clinic' : 'Pay on Service'),

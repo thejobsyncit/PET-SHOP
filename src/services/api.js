@@ -12,6 +12,9 @@ if (typeof window !== 'undefined' && import.meta.env.PROD) {
 
 const getHeaders = () => {
   let token = localStorage.getItem('joshpetshub_token');
+  if (!token || token === 'undefined' || token === 'null') {
+    token = localStorage.getItem('joshpetshub_crm_token');
+  }
 
   const headers = {
     'Content-Type': 'application/json',
@@ -59,12 +62,15 @@ export const apiRequest = async (endpoint, options = {}) => {
 
 export const apiUploadRequest = async (endpoint, formData, options = {}) => {
   const url = `${API_BASE_URL}${endpoint}`;
-  const token = localStorage.getItem('joshpetshub_token');
+  let token = localStorage.getItem('joshpetshub_token');
+  if (!token || token === 'undefined' || token === 'null') {
+    token = localStorage.getItem('joshpetshub_crm_token');
+  }
   
   const headers = {
     ...options.headers,
   };
-  if (token) {
+  if (token && token !== 'undefined' && token !== 'null') {
     headers['Authorization'] = `Bearer ${token}`;
   }
 

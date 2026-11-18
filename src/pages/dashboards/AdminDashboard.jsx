@@ -217,7 +217,7 @@ const AdminDashboard = () => {
       } else if (loggedUser.role === 'SUPERADMIN') {
         toast.success('Super Administrator authenticated. Redirecting to Super Admin Portal...');
         setTimeout(() => {
-          navigate('/superadmin.com');
+          navigate('/superadmin');
         }, 1000);
       } else {
         toast.error('Access Denied: Standard customer accounts cannot access the admin console.');
@@ -514,7 +514,7 @@ const AdminDashboard = () => {
                 <span className="flex items-center gap-1">
                   <ShieldCheck size={12} className="text-[#7CA085]" /> Super Admin Access
                 </span>
-                <button onClick={() => navigate('/superadmin.com')} className="text-primary hover:text-[#7CA085] underline">
+                <button onClick={() => navigate('/superadmin')} className="text-primary hover:text-[#7CA085] underline">
                   Go to Portal
                 </button>
               </p>
@@ -668,8 +668,8 @@ const AdminDashboard = () => {
             {activeSection === 'overview' && stats && (
               <div className="space-y-12 animate-in fade-in duration-200">
 
-                {/* Summary Cards Row with premium tiles */}
-                <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
+                {/* Summary Cards Row with compact, modern tiles */}
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-4">
                   {[
                     { label: 'Total Revenue', value: `₹${stats.totalRevenue}`, icon: <TrendingUp size={16} />, iconBg: 'bg-emerald-50 text-emerald-700' },
                     { label: 'Total Orders', value: stats.ordersCount, icon: <ShoppingBag size={16} />, iconBg: 'bg-blue-50 text-blue-700' },
@@ -681,14 +681,14 @@ const AdminDashboard = () => {
                     { label: 'Low Stock Alert', value: stats.lowStockCount, icon: <AlertTriangle size={16} />, iconBg: 'bg-rose-50 text-rose-700' },
                     { label: 'New Enquiries', value: stats.enquiriesCount || 0, icon: <Mail size={16} />, iconBg: 'bg-indigo-50 text-indigo-700' }
                   ].map((c) => (
-                    <div key={c.label} className="bg-white border border-[#E3EBE5] p-5 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-300">
-                      <div className="flex justify-between items-center mb-4">
-                        <span className="text-[9px] uppercase font-bold text-gray-400 tracking-wider">{c.label}</span>
-                        <div className={`w-8 h-8 rounded-full flex items-center justify-center ${c.iconBg}`}>
+                    <div key={c.label} className="bg-white rounded-xl border border-[#E3EBE5] p-3.5 sm:p-4 shadow-xs hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 flex flex-col justify-between min-h-[92px]">
+                      <div className="flex justify-between items-center mb-2">
+                        <span className="text-[10px] uppercase font-bold text-gray-500 tracking-wider leading-tight pr-1 truncate">{c.label}</span>
+                        <div className={`w-7 h-7 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center shrink-0 ${c.iconBg}`}>
                           {c.icon}
                         </div>
                       </div>
-                      <p className="text-xl font-bold font-serif text-[#1D3B2E]">{c.value}</p>
+                      <p className="text-lg sm:text-xl font-bold font-serif text-[#1D3B2E] truncate">{c.value}</p>
                     </div>
                   ))}
                 </div>

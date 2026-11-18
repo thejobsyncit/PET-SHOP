@@ -1,0 +1,29 @@
+[
+  {
+    "id": "REF-501",
+    "orderId": "ORD-98212",
+    "customerName": "Amit Roy",
+    "customerEmail": "amit.roy@outlook.com",
+    "amount": 1250,
+    "reason": "Item arrived with broken packaging seal",
+    "paymentMethod": "Razorpay Credit Card",
+    "status": "Approved",
+    "requestedAt": "2026-11-17T06:15:00.000Z",
+    "reviewedBy": "Finance Manager",
+    "reviewRemarks": "",
+    "reviewedAt": "2026-11-18T02:45:30.110Z"
+  },
+  {
+    "id": "REF-502",
+    "orderId": "BOOK-401",
+    "customerName": "Bruno Owner (Priya)",
+    "customerEmail": "priya.sharma@gmail.com",
+    "amount": 600,
+    "reason": "Doctor rescheduled slot - patient couldn't make new time",
+    "paymentMethod": "UPI",
+    "status": "Approved",
+    "requestedAt": "2026-11-16T14:20:00.000Z",
+    "reviewedBy": "Meera Iyer (Finance Manager)",
+    "reviewRemarks": "Verified with veterinary clinic coordinator; refund issued to UPI VPA."
+  }
+]

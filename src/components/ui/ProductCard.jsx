@@ -84,6 +84,12 @@ const ProductCard = ({ product }) => {
       const itemId = typeof item?.product === 'object' ? (item.product?._id || item.product?.id) : item?.product;
       return String(itemId) === String(productId);
     });
+
+    if (existingInCart) {
+      toast.success(product.isPet ? 'Pet is already in your cart.' : 'Product is already in your cart.');
+      return;
+    }
+
     const currentInCartQty = existingInCart ? Number(existingInCart.quantity) || 0 : 0;
 
     if (currentInCartQty >= pStock) {
@@ -94,9 +100,7 @@ const ProductCard = ({ product }) => {
     setIsAdding(true);
     try {
       const result = await dispatch(addToCartAPI({ product, quantity: 1 }));
-      if (addToCartAPI.fulfilled.match(result)) {
-        toast.success('Added to cart!');
-      } else if (result.payload && !String(result.payload).includes('reached')) {
+      if (!addToCartAPI.fulfilled.match(result) && result.payload && !String(result.payload).includes('reached')) {
         toast.error(result.payload || 'Could not add to cart.');
       }
     } catch (_) {
@@ -131,6 +135,13 @@ const ProductCard = ({ product }) => {
       const itemId = typeof item?.product === 'object' ? (item.product?._id || item.product?.id) : item?.product;
       return String(itemId) === String(productId);
     });
+
+    if (existingInCart) {
+      toast.success(product.isPet ? 'Pet is already in your cart.' : 'Product is already in your cart.');
+      setQuickViewOpen(false);
+      return;
+    }
+
     const currentInCartQty = existingInCart ? Number(existingInCart.quantity) || 0 : 0;
 
     if (currentInCartQty >= pStock) {
@@ -155,9 +166,7 @@ const ProductCard = ({ product }) => {
     setIsAdding(true);
     try {
       const result = await dispatch(addToCartAPI({ product, quantity: safeQty }));
-      if (addToCartAPI.fulfilled.match(result)) {
-        toast.success('Added to cart!');
-      } else if (result.payload && !String(result.payload).includes('reached')) {
+      if (!addToCartAPI.fulfilled.match(result) && result.payload && !String(result.payload).includes('reached')) {
         toast.error(result.payload || 'Could not add to cart.');
       }
     } catch (_) {

@@ -46,10 +46,11 @@ export const generateBillHtml = ({
   logoUrl = '/logo.png',
 }) => {
   const baseSubtotal = totals.baseAmount ?? 0;
+  const discountAmount = totals.discount ?? 0;
   const cgstAmount = totals.cgst ?? (baseSubtotal * 0.09);
   const sgstAmount = totals.sgst ?? (baseSubtotal * 0.09);
   const shippingAmount = totals.shipping ?? 0;
-  const grandTotal = totals.total ?? (baseSubtotal + cgstAmount + sgstAmount + shippingAmount);
+  const grandTotal = totals.total ?? Math.max(0, baseSubtotal - discountAmount + cgstAmount + sgstAmount + shippingAmount);
 
   return `<!DOCTYPE html>
 <html lang="en">
@@ -313,6 +314,7 @@ export const generateBillHtml = ({
 
     <div class="totals">
       <div class="total-row"><span>Base Amount:</span><span>₹${Number(baseSubtotal).toFixed(2)}</span></div>
+      ${discountAmount > 0 ? `<div class="total-row" style="color: #059669; font-weight: 700;"><span>Promo Discount:</span><span>-₹${Number(discountAmount).toFixed(2)}</span></div>` : ''}
       ${cgstAmount > 0 ? `<div class="total-row"><span>CGST (9%):</span><span>₹${Number(cgstAmount).toFixed(2)}</span></div>` : ''}
       ${sgstAmount > 0 ? `<div class="total-row"><span>SGST (9%):</span><span>₹${Number(sgstAmount).toFixed(2)}</span></div>` : ''}
       ${shippingAmount > 0 ? `<div class="total-row"><span>Shipping / Handling:</span><span>₹${Number(shippingAmount).toFixed(2)}</span></div>` : ''}
@@ -527,9 +529,10 @@ export const downloadBill = async (billData) => {
     const totalsX = pageWidth - margin - 75;
     const totals = billData.totals || {};
     const baseSubtotal = totals.baseAmount ?? 0;
+    const discountAmount = totals.discount ?? 0;
     const cgstAmount = totals.cgst ?? (baseSubtotal * 0.09);
     const sgstAmount = totals.sgst ?? (baseSubtotal * 0.09);
-    const grandTotal = totals.total ?? (baseSubtotal + cgstAmount + sgstAmount);
+    const grandTotal = totals.total ?? Math.max(0, baseSubtotal - discountAmount + cgstAmount + sgstAmount);
 
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(8);
@@ -537,6 +540,15 @@ export const downloadBill = async (billData) => {
     doc.text('Base Subtotal:', totalsX, y);
     doc.text('Rs. ' + Number(baseSubtotal).toFixed(2), pageWidth - margin - 4, y, { align: 'right' });
     y += 5;
+    if (discountAmount > 0) {
+      doc.setTextColor(5, 150, 105);
+      doc.setFont('helvetica', 'bold');
+      doc.text('Promo Discount:', totalsX, y);
+      doc.text('-Rs. ' + Number(discountAmount).toFixed(2), pageWidth - margin - 4, y, { align: 'right' });
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(71, 85, 105);
+      y += 5;
+    }
     doc.text('CGST (9%):', totalsX, y);
     doc.text('Rs. ' + Number(cgstAmount).toFixed(2), pageWidth - margin - 4, y, { align: 'right' });
     y += 5;

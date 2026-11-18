@@ -47,10 +47,16 @@ export const normalizeCartProduct = (p) => {
     ? p.images 
     : (p.image ? [p.image] : []);
 
+  const isProduct = Boolean(p.sku || p.category || (p.brand && p.brand !== 'Verified Pet Seller') || p.itemType === 'product');
   const isPet = Boolean(
-    p.isPet || p.petType || p.breed || 
-    p.itemType === 'pet' || p.itemType === 'adoption' ||
-    p.quality || p.sellerName || p.parentContact
+    !isProduct && (
+      p.isPet === true || 
+      p.itemType === 'pet' || 
+      p.itemType === 'adoption' ||
+      p.quality || 
+      p.sellerName || 
+      p.parentContact
+    )
   );
 
   return {
@@ -320,30 +326,12 @@ export const addToCartAPI = createAsyncThunk('cart/addToCart', async ({ product,
   const existIdx = localCart.findIndex(item => getCartItemIdStr(item) === productId);
 
   if (existIdx > -1) {
-    const existing = localCart[existIdx];
     if (isPet) {
       toast.success('Pet is already in your cart.');
     } else {
-      const currentQty = Number(existing.quantity) || 0;
-      if (currentQty >= maxStock) {
-        toast.error(`Cannot add more. You already have the maximum available stock (${maxStock} unit${maxStock === 1 ? '' : 's'}) in your cart.`);
-        return thunkAPI.rejectWithValue(`Maximum available stock (${maxStock}) reached in cart`);
-      }
-
-      if (currentQty + safeQuantity > maxStock) {
-        const remaining = maxStock - currentQty;
-        toast.error(`Cannot add ${safeQuantity} units. Only ${remaining} more unit${remaining === 1 ? '' : 's'} available in stock (total stock: ${maxStock}).`);
-        return thunkAPI.rejectWithValue(`Only ${remaining} more unit(s) available in stock`);
-      }
-
-      const nextQty = currentQty + safeQuantity;
-      localCart[existIdx] = {
-        ...existing,
-        product: { ...(typeof existing.product === 'object' ? existing.product : {}), ...normProduct },
-        quantity: nextQty,
-      };
-      toast.success(`Updated cart quantity (${nextQty}).`);
+      toast.success('Product is already in your cart.');
     }
+    return { cart: localCart, alreadyInCart: true, isPet };
   } else {
     if (safeQuantity > maxStock) {
       toast.error(`Cannot add ${safeQuantity} units. Only ${maxStock} unit${maxStock === 1 ? '' : 's'} available in stock.`);
@@ -385,7 +373,8 @@ export const updateCartQuantityAPI = createAsyncThunk('cart/updateQuantity', asy
 
   if (existIdx > -1) {
     const item = localCart[existIdx];
-    const isPet = Boolean(item.product?.isPet || item.product?.breed || item.product?.petType);
+    const isProduct = Boolean(item.product?.sku || item.product?.category || item.product?.itemType === 'product');
+    const isPet = Boolean(!isProduct && (item.product?.isPet === true || item.product?.itemType === 'pet' || item.product?.itemType === 'adoption'));
     const maxStock = isPet 
       ? 1 
       : (typeof item?.product?.stock === 'number'
@@ -466,17 +455,36 @@ export const clearCartAPI = createAsyncThunk('cart/clearCart', async (_, thunkAP
   return { cart: [] };
 });
 
-export const applyCouponCode = createAsyncThunk('cart/applyCoupon', async (couponCode, thunkAPI) => {
+export const applyCouponCode = createAsyncThunk('cart/applyCoupon', async (couponCodeOrPayload, thunkAPI) => {
   try {
     const state = thunkAPI.getState();
-    const cartTotal = state.cart.pricing.subtotal;
+    let couponCode = '';
+    let cartTotal = 0;
+
+    if (typeof couponCodeOrPayload === 'string') {
+      couponCode = couponCodeOrPayload.trim();
+      cartTotal = state.cart.pricing.subtotal;
+    } else if (couponCodeOrPayload && typeof couponCodeOrPayload === 'object') {
+      couponCode = (couponCodeOrPayload.code || couponCodeOrPayload.couponCode || '').trim();
+      cartTotal = typeof couponCodeOrPayload.cartTotal === 'number'
+        ? couponCodeOrPayload.cartTotal
+        : state.cart.pricing.subtotal;
+    }
+
     const data = await apiRequest('/coupons/validate', {
       method: 'POST',
       body: JSON.stringify({ code: couponCode, cartTotal }),
     });
-    return data.coupon;
+
+    if (data && data.success && data.coupon) {
+      try {
+        sessionStorage.setItem('joshpetshub_applied_coupon', JSON.stringify(data.coupon));
+      } catch (_) {}
+      return data.coupon;
+    }
+    throw new Error(data?.message || 'Failed to apply offer code.');
   } catch (error) {
-    return thunkAPI.rejectWithValue(error.message);
+    return thunkAPI.rejectWithValue(error.message || 'Invalid offer code.');
   }
 });
 
@@ -486,7 +494,17 @@ const getInitialStateCart = () => {
   return getLocalCart(userKey);
 };
 
+const getInitialAppliedCoupon = () => {
+  if (typeof window === 'undefined') return null;
+  try {
+    const saved = sessionStorage.getItem('joshpetshub_applied_coupon');
+    if (saved) return JSON.parse(saved);
+  } catch (_) {}
+  return null;
+};
+
 const initialCart = getInitialStateCart();
+const initialAppliedCoupon = getInitialAppliedCoupon();
 
 const initialState = {
   items: initialCart.map(item => ({
@@ -494,8 +512,8 @@ const initialState = {
     quantity: Math.max(1, parseInt(item?.quantity, 10) || 1),
     product: normalizeCartProduct(item?.product)
   })).filter(item => item.product && (item.product._id || item.product.id)),
-  pricing: calculateTotals(initialCart, null),
-  appliedCoupon: null,
+  pricing: calculateTotals(initialCart, initialAppliedCoupon),
+  appliedCoupon: initialAppliedCoupon,
   loading: false,
   error: null,
   isCartOpen: false,
@@ -508,12 +526,29 @@ const cartSlice = createSlice({
     removeCoupon(state) {
       state.appliedCoupon = null;
       state.pricing = calculateTotals(state.items, null);
+      try {
+        sessionStorage.removeItem('joshpetshub_applied_coupon');
+      } catch (_) {}
+    },
+    setAppliedCoupon(state, action) {
+      state.appliedCoupon = action.payload;
+      state.pricing = calculateTotals(state.items, action.payload);
+      try {
+        if (action.payload) {
+          sessionStorage.setItem('joshpetshub_applied_coupon', JSON.stringify(action.payload));
+        } else {
+          sessionStorage.removeItem('joshpetshub_applied_coupon');
+        }
+      } catch (_) {}
     },
     clearCartLocal(state) {
       state.items = [];
       state.appliedCoupon = null;
       state.pricing = calculateTotals([], null);
       clearLocalCart();
+      try {
+        sessionStorage.removeItem('joshpetshub_applied_coupon');
+      } catch (_) {}
     },
     openCart(state) {
       state.isCartOpen = true;
@@ -652,5 +687,5 @@ const cartSlice = createSlice({
   },
 });
 
-export const { removeCoupon, clearCartLocal, openCart, closeCart, toggleCart, setCartOpen } = cartSlice.actions;
+export const { removeCoupon, setAppliedCoupon, clearCartLocal, openCart, closeCart, toggleCart, setCartOpen } = cartSlice.actions;
 export default cartSlice.reducer;

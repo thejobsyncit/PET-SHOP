@@ -1,5 +1,5 @@
 import React, { Suspense, lazy } from 'react';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Provider } from 'react-redux';
 import { Toaster } from 'react-hot-toast';
 import { store } from './store/index.js';
@@ -9,25 +9,52 @@ import ScrollToTop from './components/layout/ScrollToTop.jsx';
 import ErrorBoundary from './components/ui/ErrorBoundary.jsx';
 import AuthModal from './components/widgets/AuthModal.jsx';
 
+// Resilient dynamic chunk loader with auto-retry and cache-bust recovery
+const lazyWithRetry = (componentImport, moduleName = 'component') =>
+  lazy(async () => {
+    try {
+      return await componentImport();
+    } catch (error) {
+      console.warn(`[Dynamic Import Recovery] Failed to fetch ${moduleName}, retrying...`, error);
+      try {
+        // Immediate second attempt in case of momentary HMR recompilation lock
+        return await componentImport();
+      } catch (retryError) {
+        // If second attempt fails, perform a clean single page reload to synchronize client chunks
+        try {
+          const lastRetry = parseInt(sessionStorage.getItem(`retry_lazy_${moduleName}`) || '0', 10);
+          const now = Date.now();
+          if (now - lastRetry > 15000) {
+            sessionStorage.setItem(`retry_lazy_${moduleName}`, String(now));
+            window.location.reload();
+            return new Promise(() => {});
+          }
+        } catch (_) {}
+        throw retryError;
+      }
+    }
+  });
+
 // Lazy Loaded Route Chunks for Blazing-Fast Page Transitions & Micro Bundle Sizes
-const Home = lazy(() => import('./pages/Home.jsx'));
-const Shop = lazy(() => import('./pages/shop/Shop.jsx'));
-const ProductDetails = lazy(() => import('./pages/shop/ProductDetails.jsx'));
-const PharmacyLanding = lazy(() => import('./pages/shop/PharmacyLanding.jsx'));
-const Cart = lazy(() => import('./pages/shop/Cart.jsx'));
-const Checkout = lazy(() => import('./pages/shop/Checkout.jsx'));
-const AccountDashboard = lazy(() => import('./pages/dashboards/AccountDashboard.jsx'));
-const Wishlist = lazy(() => import('./pages/shop/Wishlist.jsx'));
-const BlogHub = lazy(() => import('./pages/blog/BlogHub.jsx'));
-const BlogDetail = lazy(() => import('./pages/blog/BlogDetail.jsx'));
-const About = lazy(() => import('./pages/About.jsx'));
-const Contact = lazy(() => import('./pages/Contact.jsx'));
-const Login = lazy(() => import('./pages/Login.jsx'));
-const ForgotPassword = lazy(() => import('./pages/ForgotPassword.jsx'));
-const AdminDashboard = lazy(() => import('./pages/dashboards/AdminDashboard.jsx'));
-const SuperAdminDashboard = lazy(() => import('./pages/dashboards/SuperAdminDashboard.jsx'));
-const ServiceProviderDashboard = lazy(() => import('./pages/dashboards/ServiceProviderDashboard.jsx'));
-const NotFound = lazy(() => import('./pages/NotFound.jsx'));
+const Home = lazyWithRetry(() => import('./pages/Home.jsx'), 'Home');
+const Shop = lazyWithRetry(() => import('./pages/shop/Shop.jsx'), 'Shop');
+const ProductDetails = lazyWithRetry(() => import('./pages/shop/ProductDetails.jsx'), 'ProductDetails');
+const PharmacyLanding = lazyWithRetry(() => import('./pages/shop/PharmacyLanding.jsx'), 'PharmacyLanding');
+const Cart = lazyWithRetry(() => import('./pages/shop/Cart.jsx'), 'Cart');
+const Checkout = lazyWithRetry(() => import('./pages/shop/Checkout.jsx'), 'Checkout');
+const AccountDashboard = lazyWithRetry(() => import('./pages/dashboards/AccountDashboard.jsx'), 'AccountDashboard');
+const Wishlist = lazyWithRetry(() => import('./pages/shop/Wishlist.jsx'), 'Wishlist');
+const BlogHub = lazyWithRetry(() => import('./pages/blog/BlogHub.jsx'), 'BlogHub');
+const BlogDetail = lazyWithRetry(() => import('./pages/blog/BlogDetail.jsx'), 'BlogDetail');
+const About = lazyWithRetry(() => import('./pages/About.jsx'), 'About');
+const Contact = lazyWithRetry(() => import('./pages/Contact.jsx'), 'Contact');
+const Login = lazyWithRetry(() => import('./pages/Login.jsx'), 'Login');
+const ForgotPassword = lazyWithRetry(() => import('./pages/ForgotPassword.jsx'), 'ForgotPassword');
+const AdminDashboard = lazyWithRetry(() => import('./pages/dashboards/AdminDashboard.jsx'), 'AdminDashboard');
+const SuperAdminDashboard = lazyWithRetry(() => import('./pages/dashboards/SuperAdminDashboard.jsx'), 'SuperAdminDashboard');
+const ServiceProviderDashboard = lazyWithRetry(() => import('./pages/dashboards/ServiceProviderDashboard.jsx'), 'ServiceProviderDashboard');
+const CrmPortal = lazyWithRetry(() => import('./pages/crm/CrmPortal.jsx'), 'CrmPortal');
+const NotFound = lazyWithRetry(() => import('./pages/NotFound.jsx'), 'NotFound');
 
 // India Pet Hub Pillars
 const PetClassifieds = lazy(() => import('./pages/pets/PetClassifieds.jsx'));
@@ -38,6 +65,7 @@ const BreedingDirectory = lazy(() => import('./pages/pets/BreedingDirectory.jsx'
 const ServiceBooking = lazy(() => import('./pages/services/ServiceBooking.jsx'));
 const GroomingServices = lazy(() => import('./pages/services/GroomingServices.jsx'));
 const HostelServices = lazy(() => import('./pages/services/HostelServices.jsx'));
+const HostelDetail = lazy(() => import('./pages/services/HostelDetail.jsx'));
 const WalkingServices = lazy(() => import('./pages/services/WalkingServices.jsx'));
 const PetTransport = lazy(() => import('./pages/services/PetTransport.jsx'));
 const PetTraining = lazy(() => import('./pages/services/PetTraining.jsx'));
@@ -125,7 +153,9 @@ function App() {
               <Route path="grooming" element={<GroomingServices />} />
               <Route path="services/grooming" element={<GroomingServices />} />
               <Route path="hostel" element={<HostelServices />} />
+              <Route path="hostel/:id" element={<HostelDetail />} />
               <Route path="services/hostel" element={<HostelServices />} />
+              <Route path="services/hostel/:id" element={<HostelDetail />} />
               <Route path="walking" element={<WalkingServices />} />
               <Route path="services/walking" element={<WalkingServices />} />
               <Route path="dog-walking" element={<WalkingServices />} />
@@ -152,12 +182,18 @@ function App() {
             </Route>
 
             {/* Admin Panels */}
-            <Route path="Admin.com" element={<AdminDashboard />} />
+            <Route path="Admin.com" element={<Navigate to="/admin" replace />} />
             <Route path="admin" element={<AdminDashboard />} />
-            <Route path="admin/dashboard" element={<AdminDashboard />} />
-            <Route path="superadmin.com" element={<SuperAdminDashboard />} />
+            <Route path="admin/dashboard" element={<Navigate to="/admin" replace />} />
+
+            {/* Super Admin Panel - Single unified access route: /superadmin */}
             <Route path="superadmin" element={<SuperAdminDashboard />} />
-            <Route path="superadmin/dashboard" element={<SuperAdminDashboard />} />
+            <Route path="superadmin.com" element={<Navigate to="/superadmin" replace />} />
+            <Route path="superadmin/dashboard" element={<Navigate to="/superadmin" replace />} />
+
+            {/* Standalone Enterprise CRM Operations Portal */}
+            <Route path="crm" element={<CrmPortal />} />
+            <Route path="crm/*" element={<CrmPortal />} />
             
             {/* Fallback 404 */}
             <Route path="*" element={<NotFound />} />

@@ -1,1 +1,102 @@
-[]
+[
+  {
+    "id": "ORD-98211",
+    "_id": "ORD-98211",
+    "orderNumber": "JPH-ORD-98211",
+    "customer": {
+      "name": "Priya Sharma",
+      "email": "priya.sharma@gmail.com",
+      "phone": "+91 98450 99881",
+      "city": "Bengaluru",
+      "state": "Karnataka"
+    },
+    "items": [
+      {
+        "productId": "prod_rc_maxi_adult",
+        "name": "Royal Canin Maxi Adult Dog Food (15kg)",
+        "quantity": 1,
+        "price": 8450
+      },
+      {
+        "productId": "prod_chew_toys",
+        "name": "Kong Classic Durable Dental Chew Toy",
+        "quantity": 2,
+        "price": 850
+      }
+    ],
+    "subtotal": 10150,
+    "discount": 1500,
+    "couponCode": "PAWFIRST",
+    "tax": 1557,
+    "shipping": 0,
+    "grandTotal": 10207,
+    "paymentMethod": "UPI",
+    "paymentStatus": "Paid",
+    "shippingStatus": "Processing",
+    "trackingId": "DELHIVERY-98112345",
+    "createdAt": "2026-11-17T05:30:00.000Z",
+    "updatedAt": "2026-11-18T02:45:19.759Z"
+  },
+  {
+    "id": "ORD-98212",
+    "_id": "ORD-98212",
+    "orderNumber": "JPH-ORD-98212",
+    "customer": {
+      "name": "Amit Roy",
+      "email": "amit.roy@outlook.com",
+      "phone": "+91 98201 33445",
+      "city": "Mumbai",
+      "state": "Maharashtra"
+    },
+    "items": [
+      {
+        "productId": "prod_drools_focus",
+        "name": "Drools Focus Super Premium Puppy Formula (12kg)",
+        "quantity": 1,
+        "price": 4200
+      }
+    ],
+    "subtotal": 4200,
+    "discount": 0,
+    "couponCode": null,
+    "tax": 756,
+    "shipping": 0,
+    "grandTotal": 4956,
+    "paymentMethod": "Razorpay Credit Card",
+    "paymentStatus": "Paid",
+    "shippingStatus": "Shipped",
+    "trackingId": "BLUEDART-44556677",
+    "createdAt": "2026-11-16T11:15:00.000Z"
+  },
+  {
+    "id": "ORD-98213",
+    "_id": "ORD-98213",
+    "orderNumber": "JPH-ORD-98213",
+    "customer": {
+      "name": "Sneha Nair",
+      "email": "sneha.nair@yahoo.com",
+      "phone": "+91 98840 77112",
+      "city": "Chennai",
+      "state": "Tamil Nadu"
+    },
+    "items": [
+      {
+        "productId": "prod_cat_scratch_tree",
+        "name": "Luxury Multi-tier Wooden Cat Scratching Tree",
+        "quantity": 1,
+        "price": 3499
+      }
+    ],
+    "subtotal": 3499,
+    "discount": 350,
+    "couponCode": "WELCOME10",
+    "tax": 566,
+    "shipping": 0,
+    "grandTotal": 3715,
+    "paymentMethod": "Cash on Delivery",
+    "paymentStatus": "Pending",
+    "shippingStatus": "Pending",
+    "trackingId": null,
+    "createdAt": "2026-11-17T08:00:00.000Z"
+  }
+]
