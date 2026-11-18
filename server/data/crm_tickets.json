@@ -1,0 +1,78 @@
+[
+  {
+    "id": "TICK-7001",
+    "ticketNumber": "TCK-7001",
+    "customerName": "Priya Sharma",
+    "customerEmail": "priya@joshpetshub.com",
+    "customerPhone": "+91 98450 99881",
+    "subject": "Inquiry about Royal Canin Maxi Adult Delivery Schedule",
+    "category": "Order & Shipping",
+    "priority": "Medium",
+    "status": "In Progress",
+    "assignedTo": "Kavya Menon",
+    "assignedToId": "crm_usr_102",
+    "messages": [
+      {
+        "sender": "customer",
+        "senderName": "Priya Sharma",
+        "text": "Hi, I placed an order yesterday for 2 bags of Royal Canin dog food. Could you let me know if it has been dispatched with express shipping?",
+        "timestamp": "2026-11-16T14:30:00.000Z"
+      },
+      {
+        "sender": "staff",
+        "senderName": "Kavya Menon",
+        "text": "Hello Priya, verified with our central warehouse! Your order has been packed and scheduled for courier pickup today at 4:30 PM. Tracking link sent via SMS.",
+        "timestamp": "2026-11-16T15:10:00.000Z"
+      }
+    ],
+    "createdAt": "2026-11-16T14:30:00.000Z",
+    "updatedAt": "2026-11-16T15:10:00.000Z"
+  },
+  {
+    "id": "TICK-7002",
+    "ticketNumber": "TCK-7002",
+    "customerName": "Amit Roy",
+    "customerEmail": "amit.roy@gmail.com",
+    "customerPhone": "+91 98234 11223",
+    "subject": "Hostel Booking: Special Diet Instructions for Golden Retriever",
+    "category": "Pet Services",
+    "priority": "High",
+    "status": "Open",
+    "assignedTo": "Pooja Sharma",
+    "assignedToId": "crm_usr_101",
+    "messages": [
+      {
+        "sender": "customer",
+        "senderName": "Amit Roy",
+        "text": "My dog Bruno is staying at Paw Heaven Luxury Hostel next weekend. He needs boiled chicken and rice twice a day without any salt. Can you confirm with the hostel staff?",
+        "timestamp": "2026-11-17T08:15:00.000Z"
+      }
+    ],
+    "createdAt": "2026-11-17T08:15:00.000Z",
+    "updatedAt": "2026-11-17T08:15:00.000Z"
+  },
+  {
+    "id": "TICK-7003",
+    "ticketNumber": "TCK-7003",
+    "customerName": "Sneha Nair",
+    "customerEmail": "sneha.nair@outlook.com",
+    "customerPhone": "+91 97455 66778",
+    "subject": "Prescription verification delay for vet medication",
+    "category": "Veterinary & Rx",
+    "priority": "Urgent",
+    "status": "Open",
+    "assignedTo": "Pooja Sharma",
+    "assignedToId": "crm_usr_101",
+    "messages": [
+      {
+        "sender": "customer",
+        "senderName": "Sneha Nair",
+        "text": "Uploaded Dr. Mehta's prescription 3 hours ago for kidney care supplements. Looking for approval so the pharmacy can dispatch today.",
+        "timestamp": "2026-11-17T09:40:00.000Z"
+      }
+    ],
+    "createdAt": "2026-11-17T09:40:00.000Z",
+    "updatedAt": "2026-11-17T09:40:00.000Z"
+  }
+]
+

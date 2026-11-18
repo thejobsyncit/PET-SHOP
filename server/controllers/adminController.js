@@ -103,32 +103,58 @@ export const getDashboardStats = async (req, res) => {
     let recentOrders = [];
 
     try {
-      const { data: allOrders } = await supabase.from('orders').select('pricing, order_items, shipping_status, created_at, users(name, email)').neq('shipping_status', 'Cancelled');
+      const { data: allOrders } = await supabase.from('orders').select('*').neq('shipping_status', 'Cancelled');
       if (allOrders && Array.isArray(allOrders)) {
         allOrders.forEach(o => {
-          totalRevenue += (o.pricing?.total || 0);
-          if (o.order_items && Array.isArray(o.order_items)) {
-            o.order_items.forEach(item => {
-              if (item.product) soldProductIds.add(item.product);
+          totalRevenue += Number(o.pricing?.total || o.grand_total || o.grandTotal || 0);
+          const items = o.order_items || o.items;
+          if (items && Array.isArray(items)) {
+            items.forEach(item => {
+              if (item.product || item.productId) soldProductIds.add(item.product || item.productId);
             });
           }
         });
       }
 
       const { data: recOrders } = await supabase.from('orders')
-        .select('*, user:users(name, email)')
+        .select('*')
         .order('created_at', { ascending: false })
         .limit(5);
-      if (recOrders && Array.isArray(recOrders)) recentOrders = recOrders;
+
+      if (recOrders && Array.isArray(recOrders) && recOrders.length > 0) {
+        recentOrders = recOrders.map(o => {
+          const tot = Number(o.pricing?.total ?? o.grand_total ?? o.grandTotal ?? 0);
+          return {
+            ...o,
+            _id: o.id || o._id,
+            user: o.user || o.customer || (o.shipping_address ? { name: o.shipping_address.name || o.shipping_address.fullName, email: o.shipping_address.email } : { name: 'Customer', email: 'N/A' }),
+            pricing: { total: tot, ...(o.pricing || {}) },
+            paymentMethod: o.payment_method || o.paymentMethod || 'COD',
+            shippingStatus: o.shipping_status || o.shippingStatus || 'Pending'
+          };
+        });
+      }
     } catch (_) {}
 
-    if (totalRevenue === 0) {
+    if (totalRevenue === 0 || recentOrders.length === 0) {
       const diskOrders = loadDiskOrders();
-      diskOrders.forEach(o => {
-        totalRevenue += Number(o.totalPrice || o.pricing?.total || o.totalAmount || 0);
-      });
+      if (totalRevenue === 0) {
+        diskOrders.forEach(o => {
+          totalRevenue += Number(o.totalPrice || o.pricing?.total || o.grandTotal || o.totalAmount || 0);
+        });
+      }
       if (recentOrders.length === 0) {
-        recentOrders = diskOrders.slice(0, 5);
+        recentOrders = diskOrders.slice(0, 5).map(o => {
+          const tot = Number(o.pricing?.total ?? o.grandTotal ?? o.totalPrice ?? 0);
+          return {
+            ...o,
+            _id: o.id || o._id,
+            user: o.user || o.customer || { name: 'Customer', email: 'N/A' },
+            pricing: { total: tot, ...(o.pricing || {}) },
+            paymentMethod: o.paymentMethod || o.payment_method || 'COD',
+            shippingStatus: o.shippingStatus || o.shipping_status || 'Pending'
+          };
+        });
       }
     }
 

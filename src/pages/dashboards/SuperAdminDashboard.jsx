@@ -7,14 +7,18 @@ import {
 } from 'recharts';
 import {
   TrendingUp, ShoppingBag, Users, Layers, AlertTriangle, Clock,
-  Plus, Edit, Trash, Check, X, FileText, CheckCircle, RefreshCw, ChevronRight, MessageSquare, Heart, Lock, Mail, ShieldAlert, Award, ShieldCheck, Menu, Cookie, BookOpen, ExternalLink
+  Plus, Edit, Trash, Check, X, FileText, CheckCircle, RefreshCw, ChevronRight, MessageSquare, Heart, Lock, Mail, ShieldAlert, Award, ShieldCheck, Menu, Cookie, BookOpen, ExternalLink,
+  Landmark, Megaphone, Tag, Briefcase
 } from 'lucide-react';
 import { apiRequest } from '../../services/api.js';
 import { login, logout } from '../../store/slices/authSlice.js';
 import { getStoredMatingPets } from '../../data/breedingData.js';
 import toast from 'react-hot-toast';
 import SuperAdminPlatformWalletView from '../../components/dashboards/SuperAdminPlatformWalletView.jsx';
-import { Landmark } from 'lucide-react';
+import AnnouncementsManagerView from '../../components/dashboards/AnnouncementsManagerView.jsx';
+import CouponsManagerView from '../../components/dashboards/CouponsManagerView.jsx';
+import BlogsManagerView from '../../components/dashboards/BlogsManagerView.jsx';
+import CrmAccessManagerView from '../../components/dashboards/CrmAccessManagerView.jsx';
 
 const SuperAdminDashboard = () => {
   const navigate = useNavigate();
@@ -35,7 +39,6 @@ const SuperAdminDashboard = () => {
   const [stats, setStats] = useState(null);
   const [recentOrders, setRecentOrders] = useState([]);
   const [charts, setCharts] = useState(null);
-  const [productsList, setProductsList] = useState([]);
   const [ordersList, setOrdersList] = useState([]);
   const [prescriptionsList, setPrescriptionsList] = useState([]);
   const [listingsList, setListingsList] = useState([]);
@@ -44,45 +47,7 @@ const SuperAdminDashboard = () => {
   const [usersList, setUsersList] = useState([]);
   const [enquiriesList, setEnquiriesList] = useState([]);
   const [consentsList, setConsentsList] = useState([]);
-  const [blogsList, setBlogsList] = useState([]);
-  const [blogsLoading, setBlogsLoading] = useState(false);
-  const [blogCategoryFilter, setBlogCategoryFilter] = useState('all');
-  const [blogSearchQuery, setBlogSearchQuery] = useState('');
-  const [showBlogModal, setShowBlogModal] = useState(false);
-  const [editingBlogId, setEditingBlogId] = useState(null);
-  const [savingBlog, setSavingBlog] = useState(false);
-
-  // Blog Form states
-  const [blogTitle, setBlogTitle] = useState('');
-  const [blogSlug, setBlogSlug] = useState('');
-  const [blogPetType, setBlogPetType] = useState('dogs');
-  const [blogAuthor, setBlogAuthor] = useState('JOSH PETS HUB Editorial Team');
-  const [blogReadTime, setBlogReadTime] = useState('5 min read');
-  const [blogFeaturedImage, setBlogFeaturedImage] = useState('');
-  const [blogSummary, setBlogSummary] = useState('');
-  const [blogContent, setBlogContent] = useState('');
-  const [blogTags, setBlogTags] = useState('');
-  const [blogFaqs, setBlogFaqs] = useState([{ question: '', answer: '' }]);
   const [loading, setLoading] = useState(true);
-
-  // Add/Edit Product form states
-  const [showProductModal, setShowProductModal] = useState(false);
-  const [editingProductId, setEditingProductId] = useState(null);
-  const [prodName, setProdName] = useState('');
-  const [prodBrand, setProdBrand] = useState('');
-  const [prodSku, setProdSku] = useState('');
-  const [prodPrice, setProdPrice] = useState('');
-  const [prodDiscountPrice, setProdDiscountPrice] = useState('');
-  const [prodStock, setProdStock] = useState('');
-  const [prodDescription, setProdDescription] = useState('');
-  const [prodLongDescription, setProdLongDescription] = useState('');
-  const [prodCategory, setProdCategory] = useState('');
-  const [prodSubcategory, setProdSubcategory] = useState('');
-  const [prodPetType, setProdPetType] = useState('dogs');
-  const [prodRequiresPrescription, setProdRequiresPrescription] = useState(false);
-  const [prodIsFeatured, setProdIsFeatured] = useState(false);
-  const [prodIsBestSeller, setProdIsBestSeller] = useState(false);
-  const [prodImage, setProdImage] = useState('');
 
   // Prescription verification modal state
   const [showPrescModal, setShowPrescModal] = useState(false);
@@ -92,14 +57,12 @@ const SuperAdminDashboard = () => {
   useEffect(() => {
     if (isAuthenticated && user && user.role === 'SUPERADMIN') {
       loadStats();
-      loadProducts();
       loadOrders();
       loadPrescriptions();
       loadAdminMarketplaceData();
       loadUsers();
       loadEnquiries();
       loadConsents();
-      loadBlogs();
     }
   }, [isAuthenticated, user]);
 
@@ -109,9 +72,6 @@ const SuperAdminDashboard = () => {
     }
     if (activeSection === 'consents') {
       loadConsents();
-    }
-    if (activeSection === 'blogs') {
-      loadBlogs();
     }
   }, [activeSection]);
 
@@ -130,17 +90,6 @@ const SuperAdminDashboard = () => {
       console.error('Failed to load dashboard stats:', err);
     } finally {
       setLoading(false);
-    }
-  };
-
-  const loadProducts = async () => {
-    try {
-      const data = await apiRequest('/products?limit=100');
-      if (data && data.success) {
-        setProductsList(Array.isArray(data.products) ? data.products : []);
-      }
-    } catch (err) {
-      console.error(err);
     }
   };
 
@@ -347,116 +296,6 @@ const SuperAdminDashboard = () => {
   };
 
   // ==========================================
-  // PRODUCT CRUD HANDLERS
-  // ==========================================
-
-  const handleOpenAddProduct = () => {
-    setEditingProductId(null);
-    setProdName('');
-    setProdBrand('');
-    setProdSku('');
-    setProdPrice('');
-    setProdDiscountPrice('');
-    setProdStock('');
-    setProdDescription('');
-    setProdLongDescription('');
-    setProdCategory('');
-    setProdSubcategory('');
-    setProdPetType('dogs');
-    setProdRequiresPrescription(false);
-    setProdIsFeatured(false);
-    setProdIsBestSeller(false);
-    setProdImage('');
-    setShowProductModal(true);
-  };
-
-  const handleOpenEditProduct = (p) => {
-    setEditingProductId(p._id);
-    setProdName(p.name);
-    setProdBrand(p.brand);
-    setProdSku(p.sku);
-    setProdPrice(p.price);
-    setProdDiscountPrice(p.discountPrice || '');
-    setProdStock(p.stock);
-    setProdDescription(p.description);
-    setProdLongDescription(p.longDescription);
-    setProdCategory(p.category);
-    setProdSubcategory(p.subcategory);
-    setProdPetType(p.petType);
-    setProdRequiresPrescription(p.requiresPrescription);
-    setProdIsFeatured(p.isFeatured);
-    setProdIsBestSeller(p.isBestSeller);
-    setProdImage(p.images[0]);
-    setShowProductModal(true);
-  };
-
-  const handleSaveProduct = async (e) => {
-    e.preventDefault();
-    if (!prodName || !prodBrand || !prodPrice || !prodStock || !prodCategory || !prodSubcategory) {
-      toast.error('Please enter all required fields.');
-      return;
-    }
-
-    const payload = {
-      name: prodName,
-      brand: prodBrand,
-      sku: prodSku,
-      price: parseFloat(prodPrice),
-      discountPrice: prodDiscountPrice ? parseFloat(prodDiscountPrice) : undefined,
-      stock: parseInt(prodStock),
-      description: prodDescription,
-      longDescription: prodLongDescription,
-      category: prodCategory,
-      subcategory: prodSubcategory,
-      petType: prodPetType,
-      requiresPrescription: prodRequiresPrescription,
-      isFeatured: prodIsFeatured,
-      isBestSeller: prodIsBestSeller,
-      images: [prodImage]
-    };
-
-    try {
-      let data;
-      if (editingProductId) {
-        data = await apiRequest(`/products/${editingProductId}`, {
-          method: 'PUT',
-          body: JSON.stringify(payload)
-        });
-      } else {
-        data = await apiRequest('/products', {
-          method: 'POST',
-          body: JSON.stringify(payload)
-        });
-      }
-
-      if (data.success) {
-        toast.success(editingProductId ? 'Product details updated!' : 'Product added successfully!');
-        setShowProductModal(false);
-        loadProducts();
-        loadStats();
-      }
-    } catch (err) {
-      toast.error(err.message || 'Saving product failed.');
-    }
-  };
-
-  const handleDeleteProduct = async (productId) => {
-    if (!window.confirm('Are you sure you want to delete this product?')) return;
-    try {
-      const data = await apiRequest(`/products/${productId}`, {
-        method: 'DELETE'
-      });
-      if (data.success) {
-        toast.success('Product deleted.');
-        loadProducts();
-        loadStats();
-      }
-    } catch (err) {
-      toast.error(err.message || 'Deletion failed.');
-    }
-  };
-
-  // ==========================================
   // ORDER ACTIONS HANDLERS
   // ==========================================
 
@@ -586,140 +425,6 @@ const SuperAdminDashboard = () => {
     }
   };
 
-  // ==========================================
-  // PET CARE BLOGS & ARTICLES HANDLERS
-  // ==========================================
-  const loadBlogs = async () => {
-    setBlogsLoading(true);
-    try {
-      const data = await apiRequest('/blogs');
-      if (data && data.success) {
-        setBlogsList(Array.isArray(data.blogs) ? data.blogs : []);
-      }
-    } catch (err) {
-      console.error('Error loading blogs:', err);
-    } finally {
-      setBlogsLoading(false);
-    }
-  };
-
-  const handleOpenBlogModal = (b = null) => {
-    if (b) {
-      setEditingBlogId(b._id || b.id || b.slug);
-      setBlogTitle(b.title || '');
-      setBlogSlug(b.slug || '');
-      setBlogPetType(b.petType || b.pet_type || 'dogs');
-      setBlogAuthor(b.author || 'JOSH PETS HUB Editorial Team');
-      setBlogReadTime(b.readTime || b.read_time || '5 min read');
-      setBlogFeaturedImage(b.featuredImage || b.featured_image || '');
-      setBlogSummary(b.summary || '');
-      setBlogContent(b.content || '');
-      setBlogTags(Array.isArray(b.tags) ? b.tags.join(', ') : (b.tags || ''));
-      setBlogFaqs(Array.isArray(b.faqs) && b.faqs.length > 0 ? b.faqs : [{ question: '', answer: '' }]);
-    } else {
-      setEditingBlogId(null);
-      setBlogTitle('');
-      setBlogSlug('');
-      setBlogPetType('dogs');
-      setBlogAuthor('JOSH PETS HUB Editorial Team');
-      setBlogReadTime('5 min read');
-      setBlogFeaturedImage('https://images.unsplash.com/photo-1548199973-03cce0bbc87b?auto=format&fit=crop&q=80&w=1200');
-      setBlogSummary('');
-      setBlogContent('');
-      setBlogTags('Dogs, Nutrition, Wellness');
-      setBlogFaqs([{ question: '', answer: '' }]);
-    }
-    setShowBlogModal(true);
-  };
-
-  const handleSaveBlog = async (e) => {
-    e.preventDefault();
-    if (!blogTitle.trim()) {
-      toast.error('Article title is required.');
-      return;
-    }
-    if (!blogContent.trim()) {
-      toast.error('Article body content is required.');
-      return;
-    }
-
-    setSavingBlog(true);
-    try {
-      const cleanFaqs = blogFaqs.filter(f => f.question?.trim() && f.answer?.trim());
-      const payload = {
-        title: blogTitle.trim(),
-        slug: blogSlug ? blogSlug.trim().toLowerCase().replace(/[^a-z0-9-]+/g, '') : undefined,
-        summary: blogSummary.trim(),
-        content: blogContent.trim(),
-        author: blogAuthor.trim() || 'JOSH PETS HUB Editorial Team',
-        featuredImage: blogFeaturedImage.trim() || 'https://images.unsplash.com/photo-1548199973-03cce0bbc87b?auto=format&fit=crop&q=80&w=1200',
-        petType: blogPetType,
-        readTime: blogReadTime.trim() || '5 min read',
-        tags: blogTags.split(',').map(t => t.trim()).filter(Boolean),
-        faqs: cleanFaqs
-      };
-
-      let res;
-      if (editingBlogId) {
-        res = await apiRequest(`/blogs/${editingBlogId}`, {
-          method: 'PUT',
-          body: JSON.stringify(payload)
-        });
-      } else {
-        res = await apiRequest('/blogs', {
-          method: 'POST',
-          body: JSON.stringify(payload)
-        });
-      }
-
-      if (res && res.success) {
-        toast.success(editingBlogId ? 'Article updated successfully!' : 'Article published successfully!');
-        setShowBlogModal(false);
-        loadBlogs();
-      } else {
-        throw new Error(res?.message || 'Failed to save article');
-      }
-    } catch (err) {
-      toast.error(err.message || 'Error saving article');
-    } finally {
-      setSavingBlog(false);
-    }
-  };
-
-  const handleDeleteBlog = async (blog) => {
-    const id = blog._id || blog.id || blog.slug;
-    if (!id) return;
-    if (!window.confirm(`Are you sure you want to delete "${blog.title}"?`)) return;
-
-    try {
-      const res = await apiRequest(`/blogs/${id}`, { method: 'DELETE' });
-      if (res && res.success) {
-        toast.success('Article removed successfully!');
-        setBlogsList(prev => prev.filter(b => (b._id || b.id || b.slug) !== id));
-      } else {
-        throw new Error(res?.message || 'Failed to delete');
-      }
-    } catch (err) {
-      toast.error(err.message || 'Error deleting article');
-    }
-  };
-
-  const handleFaqChange = (index, field, value) => {
-    setBlogFaqs(prev => {
-      const updated = [...prev];
-      updated[index] = { ...updated[index], [field]: value };
-      return updated;
-    });
-  };
-
-  const handleAddFaq = () => {
-    setBlogFaqs(prev => [...prev, { question: '', answer: '' }]);
-  };
-
-  const handleRemoveFaq = (index) => {
-    setBlogFaqs(prev => prev.filter((_, i) => i !== index));
-  };
-
   const COLORS = ['#1D3B2E', '#7CA085', '#C2D3C6', '#A1C0AA', '#DFE5DF'];
 
   // CONDITIONAL RENDER: IF NOT ADMIN, RENDER THE ADMIN SIGN IN PANEL INSTEAD OF REDIRECTING
@@ -824,9 +529,11 @@ const SuperAdminDashboard = () => {
             <nav className="space-y-1">
             {[
               { id: 'overview', label: 'Stats Overview', icon: <TrendingUp size={15} /> },
+              { id: 'crm_access', label: 'CRM Staff & Roles', icon: <Briefcase size={15} /> },
               { id: 'wallet', label: 'Central Wallet & Payouts', icon: <Landmark size={15} /> },
+              { id: 'announcements', label: 'Announcement Bar', icon: <Megaphone size={15} /> },
+              { id: 'coupons', label: 'Offer Codes & Discounts', icon: <Tag size={15} /> },
               { id: 'blogs', label: 'Pet Care Blogs', icon: <BookOpen size={15} /> },
-              { id: 'products', label: 'Manage Products', icon: <Layers size={15} /> },
               { id: 'orders', label: 'Client Orders', icon: <ShoppingBag size={15} /> },
               { id: 'prescriptions', label: 'Rx Verifications', icon: <FileText size={15} /> },
               { id: 'listings', label: 'Moderate Listings', icon: <Heart size={15} /> },
@@ -887,9 +594,11 @@ const SuperAdminDashboard = () => {
             <span className="text-[10px] uppercase tracking-widest text-[#7CA085] font-bold block">ADMINISTRATION PORTAL</span>
             <h2 className="font-serif text-3xl text-primary font-bold mt-1">
               {activeSection === 'overview' && 'Executive Metrics Overview'}
+              {activeSection === 'crm_access' && 'CRM Access Control & Staff Roles Manager'}
               {activeSection === 'wallet' && 'Central Platform Wallet & Service Provider Payouts'}
+              {activeSection === 'announcements' && 'Header Announcement Bar & Offers Ticker'}
+              {activeSection === 'coupons' && 'Offer Codes & Promotional Discounts Manager'}
               {activeSection === 'blogs' && 'Pet Care Blogs & Articles Manager'}
-              {activeSection === 'products' && 'Product Catalogue Manager'}
               {activeSection === 'orders' && 'Client Transaction Logs'}
               {activeSection === 'prescriptions' && 'Vet Prescriptions Review'}
               {activeSection === 'listings' && 'Classified Listings Moderation'}
@@ -901,18 +610,25 @@ const SuperAdminDashboard = () => {
             </h2>
           </div>
 
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3">
+            <a
+              href="/?preview=guest"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="btn-secondary-premium !py-2 !px-4 !text-[10px] gap-2 flex items-center hover:bg-white/10"
+              title="Open public home page without login in a new tab"
+            >
+              <ExternalLink size={14} /> VIEW LIVE SITE
+            </a>
             <button
               onClick={() => { 
                 loadStats(); 
                 loadAdminMarketplaceData(); 
                 loadUsers(); 
                 loadEnquiries(); 
-                loadProducts(); 
                 loadOrders(); 
                 loadPrescriptions(); 
                 loadConsents();
-                loadBlogs();
               }}
               className="btn-secondary-premium !py-2 !px-4 !text-[10px] gap-2 flex items-center"
             >
@@ -947,29 +663,29 @@ const SuperAdminDashboard = () => {
           <>
             {/* SECTION 1: OVERVIEW */}
             {activeSection === 'overview' && stats && (
-              <div className="space-y-12 animate-in fade-in duration-200">
+              <div className="space-y-8 animate-in fade-in duration-200">
 
-                {/* Summary Cards Row with premium tiles */}
-                <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
+                {/* Summary Cards Row with compact tiles */}
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-3 xl:grid-cols-5 gap-3.5">
                   {[
-                    { label: 'Total Revenue', value: `₹${stats.totalRevenue}`, icon: <TrendingUp size={20} />, iconBg: 'bg-emerald-50 text-emerald-600' },
-                    { label: 'Total Orders', value: stats.ordersCount, icon: <ShoppingBag size={20} />, iconBg: 'bg-blue-50 text-blue-600' },
-                    { label: 'Customers', value: stats.usersCount, icon: <Users size={20} />, iconBg: 'bg-purple-50 text-purple-600' },
-                    { label: 'Total SKU Count', value: stats.productsCount, icon: <Layers size={20} />, iconBg: 'bg-amber-50 text-amber-600' },
-                    { label: 'Products Sold', value: stats.soldProductsCount || 0, icon: <CheckCircle size={20} />, iconBg: 'bg-teal-50 text-teal-600' },
-                    { label: 'Unsold Products', value: stats.unsoldProductsCount || 0, icon: <X size={20} />, iconBg: 'bg-gray-100 text-gray-600' },
-                    { label: 'Pending Orders', value: stats.pendingOrdersCount, icon: <Clock size={20} />, iconBg: 'bg-orange-50 text-orange-600' },
-                    { label: 'Low Stock Alert', value: stats.lowStockCount, icon: <AlertTriangle size={20} />, iconBg: 'bg-rose-50 text-rose-600' },
-                    { label: 'New Enquiries', value: stats.enquiriesCount || 0, icon: <Mail size={20} />, iconBg: 'bg-indigo-50 text-indigo-600' }
+                    { label: 'Total Revenue', value: `₹${stats.totalRevenue}`, icon: <TrendingUp size={16} />, iconBg: 'bg-emerald-50 text-emerald-600' },
+                    { label: 'Total Orders', value: stats.ordersCount, icon: <ShoppingBag size={16} />, iconBg: 'bg-blue-50 text-blue-600' },
+                    { label: 'Customers', value: stats.usersCount, icon: <Users size={16} />, iconBg: 'bg-purple-50 text-purple-600' },
+                    { label: 'Total SKU Count', value: stats.productsCount, icon: <Layers size={16} />, iconBg: 'bg-amber-50 text-amber-600' },
+                    { label: 'Products Sold', value: stats.soldProductsCount || 0, icon: <CheckCircle size={16} />, iconBg: 'bg-teal-50 text-teal-600' },
+                    { label: 'Unsold Products', value: stats.unsoldProductsCount || 0, icon: <X size={16} />, iconBg: 'bg-gray-100 text-gray-600' },
+                    { label: 'Pending Orders', value: stats.pendingOrdersCount, icon: <Clock size={16} />, iconBg: 'bg-orange-50 text-orange-600' },
+                    { label: 'Low Stock Alert', value: stats.lowStockCount, icon: <AlertTriangle size={16} />, iconBg: 'bg-rose-50 text-rose-600' },
+                    { label: 'New Enquiries', value: stats.enquiriesCount || 0, icon: <Mail size={16} />, iconBg: 'bg-indigo-50 text-indigo-600' }
                   ].map((c) => (
-                    <div key={c.label} className="card-premium p-6 flex flex-col justify-between">
-                      <div className="flex justify-between items-start mb-6">
-                        <span className="text-[10px] uppercase font-bold text-gray-500 tracking-wider w-2/3 leading-tight">{c.label}</span>
-                        <div className={`w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 shadow-sm ${c.iconBg}`}>
+                    <div key={c.label} className="card-premium p-3.5 sm:p-4 flex flex-col justify-between hover:shadow-sm transition-shadow">
+                      <div className="flex justify-between items-start mb-2.5">
+                        <span className="text-[9.5px] uppercase font-bold text-gray-500 tracking-wider w-2/3 leading-tight">{c.label}</span>
+                        <div className={`w-7 h-7 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center shrink-0 shadow-2xs ${c.iconBg}`}>
                           {c.icon}
                         </div>
                       </div>
-                      <p className="text-3xl font-bold font-serif text-primary truncate">{c.value}</p>
+                      <p className="text-xl sm:text-2xl font-bold font-serif text-primary truncate">{c.value}</p>
                     </div>
                   ))}
                 </div>
@@ -1042,15 +758,15 @@ const SuperAdminDashboard = () => {
                       </thead>
                       <tbody className="divide-y divide-[#E3EBE5]">
                         {recentOrders.map((o) => (
-                          <tr key={o._id} className="hover:bg-[#F9FAF9] transition-colors duration-300">
-                            <td className="p-4 font-semibold text-primary">{o._id}</td>
+                          <tr key={o._id || o.id} className="hover:bg-[#F9FAF9] transition-colors duration-300">
+                            <td className="p-4 font-semibold text-primary">{o._id || o.id || o.orderNumber}</td>
                             <td className="p-4">
-                              <p className="font-bold text-sm">{o.user.name}</p>
-                              <p className="text-[10px] text-gray-500">{o.user.email}</p>
+                              <p className="font-bold text-sm">{o.user?.name || o.customer?.name || 'Customer'}</p>
+                              <p className="text-[10px] text-gray-500">{o.user?.email || o.customer?.email || 'N/A'}</p>
                             </td>
-                            <td className="p-4 text-xs font-medium text-gray-600">{o.paymentMethod}</td>
-                            <td className="p-4 font-bold uppercase text-[10px] tracking-wider text-accent">{o.shippingStatus}</td>
-                            <td className="p-4 text-right font-bold text-primary text-sm">₹{o.pricing.total}</td>
+                            <td className="p-4 text-xs font-medium text-gray-600">{o.paymentMethod || o.payment_method || 'COD'}</td>
+                            <td className="p-4 font-bold uppercase text-[10px] tracking-wider text-accent">{o.shippingStatus || o.shipping_status || 'Pending'}</td>
+                            <td className="p-4 text-right font-bold text-primary text-sm">₹{o.pricing?.total ?? o.grand_total ?? o.grandTotal ?? o.totalPrice ?? 0}</td>
                           </tr>
                         ))}
                       </tbody>
@@ -1061,81 +777,24 @@ const SuperAdminDashboard = () => {
               </div>
             )}
 
+            {/* SECTION: CRM ACCESS & STAFF ROLES */}
+            {activeSection === 'crm_access' && (
+              <CrmAccessManagerView />
+            )}
+
             {/* SECTION: PLATFORM WALLET & PAYOUTS */}
             {activeSection === 'wallet' && (
               <SuperAdminPlatformWalletView />
             )}
 
-            {/* SECTION 2: PRODUCTS MANAGER */}
-            {activeSection === 'products' && (
-              <div className="space-y-6 animate-in fade-in duration-200">
-                <div className="flex justify-between items-center border-b border-[#E3EBE5] pb-3">
-                  <h2 className="font-serif text-lg font-bold text-primary">Product Catalogue ({productsList.length})</h2>
-                  <button
-                    onClick={handleOpenAddProduct}
-                    className="px-4 py-2 bg-primary text-white font-bold tracking-widest text-xs hover:bg-[#7CA085] hover:text-primary transition uppercase flex items-center gap-1.5 cursor-pointer rounded-md"
-                  >
-                    <Plus size={14} /> ADD NEW PRODUCT
-                  </button>
-                </div>
+            {/* SECTION: ANNOUNCEMENT BAR & OFFERS TICKER */}
+            {activeSection === 'announcements' && (
+              <AnnouncementsManagerView />
+            )}
 
-                <div className="card-premium overflow-x-auto">
-                  <table className="w-full text-left text-xs border-collapse">
-                    <thead>
-                      <tr className="bg-[#F1F6F2] text-primary font-bold border-b border-[#E3EBE5]">
-                        <th className="p-4 uppercase tracking-wider text-[10px]">Image</th>
-                        <th className="p-4 uppercase tracking-wider text-[10px]">Product details</th>
-                        <th className="p-4 uppercase tracking-wider text-[10px]">SKU</th>
-                        <th className="p-4 uppercase tracking-wider text-[10px]">Pricing</th>
-                        <th className="p-4 uppercase tracking-wider text-[10px]">Stock count</th>
-                        <th className="p-4 uppercase tracking-wider text-[10px] text-center">Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-[#E3EBE5]">
-                      {productsList.map((p) => (
-                        <tr key={p._id} className="hover:bg-[#F9FAF9] transition-colors duration-300">
-                          <td className="p-4">
-                            <img src={p.images[0]} alt={p.name} className="w-12 h-12 object-cover bg-gray-50 border border-[#E3EBE5]" />
-                          </td>
-                          <td className="p-4 space-y-1">
-                            <p className="font-bold text-primary truncate max-w-xs">{p.name}</p>
-                            <p className="text-[10px] text-accent uppercase font-bold tracking-wider">{p.brand} • {p.petType}</p>
-                            {p.requiresPrescription && <span className="text-[9px] bg-red-100 text-red-800 font-bold px-1.5 py-0.5 rounded-full">Rx Required</span>}
-                          </td>
-                          <td className="p-4 font-semibold text-gray-500">{p.sku}</td>
-                          <td className="p-4">
-                            <p className="font-bold text-primary">₹{p.discountPrice || p.price}</p>
-                            {p.discountPrice && <p className="text-[10px] text-gray-400 line-through">₹{p.price}</p>}
-                          </td>
-                          <td className="p-4">
-                            <span className={`font-bold ${p.stock === 0 ? 'text-red-500' : p.stock <= p.lowStockThreshold ? 'text-orange-500' : 'text-green-600'}`}>
-                              {p.stock} units
-                            </span>
-                          </td>
-                          <td className="p-4 text-center">
-                            <div className="flex justify-center gap-2">
-                              <button
-                                onClick={() => handleOpenEditProduct(p)}
-                                className="p-2 border border-[#E3EBE5] hover:border-primary hover:bg-[#FAFBF9] transition cursor-pointer text-gray-500"
-                                title="Edit product"
-                              >
-                                <Edit size={12} />
-                              </button>
-                              <button
-                                onClick={() => handleDeleteProduct(p._id)}
-                                className="p-2 border border-[#E3EBE5] hover:border-red-500 hover:text-red-500 transition cursor-pointer text-gray-500"
-                                title="Delete product"
-                              >
-                                <Trash size={12} />
-                              </button>
-                            </div>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
+            {/* SECTION: OFFER CODES & DISCOUNTS */}
+            {activeSection === 'coupons' && (
+              <CouponsManagerView />
             )}
 
             {/* SECTION 3: CLIENT ORDERS MANAGER */}
@@ -1157,14 +816,14 @@ const SuperAdminDashboard = () => {
                     </thead>
                     <tbody className="divide-y divide-[#E3EBE5]">
                       {ordersList.map((o) => (
-                        <tr key={o._id} className="hover:bg-[#F9FAF9] transition-colors duration-300">
-                          <td className="p-4 font-semibold text-primary">{o._id}</td>
-                          <td className="p-4">{new Date(o.createdAt).toLocaleDateString()}</td>
+                        <tr key={o._id || o.id} className="hover:bg-[#F9FAF9] transition-colors duration-300">
+                          <td className="p-4 font-semibold text-primary">{o._id || o.id || o.orderNumber}</td>
+                          <td className="p-4">{o.createdAt || o.created_at ? new Date(o.createdAt || o.created_at).toLocaleDateString() : 'Recent'}</td>
                           <td className="p-4">
-                            <p className="font-bold">{o.user?.name || 'Guest user'}</p>
-                            <p className="text-[10px] text-gray-400">{o.user?.email}</p>
+                            <p className="font-bold">{o.user?.name || o.customer?.name || 'Customer'}</p>
+                            <p className="text-[10px] text-gray-400">{o.user?.email || o.customer?.email || 'N/A'}</p>
                           </td>
-                          <td className="p-4 text-right font-bold text-primary text-sm">₹{o.pricing.total}</td>
+                          <td className="p-4 text-right font-bold text-primary text-sm">₹{o.pricing?.total ?? o.grand_total ?? o.grandTotal ?? o.totalPrice ?? 0}</td>
                           <td className="p-4">
                             <span className={`font-bold uppercase text-[10px] ${o.shippingStatus === 'Delivered' ? 'text-green-600' :
                                 o.shippingStatus === 'Cancelled' ? 'text-red-500' : 'text-accent'
@@ -1218,8 +877,8 @@ const SuperAdminDashboard = () => {
                           <td className="p-4 font-semibold text-primary">{p._id}</td>
                           <td className="p-4">{new Date(p.createdAt).toLocaleDateString()}</td>
                           <td className="p-4">
-                            <p className="font-bold">{p.user?.name}</p>
-                            <p className="text-[10px] text-gray-400">{p.user?.email}</p>
+                            <p className="font-bold">{p.user?.name || p.patientName || p.doctor_name || 'Customer'}</p>
+                            <p className="text-[10px] text-gray-400">{p.user?.email || p.clinicName || 'N/A'}</p>
                           </td>
                           <td className="p-4">
                             <p className="font-bold text-primary">Pet: {p.patientName}</p>
@@ -1284,8 +943,8 @@ const SuperAdminDashboard = () => {
                             )}
                           </td>
                           <td className="p-4">
-                            <p className="font-semibold">{l.user?.name}</p>
-                            <p className="text-[10px] text-gray-400">{l.contactPhone}</p>
+                            <p className="font-semibold">{l.user?.name || l.title || 'Pet Owner'}</p>
+                            <p className="text-[10px] text-gray-400">{l.contactPhone || 'N/A'}</p>
                           </td>
                           <td className="p-3 font-bold text-primary">
                             {l.price === 0 ? 'Free Rehoming' : `₹${l.price}`}
@@ -1400,8 +1059,8 @@ const SuperAdminDashboard = () => {
                             <p className="text-[10px] text-gray-400">Dr./Groomer: {b.providerName}</p>
                           </td>
                           <td className="p-4">
-                            <p className="font-semibold">{b.user?.name || 'Client'}</p>
-                            <p className="text-[10px] text-[#7CA085] uppercase font-bold">Pet: {b.petDetails?.name} ({b.petDetails?.breed})</p>
+                            <p className="font-semibold">{b.user?.name || b.customerName || b.ownerName || 'Client'}</p>
+                            <p className="text-[10px] text-[#7CA085] uppercase font-bold">Pet: {b.petDetails?.name || b.petName || 'Pet'} ({b.petDetails?.breed || b.petBreed || 'Breed'})</p>
                           </td>
                           <td className="p-4 space-y-1">
                             <p className="font-semibold">{b.date}</p>
@@ -1659,228 +1318,7 @@ const SuperAdminDashboard = () => {
 
             {/* PILLAR TAB 11: PET CARE BLOGS & ARTICLES */}
             {activeSection === 'blogs' && (
-              <div className="space-y-6 animate-in fade-in duration-200">
-                {/* Header Controls */}
-                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-[#E3EBE5] pb-4">
-                  <div>
-                    <h2 className="font-serif text-lg font-bold text-primary flex items-center gap-2">
-                      <BookOpen size={20} className="text-[#1c4b3a]" />
-                      Pet Care Publications & Blogs ({(blogsList || []).length})
-                    </h2>
-                    <p className="text-xs text-gray-500 mt-0.5">
-                      Create, edit, and publish veterinary-reviewed care guides and pet wellness articles to the public blog hub.
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-3 w-full sm:w-auto">
-                    <a
-                      href="/pet-care"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="px-3 py-2 border border-[#1c4b3a]/30 hover:bg-[#1c4b3a]/10 text-primary font-bold text-xs rounded-lg transition-colors flex items-center gap-1.5"
-                      title="Open public blog hub in a new tab"
-                    >
-                      <ExternalLink size={14} />
-                      <span>View Live Hub</span>
-                    </a>
-                    <button
-                      onClick={() => handleOpenBlogModal(null)}
-                      className="btn-primary-premium !py-2 !px-4 !text-xs flex items-center gap-2 shadow-sm cursor-pointer whitespace-nowrap"
-                    >
-                      <Plus size={16} /> POST NEW ARTICLE
-                    </button>
-                  </div>
-                </div>
-
-                {/* Filters & Search */}
-                <div className="bg-white p-4 rounded-xl border border-[#E3EBE5] flex flex-col md:flex-row justify-between items-stretch md:items-center gap-4 shadow-2xs">
-                  {/* Category Pills */}
-                  <div className="flex flex-wrap items-center gap-1.5">
-                    {[
-                      { id: 'all', label: 'All Articles' },
-                      { id: 'dogs', label: 'Dogs' },
-                      { id: 'cats', label: 'Cats' },
-                      { id: 'birds', label: 'Birds' },
-                      { id: 'reptiles', label: 'Reptiles' },
-                      { id: 'fish', label: 'Fish & Aquatics' }
-                    ].map(cat => (
-                      <button
-                        key={cat.id}
-                        onClick={() => setBlogCategoryFilter(cat.id)}
-                        className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                          blogCategoryFilter === cat.id
-                            ? 'bg-[#1c4b3a] text-white shadow-xs'
-                            : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                        }`}
-                      >
-                        {cat.label}
-                      </button>
-                    ))}
-                  </div>
-
-                  {/* Search bar */}
-                  <div className="relative min-w-[240px]">
-                    <input
-                      type="text"
-                      placeholder="Search title, author, summary..."
-                      value={blogSearchQuery}
-                      onChange={(e) => setBlogSearchQuery(e.target.value)}
-                      className="w-full pl-3 pr-8 py-1.5 text-xs border border-gray-200 rounded-lg focus:outline-none focus:border-[#1c4b3a]"
-                    />
-                    {blogSearchQuery && (
-                      <button 
-                        onClick={() => setBlogSearchQuery('')} 
-                        className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 cursor-pointer"
-                      >
-                        <X size={13} />
-                      </button>
-                    )}
-                  </div>
-                </div>
-
-                {/* Articles List / Grid */}
-                {blogsLoading ? (
-                  <div className="p-12 text-center text-gray-500 bg-white rounded-xl border border-[#E3EBE5]">
-                    <RefreshCw size={24} className="mx-auto text-gray-400 animate-spin mb-2" />
-                    <p className="text-xs font-bold text-gray-500">Loading pet care publications...</p>
-                  </div>
-                ) : (blogsList || []).filter(b => {
-                  const pType = (b.petType || b.pet_type || '').toLowerCase();
-                  const matchesCat = blogCategoryFilter === 'all' || pType === blogCategoryFilter.toLowerCase();
-                  const matchesSearch = !blogSearchQuery || 
-                    (b.title || '').toLowerCase().includes(blogSearchQuery.toLowerCase()) ||
-                    (b.author || '').toLowerCase().includes(blogSearchQuery.toLowerCase()) ||
-                    (b.summary || '').toLowerCase().includes(blogSearchQuery.toLowerCase());
-                  return matchesCat && matchesSearch;
-                }).length === 0 ? (
-                  <div className="p-12 text-center text-gray-500 bg-white rounded-xl border border-dashed border-[#E3EBE5] space-y-3">
-                    <BookOpen size={36} className="mx-auto text-gray-300" />
-                    <p className="font-bold text-sm text-primary">No matching articles found</p>
-                    <p className="text-xs text-gray-400 max-w-sm mx-auto">
-                      {blogSearchQuery || blogCategoryFilter !== 'all' 
-                        ? 'Try clearing the search query or category filter.' 
-                        : 'Click "POST NEW ARTICLE" above to publish your first veterinary or pet care guide.'}
-                    </p>
-                    {(!blogSearchQuery && blogCategoryFilter === 'all') && (
-                      <button
-                        onClick={() => handleOpenBlogModal(null)}
-                        className="btn-primary-premium !py-2 !px-4 !text-xs inline-flex items-center gap-1.5 cursor-pointer"
-                      >
-                        <Plus size={14} /> Create First Article
-                      </button>
-                    )}
-                  </div>
-                ) : (
-                  <div className="bg-white rounded-2xl border border-beige/60 shadow-sm overflow-hidden">
-                    <div className="overflow-x-auto">
-                      <table className="w-full text-left text-xs border-collapse">
-                        <thead>
-                          <tr className="bg-[#F1F6F2] text-primary font-bold border-b border-[#E3EBE5]">
-                            <th className="p-4 uppercase tracking-wider text-[10px]">Article Details</th>
-                            <th className="p-4 uppercase tracking-wider text-[10px]">Pet Category</th>
-                            <th className="p-4 uppercase tracking-wider text-[10px]">Author & Time</th>
-                            <th className="p-4 uppercase tracking-wider text-[10px]">Published Date</th>
-                            <th className="p-4 uppercase tracking-wider text-[10px] text-right">Actions</th>
-                          </tr>
-                        </thead>
-                        <tbody className="divide-y divide-[#E3EBE5] text-xs">
-                          {(blogsList || []).filter(b => {
-                            const pType = (b.petType || b.pet_type || '').toLowerCase();
-                            const matchesCat = blogCategoryFilter === 'all' || pType === blogCategoryFilter.toLowerCase();
-                            const matchesSearch = !blogSearchQuery || 
-                              (b.title || '').toLowerCase().includes(blogSearchQuery.toLowerCase()) ||
-                              (b.author || '').toLowerCase().includes(blogSearchQuery.toLowerCase()) ||
-                              (b.summary || '').toLowerCase().includes(blogSearchQuery.toLowerCase());
-                            return matchesCat && matchesSearch;
-                          }).map((b) => {
-                            const pType = b.petType || b.pet_type || 'dogs';
-                            const badgeColors = {
-                              dogs: 'bg-emerald-50 text-emerald-700 border-emerald-200',
-                              cats: 'bg-amber-50 text-amber-700 border-amber-200',
-                              birds: 'bg-sky-50 text-sky-700 border-sky-200',
-                              reptiles: 'bg-purple-50 text-purple-700 border-purple-200',
-                              fish: 'bg-blue-50 text-blue-700 border-blue-200'
-                            };
-                            const badgeClass = badgeColors[pType.toLowerCase()] || 'bg-gray-100 text-gray-700 border-gray-200';
-
-                            return (
-                              <tr key={b._id || b.id || b.slug} className="hover:bg-[#F9FAF9] transition-colors">
-                                <td className="p-4 max-w-[340px]">
-                                  <div className="flex items-start gap-3">
-                                    <img
-                                      src={b.featuredImage || b.featured_image || 'https://images.unsplash.com/photo-1548199973-03cce0bbc87b?auto=format&fit=crop&q=80&w=300'}
-                                      alt={b.title}
-                                      className="w-14 h-14 rounded-lg object-cover shrink-0 border border-gray-200 bg-gray-100"
-                                      onError={(e) => {
-                                        e.currentTarget.src = 'https://images.unsplash.com/photo-1548199973-03cce0bbc87b?auto=format&fit=crop&q=80&w=300';
-                                      }}
-                                    />
-                                    <div className="space-y-1 min-w-0">
-                                      <p className="font-bold text-primary text-xs leading-snug truncate" title={b.title}>
-                                        {b.title}
-                                      </p>
-                                      <p className="text-[11px] text-gray-500 line-clamp-2 leading-relaxed">
-                                        {b.summary || 'No summary provided.'}
-                                      </p>
-                                      <p className="text-[10px] text-gray-400 font-mono truncate">
-                                        /pet-care/{b.slug}
-                                      </p>
-                                    </div>
-                                  </div>
-                                </td>
-
-                                <td className="p-4 whitespace-nowrap">
-                                  <span className={`px-2.5 py-1 rounded-full text-[10px] font-extrabold uppercase border ${badgeClass}`}>
-                                    {pType}
-                                  </span>
-                                </td>
-
-                                <td className="p-4 whitespace-nowrap">
-                                  <p className="font-bold text-gray-800 text-[11px]">{b.author || 'Editorial Team'}</p>
-                                  <p className="text-[10px] text-gray-400 mt-0.5">{b.readTime || b.read_time || '5 min read'}</p>
-                                </td>
-
-                                <td className="p-4 whitespace-nowrap text-gray-500 text-[11px]">
-                                  {b.publishedDate || b.published_date 
-                                    ? new Date(b.publishedDate || b.published_date).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })
-                                    : 'Recent'}
-                                </td>
-
-                                <td className="p-4 text-right whitespace-nowrap">
-                                  <div className="flex items-center justify-end gap-1.5">
-                                    <a
-                                      href={`/pet-care/${b.slug}`}
-                                      target="_blank"
-                                      rel="noopener noreferrer"
-                                      className="p-1.5 text-gray-500 hover:text-[#1c4b3a] hover:bg-emerald-50 rounded-md transition-colors"
-                                      title="View Public Article"
-                                    >
-                                      <ExternalLink size={15} />
-                                    </a>
-                                    <button
-                                      onClick={() => handleOpenBlogModal(b)}
-                                      className="p-1.5 text-gray-500 hover:text-amber-600 hover:bg-amber-50 rounded-md transition-colors cursor-pointer"
-                                      title="Edit Article"
-                                    >
-                                      <Edit size={15} />
-                                    </button>
-                                    <button
-                                      onClick={() => handleDeleteBlog(b)}
-                                      className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-md transition-colors cursor-pointer"
-                                      title="Delete Article"
-                                    >
-                                      <Trash size={15} />
-                                    </button>
-                                  </div>
-                                </td>
-                              </tr>
-                            );
-                          })}
-                        </tbody>
-                      </table>
-                    </div>
-                  </div>
-                )}
-              </div>
+              <BlogsManagerView />
             )}
 
           </>
@@ -1888,484 +1326,6 @@ const SuperAdminDashboard = () => {
 
         </div>
       </main>
-
-      {/* POPUP MODAL: ADD / EDIT BLOG ARTICLE */}
-      {showBlogModal && (
-        <div className="fixed inset-0 z-[100] overflow-y-auto bg-primary/60 backdrop-blur-xs p-2 sm:p-4 flex flex-col items-center justify-start sm:justify-center animate-in fade-in duration-200">
-          <div onClick={() => !savingBlog && setShowBlogModal(false)} className="fixed inset-0 bg-transparent"></div>
-
-          <form
-            onSubmit={handleSaveBlog}
-            className="relative bg-white w-full max-w-3xl border border-beige shadow-2xl flex flex-col min-h-0 max-h-[90vh] z-10 my-auto overflow-hidden rounded-xl"
-          >
-            {/* Header */}
-            <div className="px-5 py-4 bg-primary text-white flex justify-between items-center border-b border-white/10 shrink-0">
-              <div className="flex items-center gap-2">
-                <BookOpen size={18} className="text-accent" />
-                <h3 className="font-serif text-sm font-bold tracking-wider text-accent uppercase">
-                  {editingBlogId ? 'Edit Pet Care Article' : 'Publish New Pet Care Article'}
-                </h3>
-              </div>
-              <button 
-                type="button" 
-                onClick={() => setShowBlogModal(false)} 
-                disabled={savingBlog}
-                className="text-white hover:text-accent cursor-pointer"
-              >
-                <X size={18} />
-              </button>
-            </div>
-
-            {/* Modal Scrollable Body */}
-            <div className="p-5 sm:p-6 overflow-y-auto flex-1 min-h-0 space-y-4 text-xs">
-              
-              {/* Row 1: Title & Category */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="md:col-span-2 space-y-1">
-                  <label className="text-gray-700 font-bold block">
-                    Article Title <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="e.g. Complete Puppy Nutrition & Diet Guide"
-                    value={blogTitle}
-                    onChange={(e) => setBlogTitle(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-xs focus:outline-none focus:border-primary"
-                    required
-                  />
-                </div>
-                <div className="space-y-1">
-                  <label className="text-gray-700 font-bold block">Pet Category</label>
-                  <select
-                    value={blogPetType}
-                    onChange={(e) => setBlogPetType(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-xs focus:outline-none focus:border-primary bg-white capitalize"
-                  >
-                    <option value="dogs">Dogs</option>
-                    <option value="cats">Cats</option>
-                    <option value="birds">Birds</option>
-                    <option value="reptiles">Reptiles</option>
-                    <option value="fish">Fish & Aquatics</option>
-                  </select>
-                </div>
-              </div>
-
-              {/* Row 2: Author & Read Time */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-1">
-                  <label className="text-gray-700 font-bold block">Author / Byline</label>
-                  <input
-                    type="text"
-                    placeholder="e.g. Dr. Shruti Sharma (DVM)"
-                    value={blogAuthor}
-                    onChange={(e) => setBlogAuthor(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-xs focus:outline-none focus:border-primary"
-                  />
-                </div>
-                <div className="space-y-1">
-                  <label className="text-gray-700 font-bold block">Read Time</label>
-                  <input
-                    type="text"
-                    placeholder="e.g. 5 min read"
-                    value={blogReadTime}
-                    onChange={(e) => setBlogReadTime(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-xs focus:outline-none focus:border-primary"
-                  />
-                </div>
-              </div>
-
-              {/* Row 3: Custom Slug & Tags */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-1">
-                  <label className="text-gray-700 font-bold block">
-                    URL Slug <span className="text-[10px] text-gray-400 font-normal">(Optional, auto-generated from title)</span>
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="e.g. complete-puppy-nutrition-guide"
-                    value={blogSlug}
-                    onChange={(e) => setBlogSlug(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-xs focus:outline-none focus:border-primary font-mono text-[11px]"
-                  />
-                </div>
-                <div className="space-y-1">
-                  <label className="text-gray-700 font-bold block">Tags (comma-separated)</label>
-                  <input
-                    type="text"
-                    placeholder="e.g. Nutrition, Puppies, Health, Vet Guide"
-                    value={blogTags}
-                    onChange={(e) => setBlogTags(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-xs focus:outline-none focus:border-primary"
-                  />
-                </div>
-              </div>
-
-              {/* Row 4: Cover Image URL & 1-Click Presets */}
-              <div className="space-y-2">
-                <label className="text-gray-700 font-bold block">
-                  Cover Image URL <span className="text-red-500">*</span>
-                </label>
-                <div className="flex gap-2">
-                  <input
-                    type="url"
-                    placeholder="https://images.unsplash.com/..."
-                    value={blogFeaturedImage}
-                    onChange={(e) => setBlogFeaturedImage(e.target.value)}
-                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-xs focus:outline-none focus:border-primary"
-                    required
-                  />
-                  {blogFeaturedImage && (
-                    <img 
-                      src={blogFeaturedImage} 
-                      alt="Preview" 
-                      className="w-10 h-10 object-cover rounded-lg border border-gray-200 shrink-0" 
-                      onError={(e) => { e.currentTarget.style.display = 'none'; }}
-                    />
-                  )}
-                </div>
-
-                {/* 1-Click Image Presets */}
-                <div className="flex flex-wrap items-center gap-1.5 pt-1">
-                  <span className="text-[10px] text-gray-400 font-bold uppercase">Quick Preset:</span>
-                  {[
-                    { label: 'Dog', url: 'https://images.unsplash.com/photo-1589924691995-400dc9ecc119?auto=format&fit=crop&q=80&w=1200' },
-                    { label: 'Cat', url: 'https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?auto=format&fit=crop&q=80&w=1200' },
-                    { label: 'Bird', url: 'https://images.unsplash.com/photo-1522858547137-f1dcec554f55?auto=format&fit=crop&q=80&w=1200' },
-                    { label: 'Reptile', url: 'https://images.unsplash.com/photo-1504450874802-0ba2bcd9b5ae?auto=format&fit=crop&q=80&w=1200' },
-                    { label: 'Fish', url: 'https://images.unsplash.com/photo-1522069169874-c58ec4b76be5?auto=format&fit=crop&q=80&w=1200' }
-                  ].map(preset => (
-                    <button
-                      key={preset.label}
-                      type="button"
-                      onClick={() => setBlogFeaturedImage(preset.url)}
-                      className="px-2 py-0.5 rounded text-[10px] font-semibold bg-gray-100 hover:bg-gray-200 text-gray-700 cursor-pointer"
-                    >
-                      {preset.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Row 5: Summary */}
-              <div className="space-y-1">
-                <label className="text-gray-700 font-bold block">
-                  Short Summary / Excerpt <span className="text-red-500">*</span>
-                </label>
-                <textarea
-                  rows={2}
-                  placeholder="A concise, engaging 2-3 sentence overview shown on blog index cards..."
-                  value={blogSummary}
-                  onChange={(e) => setBlogSummary(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-xs focus:outline-none focus:border-primary"
-                  required
-                />
-              </div>
-
-              {/* Row 6: Article Content */}
-              <div className="space-y-1">
-                <div className="flex justify-between items-center">
-                  <label className="text-gray-700 font-bold block">
-                    Article Body Content <span className="text-red-500">*</span>
-                  </label>
-                  <span className="text-[10px] text-gray-400">Supports Markdown (### Headings, * bullets, **bold**)</span>
-                </div>
-                <textarea
-                  rows={10}
-                  placeholder="Write or paste your article content here. You can write paragraphs, use bullet points, or markdown headers..."
-                  value={blogContent}
-                  onChange={(e) => setBlogContent(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-xs font-mono focus:outline-none focus:border-primary leading-relaxed"
-                  required
-                />
-              </div>
-
-              {/* Row 7: FAQs Section */}
-              <div className="space-y-2 border-t border-gray-200 pt-3">
-                <div className="flex justify-between items-center">
-                  <label className="text-gray-700 font-bold block">
-                    Frequently Asked Questions (Optional)
-                  </label>
-                  <button
-                    type="button"
-                    onClick={handleAddFaq}
-                    className="text-[11px] font-bold text-[#1c4b3a] hover:underline flex items-center gap-1 cursor-pointer"
-                  >
-                    <Plus size={12} /> Add FAQ
-                  </button>
-                </div>
-
-                <div className="space-y-2.5 max-h-48 overflow-y-auto pr-1">
-                  {blogFaqs.map((faq, idx) => (
-                    <div key={idx} className="p-3 bg-gray-50 border border-gray-200 rounded-lg space-y-2 relative">
-                      <div className="flex justify-between items-center gap-2">
-                        <span className="text-[10px] font-bold text-gray-500 uppercase">Q{idx + 1}:</span>
-                        <input
-                          type="text"
-                          placeholder="e.g. How often should I feed my puppy?"
-                          value={faq.question}
-                          onChange={(e) => handleFaqChange(idx, 'question', e.target.value)}
-                          className="flex-1 px-2.5 py-1.5 border border-gray-300 rounded text-xs focus:outline-none focus:border-primary bg-white"
-                        />
-                        {blogFaqs.length > 1 && (
-                          <button
-                            type="button"
-                            onClick={() => handleRemoveFaq(idx)}
-                            className="text-red-500 hover:text-red-700 p-1 cursor-pointer"
-                            title="Remove FAQ"
-                          >
-                            <Trash size={13} />
-                          </button>
-                        )}
-                      </div>
-                      <div className="flex items-start gap-2">
-                        <span className="text-[10px] font-bold text-gray-500 uppercase pt-1">A:</span>
-                        <textarea
-                          rows={2}
-                          placeholder="Clear vet-backed answer..."
-                          value={faq.answer}
-                          onChange={(e) => handleFaqChange(idx, 'answer', e.target.value)}
-                          className="flex-1 px-2.5 py-1.5 border border-gray-300 rounded text-xs focus:outline-none focus:border-primary bg-white"
-                        />
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-            </div>
-
-            {/* Footer Buttons */}
-            <div className="bg-gray-50 px-5 py-3 border-t border-gray-200 flex justify-end gap-3 shrink-0">
-              <button
-                type="button"
-                onClick={() => setShowBlogModal(false)}
-                disabled={savingBlog}
-                className="px-4 py-2 border border-gray-300 hover:bg-gray-100 rounded-lg text-xs font-bold text-gray-700 transition cursor-pointer"
-              >
-                CANCEL
-              </button>
-              <button
-                type="submit"
-                disabled={savingBlog}
-                className="btn-primary-premium !py-2 !px-5 !text-xs font-bold flex items-center gap-2 cursor-pointer"
-              >
-                {savingBlog ? (
-                  <>
-                    <RefreshCw size={14} className="animate-spin" /> SAVING...
-                  </>
-                ) : editingBlogId ? (
-                  'UPDATE ARTICLE'
-                ) : (
-                  'PUBLISH ARTICLE'
-                )}
-              </button>
-            </div>
-          </form>
-        </div>
-      )}
-
-      {/* POPUP MODAL: ADD / EDIT PRODUCT */}
-      {showProductModal && (
-        <div className="fixed inset-0 z-[100] overflow-y-auto bg-primary/60 backdrop-blur-xs p-2 sm:p-4 flex flex-col items-center justify-start sm:justify-center animate-in fade-in duration-200">
-          <div onClick={() => setShowProductModal(false)} className="fixed inset-0 bg-transparent"></div>
-
-          <form
-            onSubmit={handleSaveProduct}
-            className="relative bg-white w-full max-w-2xl border border-beige shadow-2xl flex flex-col min-h-0 max-h-[85vh] sm:max-h-[88vh] z-10 my-auto overflow-hidden"
-          >
-            <div className="px-4 sm:px-6 py-3.5 bg-primary text-white flex justify-between items-center border-b border-white/10 shrink-0">
-              <h3 className="font-serif text-sm font-bold tracking-wider text-accent uppercase">
-                {editingProductId ? 'Edit Product Parameters' : 'Add New Product Record'}
-              </h3>
-              <button type="button" onClick={() => setShowProductModal(false)} className="text-white hover:text-accent cursor-pointer">
-                <X size={18} />
-              </button>
-            </div>
-
-            <div className="p-4 sm:p-6 overflow-y-auto flex-1 min-h-0 space-y-4 text-xs">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-1">
-                  <label className="text-gray-500 font-semibold block">Product Name *</label>
-                  <input
-                    type="text"
-                    value={prodName}
-                    onChange={(e) => setProdName(e.target.value)}
-                    className="w-full px-3 py-2 border border-beige text-xs focus:outline-none focus:border-primary"
-                    required
-                  />
-                </div>
-                <div className="space-y-1">
-                  <label className="text-gray-500 font-semibold block">Brand *</label>
-                  <input
-                    type="text"
-                    value={prodBrand}
-                    onChange={(e) => setProdBrand(e.target.value)}
-                    className="w-full px-3 py-2 border border-beige text-xs focus:outline-none focus:border-primary"
-                    required
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <div className="space-y-1">
-                  <label className="text-gray-500 font-semibold block">SKU *</label>
-                  <input
-                    type="text"
-                    value={prodSku}
-                    onChange={(e) => setProdSku(e.target.value)}
-                    className="w-full px-3 py-2 border border-beige text-xs focus:outline-none focus:border-primary"
-                    required
-                  />
-                </div>
-                <div className="space-y-1">
-                  <label className="text-gray-500 font-semibold block">Price (INR) *</label>
-                  <input
-                    type="number"
-                    value={prodPrice}
-                    onChange={(e) => setProdPrice(e.target.value)}
-                    className="w-full px-3 py-2 border border-beige text-xs focus:outline-none focus:border-primary"
-                    required
-                  />
-                </div>
-                <div className="space-y-1">
-                  <label className="text-gray-500 font-semibold block">Discount Price</label>
-                  <input
-                    type="number"
-                    value={prodDiscountPrice}
-                    onChange={(e) => setProdDiscountPrice(e.target.value)}
-                    className="w-full px-3 py-2 border border-beige text-xs focus:outline-none focus:border-primary"
-                  />
-                </div>
-                <div className="space-y-1">
-                  <label className="text-gray-500 font-semibold block">Stock Units *</label>
-                  <input
-                    type="number"
-                    value={prodStock}
-                    onChange={(e) => setProdStock(e.target.value)}
-                    className="w-full px-3 py-2 border border-beige text-xs focus:outline-none focus:border-primary"
-                    required
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="space-y-1">
-                  <label className="text-gray-500 font-semibold block">Pet Department *</label>
-                  <select
-                    value={prodPetType}
-                    onChange={(e) => setProdPetType(e.target.value)}
-                    className="w-full px-3 py-2 border border-beige text-xs bg-white focus:outline-none focus:border-primary"
-                  >
-                    <option value="dogs">Dogs</option>
-                    <option value="cats">Cats</option>
-                    <option value="birds">Birds</option>
-                    <option value="reptiles">Reptiles</option>
-                    <option value="fish">Fish</option>
-                    <option value="pharmacy">Pharmacy</option>
-                  </select>
-                </div>
-                <div className="space-y-1">
-                  <label className="text-gray-500 font-semibold block">Category *</label>
-                  <input
-                    type="text"
-                    value={prodCategory}
-                    onChange={(e) => setProdCategory(e.target.value)}
-                    className="w-full px-3 py-2 border border-beige text-xs focus:outline-none focus:border-primary"
-                    required
-                  />
-                </div>
-                <div className="space-y-1">
-                  <label className="text-gray-500 font-semibold block">Subcategory *</label>
-                  <input
-                    type="text"
-                    value={prodSubcategory}
-                    onChange={(e) => setProdSubcategory(e.target.value)}
-                    className="w-full px-3 py-2 border border-beige text-xs focus:outline-none focus:border-primary"
-                    required
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-1">
-                <label className="text-gray-500 font-semibold block">Main Image URL *</label>
-                <input
-                  type="text"
-                  value={prodImage}
-                  onChange={(e) => setProdImage(e.target.value)}
-                  className="w-full px-3 py-2 border border-beige text-xs focus:outline-none focus:border-primary"
-                  required
-                />
-              </div>
-
-              <div className="space-y-1">
-                <label className="text-gray-500 font-semibold block">Short Description</label>
-                <textarea
-                  rows={2}
-                  value={prodDescription}
-                  onChange={(e) => setProdDescription(e.target.value)}
-                  className="w-full px-3 py-2 border border-beige text-xs focus:outline-none focus:border-primary"
-                ></textarea>
-              </div>
-
-              <div className="space-y-1">
-                <label className="text-gray-500 font-semibold block">Long Detailed Description</label>
-                <textarea
-                  rows={3}
-                  value={prodLongDescription}
-                  onChange={(e) => setProdLongDescription(e.target.value)}
-                  className="w-full px-3 py-2 border border-beige text-xs focus:outline-none focus:border-primary"
-                ></textarea>
-              </div>
-
-              <div className="flex gap-6 pt-2">
-                <label className="flex items-center gap-2 cursor-pointer font-semibold">
-                  <input
-                    type="checkbox"
-                    checked={prodRequiresPrescription}
-                    onChange={(e) => setProdRequiresPrescription(e.target.checked)}
-                    className="rounded-none border-beige text-primary focus:ring-0"
-                  />
-                  <span>Requires Vet Prescription (Rx)</span>
-                </label>
-                <label className="flex items-center gap-2 cursor-pointer font-semibold">
-                  <input
-                    type="checkbox"
-                    checked={prodIsFeatured}
-                    onChange={(e) => setProdIsFeatured(e.target.checked)}
-                    className="rounded-none border-beige text-primary focus:ring-0"
-                  />
-                  <span>Featured Product</span>
-                </label>
-                <label className="flex items-center gap-2 cursor-pointer font-semibold">
-                  <input
-                    type="checkbox"
-                    checked={prodIsBestSeller}
-                    onChange={(e) => setProdIsBestSeller(e.target.checked)}
-                    className="rounded-none border-beige text-primary focus:ring-0"
-                  />
-                  <span>Bestseller</span>
-                </label>
-              </div>
-            </div>
-
-            <div className="bg-secondary px-6 py-4 border-t border-beige flex justify-end gap-3 shrink-0">
-              <button
-                type="button"
-                onClick={() => setShowProductModal(false)}
-                className="btn-secondary-premium py-2 text-xs"
-              >
-                CANCEL
-              </button>
-              <button
-                type="submit"
-                className="btn-premium py-2 text-xs"
-              >
-                SAVE CATALOG RECORD
-              </button>
-            </div>
-          </form>
-        </div>
-      )}
 
       {/* POPUP MODAL: EVALUATE PRESCRIPTION */}
       {showPrescModal && activePresc && (

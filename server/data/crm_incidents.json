@@ -1,0 +1,25 @@
+[
+  {
+    "id": "INC-101",
+    "title": "Razorpay Webhook momentary retry surge",
+    "service": "Payment Gateway",
+    "severity": "Low",
+    "status": "Resolved",
+    "details": "Occasional 429 rate limit during high concurrent checkout test. Mitigated by increasing webhook queue backoff to 1.5s.",
+    "loggedBy": "Rohan Das (Technical Support Manager)",
+    "timestamp": "2026-11-17T04:30:00.000Z",
+    "resolvedAt": "2026-11-17T05:10:00.000Z"
+  },
+  {
+    "id": "INC-102",
+    "title": "Image CDN latency for prescription uploads",
+    "service": "File Storage & Media",
+    "severity": "Medium",
+    "status": "Investigating",
+    "details": "Prescription PNG upload took 2.8s due to cold start on static asset proxy. Monitoring cache-control headers.",
+    "loggedBy": "Rohan Das (Technical Support Manager)",
+    "timestamp": "2026-11-17T07:15:00.000Z",
+    "resolvedAt": null
+  }
+]
+

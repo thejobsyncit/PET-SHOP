@@ -7,7 +7,47 @@
     "role": "SUPERADMIN",
     "addresses": [],
     "wishlist": [],
-    "cart": [],
+    "cart": [
+      {
+        "product": {
+          "id": "seller-prod-03",
+          "_id": "seller-prod-03",
+          "fee": 540,
+          "sku": "CAT-WHIS-WET-12",
+          "name": "Whiskas Ocean Fish Gourmet Wet Cat Food Pouches (Pack of 12)",
+          "slug": "whiskas-ocean-fish-gourmet-wet-cat-food-pack-12",
+          "brand": "Whiskas",
+          "breed": "",
+          "image": "https://images.unsplash.com/photo-1513360371669-4adf3dd7dff8?q=80&w=800",
+          "isPet": false,
+          "price": 540,
+          "stock": 45,
+          "title": "Whiskas Ocean Fish Gourmet Wet Cat Food Pouches (Pack of 12)",
+          "images": [
+            "https://images.unsplash.com/photo-1513360371669-4adf3dd7dff8?q=80&w=800"
+          ],
+          "rating": 0,
+          "petType": "cats",
+          "ratings": 0,
+          "category": "Cat Food",
+          "itemType": "product",
+          "isFeatured": false,
+          "numReviews": 0,
+          "description": "Delicious real ocean fish chunks in gravy packed with Omega 3 & essential taurine for felines.",
+          "ingredients": [],
+          "reviewCount": 0,
+          "subcategory": "Wet Food",
+          "isBestSeller": true,
+          "review_count": 0,
+          "discountPrice": 480,
+          "specifications": [],
+          "longDescription": "Delicious real ocean fish chunks in gravy packed with Omega 3 & essential taurine for felines.",
+          "discountPercentage": 11,
+          "requiresPrescription": false
+        },
+        "quantity": 3
+      }
+    ],
     "businessName": "JOSH PETS HUB",
     "mobile": "9876543210",
     "phone": "9876543210",

@@ -455,17 +455,36 @@ export const clearCartAPI = createAsyncThunk('cart/clearCart', async (_, thunkAP
   return { cart: [] };
 });
 
-export const applyCouponCode = createAsyncThunk('cart/applyCoupon', async (couponCode, thunkAPI) => {
+export const applyCouponCode = createAsyncThunk('cart/applyCoupon', async (couponCodeOrPayload, thunkAPI) => {
   try {
     const state = thunkAPI.getState();
-    const cartTotal = state.cart.pricing.subtotal;
+    let couponCode = '';
+    let cartTotal = 0;
+
+    if (typeof couponCodeOrPayload === 'string') {
+      couponCode = couponCodeOrPayload.trim();
+      cartTotal = state.cart.pricing.subtotal;
+    } else if (couponCodeOrPayload && typeof couponCodeOrPayload === 'object') {
+      couponCode = (couponCodeOrPayload.code || couponCodeOrPayload.couponCode || '').trim();
+      cartTotal = typeof couponCodeOrPayload.cartTotal === 'number'
+        ? couponCodeOrPayload.cartTotal
+        : state.cart.pricing.subtotal;
+    }
+
     const data = await apiRequest('/coupons/validate', {
       method: 'POST',
       body: JSON.stringify({ code: couponCode, cartTotal }),
     });
-    return data.coupon;
+
+    if (data && data.success && data.coupon) {
+      try {
+        sessionStorage.setItem('joshpetshub_applied_coupon', JSON.stringify(data.coupon));
+      } catch (_) {}
+      return data.coupon;
+    }
+    throw new Error(data?.message || 'Failed to apply offer code.');
   } catch (error) {
-    return thunkAPI.rejectWithValue(error.message);
+    return thunkAPI.rejectWithValue(error.message || 'Invalid offer code.');
   }
 });
 
@@ -475,7 +494,17 @@ const getInitialStateCart = () => {
   return getLocalCart(userKey);
 };
 
+const getInitialAppliedCoupon = () => {
+  if (typeof window === 'undefined') return null;
+  try {
+    const saved = sessionStorage.getItem('joshpetshub_applied_coupon');
+    if (saved) return JSON.parse(saved);
+  } catch (_) {}
+  return null;
+};
+
 const initialCart = getInitialStateCart();
+const initialAppliedCoupon = getInitialAppliedCoupon();
 
 const initialState = {
   items: initialCart.map(item => ({
@@ -483,8 +512,8 @@ const initialState = {
     quantity: Math.max(1, parseInt(item?.quantity, 10) || 1),
     product: normalizeCartProduct(item?.product)
   })).filter(item => item.product && (item.product._id || item.product.id)),
-  pricing: calculateTotals(initialCart, null),
-  appliedCoupon: null,
+  pricing: calculateTotals(initialCart, initialAppliedCoupon),
+  appliedCoupon: initialAppliedCoupon,
   loading: false,
   error: null,
   isCartOpen: false,
@@ -497,12 +526,29 @@ const cartSlice = createSlice({
     removeCoupon(state) {
       state.appliedCoupon = null;
       state.pricing = calculateTotals(state.items, null);
+      try {
+        sessionStorage.removeItem('joshpetshub_applied_coupon');
+      } catch (_) {}
+    },
+    setAppliedCoupon(state, action) {
+      state.appliedCoupon = action.payload;
+      state.pricing = calculateTotals(state.items, action.payload);
+      try {
+        if (action.payload) {
+          sessionStorage.setItem('joshpetshub_applied_coupon', JSON.stringify(action.payload));
+        } else {
+          sessionStorage.removeItem('joshpetshub_applied_coupon');
+        }
+      } catch (_) {}
     },
     clearCartLocal(state) {
       state.items = [];
       state.appliedCoupon = null;
       state.pricing = calculateTotals([], null);
       clearLocalCart();
+      try {
+        sessionStorage.removeItem('joshpetshub_applied_coupon');
+      } catch (_) {}
     },
     openCart(state) {
       state.isCartOpen = true;
@@ -641,5 +687,5 @@ const cartSlice = createSlice({
   },
 });
 
-export const { removeCoupon, clearCartLocal, openCart, closeCart, toggleCart, setCartOpen } = cartSlice.actions;
+export const { removeCoupon, setAppliedCoupon, clearCartLocal, openCart, closeCart, toggleCart, setCartOpen } = cartSlice.actions;
 export default cartSlice.reducer;

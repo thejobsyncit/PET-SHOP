@@ -48,6 +48,27 @@ const loadUserFromDb = async (userId, userEmail) => {
   );
   if (demoFound) return demoFound;
 
+  // 2b. Check persistent crm_users.json
+  try {
+    const crmUsersFile = path.resolve(__dirname, '../data/crm_users.json');
+    if (fs.existsSync(crmUsersFile)) {
+      const rawCrm = fs.readFileSync(crmUsersFile, 'utf8');
+      const crmUsers = JSON.parse(rawCrm);
+      if (Array.isArray(crmUsers)) {
+        const found = crmUsers.find(u => 
+          (userId && (u._id === userId || u.id === userId)) ||
+          (userEmail && u.email && u.email.toLowerCase() === userEmail.toLowerCase())
+        );
+        if (found) {
+          return {
+            ...found,
+            role: 'CRM_STAFF'
+          };
+        }
+      }
+    }
+  } catch (_) {}
+
   // 3. Check Supabase users table if available with strict 1.5s timeout fallback
   if (supabase) {
     try {
@@ -56,10 +77,14 @@ const loadUserFromDb = async (userId, userEmail) => {
         if (userId) {
           const { data: uById, error: errById } = await supabase.from('users').select('*').eq('id', userId).maybeSingle();
           if (uById && !errById) return uById;
+          const { data: cById } = await supabase.from('crm_users').select('*').eq('id', userId).maybeSingle();
+          if (cById) return { ...cById, role: 'CRM_STAFF' };
         }
         if (userEmail) {
           const { data: uByEmail, error: errByEmail } = await supabase.from('users').select('*').ilike('email', userEmail).maybeSingle();
           if (uByEmail && !errByEmail) return uByEmail;
+          const { data: cByEmail } = await supabase.from('crm_users').select('*').ilike('email', userEmail).maybeSingle();
+          if (cByEmail) return { ...cByEmail, role: 'CRM_STAFF' };
         }
         return null;
       };
@@ -176,6 +201,40 @@ export const requireRole = (...allowedRoles) => (req, res, next) => {
 export const admin = requireRole('ADMIN', 'SUPERADMIN');
 export const customerOnly = requireRole('CUSTOMER');
 export const providerOnly = requireRole('SERVICE_PROVIDER');
+
+export const canManageMarketing = (req, res, next) => {
+  if (!req.user) {
+    return res.status(401).json({ success: false, message: 'Authentication required.' });
+  }
+
+  // Superadmins and Admins have universal marketing authority
+  if (req.user.role === 'SUPERADMIN' || req.user.role === 'ADMIN') {
+    return next();
+  }
+
+  // CRM Staff with Marketing Manager role or CRM Operations Head
+  if (req.user.role === 'CRM_STAFF') {
+    const roleId = req.user.roleId || '';
+    const dept = (req.user.department || '').toLowerCase();
+    const roleName = (req.user.roleName || '').toLowerCase();
+
+    if (
+      roleId === 'crm_role_marketing' ||
+      roleId === 'crm_role_admin' ||
+      dept.includes('marketing') ||
+      dept.includes('operations') ||
+      roleName.includes('marketing') ||
+      roleName.includes('admin')
+    ) {
+      return next();
+    }
+  }
+
+  return res.status(403).json({
+    success: false,
+    message: 'Access denied: Requires Administrator or Marketing Manager role.'
+  });
+};
 
 export const canManageProducts = (req, res, next) => {
   if (!req.user) {

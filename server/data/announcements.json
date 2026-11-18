@@ -1,0 +1,88 @@
+{
+  "settings": {
+    "isEnabled": true,
+    "speed": "slow",
+    "pauseOnHover": true
+  },
+  "items": [
+    {
+      "id": "anc_1",
+      "badge": "HOT OFFER",
+      "badgeColor": "rose",
+      "icon": "🚚",
+      "text": "FREE SHIPPING ON ORDERS ABOVE ₹999",
+      "link": "/shop",
+      "ctaText": "Shop Now",
+      "highlight": true,
+      "isActive": true,
+      "order": 1,
+      "createdAt": "2026-11-16T12:00:00.000Z"
+    },
+    {
+      "id": "anc_2",
+      "badge": "SPECIAL",
+      "badgeColor": "amber",
+      "icon": "🎟️",
+      "text": "USE CODE \"PAWFIRST\" FOR 15% OFF YOUR 1ST ORDER",
+      "link": "/shop",
+      "ctaText": "Claim Offer",
+      "highlight": false,
+      "isActive": true,
+      "order": 2,
+      "createdAt": "2026-11-16T12:00:00.000Z"
+    },
+    {
+      "id": "anc_4",
+      "badge": "EXPRESS",
+      "badgeColor": "blue",
+      "icon": "⚡",
+      "text": "SAME-DAY EXPRESS DISPATCH ACROSS MAJOR METROS",
+      "link": "/shop",
+      "ctaText": "Shop Now",
+      "highlight": false,
+      "isActive": true,
+      "order": 4,
+      "createdAt": "2026-11-16T12:00:00.000Z"
+    },
+    {
+      "id": "anc_5",
+      "badge": "24/7 VET",
+      "badgeColor": "teal",
+      "icon": "🩺",
+      "text": "EMERGENCY VETERINARY STANDBY & INSTANT RX VERIFICATION",
+      "link": "/veterinary",
+      "ctaText": "Book Vet",
+      "highlight": false,
+      "isActive": true,
+      "order": 5,
+      "createdAt": "2026-11-16T12:00:00.000Z"
+    },
+    {
+      "id": "anc_6",
+      "badge": "KCI STUDS",
+      "badgeColor": "purple",
+      "icon": "🐾",
+      "text": "ETHICAL BREEDING DIRECTORY WITH PEDIGREE CERTIFICATION",
+      "link": "/breeding",
+      "ctaText": "Explore",
+      "highlight": false,
+      "isActive": true,
+      "order": 6,
+      "createdAt": "2026-11-16T12:00:00.000Z"
+    },
+    {
+      "id": "anc_1794977627920_grq6",
+      "badge": "LIMITED TIME",
+      "badgeColor": "rgb(0, 231, 255)",
+      "icon": "✨",
+      "text": "free gift",
+      "link": "/shop",
+      "ctaText": "Shop Now",
+      "highlight": true,
+      "isActive": true,
+      "order": 6,
+      "createdAt": "2026-11-18T04:53:47.920Z",
+      "updatedAt": "2026-11-18T04:53:47.920Z"
+    }
+  ]
+}

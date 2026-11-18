@@ -9,6 +9,7 @@ import { openCart, closeCart, setCartOpen } from '../../store/slices/cartSlice.j
 import { isServicePathLockedForUser } from '../ui/ServiceAccessLock.jsx';
 import toast from 'react-hot-toast';
 import LogoutConfirmModal from '../ui/LogoutConfirmModal.jsx';
+import { apiRequest } from '../../services/api.js';
 
 const Navbar = () => {
   const navigate = useNavigate();
@@ -24,10 +25,212 @@ const Navbar = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [mobileExpanded, setMobileExpanded] = useState('');
 
+  // Top Marquee Announcement Bar Dismiss State
+  const [isBannerDismissed, setIsBannerDismissed] = useState(() => {
+    try {
+      return sessionStorage.getItem('josh_top_announcement_dismissed') === 'true';
+    } catch {
+      return false;
+    }
+  });
+
+  const handleDismissBanner = () => {
+    setIsBannerDismissed(true);
+    try {
+      sessionStorage.setItem('josh_top_announcement_dismissed', 'true');
+    } catch (_) {}
+  };
+
+  const [announcements, setAnnouncements] = useState([]);
+  const [announcementSettings, setAnnouncementSettings] = useState({
+    isEnabled: true,
+    speed: 'normal',
+    pauseOnHover: true
+  });
+
+  const fetchAnnouncements = async () => {
+    try {
+      const res = await apiRequest('/announcements');
+      if (res && res.success) {
+        if (Array.isArray(res.announcements)) {
+          setAnnouncements(res.announcements);
+        }
+        if (res.settings) {
+          setAnnouncementSettings(res.settings);
+        }
+      }
+    } catch (_) {}
+  };
+
+  useEffect(() => {
+    fetchAnnouncements();
+    const handleSync = () => fetchAnnouncements();
+    window.addEventListener('announcements_updated', handleSync);
+    window.addEventListener('focus', handleSync);
+    return () => {
+      window.removeEventListener('announcements_updated', handleSync);
+      window.removeEventListener('focus', handleSync);
+    };
+  }, []);
+
+  const getAncBadgeInlineStyle = (color) => {
+    if (!color) color = 'rose';
+    const presetMap = {
+      rose: { bg: 'rgba(244, 63, 94, 0.22)', border: 'rgba(244, 63, 94, 0.55)', text: '#fda4af' },
+      red: { bg: 'rgba(239, 68, 68, 0.22)', border: 'rgba(239, 68, 68, 0.55)', text: '#fca5a5' },
+      coral: { bg: 'rgba(251, 113, 133, 0.22)', border: 'rgba(251, 113, 133, 0.55)', text: '#fda4af' },
+      orange: { bg: 'rgba(249, 115, 22, 0.22)', border: 'rgba(249, 115, 22, 0.55)', text: '#fdba74' },
+      amber: { bg: 'rgba(245, 158, 11, 0.22)', border: 'rgba(245, 158, 11, 0.55)', text: '#fcd34d' },
+      yellow: { bg: 'rgba(234, 179, 8, 0.25)', border: 'rgba(234, 179, 8, 0.65)', text: '#fef08a' },
+      gold: { bg: 'rgba(234, 179, 8, 0.25)', border: 'rgba(234, 179, 8, 0.65)', text: '#fde047' },
+      lime: { bg: 'rgba(132, 204, 22, 0.22)', border: 'rgba(132, 204, 22, 0.55)', text: '#bef264' },
+      emerald: { bg: 'rgba(16, 185, 129, 0.22)', border: 'rgba(16, 185, 129, 0.55)', text: '#6ee7b7' },
+      teal: { bg: 'rgba(20, 184, 166, 0.22)', border: 'rgba(20, 184, 166, 0.55)', text: '#5eead4' },
+      cyan: { bg: 'rgba(6, 182, 212, 0.22)', border: 'rgba(6, 182, 212, 0.55)', text: '#67e8f9' },
+      sky: { bg: 'rgba(2, 132, 199, 0.22)', border: 'rgba(2, 132, 199, 0.55)', text: '#7dd3fc' },
+      blue: { bg: 'rgba(59, 130, 246, 0.22)', border: 'rgba(59, 130, 246, 0.55)', text: '#93c5fd' },
+      indigo: { bg: 'rgba(99, 102, 241, 0.22)', border: 'rgba(99, 102, 241, 0.55)', text: '#a5b4fc' },
+      purple: { bg: 'rgba(168, 85, 247, 0.22)', border: 'rgba(168, 85, 247, 0.55)', text: '#d8b4fe' },
+      fuchsia: { bg: 'rgba(217, 70, 239, 0.22)', border: 'rgba(217, 70, 239, 0.55)', text: '#f0abfc' },
+      pink: { bg: 'rgba(236, 72, 153, 0.22)', border: 'rgba(236, 72, 153, 0.55)', text: '#f472b6' }
+    };
+
+    const lower = String(color).toLowerCase().trim();
+    if (presetMap[lower]) {
+      return {
+        backgroundColor: presetMap[lower].bg,
+        borderColor: presetMap[lower].border,
+        color: presetMap[lower].text
+      };
+    }
+
+    // Custom Hex (#RGB, #RRGGBB, or #RRGGBBAA)
+    if (lower.startsWith('#')) {
+      let hex = lower.replace('#', '');
+      if (hex.length === 3 || hex.length === 4) hex = hex.split('').map(c => c + c).join('');
+      if (hex.length === 6 || hex.length === 8) {
+        const r = parseInt(hex.substring(0, 2), 16) || 0;
+        const g = parseInt(hex.substring(2, 4), 16) || 0;
+        const b = parseInt(hex.substring(4, 6), 16) || 0;
+        const a = hex.length === 8 ? Math.round((parseInt(hex.substring(6, 8), 16) / 255) * 100) / 100 : 0.25;
+        const lum = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+        const textColor = a >= 0.6 ? (lum < 0.55 ? '#ffffff' : '#0f172a') : (lum < 0.4 ? '#ffffff' : `rgb(${Math.min(255, r + 75)}, ${Math.min(255, g + 75)}, ${Math.min(255, b + 75)})`);
+        return {
+          backgroundColor: `rgba(${r}, ${g}, ${b}, ${a})`,
+          borderColor: `rgba(${r}, ${g}, ${b}, ${Math.min(1, Math.max(0.45, a + 0.3))})`,
+          color: textColor
+        };
+      }
+    }
+
+    // Custom RGB / RGBA (rgb(...) or rgba(...))
+    if (lower.startsWith('rgb')) {
+      const match = lower.match(/[\d.]+/g);
+      if (match && match.length >= 3) {
+        const r = Math.min(255, parseInt(match[0], 10) || 0);
+        const g = Math.min(255, parseInt(match[1], 10) || 0);
+        const b = Math.min(255, parseInt(match[2], 10) || 0);
+        const a = match.length >= 4 ? Math.min(1, Math.max(0, parseFloat(match[3]) || 0.25)) : 0.25;
+        const lum = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+        const textColor = a >= 0.6 ? (lum < 0.55 ? '#ffffff' : '#0f172a') : (lum < 0.4 ? '#ffffff' : `rgb(${Math.min(255, r + 75)}, ${Math.min(255, g + 75)}, ${Math.min(255, b + 75)})`);
+        return {
+          backgroundColor: `rgba(${r}, ${g}, ${b}, ${a})`,
+          borderColor: `rgba(${r}, ${g}, ${b}, ${Math.min(1, Math.max(0.45, a + 0.3))})`,
+          color: textColor
+        };
+      }
+    }
+
+    return {
+      backgroundColor: presetMap.rose.bg,
+      borderColor: presetMap.rose.border,
+      color: presetMap.rose.text
+    };
+  };
+
+  const defaultAnnouncementItems = [
+    {
+      id: 'default_1',
+      badge: 'HOT OFFER',
+      badgeColor: 'rose',
+      icon: '🚚',
+      text: 'FREE SHIPPING ON ORDERS ABOVE ₹999',
+      link: '/shop',
+      ctaText: 'Shop Now',
+      highlight: true
+    },
+    {
+      id: 'default_2',
+      badge: 'SPECIAL',
+      badgeColor: 'amber',
+      icon: '🎟️',
+      text: 'USE CODE "PAWFIRST" FOR 15% OFF YOUR 1ST ORDER',
+      link: '/shop',
+      ctaText: 'Claim Offer',
+      highlight: false
+    },
+    {
+      id: 'default_3',
+      badge: 'VERIFIED',
+      badgeColor: 'emerald',
+      icon: '🏡',
+      text: '100% CAGE-FREE LUXURY PET HOSTELS & RESORTS',
+      link: '/hostel',
+      ctaText: 'View Hostels',
+      highlight: false
+    },
+    {
+      id: 'default_4',
+      badge: 'EXPRESS',
+      badgeColor: 'blue',
+      icon: '⚡',
+      text: 'SAME-DAY EXPRESS DISPATCH ACROSS MAJOR METROS',
+      link: '/shop',
+      ctaText: 'Shop Now',
+      highlight: false
+    },
+    {
+      id: 'default_5',
+      badge: '24/7 VET',
+      badgeColor: 'teal',
+      icon: '🩺',
+      text: 'EMERGENCY VETERINARY STANDBY & INSTANT RX VERIFICATION',
+      link: '/veterinary',
+      ctaText: 'Book Vet',
+      highlight: false
+    },
+    {
+      id: 'default_6',
+      badge: 'KCI STUDS',
+      badgeColor: 'purple',
+      icon: '🐾',
+      text: 'ETHICAL BREEDING DIRECTORY WITH PEDIGREE CERTIFICATION',
+      link: '/breeding',
+      ctaText: 'Explore',
+      highlight: false
+    }
+  ];
+
   const petsDropdownRef = useRef(null);
   const servicesDropdownRef = useRef(null);
 
-  const { isAuthenticated, user } = useSelector((state) => state.auth);
+  const { isAuthenticated: rawIsAuthenticated, user: rawUser } = useSelector((state) => state.auth);
+  const [isGuestPreview, setIsGuestPreview] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    try {
+      const urlParams = new URLSearchParams(window.location.search);
+      const hasParam = urlParams.get('preview') === 'guest' || urlParams.get('guest') === 'true';
+      if (hasParam && typeof sessionStorage !== 'undefined') {
+        sessionStorage.setItem('joshpetshub_guest_preview', 'true');
+      }
+      return hasParam || (typeof sessionStorage !== 'undefined' && sessionStorage.getItem('joshpetshub_guest_preview') === 'true');
+    } catch (_) {
+      return false;
+    }
+  });
+
+  const isAuthenticated = rawIsAuthenticated && !isGuestPreview;
+  const user = isGuestPreview ? null : rawUser;
   const cartItems = useSelector((state) => state.cart.items);
   const wishlistItems = useSelector((state) => state.wishlist.items);
 
@@ -176,10 +379,87 @@ const Navbar = () => {
     <>
       <header className="sticky top-0 left-0 w-full z-40 transition-all duration-300">
 
-        {/* Top Announcement Bar */}
-        <div className="bg-primary-dark text-white text-[10px] tracking-widest font-semibold py-2 px-4 text-center border-b border-white/5">
-          FREE SHIPPING ON ORDERS ABOVE ₹999
-        </div>
+        {/* Top Auto-Scrolling Announcement Bar (Infinite Marquee Ticker) */}
+        {!isBannerDismissed && announcementSettings.isEnabled !== false && (announcements.length > 0 ? announcements : defaultAnnouncementItems).length > 0 && (
+          <div className="relative bg-[#091D15] text-white py-1.5 overflow-hidden border-b border-white/10 select-none">
+            {/* Left fade gradient for smooth entrance */}
+            <div className="pointer-events-none absolute inset-y-0 left-0 w-8 sm:w-16 bg-gradient-to-r from-[#091D15] to-transparent z-10" />
+
+            {/* Marquee Track Container */}
+            <div className="flex items-center overflow-hidden">
+              <div 
+                className="animate-marquee-scroll flex items-center shrink-0"
+                style={{
+                  animationDuration: announcementSettings.speed === 'fast' ? '22s' : (announcementSettings.speed === 'slow' ? '48s' : '34s')
+                }}
+              >
+                {/* Render Two Identical Passes For Seamless Infinite Loop */}
+                {[
+                  ...(announcements.length > 0 ? announcements : defaultAnnouncementItems),
+                  ...(announcements.length > 0 ? announcements : defaultAnnouncementItems)
+                ].map((item, idx) => (
+                  <div key={idx} className="inline-flex items-center gap-2 mx-3 sm:mx-5 text-[11px] font-semibold tracking-wide">
+                    {/* Live indicator / Tag Pill */}
+                    <span 
+                      className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider border shadow-xs"
+                      style={getAncBadgeInlineStyle(item.badgeColor)}
+                    >
+                      <span className="relative flex h-1.5 w-1.5">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-current opacity-75"></span>
+                        <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-current"></span>
+                      </span>
+                      <span>{item.badge || 'OFFER'}</span>
+                    </span>
+
+                    {/* Emoji or Uploaded Image Icon + Message */}
+                    <span className="flex items-center gap-1.5">
+                      {item.icon && (item.icon.startsWith('/') || item.icon.startsWith('http') || item.icon.startsWith('data:')) ? (
+                        <img 
+                          src={item.icon} 
+                          alt="icon" 
+                          className="w-4 h-4 object-contain inline-block shrink-0 align-middle" 
+                          onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                        />
+                      ) : (
+                        <span className="text-sm shrink-0 inline-block align-middle">{item.icon || '📢'}</span>
+                      )}
+                      <span className={item.highlight ? 'text-white font-bold' : 'text-gray-200'}>
+                        {item.text}
+                      </span>
+                    </span>
+
+                    {/* CTA Pill button inside ticker */}
+                    {item.ctaText && (
+                      <Link
+                        to={item.link || '/shop'}
+                        className="ml-2 bg-[#D4AF37] hover:bg-[#F3E5AB] text-[#0F241C] text-[10px] font-black px-2.5 py-0.5 rounded-full shadow-xs transition active:scale-95 inline-flex items-center gap-0.5 cursor-pointer"
+                      >
+                        <span>{item.ctaText}</span>
+                        <span>→</span>
+                      </Link>
+                    )}
+
+                    {/* Separator dot */}
+                    <span className="text-white/30 text-xs ml-3 sm:ml-4 select-none">•</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Right fade gradient + Close Button */}
+            <div className="absolute inset-y-0 right-0 flex items-center pr-2 pl-8 bg-gradient-to-l from-[#091D15] via-[#091D15]/90 to-transparent z-20">
+              <button
+                type="button"
+                onClick={handleDismissBanner}
+                className="p-1 rounded-full text-white/60 hover:text-white hover:bg-white/10 transition cursor-pointer"
+                title="Dismiss announcement bar"
+                aria-label="Dismiss announcement bar"
+              >
+                <X size={13} />
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* Sticky Premium Main Navigation */}
         <nav
@@ -891,6 +1171,28 @@ const Navbar = () => {
       />
       <SearchOverlay isOpen={isSearchOpen} onClose={() => setIsSearchOpen(false)} />
       <CartDrawer isOpen={isCartOpen} onClose={() => { setIsCartOpen(false); dispatch(setCartOpen(false)); }} />
+
+      {/* Guest Mode Indicator Bar (when viewed from Superadmin "View Live Site") */}
+      {isGuestPreview && (
+        <div className="fixed bottom-4 right-4 z-[999] bg-[#1D3B2E]/95 backdrop-blur-md text-[#FAFBF9] px-4 py-2.5 rounded-full shadow-2xl border border-white/20 flex items-center gap-3 text-xs font-bold animate-in fade-in slide-in-from-bottom duration-300">
+          <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
+          <span>Public Visitor Preview (Without Login)</span>
+          <button
+            type="button"
+            onClick={() => {
+              try { sessionStorage.removeItem('joshpetshub_guest_preview'); } catch (_) {}
+              const url = new URL(window.location.href);
+              url.searchParams.delete('preview');
+              url.searchParams.delete('guest');
+              window.location.href = url.pathname + (url.search ? url.search : '');
+            }}
+            className="ml-1 text-[10px] uppercase tracking-wider bg-white/15 hover:bg-white/25 px-2.5 py-1 rounded-full cursor-pointer transition text-white"
+            title="Exit preview and restore login session"
+          >
+            Exit Guest View
+          </button>
+        </div>
+      )}
     </>
   );
 };

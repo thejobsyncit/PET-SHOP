@@ -369,3 +369,28 @@ export const deleteBlog = async (req, res) => {
     return res.status(500).json({ success: false, message: 'Server error deleting blog' });
   }
 };
+
+// @desc    Upload blog cover image (Admin only)
+// @route   POST /api/blogs/upload-cover
+// @access  Private/Admin
+export const uploadBlogCover = async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ success: false, message: 'Please select an image file to upload.' });
+    }
+
+    const fileUrl = `/uploads/${req.file.filename}`;
+
+    return res.status(200).json({
+      success: true,
+      url: fileUrl,
+      filename: req.file.filename,
+      size: req.file.size,
+      mimetype: req.file.mimetype,
+      message: 'Cover image uploaded successfully'
+    });
+  } catch (error) {
+    console.error('[Blog Upload] Error:', error);
+    return res.status(500).json({ success: false, message: error.message || 'Image upload failed' });
+  }
+};

@@ -9,6 +9,7 @@ import { fileURLToPath } from 'url';
 import fs from 'fs';
 import { supabase } from './config/supabase.js';
 import errorHandler from './middleware/errorHandler.js';
+import { verifySupabaseTables } from './utils/schemaGuard.js';
 
 // Route Imports
 import authRoutes from './routes/authRoutes.js';
@@ -33,6 +34,8 @@ import paymentRoutes from './routes/paymentRoutes.js';
 import cookieConsentRoutes from './routes/cookieConsentRoutes.js';
 import subscriptionRoutes from './routes/subscriptionRoutes.js';
 import walletPayoutRoutes from './routes/walletPayoutRoutes.js';
+import announcementRoutes from './routes/announcementRoutes.js';
+import crmRoutes from './routes/crmRoutes.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -163,6 +166,8 @@ app.use('/api/payments', paymentRoutes);
 app.use('/api/cookie-consents', cookieConsentRoutes);
 app.use('/api/subscriptions', subscriptionRoutes);
 app.use('/api/wallet-payouts', walletPayoutRoutes);
+app.use('/api/announcements', announcementRoutes);
+app.use('/api/crm', crmRoutes);
 
 // Health check endpoint
 app.get('/health', (req, res) => {
