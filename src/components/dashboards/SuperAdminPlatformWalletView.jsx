@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import {
-  Wallet, Landmark, ShieldCheck, Clock3, CheckCircle2, DollarSign,
+  Wallet, Landmark, ShieldCheck, Clock3, CheckCircle2, IndianRupee,
   TrendingUp, RefreshCw, Calendar, User, FileText, CheckCircle,
   AlertCircle, Download, ArrowUpRight, X, Check, Lock, Filter,
   Layers, ShoppingBag, Eye, FileSpreadsheet, AlertTriangle, Shield,
@@ -107,10 +107,41 @@ const SuperAdminPlatformWalletView = () => {
     }
   };
 
-  const handleDownloadPayoutReport = () => {
+  const handleDownloadReport = () => {
     try {
-      window.open('http://localhost:5001/api/wallet-payouts/admin/export-payouts-csv', '_blank');
-      toast.success('Downloading Payouts Report (CSV)...');
+      if (activeSubTab === 'ledger') {
+        const ledgerItems = platformWallet?.recentLedger || [];
+        if (ledgerItems.length === 0) {
+          toast.error('No transaction ledger records to export.');
+          return;
+        }
+        const headers = ['Ledger Ref', 'Transaction Type', 'Amount (INR)', 'Booking Ref', 'Partner / Customer', 'Platform Fee (INR)', 'Partner Share (INR)', 'Gateway Payment ID', 'Status', 'Timestamp'];
+        const rows = ledgerItems.map(tx => [
+          tx.id || '',
+          tx.type || '',
+          tx.amount || 0,
+          tx.bookingRef || tx.bookingId || '',
+          tx.customerName || tx.partnerName || tx.user?.name || '',
+          tx.platformFee || 0,
+          tx.partnerShare || 0,
+          tx.paymentId || '',
+          tx.status || 'Settled',
+          tx.timestamp ? new Date(tx.timestamp).toLocaleString('en-IN') : 'Recent'
+        ]);
+        const csvContent = [headers.join(','), ...rows.map(r => r.map(val => `"${String(val).replace(/"/g, '""')}"`).join(','))].join('\n');
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.setAttribute('href', url);
+        link.setAttribute('download', `platform_transaction_ledger_${new Date().toISOString().slice(0, 10)}.csv`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        toast.success('Downloading Central Platform Transaction Ledger (CSV)...');
+      } else {
+        window.open('http://localhost:5001/api/wallet-payouts/admin/export-payouts-csv', '_blank');
+        toast.success('Downloading Payouts Report (CSV)...');
+      }
     } catch (_) {
       toast.error('Failed to download report');
     }
@@ -142,18 +173,11 @@ const SuperAdminPlatformWalletView = () => {
             type="button"
             onClick={loadPlatformWalletData}
             disabled={isLoading}
-            className="p-2 border border-[#E3EBE5] rounded-md hover:bg-slate-100 text-slate-600 transition cursor-pointer"
+            className="btn-secondary-premium !py-2.5 !px-4 !text-[11px] font-bold tracking-wider uppercase gap-2 flex items-center border border-[#1c4b3a] rounded hover:bg-[#1c4b3a]/5 text-primary transition cursor-pointer whitespace-nowrap shadow-xs"
             title="Refresh Central Financials"
           >
-            <RefreshCw size={15} className={isLoading ? 'animate-spin text-emerald-700' : ''} />
-          </button>
-
-          <button
-            type="button"
-            onClick={handleDownloadPayoutReport}
-            className="px-3.5 py-2 bg-white hover:bg-slate-50 border border-[#E3EBE5] text-slate-700 font-bold text-xs uppercase tracking-wider rounded-md transition shadow-xs flex items-center gap-1.5 cursor-pointer"
-          >
-            <Download size={14} /> Export Report (CSV)
+            <RefreshCw size={14} className={isLoading ? 'animate-spin text-primary' : ''} />
+            <span>REFRESH</span>
           </button>
         </div>
       </div>
@@ -227,9 +251,9 @@ const SuperAdminPlatformWalletView = () => {
 
       </div>
 
-      {/* 3. Sub-Navigation Tabs & Filters */}
+      {/* 3. Sub-Navigation Tabs, Filters & Export Report */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#E3EBE5] pb-2">
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <button
             type="button"
             onClick={() => setActiveSubTab('payouts')}
@@ -255,25 +279,36 @@ const SuperAdminPlatformWalletView = () => {
           </button>
         </div>
 
-        {activeSubTab === 'payouts' && (
-          <div className="flex items-center gap-1.5 text-xs">
-            <span className="text-slate-400 font-bold uppercase text-[10px]">Filter Status:</span>
-            {['all', 'requested', 'approved', 'paid', 'rejected'].map(st => (
-              <button
-                key={st}
-                type="button"
-                onClick={() => setPayoutFilterStatus(st)}
-                className={`px-2.5 py-1 rounded-md text-[10px] font-bold uppercase transition cursor-pointer ${
-                  payoutFilterStatus === st
-                    ? 'bg-slate-800 text-white'
-                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                }`}
-              >
-                {st}
-              </button>
-            ))}
-          </div>
-        )}
+        <div className="flex items-center gap-3">
+          {activeSubTab === 'payouts' && (
+            <div className="flex items-center gap-1.5 text-xs">
+              <span className="text-slate-400 font-bold uppercase text-[10px]">Filter Status:</span>
+              {['all', 'requested', 'approved', 'paid', 'rejected'].map(st => (
+                <button
+                  key={st}
+                  type="button"
+                  onClick={() => setPayoutFilterStatus(st)}
+                  className={`px-2.5 py-1 rounded-md text-[10px] font-bold uppercase transition cursor-pointer ${
+                    payoutFilterStatus === st
+                      ? 'bg-slate-800 text-white'
+                      : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                  }`}
+                >
+                  {st}
+                </button>
+              ))}
+            </div>
+          )}
+
+          <button
+            type="button"
+            onClick={handleDownloadReport}
+            className="btn-secondary-premium !py-2 !px-3.5 !text-[11px] font-bold tracking-wider uppercase gap-2 flex items-center border border-[#1c4b3a] rounded hover:bg-[#1c4b3a]/5 text-primary transition cursor-pointer whitespace-nowrap shadow-xs"
+            title={activeSubTab === 'ledger' ? 'Export Central Transaction Ledger (CSV)' : 'Export Payout Requests (CSV)'}
+          >
+            <Download size={14} /> <span>EXPORT REPORT</span>
+          </button>
+        </div>
       </div>
 
       {/* 4. SUB-TAB 1: Payout Requests Queue Table */}

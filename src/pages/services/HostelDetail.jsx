@@ -83,8 +83,8 @@ const HostelDetail = () => {
   // Booking & Reservation State
   const [showBookingModal, setShowBookingModal] = useState(false);
   const [selectedPackage, setSelectedPackage] = useState(null);
-  const [checkInDate, setCheckInDate] = useState(tomorrowStr);
-  const [checkOutDate, setCheckOutDate] = useState(dayAfterTomorrowStr);
+  const [checkInDate, setCheckInDate] = useState('');
+  const [checkOutDate, setCheckOutDate] = useState('');
   const [petName, setPetName] = useState('');
   const [petBreed, setPetBreed] = useState('');
   const [petAge, setPetAge] = useState('Adult (1-7 Years)');
@@ -216,16 +216,24 @@ const HostelDetail = () => {
       return;
     }
 
-    if (!checkInDate || !checkOutDate) {
-      toast.error('Please select both check-in and check-out dates.');
+    if (!checkInDate) {
+      toast.error('Please select a check-in date.');
+      return;
+    }
+    if (!checkOutDate) {
+      toast.error('Please select a check-out date.');
       return;
     }
     if (new Date(checkOutDate) <= new Date(checkInDate)) {
       toast.error('Check-out date must be after check-in date.');
       return;
     }
-    if (!petName.trim() || !petBreed.trim()) {
-      toast.error('Please provide your pet name and breed.');
+    if (!petName || !petName.trim()) {
+      toast.error('Please enter your pet name.');
+      return;
+    }
+    if (!petBreed || !petBreed.trim()) {
+      toast.error('Please select your pet breed.');
       return;
     }
 
@@ -674,7 +682,7 @@ const HostelDetail = () => {
                   <label className="text-[11px] font-bold text-slate-600">Breed</label>
                   <PetBreedDropdown
                     value={petBreed}
-                    onChange={(e) => setPetBreed(e.target.value)}
+                    onChange={(val) => setPetBreed(typeof val === 'string' ? val : (val?.target?.value || ''))}
                     placeholder="Select Breed"
                     className="w-full text-xs"
                   />

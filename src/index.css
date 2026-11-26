@@ -24,6 +24,10 @@
     @apply px-8 py-3.5 bg-gradient-premium text-white font-medium text-sm tracking-widest rounded-sm border-none shadow-premium transition-all duration-300 hover:shadow-premium-hover hover:-translate-y-0.5 active:scale-[0.98] cursor-pointer inline-flex items-center justify-center uppercase;
   }
 
+  .btn-primary-premium {
+    @apply px-4 py-2 bg-[#0F2E23] hover:bg-[#184636] text-white font-bold text-xs tracking-wider rounded-lg transition-all duration-200 cursor-pointer inline-flex items-center justify-center uppercase shadow-sm hover:shadow-md active:scale-[0.98];
+  }
+
   .btn-secondary-premium {
     @apply px-8 py-3.5 bg-transparent text-primary font-medium text-sm tracking-widest rounded-sm border border-primary transition-all duration-300 hover:bg-primary hover:text-white hover:shadow-premium hover:-translate-y-0.5 active:scale-[0.98] cursor-pointer inline-flex items-center justify-center uppercase;
   }

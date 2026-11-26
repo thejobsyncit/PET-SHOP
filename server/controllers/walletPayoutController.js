@@ -14,6 +14,7 @@ import {
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { supabase } from '../config/supabase.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -315,7 +316,30 @@ export const requestPayout = async (req, res) => {
 // -----------------------------------------------------------------------------
 export const getAdminPayoutRequests = async (req, res) => {
   try {
-    const payouts = loadJson(PAYOUTS_FILE, []);
+    const diskPayouts1 = loadJson(PAYOUTS_FILE, []);
+    const diskPayouts2 = loadJson(path.join(__dirname, '..', 'data', 'provider_payouts.json'), []);
+    const map = new Map();
+    [...diskPayouts1, ...diskPayouts2].forEach(p => {
+      if (p && (p.id || p._id)) map.set(String(p.id || p._id), p);
+    });
+    let payouts = Array.from(map.values()).sort((a, b) => new Date(b.requestedAt || b.createdAt || 0) - new Date(a.requestedAt || a.createdAt || 0));
+
+    if (supabase) {
+      try {
+        const { data: dbPayouts, error } = await supabase
+          .from('provider_payouts')
+          .select('*')
+          .order('created_at', { ascending: false });
+
+        if (!error && Array.isArray(dbPayouts) && dbPayouts.length > 0) {
+          const idSet = new Set(dbPayouts.map(p => String(p.id || p._id)));
+          payouts = [...dbPayouts, ...diskPayouts.filter(p => !idSet.has(String(p.id || p._id)))];
+        }
+      } catch (sbErr) {
+        console.warn('Supabase getAdminPayoutRequests note:', sbErr?.message);
+      }
+    }
+
     return res.status(200).json({
       success: true,
       payouts
@@ -341,6 +365,25 @@ export const processPayoutRequest = async (req, res) => {
       transferReference,
       adminUser: req.user
     });
+
+    if (supabase && updatedPayout) {
+      try {
+        await supabase
+          .from('provider_payouts')
+          .update({
+            status: updatedPayout.status,
+            admin_notes: updatedPayout.adminNotes || adminNotes,
+            adminNotes: updatedPayout.adminNotes || adminNotes,
+            transfer_reference: updatedPayout.transferReference || transferReference,
+            transferReference: updatedPayout.transferReference || transferReference,
+            processed_at: new Date().toISOString(),
+            processedAt: new Date().toISOString()
+          })
+          .or(`id.eq.${payoutId}`);
+      } catch (sbErr) {
+        console.warn('Supabase payout update note:', sbErr?.message);
+      }
+    }
 
     return res.status(200).json({
       success: true,

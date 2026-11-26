@@ -1,27 +1,39 @@
 import React, { useState, useEffect } from 'react';
 import {
-  DollarSign, CreditCard, CheckCircle2, AlertTriangle, ArrowDownRight,
-  ArrowUpRight, RefreshCw, Check, X, Search, FileText, Landmark
+  IndianRupee, CreditCard, CheckCircle2, AlertTriangle, ArrowDownRight,
+  ArrowUpRight, RefreshCw, Check, X, Search, FileText, Download,
+  Filter, Calendar, Building, ChevronDown
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { apiRequest } from '../../services/api.js';
 
 const FinanceManagerView = ({ crmToken }) => {
   const [financeData, setFinanceData] = useState(null);
+  const [payouts, setPayouts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [activeFinanceTab, setActiveFinanceTab] = useState('payouts'); // 'payouts' | 'refunds'
+
+  // Refund state
   const [selectedRefund, setSelectedRefund] = useState(null);
   const [refundRemarks, setRefundRemarks] = useState('');
   const [processing, setProcessing] = useState(false);
+
+  // Payout Filters
+  const [payoutStatusFilter, setPayoutStatusFilter] = useState('All');
+  const [payoutSearch, setPayoutSearch] = useState('');
 
   const getHeaders = () => crmToken ? { headers: { Authorization: `Bearer ${crmToken}` } } : {};
 
   const loadFinance = async () => {
     setLoading(true);
     try {
-      const res = await apiRequest('/crm/finance', getHeaders());
-      if (res?.success) {
-        setFinanceData(res.finance);
-      }
+      const [finRes, payRes] = await Promise.all([
+        apiRequest('/crm/finance', getHeaders()),
+        apiRequest('/crm/finance/payouts', getHeaders())
+      ]);
+
+      if (finRes?.success) setFinanceData(finRes.finance);
+      if (payRes?.success) setPayouts(payRes.payouts || []);
     } catch (err) {
       console.warn('Failed to load finance data:', err);
     } finally {
@@ -57,8 +69,27 @@ const FinanceManagerView = ({ crmToken }) => {
     }
   };
 
+  const handleDownloadPayoutReport = () => {
+    try {
+      window.open('/api/crm/finance/payouts/export', '_blank');
+      toast.success('Downloading verified payout ledger report (CSV/Excel)...', { icon: '📊' });
+    } catch (err) {
+      toast.error('Failed to download report.');
+    }
+  };
+
   const refunds = financeData?.refunds || [];
   const pendingRefunds = refunds.filter(r => r.status === 'Pending');
+
+  const filteredPayouts = payouts.filter(p => {
+    const matchesStatus = payoutStatusFilter === 'All' || (p.status || '').toLowerCase() === payoutStatusFilter.toLowerCase();
+    const matchesSearch = !payoutSearch.trim() || (
+      (p.providerName || '').toLowerCase().includes(payoutSearch.toLowerCase()) ||
+      (p.serviceCategory || '').toLowerCase().includes(payoutSearch.toLowerCase()) ||
+      (p.id || '').toLowerCase().includes(payoutSearch.toLowerCase())
+    );
+    return matchesStatus && matchesSearch;
+  });
 
   return (
     <div className="space-y-6">
@@ -113,127 +144,241 @@ const FinanceManagerView = ({ crmToken }) => {
         </div>
       </div>
 
-      {/* Gateway & Payment Method Distribution */}
-      <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
-        <h3 className="font-bold text-slate-900 text-sm mb-3 flex items-center gap-2">
-          <Landmark size={16} className="text-[#10B981]" />
-          Payment Gateway Split & Collection Channels
-        </h3>
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          <div className="bg-slate-50 p-3 rounded-lg border border-slate-200">
-            <span className="text-[10px] font-bold uppercase text-slate-400 block mb-1">UPI / QR (Instant)</span>
-            <span className="text-xl font-bold text-slate-900 block font-mono">
-              {financeData?.paymentMethods?.UPI || 2} Orders
-            </span>
-            <span className="text-[10px] text-emerald-600 font-bold">66% Share • Zero MDR</span>
-          </div>
+      {/* Navigation Switch & Quick Actions Bar */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-4 rounded-xl border border-slate-200 shadow-xs">
+        <div className="flex items-center gap-2 bg-slate-100 p-1 rounded-lg">
+          <button
+            type="button"
+            onClick={() => setActiveFinanceTab('payouts')}
+            className={`px-4 py-2 rounded-md text-xs font-bold transition flex items-center gap-1.5 cursor-pointer ${
+              activeFinanceTab === 'payouts'
+                ? 'bg-white text-slate-900 shadow-xs'
+                : 'text-slate-500 hover:text-slate-900'
+            }`}
+          >
+            <IndianRupee size={14} className="text-emerald-600" />
+            <span>Service Provider Payouts ({payouts.length})</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveFinanceTab('refunds')}
+            className={`px-4 py-2 rounded-md text-xs font-bold transition flex items-center gap-1.5 cursor-pointer ${
+              activeFinanceTab === 'refunds'
+                ? 'bg-white text-slate-900 shadow-xs'
+                : 'text-slate-500 hover:text-slate-900'
+            }`}
+          >
+            <CreditCard size={14} className="text-rose-600" />
+            <span>Customer Refunds ({refunds.length})</span>
+          </button>
+        </div>
 
-          <div className="bg-slate-50 p-3 rounded-lg border border-slate-200">
-            <span className="text-[10px] font-bold uppercase text-slate-400 block mb-1">Razorpay Cards / EMI</span>
-            <span className="text-xl font-bold text-slate-900 block font-mono">
-              {financeData?.paymentMethods?.Cards || 1} Orders
-            </span>
-            <span className="text-[10px] text-sky-600 font-bold">25% Share • T+1 Settled</span>
-          </div>
-
-          <div className="bg-slate-50 p-3 rounded-lg border border-slate-200">
-            <span className="text-[10px] font-bold uppercase text-slate-400 block mb-1">Cash on Delivery (COD)</span>
-            <span className="text-xl font-bold text-slate-900 block font-mono">
-              {financeData?.paymentMethods?.COD || 1} Orders
-            </span>
-            <span className="text-[10px] text-amber-600 font-bold">Courier Remittance Pending</span>
-          </div>
-
-          <div className="bg-slate-50 p-3 rounded-lg border border-slate-200">
-            <span className="text-[10px] font-bold uppercase text-slate-400 block mb-1">Net Banking</span>
-            <span className="text-xl font-bold text-slate-900 block font-mono">
-              {financeData?.paymentMethods?.NetBanking || 0} Orders
-            </span>
-            <span className="text-[10px] text-slate-400 font-bold">Direct NEFT/RTGS</span>
-          </div>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={loadFinance}
+            disabled={loading}
+            className="p-2 text-slate-500 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition cursor-pointer"
+            title="Refresh Ledger"
+          >
+            <RefreshCw size={15} className={loading ? 'animate-spin' : ''} />
+          </button>
+          <button
+            type="button"
+            onClick={handleDownloadPayoutReport}
+            className="px-3.5 py-2 bg-[#0F2E23] hover:bg-[#1a4a39] text-[#D4AF37] border border-[#D4AF37]/40 rounded-lg text-xs font-bold flex items-center gap-1.5 cursor-pointer shadow-xs transition"
+          >
+            <Download size={14} />
+            <span>EXPORT PAYOUT REPORT (CSV)</span>
+          </button>
         </div>
       </div>
 
-      {/* Customer Refund Processing Queue */}
-      <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-        <div className="p-4 border-b border-slate-200 flex items-center justify-between">
-          <div>
-            <h3 className="font-bold text-slate-900 text-sm">Customer Refund Verification & Settlement Desk</h3>
-            <p className="text-xs text-slate-500">Authorize or reject refund cases raised by customers or service coordinators.</p>
-          </div>
-          <span className="text-xs font-bold text-slate-700 bg-slate-100 px-3 py-1 rounded-full">
-            {refunds.length} Lifetime Cases
-          </span>
-        </div>
+      {/* SECTION 1: SERVICE PROVIDER PAYOUT REQUESTS */}
+      {activeFinanceTab === 'payouts' && (
+        <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+          <div className="p-4 border-b border-slate-200 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+            <div>
+              <h3 className="font-bold text-slate-900 text-sm">Provider Payout Requests & Commission Settlements</h3>
+              <p className="text-xs text-slate-500">Review verified earnings, bank account routing, and release provider commission balances.</p>
+            </div>
 
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs">
-            <thead className="bg-slate-50 border-b border-slate-200 text-slate-500 font-bold uppercase tracking-wider text-[10px]">
-              <tr>
-                <th className="py-3 px-4">Case ID</th>
-                <th className="py-3 px-4">Order / Booking Ref</th>
-                <th className="py-3 px-4">Customer</th>
-                <th className="py-3 px-4">Refund Amount</th>
-                <th className="py-3 px-4">Reason Stated</th>
-                <th className="py-3 px-4">Status</th>
-                <th className="py-3 px-4 text-right">Action</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100 font-medium">
-              {refunds.length === 0 ? (
+            <div className="flex flex-wrap items-center gap-2.5 w-full sm:w-auto">
+              <select
+                value={payoutStatusFilter}
+                onChange={(e) => setPayoutStatusFilter(e.target.value)}
+                className="px-3 py-1.5 text-xs border border-slate-200 rounded-lg focus:outline-none focus:border-[#10B981] bg-white text-slate-700 font-semibold"
+              >
+                <option value="All">All Statuses</option>
+                <option value="Pending">Pending Approval</option>
+                <option value="Approved">Approved</option>
+                <option value="Processed">Processed</option>
+                <option value="Rejected">Rejected</option>
+              </select>
+
+              <div className="w-full sm:w-56">
+                <input
+                  type="text"
+                  value={payoutSearch}
+                  onChange={(e) => setPayoutSearch(e.target.value)}
+                  placeholder="Search provider, category..."
+                  className="w-full px-3 py-1.5 text-xs border border-slate-200 rounded-lg focus:outline-none focus:border-[#10B981]"
+                />
+              </div>
+            </div>
+          </div>
+
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs">
+              <thead className="bg-slate-50 border-b border-slate-200 text-slate-500 font-bold uppercase tracking-wider text-[10px]">
                 <tr>
-                  <td colSpan="7" className="py-8 text-center text-slate-400">
-                    No refund cases on record.
-                  </td>
+                  <th className="py-3 px-4">Payout ID</th>
+                  <th className="py-3 px-4">Partner Provider</th>
+                  <th className="py-3 px-4">Service Category</th>
+                  <th className="py-3 px-4">Payout Amount</th>
+                  <th className="py-3 px-4">Settlement Target</th>
+                  <th className="py-3 px-4">Requested Date</th>
+                  <th className="py-3 px-4">Status</th>
                 </tr>
-              ) : (
-                refunds.map(r => (
-                  <tr key={r.id} className="hover:bg-slate-50/70 transition">
-                    <td className="py-3 px-4 font-mono font-bold text-slate-800">{r.id}</td>
-                    <td className="py-3 px-4 font-mono text-slate-600">{r.orderId}</td>
-                    <td className="py-3 px-4">
-                      <div>
-                        <span className="font-bold text-slate-800 block">{r.customerName}</span>
-                        <span className="text-[10px] text-slate-400">{r.customerEmail}</span>
-                      </div>
-                    </td>
-                    <td className="py-3 px-4 font-mono font-bold text-slate-900">
-                      ₹{r.amount}
-                    </td>
-                    <td className="py-3 px-4 text-slate-600 max-w-xs truncate" title={r.reason}>
-                      {r.reason}
-                    </td>
-                    <td className="py-3 px-4">
-                      <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
-                        r.status === 'Approved'
-                          ? 'bg-emerald-100 text-emerald-800'
-                          : r.status === 'Rejected'
-                          ? 'bg-rose-100 text-rose-800'
-                          : 'bg-amber-100 text-amber-800'
-                      }`}>
-                        {r.status}
-                      </span>
-                    </td>
-                    <td className="py-3 px-4 text-right">
-                      {r.status === 'Pending' ? (
-                        <button
-                          type="button"
-                          onClick={() => { setSelectedRefund(r); setRefundRemarks(''); }}
-                          className="px-2.5 py-1 bg-[#10B981] hover:bg-[#059669] text-white text-xs font-bold rounded-lg transition cursor-pointer"
-                        >
-                          Review & Settle
-                        </button>
-                      ) : (
-                        <span className="text-[10px] text-slate-400 font-bold">Processed</span>
-                      )}
+              </thead>
+              <tbody className="divide-y divide-slate-100 font-medium">
+                {filteredPayouts.length === 0 ? (
+                  <tr>
+                    <td colSpan="7" className="py-8 text-center text-slate-400 italic">
+                      {payoutSearch ? `No payout requests matching "${payoutSearch}"` : 'No partner payout requests currently in queue.'}
                     </td>
                   </tr>
-                ))
-              )}
-            </tbody>
-          </table>
+                ) : (
+                  filteredPayouts.map(p => (
+                    <tr key={p.id} className="hover:bg-slate-50/70 transition">
+                      <td className="py-3 px-4 font-mono font-bold text-slate-800">{p.id}</td>
+                      <td className="py-3 px-4">
+                        <span className="font-bold text-slate-800 block">{p.providerName || 'Partner'}</span>
+                        <span className="text-[10px] text-slate-400">{p.providerEmail || ''}</span>
+                      </td>
+                      <td className="py-3 px-4 text-slate-600">{p.serviceCategory || 'Pet Care'}</td>
+                      <td className="py-3 px-4 font-mono font-black text-slate-900 text-sm">
+                        ₹{Number(p.amount || 0).toLocaleString()}
+                      </td>
+                      <td className="py-3 px-4 text-slate-600 font-mono text-[11px]">
+                        {p.bankDetails?.bankName ? (
+                          <div>
+                            <span className="font-bold block">{p.bankDetails.bankName}</span>
+                            <span className="text-slate-400">{p.bankDetails.accountNumberMasked || '••••'} ({p.bankDetails.ifsc || ''})</span>
+                          </div>
+                        ) : p.upiId ? (
+                          <span>UPI: {p.upiId}</span>
+                        ) : (
+                          <span className="text-slate-400 italic">Primary Account</span>
+                        )}
+                      </td>
+                      <td className="py-3 px-4 text-slate-500 text-[11px]">
+                        {p.requestedAt ? new Date(p.requestedAt).toLocaleDateString() : 'Recent'}
+                      </td>
+                      <td className="py-3 px-4">
+                        <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
+                          p.status === 'Processed'
+                            ? 'bg-emerald-100 text-emerald-800'
+                            : p.status === 'Approved'
+                            ? 'bg-blue-100 text-blue-800'
+                            : p.status === 'Rejected'
+                            ? 'bg-rose-100 text-rose-800'
+                            : 'bg-amber-100 text-amber-800'
+                        }`}>
+                          {p.status || 'Pending'}
+                        </span>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
-      </div>
+      )}
+
+      {/* SECTION 2: CUSTOMER REFUND VERIFICATION QUEUE */}
+      {activeFinanceTab === 'refunds' && (
+        <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+          <div className="p-4 border-b border-slate-200 flex items-center justify-between">
+            <div>
+              <h3 className="font-bold text-slate-900 text-sm">Customer Refund Verification & Settlement Desk</h3>
+              <p className="text-xs text-slate-500">Authorize or reject refund cases raised by customers or support executives.</p>
+            </div>
+            <span className="text-xs font-bold text-slate-700 bg-slate-100 px-3 py-1 rounded-full">
+              {refunds.length} Lifetime Cases
+            </span>
+          </div>
+
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs">
+              <thead className="bg-slate-50 border-b border-slate-200 text-slate-500 font-bold uppercase tracking-wider text-[10px]">
+                <tr>
+                  <th className="py-3 px-4">Case ID</th>
+                  <th className="py-3 px-4">Order / Booking Ref</th>
+                  <th className="py-3 px-4">Customer</th>
+                  <th className="py-3 px-4">Refund Amount</th>
+                  <th className="py-3 px-4">Reason Stated</th>
+                  <th className="py-3 px-4">Status</th>
+                  <th className="py-3 px-4 text-right">Action</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100 font-medium">
+                {refunds.length === 0 ? (
+                  <tr>
+                    <td colSpan="7" className="py-8 text-center text-slate-400">
+                      No refund cases on record.
+                    </td>
+                  </tr>
+                ) : (
+                  refunds.map(r => (
+                    <tr key={r.id} className="hover:bg-slate-50/70 transition">
+                      <td className="py-3 px-4 font-mono font-bold text-slate-800">{r.id}</td>
+                      <td className="py-3 px-4 font-mono text-slate-600">{r.orderId}</td>
+                      <td className="py-3 px-4">
+                        <div>
+                          <span className="font-bold text-slate-800 block">{r.customerName}</span>
+                          <span className="text-[10px] text-slate-400">{r.customerEmail}</span>
+                        </div>
+                      </td>
+                      <td className="py-3 px-4 font-mono font-bold text-slate-900">
+                        ₹{r.amount}
+                      </td>
+                      <td className="py-3 px-4 text-slate-600 max-w-xs truncate" title={r.reason}>
+                        {r.reason}
+                      </td>
+                      <td className="py-3 px-4">
+                        <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
+                          r.status === 'Approved'
+                            ? 'bg-emerald-100 text-emerald-800'
+                            : r.status === 'Rejected'
+                            ? 'bg-rose-100 text-rose-800'
+                            : 'bg-amber-100 text-amber-800'
+                        }`}>
+                          {r.status}
+                        </span>
+                      </td>
+                      <td className="py-3 px-4 text-right">
+                        {r.status === 'Pending' ? (
+                          <button
+                            type="button"
+                            onClick={() => { setSelectedRefund(r); setRefundRemarks(''); }}
+                            className="px-2.5 py-1 bg-[#10B981] hover:bg-[#059669] text-white text-xs font-bold rounded-lg transition cursor-pointer"
+                          >
+                            Review & Settle
+                          </button>
+                        ) : (
+                          <span className="text-[10px] text-slate-400 font-bold">Processed</span>
+                        )}
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
 
       {/* REFUND DECISION MODAL */}
       {selectedRefund && (
@@ -313,4 +458,3 @@ const FinanceManagerView = ({ crmToken }) => {
 };
 
 export default FinanceManagerView;
-

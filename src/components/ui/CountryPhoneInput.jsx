@@ -65,12 +65,8 @@ const CountryPhoneInput = ({
     if (phone && phone.length > newMax) {
       const truncated = phone.slice(0, newMax);
       setPhone(truncated);
-      if (setError) {
-        setError('');
-      }
-    } else if (setError && phone && phone.length < newMax) {
-      setError(`Must be exactly ${newMax} digits for ${code} (${phone.length}/${newMax})`);
-    } else if (setError) {
+    }
+    if (setError) {
       setError('');
     }
     setIsOpen(false);
@@ -109,7 +105,7 @@ const CountryPhoneInput = ({
     }
   };
 
-  // Handle strictly numerical text change
+  // Handle strictly numerical text change - never show error while typing
   const handleChange = (e) => {
     const rawValue = e.target.value;
     // Strip everything except numerical digits (0-9)
@@ -117,11 +113,28 @@ const CountryPhoneInput = ({
 
     setPhone(numericOnly);
 
+    // Clear any previous error as user is actively typing
     if (setError) {
-      if (!numericOnly && required) {
-        setError('Phone number is required *');
-      } else if (numericOnly.length < maxDigits) {
-        setError(`Must be exactly ${maxDigits} digits for ${countryCode} (${numericOnly.length}/${maxDigits})`);
+      setError('');
+    }
+  };
+
+  // Handle Focus: clean error state as soon as field is opened/focused
+  const handleFocus = () => {
+    if (setError) {
+      setError('');
+    }
+  };
+
+  // Handle Blur: validate only when user leaves the field incomplete or invalid
+  const handleBlur = () => {
+    if (setError) {
+      if (!phone) {
+        setError('');
+      } else if (phone.length < maxDigits) {
+        setError(`Must be exactly ${maxDigits} digits for ${countryCode} (${phone.length}/${maxDigits})`);
+      } else if (countryCode === '+91' && !/^[6-9]/.test(phone)) {
+        setError(`Phone number should start with 6, 7, 8, or 9 *`);
       } else {
         setError('');
       }
@@ -135,11 +148,7 @@ const CountryPhoneInput = ({
     const cleaned = cleanNumericPhone(pasteText, maxDigits);
     setPhone(cleaned);
     if (setError) {
-      if (cleaned.length < maxDigits) {
-        setError(`Must be exactly ${maxDigits} digits for ${countryCode} (${cleaned.length}/${maxDigits})`);
-      } else {
-        setError('');
-      }
+      setError('');
     }
   };
 
@@ -195,6 +204,7 @@ const CountryPhoneInput = ({
         <button
           type="button"
           disabled={disabled}
+          onMouseDown={(e) => e.preventDefault()}
           onClick={() => setIsOpen(!isOpen)}
           className="h-10 px-3 bg-slate-50 hover:bg-slate-100 active:bg-slate-200 text-slate-700 text-xs font-semibold rounded-l-xl border-r border-slate-200 flex items-center gap-1.5 cursor-pointer transition select-none shrink-0"
           title={`Selected: ${selectedCountry.country} (${selectedCountry.code}, max ${maxDigits} digits)`}
@@ -220,6 +230,8 @@ const CountryPhoneInput = ({
           placeholder={placeholder || defaultPlaceholder}
           onKeyDown={handleKeyDown}
           onChange={handleChange}
+          onFocus={handleFocus}
+          onBlur={handleBlur}
           onPaste={handlePaste}
           required={required}
           className="flex-1 px-3 py-2.5 text-xs font-semibold text-slate-800 placeholder-slate-400 bg-transparent focus:outline-none tracking-wide"

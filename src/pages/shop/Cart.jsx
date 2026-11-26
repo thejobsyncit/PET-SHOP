@@ -234,15 +234,21 @@ const Cart = () => {
                     >
                       {/* Product Thumbnail & Details */}
                       <div className="flex items-start gap-4 flex-1 min-w-0">
-                        <img 
-                          src={itemImage} 
-                          alt={item.product?.name || 'Item'} 
-                          onError={(e) => {
-                            e.currentTarget.onerror = null;
-                            e.currentTarget.src = 'https://images.unsplash.com/photo-1548199973-03cce0bbc87b?q=80&w=800';
-                          }}
-                          className="w-20 h-20 sm:w-24 sm:h-24 rounded-xl object-cover bg-gray-50 border border-beige shrink-0"
-                        />
+                        <Link 
+                          to={isPet ? `/pets/${item.product?.slug || item.product?._id || item.product?.id || pId}` : `/product/${item.product?.slug || item.product?._id || item.product?.id || pId}`}
+                          className="shrink-0 hover:opacity-90 transition block"
+                          title="View product details"
+                        >
+                          <img 
+                            src={itemImage} 
+                            alt={item.product?.name || 'Item'} 
+                            onError={(e) => {
+                              e.currentTarget.onerror = null;
+                              e.currentTarget.src = 'https://images.unsplash.com/photo-1548199973-03cce0bbc87b?q=80&w=800';
+                            }}
+                            className="w-20 h-20 sm:w-24 sm:h-24 rounded-xl object-cover bg-gray-50 border border-beige cursor-pointer"
+                          />
+                        </Link>
 
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 flex-wrap mb-1">
@@ -256,9 +262,15 @@ const Cart = () => {
                             )}
                           </div>
 
-                          <h3 className="font-bold text-sm sm:text-base text-primary truncate max-w-sm">
-                            {item.product?.name || item.product?.title || 'Product'}
-                          </h3>
+                          <Link 
+                            to={isPet ? `/pets/${item.product?.slug || item.product?._id || item.product?.id || pId}` : `/product/${item.product?.slug || item.product?._id || item.product?.id || pId}`}
+                            className="hover:text-accent transition block"
+                            title="View product details"
+                          >
+                            <h3 className="font-bold text-sm sm:text-base text-primary truncate max-w-sm cursor-pointer hover:underline">
+                              {item.product?.name || item.product?.title || 'Product'}
+                            </h3>
+                          </Link>
 
                           {item.product?.breed && (
                             <p className="text-xs text-gray-500 mt-0.5">

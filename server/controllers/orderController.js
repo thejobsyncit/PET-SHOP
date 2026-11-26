@@ -7,11 +7,17 @@ import { loadDiskProducts } from './productController.js';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const ORDERS_FILE = path.join(__dirname, '..', '..', 'server_data', 'orders.json');
+const ORDERS_DATA_FILE = path.join(__dirname, '..', 'data', 'orders.json');
 
 export const loadDiskOrders = () => {
   try {
     if (fs.existsSync(ORDERS_FILE)) {
       const content = fs.readFileSync(ORDERS_FILE, 'utf8');
+      const parsed = JSON.parse(content);
+      if (Array.isArray(parsed)) return parsed;
+    }
+    if (fs.existsSync(ORDERS_DATA_FILE)) {
+      const content = fs.readFileSync(ORDERS_DATA_FILE, 'utf8');
       const parsed = JSON.parse(content);
       if (Array.isArray(parsed)) return parsed;
     }
@@ -247,6 +253,10 @@ export const getMyOrders = async (req, res) => {
   const userId = req.user ? (req.user._id || req.user.id) : null;
   const userEmail = req.user ? req.user.email : null;
 
+  if (!userId && !userEmail) {
+    return res.json({ success: true, orders: [] });
+  }
+
   let allOrders = [];
   try {
     if (userId) {
@@ -265,10 +275,17 @@ export const getMyOrders = async (req, res) => {
   }
 
   try {
-    const diskOrders = loadDiskOrders().filter(o => 
-      (userId && (o.user_id === userId || o.userId === userId)) ||
-      (userEmail && (o.userEmail === userEmail || o.buyerEmail === userEmail))
-    );
+    const diskOrders = loadDiskOrders().filter(o => {
+      const oUserId = String(o.user_id || o.userId || '').trim();
+      if (userId && oUserId && oUserId !== 'null' && oUserId !== 'undefined' && oUserId === String(userId).trim()) {
+        return true;
+      }
+      const oEmail = (o.userEmail || o.buyerEmail || o.customer?.email || '').toLowerCase().trim();
+      if (userEmail && oEmail && oEmail === String(userEmail).toLowerCase().trim()) {
+        return true;
+      }
+      return false;
+    });
     const existingIds = new Set(allOrders.map(o => (o.id || o._id)?.toString()));
     for (const d of diskOrders) {
       const dId = (d.id || d._id)?.toString();

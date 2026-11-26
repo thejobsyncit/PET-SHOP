@@ -1,0 +1,198 @@
+[
+  {
+    "id": "perm_task_create",
+    "permissionKey": "task.create",
+    "moduleName": "Tasks",
+    "actionName": "Create",
+    "description": "Create department tasks"
+  },
+  {
+    "id": "perm_task_assign",
+    "permissionKey": "task.assign",
+    "moduleName": "Tasks",
+    "actionName": "Assign",
+    "description": "Assign tasks to department members"
+  },
+  {
+    "id": "perm_task_view_dept",
+    "permissionKey": "task.view_department",
+    "moduleName": "Tasks",
+    "actionName": "View Department",
+    "description": "View all tasks in the department"
+  },
+  {
+    "id": "perm_task_update_assigned",
+    "permissionKey": "task.update_assigned",
+    "moduleName": "Tasks",
+    "actionName": "Update Assigned",
+    "description": "Update status and notes of assigned tasks"
+  },
+  {
+    "id": "perm_task_approve",
+    "permissionKey": "task.approve",
+    "moduleName": "Tasks",
+    "actionName": "Approve",
+    "description": "Approve completed tasks submitted for review"
+  },
+  {
+    "id": "perm_task_reopen",
+    "permissionKey": "task.reopen",
+    "moduleName": "Tasks",
+    "actionName": "Reopen",
+    "description": "Reopen tasks requiring revisions"
+  },
+  {
+    "id": "perm_emp_view_dept",
+    "permissionKey": "employee.view_department",
+    "moduleName": "Employees",
+    "actionName": "View Department",
+    "description": "View employees in the department"
+  },
+  {
+    "id": "perm_emp_manage_dept",
+    "permissionKey": "employee.manage_department",
+    "moduleName": "Employees",
+    "actionName": "Manage Department",
+    "description": "Manage employee accounts within department scope"
+  },
+  {
+    "id": "perm_payment_view",
+    "permissionKey": "payment.view",
+    "moduleName": "Finance",
+    "actionName": "View Payments",
+    "description": "View customer payment transactions"
+  },
+  {
+    "id": "perm_payment_investigate",
+    "permissionKey": "payment.investigate_exceptions",
+    "moduleName": "Finance",
+    "actionName": "Investigate",
+    "description": "Investigate payment disputes and gateway exceptions"
+  },
+  {
+    "id": "perm_refund_review",
+    "permissionKey": "refund.view_complaints",
+    "moduleName": "Finance",
+    "actionName": "Review Complaints",
+    "description": "Review customer refund complaints"
+  },
+  {
+    "id": "perm_refund_validate",
+    "permissionKey": "refund.validate",
+    "moduleName": "Finance",
+    "actionName": "Validate Refund",
+    "description": "Validate refund calculations and evidence"
+  },
+  {
+    "id": "perm_refund_initiate",
+    "permissionKey": "refund.initiate_authorized",
+    "moduleName": "Finance",
+    "actionName": "Initiate Refund",
+    "description": "Initiate approved refunds"
+  },
+  {
+    "id": "perm_refund_approve",
+    "permissionKey": "refund.approve",
+    "moduleName": "Finance",
+    "actionName": "Approve Refund",
+    "description": "Final authorization to approve refunds"
+  },
+  {
+    "id": "perm_payout_verify",
+    "permissionKey": "payout.verify",
+    "moduleName": "Finance",
+    "actionName": "Verify Payout",
+    "description": "Verify provider earnings and payout requests"
+  },
+  {
+    "id": "perm_payout_prepare",
+    "permissionKey": "payout.prepare_authorized",
+    "moduleName": "Finance",
+    "actionName": "Prepare Payout",
+    "description": "Batch payout transactions"
+  },
+  {
+    "id": "perm_payout_approve",
+    "permissionKey": "payout.approve",
+    "moduleName": "Finance",
+    "actionName": "Approve Payout",
+    "description": "Final authorization to release provider payouts"
+  },
+  {
+    "id": "perm_provider_view",
+    "permissionKey": "provider.view_all",
+    "moduleName": "Providers",
+    "actionName": "View Providers",
+    "description": "View service provider roster"
+  },
+  {
+    "id": "perm_provider_verify",
+    "permissionKey": "provider.verify",
+    "moduleName": "Providers",
+    "actionName": "Verify Credentials",
+    "description": "Verify provider certifications and licenses"
+  },
+  {
+    "id": "perm_booking_view",
+    "permissionKey": "booking.view_all",
+    "moduleName": "Bookings",
+    "actionName": "View Bookings",
+    "description": "View all platform bookings"
+  },
+  {
+    "id": "perm_booking_update",
+    "permissionKey": "booking.update_status",
+    "moduleName": "Bookings",
+    "actionName": "Update Status",
+    "description": "Update booking fulfillment status"
+  },
+  {
+    "id": "perm_quality_inspect",
+    "permissionKey": "quality.inspect",
+    "moduleName": "Quality",
+    "actionName": "Inspect",
+    "description": "Conduct quality inspections"
+  },
+  {
+    "id": "perm_audit_submit",
+    "permissionKey": "audit.submit_findings",
+    "moduleName": "Quality",
+    "actionName": "Submit Findings",
+    "description": "Submit service audit findings"
+  },
+  {
+    "id": "perm_policy_draft",
+    "permissionKey": "policy.draft",
+    "moduleName": "Quality",
+    "actionName": "Draft Policy",
+    "description": "Draft platform standards and SOPs"
+  },
+  {
+    "id": "perm_campaign_create",
+    "permissionKey": "campaign.create_draft",
+    "moduleName": "Marketing",
+    "actionName": "Create Draft",
+    "description": "Create marketing campaign drafts"
+  },
+  {
+    "id": "perm_campaign_approve",
+    "permissionKey": "campaign.approve",
+    "moduleName": "Marketing",
+    "actionName": "Approve Campaign",
+    "description": "Authorize campaign launch and budget"
+  },
+  {
+    "id": "perm_report_view_dept",
+    "permissionKey": "report.view_department",
+    "moduleName": "Reports",
+    "actionName": "View Reports",
+    "description": "View department operational reports"
+  },
+  {
+    "id": "perm_role_manage",
+    "permissionKey": "role.manage",
+    "moduleName": "Roles",
+    "actionName": "Manage Roles",
+    "description": "Manage roles and designations"
+  }
+]

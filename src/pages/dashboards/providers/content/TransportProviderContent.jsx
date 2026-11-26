@@ -416,7 +416,7 @@ const TransportProviderContent = ({ activeTab, user, subscription, onOpenSubscri
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-4 border-b border-slate-100 pb-4 sm:pb-5">
           <div>
             <div className="flex items-center gap-2 flex-wrap">
-              <h2 className="text-xl sm:text-2xl font-sans font-black text-[#0F2E23]">
+              <h2 className="text-xl sm:text-2xl font-sans font-black text-[#0F2E23] tracking-tight lining-nums tabular-nums">
                 {myService && !isEditingService ? 'My Transport Service Listing' : 'Post Your Transport Service'}
               </h2>
               <span className="bg-emerald-100 text-emerald-800 text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full">
@@ -894,7 +894,7 @@ const TransportProviderContent = ({ activeTab, user, subscription, onOpenSubscri
         
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-4 border-b border-slate-100 pb-4 sm:pb-5">
           <div>
-            <h2 className="text-xl sm:text-2xl font-sans font-black text-[#0F2E23]">Transport Bookings & Active Trips</h2>
+            <h2 className="text-xl sm:text-2xl font-sans font-black text-[#0F2E23] tracking-tight lining-nums tabular-nums">Transport Bookings & Active Trips</h2>
             <p className="text-xs text-slate-500 mt-0.5">Track scheduled doorstep pickups, inter-city relocations, and trip statuses.</p>
           </div>
 
@@ -1223,7 +1223,7 @@ const TransportProviderContent = ({ activeTab, user, subscription, onOpenSubscri
         
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-4 border-b border-slate-100 pb-4 sm:pb-5">
           <div>
-            <h2 className="text-xl sm:text-2xl font-sans font-black text-[#0F2E23]">Fleet Vehicles & Pricing Rates</h2>
+            <h2 className="text-xl sm:text-2xl font-sans font-black text-[#0F2E23] tracking-tight lining-nums tabular-nums">Fleet Vehicles & Pricing Rates</h2>
             <p className="text-xs text-slate-500 mt-0.5">Manage your air-conditioned vehicles, sanitization schedules, and per-km pricing.</p>
           </div>
 
@@ -1389,7 +1389,7 @@ const TransportProviderContent = ({ activeTab, user, subscription, onOpenSubscri
       <div className="space-y-5 sm:space-y-6 animate-in fade-in duration-300">
         
         <div className="border-b border-slate-100 pb-4 sm:pb-5">
-          <h2 className="text-xl sm:text-2xl font-sans font-black text-[#0F2E23]">Client Relocation Inquiries</h2>
+          <h2 className="text-xl sm:text-2xl font-sans font-black text-[#0F2E23] tracking-tight lining-nums tabular-nums">Client Relocation Inquiries</h2>
           <p className="text-xs text-slate-500 mt-0.5">Respond to pet parents requesting custom quotes for inter-state and city relocations.</p>
         </div>
 
@@ -1581,7 +1581,7 @@ const TransportProviderContent = ({ activeTab, user, subscription, onOpenSubscri
       <div className="space-y-5 sm:space-y-6 animate-in fade-in duration-300">
         
         <div className="border-b border-slate-100 pb-4 sm:pb-5">
-          <h2 className="text-xl sm:text-2xl font-sans font-black text-[#0F2E23]">Transport Agency Profile</h2>
+          <h2 className="text-xl sm:text-2xl font-sans font-black text-[#0F2E23] tracking-tight lining-nums tabular-nums">Transport Agency Profile</h2>
           <p className="text-xs text-slate-500 mt-0.5">Manage your agency licensing, operating hub addresses, and emergency helplines.</p>
         </div>
 

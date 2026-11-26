@@ -133,6 +133,55 @@ export const normalizeProduct = (p) => {
   };
 };
 
+export const sortProductList = (products = [], sortType = 'date_desc') => {
+  if (!Array.isArray(products) || products.length === 0) return [];
+  const list = [...products];
+
+  const getEffectivePrice = (p) => {
+    const d = Number(p.discountPrice ?? p.discount_price);
+    const pr = Number(p.price) || 0;
+    return (!isNaN(d) && d > 0 && d < pr) ? d : pr;
+  };
+
+  const getRating = (p) => Number(p.rating ?? p.ratings ?? 0);
+  const getReviewCount = (p) => Number(p.reviewCount ?? p.review_count ?? p.numReviews ?? 0);
+
+  switch (sortType) {
+    case 'price_asc':
+      return list.sort((a, b) => getEffectivePrice(a) - getEffectivePrice(b));
+    case 'price_desc':
+      return list.sort((a, b) => getEffectivePrice(b) - getEffectivePrice(a));
+    case 'rating_desc':
+      return list.sort((a, b) => {
+        const rDiff = getRating(b) - getRating(a);
+        if (Math.abs(rDiff) > 0.01) return rDiff;
+        return getReviewCount(b) - getReviewCount(a);
+      });
+    case 'bestseller':
+      return list.sort((a, b) => {
+        const bA = (a.isBestSeller ?? a.is_bestseller) ? 1 : 0;
+        const bB = (b.isBestSeller ?? b.is_bestseller) ? 1 : 0;
+        if (bA !== bB) return bB - bA;
+        return getRating(b) - getRating(a);
+      });
+    case 'featured':
+      return list.sort((a, b) => {
+        const fA = (a.isFeatured ?? a.is_featured) ? 1 : 0;
+        const fB = (b.isFeatured ?? b.is_featured) ? 1 : 0;
+        if (fA !== fB) return fB - fA;
+        return new Date(b.createdAt || b.created_at || 0) - new Date(a.createdAt || a.created_at || 0);
+      });
+    case 'date_desc':
+    default:
+      return list.sort((a, b) => {
+        const dateA = new Date(a.createdAt || a.created_at || 0).getTime();
+        const dateB = new Date(b.createdAt || b.created_at || 0).getTime();
+        if (dateA && dateB && dateA !== dateB) return dateB - dateA;
+        return String(b.id || b._id || '').localeCompare(String(a.id || a._id || ''));
+      });
+  }
+};
+
 const getCachedProducts = () => {
   try {
     let seller = [];
@@ -171,6 +220,9 @@ const initialState = {
     minPrice: '',
     maxPrice: '',
     rating: '',
+    requiresPrescription: '',
+    isFeatured: '',
+    isBestSeller: '',
     search: '',
     sort: 'date_desc',
   },
@@ -188,6 +240,15 @@ const productSlice = createSlice({
         ...state.filters,
         ...action.payload
       };
+      if (typeof action.payload?.page === 'number') {
+        state.page = action.payload.page;
+      } else if (!action.payload?.pageOnly) {
+        state.page = 1;
+      }
+      const activeSort = action.payload?.sort || state.filters.sort || 'date_desc';
+      if (Array.isArray(state.items) && state.items.length > 0) {
+        state.items = sortProductList(state.items, activeSort);
+      }
     },
     resetFilters(state) {
       state.filters = {
@@ -198,9 +259,13 @@ const productSlice = createSlice({
         minPrice: '',
         maxPrice: '',
         rating: '',
+        requiresPrescription: '',
+        isFeatured: '',
+        isBestSeller: '',
         search: '',
         sort: 'date_desc',
       };
+      state.page = 1;
     },
     clearProductDetail(state) {
       state.currentProduct = null;
@@ -290,11 +355,25 @@ const productSlice = createSlice({
           if (Array.isArray(sellerProducts) && sellerProducts.length > 0) {
             const existingIds = new Set(merged.map(p => p.id || p._id));
             const existingSlugs = new Set(merged.map(p => p.slug));
-            const extra = sellerProducts.filter(p => !existingIds.has(p.id || p._id) && !existingSlugs.has(p.slug)).map(normalizeProduct);
+            const extra = sellerProducts
+              .filter(p => !existingIds.has(p.id || p._id) && !existingSlugs.has(p.slug))
+              .map(normalizeProduct)
+              .filter(p => {
+                if (state.filters.petType && state.filters.petType !== 'all') {
+                  const pPet = String(p.petType || p.pet_type || '').toLowerCase();
+                  if (pPet && !pPet.startsWith(state.filters.petType.toLowerCase().slice(0, 3))) return false;
+                }
+                if (state.filters.brand) {
+                  const brands = state.filters.brand.split(',').map(b => b.trim().toLowerCase());
+                  const pBrand = String(p.brand || '').toLowerCase();
+                  if (brands.length > 0 && !brands.some(b => pBrand.includes(b))) return false;
+                }
+                return true;
+              });
             merged = [...extra, ...merged];
           }
         } catch (_) {}
-        state.items = merged;
+        state.items = sortProductList(merged, state.filters.sort || 'date_desc');
         state.total = action.payload.total ?? merged.length;
         state.page = action.payload.page || 1;
         state.pages = action.payload.pages || 1;

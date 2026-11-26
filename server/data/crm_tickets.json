@@ -8,7 +8,7 @@
     "subject": "Inquiry about Royal Canin Maxi Adult Delivery Schedule",
     "category": "Order & Shipping",
     "priority": "Medium",
-    "status": "In Progress",
+    "status": "Resolved",
     "assignedTo": "Kavya Menon",
     "assignedToId": "crm_usr_102",
     "messages": [
@@ -26,7 +26,7 @@
       }
     ],
     "createdAt": "2026-11-16T14:30:00.000Z",
-    "updatedAt": "2026-11-16T15:10:00.000Z"
+    "updatedAt": "2026-11-20T18:09:13.637Z"
   },
   {
     "id": "TICK-7002",
@@ -37,7 +37,7 @@
     "subject": "Hostel Booking: Special Diet Instructions for Golden Retriever",
     "category": "Pet Services",
     "priority": "High",
-    "status": "Open",
+    "status": "Resolved",
     "assignedTo": "Pooja Sharma",
     "assignedToId": "crm_usr_101",
     "messages": [
@@ -49,7 +49,7 @@
       }
     ],
     "createdAt": "2026-11-17T08:15:00.000Z",
-    "updatedAt": "2026-11-17T08:15:00.000Z"
+    "updatedAt": "2026-11-21T02:36:34.253Z"
   },
   {
     "id": "TICK-7003",
@@ -75,4 +75,3 @@
     "updatedAt": "2026-11-17T09:40:00.000Z"
   }
 ]
-

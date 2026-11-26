@@ -34,14 +34,50 @@ export const safeSetItem = (key, value) => {
   }
 };
 
+export const safeRemoveItem = (key) => {
+  try {
+    if (typeof localStorage !== 'undefined') {
+      localStorage.removeItem(key);
+    }
+  } catch (_) {}
+};
+
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { apiRequest } from '../../services/api.js';
 import { setCookie, getCookie, deleteCookie } from '../../utils/cookieUtils.js';
 
-// Helper to reliably read membership from all available client storage layers
-export const readPersistedMembership = () => {
+// Helper to reliably read membership from client storage layers, strictly scoped to the user
+export const readPersistedMembership = (targetUser = null) => {
   try {
-    let raw = localStorage.getItem('pawora_user_membership');
+    const cleanEmail = (targetUser?.email || '').trim().toLowerCase();
+    if (!cleanEmail) return null;
+
+    const isValid = (mem) => {
+      if (!mem || typeof mem !== 'object') return false;
+      if (mem.status !== 'ACTIVE' && !mem.tier) return false;
+      // Must be genuinely paid with verified payment status and non-zero paid amount
+      const isPaid = (mem.paymentStatus === 'PAID' || mem.paymentStatus === 'Paid') && (Number(mem.totalPaid) > 0 || mem.isPaid === true);
+      if (!isPaid) return false;
+      if (!mem.transactionId || mem.transactionId === 'TXN-ACTIVE' || mem.transactionId === 'TXN_PET_69033320') {
+        return false;
+      }
+      const memEmail = (mem.userEmail || mem.customerEmail || mem.email || '').trim().toLowerCase();
+      if (!memEmail || memEmail !== cleanEmail) {
+        return false;
+      }
+      return true;
+    };
+
+    // 1. User-scoped storage key
+    const userKey = `pawora_user_membership_${cleanEmail}`;
+    let scoped = safeGetItem(userKey) || localStorage.getItem(userKey);
+    if (scoped) {
+      const parsedScoped = typeof scoped === 'string' ? JSON.parse(scoped) : scoped;
+      if (isValid(parsedScoped)) return parsedScoped;
+    }
+
+    // 2. Global storage - only if strictly valid and owned by this user
+    let raw = safeGetItem('pawora_user_membership') || localStorage.getItem('pawora_user_membership');
     if (!raw && typeof sessionStorage !== 'undefined') {
       try { raw = sessionStorage.getItem('pawora_user_membership'); } catch (_) {}
     }
@@ -50,15 +86,22 @@ export const readPersistedMembership = () => {
     }
     if (raw) {
       const parsed = typeof raw === 'string' ? JSON.parse(raw) : raw;
-      if (parsed && (parsed.status === 'ACTIVE' || parsed.tier)) {
-        return parsed;
+      if (isValid(parsed)) {
+        const memEmail = (parsed.userEmail || parsed.customerEmail || parsed.email || '').trim().toLowerCase();
+        if (memEmail && memEmail === cleanEmail) {
+          return parsed;
+        }
       }
     }
-    const rawUser = localStorage.getItem('joshpetshub_user');
+
+    const rawUser = safeGetItem('joshpetshub_user') || localStorage.getItem('joshpetshub_user');
     if (rawUser) {
       const parsedUser = typeof rawUser === 'string' ? JSON.parse(rawUser) : rawUser;
-      if (parsedUser?.serviceMembership && (parsedUser.serviceMembership.status === 'ACTIVE' || parsedUser.serviceMembership.tier)) {
-        return parsedUser.serviceMembership;
+      if (parsedUser?.serviceMembership && isValid(parsedUser.serviceMembership)) {
+        const pEmail = (parsedUser.email || '').trim().toLowerCase();
+        if (pEmail && pEmail === cleanEmail) {
+          return parsedUser.serviceMembership;
+        }
       }
     }
   } catch (_) {}
@@ -163,8 +206,6 @@ const getInitialUser = () => {
     const saved = localStorage.getItem('joshpetshub_user');
     const sellerAvatar = localStorage.getItem('joshpetshub_seller_avatar');
     const sellerName = localStorage.getItem('joshpetshub_seller_name');
-    const activeMem = readPersistedMembership();
-
     if (saved) {
       const parsed = JSON.parse(saved);
       if (parsed.serviceCategory === 'Pet Seller' || parsed._id === 'prov-seller-04') {
@@ -192,34 +233,38 @@ const getInitialUser = () => {
           parsed.phone = parsed.phone || cachedPhone;
         }
       }
+      const userIdKey = String(parsed._id || parsed.id || '').trim();
       let cachedAddresses = [];
-      if (emailKey) {
+      const keysToCheck = [
+        emailKey && `joshpetshub_addresses_${emailKey}`,
+        userIdKey && `joshpetshub_addresses_${userIdKey}`
+      ].filter(Boolean);
+
+      for (const k of keysToCheck) {
         try {
-          const raw = localStorage.getItem(`joshpetshub_addresses_${emailKey}`);
-          if (raw) cachedAddresses = JSON.parse(raw);
+          const raw = localStorage.getItem(k);
+          if (raw) {
+            const arr = JSON.parse(raw);
+            if (Array.isArray(arr)) cachedAddresses.push(...arr);
+          }
         } catch (_) {}
       }
-      parsed.addresses = mergeUserAddresses(parsed.addresses, cachedAddresses, emailKey);
-      if (activeMem) {
-        parsed.serviceMembership = activeMem;
-      }
-      return parsed;
-    }
 
-    if (activeMem) {
       try {
-        const reg = JSON.parse(localStorage.getItem('joshpetshub_registered_users') || '[]');
-        if (Array.isArray(reg) && reg.length > 0) {
-          const lastUser = reg[reg.length - 1];
-          if (lastUser?.email) {
-            return {
-              ...lastUser,
-              serviceMembership: activeMem
-            };
-          }
+        const regUsers = JSON.parse(localStorage.getItem('joshpetshub_registered_users') || '[]');
+        const regMatch = regUsers.find(u => 
+          (emailKey && u.email && u.email.toLowerCase().trim() === emailKey) ||
+          (userIdKey && (String(u._id) === userIdKey || String(u.id) === userIdKey))
+        );
+        if (Array.isArray(regMatch?.addresses)) {
+          cachedAddresses.push(...regMatch.addresses);
         }
       } catch (_) {}
-      return null;
+
+      parsed.addresses = mergeUserAddresses(parsed.addresses, cachedAddresses, emailKey);
+      const userMem = parsed.serviceMembership || readPersistedMembership(parsed);
+      parsed.serviceMembership = userMem || null;
+      return parsed;
     }
 
     return null;
@@ -256,32 +301,54 @@ export const register = createAsyncThunk('auth/register', async (userData, thunk
   } catch (e) {}
 
   try {
+    // Purge any stale unauthenticated / previous-user membership so new registration starts 100% clean
+    try {
+      safeRemoveItem('pawora_user_membership');
+      localStorage.removeItem('pawora_user_membership');
+      if (typeof sessionStorage !== 'undefined') {
+        sessionStorage.removeItem('pawora_user_membership');
+      }
+      deleteCookie('pawora_user_membership');
+      if (candidateEmail) {
+        safeRemoveItem(`pawora_user_membership_${candidateEmail}`);
+        localStorage.removeItem(`pawora_user_membership_${candidateEmail}`);
+      }
+    } catch (_) {}
+
     const data = await apiRequest('/auth/register', {
       method: 'POST',
       body: JSON.stringify(userData),
     });
     safeSetItem('joshpetshub_token', data.token);
     if (data.user) {
-      safeSetItem('joshpetshub_user', JSON.stringify(sanitizeUserForStorage(data.user)));
-      // Ensure freshly registered user starts with 0 stale transport/relocation entries in local cache
+      // Newly registered users have zero paid memberships or active subscriptions until paid
+      data.user.serviceMembership = null;
+      data.user.subscription = null;
+      data.user.addresses = [];
+      safeRemoveItem('joshpetshub_addresses_backup');
+      try { localStorage.removeItem('joshpetshub_addresses_backup'); } catch(_) {}
+      if (candidateEmail) {
+        safeRemoveItem(`joshpetshub_addresses_${candidateEmail}`);
+        try { localStorage.removeItem(`joshpetshub_addresses_${candidateEmail}`); } catch(_) {}
+      }
+      // Ensure stale bookings from previous session are cleared for new user
+      safeRemoveItem('joshpetshub_vet_appointments');
+      safeRemoveItem('joshpetshub_grooming_bookings_v1');
+      safeRemoveItem('joshpetshub_hostel_bookings_v1');
+      safeRemoveItem('joshpetshub_walking_bookings_v1');
+      safeRemoveItem('joshpetshub_training_bookings');
+      safeRemoveItem('joshpetshub_transport_bookings');
+      safeRemoveItem('joshpetshub_transport_enquiries');
       try {
-        const tEnqs = JSON.parse(localStorage.getItem('joshpetshub_transport_enquiries') || '[]');
-        if (Array.isArray(tEnqs) && tEnqs.length > 0) {
-          const cleanTEnqs = tEnqs.filter(e => {
-            const eEmail = (e.userEmail || e.customerEmail || e.ownerEmail || e.email || '').toLowerCase().trim();
-            return eEmail !== candidateEmail;
-          });
-          localStorage.setItem('joshpetshub_transport_enquiries', JSON.stringify(cleanTEnqs));
-        }
-        const tBks = JSON.parse(localStorage.getItem('joshpetshub_transport_bookings') || '[]');
-        if (Array.isArray(tBks) && tBks.length > 0) {
-          const cleanTBks = tBks.filter(b => {
-            const bEmail = (b.userEmail || b.customerEmail || b.ownerEmail || b.email || '').toLowerCase().trim();
-            return bEmail !== candidateEmail;
-          });
-          localStorage.setItem('joshpetshub_transport_bookings', JSON.stringify(cleanTBks));
-        }
-      } catch (_e) {}
+        localStorage.removeItem('joshpetshub_vet_appointments');
+        localStorage.removeItem('joshpetshub_grooming_bookings_v1');
+        localStorage.removeItem('joshpetshub_hostel_bookings_v1');
+        localStorage.removeItem('joshpetshub_walking_bookings_v1');
+        localStorage.removeItem('joshpetshub_training_bookings');
+        localStorage.removeItem('joshpetshub_transport_bookings');
+        localStorage.removeItem('joshpetshub_transport_enquiries');
+      } catch (_) {}
+      safeSetItem('joshpetshub_user', JSON.stringify(sanitizeUserForStorage(data.user)));
       try {
         const existing = JSON.parse(localStorage.getItem('joshpetshub_registered_users') || '[]');
         const filtered = existing.filter(u => (u?.email || '').trim().toLowerCase() !== candidateEmail);
@@ -310,21 +377,39 @@ export const login = createAsyncThunk('auth/login', async (credentials, thunkAPI
     safeSetItem('joshpetshub_token', data.token);
     if (data.user) {
       const emailKey = (data.user.email || rawId || '').toLowerCase().trim();
-      let cachedAddresses = [];
-      if (emailKey) {
-        try {
-          const raw = localStorage.getItem(`joshpetshub_addresses_${emailKey}`);
-          if (raw) cachedAddresses = JSON.parse(raw);
-        } catch (_) {}
-      }
-      const userAddresses = mergeUserAddresses(cachedAddresses, data.user.addresses, emailKey);
+      const userIdKey = String(data.user._id || data.user.id || '').trim();
+      const mobileKey = String(data.user.mobile || data.user.phone || cleanMobile || '').replace(/\D/g, '');
 
       // Merge any previously saved user data (avatar, name, phone, addresses, membership)
       let cachedProfile = null;
       try {
         const reg = JSON.parse(localStorage.getItem('joshpetshub_registered_users') || '[]');
-        cachedProfile = reg.find(u => (u.email && u.email.toLowerCase() === emailKey) || (u.mobile && u.mobile === cleanMobile));
+        cachedProfile = reg.find(u => 
+          (emailKey && u.email && u.email.toLowerCase() === emailKey) || 
+          (userIdKey && (String(u._id) === userIdKey || String(u.id) === userIdKey))
+        );
       } catch (_) {}
+
+      let cachedAddresses = [];
+      const keysToCheck = [
+        emailKey && `joshpetshub_addresses_${emailKey}`,
+        userIdKey && `joshpetshub_addresses_${userIdKey}`
+      ].filter(Boolean);
+
+      for (const k of keysToCheck) {
+        try {
+          const raw = localStorage.getItem(k);
+          if (raw) {
+            const arr = JSON.parse(raw);
+            if (Array.isArray(arr)) cachedAddresses.push(...arr);
+          }
+        } catch (_) {}
+      }
+      if (Array.isArray(cachedProfile?.addresses)) {
+        cachedAddresses.push(...cachedProfile.addresses);
+      }
+
+      const userAddresses = mergeUserAddresses(cachedAddresses, data.user.addresses, emailKey);
 
       const cachedAvatar = emailKey ? localStorage.getItem(`joshpetshub_avatar_${emailKey}`) : null;
       const cachedPhone = emailKey ? localStorage.getItem(`joshpetshub_phone_${emailKey}`) : null;
@@ -334,7 +419,7 @@ export const login = createAsyncThunk('auth/login', async (credentials, thunkAPI
       if (emailKey && finalPhone) {
         safeSetItem(`joshpetshub_phone_${emailKey}`, finalPhone);
       }
-      const rawMem = readPersistedMembership();
+      const rawMem = readPersistedMembership(data.user);
       const finalMem = data.user.serviceMembership || cachedProfile?.serviceMembership || rawMem || null;
 
       data.user = {
@@ -352,9 +437,100 @@ export const login = createAsyncThunk('auth/login', async (credentials, thunkAPI
       if (emailKey && finalAvatar) {
         safeSetItem(`joshpetshub_avatar_${emailKey}`, finalAvatar);
       }
-      if (emailKey && userAddresses.length > 0) {
-        safeSetItem(`joshpetshub_addresses_${emailKey}`, JSON.stringify(userAddresses));
+      if (userAddresses.length > 0) {
+        if (emailKey) safeSetItem(`joshpetshub_addresses_${emailKey}`, JSON.stringify(userAddresses));
+        if (userIdKey) safeSetItem(`joshpetshub_addresses_${userIdKey}`, JSON.stringify(userAddresses));
       }
+      safeRemoveItem('joshpetshub_addresses_backup');
+      try { localStorage.removeItem('joshpetshub_addresses_backup'); } catch(_) {}
+
+      // Restore user-scoped relocation enquiries and bookings
+      try {
+        const isDummyMobile = !mobileKey || mobileKey === '9876543210' || mobileKey === '9000000000';
+        const tKeysToCheck = [
+          emailKey && `joshpetshub_transport_enquiries_${emailKey}`,
+          userIdKey && userIdKey !== 'usr-custom' && `joshpetshub_transport_enquiries_${userIdKey}`,
+          !isDummyMobile && mobileKey && mobileKey.length >= 10 && `joshpetshub_transport_enquiries_${mobileKey}`
+        ].filter(Boolean);
+        let userTEnqs = [];
+        for (const tk of tKeysToCheck) {
+          try {
+            const rawTk = localStorage.getItem(tk);
+            if (rawTk) {
+              const arr = JSON.parse(rawTk);
+              if (Array.isArray(arr)) userTEnqs.push(...arr);
+            }
+          } catch (_) {}
+        }
+        if (Array.isArray(cachedProfile?.transportEnquiries)) {
+          userTEnqs.push(...cachedProfile.transportEnquiries);
+        }
+
+        // Strictly keep only items belonging to this user
+        userTEnqs = userTEnqs.filter(item => {
+          const iEmail = (item.userEmail || item.customerEmail || item.ownerEmail || item.email || '').toLowerCase().trim();
+          const iId = String(item.userId || item.customerId || '').trim();
+          if (emailKey && iEmail && emailKey !== iEmail) return false;
+          if (userIdKey && userIdKey !== 'usr-custom' && iId && iId !== 'usr-custom' && userIdKey !== iId) return false;
+          if (emailKey && iEmail && emailKey === iEmail) return true;
+          if (userIdKey && userIdKey !== 'usr-custom' && iId && iId === userIdKey) return true;
+          return false;
+        });
+
+        if (userTEnqs.length > 0) {
+          const currentTEnqs = JSON.parse(localStorage.getItem('joshpetshub_transport_enquiries') || '[]');
+          const tMap = new Map();
+          for (const item of [...userTEnqs, ...(Array.isArray(currentTEnqs) ? currentTEnqs : [])]) {
+            const kid = item.id || item._id;
+            if (kid && !tMap.has(kid)) {
+              tMap.set(kid, item);
+            }
+          }
+          safeSetItem('joshpetshub_transport_enquiries', JSON.stringify(Array.from(tMap.values())));
+        }
+
+        const tbKeysToCheck = [
+          emailKey && `joshpetshub_transport_bookings_${emailKey}`,
+          userIdKey && userIdKey !== 'usr-custom' && `joshpetshub_transport_bookings_${userIdKey}`,
+          !isDummyMobile && mobileKey && mobileKey.length >= 10 && `joshpetshub_transport_bookings_${mobileKey}`
+        ].filter(Boolean);
+        let userTBks = [];
+        for (const tbk of tbKeysToCheck) {
+          try {
+            const rawTbk = localStorage.getItem(tbk);
+            if (rawTbk) {
+              const arr = JSON.parse(rawTbk);
+              if (Array.isArray(arr)) userTBks.push(...arr);
+            }
+          } catch (_) {}
+        }
+        if (Array.isArray(cachedProfile?.transportBookings)) {
+          userTBks.push(...cachedProfile.transportBookings);
+        }
+
+        // Strictly keep only items belonging to this user
+        userTBks = userTBks.filter(item => {
+          const iEmail = (item.userEmail || item.customerEmail || item.ownerEmail || item.email || '').toLowerCase().trim();
+          const iId = String(item.userId || item.customerId || '').trim();
+          if (emailKey && iEmail && emailKey !== iEmail) return false;
+          if (userIdKey && userIdKey !== 'usr-custom' && iId && iId !== 'usr-custom' && userIdKey !== iId) return false;
+          if (emailKey && iEmail && emailKey === iEmail) return true;
+          if (userIdKey && userIdKey !== 'usr-custom' && iId && iId === userIdKey) return true;
+          return false;
+        });
+
+        if (userTBks.length > 0) {
+          const currentTBks = JSON.parse(localStorage.getItem('joshpetshub_transport_bookings') || '[]');
+          const tbMap = new Map();
+          for (const item of [...userTBks, ...(Array.isArray(currentTBks) ? currentTBks : [])]) {
+            const kid = item.id || item._id;
+            if (kid && !tbMap.has(kid)) {
+              tbMap.set(kid, item);
+            }
+          }
+          safeSetItem('joshpetshub_transport_bookings', JSON.stringify(Array.from(tbMap.values())));
+        }
+      } catch (_) {}
     }
     return data;
   } catch (error) {
@@ -385,8 +561,82 @@ export const login = createAsyncThunk('auth/login', async (credentials, thunkAPI
             return syncData;
           }
         } catch (_) {}
+
+        // Even if register sync failed (e.g. offline/network down), authenticate locally
+        const localUser = {
+          ...matchedLocal,
+          id: matchedLocal._id || matchedLocal.id || 'usr-local',
+          _id: matchedLocal._id || matchedLocal.id || 'usr-local',
+        };
+        const localToken = 'local-offline-token';
+        safeSetItem('joshpetshub_token', localToken);
+        safeSetItem('joshpetshub_user', JSON.stringify(sanitizeUserForStorage(localUser)));
+        return { success: true, token: localToken, user: localUser };
       }
     } catch (_) {}
+
+    // Built-in Super Admin & Admin demo accounts fallback when backend network is unavailable
+    const lowerRawId = rawId.toLowerCase();
+    if (lowerRawId === 'superadmin@joshpetshub.com' && password === 'SuperAdmin@123') {
+      const demoSuperAdmin = {
+        _id: '60d5ec49ad70591244000000',
+        id: '60d5ec49ad70591244000000',
+        name: 'JOSH PETS HUB Superadmin',
+        email: 'superadmin@joshpetshub.com',
+        role: 'SUPERADMIN',
+        mobile: '9876543210',
+        phone: '9876543210',
+        businessName: 'JOSH PETS HUB',
+        verificationStatus: 'Verified',
+        cart: [],
+        wishlist: [],
+        addresses: []
+      };
+      const token = 'demo-superadmin-token';
+      safeSetItem('joshpetshub_token', token);
+      safeSetItem('joshpetshub_user', JSON.stringify(sanitizeUserForStorage(demoSuperAdmin)));
+      return { success: true, token, user: demoSuperAdmin };
+    }
+
+    if (lowerRawId === 'admin@joshpetshub.com' && password === 'Admin@123') {
+      const demoAdmin = {
+        _id: 'admin-01',
+        id: 'admin-01',
+        name: 'Administrator',
+        email: 'admin@joshpetshub.com',
+        role: 'ADMIN',
+        mobile: '9845000001',
+        phone: '9845000001',
+        businessName: 'JOSH PETS HUB',
+        verificationStatus: 'Verified',
+        cart: [],
+        wishlist: [],
+        addresses: []
+      };
+      const token = 'demo-admin-token';
+      safeSetItem('joshpetshub_token', token);
+      safeSetItem('joshpetshub_user', JSON.stringify(sanitizeUserForStorage(demoAdmin)));
+      return { success: true, token, user: demoAdmin };
+    }
+
+    if (lowerRawId === 'dr.ramesh@joshpetshub.com' && password === 'Pass@1234') {
+      const demoVet = {
+        _id: 'prov-vet-01',
+        id: 'prov-vet-01',
+        name: 'Dr. Ramesh Kumar',
+        businessName: 'Dr. Ramesh Kumar Pet Clinic',
+        email: 'dr.ramesh@joshpetshub.com',
+        role: 'SERVICE_PROVIDER',
+        serviceCategory: 'Consult a Vet',
+        mobile: '9845012345',
+        phone: '9845012345',
+        verificationStatus: 'Verified'
+      };
+      const token = 'demo-prov-vet-token';
+      safeSetItem('joshpetshub_token', token);
+      safeSetItem('joshpetshub_user', JSON.stringify(sanitizeUserForStorage(demoVet)));
+      return { success: true, token, user: demoVet };
+    }
 
     return thunkAPI.rejectWithValue(error?.message || 'Invalid email or password.');
   }
@@ -396,7 +646,7 @@ export const fetchProfile = createAsyncThunk('auth/fetchProfile', async (_, thun
   try {
     const token = localStorage.getItem('joshpetshub_token');
     const saved = getInitialUser();
-    const existingMembership = saved?.serviceMembership || readPersistedMembership();
+    const existingMembership = saved?.serviceMembership || readPersistedMembership(saved);
     
     if (token) {
       try {
@@ -406,59 +656,180 @@ export const fetchProfile = createAsyncThunk('auth/fetchProfile', async (_, thun
           const sellerAvatar = isPetSeller ? localStorage.getItem('joshpetshub_seller_avatar') : null;
           const sellerName = isPetSeller ? localStorage.getItem('joshpetshub_seller_name') : null;
           const emailKey = (data.user.email || '').toLowerCase().trim();
+          const userIdKey = String(data.user._id || data.user.id || '').trim();
+          const mobileKey = String(data.user.mobile || data.user.phone || '').replace(/\D/g, '');
+
+          let cachedProfile = null;
+          try {
+            const regUsers = JSON.parse(localStorage.getItem('joshpetshub_registered_users') || '[]');
+            cachedProfile = regUsers.find(u => 
+              (emailKey && u.email && u.email.toLowerCase() === emailKey) ||
+              (userIdKey && (String(u._id) === userIdKey || String(u.id) === userIdKey))
+            );
+          } catch (_) {}
+
           let cachedAddresses = [];
-          if (emailKey) {
+          const keysToCheck = [
+            emailKey && `joshpetshub_addresses_${emailKey}`,
+            userIdKey && `joshpetshub_addresses_${userIdKey}`
+          ].filter(Boolean);
+
+          for (const k of keysToCheck) {
             try {
-              const raw = localStorage.getItem(`joshpetshub_addresses_${emailKey}`);
-              if (raw) cachedAddresses = JSON.parse(raw);
+              const raw = localStorage.getItem(k);
+              if (raw) {
+                const arr = JSON.parse(raw);
+                if (Array.isArray(arr)) cachedAddresses.push(...arr);
+              }
             } catch (_) {}
           }
+          if (Array.isArray(cachedProfile?.addresses)) {
+            cachedAddresses.push(...cachedProfile.addresses);
+          }
+
+          const sameUserSaved = Boolean(saved && (
+            (emailKey && (saved.email || '').toLowerCase().trim() === emailKey) ||
+            (userIdKey && String(saved._id || saved.id || '').trim() === userIdKey)
+          ));
+          const priorSavedAddresses = sameUserSaved && Array.isArray(saved.addresses) ? saved.addresses : [];
+
           const userAddresses = mergeUserAddresses(
-            [...(saved?.addresses || []), ...cachedAddresses],
+            [...priorSavedAddresses, ...cachedAddresses],
             data.user.addresses,
             emailKey
           );
           const cachedAvatar = emailKey ? localStorage.getItem(`joshpetshub_avatar_${emailKey}`) : null;
           const cachedPhone = emailKey ? localStorage.getItem(`joshpetshub_phone_${emailKey}`) : null;
-          const finalAvatar = sellerAvatar || data.user.avatar || saved?.avatar || cachedAvatar || null;
-          const finalPhone = data.user.mobile || data.user.phone || saved?.mobile || saved?.phone || cachedPhone || '';
+          const finalAvatar = sellerAvatar || data.user.avatar || (sameUserSaved ? saved?.avatar : null) || cachedAvatar || null;
+          const finalPhone = data.user.mobile || data.user.phone || (sameUserSaved ? (saved?.mobile || saved?.phone) : '') || cachedPhone || '';
           if (emailKey && finalPhone) {
             safeSetItem(`joshpetshub_phone_${emailKey}`, finalPhone);
           }
           const finalUser = {
-            ...saved,
+            ...(sameUserSaved ? saved : {}),
             ...data.user,
             mobile: finalPhone,
             phone: finalPhone,
             avatar: finalAvatar,
             profilePicture: finalAvatar,
-            name: sellerName || data.user.name || saved?.name,
-            businessName: data.user.businessName || saved?.businessName || sellerName || data.user.name,
-            breedingLicense: data.user.breedingLicense || saved?.breedingLicense || '',
-            kennelName: data.user.kennelName || saved?.kennelName || '',
-            bio: data.user.bio || saved?.bio || '',
-            govtProofType: data.user.govtProofType || saved?.govtProofType || '',
-            govtProofNumber: data.user.govtProofNumber || saved?.govtProofNumber || '',
-            experienceYears: data.user.experienceYears || saved?.experienceYears || 1,
-            emergencyHelpline: data.user.emergencyHelpline || saved?.emergencyHelpline || '',
-            degrees: data.user.degrees || saved?.degrees || '',
-            vciRegistration: data.user.vciRegistration || saved?.vciRegistration || '',
-            certifications: data.user.certifications || saved?.certifications || '',
-            capacity: data.user.capacity || saved?.capacity || '',
-            trainingSpecialization: data.user.trainingSpecialization || saved?.trainingSpecialization || '',
-            vehicleTypes: data.user.vehicleTypes || saved?.vehicleTypes || '',
+            name: sellerName || data.user.name || (sameUserSaved ? saved?.name : data.user.name),
+            businessName: data.user.businessName || (sameUserSaved ? saved?.businessName : '') || sellerName || data.user.name,
+            breedingLicense: data.user.breedingLicense || (sameUserSaved ? saved?.breedingLicense : '') || '',
+            kennelName: data.user.kennelName || (sameUserSaved ? saved?.kennelName : '') || '',
+            bio: data.user.bio || (sameUserSaved ? saved?.bio : '') || '',
+            govtProofType: data.user.govtProofType || (sameUserSaved ? saved?.govtProofType : '') || '',
+            govtProofNumber: data.user.govtProofNumber || (sameUserSaved ? saved?.govtProofNumber : '') || '',
+            experienceYears: data.user.experienceYears || (sameUserSaved ? saved?.experienceYears : 1) || 1,
+            emergencyHelpline: data.user.emergencyHelpline || (sameUserSaved ? saved?.emergencyHelpline : '') || '',
+            degrees: data.user.degrees || (sameUserSaved ? saved?.degrees : '') || '',
+            vciRegistration: data.user.vciRegistration || (sameUserSaved ? saved?.vciRegistration : '') || '',
+            certifications: data.user.certifications || (sameUserSaved ? saved?.certifications : '') || '',
+            capacity: data.user.capacity || (sameUserSaved ? saved?.capacity : '') || '',
+            trainingSpecialization: data.user.trainingSpecialization || (sameUserSaved ? saved?.trainingSpecialization : '') || '',
+            vehicleTypes: data.user.vehicleTypes || (sameUserSaved ? saved?.vehicleTypes : '') || '',
             addresses: userAddresses,
-            serviceMembership: existingMembership || data.user.serviceMembership || saved?.serviceMembership || null,
-            subscription: data.user.subscription || saved?.subscription || null,
-            isProfileComplete: Boolean(data.user.isProfileComplete || saved?.isProfileComplete)
+            serviceMembership: data.user.serviceMembership || existingMembership || null,
+            subscription: data.user.subscription || (sameUserSaved ? saved?.subscription : null) || null,
+            isProfileComplete: Boolean(data.user.isProfileComplete || (sameUserSaved ? saved?.isProfileComplete : false))
           };
           safeSetItem('joshpetshub_user', JSON.stringify(sanitizeUserForStorage(finalUser)));
           if (emailKey && finalAvatar) {
             safeSetItem(`joshpetshub_avatar_${emailKey}`, finalAvatar);
           }
-          if (emailKey && userAddresses.length > 0) {
-            safeSetItem(`joshpetshub_addresses_${emailKey}`, JSON.stringify(userAddresses));
+          if (userAddresses.length > 0) {
+            if (emailKey) safeSetItem(`joshpetshub_addresses_${emailKey}`, JSON.stringify(userAddresses));
+            if (userIdKey) safeSetItem(`joshpetshub_addresses_${userIdKey}`, JSON.stringify(userAddresses));
           }
+          safeRemoveItem('joshpetshub_addresses_backup');
+          try { localStorage.removeItem('joshpetshub_addresses_backup'); } catch(_) {}
+
+          // Restore user-scoped relocation enquiries and bookings
+          try {
+            const isDummyMobile = !mobileKey || mobileKey === '9876543210' || mobileKey === '9000000000';
+            const tKeysToCheck = [
+              emailKey && `joshpetshub_transport_enquiries_${emailKey}`,
+              userIdKey && userIdKey !== 'usr-custom' && `joshpetshub_transport_enquiries_${userIdKey}`,
+              !isDummyMobile && mobileKey && mobileKey.length >= 10 && `joshpetshub_transport_enquiries_${mobileKey}`
+            ].filter(Boolean);
+            let userTEnqs = [];
+            for (const tk of tKeysToCheck) {
+              try {
+                const rawTk = localStorage.getItem(tk);
+                if (rawTk) {
+                  const arr = JSON.parse(rawTk);
+                  if (Array.isArray(arr)) userTEnqs.push(...arr);
+                }
+              } catch (_) {}
+            }
+            if (Array.isArray(cachedProfile?.transportEnquiries)) {
+              userTEnqs.push(...cachedProfile.transportEnquiries);
+            }
+
+            // Strictly keep only items belonging to this user
+            userTEnqs = userTEnqs.filter(item => {
+              const iEmail = (item.userEmail || item.customerEmail || item.ownerEmail || item.email || '').toLowerCase().trim();
+              const iId = String(item.userId || item.customerId || '').trim();
+              if (emailKey && iEmail && emailKey !== iEmail) return false;
+              if (userIdKey && userIdKey !== 'usr-custom' && iId && iId !== 'usr-custom' && userIdKey !== iId) return false;
+              if (emailKey && iEmail && emailKey === iEmail) return true;
+              if (userIdKey && userIdKey !== 'usr-custom' && iId && iId === userIdKey) return true;
+              return false;
+            });
+
+            if (userTEnqs.length > 0) {
+              const currentTEnqs = JSON.parse(localStorage.getItem('joshpetshub_transport_enquiries') || '[]');
+              const tMap = new Map();
+              for (const item of [...userTEnqs, ...(Array.isArray(currentTEnqs) ? currentTEnqs : [])]) {
+                const kid = item.id || item._id;
+                if (kid && !tMap.has(kid)) {
+                  tMap.set(kid, item);
+                }
+              }
+              safeSetItem('joshpetshub_transport_enquiries', JSON.stringify(Array.from(tMap.values())));
+            }
+
+            const tbKeysToCheck = [
+              emailKey && `joshpetshub_transport_bookings_${emailKey}`,
+              userIdKey && userIdKey !== 'usr-custom' && `joshpetshub_transport_bookings_${userIdKey}`,
+              !isDummyMobile && mobileKey && mobileKey.length >= 10 && `joshpetshub_transport_bookings_${mobileKey}`
+            ].filter(Boolean);
+            let userTBks = [];
+            for (const tbk of tbKeysToCheck) {
+              try {
+                const rawTbk = localStorage.getItem(tbk);
+                if (rawTbk) {
+                  const arr = JSON.parse(rawTbk);
+                  if (Array.isArray(arr)) userTBks.push(...arr);
+                }
+              } catch (_) {}
+            }
+            if (Array.isArray(cachedProfile?.transportBookings)) {
+              userTBks.push(...cachedProfile.transportBookings);
+            }
+
+            // Strictly keep only items belonging to this user
+            userTBks = userTBks.filter(item => {
+              const iEmail = (item.userEmail || item.customerEmail || item.ownerEmail || item.email || '').toLowerCase().trim();
+              const iId = String(item.userId || item.customerId || '').trim();
+              if (emailKey && iEmail && emailKey !== iEmail) return false;
+              if (userIdKey && userIdKey !== 'usr-custom' && iId && iId !== 'usr-custom' && userIdKey !== iId) return false;
+              if (emailKey && iEmail && emailKey === iEmail) return true;
+              if (userIdKey && userIdKey !== 'usr-custom' && iId && iId === userIdKey) return true;
+              return false;
+            });
+
+            if (userTBks.length > 0) {
+              const currentTBks = JSON.parse(localStorage.getItem('joshpetshub_transport_bookings') || '[]');
+              const tbMap = new Map();
+              for (const item of [...userTBks, ...(Array.isArray(currentTBks) ? currentTBks : [])]) {
+                const kid = item.id || item._id;
+                if (kid && !tbMap.has(kid)) {
+                  tbMap.set(kid, item);
+                }
+              }
+              safeSetItem('joshpetshub_transport_bookings', JSON.stringify(Array.from(tbMap.values())));
+            }
+          } catch (_) {}
           return { user: finalUser };
         }
       } catch (backendError) {
@@ -580,7 +951,7 @@ export const updateProfile = createAsyncThunk('auth/updateProfile', async (profi
       profilePicture: finalAvatar,
       mobile: finalPhone,
       phone: finalPhone,
-      serviceMembership: saved.serviceMembership || readPersistedMembership() || null
+      serviceMembership: saved?.serviceMembership || readPersistedMembership(saved) || null
     };
     if (targetPassword) {
       updated.password = targetPassword;
@@ -684,6 +1055,8 @@ export const addUserAddress = createAsyncThunk('auth/addUserAddress', async (add
   const state = thunkAPI.getState();
   const currentUser = state.auth.user || getInitialUser();
   const emailKey = (currentUser?.email || '').toLowerCase().trim();
+  const userIdKey = String(currentUser?._id || currentUser?.id || '').trim();
+  const mobileKey = String(currentUser?.mobile || currentUser?.phone || '').replace(/\D/g, '');
 
   const currentAddresses = Array.isArray(currentUser?.addresses) ? currentUser.addresses : [];
   const newAddress = normalizeAddress({
@@ -706,19 +1079,32 @@ export const addUserAddress = createAsyncThunk('auth/addUserAddress', async (add
   }
 
   // If re-adding an address previously marked removed, clear it from removed set
-  if (emailKey) {
+  const cleanSig = `${(newAddress.name || '').toLowerCase().trim()}|${(newAddress.streetAddress || '').toLowerCase().trim()}|${(newAddress.postalCode || '').trim()}`;
+  const unmarkKeys = [
+    emailKey && `joshpetshub_removed_addresses_${emailKey}`,
+    userIdKey && `joshpetshub_removed_addresses_${userIdKey}`
+  ].filter(Boolean);
+  for (const rk of unmarkKeys) {
     try {
-      const removed = JSON.parse(localStorage.getItem(`joshpetshub_removed_addresses_${emailKey}`) || '[]');
-      const sig = `${(newAddress.name || '').toLowerCase().trim()}|${(newAddress.streetAddress || '').toLowerCase().trim()}|${(newAddress.postalCode || '').trim()}`;
-      const filtered = removed.filter(r => r !== String(newAddress._id).toLowerCase() && r !== String(newAddress.id).toLowerCase() && r !== sig);
-      safeSetItem(`joshpetshub_removed_addresses_${emailKey}`, JSON.stringify(filtered));
+      const removed = JSON.parse(localStorage.getItem(rk) || '[]');
+      const filtered = removed.filter(r => r !== String(newAddress._id).toLowerCase() && r !== String(newAddress.id).toLowerCase() && r !== cleanSig);
+      safeSetItem(rk, JSON.stringify(filtered));
     } catch (_) {}
   }
 
   let cached = [];
-  if (emailKey) {
+  const keysToCheck = [
+    emailKey && `joshpetshub_addresses_${emailKey}`,
+    userIdKey && `joshpetshub_addresses_${userIdKey}`
+  ].filter(Boolean);
+
+  for (const k of keysToCheck) {
     try {
-      cached = JSON.parse(localStorage.getItem(`joshpetshub_addresses_${emailKey}`) || '[]');
+      const raw = localStorage.getItem(k);
+      if (raw) {
+        const arr = JSON.parse(raw);
+        if (Array.isArray(arr)) cached.push(...arr);
+      }
     } catch (_) {}
   }
 
@@ -728,15 +1114,17 @@ export const addUserAddress = createAsyncThunk('auth/addUserAddress', async (add
   }
 
   let finalAddresses;
-  if (backendAddresses && backendAddresses.length > baseList.length) {
+  if (backendAddresses && Array.isArray(backendAddresses)) {
     finalAddresses = mergeUserAddresses(baseList, backendAddresses, emailKey);
   } else {
     finalAddresses = mergeUserAddresses(baseList, [newAddress], emailKey);
   }
 
-  if (emailKey) {
-    safeSetItem(`joshpetshub_addresses_${emailKey}`, JSON.stringify(finalAddresses));
+  for (const k of keysToCheck) {
+    safeSetItem(k, JSON.stringify(finalAddresses));
   }
+  safeRemoveItem('joshpetshub_addresses_backup');
+  try { localStorage.removeItem('joshpetshub_addresses_backup'); } catch(_) {}
 
   return { success: true, addresses: finalAddresses };
 });
@@ -745,6 +1133,7 @@ export const removeUserAddress = createAsyncThunk('auth/removeUserAddress', asyn
   const state = thunkAPI.getState();
   const currentUser = state.auth.user || getInitialUser();
   const emailKey = (currentUser?.email || '').toLowerCase().trim();
+  const userIdKey = String(currentUser?._id || currentUser?.id || '').trim();
 
   try {
     await apiRequest(`/auth/address/${addressId}`, {
@@ -758,25 +1147,40 @@ export const removeUserAddress = createAsyncThunk('auth/removeUserAddress', asyn
   const removedAddress = currentAddresses.find(a => String(a._id) === String(addressId) || String(a.id) === String(addressId));
   const removedSig = removedAddress ? `${(removedAddress.name || '').toLowerCase().trim()}|${(removedAddress.streetAddress || '').toLowerCase().trim()}|${(removedAddress.postalCode || '').trim()}` : null;
 
-  if (emailKey) {
+  const markKeys = [
+    emailKey && `joshpetshub_removed_addresses_${emailKey}`,
+    userIdKey && `joshpetshub_removed_addresses_${userIdKey}`
+  ].filter(Boolean);
+
+  for (const rk of markKeys) {
     try {
-      const removed = JSON.parse(localStorage.getItem(`joshpetshub_removed_addresses_${emailKey}`) || '[]');
+      const removed = JSON.parse(localStorage.getItem(rk) || '[]');
       if (addressId && !removed.includes(String(addressId).toLowerCase())) {
         removed.push(String(addressId).toLowerCase());
       }
       if (removedSig && !removed.includes(removedSig)) {
         removed.push(removedSig);
       }
-      safeSetItem(`joshpetshub_removed_addresses_${emailKey}`, JSON.stringify(removed));
+      safeSetItem(rk, JSON.stringify(removed));
     } catch (_) {}
   }
 
   let cached = [];
-  if (emailKey) {
+  const keysToCheck = [
+    emailKey && `joshpetshub_addresses_${emailKey}`,
+    userIdKey && `joshpetshub_addresses_${userIdKey}`
+  ].filter(Boolean);
+
+  for (const k of keysToCheck) {
     try {
-      cached = JSON.parse(localStorage.getItem(`joshpetshub_addresses_${emailKey}`) || '[]');
+      const raw = localStorage.getItem(k);
+      if (raw) {
+        const arr = JSON.parse(raw);
+        if (Array.isArray(arr)) cached.push(...arr);
+      }
     } catch (_) {}
   }
+
   const mergedCurrent = mergeUserAddresses(currentAddresses, cached, emailKey);
 
   const updatedAddresses = mergedCurrent.filter(a => {
@@ -792,9 +1196,11 @@ export const removeUserAddress = createAsyncThunk('auth/removeUserAddress', asyn
     updatedAddresses[0].isDefault = true;
   }
 
-  if (emailKey) {
-    safeSetItem(`joshpetshub_addresses_${emailKey}`, JSON.stringify(updatedAddresses));
+  for (const k of keysToCheck) {
+    safeSetItem(k, JSON.stringify(updatedAddresses));
   }
+  safeRemoveItem('joshpetshub_addresses_backup');
+  try { localStorage.removeItem('joshpetshub_addresses_backup'); } catch(_) {}
 
   return { success: true, addresses: updatedAddresses };
 });
@@ -905,46 +1311,46 @@ const authSlice = createSlice({
     },
     setServiceMembership(state, action) {
       const mem = action.payload;
+      const userEmail = (state.user?.email || mem?.userEmail || '').trim().toLowerCase();
+      const userId = state.user?._id || mem?.userId;
+
       if (state.user) {
         state.user = {
           ...state.user,
           serviceMembership: mem
         };
         safeSetItem('joshpetshub_user', JSON.stringify(sanitizeUserForStorage(state.user)));
-      } else {
-        let actualEmail = '';
-        let actualName = 'User';
-        try {
-          const reg = JSON.parse(localStorage.getItem('joshpetshub_registered_users') || '[]');
-          if (Array.isArray(reg) && reg.length > 0) {
-            actualEmail = reg[reg.length - 1]?.email || '';
-            actualName = reg[reg.length - 1]?.name || 'User';
-          }
-        } catch (_) {}
+      } else if (mem?.userEmail) {
         const fallbackUser = {
-          _id: 'user_active',
-          name: actualName,
-          email: actualEmail,
+          _id: mem.userId || 'user_active',
+          name: 'User',
+          email: mem.userEmail,
           role: 'CUSTOMER',
           serviceMembership: mem,
           addresses: []
         };
         state.user = fallbackUser;
-        state.isAuthenticated = Boolean(actualEmail);
+        state.isAuthenticated = true;
         safeSetItem('joshpetshub_user', JSON.stringify(sanitizeUserForStorage(fallbackUser)));
       }
-      const memStr = JSON.stringify(mem);
-      safeSetItem('pawora_user_membership', memStr);
-      try {
-        sessionStorage.setItem('pawora_user_membership', memStr);
-        setCookie('pawora_user_membership', memStr, 365);
-      } catch (_) {}
+
+      if (mem) {
+        const memStr = JSON.stringify(mem);
+        safeSetItem('pawora_user_membership', memStr);
+        if (userEmail) {
+          safeSetItem(`pawora_user_membership_${userEmail}`, memStr);
+        }
+        try {
+          sessionStorage.setItem('pawora_user_membership', memStr);
+          setCookie('pawora_user_membership', memStr, 365);
+        } catch (_) {}
+      }
 
       try {
         const regUsers = JSON.parse(localStorage.getItem('joshpetshub_registered_users') || '[]');
-        if (Array.isArray(regUsers) && regUsers.length > 0) {
+        if (Array.isArray(regUsers) && regUsers.length > 0 && (userEmail || userId)) {
           regUsers.forEach(u => {
-            if (!state.user || u.email === state.user.email || u.mobile === state.user.mobile || u._id === state.user._id) {
+            if ((userEmail && u.email && u.email.toLowerCase() === userEmail) || (userId && u._id === userId)) {
               u.serviceMembership = mem;
             }
           });
@@ -953,13 +1359,133 @@ const authSlice = createSlice({
       } catch (_) {}
     },
     logout(state) {
+      const userEmail = (state.user?.email || '').trim().toLowerCase();
+      const userId = String(state.user?._id || state.user?.id || '').trim().toLowerCase();
+      const userMobile = String(state.user?.mobile || state.user?.phone || '').replace(/\D/g, '');
+
+      // Ensure active user's cart, wishlist, and addresses are safely preserved in scoped storage before clearing session
+      try {
+        const activeCartRaw = (userId && localStorage.getItem(`joshpetshub_cart_${userId}`)) || 
+                              (userEmail && localStorage.getItem(`joshpetshub_cart_${userEmail}`)) || 
+                              localStorage.getItem('joshpetshub_cart');
+        const activeWishRaw = (userId && localStorage.getItem(`joshpetshub_wishlist_${userId}`)) || 
+                              (userEmail && localStorage.getItem(`joshpetshub_wishlist_${userEmail}`)) || 
+                              localStorage.getItem('joshpetshub_wishlist');
+        
+        if (activeCartRaw && activeCartRaw !== '[]' && activeCartRaw !== 'null') {
+          if (userEmail) localStorage.setItem(`joshpetshub_cart_${userEmail}`, activeCartRaw);
+          if (userId) localStorage.setItem(`joshpetshub_cart_${userId}`, activeCartRaw);
+        }
+        if (activeWishRaw && activeWishRaw !== '[]' && activeWishRaw !== 'null') {
+          if (userEmail) localStorage.setItem(`joshpetshub_wishlist_${userEmail}`, activeWishRaw);
+          if (userId) localStorage.setItem(`joshpetshub_wishlist_${userId}`, activeWishRaw);
+        }
+
+        const addressesToKeep = Array.isArray(state.user?.addresses) && state.user.addresses.length > 0
+          ? state.user.addresses
+          : null;
+        if (addressesToKeep) {
+          const addrJson = JSON.stringify(addressesToKeep);
+          if (userEmail) safeSetItem(`joshpetshub_addresses_${userEmail}`, addrJson);
+          if (userId) safeSetItem(`joshpetshub_addresses_${userId}`, addrJson);
+        }
+        safeRemoveItem('joshpetshub_addresses_backup');
+        try { localStorage.removeItem('joshpetshub_addresses_backup'); } catch(_) {}
+
+        // Safely preserve user's relocation enquiries & bookings across logout
+        const cleanTEnqs = [];
+        try {
+          const allTEnqs = JSON.parse(localStorage.getItem('joshpetshub_transport_enquiries') || '[]');
+          if (Array.isArray(allTEnqs)) {
+            const isDummyMobile = !userMobile || userMobile === '9876543210' || userMobile === '9000000000';
+            const userOnlyTEnqs = allTEnqs.filter(e => {
+              const eEmail = (e.userEmail || e.customerEmail || e.ownerEmail || e.email || '').toLowerCase().trim();
+              const eId = String(e.userId || e.customerId || '').trim();
+              if (userEmail && eEmail && eEmail !== userEmail) return false;
+              if (userId && eId && userId !== 'usr-custom' && eId !== 'usr-custom' && eId !== userId) return false;
+              if (userEmail && eEmail && eEmail === userEmail) return true;
+              if (userId && eId && eId !== 'usr-custom' && eId === userId) return true;
+              return false;
+            });
+            cleanTEnqs.push(...userOnlyTEnqs);
+            if (userOnlyTEnqs.length > 0) {
+              const enqJson = JSON.stringify(userOnlyTEnqs);
+              if (userEmail) safeSetItem(`joshpetshub_transport_enquiries_${userEmail}`, enqJson);
+              if (userId && userId !== 'usr-custom') safeSetItem(`joshpetshub_transport_enquiries_${userId}`, enqJson);
+              if (!isDummyMobile && userMobile && userMobile.length >= 10) safeSetItem(`joshpetshub_transport_enquiries_${userMobile}`, enqJson);
+            }
+          }
+        } catch (_) {}
+
+        const cleanTBks = [];
+        try {
+          const allTBks = JSON.parse(localStorage.getItem('joshpetshub_transport_bookings') || '[]');
+          if (Array.isArray(allTBks)) {
+            const isDummyMobile = !userMobile || userMobile === '9876543210' || userMobile === '9000000000';
+            const userOnlyTBks = allTBks.filter(b => {
+              const bEmail = (b.userEmail || b.customerEmail || b.ownerEmail || b.email || '').toLowerCase().trim();
+              const bId = String(b.userId || b.customerId || '').trim();
+              if (userEmail && bEmail && bEmail !== userEmail) return false;
+              if (userId && bId && userId !== 'usr-custom' && bId !== 'usr-custom' && bId !== userId) return false;
+              if (userEmail && bEmail && bEmail === userEmail) return true;
+              if (userId && bId && bId !== 'usr-custom' && bId === userId) return true;
+              return false;
+            });
+            cleanTBks.push(...userOnlyTBks);
+            if (userOnlyTBks.length > 0) {
+              const bkJson = JSON.stringify(userOnlyTBks);
+              if (userEmail) safeSetItem(`joshpetshub_transport_bookings_${userEmail}`, bkJson);
+              if (userId && userId !== 'usr-custom') safeSetItem(`joshpetshub_transport_bookings_${userId}`, bkJson);
+              if (!isDummyMobile && userMobile && userMobile.length >= 10) safeSetItem(`joshpetshub_transport_bookings_${userMobile}`, bkJson);
+            }
+          }
+        } catch (_) {}
+
+        const reg = JSON.parse(localStorage.getItem('joshpetshub_registered_users') || '[]');
+        if (Array.isArray(reg) && (userEmail || userId || userMobile)) {
+          const idx = reg.findIndex(u => 
+            (userEmail && u.email && u.email.toLowerCase() === userEmail) || 
+            (userId && (String(u._id).toLowerCase() === userId || String(u.id).toLowerCase() === userId)) ||
+            (userMobile && u.mobile && u.mobile.replace(/\D/g, '') === userMobile)
+          );
+          if (idx > -1) {
+            if (activeCartRaw) try { reg[idx].cart = JSON.parse(activeCartRaw); } catch (_) {}
+            if (activeWishRaw) try { reg[idx].wishlist = JSON.parse(activeWishRaw); } catch (_) {}
+            if (addressesToKeep) reg[idx].addresses = addressesToKeep;
+            if (cleanTEnqs.length > 0) reg[idx].transportEnquiries = cleanTEnqs;
+            if (cleanTBks.length > 0) reg[idx].transportBookings = cleanTBks;
+            safeSetItem('joshpetshub_registered_users', JSON.stringify(reg));
+          }
+        }
+      } catch (_) {}
+
       localStorage.removeItem('joshpetshub_token');
       localStorage.removeItem('joshpetshub_user');
+      safeRemoveItem('pawora_user_membership');
       localStorage.removeItem('pawora_user_membership');
+      if (userEmail) {
+        safeRemoveItem(`pawora_user_membership_${userEmail}`);
+        localStorage.removeItem(`pawora_user_membership_${userEmail}`);
+      }
+      try {
+        if (typeof sessionStorage !== 'undefined') {
+          sessionStorage.removeItem('pawora_user_membership');
+        }
+        deleteCookie('pawora_user_membership');
+      } catch (_) {}
       localStorage.removeItem('joshpetshub_cart');
       localStorage.removeItem('joshpetshub_wishlist');
       localStorage.removeItem('joshpetshub_cart_guest');
       localStorage.removeItem('joshpetshub_wishlist_guest');
+      localStorage.removeItem('joshpetshub_orders');
+      localStorage.removeItem('joshpetshub_seller_orders');
+      localStorage.removeItem('joshpetshub_transport_bookings');
+      localStorage.removeItem('joshpetshub_transport_enquiries');
+      localStorage.removeItem('joshpetshub_vet_appointments');
+      localStorage.removeItem('joshpetshub_grooming_bookings_v1');
+      localStorage.removeItem('joshpetshub_hostel_bookings_v1');
+      localStorage.removeItem('joshpetshub_walking_bookings_v1');
+      localStorage.removeItem('joshpetshub_training_bookings');
       deleteCookie('josh_auth_session');
       deleteCookie('joshpetshub_token');
       try {
@@ -1049,7 +1575,23 @@ const authSlice = createSlice({
         state.loading = false;
         state.isAuthenticated = true;
         state.token = action.payload.token;
-        state.user = action.payload.user;
+        state.user = {
+          ...action.payload.user,
+          serviceMembership: null,
+          subscription: null
+        };
+        try {
+          safeRemoveItem('pawora_user_membership');
+          localStorage.removeItem('pawora_user_membership');
+          if (typeof sessionStorage !== 'undefined') {
+            sessionStorage.removeItem('pawora_user_membership');
+          }
+          deleteCookie('pawora_user_membership');
+          localStorage.removeItem('joshpetshub_orders');
+          localStorage.removeItem('joshpetshub_seller_orders');
+          safeRemoveItem('joshpetshub_addresses_backup');
+          try { localStorage.removeItem('joshpetshub_addresses_backup'); } catch(_) {}
+        } catch (_) {}
         setCookie('josh_auth_session', 'active', 30);
       })
       .addCase(register.rejected, (state, action) => {
@@ -1067,31 +1609,53 @@ const authSlice = createSlice({
         state.token = action.payload.token;
         const incomingUser = action.payload.user;
         const emailKey = (incomingUser?.email || '').toLowerCase().trim();
-        let cachedAddresses = [];
-        if (emailKey) {
-          try {
-            const raw = localStorage.getItem(`joshpetshub_addresses_${emailKey}`);
-            if (raw) cachedAddresses = JSON.parse(raw);
-          } catch (_) {}
-        }
-        const userAddresses = mergeUserAddresses(cachedAddresses, incomingUser?.addresses, emailKey);
+        const userIdKey = String(incomingUser?._id || incomingUser?.id || '').trim();
 
-        // Restore cached profile edits if server had stale or empty fields
         let cachedProfile = null;
         try {
           const regUsers = JSON.parse(localStorage.getItem('joshpetshub_registered_users') || '[]');
-          cachedProfile = regUsers.find(u => (u.email && u.email.toLowerCase() === emailKey) || (u.mobile && u.mobile === incomingUser?.mobile));
+          cachedProfile = regUsers.find(u => 
+            (emailKey && u.email && u.email.toLowerCase() === emailKey) ||
+            (userIdKey && (String(u._id) === userIdKey || String(u.id) === userIdKey))
+          );
         } catch (_) {}
+
+        let cachedAddresses = [];
+        const keysToCheck = [
+          emailKey && `joshpetshub_addresses_${emailKey}`,
+          userIdKey && `joshpetshub_addresses_${userIdKey}`
+        ].filter(Boolean);
+
+        for (const k of keysToCheck) {
+          try {
+            const raw = localStorage.getItem(k);
+            if (raw) {
+              const arr = JSON.parse(raw);
+              if (Array.isArray(arr)) cachedAddresses.push(...arr);
+            }
+          } catch (_) {}
+        }
+        if (Array.isArray(cachedProfile?.addresses)) {
+          cachedAddresses.push(...cachedProfile.addresses);
+        }
+
+        const sameUser = Boolean(state.user && (
+          (emailKey && (state.user.email || '').toLowerCase().trim() === emailKey) ||
+          (userIdKey && String(state.user._id || state.user.id || '').trim() === userIdKey)
+        ));
+        const priorAddresses = sameUser && Array.isArray(state.user?.addresses) ? state.user.addresses : [];
+
+        const userAddresses = mergeUserAddresses([...priorAddresses, ...cachedAddresses], incomingUser?.addresses, emailKey);
 
         const cachedAvatar = emailKey ? localStorage.getItem(`joshpetshub_avatar_${emailKey}`) : null;
         const cachedPhone = emailKey ? localStorage.getItem(`joshpetshub_phone_${emailKey}`) : null;
         const finalAvatar = incomingUser?.avatar || incomingUser?.profilePicture || cachedProfile?.avatar || cachedProfile?.profilePicture || cachedAvatar || null;
         const finalName = incomingUser?.name || cachedProfile?.name || 'User';
-        const finalPhone = incomingUser?.mobile || incomingUser?.phone || cachedProfile?.mobile || cachedProfile?.phone || cachedPhone || '';
+        const finalPhone = incomingUser?.mobile || incomingUser?.phone || (sameUser ? (state.user?.mobile || state.user?.phone) : '') || cachedPhone || '';
         if (emailKey && finalPhone) {
           safeSetItem(`joshpetshub_phone_${emailKey}`, finalPhone);
         }
-        const rawMem = readPersistedMembership();
+        const rawMem = readPersistedMembership(incomingUser);
         const finalMembership = incomingUser?.serviceMembership || cachedProfile?.serviceMembership || rawMem || null;
 
         state.user = {
@@ -1109,9 +1673,13 @@ const authSlice = createSlice({
         if (emailKey && finalAvatar) {
           safeSetItem(`joshpetshub_avatar_${emailKey}`, finalAvatar);
         }
-        if (emailKey && userAddresses.length > 0) {
-          safeSetItem(`joshpetshub_addresses_${emailKey}`, JSON.stringify(userAddresses));
+        if (userAddresses.length > 0) {
+          for (const k of keysToCheck) {
+            safeSetItem(k, JSON.stringify(userAddresses));
+          }
         }
+        safeRemoveItem('joshpetshub_addresses_backup');
+        try { localStorage.removeItem('joshpetshub_addresses_backup'); } catch(_) {}
         setCookie('josh_auth_session', 'active', 30);
       })
       .addCase(login.rejected, (state, action) => {
@@ -1125,40 +1693,64 @@ const authSlice = createSlice({
       .addCase(fetchProfile.fulfilled, (state, action) => {
         state.loading = false;
         if (action.payload?.user) {
-          const rawMem = readPersistedMembership();
+          const rawMem = readPersistedMembership(action.payload.user);
           const emailKey = (action.payload.user.email || state.user?.email || '').toLowerCase().trim();
+          const userIdKey = String(action.payload.user._id || action.payload.user.id || state.user?._id || state.user?.id || '').trim();
+          const mobileKey = String(action.payload.user.mobile || action.payload.user.phone || state.user?.mobile || state.user?.phone || '').replace(/\D/g, '');
+
           let cachedProfile = null;
           try {
             const regUsers = JSON.parse(localStorage.getItem('joshpetshub_registered_users') || '[]');
-            cachedProfile = regUsers.find(u => (u.email && u.email.toLowerCase() === emailKey) || (u.mobile && u.mobile === action.payload.user?.mobile));
+            cachedProfile = regUsers.find(u => 
+              (emailKey && u.email && u.email.toLowerCase() === emailKey) ||
+              (userIdKey && (String(u._id) === userIdKey || String(u.id) === userIdKey))
+            );
           } catch (_) {}
+
+          const sameUser = Boolean(state.user && (
+            (emailKey && (state.user.email || '').toLowerCase().trim() === emailKey) ||
+            (userIdKey && String(state.user._id || state.user.id || '').trim() === userIdKey)
+          ));
 
           const cachedAvatar = emailKey ? localStorage.getItem(`joshpetshub_avatar_${emailKey}`) : null;
           const cachedPhone = emailKey ? localStorage.getItem(`joshpetshub_phone_${emailKey}`) : null;
-          const finalAvatar = action.payload.user.avatar || action.payload.user.profilePicture || state.user?.avatar || cachedProfile?.avatar || cachedAvatar || null;
-          const finalName = action.payload.user.name || state.user?.name || cachedProfile?.name || 'User';
-          const finalPhone = action.payload.user.mobile || action.payload.user.phone || state.user?.mobile || state.user?.phone || cachedProfile?.mobile || cachedProfile?.phone || cachedPhone || '';
+          const finalAvatar = action.payload.user.avatar || action.payload.user.profilePicture || (sameUser ? state.user?.avatar : null) || cachedProfile?.avatar || cachedAvatar || null;
+          const finalName = action.payload.user.name || (sameUser ? state.user?.name : null) || cachedProfile?.name || 'User';
+          const finalPhone = action.payload.user.mobile || action.payload.user.phone || (sameUser ? (state.user?.mobile || state.user?.phone) : '') || cachedProfile?.mobile || cachedProfile?.phone || cachedPhone || '';
           if (emailKey && finalPhone) {
             safeSetItem(`joshpetshub_phone_${emailKey}`, finalPhone);
           }
-          const mem = action.payload.user.serviceMembership || state.user?.serviceMembership || cachedProfile?.serviceMembership || rawMem || null;
+          const mem = action.payload.user.serviceMembership || (sameUser ? state.user?.serviceMembership : null) || cachedProfile?.serviceMembership || rawMem || null;
           
           let cachedAddresses = [];
-          if (emailKey) {
+          const keysToCheck = [
+            emailKey && `joshpetshub_addresses_${emailKey}`,
+            userIdKey && `joshpetshub_addresses_${userIdKey}`
+          ].filter(Boolean);
+
+          for (const k of keysToCheck) {
             try {
-              const raw = localStorage.getItem(`joshpetshub_addresses_${emailKey}`);
-              if (raw) cachedAddresses = JSON.parse(raw);
+              const raw = localStorage.getItem(k);
+              if (raw) {
+                const arr = JSON.parse(raw);
+                if (Array.isArray(arr)) cachedAddresses.push(...arr);
+              }
             } catch (_) {}
           }
+          if (Array.isArray(cachedProfile?.addresses)) {
+            cachedAddresses.push(...cachedProfile.addresses);
+          }
+
+          const priorAddresses = sameUser && Array.isArray(state.user?.addresses) ? state.user.addresses : [];
           const userAddresses = mergeUserAddresses(
-            [...(state.user?.addresses || []), ...(cachedProfile?.addresses || []), ...cachedAddresses],
+            [...priorAddresses, ...cachedAddresses],
             action.payload.user.addresses,
             emailKey
           );
 
           state.user = {
             ...cachedProfile,
-            ...state.user,
+            ...(sameUser ? state.user : {}),
             ...action.payload.user,
             name: finalName,
             avatar: finalAvatar,
@@ -1172,9 +1764,13 @@ const authSlice = createSlice({
           if (emailKey && finalAvatar) {
             safeSetItem(`joshpetshub_avatar_${emailKey}`, finalAvatar);
           }
-          if (emailKey && userAddresses.length > 0) {
-            safeSetItem(`joshpetshub_addresses_${emailKey}`, JSON.stringify(userAddresses));
+          if (userAddresses.length > 0) {
+            for (const k of keysToCheck) {
+              safeSetItem(k, JSON.stringify(userAddresses));
+            }
           }
+          safeRemoveItem('joshpetshub_addresses_backup');
+          try { localStorage.removeItem('joshpetshub_addresses_backup'); } catch(_) {}
           state.isAuthenticated = true;
         } else if (!state.user) {
           state.isAuthenticated = false;
@@ -1196,7 +1792,7 @@ const authSlice = createSlice({
         state.loading = false;
         const emailKey = (action.payload?.user?.email || state.user?.email || '').toLowerCase().trim();
         const cachedPhone = emailKey ? localStorage.getItem(`joshpetshub_phone_${emailKey}`) : null;
-        const currentMem = action.payload?.user?.serviceMembership || state.user?.serviceMembership || readPersistedMembership() || null;
+        const currentMem = action.payload?.user?.serviceMembership || state.user?.serviceMembership || readPersistedMembership(state.user) || null;
         const keptPhone = action.payload?.user?.mobile || action.payload?.user?.phone || state.user?.mobile || state.user?.phone || cachedPhone || '';
         if (emailKey && keptPhone) {
           safeSetItem(`joshpetshub_phone_${emailKey}`, keptPhone);
@@ -1226,44 +1822,72 @@ const authSlice = createSlice({
       })
       // Add Address & Remove Address
       .addCase(addUserAddress.fulfilled, (state, action) => {
-        if (state.user) {
-          state.user.addresses = action.payload.addresses;
-          safeSetItem('joshpetshub_user', JSON.stringify(sanitizeUserForStorage(state.user)));
-          try {
-            const emailKey = (state.user.email || '').toLowerCase().trim();
-            if (emailKey) {
-              safeSetItem(`joshpetshub_addresses_${emailKey}`, JSON.stringify(action.payload.addresses));
-            }
-            const regUsers = JSON.parse(localStorage.getItem('joshpetshub_registered_users') || '[]');
-            const idx = regUsers.findIndex(u => (u.email || '').toLowerCase() === emailKey || (u.mobile && u.mobile === state.user.mobile));
-            if (idx !== -1) {
-              regUsers[idx].addresses = action.payload.addresses;
-            } else {
-              regUsers.push({ ...state.user, addresses: action.payload.addresses });
-            }
-            safeSetItem('joshpetshub_registered_users', JSON.stringify(regUsers));
-          } catch (e) {}
+        if (!state.user) {
+          state.user = getInitialUser() || {};
         }
+        state.user.addresses = action.payload.addresses;
+        safeSetItem('joshpetshub_user', JSON.stringify(sanitizeUserForStorage(state.user)));
+        try {
+          const emailKey = (state.user.email || '').toLowerCase().trim();
+          const userIdKey = String(state.user._id || state.user.id || '').trim();
+
+          const keysToSave = [
+            emailKey && `joshpetshub_addresses_${emailKey}`,
+            userIdKey && `joshpetshub_addresses_${userIdKey}`
+          ].filter(Boolean);
+
+          for (const k of keysToSave) {
+            safeSetItem(k, JSON.stringify(action.payload.addresses));
+          }
+          safeRemoveItem('joshpetshub_addresses_backup');
+          try { localStorage.removeItem('joshpetshub_addresses_backup'); } catch(_) {}
+
+          const regUsers = JSON.parse(localStorage.getItem('joshpetshub_registered_users') || '[]');
+          const idx = regUsers.findIndex(u => 
+            (emailKey && u.email && u.email.toLowerCase() === emailKey) ||
+            (userIdKey && (String(u._id) === userIdKey || String(u.id) === userIdKey))
+          );
+          if (idx !== -1) {
+            regUsers[idx].addresses = action.payload.addresses;
+          } else {
+            regUsers.push({ ...state.user, addresses: action.payload.addresses });
+          }
+          safeSetItem('joshpetshub_registered_users', JSON.stringify(regUsers));
+        } catch (e) {}
       })
       .addCase(removeUserAddress.fulfilled, (state, action) => {
-        if (state.user) {
-          state.user.addresses = action.payload.addresses;
-          safeSetItem('joshpetshub_user', JSON.stringify(sanitizeUserForStorage(state.user)));
-          try {
-            const emailKey = (state.user.email || '').toLowerCase().trim();
-            if (emailKey) {
-              safeSetItem(`joshpetshub_addresses_${emailKey}`, JSON.stringify(action.payload.addresses));
-            }
-            const regUsers = JSON.parse(localStorage.getItem('joshpetshub_registered_users') || '[]');
-            const idx = regUsers.findIndex(u => (u.email || '').toLowerCase() === emailKey || (u.mobile && u.mobile === state.user.mobile));
-            if (idx !== -1) {
-              regUsers[idx].addresses = action.payload.addresses;
-            } else {
-              regUsers.push({ ...state.user, addresses: action.payload.addresses });
-            }
-            safeSetItem('joshpetshub_registered_users', JSON.stringify(regUsers));
-          } catch (e) {}
+        if (!state.user) {
+          state.user = getInitialUser() || {};
         }
+        state.user.addresses = action.payload.addresses;
+        safeSetItem('joshpetshub_user', JSON.stringify(sanitizeUserForStorage(state.user)));
+        try {
+          const emailKey = (state.user.email || '').toLowerCase().trim();
+          const userIdKey = String(state.user._id || state.user.id || '').trim();
+
+          const keysToSave = [
+            emailKey && `joshpetshub_addresses_${emailKey}`,
+            userIdKey && `joshpetshub_addresses_${userIdKey}`
+          ].filter(Boolean);
+
+          for (const k of keysToSave) {
+            safeSetItem(k, JSON.stringify(action.payload.addresses));
+          }
+          safeRemoveItem('joshpetshub_addresses_backup');
+          try { localStorage.removeItem('joshpetshub_addresses_backup'); } catch(_) {}
+
+          const regUsers = JSON.parse(localStorage.getItem('joshpetshub_registered_users') || '[]');
+          const idx = regUsers.findIndex(u => 
+            (emailKey && u.email && u.email.toLowerCase() === emailKey) ||
+            (userIdKey && (String(u._id) === userIdKey || String(u.id) === userIdKey))
+          );
+          if (idx !== -1) {
+            regUsers[idx].addresses = action.payload.addresses;
+          } else {
+            regUsers.push({ ...state.user, addresses: action.payload.addresses });
+          }
+          safeSetItem('joshpetshub_registered_users', JSON.stringify(regUsers));
+        } catch (e) {}
       })
             // Subscription & Profile Flow
       .addCase(fetchSubscriptionStatus.fulfilled, (state, action) => {

@@ -32,19 +32,33 @@ const saveLocalMessages = (messages) => {
   }
 };
 
+const cleanId = (raw) => {
+  if (!raw) return '';
+  if (typeof raw === 'object') return (raw._id || raw.id || '').toString().trim();
+  const s = raw.toString().trim();
+  if (s.startsWith('{') && s.endsWith('}')) {
+    try {
+      const p = JSON.parse(s);
+      return (p._id || p.id || s).toString().trim();
+    } catch (_) {}
+  }
+  return s;
+};
+
 // GET /api/chats/rooms - Active conversation rooms for the logged-in user
 router.get('/rooms', protect, async (req, res) => {
   try {
-    const currentUserId = (req.user._id || req.user.id || '').toString();
+    const currentUserId = cleanId(req.user._id || req.user.id);
     const currentUserEmail = (req.user.email || '').toLowerCase().trim();
+    const listingFilter = (req.query.listing || req.query.listingId || '').trim();
     const allMessages = getLocalMessages();
 
-    // Map to track unique contacts
+    // Map to track unique rooms per contact + listing
     const roomMap = new Map();
 
     allMessages.forEach((m) => {
-      const senderId = (m.sender?._id || m.sender?.id || (typeof m.sender === 'string' ? m.sender : '') || '').toString();
-      const recipientId = (m.recipient?._id || m.recipient?.id || (typeof m.recipient === 'string' ? m.recipient : '') || '').toString();
+      const senderId = cleanId(m.sender?._id || m.sender?.id || m.sender);
+      const recipientId = cleanId(m.recipient?._id || m.recipient?.id || m.recipient);
       const senderEmail = (m.sender?.email || '').toLowerCase().trim();
       const recipientEmail = (m.recipient?.email || '').toLowerCase().trim();
 
@@ -55,22 +69,37 @@ router.get('/rooms', protect, async (req, res) => {
         const otherId = isSender ? recipientId : senderId;
         const otherEmail = isSender ? recipientEmail : senderEmail;
         const otherData = isSender ? m.recipient : m.sender;
-        const mapKey = otherId || otherEmail;
+        const baseKey = otherId || otherEmail;
+        const msgListingId = (m.listingRef || m.listingId || '').toString().trim();
+        const msgListingTitle = (m.listingTitle || '').trim();
 
-        if (mapKey && mapKey !== currentUserId && mapKey !== currentUserEmail) {
-          const existing = roomMap.get(mapKey);
+        if (listingFilter) {
+          const matchesId = msgListingId && msgListingId === listingFilter;
+          const matchesTitle = msgListingTitle && msgListingTitle.toLowerCase() === listingFilter.toLowerCase();
+          if (!matchesId && !matchesTitle) {
+            return;
+          }
+        }
+
+        if (baseKey && baseKey !== currentUserId && baseKey !== currentUserEmail) {
+          const roomKey = msgListingId ? `${baseKey}_${msgListingId}` : baseKey;
+          const existing = roomMap.get(roomKey);
           const msgTime = new Date(m.createdAt || 0).getTime();
 
           if (!existing || msgTime > existing._timestamp) {
-            roomMap.set(mapKey, {
-              _id: otherId || mapKey,
-              id: otherId || mapKey,
+            roomMap.set(roomKey, {
+              _id: otherId || baseKey,
+              id: otherId || baseKey,
+              roomKey,
               name: typeof otherData === 'object' && otherData?.name ? otherData.name : 'Pet Owner / Seller',
               email: typeof otherData === 'object' && otherData?.email ? otherData.email : (otherEmail || ''),
               avatar: typeof otherData === 'object' && otherData?.avatar ? otherData.avatar : '',
               lastMessage: m.messageText || '',
               lastMessageTime: m.createdAt || new Date().toISOString(),
-              listingTitle: m.listingTitle || m.listingRef || null,
+              listingRef: msgListingId || null,
+              listingId: msgListingId || null,
+              listingTitle: msgListingTitle || null,
+              listingImage: m.listingImage || null,
               _timestamp: msgTime
             });
           }
@@ -89,15 +118,16 @@ router.get('/rooms', protect, async (req, res) => {
 // GET /api/chats/messages/:contactId - Conversation history with a contact
 router.get('/messages/:contactId', protect, async (req, res) => {
   try {
-    const currentUserId = (req.user._id || req.user.id || '').toString();
+    const currentUserId = cleanId(req.user._id || req.user.id);
     const currentUserEmail = (req.user.email || '').toLowerCase().trim();
-    const contactId = (req.params.contactId || '').toString();
+    const contactId = cleanId(req.params.contactId);
     const contactEmail = contactId.toLowerCase().trim();
+    const listingFilter = (req.query.listing || req.query.listingId || '').trim();
 
     const allMessages = getLocalMessages();
-    const conversation = allMessages.filter((m) => {
-      const sId = (m.sender?._id || m.sender?.id || (typeof m.sender === 'string' ? m.sender : '') || '').toString();
-      const rId = (m.recipient?._id || m.recipient?.id || (typeof m.recipient === 'string' ? m.recipient : '') || '').toString();
+    let conversation = allMessages.filter((m) => {
+      const sId = cleanId(m.sender?._id || m.sender?.id || m.sender);
+      const rId = cleanId(m.recipient?._id || m.recipient?.id || m.recipient);
       const sEmail = (m.sender?.email || '').toLowerCase().trim();
       const rEmail = (m.recipient?.email || '').toLowerCase().trim();
 
@@ -108,7 +138,17 @@ router.get('/messages/:contactId', protect, async (req, res) => {
       const recipientIsContact = (contactId && rId === contactId) || (contactEmail && rEmail === contactEmail);
 
       return (senderIsMe && recipientIsContact) || (senderIsContact && recipientIsMe);
-    }).sort((a, b) => new Date(a.createdAt || 0) - new Date(b.createdAt || 0));
+    });
+
+    if (listingFilter) {
+      conversation = conversation.filter((m) => {
+        const mRef = (m.listingRef || m.listingId || '').toString().trim();
+        const mTitle = (m.listingTitle || '').trim().toLowerCase();
+        return (mRef && mRef === listingFilter) || (mTitle && mTitle === listingFilter.toLowerCase());
+      });
+    }
+
+    conversation.sort((a, b) => new Date(a.createdAt || 0) - new Date(b.createdAt || 0));
 
     res.json({ success: true, messages: conversation });
   } catch (err) {
@@ -120,14 +160,16 @@ router.get('/messages/:contactId', protect, async (req, res) => {
 // POST /api/chats - Send a message
 router.post('/', protect, async (req, res) => {
   try {
-    const { recipientId, messageText, recipientName, listingId, listingTitle, listingImage } = req.body;
+    const { recipientId, messageText, recipientName, listingId, listingRef, listingTitle, listingImage } = req.body;
+    const cleanRecipientId = cleanId(recipientId);
 
-    if (!recipientId || !messageText || !messageText.trim()) {
+    if (!cleanRecipientId || !messageText || !messageText.trim()) {
       return res.status(400).json({ success: false, message: 'Recipient and message text are required.' });
     }
 
-    const currentUserId = (req.user._id || req.user.id || '').toString();
+    const currentUserId = cleanId(req.user._id || req.user.id);
     const allMessages = getLocalMessages();
+    const effectiveListingId = listingId || listingRef || undefined;
 
     const newMessage = {
       _id: `MSG-${Date.now()}-${Math.floor(1000 + Math.random() * 9000)}`,
@@ -138,11 +180,12 @@ router.post('/', protect, async (req, res) => {
         email: req.user.email || ''
       },
       recipient: {
-        _id: recipientId.toString(),
-        id: recipientId.toString(),
+        _id: cleanRecipientId,
+        id: cleanRecipientId,
         name: recipientName || 'Seller'
       },
-      listingRef: listingId || undefined,
+      listingRef: effectiveListingId,
+      listingId: effectiveListingId,
       listingTitle: listingTitle || undefined,
       listingImage: listingImage || undefined,
       messageText: messageText.trim(),
@@ -158,9 +201,9 @@ router.post('/', protect, async (req, res) => {
       if (supabase && process.env.SUPABASE_URL && process.env.SUPABASE_KEY) {
         await supabase.from('messages').insert([{
           sender_id: currentUserId,
-          recipient_id: recipientId.toString(),
+          recipient_id: cleanRecipientId,
           message_text: messageText.trim(),
-          listing_id: listingId || null
+          listing_id: effectiveListingId || null
         }]);
       }
     } catch (e) {

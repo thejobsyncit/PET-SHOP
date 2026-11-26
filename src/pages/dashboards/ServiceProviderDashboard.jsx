@@ -114,6 +114,19 @@ const ServiceProviderDashboard = (props) => {
       dispatch(fetchSubscriptionStatus());
       dispatch(fetchProfile());
     }
+
+    const handleSync = (e) => {
+      if (isAuthenticated) {
+        dispatch(fetchProfile());
+        dispatch(fetchSubscriptionStatus());
+      }
+    };
+    window.addEventListener('service-provider-updated', handleSync);
+    window.addEventListener('storage', handleSync);
+    return () => {
+      window.removeEventListener('service-provider-updated', handleSync);
+      window.removeEventListener('storage', handleSync);
+    };
   }, [dispatch, isAuthenticated, user?.role]);
 
   // Keep override in sync if Redux user gets new subscription
@@ -198,6 +211,13 @@ const ServiceProviderDashboard = (props) => {
   const isDashboardNearRenewal = isSubscriptionActive && daysRemaining <= renewalWindowDays;
   const hasDashboardUpgradeOptions = isSubscriptionActive && (subscription?.planId === 'monthly' || subscription?.planId === 'quarterly');
 
+  const isVerified = Boolean(
+    isAdmin ||
+    user?.verificationStatus === 'Verified' ||
+    user?.verification_status === 'Verified' ||
+    user?.isVerified === true
+  );
+
   // Safe defaults for provider props
   const defaultProvider = {
     id: user?.id || user?._id || 'provider-default',
@@ -209,7 +229,10 @@ const ServiceProviderDashboard = (props) => {
     reviewsCount: 128,
     avatar: user?.avatar || user?.profilePicture || '',
     subscription: subscription,
-    planName: subscription?.planName || 'Active Partner Plan'
+    planName: subscription?.planName || 'Active Partner Plan',
+    verificationStatus: user?.verificationStatus || user?.verification_status || 'Pending',
+    verification_status: user?.verificationStatus || user?.verification_status || 'Pending',
+    isVerified
   };
 
   const safeProps = {
@@ -217,6 +240,8 @@ const ServiceProviderDashboard = (props) => {
     profiles: Array.isArray(props.profiles) ? props.profiles : [],
     handleToggleOnline: props.handleToggleOnline || (() => {}),
     subscription: subscription,
+    isVerified,
+    verificationStatus: user?.verificationStatus || user?.verification_status || 'Pending',
     onOpenSubscriptionModal: () => {
       setIsRenewalModal(true);
       setShowSubscriptionModal(true);
@@ -356,7 +381,7 @@ const ServiceProviderDashboard = (props) => {
                 <span className="text-white/40">•</span>
                 <span className="text-white">{registeredCategory}</span>
               </div>
-              <h1 className="text-xl sm:text-2xl font-serif font-bold text-white mt-1">
+              <h1 className="text-xl sm:text-2xl font-sans font-black tracking-tight text-white mt-1">
                 Welcome, {user?.name || user?.businessName || 'Service Partner'}
               </h1>
               <p className="text-xs text-emerald-100/80 mt-1 max-w-xl">
@@ -413,7 +438,7 @@ const ServiceProviderDashboard = (props) => {
                 <span className="text-white/40">•</span>
                 <span className="text-white">{registeredCategory}</span>
               </div>
-              <h1 className="text-xl sm:text-2xl font-serif font-bold text-white mt-1">
+              <h1 className="text-xl sm:text-2xl font-sans font-black tracking-tight text-white mt-1">
                 {user?.businessName || user?.name || 'Service Partner'}
               </h1>
               <p className="text-xs text-emerald-100/80 mt-1">
@@ -497,7 +522,7 @@ const ServiceProviderDashboard = (props) => {
               <span className="text-[10px] font-black uppercase tracking-wider text-emerald-800 bg-emerald-100 px-2.5 py-0.5 rounded-md">
                 Step 2 of 2: Checkout & Payment Mode
               </span>
-              <h2 className="font-serif font-bold text-2xl text-slate-900 mt-1">
+              <h2 className="font-sans font-black tracking-tight text-2xl text-slate-900 mt-1">
                 Select Payment Mode for {selectedCheckoutPlan.name}
               </h2>
               <p className="text-xs text-slate-600 mt-0.5">
@@ -943,7 +968,7 @@ const ServiceProviderDashboard = (props) => {
                       <span className="text-[10px] font-black uppercase tracking-wider text-amber-300">
                         {selectedCheckoutPlan.badge}
                       </span>
-                      <h3 className="font-serif font-bold text-lg text-white mt-0.5">
+                      <h3 className="font-sans font-black tracking-tight text-lg text-white mt-0.5">
                         {selectedCheckoutPlan.name}
                       </h3>
                       <p className="text-[11px] text-emerald-200">
@@ -1080,7 +1105,7 @@ const ServiceProviderDashboard = (props) => {
             <div className="bg-white rounded-3xl border border-slate-200 p-6 shadow-sm">
               <div className="border-b border-slate-100 pb-4 mb-6">
                 <div>
-                  <h3 className="font-serif font-bold text-lg text-slate-900">
+                  <h3 className="font-sans font-black tracking-tight text-lg text-slate-900">
                     Available Partner Plans for {registeredCategory}
                   </h3>
                   <p className="text-xs text-slate-500 mt-0.5">
@@ -1106,8 +1131,8 @@ const ServiceProviderDashboard = (props) => {
                         </div>
                         <h4 className="font-bold text-slate-900 text-base">{plan.name}</h4>
                         <div className="flex items-baseline gap-1 mt-2">
-                          <span className="text-3xl font-black text-[#0F2E23]">₹{plan.basePrice}</span>
-                          <span className="text-xs text-slate-500">+ 18% GST</span>
+                          <span className="text-3xl font-black font-sans text-[#0F2E23] tracking-tight lining-nums tabular-nums">₹{plan.basePrice}</span>
+                          <span className="text-xs text-slate-500 font-semibold">+ 18% GST</span>
                         </div>
                         <p className="text-xs text-slate-600 mt-2">
                           Validity: <strong>{plan.validityLabel}</strong>
@@ -1203,6 +1228,35 @@ const ServiceProviderDashboard = (props) => {
       ) : (
         /* Render Dedicated Service Provider Dashboard */
         <div className="flex-1">
+          {/* Verification Pending Notice Banner */}
+          {!isVerified && (
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 pt-5 pb-2">
+              <div className="bg-gradient-to-r from-amber-50 via-orange-50 to-amber-50 border-2 border-amber-300/90 rounded-2xl p-4 sm:p-5 shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                <div className="flex items-start gap-3.5">
+                  <div className="w-10 h-10 rounded-xl bg-amber-500 text-white flex items-center justify-center shrink-0 shadow-xs mt-0.5">
+                    <Clock size={20} className="animate-pulse" />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <h3 className="font-sans font-black tracking-tight text-amber-950 text-base">
+                        Account Verification Pending Admin Review
+                      </h3>
+                      <span className="bg-amber-200/90 text-amber-900 font-extrabold text-[10px] uppercase tracking-wider px-2.5 py-0.5 rounded-full border border-amber-300">
+                        ⏳ SuperAdmin Action Required
+                      </span>
+                    </div>
+                    <p className="text-xs text-amber-800/90 mt-1 max-w-2xl leading-relaxed">
+                      Your business profile and active subscription have been received successfully! For community safety and trust, posting new services, listings, and products is temporarily locked until your credentials are verified by Josh Pets Hub SuperAdmin.
+                    </p>
+                  </div>
+                </div>
+                <div className="shrink-0 bg-white/90 border border-amber-200 px-4 py-2 rounded-xl text-center shadow-2xs self-stretch sm:self-auto flex sm:flex-col items-center justify-between sm:justify-center gap-1">
+                  <span className="text-[10px] uppercase tracking-wider font-bold text-amber-700">KYC Status</span>
+                  <span className="text-xs font-black text-amber-900 bg-amber-100/80 px-2 py-0.5 rounded-md">Pending Verification</span>
+                </div>
+              </div>
+            </div>
+          )}
           {(() => {
             // 1. Consult a Vet
             if (activeKey === 'vet') {
@@ -1266,7 +1320,7 @@ const ServiceProviderDashboard = (props) => {
                   <Receipt size={20} />
                 </div>
                 <div>
-                  <h3 className="font-serif font-bold text-base text-white">Active Subscription Invoice</h3>
+                  <h3 className="font-sans font-black tracking-tight text-base text-white">Active Subscription Invoice</h3>
                   <p className="text-xs text-emerald-200">Josh Pets Hub Service Partner Billing</p>
                 </div>
               </div>
@@ -1310,19 +1364,19 @@ const ServiceProviderDashboard = (props) => {
                 </div>
                 <div className="flex justify-between text-slate-600">
                   <span>Base Subscription Fee:</span>
-                  <span className="font-semibold text-slate-800">
+                  <span className="font-black font-sans text-slate-800 tracking-tight lining-nums tabular-nums">
                     ₹{subscription?.basePrice ? subscription.basePrice.toFixed(2) : (subscription?.planId === 'yearly' ? '999.00' : subscription?.planId === 'quarterly' ? '499.00' : '199.00')}
                   </span>
                 </div>
                 <div className="flex justify-between text-slate-600">
                   <span>Applicable GST (18%):</span>
-                  <span className="font-semibold text-slate-800">
+                  <span className="font-black font-sans text-slate-800 tracking-tight lining-nums tabular-nums">
                     ₹{subscription?.gstAmount ? subscription.gstAmount.toFixed(2) : (subscription?.planId === 'yearly' ? '179.82' : subscription?.planId === 'quarterly' ? '89.82' : '35.82')}
                   </span>
                 </div>
                 <div className="flex justify-between pt-2 border-t border-stone-200 text-sm font-extrabold text-[#0F2E23]">
                   <span>Total Amount Paid:</span>
-                  <span>₹{totalInvoicedAmount}</span>
+                  <span className="font-black font-sans text-[#0F2E23] tracking-tight lining-nums tabular-nums text-base">₹{totalInvoicedAmount}</span>
                 </div>
               </div>
 

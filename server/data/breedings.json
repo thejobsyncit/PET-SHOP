@@ -74,8 +74,9 @@
     },
     "location": "Coimbatore, Tamil Nadu",
     "contactPhone": "+91 98765 43211",
-    "isVerified": false,
-    "createdAt": "2026-08-29T09:15:00.000Z"
+    "isVerified": true,
+    "createdAt": "2026-08-29T09:15:00.000Z",
+    "is_verified": true
   },
   {
     "_id": "STUD-304",

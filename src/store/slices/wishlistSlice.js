@@ -52,6 +52,11 @@ export const getInitialWishlist = (customKey, userObj) => {
       return [];
     }
 
+    // 0. Check passed userObj or stored user wishlist property
+    if (user && Array.isArray(user.wishlist) && user.wishlist.length > 0) {
+      return user.wishlist;
+    }
+
     // 1. Direct scoped key
     const raw = localStorage.getItem(`joshpetshub_wishlist_${userKey}`);
     if (raw) {
@@ -170,9 +175,11 @@ export const normalizeWishlistProduct = (p) => {
     : (p.image ? [p.image] : []);
 
   const isPet = Boolean(
-    p.isPet || p.petType || p.breed || 
-    p.itemType === 'pet' || p.itemType === 'adoption' ||
-    p.quality || p.sellerName || p.parentContact
+    p.isPet === true || 
+    p.itemType === 'adoption' || 
+    p.quality || p.sellerName || p.parentContact ||
+    String(pId).startsWith('LIST-') || String(pId).startsWith('ADOPT-') || String(pId).startsWith('adopt_') ||
+    (p.itemType === 'pet' && !p.sku && !p.category?.toLowerCase()?.includes('food'))
   );
 
   return {
@@ -347,50 +354,46 @@ const wishlistSlice = createSlice({
         state.items = [];
         clearLocalWishlist('guest');
         localStorage.removeItem('joshpetshub_wishlist');
-      })
-      .addCase('auth/setAuthenticatedUser', (state, action) => {
-        const u = action.payload?.user;
-        const key = u ? (u._id || u.id || u.email || '').toLowerCase() : 'guest';
-        const userWishlist = getInitialWishlist(key, u);
-        const guestWishlist = getInitialWishlist('guest');
-
-        let merged = userWishlist;
-        if (guestWishlist.length > 0) {
-          const map = new Map();
-          userWishlist.forEach(i => { const id = getWishlistItemIdStr(i); if (id) map.set(id, i); });
-          guestWishlist.forEach(i => { const id = getWishlistItemIdStr(i); if (id && !map.has(id)) map.set(id, i); });
-          merged = Array.from(map.values());
-          saveLocalWishlist(merged, key);
-          clearLocalWishlist('guest');
-          apiRequest('/wishlist/sync', { method: 'POST', body: JSON.stringify({ items: merged }) }).catch(() => {});
-        } else if (userWishlist.length > 0) {
-          apiRequest('/wishlist/sync', { method: 'POST', body: JSON.stringify({ items: userWishlist }) }).catch(() => {});
-        }
-        state.items = merged.map(item => normalizeWishlistProduct(item)).filter(Boolean);
-      })
-      .addCase('auth/login/fulfilled', (state, action) => {
-        const u = action.payload?.user;
-        const key = u ? (u._id || u.id || u.email || '').toLowerCase() : 'guest';
-        const userWishlist = getInitialWishlist(key, u);
-        const guestWishlist = getInitialWishlist('guest');
-
-        let merged = userWishlist;
-        if (guestWishlist.length > 0) {
-          const map = new Map();
-          userWishlist.forEach(i => { const id = getWishlistItemIdStr(i); if (id) map.set(id, i); });
-          guestWishlist.forEach(i => { const id = getWishlistItemIdStr(i); if (id && !map.has(id)) map.set(id, i); });
-          merged = Array.from(map.values());
-          saveLocalWishlist(merged, key);
-          clearLocalWishlist('guest');
-          apiRequest('/wishlist/sync', { method: 'POST', body: JSON.stringify({ items: merged }) }).catch(() => {});
-        } else if (userWishlist.length > 0) {
-          apiRequest('/wishlist/sync', { method: 'POST', body: JSON.stringify({ items: userWishlist }) }).catch(() => {});
-        }
-        state.items = merged.map(item => normalizeWishlistProduct(item)).filter(Boolean);
-      })
-      .addCase('auth/register/fulfilled', (state) => {
-        state.items = [];
       });
+
+    const syncAuthWishlist = (state, action) => {
+      const u = action.payload?.user;
+      const key = u ? String(u._id || u.id || u.email || '').trim().toLowerCase() : 'guest';
+      const serverWishlist = Array.isArray(u?.wishlist) ? u.wishlist : [];
+      const userWishlist = getInitialWishlist(key, u);
+      const guestWishlist = getInitialWishlist('guest');
+
+      const map = new Map();
+      serverWishlist.forEach(i => {
+        const id = getWishlistItemIdStr(i);
+        if (id) map.set(id, i);
+      });
+      userWishlist.forEach(i => {
+        const id = getWishlistItemIdStr(i);
+        if (id && !map.has(id)) map.set(id, i);
+      });
+      guestWishlist.forEach(i => {
+        const id = getWishlistItemIdStr(i);
+        if (id && !map.has(id)) map.set(id, i);
+      });
+
+      const merged = Array.from(map.values());
+      if (key !== 'guest') {
+        saveLocalWishlist(merged, key);
+        clearLocalWishlist('guest');
+        if (merged.length > 0) {
+          apiRequest('/wishlist/sync', { method: 'POST', body: JSON.stringify({ items: merged }) }).catch(() => {});
+        }
+      }
+
+      state.items = merged.map(item => normalizeWishlistProduct(item)).filter(Boolean);
+    };
+
+    builder
+      .addCase('auth/setAuthenticatedUser', syncAuthWishlist)
+      .addCase('auth/login/fulfilled', syncAuthWishlist)
+      .addCase('auth/register/fulfilled', syncAuthWishlist)
+      .addCase('auth/fetchProfile/fulfilled', syncAuthWishlist);
   },
 });
 

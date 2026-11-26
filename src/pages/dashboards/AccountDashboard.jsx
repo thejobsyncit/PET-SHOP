@@ -39,6 +39,7 @@ import toast from 'react-hot-toast';
 import LogoutConfirmModal from '../../components/ui/LogoutConfirmModal.jsx';
 import { getActiveUserMembership } from '../../components/widgets/ServicePackageAccessModal.jsx';
 import { downloadBill } from '../../utils/billGenerator.js';
+import { getStoredUserPlans } from '../../services/subscriptionPlanService.js';
 
 export const isTransportBooking = (b) => {
   if (!b) return false;
@@ -83,6 +84,25 @@ const AccountDashboard = () => {
   const [password, setPassword] = useState('');
   const [avatar, setAvatar] = useState('');
 
+  // Dynamic user subscription plans
+  const [userPlans, setUserPlans] = useState(() => getStoredUserPlans());
+  useEffect(() => {
+    const handlePlansUpdate = (e) => {
+      if (e?.detail?.users) {
+        setUserPlans(e.detail.users);
+      } else {
+        setUserPlans(getStoredUserPlans());
+      }
+    };
+    window.addEventListener('subscription-plans-updated', handlePlansUpdate);
+    return () => window.removeEventListener('subscription-plans-updated', handlePlansUpdate);
+  }, []);
+
+  const stdPlan = userPlans.find(p => p.id?.includes('standard') || !p.popular) || userPlans[0];
+  const vipPlan = userPlans.find(p => p.id?.includes('vip') || p.popular) || userPlans[1] || userPlans[0];
+  const stdPrice = stdPlan?.basePrice ?? 100;
+  const vipPrice = vipPlan?.basePrice ?? 499;
+
   // Password Change Fields
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
@@ -116,19 +136,49 @@ const AccountDashboard = () => {
   const [showAddressForm, setShowAddressForm] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
-  // Authoritative, deduplicated addresses for current user session
+  // Authoritative, deduplicated addresses strictly scoped to the current user session
   const displayedAddresses = useMemo(() => {
     const list = Array.isArray(user?.addresses) ? user.addresses : [];
     const emailKey = (user?.email || '').toLowerCase().trim();
+    const userIdKey = String(user?._id || user?.id || '').trim();
     let cached = [];
-    if (emailKey && typeof localStorage !== 'undefined') {
+
+    if (typeof localStorage !== 'undefined') {
+      // Clean up any stale global address leak
       try {
-        const raw = localStorage.getItem(`joshpetshub_addresses_${emailKey}`);
-        if (raw) cached = JSON.parse(raw);
+        localStorage.removeItem('joshpetshub_addresses_backup');
+      } catch (_) {}
+
+      // Strictly check only this user's specific email and ID keys (never shared phone or global keys)
+      const keysToCheck = [
+        emailKey && `joshpetshub_addresses_${emailKey}`,
+        userIdKey && `joshpetshub_addresses_${userIdKey}`
+      ].filter(Boolean);
+
+      for (const k of keysToCheck) {
+        try {
+          const raw = localStorage.getItem(k);
+          if (raw) {
+            const arr = JSON.parse(raw);
+            if (Array.isArray(arr)) cached.push(...arr);
+          }
+        } catch (_) {}
+      }
+
+      try {
+        const regUsers = JSON.parse(localStorage.getItem('joshpetshub_registered_users') || '[]');
+        const regMatch = regUsers.find(u => 
+          (emailKey && u.email && u.email.toLowerCase().trim() === emailKey) ||
+          (userIdKey && (String(u._id) === userIdKey || String(u.id) === userIdKey))
+        );
+        if (Array.isArray(regMatch?.addresses)) {
+          cached.push(...regMatch.addresses);
+        }
       } catch (_) {}
     }
+
     return mergeUserAddresses(list, cached, emailKey);
-  }, [user?.addresses, user?.email]);
+  }, [user?.addresses, user?.email, user?._id, user?.id]);
 
   // History logs states
   const [orders, setOrders] = useState([]);
@@ -171,7 +221,18 @@ const AccountDashboard = () => {
       toast.error('No active payment bill found');
       return;
     }
-    const invNo = m.transactionId || 'TXN_PET_69033320';
+
+    // Strictly verify payment was completed with a genuine transaction ID and belongs to current user
+    const invNo = m.transactionId;
+    const isPaid = (m.paymentStatus === 'PAID' || m.paymentStatus === 'Paid') && (Number(m.totalPaid) > 0 || m.isPaid === true);
+    const mEmail = (m.userEmail || '').trim().toLowerCase();
+    const uEmail = (user?.email || '').trim().toLowerCase();
+
+    if (!isValidPaidMembership || !isPaid || !invNo || invNo === 'TXN-ACTIVE' || invNo === 'TXN_PET_69033320' || m.status !== 'ACTIVE' || !mEmail || !uEmail || mEmail !== uEmail) {
+      toast.error('No verified payment record found for this subscription. Please complete payment first.');
+      return;
+    }
+
     const invDate = m.activatedAt ? new Date(m.activatedAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
     const base = m.basePrice || (m.tier === 'VIP' ? 499 : 199);
     const cgst = Number((base * 0.09).toFixed(2));
@@ -248,7 +309,7 @@ const AccountDashboard = () => {
       },
       payment: {
         method: order.paymentMethod || 'Prepaid Online',
-        validity: `Tracking: ${order.trackingNumber || 'Active'}`,
+        validity: 'Standard Delivery',
       },
       items: items.length > 0 ? items : [{ name: isPetOrder ? 'Verified Pet Purchase' : 'Pet Products Order', sacOrHsn: isPetOrder ? 'PET-ACQ' : 'HSN: 2309', amount: baseSubtotal }],
       totals: {
@@ -343,8 +404,18 @@ const AccountDashboard = () => {
     updateMem();
 
     const handleMemUpdate = (e) => {
-      if (e?.detail) setMembership(e.detail);
-      else updateMem();
+      if (e?.detail) {
+        const d = e.detail;
+        const dEmail = (d?.userEmail || '').trim().toLowerCase();
+        const uEmail = (user?.email || '').trim().toLowerCase();
+        if (dEmail && uEmail && dEmail === uEmail) {
+          setMembership(d);
+        } else {
+          updateMem();
+        }
+      } else {
+        updateMem();
+      }
     };
     window.addEventListener('user-membership-updated', handleMemUpdate);
     window.addEventListener('storage', handleMemUpdate);
@@ -420,6 +491,15 @@ const AccountDashboard = () => {
     }
   }, [user, activeTab]);
 
+  // Fetch fresh profile once when switching to addresses tab
+  const prevTabRef = useRef(activeTab);
+  useEffect(() => {
+    if (activeTab === 'addresses' && prevTabRef.current !== 'addresses') {
+      dispatch(fetchProfile());
+    }
+    prevTabRef.current = activeTab;
+  }, [activeTab, dispatch]);
+
   useEffect(() => {
     const handleMatingEvents = () => {
       loadMatingData();
@@ -449,6 +529,12 @@ const AccountDashboard = () => {
   useEffect(() => {
     loadTransportData();
   }, []);
+
+  useEffect(() => {
+    if (activeTab === 'transport-enquiries') {
+      loadTransportData();
+    }
+  }, [activeTab]);
 
   useEffect(() => {
     const handleTransportEvent = () => {
@@ -496,27 +582,63 @@ const AccountDashboard = () => {
 
   const isBookingOwnedByUser = (b, currentUser) => {
     if (!b || !currentUser) return false;
-    const cId = String(currentUser.id || currentUser._id || '');
+    const cId = String(currentUser.id || currentUser._id || '').trim();
     const cEmail = (currentUser.email || '').toLowerCase().trim();
     const cPhone = (currentUser.mobile || currentUser.phone) ? String(currentUser.mobile || currentUser.phone).replace(/\D/g, '').slice(-10) : '';
 
-    const bUserId = String(b.userId || b.customerId || b.user?._id || b.user?.id || '');
-    if (cId && bUserId && bUserId === cId) return true;
+    const bUserId = String(b.userId || b.customerId || b.user_id || (typeof b.user === 'string' ? b.user : b.user?._id || b.user?.id) || '').trim();
+    const bEmail = (b.userEmail || b.ownerEmail || b.customerEmail || b.email || b.user?.email || b.pet_details?.userEmail || '').toLowerCase().trim();
+    const bPhone = (b.ownerPhone || b.userPhone || b.customerPhone || b.phone || b.mobile || b.pet_details?.userPhone)
+      ? String(b.ownerPhone || b.userPhone || b.customerPhone || b.phone || b.mobile || b.pet_details?.userPhone).replace(/\D/g, '').slice(-10)
+      : '';
 
-    const bEmail = (b.userEmail || b.ownerEmail || b.customerEmail || b.email || b.user?.email || '').toLowerCase().trim();
+    // Demo seeds, provider showcases (app-001..app-005, BOOK-801..BOOK-802, etc.) or bookings without clear customer ownership
+    const bId = String(b.id || b._id || '');
+    const isDemoOrSeed = b.isDemoSeed || bId.startsWith('app-') || bId.startsWith('BOOK-80') || bId === 'BOOK-836454' || bId === 'BOOK-401';
+    if (isDemoOrSeed) {
+      if (cEmail && bEmail && cEmail === bEmail) return true;
+      if (cId && bUserId && bUserId !== 'usr-custom' && cId === bUserId) return true;
+      return false;
+    }
+
+    // If both records specify an email address and they don't match, they belong to different accounts
+    if (cEmail && bEmail && cEmail !== bEmail) return false;
+
+    // If both records specify a valid user ID and they don't match, reject
+    if (cId && cId !== 'usr-custom' && bUserId && bUserId !== 'usr-custom' && cId !== bUserId) return false;
+
+    // Primary matches: User ID or Email
+    if (cId && bUserId && bUserId !== 'usr-custom' && bUserId === cId) return true;
     if (cEmail && bEmail && bEmail === cEmail) return true;
 
-    // Strict check: if emails are present and differ, not owned
-    if (cEmail && bEmail && bEmail !== cEmail) return false;
-    // Strict check: if userIds are present and differ, not owned
-    if (cId && bUserId && bUserId !== cId) return false;
+    // Phone fallback only if neither record has an email conflict and phone is not a dummy/placeholder
+    const isGenericPhone = !bPhone || bPhone === '9876543210' || bPhone === '9000000000' || bPhone === '9000000001' || bPhone === '9000000002';
+    if (!isGenericPhone && cPhone && cPhone.length >= 10 && bPhone && (bPhone === cPhone || bPhone.endsWith(cPhone) || cPhone.endsWith(bPhone))) {
+      return true;
+    }
+    return false;
+  };
 
-    const bPhone = (b.ownerPhone || b.userPhone || b.customerPhone || b.phone || b.mobile)
-      ? String(b.ownerPhone || b.userPhone || b.customerPhone || b.phone || b.mobile).replace(/\D/g, '').slice(-10)
+  const isOrderOwnedByUser = (o, currentUser) => {
+    if (!o || !currentUser) return false;
+    const cId = String(currentUser.id || currentUser._id || '').trim();
+    const cEmail = (currentUser.email || '').toLowerCase().trim();
+    const cPhone = (currentUser.mobile || currentUser.phone) ? String(currentUser.mobile || currentUser.phone).replace(/\D/g, '').slice(-10) : '';
+
+    const oUserId = String(o.userId || o.user_id || o.user?._id || o.user?.id || (typeof o.user === 'string' ? o.user : '') || '').trim();
+    const oEmail = (o.userEmail || o.buyerEmail || o.customerEmail || o.email || o.customer?.email || o.user?.email || '').toLowerCase().trim();
+    const oPhone = (o.userPhone || o.buyerPhone || o.customerPhone || o.phone || o.mobile || o.customer?.phone)
+      ? String(o.userPhone || o.buyerPhone || o.customerPhone || o.phone || o.mobile || o.customer?.phone).replace(/\D/g, '').slice(-10)
       : '';
-    if (cPhone && cPhone.length >= 10 && bPhone && (bPhone === cPhone || bPhone.endsWith(cPhone) || cPhone.endsWith(bPhone))) {
-      if (bEmail && cEmail && bEmail !== cEmail) return false;
-      if (bUserId && cId && bUserId !== cId) return false;
+
+    if (cEmail && oEmail && cEmail !== oEmail) return false;
+    if (cId && cId !== 'usr-custom' && oUserId && oUserId !== 'usr-custom' && cId !== oUserId) return false;
+
+    if (cId && oUserId && oUserId !== 'usr-custom' && oUserId === cId) return true;
+    if (cEmail && oEmail && oEmail === cEmail) return true;
+
+    const isGenericPhone = !oPhone || oPhone === '9876543210' || oPhone === '9000000000';
+    if (!isGenericPhone && cPhone && cPhone.length >= 10 && oPhone && (oPhone === cPhone || oPhone.endsWith(cPhone) || cPhone.endsWith(oPhone))) {
       return true;
     }
     return false;
@@ -530,7 +652,13 @@ const AccountDashboard = () => {
     }
 
     try {
-      const bookingsData = await apiRequest(`/bookings/my${activeUser?.email ? `?email=${encodeURIComponent(activeUser.email)}` : ''}`);
+      const qParams = new URLSearchParams();
+      if (activeUser?.email) qParams.set('email', activeUser.email);
+      if (activeUser?._id || activeUser?.id) qParams.set('userId', activeUser._id || activeUser.id);
+      const userMobileClean = (activeUser?.mobile || activeUser?.phone || '').replace(/\D/g, '').slice(-10);
+      const isDummyPhone = !userMobileClean || userMobileClean === '9876543210' || userMobileClean === '9000000000';
+      if (!isDummyPhone && userMobileClean.length >= 10) qParams.set('mobile', userMobileClean);
+      const bookingsData = await apiRequest(`/bookings/my?${qParams.toString()}`);
       if (bookingsData && bookingsData.success && Array.isArray(bookingsData.bookings)) {
         const transportBookings = bookingsData.bookings
           .filter(isTransportBooking)
@@ -583,21 +711,29 @@ const AccountDashboard = () => {
   };
 
   const loadUserHistory = async () => {
+    const activeUser = user || JSON.parse(localStorage.getItem('joshpetshub_user') || 'null');
+    if (!activeUser) {
+      setOrders([]);
+      setPrescriptions([]);
+      setBookings([]);
+      return;
+    }
+
     setHistoryLoading(true);
     try {
       let combinedOrders = [];
       try {
         const ordersData = await apiRequest('/orders/myorders');
         if (ordersData && ordersData.success && Array.isArray(ordersData.orders)) {
-          combinedOrders = [...ordersData.orders];
+          combinedOrders = ordersData.orders.filter(o => isOrderOwnedByUser(o, activeUser));
         }
       } catch (err) {
         console.warn('Could not fetch online orders:', err);
       }
 
-      // Merge local pet purchase orders & disk orders
+      // Merge local pet purchase orders & disk orders (strictly scoped to current user)
       try {
-        const storedPetOrders = getStoredPetOrders(user);
+        const storedPetOrders = getStoredPetOrders(activeUser).filter(o => isOrderOwnedByUser(o, activeUser));
         const existingOrderIds = new Set(combinedOrders.map(o => (o._id || o.id)?.toString()));
         for (const petOrder of storedPetOrders) {
           const pId = (petOrder._id || petOrder.id)?.toString();
@@ -624,9 +760,16 @@ const AccountDashboard = () => {
 
       let combinedBookings = [];
       try {
-        const bookingsData = await apiRequest(`/bookings/my${user?.email ? `?email=${encodeURIComponent(user.email)}` : ''}`);
+        const qParams = new URLSearchParams();
+        if (activeUser?.email) qParams.set('email', activeUser.email);
+        if (activeUser?._id || activeUser?.id) qParams.set('userId', activeUser._id || activeUser.id);
+        const userMobileClean = (activeUser?.mobile || activeUser?.phone || '').replace(/\D/g, '').slice(-10);
+        const isDummyPhone = !userMobileClean || userMobileClean === '9876543210' || userMobileClean === '9000000000';
+        if (!isDummyPhone && userMobileClean.length >= 10) qParams.set('mobile', userMobileClean);
+
+        const bookingsData = await apiRequest(`/bookings/my?${qParams.toString()}`);
         if (bookingsData && bookingsData.success && Array.isArray(bookingsData.bookings)) {
-          combinedBookings = bookingsData.bookings.filter((b) => isBookingOwnedByUser(b, user));
+          combinedBookings = bookingsData.bookings.filter((b) => isBookingOwnedByUser(b, activeUser));
         }
       } catch (e) {
         console.warn('Error fetching backend bookings:', e);
@@ -634,7 +777,7 @@ const AccountDashboard = () => {
 
       // Merge local grooming bookings
       try {
-        const localGrooming = getStoredGroomingBookings().filter((b) => isBookingOwnedByUser(b, user));
+        const localGrooming = getStoredGroomingBookings().filter((b) => isBookingOwnedByUser(b, activeUser));
         const existingIds = new Set(combinedBookings.map(b => b.id || b._id));
         for (const b of localGrooming) {
           if (!existingIds.has(b.id || b._id)) {
@@ -655,7 +798,7 @@ const AccountDashboard = () => {
           const vId = v.id || v._id;
           if (existingIds.has(vId)) continue;
 
-          if (isBookingOwnedByUser(v, user)) {
+          if (isBookingOwnedByUser(v, activeUser)) {
             combinedBookings.push(v);
             existingIds.add(vId);
           }
@@ -670,7 +813,7 @@ const AccountDashboard = () => {
         const existingIds = new Set(combinedBookings.map(b => b.id || b._id));
         for (const h of localHostel) {
           const hId = h.id || h._id;
-          if (!existingIds.has(hId) && isBookingOwnedByUser(h, user)) {
+          if (!existingIds.has(hId) && isBookingOwnedByUser(h, activeUser)) {
             combinedBookings.push({
               ...h,
               serviceType: 'Pet Hostel / Boarding',
@@ -692,7 +835,7 @@ const AccountDashboard = () => {
         const existingIds = new Set(combinedBookings.map(b => b.id || b._id));
         for (const w of localWalking) {
           const wId = w.id || w._id;
-          if (!existingIds.has(wId) && isBookingOwnedByUser(w, user)) {
+          if (!existingIds.has(wId) && isBookingOwnedByUser(w, activeUser)) {
             combinedBookings.push({
               ...w,
               serviceType: 'Pet Walking & Fitness',
@@ -714,7 +857,7 @@ const AccountDashboard = () => {
         const existingIds = new Set(combinedBookings.map(b => b.id || b._id));
         for (const t of localTraining) {
           const tId = t.id || t._id;
-          if (!existingIds.has(tId) && isBookingOwnedByUser(t, user)) {
+          if (!existingIds.has(tId) && isBookingOwnedByUser(t, activeUser)) {
             combinedBookings.push({
               ...t,
               serviceType: 'Pet Training & Behavior',
@@ -732,11 +875,11 @@ const AccountDashboard = () => {
 
       // Merge local transport bookings
       try {
-        const localTransport = getUserTransportBookings(user);
+        const localTransport = getUserTransportBookings(activeUser);
         const existingIds = new Set(combinedBookings.map(b => b.id || b._id));
         for (const tp of localTransport) {
           const tpId = tp.id || tp._id;
-          if (!existingIds.has(tpId) && isBookingOwnedByUser(tp, user)) {
+          if (!existingIds.has(tpId) && isBookingOwnedByUser(tp, activeUser)) {
             combinedBookings.push({
               ...tp,
               serviceType: 'Pet Transport & Relocation',
@@ -841,17 +984,23 @@ const AccountDashboard = () => {
 
     setIsSubmittingRelocation(true);
     try {
+      const uEmail = (user?.email || '').trim().toLowerCase();
+      const finalUserId = user?._id || user?.id || (uEmail ? `usr-${uEmail}` : 'usr-custom');
       saveTransportEnquiry({
         providerId: 'TRP-101',
         providerName: 'Josh Pets Hub Air & Road Pet Relocators (Central Hub)',
-        userId: user?._id || user?.id || 'usr-custom',
+        userId: finalUserId,
         userName: relocContactName.trim() || user?.name || 'Pet Parent',
         customerName: relocContactName.trim() || user?.name || 'Pet Parent',
-        userEmail: user?.email || '',
-        customerEmail: user?.email || '',
+        userEmail: uEmail,
+        customerEmail: uEmail,
+        ownerEmail: uEmail,
+        email: uEmail,
         userPhone: cleanPhone,
         customerPhone: cleanPhone,
         ownerPhone: cleanPhone,
+        mobile: cleanPhone,
+        phone: cleanPhone,
         relocationType: relocType,
         departureCity: relocDepCity.trim(),
         destinationCity: relocDestCity.trim(),
@@ -1164,8 +1313,22 @@ const AccountDashboard = () => {
     );
   }
 
+  // Strictly verify membership has completed payment, genuine transaction ID, and belongs to user
+  const isValidPaidMembership = Boolean(
+    membership &&
+    membership.status === 'ACTIVE' &&
+    (membership.paymentStatus === 'PAID' || membership.paymentStatus === 'Paid') &&
+    (Number(membership.totalPaid) > 0 || membership.isPaid === true) &&
+    membership.transactionId &&
+    membership.transactionId !== 'TXN-ACTIVE' &&
+    membership.transactionId !== 'TXN_PET_69033320' &&
+    user?.email &&
+    membership.userEmail &&
+    membership.userEmail.trim().toLowerCase() === user.email.trim().toLowerCase()
+  );
+
   const isVipMember = Boolean(
-    membership && (
+    isValidPaidMembership && (
       membership.tier === 'VIP' ||
       membership.tier?.toLowerCase()?.includes('vip') ||
       membership.packageTier?.toLowerCase()?.includes('vip') ||
@@ -1176,7 +1339,7 @@ const AccountDashboard = () => {
   );
 
   const isStandardMember = Boolean(
-    membership && !isVipMember && (membership.status === 'ACTIVE' || membership.tier || membership.packageName)
+    isValidPaidMembership && !isVipMember
   );
 
   return (
@@ -1508,11 +1671,8 @@ const AccountDashboard = () => {
                           })}
                         </div>
 
-                        {/* Tracking detail */}
-                        <div className="flex flex-col sm:flex-row sm:items-center justify-between border-t border-beige pt-3 text-[11px] gap-2.5">
-                          <span className="text-gray-400 font-semibold truncate">
-                            Tracking Code: <strong className="text-slate-800 font-mono">{tracking}</strong>
-                          </span>
+                        {/* Actions */}
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-end border-t border-beige pt-3 text-[11px] gap-2.5">
                           <div className="flex items-center justify-between sm:justify-end gap-2 w-full sm:w-auto shrink-0">
                             {order.prescriptionId && (
                               <span className="px-2 py-0.5 bg-red-50 border border-red-200 text-red-700 font-semibold uppercase text-[9px] rounded shrink-0">
@@ -2302,8 +2462,8 @@ const AccountDashboard = () => {
                 Profile Details
               </h2>
 
-              {/* Active Service Pass / Membership Section in Profile */}
-              {membership ? (
+              {/* Active Service Pass / Membership Section in Profile (shown only when payment is verified) */}
+              {isValidPaidMembership ? (
                 <div className={`rounded-2xl p-4 sm:p-5 border text-white relative transition-all ${
                   isVipMember
                     ? 'bg-[#0F2E23] border-[#D4AF37]/90 shadow-[0_4px_18px_rgba(212,175,55,0.18)]'
@@ -2390,7 +2550,7 @@ const AccountDashboard = () => {
                             Upgrade to VIP All-Access &amp; Priority Pass
                           </span>
                           <span className="text-white/75 text-[11px] leading-tight block mt-0.5">
-                            Unlock 24/7 Priority Concierge, Express Bookings &amp; Senior Vet Consultations for ₹499 + GST
+                            Unlock 24/7 Priority Concierge, Express Bookings &amp; Senior Vet Consultations for ₹{vipPrice} + GST
                           </span>
                         </div>
                       </div>
@@ -2414,7 +2574,7 @@ const AccountDashboard = () => {
                       <span>Service Access Membership</span>
                     </h3>
                     <p className="text-gray-500 text-xs mt-0.5">
-                      No active pass. Choose Standard Pass (₹199 + GST) or VIP Pass (₹499 + GST) to unlock direct provider access.
+                      No active pass. Choose Standard Pass (₹{stdPrice} + GST) or VIP Pass (₹{vipPrice} + GST) to unlock direct provider access.
                     </p>
                   </div>
                   <button
@@ -2430,37 +2590,6 @@ const AccountDashboard = () => {
 
               
               <form onSubmit={handleUpdateProfile} className="space-y-6 max-w-md">
-                
-                {/* Avatar Upload */}
-                <div className="flex items-center gap-4 border border-beige bg-white p-4 rounded-xl">
-                  <div className="w-16 h-16 rounded-full border-2 border-beige bg-sand flex items-center justify-center overflow-hidden shrink-0 relative group">
-                    {avatar ? (
-                      <img src={avatar} alt="Profile" className="w-full h-full object-cover" />
-                    ) : (
-                      <User size={28} className="text-gray-400" />
-                    )}
-                    <label className="absolute inset-0 bg-black/50 text-white flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition cursor-pointer text-[9px] font-bold tracking-wider">
-                      <span>CHANGE</span>
-                      <input 
-                        type="file" 
-                        accept="image/*"
-                        className="hidden" 
-                        onChange={(e) => {
-                          const file = e.target.files[0];
-                          if (file) {
-                            const reader = new FileReader();
-                            reader.onloadend = () => setAvatar(reader.result);
-                            reader.readAsDataURL(file);
-                          }
-                        }}
-                      />
-                    </label>
-                  </div>
-                  <div>
-                    <p className="text-sm font-bold text-primary font-serif">Profile Picture</p>
-                    <p className="text-[10px] text-gray-500 uppercase tracking-wider mt-0.5">JPG, GIF or PNG. Max size of 2MB.</p>
-                  </div>
-                </div>
                 <div className="space-y-1">
                   <label className="text-xs text-gray-500 font-semibold block">Full Name</label>
                   <input
@@ -2899,7 +3028,7 @@ const AccountDashboard = () => {
       </div>
 
       {/* Payment Bill / Tax Invoice Modal */}
-      {showBillModal && membership && (
+      {showBillModal && isValidPaidMembership && membership && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-7 shadow-2xl space-y-4 animate-in fade-in zoom-in-95 duration-200 text-slate-800 relative">
             <div className="flex items-start justify-between border-b border-slate-100 pb-3">
@@ -2924,7 +3053,7 @@ const AccountDashboard = () => {
               <div className="flex items-center justify-between pb-2 border-b border-slate-200/60">
                 <span className="text-slate-500 font-bold uppercase text-[10px] tracking-wider">Invoice / Txn ID</span>
                 <span className="font-mono font-black text-slate-900 bg-white px-2 py-0.5 rounded border border-slate-200">
-                  {membership.transactionId || 'TXN_PET_69033320'}
+                  {membership.transactionId}
                 </span>
               </div>
 

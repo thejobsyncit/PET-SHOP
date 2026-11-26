@@ -18,12 +18,13 @@
     ],
     "location": "Bangalore, KA",
     "contactPhone": "+91 98765 43210",
-    "isVerified": true,
+    "isVerified": false,
     "status": "Available",
     "vaccinationCertificate": "Water Quarantine & Parasite Free Certified",
     "createdAt": "2026-09-18T05:21:35.204Z",
     "paymentStatus": "paid",
-    "paymentAmount": 200
+    "paymentAmount": 200,
+    "is_verified": false
   },
   {
     "_id": "LIST-FISH-02",
@@ -44,12 +45,13 @@
     ],
     "location": "Chennai, TN",
     "contactPhone": "+91 98765 43210",
-    "isVerified": true,
+    "isVerified": false,
     "status": "Available",
     "vaccinationCertificate": "De-wormed & Health Verified",
     "createdAt": "2026-09-18T05:21:35.205Z",
     "paymentStatus": "paid",
-    "paymentAmount": 200
+    "paymentAmount": 200,
+    "is_verified": false
   },
   {
     "_id": "LIST-FISH-03",
@@ -70,12 +72,13 @@
     ],
     "location": "Mumbai, MH",
     "contactPhone": "+91 98765 43210",
-    "isVerified": true,
+    "isVerified": false,
     "status": "Available",
     "vaccinationCertificate": "Health & Parasite Free Checked",
     "createdAt": "2026-09-18T05:21:35.205Z",
     "paymentStatus": "paid",
-    "paymentAmount": 200
+    "paymentAmount": 200,
+    "is_verified": false
   },
   {
     "_id": "LIST-FISH-04",
@@ -96,13 +99,14 @@
     ],
     "location": "Kochi, KL",
     "contactPhone": "+91 98765 43210",
-    "isVerified": true,
+    "isVerified": false,
     "status": "Available",
     "vaccinationCertificate": null,
     "createdAt": "2026-09-18T05:21:35.205Z",
     "paymentStatus": "paid",
     "paymentAmount": 200,
-    "soldCount": 1
+    "soldCount": 1,
+    "is_verified": false
   },
   {
     "_id": "LIST-DOG-01",
@@ -123,12 +127,13 @@
     ],
     "location": "Delhi NCR",
     "contactPhone": "+91 98765 43210",
-    "isVerified": true,
+    "isVerified": false,
     "status": "Available",
     "vaccinationCertificate": "7-in-1 Vaccinated & Microchipped",
     "createdAt": "2026-09-18T05:21:35.205Z",
     "paymentStatus": "paid",
-    "paymentAmount": 200
+    "paymentAmount": 200,
+    "is_verified": false
   },
   {
     "_id": "LIST-DOG-02",
@@ -149,12 +154,13 @@
     ],
     "location": "Pune, MH",
     "contactPhone": "+91 98765 43210",
-    "isVerified": true,
+    "isVerified": false,
     "status": "Available",
     "vaccinationCertificate": "Puppy DP Complete",
     "createdAt": "2026-09-18T05:21:35.205Z",
     "paymentStatus": "paid",
-    "paymentAmount": 200
+    "paymentAmount": 200,
+    "is_verified": false
   },
   {
     "_id": "LIST-CAT-01",
@@ -175,12 +181,13 @@
     ],
     "location": "Bangalore, KA",
     "contactPhone": "+91 98765 43210",
-    "isVerified": true,
+    "isVerified": false,
     "status": "Available",
     "vaccinationCertificate": "Tricat Vaccinated",
     "createdAt": "2026-09-18T05:21:35.205Z",
     "paymentStatus": "paid",
-    "paymentAmount": 200
+    "paymentAmount": 200,
+    "is_verified": false
   },
   {
     "_id": "LIST-BIRD-01",
@@ -201,12 +208,13 @@
     ],
     "location": "Hyderabad, TS",
     "contactPhone": "+91 98765 43210",
-    "isVerified": true,
+    "isVerified": false,
     "status": "Available",
     "vaccinationCertificate": "Avian Vet Cleared",
     "createdAt": "2026-09-18T05:21:35.205Z",
     "paymentStatus": "paid",
-    "paymentAmount": 200
+    "paymentAmount": 200,
+    "is_verified": false
   },
   {
     "_id": "LIST-REP-01",
@@ -227,12 +235,13 @@
     ],
     "location": "Kolkata, WB",
     "contactPhone": "+91 98765 43210",
-    "isVerified": true,
+    "isVerified": false,
     "status": "Available",
     "vaccinationCertificate": "Captive Bred Certificate",
     "createdAt": "2026-09-18T05:21:35.205Z",
     "paymentStatus": "paid",
-    "paymentAmount": 200
+    "paymentAmount": 200,
+    "is_verified": false
   },
   {
     "_id": "LIST-SP-01",
@@ -253,11 +262,12 @@
     ],
     "location": "Ahmedabad, GJ",
     "contactPhone": "+91 98765 43210",
-    "isVerified": true,
+    "isVerified": false,
     "status": "Available",
     "vaccinationCertificate": "Parasite Checked",
     "createdAt": "2026-09-18T05:21:35.205Z",
     "paymentStatus": "paid",
-    "paymentAmount": 200
+    "paymentAmount": 200,
+    "is_verified": false
   }
 ]

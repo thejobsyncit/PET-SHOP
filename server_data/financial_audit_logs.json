@@ -1,5 +1,22 @@
 [
   {
+    "id": "AUDIT-1795690440939-393",
+    "timestamp": "2026-11-26T10:54:00.939Z",
+    "action": "PAYOUT_REQUESTED",
+    "actor": {
+      "role": "SERVICE_PROVIDER",
+      "id": "prov-prod-11"
+    },
+    "refId": "PO-REQ-440909",
+    "amount": 5000,
+    "status": "SUCCESS",
+    "details": {
+      "method": "UPI",
+      "bank": "Instant UPI",
+      "destination": "productseller@okhdfcbank"
+    }
+  },
+  {
     "id": "AUDIT-1794281357970-714",
     "timestamp": "2026-11-10T03:29:17.970Z",
     "action": "PAYOUT_MARK_PAID",

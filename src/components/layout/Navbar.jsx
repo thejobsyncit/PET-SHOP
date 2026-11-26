@@ -25,22 +25,6 @@ const Navbar = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [mobileExpanded, setMobileExpanded] = useState('');
 
-  // Top Marquee Announcement Bar Dismiss State
-  const [isBannerDismissed, setIsBannerDismissed] = useState(() => {
-    try {
-      return sessionStorage.getItem('josh_top_announcement_dismissed') === 'true';
-    } catch {
-      return false;
-    }
-  });
-
-  const handleDismissBanner = () => {
-    setIsBannerDismissed(true);
-    try {
-      sessionStorage.setItem('josh_top_announcement_dismissed', 'true');
-    } catch (_) {}
-  };
-
   const [announcements, setAnnouncements] = useState([]);
   const [announcementSettings, setAnnouncementSettings] = useState({
     isEnabled: true,
@@ -231,6 +215,25 @@ const Navbar = () => {
 
   const isAuthenticated = rawIsAuthenticated && !isGuestPreview;
   const user = isGuestPreview ? null : rawUser;
+
+  // Check if current user is a service provider or viewing provider platform
+  const isServiceProvider = Boolean(
+    isAuthenticated && (
+      user?.role === 'SERVICE_PROVIDER' ||
+      String(user?.role).toUpperCase() === 'SERVICE_PROVIDER' ||
+      String(user?.role).toLowerCase() === 'provider' ||
+      user?.isProvider ||
+      Boolean(user?.serviceCategory)
+    )
+  );
+
+  const isProviderRoute = Boolean(
+    location.pathname.startsWith('/provider-dashboard') ||
+    location.pathname.startsWith('/provider') ||
+    location.pathname === '/dashboard'
+  );
+
+  const shouldHideAnnouncementBar = isServiceProvider || isProviderRoute;
   const cartItems = useSelector((state) => state.cart.items);
   const wishlistItems = useSelector((state) => state.wishlist.items);
 
@@ -380,10 +383,10 @@ const Navbar = () => {
       <header className="sticky top-0 left-0 w-full z-40 transition-all duration-300">
 
         {/* Top Auto-Scrolling Announcement Bar (Infinite Marquee Ticker) */}
-        {!isBannerDismissed && announcementSettings.isEnabled !== false && (announcements.length > 0 ? announcements : defaultAnnouncementItems).length > 0 && (
-          <div className="relative bg-[#091D15] text-white py-1.5 overflow-hidden border-b border-white/10 select-none">
+        {!shouldHideAnnouncementBar && announcementSettings.isEnabled !== false && (announcements.length > 0 ? announcements : defaultAnnouncementItems).length > 0 && (
+          <div className="relative bg-[#1D3B2E] text-white py-1.5 overflow-hidden border-b border-white/10 select-none">
             {/* Left fade gradient for smooth entrance */}
-            <div className="pointer-events-none absolute inset-y-0 left-0 w-8 sm:w-16 bg-gradient-to-r from-[#091D15] to-transparent z-10" />
+            <div className="pointer-events-none absolute inset-y-0 left-0 w-8 sm:w-16 bg-gradient-to-r from-[#1D3B2E] to-transparent z-10" />
 
             {/* Marquee Track Container */}
             <div className="flex items-center overflow-hidden">
@@ -446,18 +449,8 @@ const Navbar = () => {
               </div>
             </div>
 
-            {/* Right fade gradient + Close Button */}
-            <div className="absolute inset-y-0 right-0 flex items-center pr-2 pl-8 bg-gradient-to-l from-[#091D15] via-[#091D15]/90 to-transparent z-20">
-              <button
-                type="button"
-                onClick={handleDismissBanner}
-                className="p-1 rounded-full text-white/60 hover:text-white hover:bg-white/10 transition cursor-pointer"
-                title="Dismiss announcement bar"
-                aria-label="Dismiss announcement bar"
-              >
-                <X size={13} />
-              </button>
-            </div>
+            {/* Right fade gradient for smooth exit */}
+            <div className="pointer-events-none absolute inset-y-0 right-0 w-8 sm:w-16 bg-gradient-to-l from-[#1D3B2E] to-transparent z-10" />
           </div>
         )}
 

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import {
-  Wallet, Landmark, ShieldCheck, Clock3, CheckCircle2, DollarSign,
+  Wallet, Landmark, ShieldCheck, Clock3, CheckCircle2, IndianRupee,
   X, CreditCard, ArrowUpRight, Check, AlertCircle, Building,
   TrendingUp, RefreshCw, Calendar, User, FileText, CheckCircle,
   HelpCircle, ChevronRight, Lock, Eye, EyeOff
@@ -300,7 +300,7 @@ const ProviderWalletPayoutView = ({
           </p>
         </div>
 
-        <div className="flex items-center gap-2 sm:gap-2.5 shrink-0 flex-nowrap">
+        <div className="flex items-center gap-2 sm:gap-2.5 shrink-0 flex-wrap">
           <button
             type="button"
             onClick={fetchProviderFinancials}
@@ -343,7 +343,7 @@ const ProviderWalletPayoutView = ({
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
         
         {/* Available for Payout Card */}
-        <div className="bg-gradient-to-br from-[#0F2E23] to-[#1a4a3a] text-white p-5 rounded-2xl shadow-md relative overflow-hidden flex flex-col justify-between min-h-[170px]">
+        <div className="bg-gradient-to-br from-[#0F2E23] to-[#1a4a3a] text-white p-4 sm:p-5 rounded-2xl shadow-md relative overflow-hidden flex flex-col justify-between min-h-[170px]">
           <div className="absolute right-[-10px] bottom-[-10px] w-28 h-28 bg-emerald-500/10 rounded-full blur-2xl pointer-events-none" />
           <div>
             <span className="text-[10px] font-black uppercase tracking-widest text-emerald-300 block mb-1">
@@ -353,34 +353,36 @@ const ProviderWalletPayoutView = ({
               ₹{metrics.availablePayoutBalance.toLocaleString('en-IN')}
             </div>
           </div>
-          <div className="pt-4 flex items-center justify-between gap-1.5 border-t border-emerald-800/60 text-[11px]">
-            <span className="text-emerald-200 font-medium flex items-center gap-1 shrink-0">
-              <ShieldCheck size={13} className="text-emerald-400 shrink-0" /> Ready to Withdraw
+          <div className="pt-3.5 flex flex-wrap items-center justify-between gap-x-2 gap-y-2 border-t border-emerald-800/60 text-[11px]">
+            <span className="text-emerald-200 font-semibold flex items-center gap-1 min-w-0">
+              <ShieldCheck size={13} className="text-emerald-400 shrink-0" />
+              <span className="truncate">Ready to Withdraw</span>
             </span>
-            <div className="flex items-center gap-1.5 shrink-0">
+            <div className="flex items-center gap-1.5 shrink-0 ml-auto">
               <button
                 type="button"
                 onClick={() => handleOpenWithdrawModal(null, 'bank')}
                 disabled={metrics.availablePayoutBalance <= 0}
-                className="font-bold text-amber-300 hover:text-white transition flex items-center gap-0.5 cursor-pointer disabled:opacity-50"
+                className="px-2 py-0.5 rounded-md bg-emerald-950/60 hover:bg-emerald-900 border border-emerald-700/60 font-bold text-amber-300 hover:text-white transition flex items-center gap-0.5 cursor-pointer disabled:opacity-40 text-[10.5px] active:scale-95"
+                title="Withdraw to Bank Account"
               >
-                Bank <ArrowUpRight size={11} />
+                Bank <ArrowUpRight size={10} />
               </button>
-              <span className="text-emerald-700 text-xs font-bold">•</span>
               <button
                 type="button"
                 onClick={() => handleOpenWithdrawModal(null, 'upi')}
                 disabled={metrics.availablePayoutBalance <= 0}
-                className="font-bold text-emerald-300 hover:text-white transition flex items-center gap-0.5 cursor-pointer disabled:opacity-50"
+                className="px-2 py-0.5 rounded-md bg-emerald-950/60 hover:bg-emerald-900 border border-emerald-700/60 font-bold text-emerald-300 hover:text-white transition flex items-center gap-0.5 cursor-pointer disabled:opacity-40 text-[10.5px] active:scale-95"
+                title="Withdraw via Instant UPI"
               >
-                UPI <ArrowUpRight size={11} />
+                UPI <ArrowUpRight size={10} />
               </button>
             </div>
           </div>
         </div>
 
         {/* Total Earnings Generated Card */}
-        <div className="bg-white border border-slate-200/90 p-5 rounded-2xl shadow-xs overflow-hidden flex flex-col justify-between min-h-[170px]">
+        <div className="bg-white border border-slate-200/90 p-4 sm:p-5 rounded-2xl shadow-xs overflow-hidden flex flex-col justify-between min-h-[170px]">
           <div>
             <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 block mb-1">
               Total Earnings Generated
@@ -389,14 +391,14 @@ const ProviderWalletPayoutView = ({
               ₹{metrics.totalEarningsGenerated.toLocaleString('en-IN')}
             </div>
           </div>
-          <div className="pt-4 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-500 font-medium gap-1">
+          <div className="pt-3.5 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-500 font-medium gap-1">
             <span className="truncate">{metrics.totalPaidBookings} Paid Bookings</span>
             <span className="text-emerald-700 font-bold shrink-0">5% Josh Fee</span>
           </div>
         </div>
 
         {/* Pending Escrow Earnings Card */}
-        <div className="bg-white border border-slate-200/90 p-5 rounded-2xl shadow-xs overflow-hidden flex flex-col justify-between min-h-[170px]">
+        <div className="bg-white border border-slate-200/90 p-4 sm:p-5 rounded-2xl shadow-xs overflow-hidden flex flex-col justify-between min-h-[170px]">
           <div>
             <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 block mb-1">
               In Escrow (Upcoming)
@@ -405,7 +407,7 @@ const ProviderWalletPayoutView = ({
               ₹{metrics.pendingEarnings.toLocaleString('en-IN')}
             </div>
           </div>
-          <div className="pt-4 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-500 font-medium gap-1">
+          <div className="pt-3.5 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-500 font-medium gap-1">
             <span className="flex items-center gap-1 shrink-0">
               <Clock3 size={13} className="text-amber-500 shrink-0" /> Platform Hold
             </span>
@@ -414,7 +416,7 @@ const ProviderWalletPayoutView = ({
         </div>
 
         {/* Total Settled & Withdrawn Card */}
-        <div className="bg-white border border-slate-200/90 p-5 rounded-2xl shadow-xs overflow-hidden flex flex-col justify-between min-h-[170px]">
+        <div className="bg-white border border-slate-200/90 p-4 sm:p-5 rounded-2xl shadow-xs overflow-hidden flex flex-col justify-between min-h-[170px]">
           <div>
             <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 block mb-1">
               Total Withdrawn
@@ -423,7 +425,7 @@ const ProviderWalletPayoutView = ({
               ₹{metrics.totalWithdrawn.toLocaleString('en-IN')}
             </div>
           </div>
-          <div className="pt-4 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-500 font-medium gap-1">
+          <div className="pt-3.5 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-500 font-medium gap-1">
             <span className="truncate">{metrics.totalCompletedPayouts} Settled</span>
             <span className="text-emerald-700 font-bold flex items-center gap-1 shrink-0">
               <CheckCircle2 size={13} className="shrink-0" /> 100% Cleared

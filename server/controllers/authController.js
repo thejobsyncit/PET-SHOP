@@ -11,6 +11,8 @@ import { supabase } from '../config/supabase.js';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const USERS_FILE = path.join(__dirname, '..', 'data', 'users.json');
+const SERVICE_PROVIDERS_FILE = path.join(__dirname, '..', 'data', 'service_providers.json');
+const USER_STATE_FILE = path.join(__dirname, '..', '..', 'server_data', 'user_state.json');
 const SERVER_DATA_BOOKINGS_FILE = path.join(__dirname, '..', '..', 'server_data', 'bookings.json');
 
 // Helper to sanitize user object: never expose passwords or hashes
@@ -49,6 +51,8 @@ export const sanitizeUser = (user) => {
     subscription: userObj.subscription || null,
     subscriptionHistory: Array.isArray(userObj.subscriptionHistory) ? userObj.subscriptionHistory : [],
     addresses: Array.isArray(userObj.addresses) ? userObj.addresses : [],
+    cart: Array.isArray(userObj.cart) ? userObj.cart : [],
+    wishlist: Array.isArray(userObj.wishlist) ? userObj.wishlist : [],
     // Complete Provider Profile Details
     govtProofType: userObj.govtProofType || userObj.govt_proof_type || '',
     govtProofNumber: userObj.govtProofNumber || userObj.govt_proof_number || '',
@@ -483,7 +487,268 @@ export const saveDiskUsers = (users) => {
   }
 };
 
-// Universal duplicate email verification across DEMO_ACCOUNTS, local disk users, memory, and Supabase
+// Helper to read service providers from disk fallback
+export const loadDiskServiceProviders = () => {
+  try {
+    if (fs.existsSync(SERVICE_PROVIDERS_FILE)) {
+      const content = fs.readFileSync(SERVICE_PROVIDERS_FILE, 'utf8');
+      const parsed = JSON.parse(content);
+      if (Array.isArray(parsed)) return parsed;
+    }
+  } catch (err) {
+    console.warn('[DiskServiceProviders] Error reading service_providers.json:', err?.message);
+  }
+  return [];
+};
+
+// Helper to save service providers to disk fallback
+export const saveDiskServiceProviders = (providers) => {
+  try {
+    const dir = path.dirname(SERVICE_PROVIDERS_FILE);
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+    fs.writeFileSync(SERVICE_PROVIDERS_FILE, JSON.stringify(providers, null, 2), 'utf8');
+  } catch (err) {
+    console.warn('[DiskServiceProviders] Error saving service_providers.json:', err?.message);
+  }
+};
+
+// Helper to aggregate and deduplicate addresses across all persistent sources
+export const getAggregatedUserAddresses = async (user, userId, userEmail, userMobile) => {
+  const cleanEmail = (userEmail || user?.email || '').toLowerCase().trim();
+  const idStr = String(userId || user?._id || user?.id || '').trim();
+
+  const allAddressCandidates = [];
+
+  // Source 1: user record itself
+  if (Array.isArray(user?.addresses)) {
+    allAddressCandidates.push(...user.addresses);
+  }
+
+  // Source 2: Supabase users and service_providers tables (authoritative cloud store)
+  if (supabase) {
+    try {
+      if (idStr) {
+        const { data: sbUser } = await supabase.from('users').select('addresses').eq('id', idStr).maybeSingle();
+        if (Array.isArray(sbUser?.addresses)) {
+          allAddressCandidates.push(...sbUser.addresses);
+        }
+      }
+      if (cleanEmail) {
+        const { data: sbEmailUser } = await supabase.from('users').select('addresses').ilike('email', cleanEmail).maybeSingle();
+        if (Array.isArray(sbEmailUser?.addresses)) {
+          allAddressCandidates.push(...sbEmailUser.addresses);
+        }
+      }
+    } catch (sbErr) {
+      console.warn('[AddressFetch] Supabase fetch fallback:', sbErr?.message);
+    }
+  }
+
+  // Source 3: users.json (strictly by id or email, NEVER phone!)
+  try {
+    const dUsers = loadDiskUsers();
+    const dMatch = dUsers.find(u => 
+      (idStr && (String(u._id) === idStr || String(u.id) === idStr)) ||
+      (cleanEmail && u.email && u.email.toLowerCase().trim() === cleanEmail)
+    );
+    if (Array.isArray(dMatch?.addresses)) {
+      allAddressCandidates.push(...dMatch.addresses);
+    }
+  } catch (_) {}
+
+  // Source 4: service_providers.json (strictly by id or email)
+  try {
+    const dProviders = loadDiskServiceProviders();
+    const pMatch = dProviders.find(p => 
+      (idStr && (String(p._id) === idStr || String(p.id) === idStr)) ||
+      (cleanEmail && p.email && p.email.toLowerCase().trim() === cleanEmail)
+    );
+    if (Array.isArray(pMatch?.addresses)) {
+      allAddressCandidates.push(...pMatch.addresses);
+    }
+  } catch (_) {}
+
+  // Source 5: user_state.json (strictly by id or email)
+  try {
+    if (fs.existsSync(USER_STATE_FILE)) {
+      const stateObj = JSON.parse(fs.readFileSync(USER_STATE_FILE, 'utf8'));
+      const items = Array.isArray(stateObj) ? stateObj : Object.values(stateObj);
+      const sMatch = items.find(u => 
+        (idStr && (String(u?._id) === idStr || String(u?.id) === idStr)) ||
+        (cleanEmail && u?.email && u.email.toLowerCase().trim() === cleanEmail)
+      );
+      if (Array.isArray(sMatch?.addresses)) {
+        allAddressCandidates.push(...sMatch.addresses);
+      }
+    }
+  } catch (_) {}
+
+  // Source 6: inMemoryUsers
+  if (cleanEmail && inMemoryUsers.has(cleanEmail)) {
+    const mem = inMemoryUsers.get(cleanEmail);
+    if (Array.isArray(mem?.addresses)) {
+      allAddressCandidates.push(...mem.addresses);
+    }
+  }
+
+  // Source 7: DEMO_ACCOUNTS
+  const demoMatch = DEMO_ACCOUNTS.find(d => 
+    (idStr && (String(d._id) === idStr || String(d.id) === idStr)) ||
+    (cleanEmail && d.email && d.email.toLowerCase().trim() === cleanEmail)
+  );
+  if (Array.isArray(demoMatch?.addresses)) {
+    allAddressCandidates.push(...demoMatch.addresses);
+  }
+
+  // Deduplicate by signature and ID
+  const map = new Map();
+  allAddressCandidates.forEach((raw, idx) => {
+    if (!raw || typeof raw !== 'object') return;
+    const street = (raw.streetAddress || raw.address || '').trim();
+    const city = (raw.city || '').trim();
+    const state = (raw.state || '').trim();
+    const postalCode = (raw.postalCode || raw.pincode || raw.zipCode || '').toString().trim();
+    const name = (raw.name || '').trim();
+    const phone = (raw.phone || raw.mobile || '').toString().trim();
+    const country = (raw.country || 'India').trim();
+    const isDefault = Boolean(raw.isDefault);
+    const idVal = raw._id || raw.id || `addr_${idx}_${Date.now()}`;
+
+    const sig = `${name.toLowerCase()}|${street.toLowerCase()}|${postalCode}`;
+    let matchKey = null;
+    for (const [key, item] of map.entries()) {
+      const itemSig = `${(item.name || '').toLowerCase()}|${(item.streetAddress || '').toLowerCase()}|${(item.postalCode || '')}`;
+      if (itemSig === sig || (idVal && (item._id === idVal || item.id === idVal))) {
+        matchKey = key;
+        break;
+      }
+    }
+
+    const norm = {
+      _id: idVal,
+      id: idVal,
+      name,
+      phone,
+      streetAddress: street,
+      city,
+      state,
+      postalCode,
+      country,
+      isDefault
+    };
+
+    if (matchKey) {
+      const existing = map.get(matchKey);
+      map.set(matchKey, {
+        ...existing,
+        ...norm,
+        _id: existing._id || norm._id,
+        id: existing.id || norm.id,
+        isDefault: existing.isDefault || norm.isDefault
+      });
+    } else {
+      map.set(sig, norm);
+    }
+  });
+
+  const finalAddresses = Array.from(map.values());
+  if (finalAddresses.length > 0 && !finalAddresses.some(a => a.isDefault)) {
+    finalAddresses[0].isDefault = true;
+  }
+  return finalAddresses;
+};
+
+// Helper to persist user addresses across all stores (Supabase, users.json, service_providers.json, user_state.json, DEMO_ACCOUNTS, inMemoryUsers)
+export const persistUserAddressesAcrossAllStores = async (userId, userEmail, userMobile, addresses) => {
+  const cleanEmail = (userEmail || '').toLowerCase().trim();
+  const idStr = String(userId || '').trim();
+
+  // 1. Supabase (both users and service_providers tables, match strictly by id OR email)
+  if (supabase) {
+    try {
+      if (idStr) {
+        await supabase.from('users').update({ addresses }).eq('id', idStr);
+        await supabase.from('service_providers').update({ addresses }).eq('id', idStr);
+      }
+      if (cleanEmail) {
+        await supabase.from('users').update({ addresses }).ilike('email', cleanEmail);
+        await supabase.from('service_providers').update({ addresses }).ilike('email', cleanEmail);
+      }
+    } catch (sbErr) {
+      console.warn('[AddressSync] Supabase address sync warning:', sbErr?.message);
+    }
+  }
+
+  // 2. Local disk users (users.json) - strictly by id or email, NEVER phone!
+  try {
+    const dUsers = loadDiskUsers();
+    let updated = false;
+    for (let i = 0; i < dUsers.length; i++) {
+      const u = dUsers[i];
+      const matchId = idStr && (String(u._id) === idStr || String(u.id) === idStr);
+      const matchEmail = cleanEmail && u.email && u.email.toLowerCase().trim() === cleanEmail;
+      if (matchId || matchEmail) {
+        dUsers[i].addresses = addresses;
+        updated = true;
+      }
+    }
+    if (updated) saveDiskUsers(dUsers);
+  } catch (_) {}
+
+  // 3. Local disk service providers (service_providers.json) - strictly by id or email
+  try {
+    const dProviders = loadDiskServiceProviders();
+    let updatedProv = false;
+    for (let i = 0; i < dProviders.length; i++) {
+      const p = dProviders[i];
+      const matchId = idStr && (String(p._id) === idStr || String(p.id) === idStr);
+      const matchEmail = cleanEmail && p.email && p.email.toLowerCase().trim() === cleanEmail;
+      if (matchId || matchEmail) {
+        dProviders[i].addresses = addresses;
+        updatedProv = true;
+      }
+    }
+    if (updatedProv) saveDiskServiceProviders(dProviders);
+  } catch (_) {}
+
+  // 4. User state file (user_state.json) - strictly by id or email
+  try {
+    if (fs.existsSync(USER_STATE_FILE)) {
+      const stateObj = JSON.parse(fs.readFileSync(USER_STATE_FILE, 'utf8'));
+      let updatedState = false;
+      if (Array.isArray(stateObj)) {
+        for (let i = 0; i < stateObj.length; i++) {
+          const u = stateObj[i];
+          const matchId = idStr && (String(u?._id) === idStr || String(u?.id) === idStr);
+          const matchEmail = cleanEmail && u?.email && u.email.toLowerCase().trim() === cleanEmail;
+          if (matchId || matchEmail) {
+            stateObj[i].addresses = addresses;
+            updatedState = true;
+          }
+        }
+      }
+      if (updatedState) fs.writeFileSync(USER_STATE_FILE, JSON.stringify(stateObj, null, 2), 'utf8');
+    }
+  } catch (_) {}
+
+  // 5. inMemoryUsers
+  if (cleanEmail && inMemoryUsers.has(cleanEmail)) {
+    const mem = inMemoryUsers.get(cleanEmail);
+    mem.addresses = addresses;
+    inMemoryUsers.set(cleanEmail, mem);
+  }
+
+  // 6. DEMO_ACCOUNTS
+  const demoMatch = DEMO_ACCOUNTS.find(d => 
+    (idStr && (String(d._id) === idStr || String(d.id) === idStr)) ||
+    (cleanEmail && d.email && d.email.toLowerCase().trim() === cleanEmail)
+  );
+  if (demoMatch) {
+    demoMatch.addresses = addresses;
+  }
+};
+
+// Universal duplicate email verification across DEMO_ACCOUNTS, local disk users, service providers, memory, and Supabase
 export const isEmailAlreadyRegistered = async (rawEmail) => {
   if (!rawEmail || typeof rawEmail !== 'string') return false;
   const clean = rawEmail.trim().toLowerCase();
@@ -509,7 +774,13 @@ export const isEmailAlreadyRegistered = async (rawEmail) => {
     return true;
   }
 
-  // 4. Check in Supabase if configured & available
+  // 4. Check in disk service_providers.json
+  const diskProviders = loadDiskServiceProviders();
+  if (diskProviders.some(p => p.email && p.email.trim().toLowerCase() === clean)) {
+    return true;
+  }
+
+  // 5. Check in Supabase if configured & available (both users and service_providers tables)
   if (supabase) {
     try {
       const { data, error } = await supabase
@@ -519,9 +790,17 @@ export const isEmailAlreadyRegistered = async (rawEmail) => {
       if (!error && Array.isArray(data) && data.length > 0) {
         return true;
       }
-    } catch (_) {
-      // Supabase table may not be initialized; continue
-    }
+    } catch (_) {}
+
+    try {
+      const { data: pData, error: pErr } = await supabase
+        .from('service_providers')
+        .select('id, email')
+        .ilike('email', clean);
+      if (!pErr && Array.isArray(pData) && pData.length > 0) {
+        return true;
+      }
+    } catch (_) {}
   }
 
   return false;
@@ -628,36 +907,89 @@ export const registerUser = async (req, res) => {
       prescription_history: []
     };
 
-    // Try persisting to Supabase if available
+    // Try persisting to Supabase based on strict table separation:
+    // SERVICE_PROVIDER -> service_providers table
+    // CUSTOMER -> users table
     if (supabase) {
-      try {
-        const { data: dbUser, error: dbErr } = await supabase.from('users').insert([{
-          name: userObj.name,
-          email: userObj.email,
-          password: userObj.password,
-          mobile: userObj.mobile,
-          role: userObj.role,
-          location: userObj.location,
-          service_category: userObj.service_category,
-          business_name: userObj.business_name,
-          govt_proof_type: userObj.govt_proof_type,
-          govt_proof_number: userObj.govt_proof_number,
-          govt_proof_doc: userObj.govt_proof_doc,
-          verification_status: userObj.verification_status,
-          shelter_capacity: userObj.shelter_capacity,
-          bio: userObj.bio,
-          addresses: [],
-          wishlist: [],
-          cart: [],
-          prescription_history: []
-        }]).select().single();
+      if (safeRole === 'SERVICE_PROVIDER') {
+        try {
+          const providerRecord = {
+            name: userObj.name,
+            email: userObj.email,
+            password: userObj.password,
+            password_plain: password,
+            mobile: userObj.mobile,
+            phone: userObj.phone,
+            whatsapp: userObj.whatsapp,
+            whatsapp_number: userObj.whatsappNumber,
+            whatsappNumber: userObj.whatsappNumber,
+            whatsapp_country_code: userObj.whatsappCountryCode || '+91',
+            whatsappCountryCode: userObj.whatsappCountryCode || '+91',
+            mobile_country_code: userObj.mobileCountryCode || '+91',
+            mobileCountryCode: userObj.mobileCountryCode || '+91',
+            role: 'SERVICE_PROVIDER',
+            location: userObj.location,
+            service_category: userObj.service_category || userObj.serviceCategory,
+            serviceCategory: userObj.serviceCategory || userObj.service_category,
+            business_name: userObj.business_name || userObj.businessName,
+            businessName: userObj.businessName || userObj.business_name,
+            govt_proof_type: userObj.govt_proof_type || userObj.govtProofType,
+            govtProofType: userObj.govtProofType || userObj.govt_proof_type,
+            govt_proof_number: userObj.govt_proof_number || userObj.govtProofNumber,
+            govtProofNumber: userObj.govtProofNumber || userObj.govt_proof_number,
+            govt_proof_doc: userObj.govt_proof_doc || userObj.govtProofDoc,
+            govtProofDoc: userObj.govtProofDoc || userObj.govt_proof_doc,
+            verification_status: userObj.verification_status || 'Pending',
+            verificationStatus: userObj.verificationStatus || userObj.verification_status || 'Pending',
+            shelter_capacity: userObj.shelter_capacity || 0,
+            shelterCapacity: userObj.shelterCapacity || userObj.shelter_capacity || 0,
+            capacity: userObj.capacity || userObj.shelter_capacity || 0,
+            bio: userObj.bio,
+            isProfileComplete: userObj.isProfileComplete,
+            profileCompleted: userObj.profileCompleted,
+            subscription: userObj.subscription || {},
+            subscriptionHistory: userObj.subscriptionHistory || []
+          };
 
-        if (!dbErr && dbUser) {
-          userObj.id = dbUser.id;
-          userObj._id = dbUser.id;
+          const { data: dbProvider, error: pErr } = await supabase
+            .from('service_providers')
+            .insert([providerRecord])
+            .select()
+            .single();
+
+          if (!pErr && dbProvider) {
+            userObj.id = dbProvider.id;
+            userObj._id = dbProvider.id;
+          } else if (pErr) {
+            console.error('[Supabase] Failed to insert service provider into service_providers table:', pErr.message);
+          }
+        } catch (sbErr) {
+          console.warn('Supabase service_providers insert notice, using local file store:', sbErr?.message);
         }
-      } catch (sbErr) {
-        console.warn('Supabase insert notice, using local file store:', sbErr?.message);
+      } else {
+        // CUSTOMER / USER registration into users table
+        try {
+          const { data: dbUser, error: dbErr } = await supabase.from('users').insert([{
+            name: userObj.name,
+            email: userObj.email,
+            password: userObj.password,
+            mobile: userObj.mobile,
+            role: userObj.role,
+            location: userObj.location,
+            verification_status: userObj.verification_status,
+            addresses: [],
+            wishlist: [],
+            cart: [],
+            prescription_history: []
+          }]).select().single();
+
+          if (!dbErr && dbUser) {
+            userObj.id = dbUser.id;
+            userObj._id = dbUser.id;
+          }
+        } catch (sbErr) {
+          console.warn('Supabase users insert notice, using local file store:', sbErr?.message);
+        }
       }
     }
 
@@ -681,15 +1013,36 @@ export const registerUser = async (req, res) => {
       }
     }
 
-    // Persist to disk users.json
-    const diskUsers = loadDiskUsers();
-    const existingIdx = diskUsers.findIndex(u => u.email && u.email.toLowerCase() === cleanEmail);
-    if (existingIdx >= 0) {
-      diskUsers[existingIdx] = userObj;
+    // Persist to disk in dedicated separated JSON stores
+    if (safeRole === 'SERVICE_PROVIDER') {
+      const diskProviders = loadDiskServiceProviders();
+      const existingIdx = diskProviders.findIndex(u => u.email && u.email.toLowerCase() === cleanEmail);
+      if (existingIdx >= 0) {
+        diskProviders[existingIdx] = userObj;
+      } else {
+        diskProviders.push(userObj);
+      }
+      saveDiskServiceProviders(diskProviders);
+
+      // Also mirror to users.json for unified queries
+      const diskUsers = loadDiskUsers();
+      const uExistingIdx = diskUsers.findIndex(u => u.email && u.email.toLowerCase() === cleanEmail);
+      if (uExistingIdx >= 0) {
+        diskUsers[uExistingIdx] = userObj;
+      } else {
+        diskUsers.push(userObj);
+      }
+      saveDiskUsers(diskUsers);
     } else {
-      diskUsers.push(userObj);
+      const diskUsers = loadDiskUsers();
+      const existingIdx = diskUsers.findIndex(u => u.email && u.email.toLowerCase() === cleanEmail);
+      if (existingIdx >= 0) {
+        diskUsers[existingIdx] = userObj;
+      } else {
+        diskUsers.push(userObj);
+      }
+      saveDiskUsers(diskUsers);
     }
-    saveDiskUsers(diskUsers);
 
     // Sync in-memory DEMO_ACCOUNTS if sooryas650@gmail.com registers so login works seamlessly with new credentials
     const demoAcc = DEMO_ACCOUNTS.find(d => d.email && d.email.toLowerCase() === cleanEmail);
@@ -741,25 +1094,61 @@ export const loginUser = async (req, res) => {
     // 3. Retrieve user record from database (Supabase primary, users.json persistent local store, memory fallback)
     let user = null;
 
-    // Check disk users (users.json)
+    // Check disk users and service providers based on role preference
     const diskUsers = loadDiskUsers();
-    user = diskUsers.find(u => 
+    const diskProviders = loadDiskServiceProviders();
+    const diskPool = requestedRole === 'SERVICE_PROVIDER'
+      ? [...diskProviders, ...diskUsers]
+      : [...diskUsers, ...diskProviders];
+
+    user = diskPool.find(u => 
       (u.email && u.email.toLowerCase() === loginKey.toLowerCase()) ||
       (cleanMobile && u.mobile && (u.mobile === cleanMobile || cleanMobile.endsWith(u.mobile) || u.mobile.endsWith(cleanMobile)))
     );
 
-    // If not in disk users, query Supabase
+    // If not in disk users, query Supabase across service_providers and users
     if (!user && supabase) {
       try {
-        let userQuery = supabase.from('users').select('*');
-        if (cleanMobile) {
-          userQuery = userQuery.or(`email.eq.${loginKey.toLowerCase()},mobile.eq.${loginKey},mobile.eq.${cleanMobile}`);
-        } else {
-          userQuery = userQuery.eq('email', loginKey.toLowerCase());
+        if (requestedRole === 'SERVICE_PROVIDER') {
+          // Check service_providers table first
+          let pQuery = supabase.from('service_providers').select('*');
+          if (cleanMobile) {
+            pQuery = pQuery.or(`email.eq.${loginKey.toLowerCase()},mobile.eq.${loginKey},mobile.eq.${cleanMobile}`);
+          } else {
+            pQuery = pQuery.eq('email', loginKey.toLowerCase());
+          }
+          const { data: dbProviders } = await pQuery;
+          if (dbProviders && dbProviders.length > 0) {
+            user = dbProviders[0];
+          }
         }
-        const { data: dbUsers, error } = await userQuery;
-        if (!error && dbUsers && dbUsers.length > 0) {
-          user = dbUsers[0];
+
+        // Check users table
+        if (!user) {
+          let userQuery = supabase.from('users').select('*');
+          if (cleanMobile) {
+            userQuery = userQuery.or(`email.eq.${loginKey.toLowerCase()},mobile.eq.${loginKey},mobile.eq.${cleanMobile}`);
+          } else {
+            userQuery = userQuery.eq('email', loginKey.toLowerCase());
+          }
+          const { data: dbUsers, error } = await userQuery;
+          if (!error && dbUsers && dbUsers.length > 0) {
+            user = dbUsers[0];
+          }
+        }
+
+        // If still not found, check service_providers table as fallback
+        if (!user && requestedRole !== 'SERVICE_PROVIDER') {
+          let pQuery = supabase.from('service_providers').select('*');
+          if (cleanMobile) {
+            pQuery = pQuery.or(`email.eq.${loginKey.toLowerCase()},mobile.eq.${loginKey},mobile.eq.${cleanMobile}`);
+          } else {
+            pQuery = pQuery.eq('email', loginKey.toLowerCase());
+          }
+          const { data: dbProviders } = await pQuery;
+          if (dbProviders && dbProviders.length > 0) {
+            user = dbProviders[0];
+          }
         }
       } catch (dbErr) {
         console.warn('Supabase user query notice:', dbErr?.message || dbErr);
@@ -820,16 +1209,27 @@ export const loginUser = async (req, res) => {
           };
           isPasswordValid = true;
 
-          // Sync into disk users for future instant requests
+          // Sync into disk users or service providers for future instant requests
           try {
-            const dUsers = loadDiskUsers();
-            const exIdx = dUsers.findIndex(u => u.email && u.email.toLowerCase() === sbU.email.toLowerCase());
-            if (exIdx >= 0) {
-              dUsers[exIdx] = { ...dUsers[exIdx], ...user };
+            if (user.role === 'SERVICE_PROVIDER') {
+              const dProviders = loadDiskServiceProviders();
+              const exIdx = dProviders.findIndex(u => u.email && u.email.toLowerCase() === sbU.email.toLowerCase());
+              if (exIdx >= 0) {
+                dProviders[exIdx] = { ...dProviders[exIdx], ...user };
+              } else {
+                dProviders.push(user);
+              }
+              saveDiskServiceProviders(dProviders);
             } else {
-              dUsers.push(user);
+              const dUsers = loadDiskUsers();
+              const exIdx = dUsers.findIndex(u => u.email && u.email.toLowerCase() === sbU.email.toLowerCase());
+              if (exIdx >= 0) {
+                dUsers[exIdx] = { ...dUsers[exIdx], ...user };
+              } else {
+                dUsers.push(user);
+              }
+              saveDiskUsers(dUsers);
             }
-            saveDiskUsers(dUsers);
           } catch (_) {}
           inMemoryUsers.set(sbU.email.toLowerCase(), user);
         }
@@ -896,25 +1296,11 @@ export const loginUser = async (req, res) => {
           user.phone = resolvedPhone;
         }
       }
-      const dUser = diskUsers.find(u => (uId && (u._id === uId || u.id === uId)) || (u.email && u.email.toLowerCase() === uEmail));
-      const demoUser = DEMO_ACCOUNTS.find(d => (uId && (d._id === uId || d.id === uId)) || (d.email && d.email.toLowerCase() === uEmail));
-      const memUser = inMemoryUsers.get(uEmail);
-
-      const dAddresses = Array.isArray(dUser?.addresses) ? dUser.addresses : [];
-      const memAddresses = Array.isArray(memUser?.addresses) ? memUser.addresses : [];
-      const demoAddresses = Array.isArray(demoUser?.addresses) ? demoUser.addresses : [];
-      const currentAddresses = Array.isArray(user.addresses) ? user.addresses : [];
-
-      let bestAddresses = currentAddresses;
-      if (dAddresses.length > bestAddresses.length) bestAddresses = dAddresses;
-      if (memAddresses.length > bestAddresses.length) bestAddresses = memAddresses;
-      if (demoAddresses.length > bestAddresses.length) bestAddresses = demoAddresses;
-
-      user.addresses = bestAddresses.map((a, i) => ({
-        _id: a._id || a.id || `addr_${i}_${Date.now()}`,
-        id: a.id || a._id || `addr_${i}_${Date.now()}`,
-        ...a
-      }));
+      user.addresses = await getAggregatedUserAddresses(user, uId, uEmail, user.mobile);
+      // Synchronize aggregated addresses across all stores
+      if (user.addresses.length > 0) {
+        persistUserAddressesAcrossAllStores(uId, uEmail, user.mobile, user.addresses).catch(() => {});
+      }
     }
 
     return res.json({
@@ -948,27 +1334,11 @@ export const getUserProfile = async (req, res) => {
         user.phone = phoneNum;
       }
 
-      // Restore complete addresses from disk / in-memory / demo accounts
-      const diskUsers = loadDiskUsers();
-      const dUser = diskUsers.find(u => (uId && (u._id === uId || u.id === uId)) || (u.email && u.email.toLowerCase() === uEmail));
-      const demoUser = DEMO_ACCOUNTS.find(d => (uId && (d._id === uId || d.id === uId)) || (d.email && d.email.toLowerCase() === uEmail));
-      const memUser = inMemoryUsers.get(uEmail);
-
-      const dAddresses = Array.isArray(dUser?.addresses) ? dUser.addresses : [];
-      const memAddresses = Array.isArray(memUser?.addresses) ? memUser.addresses : [];
-      const demoAddresses = Array.isArray(demoUser?.addresses) ? demoUser.addresses : [];
-      const currentAddresses = Array.isArray(user.addresses) ? user.addresses : [];
-
-      let bestAddresses = currentAddresses;
-      if (dAddresses.length > bestAddresses.length) bestAddresses = dAddresses;
-      if (memAddresses.length > bestAddresses.length) bestAddresses = memAddresses;
-      if (demoAddresses.length > bestAddresses.length) bestAddresses = demoAddresses;
-
-      user.addresses = bestAddresses.map((a, i) => ({
-        _id: a._id || a.id || `addr_${i}_${Date.now()}`,
-        id: a.id || a._id || `addr_${i}_${Date.now()}`,
-        ...a
-      }));
+      // Restore complete addresses from all persistent storage sources
+      user.addresses = await getAggregatedUserAddresses(user, uId, uEmail, user.mobile);
+      if (user.addresses.length > 0) {
+        persistUserAddressesAcrossAllStores(uId, uEmail, user.mobile, user.addresses).catch(() => {});
+      }
     }
     res.json({
       success: true,
@@ -1027,17 +1397,25 @@ export const updateUserProfile = async (req, res) => {
     const userId = req.user?._id || req.user?.id;
     const targetEmail = (email || req.user?.email || '').trim().toLowerCase();
 
-    // 1. Look up user across Supabase, disk users, in-memory, DEMO_ACCOUNTS
+    // 1. Look up user across Supabase, disk users, service providers, in-memory, DEMO_ACCOUNTS
     let user = null;
     if (supabase) {
       try {
         if (userId) {
-          const { data: uById } = await supabase.from('users').select('*').eq('id', userId).maybeSingle();
-          if (uById) user = uById;
+          const { data: pById } = await supabase.from('service_providers').select('*').eq('id', userId).maybeSingle();
+          if (pById) user = pById;
+          if (!user) {
+            const { data: uById } = await supabase.from('users').select('*').eq('id', userId).maybeSingle();
+            if (uById) user = uById;
+          }
         }
         if (!user && targetEmail) {
-          const { data: uByEmail } = await supabase.from('users').select('*').ilike('email', targetEmail).maybeSingle();
-          if (uByEmail) user = uByEmail;
+          const { data: pByEmail } = await supabase.from('service_providers').select('*').ilike('email', targetEmail).maybeSingle();
+          if (pByEmail) user = pByEmail;
+          if (!user) {
+            const { data: uByEmail } = await supabase.from('users').select('*').ilike('email', targetEmail).maybeSingle();
+            if (uByEmail) user = uByEmail;
+          }
         }
       } catch (dbErr) {
         console.warn('Supabase profile fetch notice:', dbErr?.message || dbErr);
@@ -1045,7 +1423,8 @@ export const updateUserProfile = async (req, res) => {
     }
 
     const diskUsers = loadDiskUsers();
-    const diskUser = diskUsers.find(u => (userId && (u._id === userId || u.id === userId)) || (targetEmail && u.email && u.email.toLowerCase() === targetEmail));
+    const diskProviders = loadDiskServiceProviders();
+    const diskUser = [...diskUsers, ...diskProviders].find(u => (userId && (u._id === userId || u.id === userId)) || (targetEmail && u.email && u.email.toLowerCase() === targetEmail));
     const memoryUser = targetEmail ? inMemoryUsers.get(targetEmail) : null;
     const demoUser = DEMO_ACCOUNTS.find(d => (userId && d._id === userId) || (targetEmail && d.email.toLowerCase() === targetEmail));
 
@@ -1168,24 +1547,30 @@ export const updateUserProfile = async (req, res) => {
         user.password_plain = targetPassword;
       }
 
-      // Update in Supabase if available
+      // Update in Supabase if available based on role separation
+      const isProvider = (user.role === 'SERVICE_PROVIDER' || updateData.role === 'SERVICE_PROVIDER');
+      const targetTable = isProvider ? 'service_providers' : 'users';
       if (supabase) {
         try {
           if (user.id || userId) {
-            await supabase.from('users').update(updateData).eq('id', user.id || userId);
+            await supabase.from(targetTable).update(updateData).eq('id', user.id || userId);
           } else if (targetEmail) {
-            await supabase.from('users').update(updateData).ilike('email', targetEmail);
+            await supabase.from(targetTable).update(updateData).ilike('email', targetEmail);
           }
         } catch (sbErr) {
+          // Graceful fallback to users table if service_providers table is not yet active in cloud
+          try {
+            if (user.id || userId) {
+              await supabase.from('users').update(updateData).eq('id', user.id || userId);
+            }
+          } catch (_) {}
           console.warn('Supabase update notice, using local file store:', sbErr?.message || sbErr);
         }
       }
 
-      // Update in local disk users.json
+      // Update in local disk store (service_providers.json or users.json)
       let updatedRecord = null;
       try {
-        const dUsers = loadDiskUsers();
-        const dIdx = dUsers.findIndex(u => (userId && (u._id === userId || u.id === userId)) || (targetEmail && u.email && u.email.toLowerCase() === targetEmail));
         updatedRecord = {
           ...user,
           ...updateData,
@@ -1204,14 +1589,28 @@ export const updateUserProfile = async (req, res) => {
           updatedRecord.password = updateData.password;
           updatedRecord.password_plain = targetPassword;
         }
-        if (dIdx >= 0) {
-          dUsers[dIdx] = { ...dUsers[dIdx], ...updatedRecord };
+
+        if (isProvider) {
+          const dProviders = loadDiskServiceProviders();
+          const pIdx = dProviders.findIndex(u => (userId && (u._id === userId || u.id === userId)) || (targetEmail && u.email && u.email.toLowerCase() === targetEmail));
+          if (pIdx >= 0) {
+            dProviders[pIdx] = { ...dProviders[pIdx], ...updatedRecord };
+          } else {
+            dProviders.push(updatedRecord);
+          }
+          saveDiskServiceProviders(dProviders);
         } else {
-          dUsers.push(updatedRecord);
+          const dUsers = loadDiskUsers();
+          const dIdx = dUsers.findIndex(u => (userId && (u._id === userId || u.id === userId)) || (targetEmail && u.email && u.email.toLowerCase() === targetEmail));
+          if (dIdx >= 0) {
+            dUsers[dIdx] = { ...dUsers[dIdx], ...updatedRecord };
+          } else {
+            dUsers.push(updatedRecord);
+          }
+          saveDiskUsers(dUsers);
         }
-        saveDiskUsers(dUsers);
       } catch (dErr) {
-        console.warn('Disk users save error:', dErr);
+        console.warn('Disk save error:', dErr);
       }
 
       // Update inMemoryUsers
@@ -1289,44 +1688,10 @@ export const addAddress = async (req, res) => {
   const { name, phone, streetAddress, city, state, postalCode, country, isDefault } = req.body;
   const userId = req.user?._id || req.user?.id;
   const userEmail = (req.user?.email || '').toLowerCase().trim();
+  const userMobile = (req.user?.mobile || req.user?.phone || '').replace(/\D/g, '');
 
   try {
-    let addresses = Array.isArray(req.user?.addresses) ? [...req.user.addresses] : [];
-
-    // Check disk users (users.json)
-    const dUsers = loadDiskUsers();
-    const diskUserIndex = dUsers.findIndex(u => 
-      (userId && (u._id === userId || u.id === userId)) ||
-      (userEmail && u.email && u.email.toLowerCase() === userEmail)
-    );
-    if (diskUserIndex >= 0 && Array.isArray(dUsers[diskUserIndex].addresses) && dUsers[diskUserIndex].addresses.length > addresses.length) {
-      addresses = [...dUsers[diskUserIndex].addresses];
-    }
-
-    // Check in-memory store
-    if (userEmail && inMemoryUsers.has(userEmail)) {
-      const mem = inMemoryUsers.get(userEmail);
-      if (Array.isArray(mem?.addresses) && mem.addresses.length > addresses.length) {
-        addresses = [...mem.addresses];
-      }
-    }
-
-    // Ensure all existing addresses have valid IDs
-    addresses = addresses.map((a, i) => ({
-      _id: a._id || a.id || `addr_${i}_${Date.now()}`,
-      id: a.id || a._id || `addr_${i}_${Date.now()}`,
-      ...a
-    }));
-
-    // Check Supabase if available
-    if (supabase && userId) {
-      try {
-        const { data: sbUser } = await supabase.from('users').select('addresses').eq('id', userId).single();
-        if (sbUser && Array.isArray(sbUser.addresses) && sbUser.addresses.length > addresses.length) {
-          addresses = [...sbUser.addresses];
-        }
-      } catch (_) {}
-    }
+    let addresses = await getAggregatedUserAddresses(req.user, userId, userEmail, userMobile);
 
     const newAddress = {
       _id: (typeof crypto.randomUUID === 'function') ? crypto.randomUUID() : ('addr_' + Date.now()),
@@ -1345,41 +1710,8 @@ export const addAddress = async (req, res) => {
     }
     addresses.push(newAddress);
 
-    // 1. Update Supabase if available
-    if (supabase && userId) {
-      try {
-        await supabase.from('users').update({ addresses }).eq('id', userId);
-      } catch (_) {}
-    }
-
-    // 2. Persist to disk users (users.json)
-    try {
-      if (diskUserIndex >= 0) {
-        dUsers[diskUserIndex].addresses = addresses;
-        saveDiskUsers(dUsers);
-      } else if (req.user) {
-        dUsers.push({ ...req.user, addresses });
-        saveDiskUsers(dUsers);
-      }
-    } catch (diskErr) {
-      console.warn('Failed to save addresses to users.json:', diskErr?.message);
-    }
-
-    // 3. Persist to DEMO_ACCOUNTS
-    const demoAcc = DEMO_ACCOUNTS.find(d => 
-      (userId && (d._id === userId || d.id === userId)) ||
-      (userEmail && d.email && d.email.toLowerCase() === userEmail)
-    );
-    if (demoAcc) {
-      demoAcc.addresses = addresses;
-    }
-
-    // 4. Persist to inMemoryUsers
-    if (userEmail && inMemoryUsers.has(userEmail)) {
-      const mem = inMemoryUsers.get(userEmail);
-      mem.addresses = addresses;
-      inMemoryUsers.set(userEmail, mem);
-    }
+    // Persist across all stores (Supabase, users.json, service_providers.json, user_state.json, DEMO_ACCOUNTS, inMemoryUsers)
+    await persistUserAddressesAcrossAllStores(userId, userEmail, userMobile, addresses);
 
     if (req.user) {
       req.user.addresses = addresses;
@@ -1398,59 +1730,17 @@ export const removeAddress = async (req, res) => {
   const addressId = req.params.addressId;
   const userId = req.user?._id || req.user?.id;
   const userEmail = (req.user?.email || '').toLowerCase().trim();
+  const userMobile = (req.user?.mobile || req.user?.phone || '').replace(/\D/g, '');
 
   try {
-    let addresses = Array.isArray(req.user?.addresses) ? [...req.user.addresses] : [];
+    let addresses = await getAggregatedUserAddresses(req.user, userId, userEmail, userMobile);
 
-    const dUsers = loadDiskUsers();
-    const diskUserIndex = dUsers.findIndex(u => 
-      (userId && (u._id === userId || u.id === userId)) ||
-      (userEmail && u.email && u.email.toLowerCase() === userEmail)
-    );
-    if (diskUserIndex >= 0 && Array.isArray(dUsers[diskUserIndex].addresses) && addresses.length === 0) {
-      addresses = [...dUsers[diskUserIndex].addresses];
-    }
-
-    if (supabase && userId) {
-      try {
-        const { data: sbUser } = await supabase.from('users').select('addresses').eq('id', userId).single();
-        if (sbUser && Array.isArray(sbUser.addresses) && addresses.length === 0) {
-          addresses = [...sbUser.addresses];
-        }
-      } catch (_) {}
-    }
-
-    addresses = addresses.filter(a => a._id !== addressId && a.id !== addressId);
+    addresses = addresses.filter(a => String(a._id) !== String(addressId) && String(a.id) !== String(addressId));
     if (addresses.length > 0 && !addresses.some(a => a.isDefault)) {
       addresses[0].isDefault = true;
     }
 
-    if (supabase && userId) {
-      try {
-        await supabase.from('users').update({ addresses }).eq('id', userId);
-      } catch (_) {}
-    }
-
-    try {
-      if (diskUserIndex >= 0) {
-        dUsers[diskUserIndex].addresses = addresses;
-        saveDiskUsers(dUsers);
-      }
-    } catch (_) {}
-
-    const demoAcc = DEMO_ACCOUNTS.find(d => 
-      (userId && (d._id === userId || d.id === userId)) ||
-      (userEmail && d.email && d.email.toLowerCase() === userEmail)
-    );
-    if (demoAcc) {
-      demoAcc.addresses = addresses;
-    }
-
-    if (userEmail && inMemoryUsers.has(userEmail)) {
-      const mem = inMemoryUsers.get(userEmail);
-      mem.addresses = addresses;
-      inMemoryUsers.set(userEmail, mem);
-    }
+    await persistUserAddressesAcrossAllStores(userId, userEmail, userMobile, addresses);
 
     if (req.user) {
       req.user.addresses = addresses;

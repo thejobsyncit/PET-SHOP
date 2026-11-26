@@ -424,7 +424,7 @@ const AnnouncementsManagerView = () => {
 
       {/* Live Preview Bar */}
       <div className="bg-white rounded-xl shadow-xs border border-beige/60 overflow-hidden">
-        <div className="px-5 py-3 bg-[#091D15] text-[#FAFBF9] flex items-center justify-between">
+        <div className="px-5 py-3 bg-[#1D3B2E] text-[#FAFBF9] flex items-center justify-between">
           <div className="flex items-center gap-2">
             <span className="relative flex h-2 w-2">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
@@ -440,7 +440,7 @@ const AnnouncementsManagerView = () => {
         </div>
 
         {/* Mock Top Ticker */}
-        <div className="bg-[#091D15] border-t border-white/10 py-2.5 px-4 overflow-hidden relative">
+        <div className="bg-[#1D3B2E] border-t border-white/10 py-2.5 px-4 overflow-hidden relative">
           <div className="flex items-center gap-6 overflow-x-auto no-scrollbar whitespace-nowrap py-0.5">
             {announcements.filter(a => a.isActive !== false).map((anc, idx) => (
               <div key={idx} className="inline-flex items-center gap-2 text-xs text-white shrink-0">
@@ -872,7 +872,7 @@ const AnnouncementsManagerView = () => {
               </div>
 
               {/* Live Preview Inside Modal */}
-              <div className="bg-[#091D15] p-3 rounded-xl border border-white/10 text-white mt-3">
+              <div className="bg-[#1D3B2E] p-3 rounded-xl border border-white/10 text-white mt-3">
                 <span className="text-[9px] uppercase tracking-wider text-emerald-400 font-bold block mb-1">
                   LIVE PREVIEW:
                 </span>

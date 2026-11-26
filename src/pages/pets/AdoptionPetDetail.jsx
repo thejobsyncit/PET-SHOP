@@ -22,6 +22,8 @@ import FlyingMacawMessenger from '../../components/widgets/FlyingMacawMessenger.
 import CountryPhoneInput from '../../components/ui/CountryPhoneInput.jsx';
 import { getRequiredPhoneLength } from '../../data/countryCodes.js';
 import SharedItemAuthGate from '../../components/ui/SharedItemAuthGate.jsx';
+import { getStoredClassifieds } from '../../data/classifiedsData.js';
+import { apiRequest } from '../../services/api.js';
 
 const WhatsAppIcon = ({ className = 'w-4 h-4', size = 18 }) => (
   <svg
@@ -243,6 +245,22 @@ const AdoptionPetDetail = () => {
       if (found) {
         setPet(found);
         setSelectedImage((prev) => prev || found.image);
+      } else {
+        // Auto-recovery: If not an adoption pet, check classified listings or shop products
+        const allClassifieds = getStoredClassifieds();
+        const searchId = (id || '').toString().trim().toLowerCase();
+        const foundClassified = allClassifieds.find(c => (c._id || c.id || '').toString().toLowerCase() === searchId);
+        if (foundClassified) {
+          navigate(`/pets/${foundClassified._id || foundClassified.id || id}`, { replace: true });
+          return;
+        }
+
+        apiRequest(`/products/${id}`).then(prodData => {
+          if (prodData && (prodData.product || prodData._id || prodData.id)) {
+            const p = prodData.product || prodData;
+            navigate(`/product/${p.slug || p._id || p.id || id}`, { replace: true });
+          }
+        }).catch(() => {});
       }
     };
 
@@ -571,20 +589,6 @@ const AdoptionPetDetail = () => {
           </div>
 
           <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={handleToggleWishlist}
-              className={`px-3 py-1.5 border rounded-lg text-xs font-bold transition flex items-center gap-1.5 cursor-pointer ${
-                isWishlisted
-                  ? "border-red-200 bg-red-50 text-red-600 hover:bg-red-100"
-                  : "border-amber-200 bg-white text-slate-700 hover:border-[#b89228] hover:text-[#b89228]"
-              }`}
-              title={isWishlisted ? "Remove from Wishlist" : "Save to Wishlist"}
-            >
-              <Heart size={14} className={isWishlisted ? "fill-red-500 text-red-500" : ""} />
-              <span>{isWishlisted ? "Saved" : "Save to Wishlist"}</span>
-            </button>
-
             <button
               type="button"
               onClick={() => navigate('/adopt')}

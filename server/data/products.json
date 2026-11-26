@@ -232,7 +232,7 @@
     "images": [
       "https://images.unsplash.com/photo-1576201836106-db1758fd1c97?q=80&w=800"
     ],
-    "category": "Treats",
+    "category": "Collars & Leashes",
     "subcategory": "Collars & Leashes",
     "petType": "dogs",
     "isFeatured": false,
@@ -275,7 +275,7 @@
     "images": [
       "https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?q=80&w=800"
     ],
-    "category": "Treats",
+    "category": "Other Accessories",
     "subcategory": "Toys",
     "petType": "dogs",
     "isFeatured": true,
@@ -323,7 +323,7 @@
     "images": [
       "https://images.unsplash.com/photo-1516734212186-a967f81ad0d7?q=80&w=800"
     ],
-    "category": "Treats",
+    "category": "Other Accessories",
     "subcategory": "Grooming",
     "petType": "dogs",
     "isFeatured": false,
@@ -416,7 +416,7 @@
     "images": [
       "https://images.unsplash.com/photo-1615900119312-2acd3a71f3aa?q=80&w=800&auto=format&fit=crop"
     ],
-    "category": "Treats",
+    "category": "Other Accessories",
     "subcategory": "Bowls & Feeders",
     "petType": "dogs",
     "isFeatured": false,
@@ -465,7 +465,7 @@
     "images": [
       "https://images.unsplash.com/photo-1581888227599-779811939961?q=80&w=800&auto=format&fit=crop"
     ],
-    "category": "Treats",
+    "category": "Supplements",
     "subcategory": "Supplements",
     "petType": "dogs",
     "isFeatured": false,
@@ -649,7 +649,7 @@
     "images": [
       "/images/birds/bird-toys.jpg"
     ],
-    "category": "Bird Food",
+    "category": "Supplements",
     "subcategory": "Supplements",
     "petType": "birds",
     "isFeatured": false,
@@ -833,7 +833,7 @@
     "images": [
       "https://images.unsplash.com/photo-1551085254-e96b210db58a?q=80&w=800&auto=format&fit=crop"
     ],
-    "category": "Bird Food",
+    "category": "Other Accessories",
     "subcategory": "Grooming",
     "petType": "birds",
     "isFeatured": false,
@@ -1881,5 +1881,137 @@
     "review_count": 0,
     "numReviews": 0,
     "ratings": 4.5
+  },
+  {
+    "_id": "prod_cat_01",
+    "id": "prod_cat_01",
+    "name": "Royal Canin Kitten Dry Cat Food (2kg)",
+    "slug": "royal-canin-kitten-dry-cat-food",
+    "brand": "Royal Canin",
+    "price": 1850,
+    "discountPrice": 1699,
+    "rating": 4.8,
+    "reviewCount": 38,
+    "petType": "cats",
+    "category": "Cat Food",
+    "subcategory": "Cat Food",
+    "image": "https://images.unsplash.com/photo-1513360371669-4adf3dd7dff8?w=800&auto=format&fit=crop",
+    "images": [
+      "https://images.unsplash.com/photo-1513360371669-4adf3dd7dff8?w=800&auto=format&fit=crop"
+    ],
+    "description": "Tailored nutrition for kittens up to 12 months with highly digestible proteins, prebiotics, and immune defense antioxidants.",
+    "isBestSeller": true,
+    "isFeatured": true,
+    "requiresPrescription": false
+  },
+  {
+    "_id": "prod_cat_02",
+    "id": "prod_cat_02",
+    "name": "Drools Ocean Fish Adult Cat Dry Food (1.2kg)",
+    "slug": "drools-ocean-fish-adult-cat-dry-food",
+    "brand": "Drools",
+    "price": 499,
+    "discountPrice": 449,
+    "rating": 4.5,
+    "reviewCount": 24,
+    "petType": "cats",
+    "category": "Cat Food",
+    "subcategory": "Cat Food",
+    "image": "https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=800&auto=format&fit=crop",
+    "images": [
+      "https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=800&auto=format&fit=crop"
+    ],
+    "description": "Enriched with real ocean fish, taurine for heart and vision health, and omega fatty acids for a glossy fur coat.",
+    "isBestSeller": false,
+    "isFeatured": false,
+    "requiresPrescription": false
+  },
+  {
+    "_id": "prod_cat_03",
+    "id": "prod_cat_03",
+    "name": "Me-O Creamy Cat Lickable Treats (Bonito & Salmon Pack)",
+    "slug": "me-o-creamy-cat-treats",
+    "brand": "Drools",
+    "price": 240,
+    "discountPrice": 199,
+    "rating": 4.9,
+    "reviewCount": 52,
+    "petType": "cats",
+    "category": "Treats",
+    "subcategory": "Treats",
+    "image": "https://images.unsplash.com/photo-1533743983669-94fa5c4338ec?w=800&auto=format&fit=crop",
+    "images": [
+      "https://images.unsplash.com/photo-1533743983669-94fa5c4338ec?w=800&auto=format&fit=crop"
+    ],
+    "description": "Irresistible creamy puree treats made with green tea extract and zinc, perfect for daily rewarding and bonding.",
+    "isBestSeller": true,
+    "isFeatured": false,
+    "requiresPrescription": false
+  },
+  {
+    "_id": "prod_cat_04",
+    "id": "prod_cat_04",
+    "name": "Multi-Level Cat Tree Tower with Natural Sisal Scratching Post",
+    "slug": "multi-level-cat-tree-tower",
+    "brand": "Josh Pets Hub",
+    "price": 3899,
+    "discountPrice": 3299,
+    "rating": 4.7,
+    "reviewCount": 19,
+    "petType": "cats",
+    "category": "Beds & Scratchers",
+    "subcategory": "Beds & Scratchers",
+    "image": "https://images.unsplash.com/photo-1517331156700-3c241d2b4d83?w=800&auto=format&fit=crop",
+    "images": [
+      "https://images.unsplash.com/photo-1517331156700-3c241d2b4d83?w=800&auto=format&fit=crop"
+    ],
+    "description": "Sturdy plush cat activity gym featuring natural sisal scratch poles, hammock basket, and elevated observation perch.",
+    "isBestSeller": false,
+    "isFeatured": true,
+    "requiresPrescription": false
+  },
+  {
+    "_id": "prod_cat_05",
+    "id": "prod_cat_05",
+    "name": "Himalaya Feline Furglow Coat & Hairball Control Syrup (200ml)",
+    "slug": "himalaya-feline-furglow-coat-syrup",
+    "brand": "Himalaya",
+    "price": 350,
+    "discountPrice": 299,
+    "rating": 4.6,
+    "reviewCount": 31,
+    "petType": "cats",
+    "category": "Supplements",
+    "subcategory": "Supplements",
+    "image": "https://images.unsplash.com/photo-1574158622682-e40e69881006?w=800&auto=format&fit=crop",
+    "images": [
+      "https://images.unsplash.com/photo-1574158622682-e40e69881006?w=800&auto=format&fit=crop"
+    ],
+    "description": "Ayurvedic formulation enriched with essential fatty acids to eliminate fur shedding, dry skin, and digestive hairball obstruction.",
+    "isBestSeller": false,
+    "isFeatured": false,
+    "requiresPrescription": false
+  },
+  {
+    "_id": "prod_cat_06",
+    "id": "prod_cat_06",
+    "name": "Interactive Feather Wand & Catnip Plush Mice Set",
+    "slug": "interactive-feather-wand-catnip-mice",
+    "brand": "Beaphar",
+    "price": 450,
+    "discountPrice": 379,
+    "rating": 4.6,
+    "reviewCount": 16,
+    "petType": "cats",
+    "category": "Other Accessories",
+    "subcategory": "Other Accessories",
+    "image": "https://images.unsplash.com/photo-1545249390-6bdfa286032f?w=800&auto=format&fit=crop",
+    "images": [
+      "https://images.unsplash.com/photo-1545249390-6bdfa286032f?w=800&auto=format&fit=crop"
+    ],
+    "description": "Stimulates feline hunting instincts with real bell acoustics, natural feathers, and organic North American catnip infusion.",
+    "isBestSeller": false,
+    "isFeatured": false,
+    "requiresPrescription": false
   }
 ]

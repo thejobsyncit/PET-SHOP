@@ -10,6 +10,7 @@
 
 -- 1. USERS & SERVICE PROVIDERS
 ALTER TABLE public.users
+  ADD COLUMN IF NOT EXISTS addresses JSONB DEFAULT '[]'::jsonb,
   ADD COLUMN IF NOT EXISTS prescription_history JSONB DEFAULT '[]'::jsonb,
   ADD COLUMN IF NOT EXISTS "prescriptionHistory" JSONB DEFAULT '[]'::jsonb,
   ADD COLUMN IF NOT EXISTS state TEXT,
@@ -60,6 +61,14 @@ ALTER TABLE public.users
   ADD COLUMN IF NOT EXISTS "completedAt" TIMESTAMPTZ,
   ADD COLUMN IF NOT EXISTS "profileCompletedAt" TIMESTAMPTZ,
   ADD COLUMN IF NOT EXISTS "createdAt" TIMESTAMPTZ DEFAULT now();
+
+-- Ensure service_providers table has addresses column if exists
+DO $$ 
+BEGIN 
+  IF EXISTS (SELECT FROM pg_tables WHERE schemaname = 'public' AND tablename = 'service_providers') THEN
+    ALTER TABLE public.service_providers ADD COLUMN IF NOT EXISTS addresses JSONB DEFAULT '[]'::jsonb;
+  END IF;
+END $$;
 
 -- 2. PRODUCTS & STORE
 ALTER TABLE public.products

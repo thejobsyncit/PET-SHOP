@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import {
-  PawPrint, Calendar, Star, TrendingUp, DollarSign, Clock, MapPin, 
+  PawPrint, Calendar, Star, TrendingUp, IndianRupee, Clock, MapPin, 
   MessageSquare, Plus, Search, ChevronRight, Phone, ShieldCheck, Mail, 
   Heart, Settings, Tag, ShoppingBag, AlertCircle, LayoutDashboard, 
   LogOut, CheckCircle, X, Send, Sparkles, Home, FileText, CheckCircle2,
@@ -39,7 +39,8 @@ const PetAdoptionDashboard = ({
   handleToggleOnline,
   onOpenSubscriptionModal,
   onOpenPlanDetails,
-  subscription
+  subscription,
+  isVerified: propIsVerified
 }) => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -48,6 +49,17 @@ const PetAdoptionDashboard = ({
   const [activeTab, setActiveTab] = useState(activeTabParam);
 
   const { user } = useSelector(state => state.auth);
+
+  const isVerified = Boolean(
+    propIsVerified ||
+    user?.role === 'ADMIN' ||
+    user?.role === 'SUPERADMIN' ||
+    user?.verificationStatus === 'Verified' ||
+    user?.verification_status === 'Verified' ||
+    user?.isVerified === true ||
+    currentProvider?.isVerified === true ||
+    currentProvider?.verificationStatus === 'Verified'
+  );
 
   // Adoption Pets & Applications state
   const [allPets, setAllPets] = useState(() => getStoredAdoptionPets() || []);
@@ -466,7 +478,7 @@ const PetAdoptionDashboard = ({
     { id: 'inquiries', label: 'Buyer Leads', icon: MessageSquare },
     { id: 'rehomed', label: 'Forever Homes', icon: Home },
     { id: 'reviews', label: 'Adopter Reviews', icon: Star },
-    { id: 'wallet', label: 'Wallet & Payouts', icon: DollarSign }
+    { id: 'wallet', label: 'Wallet & Payouts', icon: IndianRupee }
   ];
 
   // Photo Upload Handler for Pet Listing
@@ -531,6 +543,10 @@ const PetAdoptionDashboard = ({
 
   // Open Add Modal
   const handleOpenAddModal = () => {
+    if (!isVerified) {
+      toast.error('Account Verification Pending: SuperAdmin verification is required before you can list pets for adoption.', { duration: 4500 });
+      return;
+    }
     setEditingPetId(null);
     setPetName('');
     setPetType('dogs');
@@ -563,6 +579,10 @@ const PetAdoptionDashboard = ({
 
   // Open Edit Modal
   const handleOpenEditModal = (pet) => {
+    if (!isVerified) {
+      toast.error('Account Verification Pending: SuperAdmin verification is required before you can edit or post pets.', { duration: 4500 });
+      return;
+    }
     setEditingPetId(pet.id);
     setPetName(pet.name || '');
     setPetType(pet.type || 'dogs');
@@ -597,6 +617,11 @@ const PetAdoptionDashboard = ({
   // Create or Update Pet Listing
   const handleSavePet = (e) => {
     e.preventDefault();
+
+    if (!isVerified) {
+      toast.error('Account Verification Pending: SuperAdmin verification is required before you can list pets for adoption.');
+      return;
+    }
 
     if (!petName.trim() || !breed.trim() || !age.trim()) {
       toast.error('Please provide Pet Name, Breed, and Age.');
@@ -929,7 +954,7 @@ const PetAdoptionDashboard = ({
                 <PawPrint size={16} />
               </div>
             </div>
-            <div className="text-3xl font-sans font-black text-[#0F2E23] mb-1">{stats.totalListings}</div>
+            <div className="text-3xl font-sans font-black text-[#0F2E23] tracking-tight lining-nums tabular-nums mb-1">{stats.totalListings}</div>
             <div className="text-[10px] text-slate-500 font-black uppercase tracking-wider mt-2">ALL TIME</div>
           </div>
 
@@ -942,7 +967,7 @@ const PetAdoptionDashboard = ({
                 <ShoppingBag size={16} />
               </div>
             </div>
-            <div className="text-3xl font-sans font-black text-[#0F2E23] mb-1 relative z-10">{stats.availableStock}</div>
+            <div className="text-3xl font-sans font-black text-[#0F2E23] tracking-tight lining-nums tabular-nums mb-1 relative z-10">{stats.availableStock}</div>
             <div className="text-[10px] text-emerald-600 font-black uppercase tracking-wider mt-2 relative z-10">PETS REMAINING</div>
           </div>
 
@@ -955,7 +980,7 @@ const PetAdoptionDashboard = ({
                 <AlertCircle size={16} />
               </div>
             </div>
-            <div className="text-3xl font-sans font-black text-[#0F2E23] mb-1 relative z-10">{stats.soldOutCount}</div>
+            <div className="text-3xl font-sans font-black text-[#0F2E23] tracking-tight lining-nums tabular-nums mb-1 relative z-10">{stats.soldOutCount}</div>
             <div className="text-[10px] text-rose-600 font-black uppercase tracking-wider mt-2 relative z-10">COMPLETED LISTINGS</div>
           </div>
 
@@ -986,7 +1011,7 @@ const PetAdoptionDashboard = ({
               </div>
             </div>
             <div className="flex items-end gap-2 mb-1 relative z-10">
-              <div className="text-2xl font-sans font-black text-[#0F2E23]">₹1,500</div>
+              <div className="text-2xl font-sans font-black text-[#0F2E23] tracking-tight lining-nums tabular-nums">₹1,500</div>
             </div>
             <div className="text-[10px] text-sky-600 font-black uppercase tracking-wider mt-2 relative z-10">
               TOTAL SAVINGS OFFERED
@@ -1605,6 +1630,7 @@ const PetAdoptionDashboard = ({
           <div className="space-y-8 animate-in fade-in duration-200">
             <ProviderProfileSection
               serviceCategory="Pet Adoption"
+              subscription={subscription}
               onOpenSubscriptionModal={onOpenSubscriptionModal}
               onOpenPlanDetails={onOpenPlanDetails}
             />
@@ -2485,7 +2511,7 @@ const PetAdoptionDashboard = ({
               <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200/90 space-y-3">
                 <div className="flex items-center justify-between">
                   <span className="text-[11px] font-black text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
-                    <DollarSign size={14} className="text-emerald-700" /> Adoption Fee / Pricing Type *
+                    <IndianRupee size={14} className="text-emerald-700" /> Adoption Fee / Pricing Type *
                   </span>
                   <span className={`text-[10px] font-black px-2.5 py-0.5 rounded-full uppercase tracking-wider ${
                     isFreeAdoption ? 'bg-emerald-100 text-emerald-800' : 'bg-[#0F2E23] text-amber-300'

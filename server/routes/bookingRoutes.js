@@ -64,26 +64,67 @@ router.get('/my', async (req, res) => {
     const diskBookings = loadDiskBookings();
     const queryEmail = (req.query.email || req.headers['x-user-email'] || '').toLowerCase().trim();
     const queryUserId = String(req.query.userId || req.headers['x-user-id'] || '').trim();
+    const queryMobile = (req.query.mobile || req.query.phone || '').replace(/\D/g, '').slice(-10);
 
-    if (queryEmail || queryUserId) {
-      const filtered = diskBookings.filter(b => {
-        const bEmail = (b.userEmail || b.ownerEmail || b.customerEmail || b.email || b.user?.email || '').toLowerCase().trim();
-        const bUserId = String(b.userId || b.customerId || b.user?._id || b.user?.id || '').trim();
-        if (queryUserId && bUserId && bUserId === queryUserId) return true;
+    let allBookings = [...diskBookings];
+
+    if (supabase) {
+      try {
+        let sbQuery = supabase.from('bookings').select('*');
+        if (queryUserId && queryUserId !== 'usr-custom') {
+          sbQuery = sbQuery.eq('user_id', queryUserId);
+        }
+        const { data: sbData, error } = await sbQuery;
+        if (!error && Array.isArray(sbData)) {
+          const ids = new Set(allBookings.map(b => b.id || b._id));
+          for (const item of sbData) {
+            const rawItem = item.details ? { ...item.details, ...item } : item;
+            if (!ids.has(rawItem.id || rawItem._id)) {
+              allBookings.push(rawItem);
+            }
+          }
+        }
+      } catch (sbErr) {
+        console.warn('[Bookings] Supabase /bookings/my fetch fallback:', sbErr?.message);
+      }
+    }
+
+    if (queryEmail || (queryUserId && queryUserId !== 'usr-custom') || queryMobile) {
+      const filtered = allBookings.filter(b => {
+        const bEmail = (b.userEmail || b.ownerEmail || b.customerEmail || b.email || b.user?.email || b.pet_details?.userEmail || '').toLowerCase().trim();
+        const bUserId = String(b.userId || b.customerId || b.user_id || (typeof b.user === 'string' ? b.user : b.user?._id || b.user?.id) || '').trim();
+        const bPhone = (b.userPhone || b.customerPhone || b.ownerPhone || b.mobile || b.phone || b.pet_details?.userPhone || '').replace(/\D/g, '').slice(-10);
+
+        // Strict isolation: if both records have an email and they differ, they can NEVER match
+        if (queryEmail && bEmail && queryEmail !== bEmail) return false;
+
+        // Strict isolation: if both records have a valid user ID and they differ, they can NEVER match
+        if (queryUserId && queryUserId !== 'usr-custom' && bUserId && bUserId !== 'usr-custom' && queryUserId !== bUserId) return false;
+
+        // Match 1: User ID
+        if (queryUserId && queryUserId !== 'usr-custom' && bUserId && bUserId === queryUserId) return true;
+
+        // Match 2: Email
         if (queryEmail && bEmail && bEmail === queryEmail) return true;
+
+        // Match 3: Phone fallback (strictly ignored for common dummy/placeholder numbers like 9876543210)
+        const isGenericPhone = !bPhone || bPhone === '9876543210' || bPhone === '9000000000' || bPhone === '9000000001' || bPhone === '9000000002';
+        if (!isGenericPhone && queryMobile && queryMobile.length >= 10 && bPhone && (bPhone === queryMobile || bPhone.endsWith(queryMobile) || queryMobile.endsWith(bPhone))) {
+          return true;
+        }
         return false;
       });
       return res.json({ success: true, bookings: filtered, data: filtered });
     }
 
-    return res.json({ success: true, bookings: diskBookings, data: diskBookings });
+    return res.json({ success: true, bookings: [], data: [] });
   } catch (err) {
     console.error('Error in /bookings/my:', err);
     return res.json({ success: true, bookings: [], data: [] });
   }
 });
 
-// POST /api/bookings - Create new service booking (e.g. Grooming, Vet, Walking)
+// POST /api/bookings - Create new service booking (e.g. Grooming, Vet, Walking, Transport)
 router.post('/', async (req, res) => {
   try {
     const body = req.body || {};
@@ -111,10 +152,32 @@ router.post('/', async (req, res) => {
     saveDiskBookings(updated);
 
     // Try persisting to Supabase if table exists
-    try {
-      await supabase.from('bookings').insert([newBooking]);
-    } catch {
-      // Supabase table optional fallback
+    if (supabase) {
+      try {
+        await supabase.from('bookings').insert([{
+          id: bookingId,
+          user_id: newBooking.userId || newBooking.user_id || newBooking.customerId || null,
+          service_type: newBooking.service_type || newBooking.serviceType || 'Service',
+          provider_name: newBooking.providerName || newBooking.provider_name || 'Josh Pets Hub',
+          location: newBooking.location || (newBooking.departureCity && newBooking.destinationCity ? `${newBooking.departureCity} ➔ ${newBooking.destinationCity}` : (newBooking.departureCity || 'Pan-India')),
+          date: newBooking.date || newBooking.bookingDate || newBooking.expectedDate || null,
+          time_slot: newBooking.timeSlot || newBooking.time_slot || null,
+          fee: Number(newBooking.fee || newBooking.quoteAmount || 0),
+          total_amount: Number(newBooking.totalAmount || newBooking.fee || newBooking.quoteAmount || 0),
+          status: newBooking.status || 'Confirmed',
+          payment_status: newBooking.paymentStatus || newBooking.payment_status || 'Pending',
+          pet_details: {
+            petName: newBooking.petName || 'Pet',
+            petSpecies: newBooking.petSpecies || 'Dog',
+            petBreed: newBooking.petBreed || 'Domestic Companion',
+            userEmail: newBooking.userEmail || newBooking.customerEmail || newBooking.email,
+            userPhone: newBooking.userPhone || newBooking.customerPhone || newBooking.phone || newBooking.mobile
+          },
+          details: newBooking
+        }]);
+      } catch (sbErr) {
+        console.warn('[Bookings] Supabase insert fallback notice:', sbErr?.message);
+      }
     }
 
     return res.status(201).json({
@@ -129,11 +192,26 @@ router.post('/', async (req, res) => {
   }
 });
 
-// GET /api/bookings - All bookings for Admin/SuperAdmin
+// GET /api/bookings - All bookings
 router.get('/', async (req, res) => {
   try {
     const diskBookings = loadDiskBookings();
-    return res.json({ success: true, bookings: diskBookings, data: diskBookings });
+    let allBookings = [...diskBookings];
+    if (supabase) {
+      try {
+        const { data, error } = await supabase.from('bookings').select('*').order('created_at', { ascending: false });
+        if (!error && Array.isArray(data) && data.length > 0) {
+          const ids = new Set(allBookings.map(b => b.id || b._id));
+          for (const item of data) {
+            const rawItem = item.details ? { ...item.details, ...item } : item;
+            if (!ids.has(rawItem.id || rawItem._id)) {
+              allBookings.push(rawItem);
+            }
+          }
+        }
+      } catch (_) {}
+    }
+    return res.json({ success: true, bookings: allBookings, data: allBookings });
   } catch (err) {
     console.error('Error in GET /bookings:', err);
     return res.json({ success: true, bookings: [], data: [] });

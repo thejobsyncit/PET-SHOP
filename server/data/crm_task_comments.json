@@ -1,0 +1,122 @@
+[
+  {
+    "id": "tc_001",
+    "taskId": "TASK-1001",
+    "employeeId": "crm_usr_support_sub_01",
+    "employeeName": "Neha Bhatt",
+    "comment": "Contacted Dr. Rao's clinic to request direct fax/email copy of anti-rabies certificate.",
+    "createdAt": "2026-11-20T09:30:00.000Z"
+  },
+  {
+    "id": "tc_002",
+    "taskId": "TASK-1005",
+    "employeeId": "crm_usr_mktg_07",
+    "employeeName": "Ananya Sen",
+    "comment": "Headline needs higher emotional appeal. Change 'Get 20% off kibble' to 'Give your pup the nutrition they love'.",
+    "createdAt": "2026-11-20T09:00:00.000Z"
+  },
+  {
+    "id": "tc_1795187298254",
+    "taskId": "TASK-1001",
+    "employeeId": "current_user",
+    "employeeName": "Assigned Employee",
+    "comment": "[Submitted for Review]: All customer verification docs uploaded.",
+    "createdAt": "2026-11-20T15:08:18.253Z"
+  },
+  {
+    "id": "tc_1795192262213",
+    "taskId": "TASK-2171",
+    "employeeId": "staff",
+    "employeeName": "Team Member",
+    "comment": "Attached telemetry confirmation log from IoT receiver.",
+    "createdAt": "2026-11-20T16:31:02.213Z"
+  },
+  {
+    "id": "tc_1795192405703",
+    "taskId": "TASK-5624",
+    "employeeId": "staff",
+    "employeeName": "Team Member",
+    "comment": "Attached telemetry confirmation log from IoT receiver.",
+    "createdAt": "2026-11-20T16:33:25.703Z"
+  },
+  {
+    "id": "tc_1795192494592",
+    "taskId": "TASK-4515",
+    "employeeId": "staff",
+    "employeeName": "Team Member",
+    "comment": "Attached telemetry confirmation log from IoT receiver.",
+    "createdAt": "2026-11-20T16:34:54.592Z"
+  },
+  {
+    "id": "tc_1795231863950",
+    "taskId": "TASK-3777",
+    "employeeId": "crm_usr_support_lead",
+    "employeeName": "Arun Patel",
+    "comment": "Delegated to Email Support Executive: Draft formal replacement note and issue tracking ID for fresh Royal Canin pack.",
+    "createdAt": "2026-11-21T03:31:03.950Z"
+  },
+  {
+    "id": "tc_1795231863972",
+    "taskId": "TASK-3777",
+    "employeeId": "staff",
+    "employeeName": "Team Member",
+    "comment": "[Status: Under Review] Re-dispatched fresh replacement cat food with BlueDart AWB #981244. Sent apology email with 15% discount coupon.",
+    "createdAt": "2026-11-21T03:31:03.972Z"
+  },
+  {
+    "id": "tc_1795231863988",
+    "taskId": "TASK-3777",
+    "employeeId": "crm_usr_support_02",
+    "employeeName": "Kavya Menon",
+    "comment": "[Status: Completed] Verified replacement shipment with logistics. Case closed.",
+    "createdAt": "2026-11-21T03:31:03.988Z"
+  },
+  {
+    "id": "tc_1795231915297",
+    "taskId": "TASK-5163",
+    "employeeId": "crm_usr_support_lead",
+    "employeeName": "Arun Patel",
+    "comment": "Delegated to Email Support Executive: Draft formal replacement note and issue tracking ID for fresh Royal Canin pack.",
+    "createdAt": "2026-11-21T03:31:55.297Z"
+  },
+  {
+    "id": "tc_1795231915484",
+    "taskId": "TASK-5163",
+    "employeeId": "crm_usr_support_email",
+    "employeeName": "Pooja Sharma",
+    "comment": "[Status: Under Review] Re-dispatched fresh replacement cat food with BlueDart AWB #981244. Sent apology email with 15% discount coupon.",
+    "createdAt": "2026-11-21T03:31:55.484Z"
+  },
+  {
+    "id": "tc_1795231915503",
+    "taskId": "TASK-5163",
+    "employeeId": "crm_usr_support_02",
+    "employeeName": "Kavya Menon",
+    "comment": "[Status: Completed] Verified replacement shipment with logistics. Case closed.",
+    "createdAt": "2026-11-21T03:31:55.503Z"
+  },
+  {
+    "id": "tc_1795412737151",
+    "taskId": "TASK-2062",
+    "employeeId": "crm_usr_support_lead",
+    "employeeName": "Arun Patel",
+    "comment": "Delegated to Email Support Executive: Draft formal resolution email with replacement guarantee voucher.",
+    "createdAt": "2026-11-23T05:45:37.151Z"
+  },
+  {
+    "id": "tc_1795412742150",
+    "taskId": "TASK-2062",
+    "employeeId": "crm_usr_support_email",
+    "employeeName": "Pooja Sharma",
+    "comment": "[Status: Under Review] Emailed customer replacement tracking link and credited 500 store points. Awaiting manager approval.",
+    "createdAt": "2026-11-23T05:45:42.150Z"
+  },
+  {
+    "id": "tc_1795412746481",
+    "taskId": "TASK-2062",
+    "employeeId": "crm_usr_support_02",
+    "employeeName": "Kavya Menon",
+    "comment": "[Status: Completed] Approved and verified by Kavya Menon",
+    "createdAt": "2026-11-23T05:45:46.481Z"
+  }
+]

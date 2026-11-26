@@ -3,7 +3,7 @@ import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import { logout, updateProfile, fetchProfile } from '../../../store/slices/authSlice.js';
 import {
-  PawPrint, Calendar, Star, TrendingUp, DollarSign, Clock, MapPin, 
+  PawPrint, Calendar, Star, TrendingUp, IndianRupee, Clock, MapPin, 
   MessageSquare, Plus, Search, ChevronRight, Phone, ShieldCheck, Mail, Heart, Settings,
   Tag, ShoppingBag, AlertCircle, LayoutDashboard, LogOut, CheckCircle, X, Send, CreditCard, Loader2, Edit3, Check, Stethoscope, FileText, Building,
   Paperclip, Trash2, Upload, Download, VolumeX, Volume2, Award, Pause, Play
@@ -58,8 +58,20 @@ const ListingsModule = ({ user }) => {
     refreshStuds();
   }, [user]);
 
+  const isVerified = Boolean(
+    user?.role === 'ADMIN' ||
+    user?.role === 'SUPERADMIN' ||
+    user?.verificationStatus === 'Verified' ||
+    user?.verification_status === 'Verified' ||
+    user?.isVerified === true
+  );
+
   // Open modal in create mode
   const handleOpenAdd = () => {
+    if (!isVerified) {
+      toast.error('Account Verification Pending: SuperAdmin verification is required before you can list mating studs.', { duration: 4500 });
+      return;
+    }
     setEditingStud(null);
     setFormData(initialFormState);
     setShowModal(true);
@@ -67,6 +79,10 @@ const ListingsModule = ({ user }) => {
 
   // Open modal in edit mode with current data
   const handleOpenEdit = (stud) => {
+    if (!isVerified) {
+      toast.error('Account Verification Pending: SuperAdmin verification is required before you can edit or list mating studs.', { duration: 4500 });
+      return;
+    }
     setEditingStud(stud);
     setFormData({
       name: stud.name || '',
@@ -120,6 +136,10 @@ const ListingsModule = ({ user }) => {
   // Handle Save (Add or Update)
   const handleSubmit = (e) => {
     e.preventDefault();
+    if (!isVerified) {
+      toast.error('Account Verification Pending: SuperAdmin verification is required before you can list mating studs.');
+      return;
+    }
     if (!formData.name.trim() || !formData.breed.trim()) {
       toast.error('Please enter pet name and breed.');
       return;
@@ -1361,7 +1381,7 @@ const WalletModule = () => {
         <div className="bg-gradient-to-br from-[#0F2E23] to-[#1a4a3b] rounded-2xl p-6 text-white shadow-lg relative overflow-hidden">
           <div className="absolute -right-4 -top-4 w-32 h-32 bg-white opacity-5 rounded-full blur-2xl"></div>
           <div className="flex items-center gap-2 text-emerald-300 text-xs font-bold uppercase tracking-wider mb-2">
-            <DollarSign size={14} /> Available Balance
+            <IndianRupee size={14} /> Available Balance
           </div>
           <div className="text-4xl font-black mb-4">₹{balance.toLocaleString('en-IN')}</div>
           <button 
@@ -1842,7 +1862,7 @@ const BreedingProviderDashboard = ({
                 { id: 'matches', label: 'Match Requests', icon: Heart },
                 { id: 'messages', label: 'Client Inquiries', icon: MessageSquare },
                 { id: 'reviews', label: 'Customer Reviews', icon: Star },
-                { id: 'wallet', label: 'Wallet & Payouts', icon: DollarSign }
+                { id: 'wallet', label: 'Wallet & Payouts', icon: IndianRupee }
               ].map(item => ( 
                 <li key={item.id}>
                   <button
@@ -1912,7 +1932,7 @@ const BreedingProviderDashboard = ({
                     <PawPrint size={16} />
                   </div>
                 </div>
-                <div className="text-3xl font-sans font-black text-[#0F2E23] mb-1">{stats.totalListings}</div>
+                <div className="text-3xl font-sans font-black text-[#0F2E23] tracking-tight lining-nums tabular-nums mb-1">{stats.totalListings}</div>
                 <div className="text-[10px] text-slate-500 font-black uppercase tracking-wider mt-2">All time</div>
               </div>
 
@@ -1924,7 +1944,7 @@ const BreedingProviderDashboard = ({
                     <Heart size={16} />
                   </div>
                 </div>
-                <div className="text-3xl font-sans font-black text-[#0F2E23] mb-1 relative z-10">{stats.availableStock}</div>
+                <div className="text-3xl font-sans font-black text-[#0F2E23] tracking-tight lining-nums tabular-nums mb-1 relative z-10">{stats.availableStock}</div>
                 <div className="text-[10px] text-emerald-600 font-black uppercase tracking-wider mt-2 relative z-10">Active studs</div>
               </div>
 
@@ -1936,7 +1956,7 @@ const BreedingProviderDashboard = ({
                     <Award size={16} />
                   </div>
                 </div>
-                <div className="text-3xl font-sans font-black text-[#0F2E23] mb-1 relative z-10">{stats.soldOutCount}</div>
+                <div className="text-3xl font-sans font-black text-[#0F2E23] tracking-tight lining-nums tabular-nums mb-1 relative z-10">{stats.soldOutCount}</div>
                 <div className="text-[10px] text-rose-600 font-black uppercase tracking-wider mt-2 relative z-10">Verified litters</div>
               </div>
 
@@ -1945,11 +1965,11 @@ const BreedingProviderDashboard = ({
                 <div className="flex justify-between items-center mb-4 relative z-10">
                   <span className="text-[10px] font-black text-amber-600 uppercase tracking-widest">Stud Service Revenue</span>
                   <div className="w-8 h-8 rounded-lg bg-amber-50 text-amber-500 flex items-center justify-center group-hover:scale-110 transition duration-300 border border-amber-100">
-                    <DollarSign size={16} />
+                    <IndianRupee size={16} />
                   </div>
                 </div>
                 <div className="flex items-end gap-2 mb-1 relative z-10">
-                  <div className="text-2xl font-sans font-black text-[#0F2E23]">₹{stats.revenue.toLocaleString('en-IN')}</div>
+                  <div className="text-2xl font-sans font-black text-[#0F2E23] tracking-tight lining-nums tabular-nums">₹{stats.revenue.toLocaleString('en-IN')}</div>
                 </div>
                 <div className="text-[10px] text-amber-600 font-black uppercase tracking-wider mt-2 relative z-10">
                   {stats.totalOrders} total sessions
@@ -1965,7 +1985,7 @@ const BreedingProviderDashboard = ({
                   </div>
                 </div>
                 <div className="flex items-end gap-2 mb-1 relative z-10">
-                  <div className="text-2xl font-sans font-black text-[#0F2E23]">₹{stats.discounts.toLocaleString('en-IN')}</div>
+                  <div className="text-2xl font-sans font-black text-[#0F2E23] tracking-tight lining-nums tabular-nums">₹{stats.discounts.toLocaleString('en-IN')}</div>
                 </div>
                 <div className="text-[10px] text-sky-600 font-black uppercase tracking-wider mt-2 relative z-10">Total savings offered</div>
               </div>

@@ -330,10 +330,6 @@ const Checkout = () => {
 
           <div className="border-t border-b border-beige py-4 text-xs space-y-2 max-w-md mx-auto text-left">
             <div className="flex justify-between">
-              <span className="text-gray-400 font-medium">Tracking Number:</span>
-              <span className="font-bold text-primary">{confirmedOrder.trackingNumber}</span>
-            </div>
-            <div className="flex justify-between">
               <span className="text-gray-400 font-medium">Shipping Status:</span>
               <span className="font-bold text-accent uppercase">{confirmedOrder.shippingStatus}</span>
             </div>
@@ -376,7 +372,7 @@ const Checkout = () => {
                   },
                   payment: {
                     method: confirmedOrder.paymentMethod || paymentMethod || 'Prepaid Online',
-                    validity: `Tracking: ${confirmedOrder.trackingNumber || 'Active'}`,
+                    validity: 'Standard Delivery',
                   },
                   items: (confirmedOrder.orderItems || []).map((it) => ({
                     name: it.name,

@@ -27,7 +27,7 @@ import {
   RotateCcw,
   Zap,
   FileText,
-  DollarSign,
+  IndianRupee,
   Layers,
   AlertCircle,
   Hospital,

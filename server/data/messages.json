@@ -318,5 +318,90 @@
     "messageText": "Also, can we arrange a quick video call?",
     "isRead": false,
     "createdAt": "2026-11-03T06:06:17.595Z"
+  },
+  {
+    "_id": "MSG-1795426599737-8270",
+    "sender": {
+      "_id": "5c03a90d-6c0a-41e6-86a2-bef6e9b5bb22",
+      "id": "5c03a90d-6c0a-41e6-86a2-bef6e9b5bb22",
+      "name": "Soorya S",
+      "email": "sooryas650@gmail.com"
+    },
+    "recipient": {
+      "_id": "seller-aqua-01",
+      "id": "seller-aqua-01",
+      "name": "Karthik Raja (Aqua Exotics)"
+    },
+    "listingRef": "LIST-FISH-01",
+    "listingId": "LIST-FISH-01",
+    "listingTitle": "Show Grade Super Red Arowana (Microchipped with CITES Certificate)",
+    "listingImage": "https://images.unsplash.com/photo-1522069169874-c58ec4b76be5?q=80&w=800&auto=format&fit=crop",
+    "messageText": "Is home delivery available for this Arowana?",
+    "isRead": false,
+    "createdAt": "2026-11-23T09:36:39.737Z"
+  },
+  {
+    "_id": "MSG-1795426749948-6482",
+    "sender": {
+      "_id": "5c03a90d-6c0a-41e6-86a2-bef6e9b5bb22",
+      "id": "5c03a90d-6c0a-41e6-86a2-bef6e9b5bb22",
+      "name": "Soorya S",
+      "email": "sooryas650@gmail.com"
+    },
+    "recipient": {
+      "_id": "seller-aqua-01",
+      "id": "seller-aqua-01",
+      "name": "Karthik Raja (Aqua Exotics)"
+    },
+    "listingRef": "LIST-FISH-01",
+    "listingId": "LIST-FISH-01",
+    "listingTitle": "Show Grade Super Red Arowana (Microchipped with CITES Certificate)",
+    "listingImage": "https://images.unsplash.com/photo-1522069169874-c58ec4b76be5?q=80&w=800&auto=format&fit=crop",
+    "messageText": "Are care instructions and certificates included?",
+    "isRead": false,
+    "createdAt": "2026-11-23T09:39:09.948Z"
+  },
+  {
+    "_id": "MSG-1795432833918-5260",
+    "sender": {
+      "_id": "5c03a90d-6c0a-41e6-86a2-bef6e9b5bb22",
+      "id": "5c03a90d-6c0a-41e6-86a2-bef6e9b5bb22",
+      "name": "Soorya S",
+      "email": "sooryas650@gmail.com"
+    },
+    "recipient": {
+      "_id": "seller-aqua-01",
+      "id": "seller-aqua-01",
+      "name": "Karthik Raja (Aqua Exotics)",
+      "email": "aqua.exotics@joshpetshub.com"
+    },
+    "listingRef": "LIST-FISH-01",
+    "listingId": "LIST-FISH-01",
+    "listingTitle": "Show Grade Super Red Arowana (Microchipped with CITES Certificate)",
+    "listingImage": "https://images.unsplash.com/photo-1522069169874-c58ec4b76be5?q=80&w=800&auto=format&fit=crop",
+    "messageText": "Is express certified delivery available with live acclimation guide? 4:50:33 pm",
+    "isRead": false,
+    "createdAt": "2026-11-23T11:20:33.918Z"
+  },
+  {
+    "_id": "MSG-1795499481512-6162",
+    "sender": {
+      "_id": "5c03a90d-6c0a-41e6-86a2-bef6e9b5bb22",
+      "id": "5c03a90d-6c0a-41e6-86a2-bef6e9b5bb22",
+      "name": "Soorya S",
+      "email": "sooryas650@gmail.com"
+    },
+    "recipient": {
+      "_id": "seller-aqua-01",
+      "id": "seller-aqua-01",
+      "name": "Karthik Raja (Aqua Exotics)"
+    },
+    "listingRef": "LIST-FISH-01",
+    "listingId": "LIST-FISH-01",
+    "listingTitle": "Show Grade Super Red Arowana (Microchipped with CITES Certificate)",
+    "listingImage": "https://images.unsplash.com/photo-1522069169874-c58ec4b76be5?q=80&w=800&auto=format&fit=crop",
+    "messageText": "Is certified delivery available? Check at 11:21:21 am",
+    "isRead": false,
+    "createdAt": "2026-11-24T05:51:21.512Z"
   }
 ]

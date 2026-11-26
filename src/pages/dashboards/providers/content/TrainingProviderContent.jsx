@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   GraduationCap, Calendar, MapPin, Phone, ShieldCheck, Star, Clock, 
-  DollarSign, CheckCircle, AlertCircle, Plus, Search, ChevronRight, 
+  IndianRupee, CheckCircle, AlertCircle, Plus, Search, ChevronRight, 
   Send, X, Edit3, Trash2, ExternalLink, SlidersHorizontal, 
   Sparkles, FileText, Check, MessageSquare, Info, Shield, 
   Eye, RefreshCw, Award, Heart, Tag, PawPrint, UserCheck, 
@@ -670,7 +670,7 @@ const formatSessionDate = (rawDate) => {
                 <span className="p-2 bg-emerald-100 text-emerald-800 rounded-xl">
                   <GraduationCap size={22} />
                 </span>
-                <h2 className="text-2xl font-sans font-black text-[#0F2E23]">My Training Service Listing</h2>
+                <h2 className="text-2xl font-sans font-black text-[#0F2E23] tracking-tight lining-nums tabular-nums">My Training Service Listing</h2>
               </div>
               <p className="text-sm text-slate-500 mt-1">
                 Post and manage your single official listing visible to pet parents on the public Pet Training directory.
@@ -1126,7 +1126,7 @@ const formatSessionDate = (rawDate) => {
               {/* Pricing & Packages */}
               <div className="space-y-4 pt-4 border-t border-slate-100">
                 <h4 className="text-xs font-black uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
-                  <DollarSign size={15} className="text-emerald-600" /> Pricing & Package Tiers
+                  <IndianRupee size={15} className="text-emerald-600" /> Pricing & Package Tiers
                 </h4>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -1369,7 +1369,7 @@ const formatSessionDate = (rawDate) => {
                 <span className="p-2 bg-emerald-100 text-emerald-800 rounded-xl">
                   <Calendar size={20} />
                 </span>
-                <h2 className="text-2xl font-sans font-black text-[#0F2E23]">Training Sessions</h2>
+                <h2 className="text-2xl font-sans font-black text-[#0F2E23] tracking-tight lining-nums tabular-nums">Training Sessions</h2>
               </div>
               <p className="text-sm text-slate-500 mt-1">
                 Manage upcoming 1-on-1 sessions, track dog progress, and log handler notes.
@@ -1710,7 +1710,7 @@ const formatSessionDate = (rawDate) => {
                 <span className="p-2 bg-emerald-100 text-emerald-800 rounded-xl">
                   <Tag size={20} />
                 </span>
-                <h2 className="text-2xl font-sans font-black text-[#0F2E23]">Courses & Pricing Packages</h2>
+                <h2 className="text-2xl font-sans font-black text-[#0F2E23] tracking-tight lining-nums tabular-nums">Courses & Pricing Packages</h2>
               </div>
               <p className="text-sm text-slate-500 mt-1">
                 Design and price structured behavior packages offered to pet parents.
@@ -1902,7 +1902,7 @@ const formatSessionDate = (rawDate) => {
                 <span className="p-2 bg-emerald-100 text-emerald-800 rounded-xl">
                   <MessageSquare size={20} />
                 </span>
-                <h2 className="text-2xl font-sans font-black text-[#0F2E23]">Client Inquiries</h2>
+                <h2 className="text-2xl font-sans font-black text-[#0F2E23] tracking-tight lining-nums tabular-nums">Client Inquiries</h2>
               </div>
               <p className="text-sm text-slate-500 mt-1">
                 Respond to incoming inquiries submitted by pet owners from the public training page.
@@ -2119,7 +2119,7 @@ const formatSessionDate = (rawDate) => {
               <span className="p-2 bg-emerald-100 text-emerald-800 rounded-xl">
                 <PawPrint size={20} />
               </span>
-              <h2 className="text-2xl font-sans font-black text-[#0F2E23]">Trainer Professional Profile</h2>
+              <h2 className="text-2xl font-sans font-black text-[#0F2E23] tracking-tight lining-nums tabular-nums">Trainer Professional Profile</h2>
             </div>
             <p className="text-sm text-slate-500 mt-1">
               Customize your bio, philosophy, operating hours, and certifications visible to clients.

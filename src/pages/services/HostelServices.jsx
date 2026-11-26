@@ -370,16 +370,24 @@ const HostelServices = () => {
   // Submit Booking Form
   const handleSubmitBooking = (e) => {
     e.preventDefault();
-    if (!checkInDate || !checkOutDate) {
-      toast.error('Please pick check-in and check-out dates.');
+    if (!checkInDate) {
+      toast.error('Please pick a check-in date.');
+      return;
+    }
+    if (!checkOutDate) {
+      toast.error('Please pick a check-out date.');
       return;
     }
     if (new Date(checkOutDate) <= new Date(checkInDate)) {
       toast.error('Check-out date must be after check-in date.');
       return;
     }
-    if (!petName.trim() || !petBreed.trim()) {
-      toast.error('Please provide your pet name and breed.');
+    if (!petName || !petName.trim()) {
+      toast.error('Please enter your pet name.');
+      return;
+    }
+    if (!petBreed || !petBreed.trim()) {
+      toast.error('Please select your pet breed.');
       return;
     }
     const cleanPhone = ownerPhone.replace(/\D/g, '');

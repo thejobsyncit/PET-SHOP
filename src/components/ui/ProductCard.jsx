@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { Heart, ShoppingBag, Eye, ShieldAlert, Check, X, ClipboardList, Minus, Plus, Share2 } from 'lucide-react';
-import { addToCartAPI } from '../../store/slices/cartSlice.js';
+import { addToCartAPI, updateCartQuantityAPI, removeFromCartAPI } from '../../store/slices/cartSlice.js';
 import { toggleWishlistAPI, getWishlistItemIdStr } from '../../store/slices/wishlistSlice.js';
 import { openAuthModal } from '../../store/slices/authSlice.js';
 import RatingStars from './RatingStars.jsx';
@@ -21,6 +21,12 @@ const ProductCard = ({ product }) => {
   const cartItems = useSelector((state) => state.cart.items || []);
   const productId = getWishlistItemIdStr(product);
   const isWishlisted = Boolean(productId && wishlistItems.some(item => getWishlistItemIdStr(item) === productId));
+  const inCartItem = useMemo(() => {
+    return cartItems.find(item => {
+      const itemId = typeof item?.product === 'object' ? (item.product?._id || item.product?.id) : item?.product;
+      return String(itemId) === String(productId);
+    });
+  }, [cartItems, productId]);
   const pStock = typeof product.stock === 'number'
     ? Math.max(0, product.stock)
     : (product.stock !== undefined && product.stock !== null && !isNaN(Number(product.stock))
@@ -131,41 +137,30 @@ const ProductCard = ({ product }) => {
       return;
     }
 
-    const existingInCart = cartItems.find(item => {
-      const itemId = typeof item?.product === 'object' ? (item.product?._id || item.product?.id) : item?.product;
-      return String(itemId) === String(productId);
-    });
-
-    if (existingInCart) {
-      toast.success(product.isPet ? 'Pet is already in your cart.' : 'Product is already in your cart.');
-      setQuickViewOpen(false);
-      return;
-    }
-
-    const currentInCartQty = existingInCart ? Number(existingInCart.quantity) || 0 : 0;
-
-    if (currentInCartQty >= pStock) {
-      toast.error(`Maximum available stock (${pStock} unit${pStock === 1 ? '' : 's'}) already in cart.`);
-      return;
-    }
-
     const requestedQty = parseInt(quantity, 10) || 1;
     if (requestedQty > pStock) {
       toast.error(`Only ${pStock} unit${pStock === 1 ? '' : 's'} available in stock. You cannot add ${requestedQty} units.`);
       return;
     }
 
-    if (currentInCartQty + requestedQty > pStock) {
-      const remaining = pStock - currentInCartQty;
-      toast.error(`Only ${pStock} unit${pStock === 1 ? '' : 's'} available in total. You already have ${currentInCartQty} in cart, so you can only add ${remaining} more.`);
+    const existingInCart = cartItems.find(item => {
+      const itemId = typeof item?.product === 'object' ? (item.product?._id || item.product?.id) : item?.product;
+      return String(itemId) === String(productId);
+    });
+
+    if (existingInCart) {
+      const currentQty = Number(existingInCart.quantity) || 0;
+      const newTotalQty = Math.min(pStock, currentQty + requestedQty);
+      await dispatch(updateCartQuantityAPI({ productId, quantity: newTotalQty }));
+      toast.success(`Updated cart quantity to ${newTotalQty}!`);
+      setQuickViewOpen(false);
       return;
     }
 
-    const safeQty = Math.max(1, Math.min(pStock - currentInCartQty, requestedQty));
     setQuickViewOpen(false);
     setIsAdding(true);
     try {
-      const result = await dispatch(addToCartAPI({ product, quantity: safeQty }));
+      const result = await dispatch(addToCartAPI({ product, quantity: requestedQty }));
       if (!addToCartAPI.fulfilled.match(result) && result.payload && !String(result.payload).includes('reached')) {
         toast.error(result.payload || 'Could not add to cart.');
       }
@@ -323,6 +318,59 @@ const ProductCard = ({ product }) => {
                product.petType === 'reptiles' ? 'Reptiles' :
                product.petType === 'fish' ? 'Aquatics' : 'Pharmacy'}
             </span>
+          </div>
+
+          {/* Add to Cart Button / Quantity Counter */}
+          <div className="pt-3 mt-3 border-t border-gray-100" onClick={(e) => e.stopPropagation()}>
+            {inCartItem ? (
+              <div className="flex items-center justify-between border-2 border-primary rounded-xl overflow-hidden bg-primary/5 p-0.5">
+                <button
+                  type="button"
+                  onClick={async (e) => {
+                    e.stopPropagation();
+                    if (inCartItem.quantity <= 1) {
+                      await dispatch(removeFromCartAPI(productId));
+                      toast.success('Removed from cart');
+                    } else {
+                      await dispatch(updateCartQuantityAPI({ productId, quantity: inCartItem.quantity - 1 }));
+                    }
+                  }}
+                  className="w-10 h-8 flex items-center justify-center text-primary hover:bg-primary hover:text-white transition rounded-lg font-bold cursor-pointer"
+                  title="Decrease quantity"
+                >
+                  <Minus size={14} />
+                </button>
+                <span className="font-extrabold text-xs text-primary px-3">
+                  {inCartItem.quantity} in cart
+                </span>
+                <button
+                  type="button"
+                  onClick={async (e) => {
+                    e.stopPropagation();
+                    if (inCartItem.quantity >= pStock) {
+                      toast.error(`Only ${pStock} unit${pStock === 1 ? '' : 's'} available in stock.`);
+                      return;
+                    }
+                    await dispatch(updateCartQuantityAPI({ productId, quantity: inCartItem.quantity + 1 }));
+                  }}
+                  disabled={inCartItem.quantity >= pStock}
+                  className="w-10 h-8 flex items-center justify-center text-primary hover:bg-primary hover:text-white transition rounded-lg font-bold cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+                  title="Increase quantity"
+                >
+                  <Plus size={14} />
+                </button>
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={handleQuickAdd}
+                disabled={product.stock === 0 || isAdding}
+                className="w-full py-2 px-3 bg-primary hover:bg-primary/90 text-white text-xs font-bold uppercase tracking-wider rounded-xl transition shadow-xs flex items-center justify-center gap-2 cursor-pointer disabled:bg-gray-200 disabled:text-gray-400 disabled:cursor-not-allowed active:scale-98"
+              >
+                <ShoppingBag size={14} />
+                <span>{isAdding ? 'Adding...' : product.stock === 0 ? 'Out of Stock' : 'Add to Cart'}</span>
+              </button>
+            )}
           </div>
         </div>
       </div>

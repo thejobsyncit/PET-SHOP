@@ -125,6 +125,25 @@ const PetTransport = () => {
 
   const [rawProviders, setProviders] = useState(() => getStoredTransportProviders());
 
+  useEffect(() => {
+    if (user) {
+      if (user.name) {
+        setEnqFullName(prev => prev || user.name);
+        setGlobalEnqFullName(prev => prev || user.name);
+      }
+      const ph = (user.mobile || user.phone || '').replace(/\D/g, '').slice(-10);
+      if (ph) {
+        setEnqPhone(prev => prev || ph);
+        setGlobalEnqPhone(prev => prev || ph);
+        setBookingOwnerPhone(prev => prev || ph);
+      }
+      if (user.email) {
+        setEnqEmail(prev => prev || user.email);
+        setGlobalEnqEmail(prev => prev || user.email);
+      }
+    }
+  }, [user]);
+
   const providers = useMemo(() => {
     return (rawProviders || []).map((p, idx) => ({
       ...p,
@@ -525,17 +544,26 @@ const PetTransport = () => {
       return;
     }
 
+    const finalName = (enqFullName || user?.name || 'Pet Parent').trim();
+    const finalEmail = (enqEmail || user?.email || '').trim().toLowerCase();
+    const finalPhone = (enqPhone || user?.mobile || user?.phone || '').replace(/\D/g, '').slice(-10);
+    const finalUserId = user?._id || user?.id || (finalEmail ? `usr-${finalEmail}` : 'usr-custom');
+
     const enquiryData = {
       providerId: selectedProviderForEnquiry.id,
       providerName: selectedProviderForEnquiry.name,
-      userId: user?._id || user?.id || 'usr-custom',
-      userName: enqFullName,
-      customerName: enqFullName,
-      userEmail: enqEmail,
-      customerEmail: enqEmail,
-      userPhone: enqPhone,
-      customerPhone: enqPhone,
-      ownerPhone: enqPhone,
+      userId: finalUserId,
+      userName: finalName,
+      customerName: finalName,
+      userEmail: finalEmail,
+      customerEmail: finalEmail,
+      ownerEmail: finalEmail,
+      email: finalEmail,
+      userPhone: finalPhone,
+      customerPhone: finalPhone,
+      ownerPhone: finalPhone,
+      mobile: finalPhone,
+      phone: finalPhone,
       relocationType: enqRelocationType,
       departureState: enqDepState,
       departureCity: enqDepCity,
@@ -562,7 +590,7 @@ const PetTransport = () => {
           <button
             onClick={() => {
               toast.dismiss(t.id);
-              navigate('/dashboard?tab=transport-enquiries');
+              navigate('/account?tab=transport-enquiries');
             }}
             className="underline font-bold text-amber-300 hover:text-white cursor-pointer ml-1"
           >
@@ -570,7 +598,7 @@ const PetTransport = () => {
           </button>
         </div>
       ),
-      { duration: 2000, icon: '📬' }
+      { duration: 3000, icon: '📬' }
     );
     setShowEnquiryModal(false);
 
@@ -650,17 +678,26 @@ const PetTransport = () => {
       return;
     }
 
+    const finalName = (globalEnqFullName || user?.name || 'Pet Parent').trim();
+    const finalEmail = (globalEnqEmail || user?.email || '').trim().toLowerCase();
+    const finalPhone = (globalEnqPhone || user?.mobile || user?.phone || '').replace(/\D/g, '').slice(-10);
+    const finalUserId = user?._id || user?.id || (finalEmail ? `usr-${finalEmail}` : 'usr-custom');
+
     const enquiryData = {
       providerId: 'TRP-101', // Assigned to Primary Hub or matching corridor
       providerName: 'Josh Pets Hub Air & Road Pet Relocators (Central Hub)',
-      userId: user?._id || user?.id || 'usr-custom',
-      userName: globalEnqFullName,
-      customerName: globalEnqFullName,
-      userEmail: globalEnqEmail,
-      customerEmail: globalEnqEmail,
-      userPhone: globalEnqPhone,
-      customerPhone: globalEnqPhone,
-      ownerPhone: globalEnqPhone,
+      userId: finalUserId,
+      userName: finalName,
+      customerName: finalName,
+      userEmail: finalEmail,
+      customerEmail: finalEmail,
+      ownerEmail: finalEmail,
+      email: finalEmail,
+      userPhone: finalPhone,
+      customerPhone: finalPhone,
+      ownerPhone: finalPhone,
+      mobile: finalPhone,
+      phone: finalPhone,
       relocationType: globalEnqType,
       departureState: globalEnqDepState,
       departureCity: globalEnqDepCity,
@@ -687,7 +724,7 @@ const PetTransport = () => {
           <button
             onClick={() => {
               toast.dismiss(t.id);
-              navigate('/dashboard?tab=transport-enquiries');
+              navigate('/account?tab=transport-enquiries');
             }}
             className="underline font-bold text-amber-300 hover:text-white cursor-pointer ml-1"
           >
@@ -695,7 +732,7 @@ const PetTransport = () => {
           </button>
         </div>
       ),
-      { duration: 2000, icon: '🚀' }
+      { duration: 3000, icon: '🚀' }
     );
 
     // Reset all enquiry fields so previously submitted data does not appear when adding new details

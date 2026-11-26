@@ -623,6 +623,9 @@ export default function AuthModal() {
                     type="tel"
                     maxLength={10}
                     value={signupMobile}
+                    onFocus={() => {
+                      if (signupError && signupError.includes('Mobile number')) setSignupError('');
+                    }}
                     onChange={(e) => {
                       setSignupMobile(e.target.value.replace(/\D/g, ''));
                       if (signupError) setSignupError('');

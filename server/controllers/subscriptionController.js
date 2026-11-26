@@ -9,9 +9,11 @@ import { sanitizeUser, DEMO_ACCOUNTS, inMemoryUsers } from './authController.js'
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const USERS_FILE = path.join(__dirname, '../data/users.json');
+const PROVIDERS_FILE = path.join(__dirname, '../data/service_providers.json');
+const PLANS_FILE = path.join(__dirname, '../data/subscription_plans.json');
 
 // Exact Subscription Plans configuration as specified
-export const SUBSCRIPTION_PLANS = {
+export const DEFAULT_SUBSCRIPTION_PLANS = {
   monthly: {
     id: 'monthly',
     name: 'Monthly Plan',
@@ -38,6 +40,63 @@ export const SUBSCRIPTION_PLANS = {
   }
 };
 
+export const SUBSCRIPTION_PLANS = { ...DEFAULT_SUBSCRIPTION_PLANS };
+
+// Helper to load disk subscription plans safely
+export const loadDiskSubscriptionPlans = () => {
+  try {
+    if (fs.existsSync(PLANS_FILE)) {
+      const data = JSON.parse(fs.readFileSync(PLANS_FILE, 'utf8'));
+      if (Array.isArray(data.serviceProviders)) {
+        data.serviceProviders.forEach(p => {
+          if (p.id) {
+            SUBSCRIPTION_PLANS[p.id] = {
+              id: p.id,
+              name: p.name,
+              basePrice: Number(p.basePrice) || 199,
+              validityMonths: Number(p.validityMonths) || 1,
+              durationLabel: p.validityLabel || `${p.validityMonths || 1} months`,
+              badge: p.badge || p.name
+            };
+          }
+        });
+      }
+      return data;
+    }
+  } catch (err) {
+    console.warn('Could not read subscription_plans.json:', err.message);
+  }
+  return { serviceProviders: [], users: [] };
+};
+
+// Initial load
+loadDiskSubscriptionPlans();
+
+// Helper to save disk subscription plans safely
+export const saveDiskSubscriptionPlans = (plansData) => {
+  try {
+    fs.writeFileSync(PLANS_FILE, JSON.stringify(plansData, null, 2), 'utf8');
+    if (Array.isArray(plansData.serviceProviders)) {
+      plansData.serviceProviders.forEach(p => {
+        if (p.id) {
+          SUBSCRIPTION_PLANS[p.id] = {
+            id: p.id,
+            name: p.name,
+            basePrice: Number(p.basePrice) || 199,
+            validityMonths: Number(p.validityMonths) || 1,
+            durationLabel: p.validityLabel || `${p.validityMonths || 1} months`,
+            badge: p.badge || p.name
+          };
+        }
+      });
+    }
+    return true;
+  } catch (err) {
+    console.warn('Could not write subscription_plans.json:', err.message);
+    return false;
+  }
+};
+
 export const GST_RATE = 0.18; // 18% standard GST for digital services
 
 // Helper to load disk users safely
@@ -59,6 +118,28 @@ const saveDiskUsers = (users) => {
     fs.writeFileSync(USERS_FILE, JSON.stringify(users, null, 2), 'utf8');
   } catch (err) {
     console.warn('Could not write users.json:', err.message);
+  }
+};
+
+// Helper to load disk service providers safely
+export const loadDiskServiceProviders = () => {
+  try {
+    if (fs.existsSync(PROVIDERS_FILE)) {
+      const data = fs.readFileSync(PROVIDERS_FILE, 'utf8');
+      return JSON.parse(data);
+    }
+  } catch (err) {
+    console.warn('Could not read service_providers.json:', err.message);
+  }
+  return [];
+};
+
+// Helper to save disk service providers safely
+export const saveDiskServiceProviders = (providers) => {
+  try {
+    fs.writeFileSync(PROVIDERS_FILE, JSON.stringify(providers, null, 2), 'utf8');
+  } catch (err) {
+    console.warn('Could not write service_providers.json:', err.message);
   }
 };
 
@@ -129,6 +210,10 @@ export const getSubscriptionStatus = async (req, res) => {
     // Look up user in disk / database
     const users = loadDiskUsers();
     let user = users.find(u => (userId && (u._id === userId || u.id === userId)) || (email && u.email && u.email.toLowerCase() === email));
+    if (!user) {
+      const providers = loadDiskServiceProviders();
+      user = providers.find(u => (userId && (u._id === userId || u.id === userId)) || (email && u.email && u.email.toLowerCase() === email));
+    }
     if (!user) user = req.user;
 
     const isProfileComplete = Boolean(user.isProfileComplete || user.profileCompleted);
@@ -298,6 +383,8 @@ export const completeProviderProfile = async (req, res) => {
     // Update in disk users
     const users = loadDiskUsers();
     const idx = users.findIndex(u => (userId && (u._id === userId || u.id === userId)) || (email && u.email && u.email.toLowerCase() === email));
+    const providers = loadDiskServiceProviders();
+    const pIdx = providers.findIndex(u => (userId && (u._id === userId || u.id === userId)) || (email && u.email && u.email.toLowerCase() === email));
 
     const completedProfile = {
       businessName: effectiveBusinessName,
@@ -363,7 +450,18 @@ export const completeProviderProfile = async (req, res) => {
       saveDiskUsers(users);
     }
 
-    // Sync in-memory DEMO_ACCOUNTS if matching
+    if (pIdx >= 0) {
+      providers[pIdx] = {
+        ...providers[pIdx],
+        ...completedProfile,
+        isProfileComplete: true,
+        requiresSubscription: true,
+        profileCompleted: true,
+        profileCompletedAt: new Date().toISOString(),
+        profileData: completedProfile
+      };
+      saveDiskServiceProviders(providers);
+    }
     if (Array.isArray(DEMO_ACCOUNTS)) {
       const demoAcct = DEMO_ACCOUNTS.find(d => (userId && (d._id === userId || d.id === userId)) || (email && d.email && d.email.toLowerCase() === email));
       if (demoAcct) {
@@ -619,7 +717,9 @@ export const verifySubscriptionPayment = async (req, res) => {
     // Load user and prevent duplicate activation for the exact same paymentId
     const users = loadDiskUsers();
     const idx = users.findIndex(u => (userId && (u._id === userId || u.id === userId)) || (email && u.email && u.email.toLowerCase() === email));
-    const targetUser = idx >= 0 ? users[idx] : req.user;
+    const providers = loadDiskServiceProviders();
+    const pIdx = providers.findIndex(u => (userId && (u._id === userId || u.id === userId)) || (email && u.email && u.email.toLowerCase() === email));
+    const targetUser = idx >= 0 ? users[idx] : (pIdx >= 0 ? providers[pIdx] : req.user);
 
     const currentSub = targetUser?.subscription;
     const now = new Date();
@@ -692,6 +792,15 @@ export const verifySubscriptionPayment = async (req, res) => {
     }
     saveDiskUsers(users);
 
+    if (pIdx >= 0) {
+      providers[pIdx] = {
+        ...providers[pIdx],
+        subscription: subscriptionRecord,
+        subscriptionHistory: targetUser.subscriptionHistory
+      };
+      saveDiskServiceProviders(providers);
+    }
+
     // Also sync in-memory DEMO_ACCOUNTS and inMemoryUsers
     if (Array.isArray(DEMO_ACCOUNTS)) {
       const demoAcct = DEMO_ACCOUNTS.find(d => (userId && (d._id === userId || d.id === userId)) || (email && d.email && d.email.toLowerCase() === email));
@@ -736,6 +845,191 @@ export const verifySubscriptionPayment = async (req, res) => {
     });
   } catch (error) {
     console.error('verifySubscriptionPayment error:', error);
+    res.status(500).json({ success: false, message: error.message || 'Server error' });
+  }
+};
+
+/**
+ * @desc    Get All Subscription Plans (Users & Service Providers)
+ * @route   GET /api/subscriptions/plans
+ * @access  Public / Authenticated
+ */
+export const getSubscriptionPlans = async (req, res) => {
+  try {
+    const plansData = loadDiskSubscriptionPlans();
+    res.status(200).json({
+      success: true,
+      serviceProviders: plansData.serviceProviders || [],
+      users: plansData.users || []
+    });
+  } catch (error) {
+    console.error('getSubscriptionPlans error:', error);
+    res.status(500).json({ success: false, message: error.message || 'Server error' });
+  }
+};
+
+/**
+ * @desc    SuperAdmin: Update / Save Subscription Plans & Pricing
+ * @route   PUT /api/subscriptions/admin/plans
+ * @access  Private (SuperAdmin / Admin)
+ */
+export const updateSubscriptionPlans = async (req, res) => {
+  try {
+    const { serviceProviders, users } = req.body;
+
+    if (!Array.isArray(serviceProviders) || !Array.isArray(users)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid payload. serviceProviders and users must be arrays.'
+      });
+    }
+
+    const plansPayload = {
+      serviceProviders,
+      users,
+      updatedAt: new Date().toISOString(),
+      updatedBy: req.user?.email || 'superadmin@joshpetshub.com'
+    };
+
+    const saved = saveDiskSubscriptionPlans(plansPayload);
+    if (!saved) {
+      return res.status(500).json({ success: false, message: 'Failed to write plans to disk' });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: 'Subscription plans & pricing updated successfully!',
+      serviceProviders,
+      users
+    });
+  } catch (error) {
+    console.error('updateSubscriptionPlans error:', error);
+    res.status(500).json({ success: false, message: error.message || 'Server error' });
+  }
+};
+
+/**
+ * @desc    SuperAdmin: Reset Subscription Plans to Factory Defaults
+ * @route   POST /api/subscriptions/admin/plans/reset
+ * @access  Private (SuperAdmin)
+ */
+export const resetSubscriptionPlans = async (req, res) => {
+  try {
+    const defaultData = {
+      serviceProviders: [
+        {
+          id: 'monthly',
+          name: 'Monthly Plan',
+          target: 'SERVICE_PROVIDER',
+          basePrice: 199,
+          gstRate: 0.18,
+          validityMonths: 1,
+          validityLabel: '1 month',
+          badge: 'Monthly',
+          popular: false,
+          active: true,
+          description: 'Perfect for getting started with flexible month-to-month access.',
+          features: [
+            'Full service directory listing & verified badge',
+            'Unlimited client inquiries & chat bookings',
+            'Direct payouts to bank via Central Platform Wallet',
+            'Basic operational analytics & review management'
+          ]
+        },
+        {
+          id: 'quarterly',
+          name: 'Quarterly Plan',
+          target: 'SERVICE_PROVIDER',
+          basePrice: 499,
+          gstRate: 0.18,
+          validityMonths: 3,
+          validityLabel: '3 months',
+          badge: 'Quarterly',
+          popular: false,
+          active: true,
+          description: 'Great balance of commitment and value for active service providers.',
+          features: [
+            'Priority ranking in localized search results',
+            'Direct verified phone & chat booking dispatch',
+            'Central Platform Wallet fast-track payouts',
+            'Verified partner badge across search and service categories',
+            'Customer review alerts & responses'
+          ]
+        },
+        {
+          id: 'yearly',
+          name: 'Yearly Plan',
+          target: 'SERVICE_PROVIDER',
+          basePrice: 999,
+          gstRate: 0.18,
+          validityMonths: 12,
+          validityLabel: '12 months',
+          badge: 'Yearly (Best Value)',
+          popular: true,
+          active: true,
+          description: 'Maximum savings with 365 days of uninterrupted client inquiries & bookings.',
+          features: [
+            'Top search placement & featured partner spotlight',
+            'Zero platform commission on direct client leads',
+            'Instant settlement & priority payout processing',
+            'Dedicated account manager & support helpline',
+            'Unlimited client bookings & appointment calendar',
+            'Free promotional announcements on regional hubs'
+          ]
+        }
+      ],
+      users: [
+        {
+          id: 'pass-standard-199',
+          name: 'Standard Service Pass',
+          target: 'USER',
+          tier: 'Standard Access Tier',
+          basePrice: 199,
+          gstRate: 0.18,
+          validityLabel: '1 Year Unlimited Pass',
+          badge: 'POPULAR VALUE',
+          popular: false,
+          active: true,
+          description: 'Essential direct access pass to verified service specialists across all pet care departments.',
+          features: [
+            'Direct verified provider phone & chat communication',
+            'Standard booking queue scheduling with verified partners',
+            'Access to full provider background clearance credentials',
+            'Automated booking reminder SMS and notifications'
+          ]
+        },
+        {
+          id: 'pass-vip-499',
+          name: 'VIP All-Access & Priority Pass',
+          target: 'USER',
+          tier: 'VIP Elite Priority',
+          basePrice: 499,
+          gstRate: 0.18,
+          validityLabel: '1 Year Unlimited Pass',
+          badge: '★ VIP MOST RECOMMENDED',
+          popular: true,
+          active: true,
+          description: 'All-inclusive VIP pass with 24/7 priority concierge, zero cancellation fees, and instant express bookings across all services.',
+          features: [
+            '24/7 Priority VIP Concierge & Live Chat support',
+            'Instant express fast-track scheduling with top-tier specialists',
+            'Direct video & phone consultations with senior veterinarians/experts',
+            'Zero cancellation fees & flexible reschedule guarantee',
+            'Exclusive 15% discount on pet store orders & grooming add-ons'
+          ]
+        }
+      ]
+    };
+
+    saveDiskSubscriptionPlans(defaultData);
+
+    res.status(200).json({
+      success: true,
+      message: 'Subscription plans successfully reset to factory defaults!',
+      ...defaultData
+    });
+  } catch (error) {
+    console.error('resetSubscriptionPlans error:', error);
     res.status(500).json({ success: false, message: error.message || 'Server error' });
   }
 };
