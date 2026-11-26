@@ -9,6 +9,8 @@ import {
   ChevronDown, MessageSquare, Check, HelpCircle, PawPrint, Upload, X, Loader2
 } from 'lucide-react';
 import { login, register, setAuthenticatedUser, clearAuthError, logout } from '../store/slices/authSlice.js';
+import { fetchCart } from '../store/slices/cartSlice.js';
+import { fetchWishlist } from '../store/slices/wishlistSlice.js';
 import { validateEmailFormat } from '../utils/emailValidator.js';
 import toast from 'react-hot-toast';
 
@@ -198,6 +200,7 @@ const CountryCodePicker = ({ value, onChange, id = 'country-picker' }) => {
     <div className="relative shrink-0" ref={dropdownRef}>
       <button
         type="button"
+        onMouseDown={(e) => e.preventDefault()}
         onClick={() => setIsOpen(!isOpen)}
         className="h-full px-3 py-2.5 bg-slate-100/90 hover:bg-slate-200/90 active:bg-slate-300/80 text-slate-700 text-xs md:text-sm font-semibold rounded-l-xl border-r border-slate-300 flex items-center gap-1.5 cursor-pointer transition select-none"
         title="Select Country Dial Code"
@@ -636,18 +639,38 @@ const Login = () => {
   };
 
   // Mobile / WhatsApp Strictly Numeric Handler (Length dynamically controlled by country code)
-  const handleNumericChange = (e, setVal, setError, fieldLabel = 'Mobile number', maxLength = 10) => {
+  // Kept clean while typing so no premature length warnings disrupt the user
+  const handleNumericChange = (e, setVal, setError, fieldLabel = 'Mobile number', maxLength = 10, countryCode = '+91') => {
     const raw = e.target.value;
     const cleaned = raw.replace(/\D/g, ''); // Filter out any non-numeric character
     if (cleaned.length > maxLength) {
-      setError(`${fieldLabel} cannot exceed ${maxLength} digits *`);
       return;
     }
     setVal(cleaned);
-    if (cleaned.length === 0) {
-      setError(`${fieldLabel} is required *`);
+
+    // Validate only when full length is reached; never show length error while typing
+    if (cleaned.length === maxLength) {
+      if (countryCode === '+91' && !/^[6-9]/.test(cleaned)) {
+        setError(`${fieldLabel} should start with 6, 7, 8, or 9 *`);
+      } else {
+        setError('');
+      }
+    } else {
+      setError('');
+    }
+  };
+
+  // Trigger validation only when user leaves the field (onBlur) and field is left incomplete or invalid
+  const handleNumericBlur = (val, setError, fieldLabel = 'Mobile number', maxLength = 10, countryCode = '+91') => {
+    const cleaned = String(val || '').replace(/\D/g, '');
+    if (!cleaned) {
+      // Don't show premature warning if the user just clicked into the field and left without typing.
+      // Form submission validation (onSubmit) will check if it's required.
+      setError('');
     } else if (cleaned.length < maxLength) {
       setError(`${fieldLabel} must be exactly ${maxLength} digits (${cleaned.length}/${maxLength}) *`);
+    } else if (countryCode === '+91' && !/^[6-9]/.test(cleaned)) {
+      setError(`${fieldLabel} should start with 6, 7, 8, or 9 *`);
     } else {
       setError('');
     }
@@ -660,18 +683,14 @@ const Login = () => {
     if (userMobileNo.length > newExpected) {
       const truncated = userMobileNo.slice(0, newExpected);
       setUserMobileNo(truncated);
-      setUserMobileError('');
-    } else if (userMobileNo.length > 0 && userMobileNo.length < newExpected) {
-      setUserMobileError(`Mobile number must be exactly ${newExpected} digits (${userMobileNo.length}/${newExpected}) *`);
-    } else if (userMobileNo.length === newExpected) {
-      setUserMobileError('');
     }
+    setUserMobileError('');
 
     if (userSameAsMobile) {
       setUserWhatsappCountryCode(newCode);
       const newNum = userMobileNo.slice(0, newExpected);
       setUserWhatsappNo(newNum);
-      if (newNum.length === newExpected) setUserWhatsappError('');
+      setUserWhatsappError('');
     }
   };
 
@@ -681,12 +700,8 @@ const Login = () => {
     if (userWhatsappNo.length > newExpected) {
       const truncated = userWhatsappNo.slice(0, newExpected);
       setUserWhatsappNo(truncated);
-      setUserWhatsappError('');
-    } else if (userWhatsappNo.length > 0 && userWhatsappNo.length < newExpected) {
-      setUserWhatsappError(`WhatsApp number must be exactly ${newExpected} digits (${userWhatsappNo.length}/${newExpected}) *`);
-    } else if (userWhatsappNo.length === newExpected) {
-      setUserWhatsappError('');
     }
+    setUserWhatsappError('');
     if (userSameAsMobile && newCode !== userCountryCode) {
       setUserSameAsMobile(false);
     }
@@ -698,18 +713,14 @@ const Login = () => {
     if (providerMobileNo.length > newExpected) {
       const truncated = providerMobileNo.slice(0, newExpected);
       setProviderMobileNo(truncated);
-      setProviderMobileError('');
-    } else if (providerMobileNo.length > 0 && providerMobileNo.length < newExpected) {
-      setProviderMobileError(`Mobile number must be exactly ${newExpected} digits (${providerMobileNo.length}/${newExpected}) *`);
-    } else if (providerMobileNo.length === newExpected) {
-      setProviderMobileError('');
     }
+    setProviderMobileError('');
 
     if (providerSameAsMobile) {
       setProviderWhatsappCountryCode(newCode);
       const newNum = providerMobileNo.slice(0, newExpected);
       setProviderWhatsappNo(newNum);
-      if (newNum.length === newExpected) setProviderWhatsappError('');
+      setProviderWhatsappError('');
     }
   };
 
@@ -719,12 +730,8 @@ const Login = () => {
     if (providerWhatsappNo.length > newExpected) {
       const truncated = providerWhatsappNo.slice(0, newExpected);
       setProviderWhatsappNo(truncated);
-      setProviderWhatsappError('');
-    } else if (providerWhatsappNo.length > 0 && providerWhatsappNo.length < newExpected) {
-      setUserWhatsappError(`WhatsApp number must be exactly ${newExpected} digits (${providerWhatsappNo.length}/${newExpected}) *`);
-    } else if (providerWhatsappNo.length === newExpected) {
-      setProviderWhatsappError('');
     }
+    setProviderWhatsappError('');
     if (providerSameAsMobile && newCode !== providerCountryCode) {
       setProviderSameAsMobile(false);
     }
@@ -738,13 +745,9 @@ const Login = () => {
       const expected = getRequiredPhoneLength(userCountryCode);
       const val = userMobileNo.slice(0, expected);
       setUserWhatsappNo(val);
-      if (val.length === expected) {
-        setUserWhatsappError('');
-      } else if (!val) {
-        setUserWhatsappError('WhatsApp number is required *');
-      } else {
-        setUserWhatsappError(`WhatsApp number must be exactly ${expected} digits (${val.length}/${expected}) *`);
-      }
+      setUserWhatsappError('');
+    } else {
+      setUserWhatsappError('');
     }
   };
 
@@ -756,13 +759,9 @@ const Login = () => {
       const expected = getRequiredPhoneLength(providerCountryCode);
       const val = providerMobileNo.slice(0, expected);
       setProviderWhatsappNo(val);
-      if (val.length === expected) {
-        setProviderWhatsappError('');
-      } else if (!val) {
-        setProviderWhatsappError('WhatsApp number is required *');
-      } else {
-        setProviderWhatsappError(`WhatsApp number must be exactly ${expected} digits (${val.length}/${expected}) *`);
-      }
+      setProviderWhatsappError('');
+    } else {
+      setProviderWhatsappError('');
     }
   };
 
@@ -970,6 +969,8 @@ const Login = () => {
 
       if (login.fulfilled.match(resultAction)) {
         const loggedInUser = resultAction.payload?.user;
+        dispatch(fetchCart());
+        dispatch(fetchWishlist());
         if (targetRole === 'SERVICE_PROVIDER') {
           toast.success(`🎉 Welcome to Provider Dashboard, ${loggedInUser?.name || 'Partner'}!`);
           navigate('/provider-dashboard');
@@ -1441,6 +1442,8 @@ const Login = () => {
         }));
 
         if (login.fulfilled.match(resultAction)) {
+          dispatch(fetchCart());
+          dispatch(fetchWishlist());
           toast.success('🎉 Login verified successfully!');
           setIsOtpStep(false);
           const target = (pendingUserData?.role === 'SERVICE_PROVIDER' || resultAction.payload?.user?.role === 'SERVICE_PROVIDER')
@@ -2010,6 +2013,19 @@ const Login = () => {
                     {loginRoleTab === 'provider' ? 'Register as Service Provider' : 'Create Pet Parent Account'}
                   </button>
                 </div>
+
+                {loginRoleTab === 'provider' && (
+                  <div className="pt-2.5 text-center text-[11px] text-slate-500 font-medium border-t border-slate-100 flex items-center justify-center gap-1.5">
+                    <Mail size={12} className="text-emerald-700 shrink-0" />
+                    <span>Provider Support & Enquiries:</span>
+                    <a
+                      href="mailto:providerhelp@joshpetshub.com"
+                      className="text-emerald-800 font-bold hover:underline"
+                    >
+                      providerhelp@joshpetshub.com
+                    </a>
+                  </div>
+                )}
               </form>
             </div>
           ) : (
@@ -2106,16 +2122,23 @@ const Login = () => {
                         maxLength={getRequiredPhoneLength(userCountryCode)}
                         placeholder={`Mobile No (${getRequiredPhoneLength(userCountryCode)} digits) *`}
                         value={userMobileNo}
+                        onFocus={() => {
+                          setUserMobileError('');
+                        }}
                         onChange={(e) => {
                           const expectedLen = getRequiredPhoneLength(userCountryCode);
-                          handleNumericChange(e, setUserMobileNo, setUserMobileError, 'Mobile number', expectedLen);
+                          handleNumericChange(e, setUserMobileNo, setUserMobileError, 'Mobile number', expectedLen, userCountryCode);
                           if (userSameAsMobile) {
                             const cleaned = e.target.value.replace(/\D/g, '');
                             const wExpected = getRequiredPhoneLength(userWhatsappCountryCode);
                             const wVal = cleaned.slice(0, wExpected);
                             setUserWhatsappNo(wVal);
-                            if (wVal.length === wExpected) setUserWhatsappError('');
+                            setUserWhatsappError('');
                           }
+                        }}
+                        onBlur={() => {
+                          const expectedLen = getRequiredPhoneLength(userCountryCode);
+                          handleNumericBlur(userMobileNo, setUserMobileError, 'Mobile number', expectedLen, userCountryCode);
                         }}
                         className="w-full px-3.5 py-2.5 rounded-r-xl text-xs md:text-sm focus:outline-none bg-white font-semibold text-slate-800 placeholder-slate-400"
                         required
@@ -2158,12 +2181,19 @@ const Login = () => {
                         maxLength={getRequiredPhoneLength(userWhatsappCountryCode)}
                         placeholder={`WhatsApp No (${getRequiredPhoneLength(userWhatsappCountryCode)} digits) *`}
                         value={userWhatsappNo}
+                        onFocus={() => {
+                          setUserWhatsappError('');
+                        }}
                         onChange={(e) => {
                           const expectedLen = getRequiredPhoneLength(userWhatsappCountryCode);
-                          handleNumericChange(e, setUserWhatsappNo, setUserWhatsappError, 'WhatsApp number', expectedLen);
+                          handleNumericChange(e, setUserWhatsappNo, setUserWhatsappError, 'WhatsApp number', expectedLen, userWhatsappCountryCode);
                           if (userSameAsMobile && e.target.value.replace(/\D/g, '') !== userMobileNo) {
                             setUserSameAsMobile(false);
                           }
+                        }}
+                        onBlur={() => {
+                          const expectedLen = getRequiredPhoneLength(userWhatsappCountryCode);
+                          handleNumericBlur(userWhatsappNo, setUserWhatsappError, 'WhatsApp number', expectedLen, userWhatsappCountryCode);
                         }}
                         className="w-full px-3.5 py-2.5 rounded-r-xl text-xs md:text-sm focus:outline-none bg-white font-semibold text-slate-800 placeholder-slate-400"
                         required
@@ -2369,16 +2399,23 @@ const Login = () => {
                         maxLength={getRequiredPhoneLength(providerCountryCode)}
                         placeholder={`Mobile No (${getRequiredPhoneLength(providerCountryCode)} digits) *`}
                         value={providerMobileNo}
+                        onFocus={() => {
+                          setProviderMobileError('');
+                        }}
                         onChange={(e) => {
                           const expectedLen = getRequiredPhoneLength(providerCountryCode);
-                          handleNumericChange(e, setProviderMobileNo, setProviderMobileError, 'Mobile number', expectedLen);
+                          handleNumericChange(e, setProviderMobileNo, setProviderMobileError, 'Mobile number', expectedLen, providerCountryCode);
                           if (providerSameAsMobile) {
                             const cleaned = e.target.value.replace(/\D/g, '');
                             const wExpected = getRequiredPhoneLength(providerWhatsappCountryCode);
                             const wVal = cleaned.slice(0, wExpected);
                             setProviderWhatsappNo(wVal);
-                            if (wVal.length === wExpected) setProviderWhatsappError('');
+                            setProviderWhatsappError('');
                           }
+                        }}
+                        onBlur={() => {
+                          const expectedLen = getRequiredPhoneLength(providerCountryCode);
+                          handleNumericBlur(providerMobileNo, setProviderMobileError, 'Mobile number', expectedLen, providerCountryCode);
                         }}
                         className="w-full px-3.5 py-2.5 rounded-r-xl text-xs md:text-sm focus:outline-none bg-white font-semibold text-slate-800 placeholder-slate-400"
                         required
@@ -2421,12 +2458,19 @@ const Login = () => {
                         maxLength={getRequiredPhoneLength(providerWhatsappCountryCode)}
                         placeholder={`WhatsApp No (${getRequiredPhoneLength(providerWhatsappCountryCode)} digits) *`}
                         value={providerWhatsappNo}
+                        onFocus={() => {
+                          setProviderWhatsappError('');
+                        }}
                         onChange={(e) => {
                           const expectedLen = getRequiredPhoneLength(providerWhatsappCountryCode);
-                          handleNumericChange(e, setProviderWhatsappNo, setProviderWhatsappError, 'WhatsApp number', expectedLen);
+                          handleNumericChange(e, setProviderWhatsappNo, setProviderWhatsappError, 'WhatsApp number', expectedLen, providerWhatsappCountryCode);
                           if (providerSameAsMobile && e.target.value.replace(/\D/g, '') !== providerMobileNo) {
                             setProviderSameAsMobile(false);
                           }
+                        }}
+                        onBlur={() => {
+                          const expectedLen = getRequiredPhoneLength(providerWhatsappCountryCode);
+                          handleNumericBlur(providerWhatsappNo, setProviderWhatsappError, 'WhatsApp number', expectedLen, providerWhatsappCountryCode);
                         }}
                         className="w-full px-3.5 py-2.5 rounded-r-xl text-xs md:text-sm focus:outline-none bg-white font-semibold text-slate-800 placeholder-slate-400"
                         required
@@ -2690,6 +2734,19 @@ const Login = () => {
                   Log in
                 </Link>
               </div>
+
+              {registerRoleTab === 'provider' && (
+                <div className="pt-2.5 text-center text-[11px] text-slate-500 font-medium border-t border-slate-100 flex items-center justify-center gap-1.5">
+                  <Mail size={12} className="text-emerald-700 shrink-0" />
+                  <span>Provider Onboarding Enquiries:</span>
+                  <a
+                    href="mailto:providerhelp@joshpetshub.com"
+                    className="text-emerald-800 font-bold hover:underline"
+                  >
+                    providerhelp@joshpetshub.com
+                  </a>
+                </div>
+              )}
 
             </div>
           )}

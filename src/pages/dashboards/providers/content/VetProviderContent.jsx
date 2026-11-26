@@ -2214,7 +2214,7 @@ const VetProviderContent = ({ activeTab, currentProvider }) => {
               {/* Clinic & Doctor Letterhead */}
               <div className="border-b-2 border-[#0F2E23] pb-4 flex justify-between items-start">
                 <div>
-                  <h2 className="text-xl font-serif font-black text-[#0F2E23] tracking-tight">{selectedRxForPdf.clinicName || profile.clinicName}</h2>
+                  <h2 className="text-xl font-sans font-black text-[#0F2E23] tracking-tight tracking-tight">{selectedRxForPdf.clinicName || profile.clinicName}</h2>
                   <p className="text-xs font-bold text-emerald-800 mt-0.5">{selectedRxForPdf.doctorName || profile.name} • {selectedRxForPdf.doctorDegrees || profile.degrees}</p>
                   <p className="text-[11px] font-mono text-slate-500">VCI Reg No: {selectedRxForPdf.vciRegistration || profile.vciRegistration}</p>
                   <p className="text-[10px] text-slate-400 mt-1">{selectedRxForPdf.clinicAddress || profile.address}</p>
@@ -2262,7 +2262,7 @@ const VetProviderContent = ({ activeTab, currentProvider }) => {
 
               {/* Rx Symbol and Medications */}
               <div className="space-y-3 pt-2">
-                <div className="text-2xl font-serif font-black text-[#0F2E23]">℞ <span className="text-xs font-sans font-bold uppercase tracking-widest text-slate-400">Prescription Details</span></div>
+                <div className="text-2xl font-sans font-black text-[#0F2E23] tracking-tight">℞ <span className="text-xs font-sans font-bold uppercase tracking-widest text-slate-400">Prescription Details</span></div>
                 
                 <table className="w-full text-left text-xs border border-slate-200 rounded-xl overflow-hidden">
                   <thead className="bg-slate-50 uppercase tracking-wider text-[10px] font-black text-slate-500 border-b border-slate-200">

@@ -10,10 +10,17 @@ if (typeof window !== 'undefined' && import.meta.env.PROD) {
   }
 }
 
-const getHeaders = () => {
-  let token = localStorage.getItem('joshpetshub_token');
-  if (!token || token === 'undefined' || token === 'null') {
-    token = localStorage.getItem('joshpetshub_crm_token');
+const getHeaders = (endpoint = '') => {
+  let token;
+  const isCrmContext = endpoint.startsWith('/crm') || (typeof window !== 'undefined' && window.location.pathname.startsWith('/crm'));
+
+  if (isCrmContext) {
+    token = localStorage.getItem('joshpetshub_crm_token') || localStorage.getItem('joshpetshub_token');
+  } else {
+    token = localStorage.getItem('joshpetshub_token');
+    if (!token || token === 'undefined' || token === 'null') {
+      token = localStorage.getItem('joshpetshub_crm_token');
+    }
   }
 
   const headers = {
@@ -29,7 +36,7 @@ const getHeaders = () => {
 
 export const apiRequest = async (endpoint, options = {}) => {
   const url = `${API_BASE_URL}${endpoint}`;
-  const headers = getHeaders();
+  const headers = getHeaders(endpoint);
   
   const config = {
     credentials: 'include',

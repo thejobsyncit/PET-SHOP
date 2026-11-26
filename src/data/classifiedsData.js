@@ -269,42 +269,55 @@ export const savePetOrder = (order) => {
  * Retrieve all pet purchase orders belonging to the user
  */
 export const getStoredPetOrders = (currentUser) => {
+  if (!currentUser) return [];
   try {
-    const rawAll = localStorage.getItem('joshpetshub_orders');
-    const allOrders = rawAll ? JSON.parse(rawAll) : [];
+    const cId = String(currentUser._id || currentUser.id || '').trim();
+    const cEmail = (currentUser.email || '').toLowerCase().trim();
+    const cPhone = (currentUser.mobile || currentUser.phone) ? String(currentUser.mobile || currentUser.phone).replace(/\D/g, '').slice(-10) : '';
 
-    const userIdentifier = currentUser?._id || currentUser?.id || currentUser?.email;
+    if (!cId && !cEmail && !cPhone) return [];
+
+    const isMatch = (o) => {
+      if (!o) return false;
+      const oId = String(o.userId || o.user_id || o.user?._id || o.user?.id || (typeof o.user === 'string' ? o.user : '') || '').trim();
+      if (cId && oId && oId === cId) return true;
+
+      const oEmail = (o.userEmail || o.buyerEmail || o.customerEmail || o.email || o.customer?.email || o.user?.email || '').toLowerCase().trim();
+      if (cEmail && oEmail && oEmail === cEmail) return true;
+
+      const oPhone = (o.userPhone || o.buyerPhone || o.customerPhone || o.phone || o.mobile || o.customer?.phone)
+        ? String(o.userPhone || o.buyerPhone || o.customerPhone || o.phone || o.mobile || o.customer?.phone).replace(/\D/g, '').slice(-10)
+        : '';
+      if (cPhone && cPhone.length >= 10 && oPhone && (oPhone === cPhone || oPhone.endsWith(cPhone) || cPhone.endsWith(oPhone))) {
+        return true;
+      }
+      return false;
+    };
+
+    const userIdentifier = cId || cEmail;
     let userSpecific = [];
     if (userIdentifier) {
       const safeKey = String(userIdentifier).replace(/[^a-zA-Z0-9]/g, '_');
       const rawUser = localStorage.getItem(`joshpetshub_user_orders_${safeKey}`);
       if (rawUser) {
-        userSpecific = JSON.parse(rawUser);
+        try {
+          const parsed = JSON.parse(rawUser);
+          if (Array.isArray(parsed)) userSpecific = parsed;
+        } catch (_) {}
       }
     }
 
-    const combined = [...userSpecific];
+    const rawAll = localStorage.getItem('joshpetshub_orders');
+    const allOrders = rawAll ? JSON.parse(rawAll) : [];
+
+    const combined = [...userSpecific.filter(isMatch)];
     const seenIds = new Set(combined.map(o => (o._id || o.id)?.toString()));
 
     for (const o of allOrders) {
       const oId = (o._id || o.id)?.toString();
-      if (!seenIds.has(oId)) {
-        if (!currentUser) {
-          combined.push(o);
-          seenIds.add(oId);
-        } else {
-          const match =
-            (o.userId && (o.userId === currentUser._id || o.userId === currentUser.id)) ||
-            (o.user && (o.user === currentUser._id || o.user === currentUser.id || o.user?._id === currentUser._id)) ||
-            (o.userEmail && currentUser.email && o.userEmail.toLowerCase() === currentUser.email.toLowerCase()) ||
-            (o.buyerEmail && currentUser.email && o.buyerEmail.toLowerCase() === currentUser.email.toLowerCase()) ||
-            (o.orderType === 'PET_PURCHASE'); // allow newly placed pet orders to display for current session
-
-          if (match) {
-            combined.push(o);
-            seenIds.add(oId);
-          }
-        }
+      if (oId && !seenIds.has(oId) && isMatch(o)) {
+        combined.push(o);
+        seenIds.add(oId);
       }
     }
 

@@ -3,7 +3,7 @@ import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import { logout, updateProfile, fetchProfile } from '../../../store/slices/authSlice.js';
 import {
-  PawPrint, Calendar, Star, TrendingUp, DollarSign, Clock, MapPin, 
+  PawPrint, Calendar, Star, TrendingUp, IndianRupee, Clock, MapPin, 
   MessageSquare, Plus, Search, ChevronRight, Phone, ShieldCheck, Mail, Heart, Settings,
   Tag, ShoppingBag, AlertCircle, LayoutDashboard, LogOut, CheckCircle, X, Send, CreditCard, Loader2, Edit3, Check, Stethoscope, FileText, Building
 } from 'lucide-react';
@@ -190,7 +190,7 @@ const InsuranceProviderDashboard = ({
                 { id: 'claims', label: 'Pending Claims', icon: AlertCircle },
                 { id: 'messages', label: 'Client Inquiries', icon: MessageSquare },
                 { id: 'reviews', label: 'Customer Reviews', icon: Star },
-                { id: 'wallet', label: 'Wallet & Payouts', icon: DollarSign }
+                { id: 'wallet', label: 'Wallet & Payouts', icon: IndianRupee }
               ].map(item => ( 
                 <li key={item.id}>
                   <button
@@ -255,7 +255,7 @@ const InsuranceProviderDashboard = ({
                     <ShieldCheck size={16} />
                   </div>
                 </div>
-                <div className="text-3xl font-sans font-black text-[#0F2E23] mb-1">{stats.totalListings}</div>
+                <div className="text-3xl font-sans font-black text-[#0F2E23] tracking-tight lining-nums tabular-nums mb-1">{stats.totalListings}</div>
                 <div className="text-[10px] text-slate-500 font-black uppercase tracking-wider mt-2">All time</div>
               </div>
 
@@ -267,7 +267,7 @@ const InsuranceProviderDashboard = ({
                     <AlertCircle size={16} />
                   </div>
                 </div>
-                <div className="text-3xl font-sans font-black text-[#0F2E23] mb-1 relative z-10">{stats.availableStock}</div>
+                <div className="text-3xl font-sans font-black text-[#0F2E23] tracking-tight lining-nums tabular-nums mb-1 relative z-10">{stats.availableStock}</div>
                 <div className="text-[10px] text-emerald-600 font-black uppercase tracking-wider mt-2 relative z-10">In review</div>
               </div>
 
@@ -279,7 +279,7 @@ const InsuranceProviderDashboard = ({
                     <CheckCircle size={16} />
                   </div>
                 </div>
-                <div className="text-3xl font-sans font-black text-[#0F2E23] mb-1 relative z-10">{stats.soldOutCount}</div>
+                <div className="text-3xl font-sans font-black text-[#0F2E23] tracking-tight lining-nums tabular-nums mb-1 relative z-10">{stats.soldOutCount}</div>
                 <div className="text-[10px] text-rose-600 font-black uppercase tracking-wider mt-2 relative z-10">Processed</div>
               </div>
 
@@ -288,11 +288,11 @@ const InsuranceProviderDashboard = ({
                 <div className="flex justify-between items-center mb-4 relative z-10">
                   <span className="text-[10px] font-black text-amber-600 uppercase tracking-widest">Premium Volume</span>
                   <div className="w-8 h-8 rounded-lg bg-amber-50 text-amber-500 flex items-center justify-center group-hover:scale-110 transition duration-300 border border-amber-100">
-                    <DollarSign size={16} />
+                    <IndianRupee size={16} />
                   </div>
                 </div>
                 <div className="flex items-end gap-2 mb-1 relative z-10">
-                  <div className="text-2xl font-sans font-black text-[#0F2E23]">₹{stats.revenue.toLocaleString('en-IN')}</div>
+                  <div className="text-2xl font-sans font-black text-[#0F2E23] tracking-tight lining-nums tabular-nums">₹{stats.revenue.toLocaleString('en-IN')}</div>
                 </div>
                 <div className="text-[10px] text-amber-600 font-black uppercase tracking-wider mt-2 relative z-10">
                   {stats.totalOrders} total premiums
@@ -308,7 +308,7 @@ const InsuranceProviderDashboard = ({
                   </div>
                 </div>
                 <div className="flex items-end gap-2 mb-1 relative z-10">
-                  <div className="text-2xl font-sans font-black text-[#0F2E23]">₹{stats.discounts.toLocaleString('en-IN')}</div>
+                  <div className="text-2xl font-sans font-black text-[#0F2E23] tracking-tight lining-nums tabular-nums">₹{stats.discounts.toLocaleString('en-IN')}</div>
                 </div>
                 <div className="text-[10px] text-sky-600 font-black uppercase tracking-wider mt-2 relative z-10">Total savings offered</div>
               </div>

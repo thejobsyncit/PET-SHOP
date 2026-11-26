@@ -99,6 +99,11 @@ export const getLocalCart = (customKey, userObj) => {
       return [];
     }
 
+    // 0. Check passed userObj or stored user cart property
+    if (user && Array.isArray(user.cart) && user.cart.length > 0) {
+      return user.cart;
+    }
+
     // 1. Direct scoped key
     const raw = localStorage.getItem(`joshpetshub_cart_${userKey}`);
     if (raw) {
@@ -608,82 +613,71 @@ const cartSlice = createSlice({
         state.appliedCoupon = null;
         clearLocalCart('guest');
         localStorage.removeItem('joshpetshub_cart');
-      })
-      .addCase('auth/setAuthenticatedUser', (state, action) => {
-        const u = action.payload?.user;
-        const key = u ? (u._id || u.id || u.email || '').toLowerCase() : 'guest';
-        const userCart = getLocalCart(key, u);
-        const guestCart = getLocalCart('guest');
-
-        let merged = userCart;
-        if (guestCart.length > 0) {
-          const map = new Map();
-          userCart.forEach(i => { const id = getCartItemIdStr(i); if (id) map.set(id, i); });
-          guestCart.forEach(i => {
-            const id = getCartItemIdStr(i);
-            if (id) {
-              if (!map.has(id)) {
-                map.set(id, i);
-              } else {
-                const existing = map.get(id);
-                existing.quantity = Math.max(Number(existing.quantity) || 1, Number(i.quantity) || 1);
-              }
-            }
-          });
-          merged = Array.from(map.values());
-          saveLocalCart(merged, key);
-          clearLocalCart('guest');
-          apiRequest('/cart/sync', { method: 'POST', body: JSON.stringify({ items: merged }) }).catch(() => {});
-        } else if (userCart.length > 0) {
-          apiRequest('/cart/sync', { method: 'POST', body: JSON.stringify({ items: userCart }) }).catch(() => {});
-        }
-
-        state.items = merged.map(item => ({
-          ...item,
-          product: normalizeCartProduct(item?.product)
-        })).filter(item => item.product && (item.product._id || item.product.id));
-        state.pricing = calculateTotals(state.items, null);
-      })
-      .addCase('auth/login/fulfilled', (state, action) => {
-        const u = action.payload?.user;
-        const key = u ? (u._id || u.id || u.email || '').toLowerCase() : 'guest';
-        const userCart = getLocalCart(key, u);
-        const guestCart = getLocalCart('guest');
-
-        let merged = userCart;
-        if (guestCart.length > 0) {
-          const map = new Map();
-          userCart.forEach(i => { const id = getCartItemIdStr(i); if (id) map.set(id, i); });
-          guestCart.forEach(i => {
-            const id = getCartItemIdStr(i);
-            if (id) {
-              if (!map.has(id)) {
-                map.set(id, i);
-              } else {
-                const existing = map.get(id);
-                existing.quantity = Math.max(Number(existing.quantity) || 1, Number(i.quantity) || 1);
-              }
-            }
-          });
-          merged = Array.from(map.values());
-          saveLocalCart(merged, key);
-          clearLocalCart('guest');
-          apiRequest('/cart/sync', { method: 'POST', body: JSON.stringify({ items: merged }) }).catch(() => {});
-        } else if (userCart.length > 0) {
-          apiRequest('/cart/sync', { method: 'POST', body: JSON.stringify({ items: userCart }) }).catch(() => {});
-        }
-
-        state.items = merged.map(item => ({
-          ...item,
-          product: normalizeCartProduct(item?.product)
-        })).filter(item => item.product && (item.product._id || item.product.id));
-        state.pricing = calculateTotals(state.items, null);
-      })
-      .addCase('auth/register/fulfilled', (state) => {
-        state.items = [];
-        state.pricing = calculateTotals([], null);
-        state.appliedCoupon = null;
       });
+
+    const syncAuthCart = (state, action) => {
+      const u = action.payload?.user;
+      const key = u ? String(u._id || u.id || u.email || '').trim().toLowerCase() : 'guest';
+      const serverCart = Array.isArray(u?.cart) ? u.cart : [];
+      const userCart = getLocalCart(key, u);
+      const guestCart = getLocalCart('guest');
+
+      const map = new Map();
+      serverCart.forEach(i => {
+        const id = getCartItemIdStr(i);
+        if (id) map.set(id, i);
+      });
+      userCart.forEach(i => {
+        const id = getCartItemIdStr(i);
+        if (id) {
+          if (!map.has(id)) {
+            map.set(id, { ...i });
+          } else {
+            const existing = map.get(id);
+            map.set(id, {
+              ...existing,
+              quantity: Math.max(Number(existing.quantity) || 1, Number(i.quantity) || 1)
+            });
+          }
+        }
+      });
+      guestCart.forEach(i => {
+        const id = getCartItemIdStr(i);
+        if (id) {
+          if (!map.has(id)) {
+            map.set(id, { ...i });
+          } else {
+            const existing = map.get(id);
+            map.set(id, {
+              ...existing,
+              quantity: Math.max(Number(existing.quantity) || 1, Number(i.quantity) || 1)
+            });
+          }
+        }
+      });
+
+      const merged = Array.from(map.values());
+      if (key !== 'guest') {
+        saveLocalCart(merged, key);
+        clearLocalCart('guest');
+        if (merged.length > 0) {
+          apiRequest('/cart/sync', { method: 'POST', body: JSON.stringify({ items: merged }) }).catch(() => {});
+        }
+      }
+
+      state.items = merged.map(item => ({
+        ...item,
+        quantity: Math.max(1, parseInt(item?.quantity, 10) || 1),
+        product: normalizeCartProduct(item?.product)
+      })).filter(item => item.product && (item.product._id || item.product.id));
+      state.pricing = calculateTotals(state.items, null);
+    };
+
+    builder
+      .addCase('auth/setAuthenticatedUser', syncAuthCart)
+      .addCase('auth/login/fulfilled', syncAuthCart)
+      .addCase('auth/register/fulfilled', syncAuthCart)
+      .addCase('auth/fetchProfile/fulfilled', syncAuthCart);
   },
 });
 

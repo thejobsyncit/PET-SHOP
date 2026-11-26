@@ -12,6 +12,7 @@ import { apiRequest } from '../../services/api.js';
 import { toggleWishlistAPI, getWishlistItemIdStr } from '../../store/slices/wishlistSlice.js';
 import { addToCartAPI } from '../../store/slices/cartSlice.js';
 import { getPetListingById, getStoredClassifieds, DEFAULT_CLASSIFIEDS, savePetOrder, markPetListingAsSold } from '../../data/classifiedsData.js';
+import { getStoredAdoptionPets } from '../../data/adoptionPetsData.js';
 import ScrollReveal from '../../components/ui/ScrollReveal.jsx';
 import SharedItemAuthGate from '../../components/ui/SharedItemAuthGate.jsx';
 
@@ -72,6 +73,35 @@ const PetClassifiedDetail = () => {
         found = all.find(p => (p._id || p.id || '').toString().toLowerCase() === searchId);
       }
 
+      // Auto-recovery: If not found as a classified pet, check if this is an adoption pet or a shop product
+      if (!found) {
+        const allAdoptions = getStoredAdoptionPets();
+        const searchId = (id || '').toString().trim().toLowerCase();
+        const foundAdopt = allAdoptions.find(a => (a._id || a.id || '').toString().toLowerCase() === searchId);
+        if (foundAdopt) {
+          navigate(`/adopt/${foundAdopt.id || foundAdopt._id || id}`, { replace: true });
+          return;
+        }
+
+        try {
+          const cachedProds = JSON.parse(localStorage.getItem('joshpetshub_cached_products') || '[]');
+          const cp = cachedProds.find(item => String(item.id || item._id) === String(id) || item.slug === id);
+          if (cp) {
+            navigate(`/product/${cp.slug || cp._id || cp.id || id}`, { replace: true });
+            return;
+          }
+        } catch (_) {}
+
+        try {
+          const prodData = await apiRequest(`/products/${id}`);
+          if (prodData && (prodData.product || prodData._id || prodData.id)) {
+            const p = prodData.product || prodData;
+            navigate(`/product/${p.slug || p._id || p.id || id}`, { replace: true });
+            return;
+          }
+        } catch (_) {}
+      }
+
       setPet(found);
       if (found?.images?.length) {
         setSelectedImage(found.images[0]);
@@ -118,8 +148,25 @@ const PetClassifiedDetail = () => {
       return;
     }
 
-    const owner = pet?.user;
-    const ownerId = owner?._id || owner?.id || pet?.sellerId || (typeof owner === 'string' ? owner : `seller-${pet?._id || 'pet'}`);
+    let owner = pet?.user;
+    if (typeof owner === 'string' && owner.trim().startsWith('{')) {
+      try {
+        owner = JSON.parse(owner);
+      } catch (_) {}
+    }
+
+    const ownerId = (typeof owner === 'object' && owner !== null)
+      ? (owner._id || owner.id || pet?.sellerId)
+      : (typeof owner === 'string' && owner ? owner : (pet?.sellerId || `seller-${pet?._id || 'pet'}`));
+
+    const ownerName = (typeof owner === 'object' && owner !== null)
+      ? (owner.name || pet?.sellerName || 'Pet Seller')
+      : (pet?.sellerName || 'Pet Seller');
+
+    const ownerEmail = (typeof owner === 'object' && owner !== null)
+      ? (owner.email || '')
+      : '';
+
     const currentUserId = user?._id || user?.id;
 
     if (currentUserId && ownerId === currentUserId) {
@@ -132,8 +179,8 @@ const PetClassifiedDetail = () => {
     navigate(chatUrl, {
       state: {
         recipientId: ownerId,
-        ownerName: owner?.name || pet?.sellerName || 'Pet Seller',
-        ownerEmail: owner?.email || '',
+        ownerName,
+        ownerEmail,
         listingId,
         listingTitle: pet?.title,
         listingImage: pet?.images?.[0] || selectedImage,
@@ -377,21 +424,6 @@ const PetClassifiedDetail = () => {
           </div>
 
           <div className="flex items-center gap-2">
-            <button
-              onClick={handleToggleWishlist}
-              type="button"
-              aria-label={isWishlisted ? "Remove from Wishlist" : "Add to Wishlist"}
-              title={isWishlisted ? "Remove from Wishlist" : "Save to Wishlist"}
-              className={`flex items-center gap-1.5 px-3 py-1.5 border rounded-lg transition shrink-0 cursor-pointer ${
-                isWishlisted 
-                  ? "border-red-200 text-red-500 bg-red-50 hover:bg-red-100" 
-                  : "border-beige hover:border-primary text-gray-600 hover:text-red-500 bg-white"
-              }`}
-            >
-              <Heart size={14} className={isWishlisted ? "fill-red-500 text-red-500" : ""} />
-              <span className="text-xs font-bold">{isWishlisted ? "Saved" : "Save to Wishlist"}</span>
-            </button>
-
             <button
               onClick={handleShare}
               className="flex items-center gap-1.5 px-3 py-1.5 border border-beige hover:border-primary text-gray-600 hover:text-primary text-xs font-bold rounded-lg transition shrink-0 cursor-pointer bg-white"

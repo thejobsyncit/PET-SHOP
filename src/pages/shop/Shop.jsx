@@ -5,7 +5,7 @@ import {
   SlidersHorizontal, ArrowUpDown, RefreshCw, X, ChevronDown, Check, 
   ChevronRight, Sparkles, Filter, SearchX 
 } from 'lucide-react';
-import { fetchProducts, setFilter, resetFilters } from '../../store/slices/productSlice.js';
+import { fetchProducts, setFilter, resetFilters, sortProductList } from '../../store/slices/productSlice.js';
 import ProductCard from '../../components/ui/ProductCard.jsx';
 import ScrollReveal from '../../components/ui/ScrollReveal.jsx';
 
@@ -72,8 +72,15 @@ const Shop = () => {
       else if (path.includes('/pharmacy')) petTypeParam = 'pharmacy';
     }
     const categoryParam = searchParams.get('category') || '';
+    const subcategoryParam = searchParams.get('subcategory') || '';
+    const brandParam = searchParams.get('brand') || '';
+    const minPriceParam = searchParams.get('minPrice') || '';
+    const maxPriceParam = searchParams.get('maxPrice') || '';
+    const ratingParam = searchParams.get('rating') || '';
+    const requiresPrescriptionParam = searchParams.get('requiresPrescription') || '';
     const searchParam = searchParams.get('search') || '';
     const pharmacyPetParam = searchParams.get('pharmacyPet') || 'all';
+    const sortParam = searchParams.get('sort') || '';
 
     if (petTypeParam === 'pharmacy') {
       setIsPharmacyDropdownOpen(true);
@@ -82,12 +89,23 @@ const Shop = () => {
       }
     }
     
-    dispatch(setFilter({
+    const filterUpdates = {
       petType: petTypeParam,
       category: categoryParam,
+      subcategory: subcategoryParam,
+      brand: brandParam,
+      minPrice: minPriceParam,
+      maxPrice: maxPriceParam,
+      rating: ratingParam,
+      requiresPrescription: requiresPrescriptionParam,
       search: searchParam,
       page: 1
-    }));
+    };
+    if (sortParam) {
+      filterUpdates.sort = sortParam;
+    }
+
+    dispatch(setFilter(filterUpdates));
   }, [searchParams, dispatch]);
 
   // Trigger product fetch when Redux filters change
@@ -106,6 +124,215 @@ const Shop = () => {
     return DEPARTMENT_BRANDS[filters.petType] || DEPARTMENT_BRANDS.all;
   }, [filters.petType, selectedPharmacyPet]);
 
+  // Helper to normalize pet department string for flexible matching
+  const normalizePet = (val) => {
+    const v = String(val || '').toLowerCase().trim();
+    if (v.startsWith('dog')) return 'dogs';
+    if (v.startsWith('cat')) return 'cats';
+    if (v.startsWith('bird')) return 'birds';
+    if (v.startsWith('reptile')) return 'reptiles';
+    if (v.startsWith('fish') || v.startsWith('aquat')) return 'fish';
+    if (v.startsWith('pharm')) return 'pharmacy';
+    return v;
+  };
+
+  // Helper for species-safe subcategory matching
+  const matchSubcategory = (p, targetSub, targetPet) => {
+    if (!targetSub) return true;
+    const t = targetSub.toLowerCase().trim();
+    const pSub = String(p.subcategory || p.subCategory || '').toLowerCase().trim();
+    const pCat = String(p.category || '').toLowerCase().trim();
+    const pName = String(p.name || '').toLowerCase().trim();
+    const pPet = normalizePet(p.petType || p.pet_type);
+
+    // 1. Food Subcategories (Species-specific)
+    if (t === 'dog food' || (t.includes('food') && (targetPet === 'dogs' || pPet === 'dogs'))) {
+      return (pPet === 'dogs' || !pPet) && (pSub.includes('food') || pCat.includes('food') || pName.includes('food'));
+    }
+    if (t === 'cat food' || (t.includes('food') && (targetPet === 'cats' || pPet === 'cats'))) {
+      return (pPet === 'cats' || !pPet) && (pSub.includes('food') || pCat.includes('food') || pName.includes('food'));
+    }
+    if (t === 'bird food' || (t.includes('food') && (targetPet === 'birds' || pPet === 'birds'))) {
+      return (pPet === 'birds' || !pPet) && (pSub.includes('food') || pCat.includes('food') || pSub.includes('seed') || pName.includes('seed') || pName.includes('food') || pName.includes('blend')) && !pName.includes('feeder');
+    }
+    if (t === 'reptile food' || (t.includes('food') && (targetPet === 'reptiles' || pPet === 'reptiles'))) {
+      return (pPet === 'reptiles' || !pPet) && (pSub.includes('food') || pCat.includes('food') || pName.includes('food'));
+    }
+    if (t === 'fish food' || (t.includes('food') && (targetPet === 'fish' || pPet === 'fish'))) {
+      return (pPet === 'fish' || !pPet) && (pSub.includes('food') || pCat.includes('food') || pSub.includes('pellet') || pName.includes('pellet') || pName.includes('food'));
+    }
+
+    // 2. Treats
+    if (t === 'treats') {
+      return pSub.includes('treat') || pName.includes('treat') || pName.includes('dentastix') || pName.includes('chew') || pName.includes('biscuit') || pName.includes('me-o');
+    }
+
+    // 3. Beds, Furniture, Scratchers, Towers
+    if (t.includes('bed') || t.includes('furniture') || t.includes('scratcher') || t.includes('tower')) {
+      return pSub.includes('bed') || pSub.includes('furniture') || pSub.includes('scratcher') || pSub.includes('tower') || pCat.includes('bed') || pName.includes('bed') || pName.includes('tree') || pName.includes('tower') || pName.includes('scratcher') || pName.includes('cushion') || pName.includes('mat');
+    }
+
+    // 4. Cages, Stands, Terrariums, Tanks, Aquariums
+    if (t.includes('cage') || t.includes('stand') || t.includes('terrarium') || t.includes('tank') || t.includes('aquarium')) {
+      return pSub.includes('cage') || pSub.includes('stand') || pSub.includes('terrarium') || pSub.includes('tank') || pSub.includes('aquarium') || pCat.includes('cage') || pCat.includes('terrarium') || pCat.includes('aquarium') || pName.includes('cage') || pName.includes('stand') || pName.includes('terrarium') || pName.includes('tank') || pName.includes('aquarium');
+    }
+
+    // 5. Collars & Leashes
+    if (t.includes('collar') || t.includes('leash')) {
+      return pSub.includes('collar') || pSub.includes('leash') || pSub.includes('harness') || pCat.includes('collar') || pCat.includes('leash') || pName.includes('collar') || pName.includes('leash') || pName.includes('harness');
+    }
+
+    // 6. Toys, Perches & Accessories
+    if (t.includes('perch')) return pSub.includes('perch') || pName.includes('perch');
+    if (t === 'toys & accessories' || t.includes('toy')) {
+      return pSub.includes('toy') || pCat.includes('toy') || pName.includes('toy') || pName.includes('chew') || pName.includes('puzzle') || pName.includes('ball') || pName.includes('mouse') || pName.includes('wand');
+    }
+
+    // 7. Heating & Lighting
+    if (t.includes('heating') || t.includes('lighting') || t.includes('light')) {
+      return pSub.includes('heat') || pSub.includes('uvb') || pSub.includes('light') || pCat.includes('heat') || pCat.includes('light') || pName.includes('heat') || pName.includes('emitter') || pName.includes('bulb') || pName.includes('light') || pName.includes('led');
+    }
+
+    // 8. Filtration, Pumps, Water Care
+    if (t.includes('water care') || t.includes('filtration') || t.includes('pump')) {
+      return pSub.includes('filter') || pSub.includes('conditioner') || pSub.includes('pump') || pSub.includes('water') || pName.includes('filter') || pName.includes('stress coat') || pName.includes('conditioner') || pName.includes('pump');
+    }
+
+    // 9. Plants & Décor / Décor & Substrates
+    if (t.includes('plant') || t.includes('décor') || t.includes('decor') || t.includes('substrate')) {
+      return pSub.includes('plant') || pSub.includes('decor') || pSub.includes('décor') || pSub.includes('substrate') || pCat.includes('decor') || pName.includes('plant') || pName.includes('anubias') || pName.includes('driftwood') || pName.includes('vine') || pName.includes('substrate') || pName.includes('sand');
+    }
+
+    // 10. Health, Hygiene & Pharmacy Categories
+    if (t.includes('supplement') || t.includes('vitamins') || t.includes('calcium')) {
+      return pSub.includes('supplement') || pSub.includes('calcium') || pSub.includes('vitamin') || pSub.includes('tonic') || pSub.includes('mineral') || pCat.includes('supplement') || pCat.includes('vitamin') || pName.includes('supplement') || pName.includes('tonic') || pName.includes('furglow') || pName.includes('calcium') || pName.includes('drops') || pName.includes('himcal');
+    }
+    if (t.includes('first aid') || t.includes('healthcare') || t.includes('health & care') || t.includes('health & hygiene')) {
+      return pSub.includes('first aid') || pSub.includes('health') || pSub.includes('hygiene') || pCat.includes('first aid') || pCat.includes('health') || pName.includes('first aid') || pName.includes('wound') || pName.includes('kit') || pName.includes('spray') || pName.includes('litter') || pName.includes('wipes');
+    }
+    if (t.includes('skin care') || t.includes('skin')) {
+      return pSub.includes('skin') || pCat.includes('skin') || pName.includes('ichmune') || pName.includes('prednisolone') || pName.includes('cephavet') || pName.includes('skin');
+    }
+    if (t.includes('joint care') || t.includes('joint')) {
+      return pSub.includes('joint') || pCat.includes('joint') || pName.includes('joint') || pName.includes('melonex');
+    }
+    if (t.includes('digestive')) {
+      return pSub.includes('digestive') || pCat.includes('digestive') || pName.includes('digyton') || pName.includes('digestive');
+    }
+
+    // 11. Other Accessories / General Accessories
+    if (t.includes('other accessories') || t.includes('accessories')) {
+      const isSpecialty = pSub.includes('food') || pSub.includes('treat') || pSub.includes('bed') || pSub.includes('terrarium') || pSub.includes('cage') || pSub.includes('aquarium') || pSub.includes('supplement') || pSub.includes('joint') || pSub.includes('skin') || pSub.includes('digestive');
+      return (!isSpecialty && (pSub.includes('accessory') || pSub.includes('feeder') || pSub.includes('bowl') || pSub.includes('groom') || pSub.includes('shampoo') || pSub.includes('toy') || pSub.includes('wand') || pSub.includes('mouse') || pSub.includes('heater') || pSub.includes('pump') || pSub.includes('substrate') || pSub.includes('thermometer') || pSub.includes('spray') || pCat.includes('access'))) || pName.includes('feeder') || pName.includes('bowl') || pName.includes('shampoo') || pName.includes('toy') || pName.includes('wand') || pName.includes('spray') || pName.includes('heater') || pName.includes('thermometer') || pName.includes('kit');
+    }
+
+    return (pSub && (pSub === t || pSub.includes(t) || t.includes(pSub))) || 
+           (pCat && (pCat === t || pCat.includes(t) || t.includes(pCat)));
+  };
+
+  // ⚡ Client-side filter to guarantee instant and rock-solid results matching any active filter selection
+  const filteredProducts = useMemo(() => {
+    if (!Array.isArray(products) || products.length === 0) return [];
+
+    return products.filter((p) => {
+      // 1. Department / Pet Type filter
+      if (filters.petType && filters.petType !== 'all') {
+        const pPet = normalizePet(p.petType || p.pet_type);
+        const targetPet = normalizePet(filters.petType);
+        if (pPet && pPet !== targetPet) return false;
+      }
+
+      // 2. Pharmacy Pet Sub-Filter
+      if (filters.petType === 'pharmacy' && selectedPharmacyPet && selectedPharmacyPet !== 'all') {
+        const target = selectedPharmacyPet.toLowerCase().trim();
+        const pTarget = String(p.targetPet || p.petType || p.pet_type || p.category || p.subcategory || p.name || p.description || p.longDescription || '').toLowerCase();
+        const isUniversal = pTarget.includes('all pet') || pTarget.includes('dog and cat') || pTarget.includes('dogs & cats');
+        if (!pTarget.includes(target) && !isUniversal) return false;
+      }
+
+      // 3. Category Filter
+      if (filters.category) {
+        const targetCat = filters.category.toLowerCase().trim();
+        const pCat = String(p.category || '').toLowerCase().trim();
+        const pSub = String(p.subcategory || '').toLowerCase().trim();
+        const matchCat = (pCat && (pCat === targetCat || pCat.includes(targetCat) || targetCat.includes(pCat))) || 
+                         (pSub && (pSub === targetCat || pSub.includes(targetCat) || targetCat.includes(pSub)));
+        if (!matchCat) return false;
+      }
+
+      // 4. Subcategory Filter
+      if (filters.subcategory) {
+        if (!matchSubcategory(p, filters.subcategory, normalizePet(filters.petType))) {
+          return false;
+        }
+      }
+
+      // 5. Brand Filter (Multiple selections separated by comma)
+      if (filters.brand) {
+        const activeBrands = filters.brand
+          .split(',')
+          .map(b => b.trim().toLowerCase())
+          .filter(Boolean);
+
+        if (activeBrands.length > 0) {
+          const pBrand = String(p.brand || '').trim().toLowerCase();
+          const matchesBrand = activeBrands.some(b => 
+            pBrand && (pBrand === b || pBrand.includes(b) || b.includes(pBrand))
+          );
+          if (!matchesBrand) return false;
+        }
+      }
+
+      // 6. Price Range Filter
+      const dPrice = Number(p.discountPrice !== null && p.discountPrice !== undefined ? p.discountPrice : p.discount_price);
+      const regularPrice = Number(p.price) || 0;
+      const effectivePrice = (!isNaN(dPrice) && dPrice > 0 && dPrice < regularPrice) ? dPrice : regularPrice;
+
+      if (filters.minPrice !== '' && filters.minPrice !== undefined && filters.minPrice !== null) {
+        const min = parseFloat(filters.minPrice);
+        if (!isNaN(min) && min >= 0 && effectivePrice < min) return false;
+      }
+
+      if (filters.maxPrice !== '' && filters.maxPrice !== undefined && filters.maxPrice !== null) {
+        const max = parseFloat(filters.maxPrice);
+        if (!isNaN(max) && max >= 0 && effectivePrice > max) return false;
+      }
+
+      // 7. Ratings Filter (Stars & Above)
+      if (filters.rating !== '' && filters.rating !== undefined && filters.rating !== null) {
+        const minRating = parseFloat(filters.rating);
+        const pRating = Number(p.rating !== undefined ? p.rating : (p.ratings !== undefined ? p.ratings : 0)) || 0;
+        if (!isNaN(minRating) && pRating < minRating) return false;
+      }
+
+      // 8. Prescription Filter
+      if (filters.requiresPrescription === 'true' || filters.requiresPrescription === true) {
+        const isRx = Boolean(p.requiresPrescription ?? p.requires_prescription);
+        if (!isRx) return false;
+      }
+
+      // 9. Search Query
+      if (filters.search) {
+        const q = String(filters.search).trim().toLowerCase();
+        if (q) {
+          const nameMatch = String(p.name || '').toLowerCase().includes(q);
+          const brandMatch = String(p.brand || '').toLowerCase().includes(q);
+          const descMatch = String(p.description || p.longDescription || '').toLowerCase().includes(q);
+          const catMatch = String(p.category || p.subcategory || '').toLowerCase().includes(q);
+          if (!nameMatch && !brandMatch && !descMatch && !catMatch) return false;
+        }
+      }
+
+      return true;
+    });
+  }, [products, filters, selectedPharmacyPet]);
+
+  // Sort filtered products client-side for immediate, rock-solid UI updates
+  const sortedProducts = useMemo(() => {
+    if (!Array.isArray(filteredProducts) || filteredProducts.length === 0) return [];
+    return sortProductList(filteredProducts, filters?.sort || 'date_desc');
+  }, [filteredProducts, filters?.sort]);
+
   const handleFilterChange = (newFilters) => {
     // If brand is not explicitly being updated, ensure existing active brands are compatible with new petType
     if (newFilters.petType !== undefined && newFilters.brand === undefined && filters.brand) {
@@ -116,7 +343,32 @@ const Shop = () => {
       const activeBrandsList = filters.brand.split(',').filter(b => targetBrands.includes(b));
       newFilters.brand = activeBrandsList.join(',');
     }
-    dispatch(setFilter(newFilters));
+
+    const mergedFilters = {
+      ...filters,
+      ...newFilters,
+      page: 1
+    };
+
+    dispatch(setFilter(mergedFilters));
+
+    // Synchronize query parameters in URL
+    const currentParams = {};
+    if (mergedFilters.petType && mergedFilters.petType !== 'all') currentParams.petType = mergedFilters.petType;
+    if (mergedFilters.category) currentParams.category = mergedFilters.category;
+    if (mergedFilters.subcategory) currentParams.subcategory = mergedFilters.subcategory;
+    if (mergedFilters.brand) currentParams.brand = mergedFilters.brand;
+    if (mergedFilters.minPrice) currentParams.minPrice = mergedFilters.minPrice;
+    if (mergedFilters.maxPrice) currentParams.maxPrice = mergedFilters.maxPrice;
+    if (mergedFilters.rating) currentParams.rating = mergedFilters.rating;
+    if (mergedFilters.requiresPrescription) currentParams.requiresPrescription = mergedFilters.requiresPrescription;
+    if (mergedFilters.search) currentParams.search = mergedFilters.search;
+    if (mergedFilters.sort) currentParams.sort = mergedFilters.sort;
+    if (mergedFilters.petType === 'pharmacy' && selectedPharmacyPet && selectedPharmacyPet !== 'all') {
+      currentParams.pharmacyPet = selectedPharmacyPet;
+    }
+
+    setSearchParams(currentParams, { replace: true });
   };
 
   const handleSelectDepartment = (deptId) => {
@@ -126,9 +378,9 @@ const Shop = () => {
         petType: 'pharmacy',
         category: '',
         subcategory: '',
+        brand: '',
         search: selectedPharmacyPet !== 'all' ? selectedPharmacyPet : ''
       });
-      setSearchParams({ petType: 'pharmacy', pharmacyPet: selectedPharmacyPet });
     } else {
       setIsPharmacyDropdownOpen(false);
       setSelectedPharmacyPet('all');
@@ -136,9 +388,9 @@ const Shop = () => {
         petType: deptId,
         category: '',
         subcategory: '',
+        brand: '',
         search: ''
       });
-      setSearchParams({ petType: deptId });
     }
   };
 
@@ -150,7 +402,6 @@ const Shop = () => {
       subcategory: '',
       search: petId !== 'all' ? petId : ''
     });
-    setSearchParams({ petType: 'pharmacy', pharmacyPet: petId });
   };
 
   const handlePageChange = (pageNum) => {
@@ -409,7 +660,7 @@ const Shop = () => {
                     isDeptActive && (
                       <div className="pl-3 pr-1 py-1 space-y-1 bg-secondary/70 border-l-2 border-primary rounded-r-md animate-in fade-in slide-in-from-top-1 duration-150">
                         <button
-                          onClick={() => handleFilterChange({ subcategory: '' })}
+                          onClick={() => handleFilterChange({ subcategory: '', category: '' })}
                           className={`flex items-center justify-between w-full py-1.5 px-2.5 rounded text-xs transition cursor-pointer ${
                             !filters.subcategory
                               ? 'bg-primary text-white font-bold shadow-xs'
@@ -424,7 +675,7 @@ const Shop = () => {
                           return (
                             <button
                               key={sub.name}
-                              onClick={() => handleFilterChange({ subcategory: sub.name })}
+                              onClick={() => handleFilterChange({ subcategory: isSubActive ? '' : sub.name, category: '' })}
                               className={`flex items-center justify-between w-full py-1.5 px-2.5 rounded text-xs transition cursor-pointer ${
                                 isSubActive
                                   ? 'bg-primary text-white font-bold shadow-xs'
@@ -661,7 +912,7 @@ const Shop = () => {
                       return (
                         <div 
                           key={sub.name}
-                          onClick={() => handleFilterChange({ subcategory: sub.name })}
+                          onClick={() => handleFilterChange({ subcategory: isActive ? '' : sub.name, category: '' })}
                           className={`relative min-w-[130px] sm:min-w-[150px] h-[100px] sm:h-[110px] shrink-0 rounded-2xl overflow-hidden cursor-pointer group shadow-md transition-all duration-300 ${isActive ? 'ring-2 ring-primary ring-offset-2 shadow-xl' : 'hover:shadow-xl hover:-translate-y-1'}`}
                         >
                           <img src={sub.img} alt={sub.name} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 filter group-hover:brightness-110" />
@@ -679,7 +930,7 @@ const Shop = () => {
               <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white/60 backdrop-blur-3xl border border-beige/60 px-4 sm:px-7 py-4 sm:py-5 shadow-glass rounded-2xl w-full">
                 <div className="flex items-center gap-3">
                   <span className="text-xs text-gray-500 font-bold uppercase tracking-widest">
-                    Showing <span className="text-primary">{products.length}</span> of {total} products
+                    Showing <span className="text-primary font-black">{sortedProducts.length}</span> {sortedProducts.length !== total ? `matching of ${total}` : 'products'}
                   </span>
                   {filters.petType && (
                     <span className="text-[9px] font-black uppercase tracking-widest bg-primary text-secondary px-3 py-1 rounded-full shadow-sm">
@@ -711,16 +962,104 @@ const Shop = () => {
                 </div>
               </div>
   
-              {/* Active search tag */}
-              {filters.search && (
-                <div className="flex items-center gap-2 text-xs bg-white border border-beige p-3 shadow-sm rounded-xl">
-                  <span className="text-gray-400">Search query:</span>
-                  <span className="font-bold text-primary">"{filters.search}"</span>
-                  <button 
-                    onClick={() => handleFilterChange({ search: '' })}
-                    className="p-0.5 hover:bg-gray-100 rounded-full cursor-pointer ml-1"
+              {/* Active Filter Badges */}
+              {(filters.brand || filters.subcategory || filters.category || filters.minPrice || filters.maxPrice || filters.rating || filters.requiresPrescription === 'true' || filters.search) && (
+                <div className="flex flex-wrap items-center gap-2 bg-white/70 border border-beige/60 p-3 rounded-xl shadow-2xs">
+                  <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mr-1">Active Filters:</span>
+                  
+                  {filters.brand && filters.brand.split(',').filter(Boolean).map(b => (
+                    <span key={b} className="inline-flex items-center gap-1.5 text-xs bg-emerald-50 text-emerald-900 border border-emerald-200 px-2.5 py-1 rounded-full font-semibold">
+                      <span>Brand: {b}</span>
+                      <button 
+                        type="button"
+                        onClick={() => {
+                          const updated = filters.brand.split(',').filter(x => x !== b).join(',');
+                          handleFilterChange({ brand: updated });
+                        }}
+                        className="hover:text-red-500 cursor-pointer"
+                        title="Remove brand filter"
+                      >
+                        <X size={12} />
+                      </button>
+                    </span>
+                  ))}
+
+                  {filters.subcategory && (
+                    <span className="inline-flex items-center gap-1.5 text-xs bg-emerald-50 text-emerald-900 border border-emerald-200 px-2.5 py-1 rounded-full font-semibold">
+                      <span>Subcategory: {filters.subcategory}</span>
+                      <button 
+                        type="button"
+                        onClick={() => handleFilterChange({ subcategory: '' })}
+                        className="hover:text-red-500 cursor-pointer"
+                        title="Remove subcategory filter"
+                      >
+                        <X size={12} />
+                      </button>
+                    </span>
+                  )}
+
+                  {(filters.minPrice || filters.maxPrice) && (
+                    <span className="inline-flex items-center gap-1.5 text-xs bg-emerald-50 text-emerald-900 border border-emerald-200 px-2.5 py-1 rounded-full font-semibold">
+                      <span>Price: {filters.minPrice ? `₹${filters.minPrice}` : '₹0'} - {filters.maxPrice ? `₹${filters.maxPrice}` : 'Any'}</span>
+                      <button 
+                        type="button"
+                        onClick={() => handleFilterChange({ minPrice: '', maxPrice: '' })}
+                        className="hover:text-red-500 cursor-pointer"
+                        title="Clear price filter"
+                      >
+                        <X size={12} />
+                      </button>
+                    </span>
+                  )}
+
+                  {filters.rating && (
+                    <span className="inline-flex items-center gap-1.5 text-xs bg-emerald-50 text-emerald-900 border border-emerald-200 px-2.5 py-1 rounded-full font-semibold">
+                      <span>★ {filters.rating} Stars & Above</span>
+                      <button 
+                        type="button"
+                        onClick={() => handleFilterChange({ rating: '' })}
+                        className="hover:text-red-500 cursor-pointer"
+                        title="Clear rating filter"
+                      >
+                        <X size={12} />
+                      </button>
+                    </span>
+                  )}
+
+                  {filters.requiresPrescription === 'true' && (
+                    <span className="inline-flex items-center gap-1.5 text-xs bg-emerald-50 text-emerald-900 border border-emerald-200 px-2.5 py-1 rounded-full font-semibold">
+                      <span>Rx Prescription Required</span>
+                      <button 
+                        type="button"
+                        onClick={() => handleFilterChange({ requiresPrescription: '' })}
+                        className="hover:text-red-500 cursor-pointer"
+                        title="Clear prescription filter"
+                      >
+                        <X size={12} />
+                      </button>
+                    </span>
+                  )}
+
+                  {filters.search && (
+                    <span className="inline-flex items-center gap-1.5 text-xs bg-emerald-50 text-emerald-900 border border-emerald-200 px-2.5 py-1 rounded-full font-semibold">
+                      <span>Search: "{filters.search}"</span>
+                      <button 
+                        type="button"
+                        onClick={() => handleFilterChange({ search: '' })}
+                        className="hover:text-red-500 cursor-pointer"
+                        title="Clear search query"
+                      >
+                        <X size={12} />
+                      </button>
+                    </span>
+                  )}
+
+                  <button
+                    type="button"
+                    onClick={handleClearFilters}
+                    className="text-xs text-red-600 hover:text-red-800 underline font-semibold ml-auto cursor-pointer"
                   >
-                    <X size={12} />
+                    Clear All Filters
                   </button>
                 </div>
               )}
@@ -732,9 +1071,9 @@ const Shop = () => {
                     <div key={idx} className="bg-white border border-gray-100 h-[400px] animate-pulse rounded-2xl"></div>
                   ))}
                 </div>
-              ) : products.length > 0 ? (
+              ) : sortedProducts.length > 0 ? (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 w-full">
-                  {products.map((product) => (
+                  {sortedProducts.map((product) => (
                     <ProductCard key={product._id || product.id} product={product} />
                   ))}
                 </div>

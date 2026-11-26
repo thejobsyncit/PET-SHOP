@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JoshPetsHub CRM Structure & Flow Diagram</title>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      padding: 24px 16px;
+      background: #F1F5F9;
+      color: #0F172A;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .header {
+      text-align: center;
+      max-width: 900px;
+      margin-bottom: 20px;
+    }
+    .tag {
+      display: inline-block;
+      background: #DCFCE7;
+      color: #166534;
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: uppercase;
+      padding: 4px 12px;
+      border-radius: 9999px;
+      letter-spacing: 0.5px;
+      margin-bottom: 10px;
+    }
+    h1 {
+      font-size: 26px;
+      color: #0F172A;
+      margin: 0 0 8px;
+      font-weight: 800;
+    }
+    p {
+      color: #64748B;
+      font-size: 14px;
+      line-height: 1.5;
+      margin: 0;
+    }
+    
+    /* Control Toolbar */
+    .toolbar {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+      background: #FFFFFF;
+      padding: 8px 16px;
+      border-radius: 12px;
+      border: 1px solid #E2E8F0;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.04);
+    }
+    .tool-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: #F8FAFC;
+      color: #334155;
+      border: 1px solid #CBD5E1;
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .tool-btn:hover {
+      background: #E2E8F0;
+      color: #0F172A;
+    }
+    .tool-btn.active {
+      background: #1D3B2E;
+      color: #FFFFFF;
+      border-color: #1D3B2E;
+    }
+    .zoom-level {
+      font-size: 12px;
+      font-weight: 700;
+      color: #475569;
+      min-width: 45px;
+      text-align: center;
+    }
+
+    /* Main Diagram Container */
+    .diagram-viewport {
+      background: #FFFFFF;
+      border: 1px solid #CBD5E1;
+      border-radius: 16px;
+      width: 100%;
+      max-width: 1500px;
+      min-height: 600px;
+      overflow: auto;
+      box-shadow: 0 10px 25px -5px rgba(0,0,0,0.06);
+      position: relative;
+      padding: 24px;
+      text-align: center;
+    }
+
+    #diagram-wrapper {
+      display: inline-block;
+      transform-origin: top center;
+      transition: transform 0.2s cubic-bezier(0.2, 0, 0, 1);
+      width: 100%;
+      max-width: 100%;
+    }
+
+    /* Ensure SVG scales naturally without clipping */
+    .mermaid {
+      display: block;
+      width: 100%;
+      margin: 0 auto;
+    }
+    .mermaid svg {
+      width: 100% !important;
+      max-width: 100% !important;
+      height: auto !important;
+      display: block;
+      margin: 0 auto;
+      box-sizing: border-box;
+    }
+
+    /* Download Actions Footer */
+    .download-bar {
+      margin-top: 24px;
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: #1D3B2E;
+      color: #FFFFFF;
+      text-decoration: none;
+      padding: 10px 18px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      transition: all 0.2s ease;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+    }
+    .btn:hover {
+      background: #2E5947;
+      transform: translateY(-1px);
+    }
+    .btn-outline {
+      background: #FFFFFF;
+      color: #334155;
+      border: 1px solid #CBD5E1;
+    }
+    .btn-outline:hover {
+      background: #F1F5F9;
+      color: #0F172A;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <span class="tag">Clear Architecture Blueprint</span>
+    <h1>Josh Pets Hub — CRM Structure & Flow</h1>
+    <p>Hierarchical flow from Super Administrator to Department Heads, Frontline Staff, and End Stakeholders</p>
+  </div>
+
+  <!-- Interactive Controls Toolbar -->
+  <div class="toolbar">
+    <button class="tool-btn" onclick="zoomIn()" title="Zoom In">🔍+ Zoom In</button>
+    <button class="tool-btn" onclick="zoomOut()" title="Zoom Out">🔍- Zoom Out</button>
+    <span class="zoom-level" id="zoom-text">100%</span>
+    <button class="tool-btn active" id="btn-fit" onclick="resetFit()" title="Fit entire diagram to screen width">📐 Fit to Screen</button>
+    <button class="tool-btn" id="btn-actual" onclick="setActualSize()" title="Show original full resolution (100%)">🔎 Actual Size</button>
+    <a href="crm_flow_clear.png" target="_blank" class="tool-btn" title="Open full high-res PNG in new tab">🖼️ Open Direct PNG</a>
+    <a href="crm_flow_clear.svg" target="_blank" class="tool-btn" title="Open pure vector SVG in new tab">📄 Open Direct SVG</a>
+  </div>
+
+  <div class="diagram-viewport" id="viewport">
+    <div id="diagram-wrapper">
+      <div class="mermaid">
+flowchart TD
+    classDef superAdmin fill:#FEF2F2,stroke:#DC2626,stroke-width:2.5px,color:#991B1B,font-weight:bold;
+    classDef crmHead fill:#F0FDF4,stroke:#16A34A,stroke-width:2.5px,color:#166534,font-weight:bold;
+    classDef depts fill:#EFF6FF,stroke:#2563EB,stroke-width:2px,color:#1E40AF,font-weight:bold;
+    classDef engine fill:#FFFBEB,stroke:#D97706,stroke-width:2px,color:#92400E,font-weight:bold;
+    classDef audit fill:#F5F3FF,stroke:#7C3AED,stroke-width:2px,color:#5B21B6,font-weight:bold;
+    classDef endParty fill:#ECFDF5,stroke:#059669,stroke-width:2px,color:#065F46,font-weight:bold;
+
+    subgraph STAGE1["STAGE 1: PLATFORM GOVERNANCE"]
+        SA["👑 Super Administrator (Platform Owner)<br/>• Configures 7 CRM Departments & Staff Roles<br/>• Controls Central Razorpay Gateway & Commission Escrow<br/>• Final Authority for Large Provider Payouts & Approvals"]:::superAdmin
+    end
+
+    subgraph STAGE2["STAGE 2: CENTRAL OPERATIONS COMMAND"]
+        CO["🛡️ CRM Operations & Administration Head<br/>(admin.crm@joshpetshub.com)<br/>• Central Work Distribution & Cross-Department Escalations<br/>• Products Catalogue & Store Orders Oversight<br/>• Classified Pet Listings & Breeder Verifications"]:::crmHead
+    end
+
+    STAGE1 -->|Delegates Operational Access & Policies| STAGE2
+
+    subgraph STAGE3["STAGE 3: FIVE CORE OPERATIONAL DEPARTMENT QUEUES"]
+        D_SUPP["🎧 Customer Support<br/><b>Manager + Leads + Execs</b><br/>• Support Tickets & Live Chat<br/>• Customer 360 & Inquiries<br/>• Grievances & CSAT Rating"]:::depts
+        D_OPS["📅 Service Operations<br/><b>Manager + Coordinators</b><br/>• 6 Pet Care Verticals<br/>• Vet, Grooming, Hostel<br/>• Walking, Training, Transport"]:::depts
+        D_FIN["💰 Finance & Accounts<br/><b>Manager + Accountants</b><br/>• Razorpay Settlements<br/>• Provider Wallet Payouts<br/>• Customer Online Refunds"]:::depts
+        D_PROV["🤝 Provider Relations<br/><b>Manager + KYC Specialists</b><br/>• Partner ID & License Audits<br/>• Breeder KCI Verification<br/>• Storefront Trust Badges"]:::depts
+        D_QUAL["📋 Quality & Compliance<br/><b>Manager + Rx Auditors</b><br/>• Doctor Rx Approvals<br/>• Pharmacy Medicine Orders<br/>• Health & Safety Standards"]:::depts
+    end
+
+    STAGE2 -->|Routes Customer Tickets| D_SUPP
+    STAGE2 -->|Routes Pet Bookings| D_OPS
+    STAGE2 -->|Routes Settlement & Payouts| D_FIN
+    STAGE2 -->|Routes KYC Documents| D_PROV
+    STAGE2 -->|Routes Prescription Audits| D_QUAL
+
+    subgraph STAGE4["STAGE 4: COLLABORATIVE TASK LIFECYCLE & AUDIT ENGINE"]
+        TASK_FLOW["🔄 Task State Machine<br/><b>Pending</b> ➔ <b>In Progress</b> ➔ <b>Under Review</b> ➔ <b>Completed</b><br/><i>(Manager approval required for Payouts, Refunds & KCI Badges)</i>"]:::engine
+        AUDIT_NOTIF["📜 Real-Time Audit Log & Push Notifications<br/>• Immutable Audit Record: Who, What, Timestamp<br/>• Automated Push Alerts to Assigned Staff"]:::audit
+        TASK_FLOW <--> AUDIT_NOTIF
+    end
+
+    D_SUPP -->|Creates & Updates Tasks| TASK_FLOW
+    D_OPS -->|Creates & Updates Tasks| TASK_FLOW
+    D_FIN -->|Creates & Updates Tasks| TASK_FLOW
+    D_PROV -->|Creates & Updates Tasks| TASK_FLOW
+    D_QUAL -->|Creates & Updates Tasks| TASK_FLOW
+
+    subgraph STAGE5["STAGE 5: FINAL STAKEHOLDER DELIVERABLES"]
+        CUST["🐾 Pet Parents (Customers)<br/>• Fast Ticket Resolution<br/>• Confirmed Vet/Grooming Bookings<br/>• Approved Medicine Deliveries<br/>• Safe & Guaranteed Refunds"]:::endParty
+        PROV["🏢 Service Providers & Breeders<br/>• Direct Bank Transfer Payouts (NEFT/IMPS/UPI)<br/>• Verified Partner Trust Badge<br/>• Guaranteed Appointments Schedule<br/>• Validated Stud & Pet Listings"]:::endParty
+    end
+
+    TASK_FLOW -->|Resolves Grievance / Confirms Booking| CUST
+    TASK_FLOW -->|Disburses Payout / Approves Profile| PROV
+      </div>
+    </div>
+  </div>
+
+  <div class="download-bar">
+    <a href="crm_flow_clear.png" download="JoshPetsHub_CRM_Flow_Clear.png" class="btn">📥 Download Clear PNG</a>
+    <a href="crm_flow_clear.svg" download="JoshPetsHub_CRM_Flow_Clear.svg" class="btn">📥 Download Vector SVG</a>
+    <a href="index.html" class="btn btn-outline">🔙 All Architecture Diagrams</a>
+  </div>
+
+  <script>
+    let currentZoom = 1;
+
+    function applyZoom() {
+      const wrapper = document.getElementById('diagram-wrapper');
+      wrapper.style.transform = `scale(${currentZoom})`;
+      document.getElementById('zoom-text').textContent = Math.round(currentZoom * 100) + '%';
+    }
+
+    function zoomIn() {
+      currentZoom = Math.min(2.5, currentZoom + 0.15);
+      applyZoom();
+    }
+
+    function zoomOut() {
+      currentZoom = Math.max(0.4, currentZoom - 0.15);
+      applyZoom();
+    }
+
+    function resetFit() {
+      currentZoom = 1;
+      const wrapper = document.getElementById('diagram-wrapper');
+      wrapper.style.width = '100%';
+      wrapper.style.maxWidth = '100%';
+      const svg = document.querySelector('.mermaid svg');
+      if (svg) {
+        svg.style.width = '100%';
+        svg.style.maxWidth = '100%';
+      }
+      applyZoom();
+      document.getElementById('btn-fit').classList.add('active');
+      document.getElementById('btn-actual').classList.remove('active');
+    }
+
+    function setActualSize() {
+      const svg = document.querySelector('.mermaid svg');
+      if (svg) {
+        svg.style.width = 'auto';
+        svg.style.maxWidth = 'none';
+      }
+      const wrapper = document.getElementById('diagram-wrapper');
+      wrapper.style.width = 'auto';
+      wrapper.style.maxWidth = 'none';
+      currentZoom = 1;
+      applyZoom();
+      document.getElementById('btn-actual').classList.add('active');
+      document.getElementById('btn-fit').classList.remove('active');
+    }
+
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: 'default',
+      themeVariables: {
+        fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+        fontSize: '13px'
+      },
+      flowchart: {
+        useMaxWidth: true,
+        htmlLabels: true,
+        curve: 'basis'
+      }
+    });
+
+    window.addEventListener('DOMContentLoaded', () => {
+      setTimeout(() => {
+        const svg = document.querySelector('.mermaid svg');
+        if (svg) {
+          svg.style.width = '100%';
+          svg.style.maxWidth = '100%';
+          svg.style.height = 'auto';
+        }
+      }, 800);
+    });
+  </script>
+</body>
+</html>

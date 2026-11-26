@@ -154,19 +154,41 @@ const Wishlist = () => {
       ) : (
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
           {items.map((product) => {
-            const pId = product._id || product.id;
-            const isPet = Boolean(
-              product.isPet || product.petType || product.breed || 
-              product.itemType === 'pet' || product.itemType === 'adoption' ||
-              product.sellerName || product.parentContact || product.quality
+            const pId = String(product._id || product.id || '');
+
+            // 1. Clearly distinguish between Shop Product, Adoption Pet, and Classified Pet
+            const isAdoption = Boolean(
+              product.itemType === 'adoption' ||
+              product.quality !== undefined ||
+              pId.startsWith('adopt_') ||
+              pId.startsWith('ADOPT-')
             );
-            const isAdoption = product.itemType === 'adoption' || product.quality !== undefined;
+
+            const isPetListing = Boolean(
+              !isAdoption && (
+                pId.startsWith('LIST-') ||
+                product.sellerName ||
+                product.parentContact ||
+                (product.isPet === true && !product.sku && !product.category && !product.slug) ||
+                (product.itemType === 'pet' && !product.sku && !product.category?.toLowerCase()?.includes('food'))
+              )
+            );
+
+            // An item is a pet ONLY if it's genuinely an adoption or pet listing
+            const isPet = isAdoption || isPetListing;
+
+            // Target routing URL:
+            // Products -> /product/${product.slug || pId}
+            // Adoptions -> /adopt/${pId}
+            // Pet Classifieds -> /pets/${pId}
             const targetLink = isPet 
               ? (isAdoption ? `/adopt/${pId}` : `/pets/${pId}`)
               : `/product/${product.slug || pId}`;
 
             const displayName = product.name || product.title || (isPet ? 'Verified Pet' : 'Product');
-            const displayBrand = product.breed || product.brand || (isPet ? (product.petType ? `${product.petType.toUpperCase()}` : 'PET LISTING') : '');
+            const displayBrand = isPet
+              ? (product.breed || (product.petType ? `${product.petType.toUpperCase()}` : (isAdoption ? 'ADOPTION PET' : 'PET LISTING')))
+              : (product.brand || (product.petType ? `${product.petType.toUpperCase()}` : ''));
             const productPrice = product.discountPrice ?? product.discount_price ?? product.price ?? product.fee ?? 0;
             const isFree = isPet && Number(productPrice) === 0;
 

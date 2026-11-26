@@ -166,8 +166,25 @@ const PetClassifieds = () => {
       return;
     }
     
-    const owner = listing?.user;
-    const ownerId = owner?._id || owner?.id || listing?.sellerId || (typeof owner === 'string' ? owner : `seller-${listing?._id || 'pet'}`);
+    let owner = listing?.user;
+    if (typeof owner === 'string' && owner.trim().startsWith('{')) {
+      try {
+        owner = JSON.parse(owner);
+      } catch (_) {}
+    }
+
+    const ownerId = (typeof owner === 'object' && owner !== null)
+      ? (owner._id || owner.id || listing?.sellerId)
+      : (typeof owner === 'string' && owner ? owner : (listing?.sellerId || `seller-${listing?._id || 'pet'}`));
+    
+    const ownerName = (typeof owner === 'object' && owner !== null)
+      ? (owner.name || listing?.sellerName || 'Pet Seller')
+      : (listing?.sellerName || 'Pet Seller');
+
+    const ownerEmail = (typeof owner === 'object' && owner !== null)
+      ? (owner.email || '')
+      : '';
+
     const currentUserId = user?._id || user?.id;
     
     if (currentUserId && ownerId === currentUserId) {
@@ -180,11 +197,11 @@ const PetClassifieds = () => {
     navigate(chatUrl, { 
       state: { 
         recipientId: ownerId, 
-        ownerName: owner?.name || listing?.sellerName || 'Pet Seller',
-        ownerEmail: owner?.email || '',
+        ownerName,
+        ownerEmail,
         listingId,
         listingTitle: listing?.title,
-        listingImage: listing?.images?.[0],
+        listingImage: listing?.images?.[0] || listing?.image,
         listingPrice: listing?.price,
         listingBreed: listing?.breed
       } 

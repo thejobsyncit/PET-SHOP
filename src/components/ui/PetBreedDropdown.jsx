@@ -57,21 +57,34 @@ const PetBreedDropdown = ({
     }
   }, [value, currentBreeds]);
 
+  const emitBreedChange = (val) => {
+    if (!onChange) return;
+    try {
+      onChange(val);
+    } catch (err) {
+      if (err instanceof TypeError && (err.message.includes('target') || err.message.includes('undefined'))) {
+        onChange({ target: { name, value: val } });
+      } else {
+        throw err;
+      }
+    }
+  };
+
   const handleSelectChange = (e) => {
     const selected = e.target.value;
     if (selected === '__custom__') {
       setIsCustom(true);
-      onChange?.(customValue || '');
+      emitBreedChange(customValue || '');
     } else {
       setIsCustom(false);
-      onChange?.(selected);
+      emitBreedChange(selected);
     }
   };
 
   const handleCustomInputChange = (e) => {
     const val = e.target.value;
     setCustomValue(val);
-    onChange?.(val);
+    emitBreedChange(val);
   };
 
   const selectValue = isCustom ? '__custom__' : (isKnownBreed ? value : '');

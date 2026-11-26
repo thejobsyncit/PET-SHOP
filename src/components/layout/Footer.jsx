@@ -38,7 +38,9 @@ const Footer = ({ compact = false }) => {
               <div className="flex flex-wrap items-center gap-x-4 gap-y-0.5 text-[11px] text-secondary-dark pt-0.5">
                 <div className="flex items-center gap-1.5">
                   <Mail size={12} className="text-accent shrink-0" />
-                  <span>care@joshpetshub.com</span>
+                  <a href="mailto:providerhelp@joshpetshub.com" className="hover:text-white hover:underline transition">
+                    providerhelp@joshpetshub.com
+                  </a>
                 </div>
                 <div className="flex items-center gap-1.5">
                   <Clock size={12} className="text-accent shrink-0" />

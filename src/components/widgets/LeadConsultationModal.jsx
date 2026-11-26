@@ -119,6 +119,7 @@ const CountryCodePicker = ({ value, onChange, id = 'country-picker' }) => {
     <div className="relative shrink-0" ref={dropdownRef}>
       <button
         type="button"
+        onMouseDown={(e) => e.preventDefault()}
         onClick={() => setIsOpen(!isOpen)}
         className="h-full px-2.5 sm:px-3 py-2 bg-slate-100/90 hover:bg-slate-200/90 active:bg-slate-300/80 text-slate-700 text-xs md:text-sm font-semibold rounded-l-xl border-r border-slate-300 flex items-center gap-1 cursor-pointer transition select-none"
         title="Select Country Dial Code"
@@ -342,21 +343,38 @@ const LeadConsultationModal = () => {
   };
 
   // NUMERIC INPUT HANDLER WITH DYNAMIC LENGTH
-  const handleNumericChange = (e, setVal, setError, fieldName, maxLen) => {
+  // Kept clean while typing so no premature length warnings disrupt the user
+  const handleNumericChange = (e, setVal, setError, fieldName, maxLen, countryCode = '+91') => {
     const raw = e.target.value;
     const cleaned = raw.replace(/\D/g, '');
 
     if (cleaned.length > maxLen) {
-      setError(`${fieldName} cannot exceed ${maxLen} digits *`);
       return;
     }
 
     setVal(cleaned);
 
-    if (cleaned.length === 0) {
-      setError(`${fieldName} is required *`);
+    // Validate only when full length is reached; never show length error while typing
+    if (cleaned.length === maxLen) {
+      if (countryCode === '+91' && !/^[6-9]/.test(cleaned)) {
+        setError(`${fieldName} should start with 6, 7, 8, or 9 *`);
+      } else {
+        setError('');
+      }
+    } else {
+      setError('');
+    }
+  };
+
+  // Trigger validation only when user leaves the field (onBlur) and field is left incomplete or invalid
+  const handleNumericBlur = (val, setError, fieldName, maxLen, countryCode = '+91') => {
+    const cleaned = String(val || '').replace(/\D/g, '');
+    if (!cleaned) {
+      setError('');
     } else if (cleaned.length < maxLen) {
       setError(`${fieldName} must be exactly ${maxLen} digits (${cleaned.length}/${maxLen}) *`);
+    } else if (countryCode === '+91' && !/^[6-9]/.test(cleaned)) {
+      setError(`${fieldName} should start with 6, 7, 8, or 9 *`);
     } else {
       setError('');
     }
@@ -366,17 +384,15 @@ const LeadConsultationModal = () => {
   const handleUserMobileCountryChange = (newCode) => {
     setUserCountryCode(newCode);
     const newMax = getRequiredPhoneLength(newCode);
-    const trimmed = userMobileNo.slice(0, newMax);
-    setUserMobileNo(trimmed);
-    if (trimmed.length === 0) {
-      setUserMobileError('Mobile number is required *');
-    } else if (trimmed.length < newMax) {
-      setUserMobileError(`Mobile number must be exactly ${newMax} digits (${trimmed.length}/${newMax}) *`);
-    } else {
-      setUserMobileError('');
+    if (userMobileNo.length > newMax) {
+      const trimmed = userMobileNo.slice(0, newMax);
+      setUserMobileNo(trimmed);
     }
+    setUserMobileError('');
+
     if (userSameAsMobile) {
       setUserWhatsappCountryCode(newCode);
+      const trimmed = userMobileNo.slice(0, newMax);
       setUserWhatsappNo(trimmed);
       setUserWhatsappError('');
     }
@@ -385,15 +401,11 @@ const LeadConsultationModal = () => {
   const handleUserWhatsappCountryChange = (newCode) => {
     setUserWhatsappCountryCode(newCode);
     const newMax = getRequiredPhoneLength(newCode);
-    const trimmed = userWhatsappNo.slice(0, newMax);
-    setUserWhatsappNo(trimmed);
-    if (trimmed.length === 0) {
-      setUserWhatsappError('WhatsApp number is required *');
-    } else if (trimmed.length < newMax) {
-      setUserWhatsappError(`WhatsApp number must be exactly ${newMax} digits (${trimmed.length}/${newMax}) *`);
-    } else {
-      setUserWhatsappError('');
+    if (userWhatsappNo.length > newMax) {
+      const trimmed = userWhatsappNo.slice(0, newMax);
+      setUserWhatsappNo(trimmed);
     }
+    setUserWhatsappError('');
     if (userSameAsMobile && newCode !== userCountryCode) {
       setUserSameAsMobile(false);
     }
@@ -405,14 +417,7 @@ const LeadConsultationModal = () => {
     if (checked) {
       setUserWhatsappCountryCode(userCountryCode);
       setUserWhatsappNo(userMobileNo);
-      const expectedLen = getRequiredPhoneLength(userCountryCode);
-      if (userMobileNo.length === expectedLen) {
-        setUserWhatsappError('');
-      } else if (userMobileNo.length === 0) {
-        setUserWhatsappError('WhatsApp number is required *');
-      } else {
-        setUserWhatsappError(`WhatsApp number must be exactly ${expectedLen} digits (${userMobileNo.length}/${expectedLen}) *`);
-      }
+      setUserWhatsappError('');
     }
   };
 
@@ -420,17 +425,15 @@ const LeadConsultationModal = () => {
   const handleProviderMobileCountryChange = (newCode) => {
     setProviderCountryCode(newCode);
     const newMax = getRequiredPhoneLength(newCode);
-    const trimmed = providerMobileNo.slice(0, newMax);
-    setProviderMobileNo(trimmed);
-    if (trimmed.length === 0) {
-      setProviderMobileError('Mobile number is required *');
-    } else if (trimmed.length < newMax) {
-      setProviderMobileError(`Mobile number must be exactly ${newMax} digits (${trimmed.length}/${newMax}) *`);
-    } else {
-      setProviderMobileError('');
+    if (providerMobileNo.length > newMax) {
+      const trimmed = providerMobileNo.slice(0, newMax);
+      setProviderMobileNo(trimmed);
     }
+    setProviderMobileError('');
+
     if (providerSameAsMobile) {
       setProviderWhatsappCountryCode(newCode);
+      const trimmed = providerMobileNo.slice(0, newMax);
       setProviderWhatsappNo(trimmed);
       setProviderWhatsappError('');
     }
@@ -439,15 +442,11 @@ const LeadConsultationModal = () => {
   const handleProviderWhatsappCountryChange = (newCode) => {
     setProviderWhatsappCountryCode(newCode);
     const newMax = getRequiredPhoneLength(newCode);
-    const trimmed = providerWhatsappNo.slice(0, newMax);
-    setProviderWhatsappNo(trimmed);
-    if (trimmed.length === 0) {
-      setProviderWhatsappError('WhatsApp number is required *');
-    } else if (trimmed.length < newMax) {
-      setProviderWhatsappError(`WhatsApp number must be exactly ${newMax} digits (${trimmed.length}/${newMax}) *`);
-    } else {
-      setProviderWhatsappError('');
+    if (providerWhatsappNo.length > newMax) {
+      const trimmed = providerWhatsappNo.slice(0, newMax);
+      setProviderWhatsappNo(trimmed);
     }
+    setProviderWhatsappError('');
     if (providerSameAsMobile && newCode !== providerCountryCode) {
       setProviderSameAsMobile(false);
     }
@@ -459,14 +458,9 @@ const LeadConsultationModal = () => {
     if (checked) {
       setProviderWhatsappCountryCode(providerCountryCode);
       setProviderWhatsappNo(providerMobileNo);
-      const expectedLen = getRequiredPhoneLength(providerCountryCode);
-      if (providerMobileNo.length === expectedLen) {
-        setProviderWhatsappError('');
-      } else if (providerMobileNo.length === 0) {
-        setProviderWhatsappError('WhatsApp number is required *');
-      } else {
-        setProviderWhatsappError(`WhatsApp number must be exactly ${expectedLen} digits (${providerMobileNo.length}/${expectedLen}) *`);
-      }
+      setProviderWhatsappError('');
+    } else {
+      setProviderWhatsappError('');
     }
   };
 
@@ -964,16 +958,21 @@ const LeadConsultationModal = () => {
                     maxLength={getRequiredPhoneLength(userCountryCode)}
                     placeholder={`Mobile No (${getRequiredPhoneLength(userCountryCode)} digits) *`}
                     value={userMobileNo}
+                    onFocus={() => {
+                      setUserMobileError('');
+                    }}
                     onChange={(e) => {
                       const expectedLen = getRequiredPhoneLength(userCountryCode);
-                      handleNumericChange(e, setUserMobileNo, setUserMobileError, 'Mobile number', expectedLen);
+                      handleNumericChange(e, setUserMobileNo, setUserMobileError, 'Mobile number', expectedLen, userCountryCode);
                       if (userSameAsMobile) {
                         const rawVal = e.target.value.replace(/\D/g, '');
                         setUserWhatsappNo(rawVal);
-                        if (rawVal.length === expectedLen) {
-                          setUserWhatsappError('');
-                        }
+                        setUserWhatsappError('');
                       }
+                    }}
+                    onBlur={() => {
+                      const expectedLen = getRequiredPhoneLength(userCountryCode);
+                      handleNumericBlur(userMobileNo, setUserMobileError, 'Mobile number', expectedLen, userCountryCode);
                     }}
                     className="w-full px-3.5 py-2 rounded-r-xl text-xs md:text-sm focus:outline-none bg-white font-semibold text-slate-800 placeholder-slate-400"
                     required
@@ -1019,12 +1018,19 @@ const LeadConsultationModal = () => {
                     maxLength={getRequiredPhoneLength(userWhatsappCountryCode)}
                     placeholder={`WhatsApp No (${getRequiredPhoneLength(userWhatsappCountryCode)} digits) *`}
                     value={userWhatsappNo}
+                    onFocus={() => {
+                      setUserWhatsappError('');
+                    }}
                     onChange={(e) => {
                       const expectedLen = getRequiredPhoneLength(userWhatsappCountryCode);
-                      handleNumericChange(e, setUserWhatsappNo, setUserWhatsappError, 'WhatsApp number', expectedLen);
+                      handleNumericChange(e, setUserWhatsappNo, setUserWhatsappError, 'WhatsApp number', expectedLen, userWhatsappCountryCode);
                       if (userSameAsMobile && e.target.value.replace(/\D/g, '') !== userMobileNo) {
                         setUserSameAsMobile(false);
                       }
+                    }}
+                    onBlur={() => {
+                      const expectedLen = getRequiredPhoneLength(userWhatsappCountryCode);
+                      handleNumericBlur(userWhatsappNo, setUserWhatsappError, 'WhatsApp number', expectedLen, userWhatsappCountryCode);
                     }}
                     className="w-full px-3.5 py-2 rounded-r-xl text-xs md:text-sm focus:outline-none bg-white font-semibold text-slate-800 placeholder-slate-400"
                     required
@@ -1233,16 +1239,21 @@ const LeadConsultationModal = () => {
                     maxLength={getRequiredPhoneLength(providerCountryCode)}
                     placeholder={`Mobile No (${getRequiredPhoneLength(providerCountryCode)} digits) *`}
                     value={providerMobileNo}
+                    onFocus={() => {
+                      setProviderMobileError('');
+                    }}
                     onChange={(e) => {
                       const expectedLen = getRequiredPhoneLength(providerCountryCode);
-                      handleNumericChange(e, setProviderMobileNo, setProviderMobileError, 'Mobile number', expectedLen);
+                      handleNumericChange(e, setProviderMobileNo, setProviderMobileError, 'Mobile number', expectedLen, providerCountryCode);
                       if (providerSameAsMobile) {
                         const rawVal = e.target.value.replace(/\D/g, '');
                         setProviderWhatsappNo(rawVal);
-                        if (rawVal.length === expectedLen) {
-                          setProviderWhatsappError('');
-                        }
+                        setProviderWhatsappError('');
                       }
+                    }}
+                    onBlur={() => {
+                      const expectedLen = getRequiredPhoneLength(providerCountryCode);
+                      handleNumericBlur(providerMobileNo, setProviderMobileError, 'Mobile number', expectedLen, providerCountryCode);
                     }}
                     className="w-full px-3.5 py-2 rounded-r-xl text-xs md:text-sm focus:outline-none bg-white font-semibold text-slate-800 placeholder-slate-400"
                     required
@@ -1288,12 +1299,19 @@ const LeadConsultationModal = () => {
                     maxLength={getRequiredPhoneLength(providerWhatsappCountryCode)}
                     placeholder={`WhatsApp No (${getRequiredPhoneLength(providerWhatsappCountryCode)} digits) *`}
                     value={providerWhatsappNo}
+                    onFocus={() => {
+                      setProviderWhatsappError('');
+                    }}
                     onChange={(e) => {
                       const expectedLen = getRequiredPhoneLength(providerWhatsappCountryCode);
-                      handleNumericChange(e, setProviderWhatsappNo, setProviderWhatsappError, 'WhatsApp number', expectedLen);
+                      handleNumericChange(e, setProviderWhatsappNo, setProviderWhatsappError, 'WhatsApp number', expectedLen, providerWhatsappCountryCode);
                       if (providerSameAsMobile && e.target.value.replace(/\D/g, '') !== providerMobileNo) {
                         setProviderSameAsMobile(false);
                       }
+                    }}
+                    onBlur={() => {
+                      const expectedLen = getRequiredPhoneLength(providerWhatsappCountryCode);
+                      handleNumericBlur(providerWhatsappNo, setProviderWhatsappError, 'WhatsApp number', expectedLen, providerWhatsappCountryCode);
                     }}
                     className="w-full px-3.5 py-2 rounded-r-xl text-xs md:text-sm focus:outline-none bg-white font-semibold text-slate-800 placeholder-slate-400"
                     required

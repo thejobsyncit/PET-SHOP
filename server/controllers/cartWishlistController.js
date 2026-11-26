@@ -6,9 +6,10 @@ import { supabase } from '../config/supabase.js';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const SEED_USERS_FILE = path.join(__dirname, '..', 'data', 'users.json');
+const SEED_PROVIDERS_FILE = path.join(__dirname, '..', 'data', 'service_providers.json');
 const USER_STATE_FILE = path.join(__dirname, '..', '..', 'server_data', 'user_state.json');
 
-// Helpers for reading and writing user state (combining seed users.json and server_data/user_state.json)
+// Helpers for reading and writing user state (combining seed users.json, service_providers.json, and server_data/user_state.json)
 const loadDiskUsers = () => {
   const userMap = new Map();
 
@@ -43,7 +44,7 @@ const loadDiskUsers = () => {
     }
   };
 
-  // 1. Read seed users.json (canonical auth & users store)
+  // 1. Read seed users.json (customers and admins)
   try {
     if (fs.existsSync(SEED_USERS_FILE)) {
       const content = fs.readFileSync(SEED_USERS_FILE, 'utf8');
@@ -54,7 +55,18 @@ const loadDiskUsers = () => {
     console.warn('[CartWishlist] Error reading seed users.json:', err?.message);
   }
 
-  // 2. Read and overlay user_state.json
+  // 2. Read seed service_providers.json (service providers)
+  try {
+    if (fs.existsSync(SEED_PROVIDERS_FILE)) {
+      const content = fs.readFileSync(SEED_PROVIDERS_FILE, 'utf8');
+      const parsed = JSON.parse(content);
+      if (Array.isArray(parsed)) parsed.forEach(mergeUser);
+    }
+  } catch (err) {
+    console.warn('[CartWishlist] Error reading seed service_providers.json:', err?.message);
+  }
+
+  // 3. Read and overlay user_state.json
   try {
     if (fs.existsSync(USER_STATE_FILE)) {
       const content = fs.readFileSync(USER_STATE_FILE, 'utf8');
@@ -77,7 +89,7 @@ const saveDiskUsers = (users) => {
     console.warn('[CartWishlist] Error saving user_state.json:', err?.message);
   }
 
-  // Also update SEED_USERS_FILE so authController and auth middleware remain synchronized
+  // Update SEED_USERS_FILE (customers/admins) and SEED_PROVIDERS_FILE (service providers)
   try {
     if (fs.existsSync(SEED_USERS_FILE)) {
       const seedRaw = fs.readFileSync(SEED_USERS_FILE, 'utf8');
@@ -95,6 +107,28 @@ const saveDiskUsers = (users) => {
         });
         if (changed) {
           fs.writeFileSync(SEED_USERS_FILE, JSON.stringify(seedUsers, null, 2), 'utf8');
+        }
+      }
+    }
+  } catch (_) {}
+
+  try {
+    if (fs.existsSync(SEED_PROVIDERS_FILE)) {
+      const provRaw = fs.readFileSync(SEED_PROVIDERS_FILE, 'utf8');
+      const provUsers = JSON.parse(provRaw);
+      if (Array.isArray(provUsers)) {
+        let changed = false;
+        users.forEach(u => {
+          const id = String(u._id || u.id);
+          const pIdx = provUsers.findIndex(pu => String(pu._id || pu.id) === id || (u.email && pu.email && pu.email.toLowerCase() === pu.email.toLowerCase()));
+          if (pIdx > -1) {
+            provUsers[pIdx].cart = u.cart;
+            provUsers[pIdx].wishlist = u.wishlist;
+            changed = true;
+          }
+        });
+        if (changed) {
+          fs.writeFileSync(SEED_PROVIDERS_FILE, JSON.stringify(provUsers, null, 2), 'utf8');
         }
       }
     }
@@ -155,7 +189,7 @@ const setMemWishlist = (wishlist, ...keys) => {
   }
 };
 
-// Retrieve user record from Supabase or disk users.json
+// Retrieve user record from Supabase or disk users.json / service_providers.json
 const getUserData = async (userId, userEmail) => {
   const cleanId = (userId && String(userId) !== 'undefined' && String(userId) !== 'null') ? String(userId) : '';
   const cleanEmail = (userEmail && typeof userEmail === 'string') ? userEmail.trim().toLowerCase() : '';
@@ -167,12 +201,35 @@ const getUserData = async (userId, userEmail) => {
   let user = null;
   let source = 'disk';
 
-  if (supabase && cleanId) {
+  if (supabase) {
     try {
-      const { data: dbUser, error } = await supabase.from('users').select('*').eq('id', cleanId).single();
-      if (!error && dbUser) {
-        user = dbUser;
-        source = 'supabase';
+      if (cleanId) {
+        const { data: dbUser } = await supabase.from('users').select('*').eq('id', cleanId).maybeSingle();
+        if (dbUser) {
+          user = dbUser;
+          source = 'supabase';
+        }
+      }
+      if (!user && cleanEmail) {
+        const { data: dbUser } = await supabase.from('users').select('*').ilike('email', cleanEmail).maybeSingle();
+        if (dbUser) {
+          user = dbUser;
+          source = 'supabase';
+        }
+      }
+      if (!user && cleanId) {
+        const { data: dbProv } = await supabase.from('service_providers').select('*').eq('id', cleanId).maybeSingle();
+        if (dbProv) {
+          user = dbProv;
+          source = 'supabase';
+        }
+      }
+      if (!user && cleanEmail) {
+        const { data: dbProv } = await supabase.from('service_providers').select('*').ilike('email', cleanEmail).maybeSingle();
+        if (dbProv) {
+          user = dbProv;
+          source = 'supabase';
+        }
       }
     } catch (e) {}
   }
@@ -232,9 +289,16 @@ const saveUserCart = async (userId, cart, userData, userEmail) => {
     // Cache cart in memory under all user identifiers
     setMemCart(safeCart, cleanId, cleanEmail, userObjId);
 
-    if (userData?.source === 'supabase' && supabase && cleanId) {
+    if (supabase) {
       try {
-        await supabase.from('users').update({ cart: safeCart }).eq('id', cleanId);
+        if (cleanId) {
+          await supabase.from('users').update({ cart: safeCart }).eq('id', cleanId);
+          await supabase.from('service_providers').update({ cart: safeCart }).eq('id', cleanId);
+        }
+        if (cleanEmail) {
+          await supabase.from('users').update({ cart: safeCart }).ilike('email', cleanEmail);
+          await supabase.from('service_providers').update({ cart: safeCart }).ilike('email', cleanEmail);
+        }
       } catch (e) {}
     }
 
@@ -280,9 +344,16 @@ const saveUserWishlist = async (userId, wishlist, userData, userEmail) => {
     // Cache wishlist in memory under all user identifiers
     setMemWishlist(safeWishlist, cleanId, cleanEmail, userObjId);
 
-    if (userData?.source === 'supabase' && supabase && cleanId) {
+    if (supabase) {
       try {
-        await supabase.from('users').update({ wishlist: safeWishlist }).eq('id', cleanId);
+        if (cleanId) {
+          await supabase.from('users').update({ wishlist: safeWishlist }).eq('id', cleanId);
+          await supabase.from('service_providers').update({ wishlist: safeWishlist }).eq('id', cleanId);
+        }
+        if (cleanEmail) {
+          await supabase.from('users').update({ wishlist: safeWishlist }).ilike('email', cleanEmail);
+          await supabase.from('service_providers').update({ wishlist: safeWishlist }).ilike('email', cleanEmail);
+        }
       } catch (e) {}
     }
 
@@ -332,12 +403,17 @@ const normalizeProduct = (p) => {
     ? p.images 
     : (p.image ? [p.image] : []);
 
+  const isPetItem = Boolean(
+    !p.sku && !p.category && !p.slug &&
+    (p.isPet === true || p.itemType === 'pet' || p.itemType === 'adoption' || pId.startsWith('LIST-') || pId.startsWith('adopt_') || pId.startsWith('ADOPT-'))
+  );
+
   return {
     ...p,
     _id: pId,
     id: pId,
-    name: p.name || p.title || 'Product',
-    title: p.title || p.name || 'Product',
+    name: p.name || p.title || (isPetItem ? 'Verified Pet' : 'Product'),
+    title: p.title || p.name || (isPetItem ? 'Verified Pet' : 'Product'),
     price,
     fee: price,
     discountPrice,
@@ -350,7 +426,8 @@ const normalizeProduct = (p) => {
     requiresPrescription: p.requires_prescription ?? p.requiresPrescription ?? false,
     petType: p.pet_type ?? p.petType,
     breed: p.breed,
-    isPet: Boolean(!p.sku && !p.category && (p.isPet === true || p.itemType === 'pet' || p.itemType === 'adoption'))
+    itemType: p.itemType || (isPetItem ? (p.quality || pId.startsWith('adopt_') || pId.startsWith('ADOPT-') ? 'adoption' : 'pet') : 'product'),
+    isPet: isPetItem
   };
 };
 
@@ -913,7 +990,17 @@ const populateWishlistItems = async (rawWishlist, fallbackProduct = null) => {
       return normalizeProduct(fallbackProduct);
     }
 
-    return { _id: id, id, name: 'Product', price: 0 };
+    const isAdoptionFallback = id.startsWith('adopt_') || id.startsWith('ADOPT-');
+    const isPetFallback = id.startsWith('LIST-');
+    return {
+      _id: id,
+      id,
+      name: isAdoptionFallback || isPetFallback ? 'Verified Pet' : 'Product',
+      title: isAdoptionFallback || isPetFallback ? 'Verified Pet' : 'Product',
+      price: 0,
+      itemType: isAdoptionFallback ? 'adoption' : (isPetFallback ? 'pet' : 'product'),
+      isPet: isAdoptionFallback || isPetFallback
+    };
   });
 };
 

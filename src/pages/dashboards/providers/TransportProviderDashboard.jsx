@@ -3,7 +3,7 @@ import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import { logout, updateProfile, fetchProfile } from '../../../store/slices/authSlice.js';
 import {
-  Calendar, Star, DollarSign, Clock, MapPin, 
+  Calendar, Star, IndianRupee, Clock, MapPin, 
   MessageSquare, Plus, Search, ChevronRight, ShieldCheck, Heart,
   Tag, LogOut, CheckCircle, X, Edit3, Check, Building, Truck, Menu
 } from 'lucide-react';
@@ -157,7 +157,7 @@ const TransportProviderDashboard = ({
     { id: 'service', label: 'My Service', fullLabel: 'My Transport Service', icon: Truck },
     { id: 'messages', label: 'Inquiries', fullLabel: 'Client Inquiries',  icon: MessageSquare },
     { id: 'reviews', label: 'Customer Reviews', fullLabel: 'Customer Reviews', icon: Star },
-    { id: 'wallet', label: 'Wallet', fullLabel: 'Wallet & Payouts', icon: DollarSign }
+    { id: 'wallet', label: 'Wallet', fullLabel: 'Wallet & Payouts', icon: IndianRupee }
   ];
 
   return (
@@ -386,7 +386,7 @@ const TransportProviderDashboard = ({
                 <MapPin size={15} />
               </div>
             </div>
-            <div className="text-2xl sm:text-3xl font-sans font-black text-[#0F2E23] mb-0.5">{stats.totalBookings}</div>
+            <div className="text-2xl sm:text-3xl font-sans font-black text-[#0F2E23] tracking-tight lining-nums tabular-nums mb-0.5">{stats.totalBookings}</div>
             <div className="text-[9px] sm:text-[10px] text-slate-400 font-black uppercase tracking-wider">All time trips</div>
           </div>
 
@@ -398,7 +398,7 @@ const TransportProviderDashboard = ({
                 <Clock size={15} />
               </div>
             </div>
-            <div className="text-2xl sm:text-3xl font-sans font-black text-[#0F2E23] mb-0.5 relative z-10">{stats.pendingTrips}</div>
+            <div className="text-2xl sm:text-3xl font-sans font-black text-[#0F2E23] tracking-tight lining-nums tabular-nums mb-0.5 relative z-10">{stats.pendingTrips}</div>
             <div className="text-[9px] sm:text-[10px] text-emerald-600 font-black uppercase tracking-wider relative z-10">In transit & confirmed</div>
           </div>
 
@@ -410,7 +410,7 @@ const TransportProviderDashboard = ({
                 <CheckCircle size={15} />
               </div>
             </div>
-            <div className="text-2xl sm:text-3xl font-sans font-black text-[#0F2E23] mb-0.5 relative z-10">{stats.completedTrips}</div>
+            <div className="text-2xl sm:text-3xl font-sans font-black text-[#0F2E23] tracking-tight lining-nums tabular-nums mb-0.5 relative z-10">{stats.completedTrips}</div>
             <div className="text-[9px] sm:text-[10px] text-rose-600 font-black uppercase tracking-wider relative z-10">Relocated safely</div>
           </div>
 
@@ -419,10 +419,10 @@ const TransportProviderDashboard = ({
             <div className="flex justify-between items-center mb-2 sm:mb-4 relative z-10">
               <span className="text-[9px] sm:text-[10px] font-black text-amber-600 uppercase tracking-widest line-clamp-1">Earnings</span>
               <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-amber-50 text-amber-500 flex items-center justify-center border border-amber-100 shrink-0">
-                <DollarSign size={15} />
+                <IndianRupee size={15} />
               </div>
             </div>
-            <div className="text-xl sm:text-2xl font-sans font-black text-[#0F2E23] mb-0.5 relative z-10">₹{stats.revenue.toLocaleString('en-IN')}</div>
+            <div className="text-xl sm:text-2xl font-sans font-black text-[#0F2E23] tracking-tight lining-nums tabular-nums mb-0.5 relative z-10">₹{stats.revenue.toLocaleString('en-IN')}</div>
             <div className="text-[9px] sm:text-[10px] text-amber-600 font-black uppercase tracking-wider relative z-10">
               {stats.totalOrders} total trips
             </div>
@@ -436,7 +436,7 @@ const TransportProviderDashboard = ({
                 <MessageSquare size={15} />
               </div>
             </div>
-            <div className="text-2xl sm:text-3xl font-sans font-black text-[#0F2E23] mb-0.5 relative z-10">{stats.inquiries}</div>
+            <div className="text-2xl sm:text-3xl font-sans font-black text-[#0F2E23] tracking-tight lining-nums tabular-nums mb-0.5 relative z-10">{stats.inquiries}</div>
             <div className="text-[9px] sm:text-[10px] text-sky-600 font-black uppercase tracking-wider relative z-10">Quotes & requests</div>
           </div>
 

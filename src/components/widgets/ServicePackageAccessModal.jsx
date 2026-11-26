@@ -12,6 +12,7 @@ import { getCookie, setCookie } from '../../utils/cookieUtils.js';
 import { apiRequest } from '../../services/api.js';
 import { setServiceMembership } from '../../store/slices/authSlice.js';
 import { formatWhatsAppTargetPhone, resolveProviderWhatsApp } from '../../utils/whatsappHelper.js';
+import { getStoredUserPlans, fetchSubscriptionPlans } from '../../services/subscriptionPlanService.js';
 
 /**
  * COMMON SERVICE PACKAGES FOR ALL SERVICE CATEGORIES
@@ -92,76 +93,124 @@ export const SERVICE_PACKAGES_DATA = {
 
 /**
  * Universal, self-healing helper to get active membership from all persistent storage layers.
+ * Strictly verifies that the membership belongs to the target user and has completed payment.
  */
 export const getActiveUserMembership = (currentUser = null) => {
   try {
-    // 1. Check current user object
-    if (currentUser?.serviceMembership && (currentUser.serviceMembership.status === 'ACTIVE' || currentUser.serviceMembership.tier)) {
-      return currentUser.serviceMembership;
+    // 1. Determine target user identity
+    let user = currentUser;
+    if (!user) {
+      try {
+        const rawLogged = safeGetItem('joshpetshub_user') || localStorage.getItem('joshpetshub_user');
+        if (rawLogged) {
+          user = typeof rawLogged === 'string' ? JSON.parse(rawLogged) : rawLogged;
+        }
+      } catch (_) {}
     }
 
-    // 2. Check localStorage 'pawora_user_membership'
-    let rawMem = safeGetItem('pawora_user_membership') || localStorage.getItem('pawora_user_membership');
+    const cleanEmail = (user?.email || '').trim().toLowerCase();
+    const userId = user?._id || user?.id || null;
+    if (!cleanEmail && !userId) {
+      return null;
+    }
 
-    // 3. Check sessionStorage
+    // Strict validator: membership must be active, paid, and belong strictly to this user
+    const isValidForUser = (mem) => {
+      if (!mem || typeof mem !== 'object') return false;
+      const statusActive = mem.status === 'ACTIVE';
+      const hasTier = Boolean(mem.tier || mem.packageName);
+      if (!statusActive && !hasTier) return false;
+
+      // Must have actual completed payment with a verified payment status and positive amount
+      const isPaid = (mem.paymentStatus === 'PAID' || mem.paymentStatus === 'Paid') && (Number(mem.totalPaid) > 0 || mem.isPaid === true);
+      if (!isPaid) return false;
+
+      // Reject fake / placeholder fallback transaction IDs
+      if (!mem.transactionId || mem.transactionId === 'TXN-ACTIVE' || mem.transactionId === 'TXN_PET_69033320') {
+        return false;
+      }
+
+      // Strict user matching: membership MUST carry a matching email or user ID
+      const memEmail = (mem.userEmail || mem.customerEmail || mem.email || '').trim().toLowerCase();
+      const memUserId = String(mem.userId || mem.user_id || '').trim();
+
+      if (cleanEmail && memEmail) {
+        if (memEmail !== cleanEmail) return false;
+      } else if (userId && memUserId) {
+        if (memUserId !== String(userId).trim()) return false;
+      } else {
+        // Reject memberships that do not have any owner identity attached
+        return false;
+      }
+
+      // Check validity expiration if set
+      if (mem.validUntil) {
+        const expTime = new Date(mem.validUntil).getTime();
+        if (!isNaN(expTime) && expTime < Date.now()) {
+          return false;
+        }
+      }
+
+      return true;
+    };
+
+    // 1. Check current user object
+    if (user?.serviceMembership && isValidForUser(user.serviceMembership)) {
+      return user.serviceMembership;
+    }
+
+    // 2. Check user-scoped storage key (never leaks across different users)
+    if (cleanEmail) {
+      const userKey = `pawora_user_membership_${cleanEmail}`;
+      let scopedMem = safeGetItem(userKey) || localStorage.getItem(userKey);
+      if (scopedMem) {
+        const parsedScoped = typeof scopedMem === 'string' ? JSON.parse(scopedMem) : scopedMem;
+        if (isValidForUser(parsedScoped)) {
+          return parsedScoped;
+        }
+      }
+    }
+
+    // 3. Check registered users list for THIS user only (never fallback to unrelated accounts)
+    if (cleanEmail || userId) {
+      try {
+        const reg = JSON.parse(localStorage.getItem('joshpetshub_registered_users') || '[]');
+        if (Array.isArray(reg)) {
+          const found = reg.find(u => {
+            const uEmail = (u?.email || '').trim().toLowerCase();
+            const uId = u?._id || u?.id;
+            return (cleanEmail && uEmail === cleanEmail) || (userId && uId === userId);
+          });
+          if (found?.serviceMembership && isValidForUser(found.serviceMembership)) {
+            return found.serviceMembership;
+          }
+        }
+      } catch (_) {}
+    }
+
+    // 4. Check global 'pawora_user_membership' ONLY if it strictly matches this authenticated user
+    let rawMem = safeGetItem('pawora_user_membership') || localStorage.getItem('pawora_user_membership');
     if (!rawMem && typeof sessionStorage !== 'undefined') {
       try { rawMem = sessionStorage.getItem('pawora_user_membership'); } catch (_) {}
     }
-
-    // 4. Check persistent cookie
     if (!rawMem) {
       try { rawMem = getCookie('pawora_user_membership'); } catch (_) {}
     }
 
     if (rawMem) {
       const parsed = typeof rawMem === 'string' ? JSON.parse(rawMem) : rawMem;
-      if (parsed && (parsed.status === 'ACTIVE' || parsed.tier)) {
-        // Auto-heal all other storage layers so they remain unified
-        try {
-          const str = JSON.stringify(parsed);
-          localStorage.setItem('pawora_user_membership', str);
-          sessionStorage.setItem('pawora_user_membership', str);
-          setCookie('pawora_user_membership', str, 365);
-        } catch (_) {}
-        return parsed;
-      }
-    }
-
-    // 5. Check 'joshpetshub_user'
-    const rawUser = safeGetItem('joshpetshub_user') || localStorage.getItem('joshpetshub_user');
-    if (rawUser) {
-      const parsedUser = typeof rawUser === 'string' ? JSON.parse(rawUser) : rawUser;
-      if (parsedUser?.serviceMembership && (parsedUser.serviceMembership.status === 'ACTIVE' || parsedUser.serviceMembership.tier)) {
-        const mem = parsedUser.serviceMembership;
-        try {
-          const str = JSON.stringify(mem);
-          localStorage.setItem('pawora_user_membership', str);
-          sessionStorage.setItem('pawora_user_membership', str);
-          setCookie('pawora_user_membership', str, 365);
-        } catch (_) {}
-        return mem;
-      }
-    }
-
-    // 6. Check registered users list fallback
-    try {
-      const reg = JSON.parse(localStorage.getItem('joshpetshub_registered_users') || '[]');
-      if (Array.isArray(reg)) {
-        const found = reg.find(u => u?.serviceMembership && (u.serviceMembership.status === 'ACTIVE' || u.serviceMembership.tier));
-        if (found?.serviceMembership) {
-          const mem = found.serviceMembership;
-          try {
-            const str = JSON.stringify(mem);
-            localStorage.setItem('pawora_user_membership', str);
-            sessionStorage.setItem('pawora_user_membership', str);
-            setCookie('pawora_user_membership', str, 365);
-          } catch (_) {}
-          return mem;
+      if (isValidForUser(parsed)) {
+        const memEmail = (parsed.userEmail || parsed.customerEmail || parsed.email || '').trim().toLowerCase();
+        if (cleanEmail && memEmail && memEmail === cleanEmail) {
+          return parsed;
         }
       }
-    } catch (_) {}
-  } catch (_) {}
-  return null;
+    }
+
+    return null;
+  } catch (_) {
+    return null;
+  }
 };
 
 export const hasUserPurchasedPackage = (currentUser = null) => {
@@ -285,8 +334,99 @@ const ServicePackageAccessModal = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [serviceType, setServiceType] = useState('Grooming');
   const [provider, setProvider] = useState(null);
-  const [packages, setPackages] = useState(COMMON_SERVICE_PACKAGES);
-  const [selectedPackage, setSelectedPackage] = useState(COMMON_SERVICE_PACKAGES[1]);
+  const mapUserPlansToPackages = (plans) => {
+    const rawList = Array.isArray(plans) && plans.length > 0 ? plans : getStoredUserPlans();
+    const activeList = rawList.filter(p => p.active !== false);
+    const sourceList = activeList.length > 0 ? activeList : rawList;
+
+    return sourceList.map((p, idx) => {
+      const base = Number(p.basePrice) || (idx === 1 ? 499 : 199);
+      const gst = Math.round(base * 0.18 * 100) / 100;
+      const total = Math.round((base + gst) * 100) / 100;
+      const isVip = Boolean(
+        p.popular ||
+        p.isVip ||
+        idx === 1 ||
+        p.id?.includes('vip') ||
+        (p.tier && p.tier.toLowerCase().includes('vip')) ||
+        (p.name && p.name.toLowerCase().includes('vip'))
+      );
+      return {
+        id: p.id || (isVip ? 'pass-vip-499' : 'pass-standard-199'),
+        title: p.name || p.title || (isVip ? 'VIP All-Access & Priority Pass' : 'Standard Service Pass'),
+        tier: p.tier || (isVip ? 'VIP Elite Priority' : 'Standard Access Tier'),
+        badge: p.badge || (isVip ? '★ VIP MOST RECOMMENDED' : 'POPULAR VALUE'),
+        isVip,
+        basePrice: base,
+        gstPercent: 18,
+        gstAmount: gst,
+        price: total,
+        priceLabel: `₹${base}`,
+        priceSuffix: '+ 18% GST',
+        totalPayable: total,
+        taxText: `₹${base} base + ₹${gst} (18% GST) = ₹${total} total`,
+        desc: p.description || p.desc || (isVip
+          ? 'All-inclusive VIP pass with 24/7 priority concierge, zero cancellation fees, and instant express bookings across all services.'
+          : 'Essential direct access pass to verified service specialists across all pet care departments.'),
+        features: p.features && p.features.length > 0 ? p.features : (isVip ? [
+          '24/7 Priority VIP Concierge & Live Chat support',
+          'Instant express fast-track scheduling with top-tier specialists',
+          'Direct video & phone consultations with senior veterinarians/experts'
+        ] : [
+          'Direct verified provider phone & chat communication',
+          'Standard booking queue scheduling with verified partners',
+          'Access to full provider background clearance credentials'
+        ]),
+        pros: p.pros || (isVip ? [
+          'Top-priority VIP handling across every service department',
+          'Dedicated personal care manager assigned to your pet'
+        ] : [
+          `Economical entry pass at just ₹${base} + GST`,
+          'Direct connection with service professionals'
+        ]),
+        cons: p.cons || (isVip ? [
+          `One-time premium tier fee (₹${base} + GST)`
+        ] : [
+          'Standard non-priority scheduling queue',
+          '24/7 dedicated personal concierge not included'
+        ])
+      };
+    });
+  };
+
+  const [packages, setPackages] = useState(() => mapUserPlansToPackages(getStoredUserPlans()));
+  const [selectedPackage, setSelectedPackage] = useState(() => {
+    const pkgs = mapUserPlansToPackages(getStoredUserPlans());
+    return pkgs[1] || pkgs[0];
+  });
+
+  // Sync with live custom events
+  useEffect(() => {
+    const handleUpdate = (e) => {
+      const updated = mapUserPlansToPackages(e?.detail?.users || getStoredUserPlans());
+      setPackages(updated);
+      setSelectedPackage(prev => {
+        if (!prev) return updated[1] || updated[0];
+        return updated.find(p => p.id === prev.id) || updated[1] || updated[0];
+      });
+    };
+    window.addEventListener('subscription-plans-updated', handleUpdate);
+    return () => window.removeEventListener('subscription-plans-updated', handleUpdate);
+  }, []);
+
+  // Sync with backend API on mount
+  useEffect(() => {
+    fetchSubscriptionPlans().then((data) => {
+      if (data?.users) {
+        const updated = mapUserPlansToPackages(data.users);
+        setPackages(updated);
+        setSelectedPackage(prev => {
+          if (!prev) return updated[1] || updated[0];
+          return updated.find(p => p.id === prev.id) || updated[1] || updated[0];
+        });
+      }
+    });
+  }, []);
 
   // Stepper flow: 1 = 'packages', 2 = 'payment', 3 = 'success'
   const [step, setStep] = useState(1);
@@ -349,13 +489,14 @@ const ServicePackageAccessModal = () => {
 
       setServiceType(type);
       setProvider(prov);
-      setPackages(COMMON_SERVICE_PACKAGES);
+      const activePkgs = mapUserPlansToPackages(getStoredUserPlans());
+      setPackages(activePkgs);
       const targetPackageId = e?.detail?.packageId;
       if (targetPackageId) {
-        const found = COMMON_SERVICE_PACKAGES.find(p => p.id === targetPackageId);
-        setSelectedPackage(found || COMMON_SERVICE_PACKAGES[1]);
+        const found = activePkgs.find(p => p.id === targetPackageId);
+        setSelectedPackage(found || activePkgs[1] || activePkgs[0]);
       } else {
-        setSelectedPackage(COMMON_SERVICE_PACKAGES[1]); // default to VIP
+        setSelectedPackage(activePkgs[1] || activePkgs[0]); // default to VIP
       }
       setStep(e?.detail?.step || (isUpgrade ? 2 : 1));
       setConfirmedBooking(null);
@@ -432,6 +573,9 @@ const ServicePackageAccessModal = () => {
 
       // Persist service membership state with multi-layer resilience
       const isVipTier = selectedPackage?.isVip || selectedPackage?.basePrice === 499 || selectedPackage?.id === 'pass-vip-499';
+      const userEmailKey = (user?.email || '').toLowerCase().trim();
+      const userIdVal = user?._id || user?.id || null;
+
       const membershipRecord = {
         tier: isVipTier ? 'VIP' : 'STANDARD',
         packageName: selectedPackage?.title || (isVipTier ? 'VIP All-Access & Priority Pass' : 'Standard Service Pass'),
@@ -440,15 +584,22 @@ const ServicePackageAccessModal = () => {
         totalPaid: selectedPackage?.totalPayable || (isVipTier ? 589 : 235),
         taxBreakdown: selectedPackage?.taxText || (isVipTier ? '₹499 + 18% GST (₹589)' : '₹199 + 18% GST (₹235)'),
         paymentMethod,
+        paymentStatus: 'PAID',
         transactionId: txnId,
         purchasedAt: new Date().toISOString(),
+        activatedAt: new Date().toISOString(),
         validUntil: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(),
         status: 'ACTIVE',
+        userId: userIdVal,
+        userEmail: userEmailKey,
         features: selectedPackage?.features || []
       };
 
       const memStr = JSON.stringify(membershipRecord);
       safeSetItem('pawora_user_membership', memStr);
+      if (userEmailKey) {
+        safeSetItem(`pawora_user_membership_${userEmailKey}`, memStr);
+      }
       try {
         sessionStorage.setItem('pawora_user_membership', memStr);
         setCookie('pawora_user_membership', memStr, 365);
@@ -640,7 +791,7 @@ const ServicePackageAccessModal = () => {
                               'Top-priority VIP handling across every service department',
                               'Dedicated personal care manager assigned to your pet'
                             ] : [
-                              'Economical entry pass at just ₹199 + GST',
+                              `Economical entry pass at just ₹${pkg.basePrice} + GST`,
                               'Direct connection with service professionals'
                             ])).map((pro, pIdx) => (
                               <p key={pIdx} className="text-slate-700 leading-snug">• {pro}</p>
@@ -653,7 +804,7 @@ const ServicePackageAccessModal = () => {
                               ⓘ LIMITATIONS (CONS)
                             </span>
                             {(pkg.cons || (isVip ? [
-                              'One-time premium tier fee (₹499 + GST)'
+                              `One-time premium tier fee (₹${pkg.basePrice} + GST)`
                             ] : [
                               'Standard non-priority scheduling queue',
                               '24/7 dedicated personal concierge not included'

@@ -1,4 +1,4 @@
-import React, { Suspense, lazy } from 'react';
+import React, { Suspense, lazy, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Provider } from 'react-redux';
 import { Toaster } from 'react-hot-toast';
@@ -8,6 +8,7 @@ import PageLoader from './components/layout/PageLoader.jsx';
 import ScrollToTop from './components/layout/ScrollToTop.jsx';
 import ErrorBoundary from './components/ui/ErrorBoundary.jsx';
 import AuthModal from './components/widgets/AuthModal.jsx';
+import { fetchSubscriptionPlans } from './services/subscriptionPlanService.js';
 
 // Resilient dynamic chunk loader with auto-retry and cache-bust recovery
 const lazyWithRetry = (componentImport, moduleName = 'component') =>
@@ -74,6 +75,10 @@ const VeterinaryServices = lazy(() => import('./pages/services/VeterinaryService
 const ChatConsole = lazy(() => import('./pages/ChatConsole.jsx'));
 
 function App() {
+  useEffect(() => {
+    fetchSubscriptionPlans();
+  }, []);
+
   return (
     <Provider store={store}>
       <ErrorBoundary>
@@ -181,10 +186,10 @@ function App() {
               <Route path="provider/dashboard" element={<ServiceProviderDashboard />} />
             </Route>
 
-            {/* Admin Panels */}
-            <Route path="Admin.com" element={<Navigate to="/admin" replace />} />
-            <Route path="admin" element={<AdminDashboard />} />
-            <Route path="admin/dashboard" element={<Navigate to="/admin" replace />} />
+            {/* Admin Panels - Completely shifted into CRM (/crm) */}
+            <Route path="Admin.com" element={<Navigate to="/crm" replace />} />
+            <Route path="admin" element={<Navigate to="/crm" replace />} />
+            <Route path="admin/*" element={<Navigate to="/crm" replace />} />
 
             {/* Super Admin Panel - Single unified access route: /superadmin */}
             <Route path="superadmin" element={<SuperAdminDashboard />} />

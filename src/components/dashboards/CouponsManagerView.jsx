@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import {
   Tag, Plus, Edit, Trash2, Check, X, Copy, RefreshCw,
-  Sparkles, Calendar, Calculator, AlertCircle, Percent, DollarSign,
+  Sparkles, Calendar, Calculator, AlertCircle, Percent, IndianRupee,
   TrendingUp, CheckCircle, ShieldCheck
 } from 'lucide-react';
 import toast from 'react-hot-toast';
@@ -639,7 +639,7 @@ const CouponsManagerView = () => {
                           : 'border-gray-200 bg-gray-50 text-gray-700 hover:bg-gray-100'
                       }`}
                     >
-                      <DollarSign size={13} /> Flat Amount (₹)
+                      <IndianRupee size={13} /> Flat Amount (₹)
                     </button>
                   </div>
                 </div>

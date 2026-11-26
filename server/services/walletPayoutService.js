@@ -15,6 +15,7 @@ if (!fs.existsSync(DATA_DIR)) {
 
 const LEDGER_FILE = path.join(DATA_DIR, 'platform_wallet_ledger.json');
 const PAYOUTS_FILE = path.join(DATA_DIR, 'provider_payouts.json');
+const ALT_PAYOUTS_FILE = path.join(__dirname, '..', 'data', 'provider_payouts.json');
 const BANK_ACCOUNTS_FILE = path.join(DATA_DIR, 'provider_bank_accounts.json');
 const AUDIT_LOGS_FILE = path.join(DATA_DIR, 'financial_audit_logs.json');
 const NOTIFICATIONS_FILE = path.join(__dirname, '..', 'data', 'notifications.json');
@@ -44,6 +45,11 @@ const saveJson = (filePath, data) => {
     console.error(`[WalletPayoutService] Error writing ${path.basename(filePath)}:`, err?.message);
     return false;
   }
+};
+
+const savePayouts = (payouts) => {
+  saveJson(PAYOUTS_FILE, payouts);
+  saveJson(ALT_PAYOUTS_FILE, payouts);
 };
 
 // Initialize Razorpay client
@@ -366,11 +372,17 @@ export const getProviderEarningsData = (providerIdentifier, serviceCategory = ''
   });
 
   // Calculate provider's payouts
+  const isSellerCat = (c) => c && (c.includes('seller') || c.includes('product'));
   const providerPayouts = payouts.filter(p => {
     const pPid = String(p.providerId || '').toLowerCase().trim();
     const pEmail = String(p.providerEmail || '').toLowerCase().trim();
     const pCat = String(p.serviceCategory || '').toLowerCase().trim();
-    return (pid && (pPid === pid || pEmail === pid)) || (cat && pCat.includes(cat));
+    const matchesCat = cat && (
+      pCat.includes(cat) ||
+      cat.includes(pCat) ||
+      (isSellerCat(cat) && isSellerCat(pCat))
+    );
+    return (pid && (pPid === pid || pEmail === pid)) || matchesCat;
   });
 
   let totalWithdrawn = 0;
@@ -597,7 +609,7 @@ export const submitProviderPayoutRequest = ({
   };
 
   payouts.unshift(newPayout);
-  saveJson(PAYOUTS_FILE, payouts);
+  savePayouts(payouts);
 
   // 4. Notifications
   createNotification({
@@ -704,7 +716,7 @@ export const processAdminPayout = ({
   }
 
   payouts[idx] = payout;
-  saveJson(PAYOUTS_FILE, payouts);
+  savePayouts(payouts);
 
   // Notify Provider
   createNotification({

@@ -1,5 +1,5 @@
 import express from 'express';
-import { protect, admin, providerOnly } from '../middleware/auth.js';
+import { protect, admin, adminOrFinance, providerOnly } from '../middleware/auth.js';
 import {
   createBookingOrder,
   verifyBookingPayment,
@@ -21,8 +21,8 @@ const router = express.Router();
 router.post('/create-booking-order', createBookingOrder);
 router.post('/verify-booking-payment', verifyBookingPayment);
 
-// 2. Central Platform Wallet (Super Admin)
-router.get('/platform-wallet', protect, admin, getPlatformWallet);
+// 2. Central Platform Wallet (Super Admin & CRM Finance)
+router.get('/platform-wallet', protect, adminOrFinance, getPlatformWallet);
 
 // 3. Provider Earnings & Wallet Breakdown
 router.get('/provider-earnings', protect, getProviderEarnings);
@@ -34,11 +34,11 @@ router.post('/bank-account', protect, saveBankAccount);
 // 5. Provider Payout Withdrawal Request
 router.post('/request-payout', protect, requestPayout);
 
-// 6. Super Admin Payout Operations
-router.get('/admin/payout-requests', protect, admin, getAdminPayoutRequests);
-router.post('/admin/process-payout', protect, admin, processPayoutRequest);
-router.post('/admin/refund-booking', protect, admin, refundBooking);
-router.get('/admin/export-payouts-csv', protect, admin, exportPayoutsCsv);
+// 6. Super Admin & CRM Finance Payout Operations
+router.get('/admin/payout-requests', protect, adminOrFinance, getAdminPayoutRequests);
+router.post('/admin/process-payout', protect, adminOrFinance, processPayoutRequest);
+router.post('/admin/refund-booking', protect, adminOrFinance, refundBooking);
+router.get('/admin/export-payouts-csv', protect, adminOrFinance, exportPayoutsCsv);
 
 // 7. Notifications
 router.get('/notifications', protect, getNotifications);

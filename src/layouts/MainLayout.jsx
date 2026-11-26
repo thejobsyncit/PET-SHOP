@@ -18,7 +18,10 @@ const MainLayout = () => {
   const userIdentifier = authUser?._id || authUser?.id || authUser?.email || 'guest';
 
   // Dedicated service provider dashboards feature a standalone management console with their own tools & chat
-  const isProviderDashboard = location.pathname.startsWith('/provider-dashboard') || location.pathname.startsWith('/provider/');
+  const isProviderDashboard = location.pathname.startsWith('/provider-dashboard') || 
+                              location.pathname.startsWith('/provider/') ||
+                              location.pathname.startsWith('/provider-register') ||
+                              location.pathname.startsWith('/partner-register');
 
   useEffect(() => {
     // Purge legacy service pass storage if any

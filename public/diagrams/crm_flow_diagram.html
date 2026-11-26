@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Josh Pets Hub — CRM Architecture & Operational Flow</title>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <style>
+    body {
+      margin: 0;
+      padding: 40px;
+      background: #0B1510;
+      color: #FAFBF9;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .header {
+      text-align: center;
+      margin-bottom: 30px;
+      max-width: 1200px;
+    }
+    h1 {
+      color: #FAFBF9;
+      font-size: 28px;
+      margin-bottom: 8px;
+      letter-spacing: -0.5px;
+    }
+    .sub {
+      color: #94A3B8;
+      font-size: 14px;
+      line-height: 1.6;
+    }
+    .mermaid-container {
+      background: #0F231B;
+      padding: 30px;
+      border-radius: 16px;
+      border: 1px solid rgba(255,255,255,0.1);
+      box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+      max-width: 1350px;
+      width: 100%;
+      overflow-x: auto;
+    }
+    .download-bar {
+      margin-top: 25px;
+      display: flex;
+      gap: 15px;
+    }
+    .btn {
+      background: #1D3B2E;
+      color: #FAFBF9;
+      border: 1px solid rgba(255,255,255,0.2);
+      padding: 10px 20px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all 0.2s;
+    }
+    .btn:hover {
+      background: #2E5947;
+      border-color: #34D399;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>Josh Pets Hub — CRM Architecture & Operational Flow</h1>
+    <div class="sub">Comprehensive End-to-End Hierarchical Flow: SuperAdmin ➔ Operations Command ➔ Department Heads ➔ Team Leads ➔ Frontline Staff ➔ Task Workflow Engine ➔ End Stakeholders</div>
+  </div>
+
+  <div class="mermaid-container">
+    <div class="mermaid">
+flowchart TD
+    classDef superAdminBox fill:#450A0A,stroke:#DC2626,stroke-width:3px,color:#FEF2F2,font-weight:bold;
+    classDef crmOpsBox fill:#0F2E23,stroke:#10B981,stroke-width:2px,color:#ECFDF5,font-weight:bold;
+    classDef deptHeadBox fill:#1E293B,stroke:#38BDF8,stroke-width:2px,color:#F0F9FF,font-weight:bold;
+    classDef teamLeadBox fill:#1E1B4B,stroke:#818CF8,stroke-width:2px,color:#EEF2FF,font-weight:bold;
+    classDef execBox fill:#064E3B,stroke:#34D399,stroke-width:1.5px,color:#F0FDF4,font-weight:bold;
+    classDef taskBox fill:#78350F,stroke:#F59E0B,stroke-width:2px,color:#FFFBEB,font-weight:bold;
+    classDef endUserBox fill:#134E4A,stroke:#14B8A6,stroke-width:2px,color:#CCFBF1,font-weight:bold;
+    classDef auditBox fill:#312E81,stroke:#6366F1,stroke-width:2px,color:#EDE9FE,font-weight:bold;
+
+    subgraph L0["LEVEL 0: SUPREME PLATFORM GOVERNANCE & OVERSIGHT"]
+        SA["👑 SUPER ADMINISTRATOR (superadmin@joshpetshub.com)<br/>• Ultimate platform authority across all modules<br/>• Controls Central Commission Escrow & Financial Vault<br/>• Master CRM Access Manager: Creates & Grants Dept Roles<br/>• Audits Global Audit Trail & Emergency Override Engine"]:::superAdminBox
+    end
+
+    subgraph L1["LEVEL 1: CENTRAL COMMAND & OPERATIONS ADMINISTRATION"]
+        CO["🛡️ CRM OPERATIONS & ADMIN HEAD (admin.crm@joshpetshub.com)<br/>• Central Cross-Department Routing Hub<br/>• Product Catalogue Management & Store Inventory Oversight<br/>• Classified Pet Listings & Breeder KCI Certificate Verification<br/>• Registered User Accounts & Multi-Department Escalations"]:::crmOpsBox
+        SA -->|Delegates Operational Governance & Role Access| CO
+    end
+
+    subgraph L2["LEVEL 2: SPECIALIZED DEPARTMENT HEADS (MANAGERS)"]
+        D1["🎧 Customer Support Manager<br/>(support.mgr@joshpetshub.com)<br/>Grievances, Tickets & CSAT"]:::deptHeadBox
+        D2["📅 Service Operations Manager<br/>(service.ops@joshpetshub.com)<br/>6 Pet Verticals Scheduling & QA"]:::deptHeadBox
+        D3["💰 Finance & Accounts Manager<br/>(finance.mgr@joshpetshub.com)<br/>Razorpay, Payouts & Refunds"]:::deptHeadBox
+        D4["🤝 Provider Relations Manager<br/>(providers.mgr@joshpetshub.com)<br/>Partner KYC, Onboarding & Badges"]:::deptHeadBox
+        D5["📢 Marketing & Growth Manager<br/>(marketing.mgr@joshpetshub.com)<br/>Coupons, Banners & Campaigns"]:::deptHeadBox
+        D6["📋 Quality & Compliance Manager<br/>(compliance.mgr@joshpetshub.com)<br/>Vet Rx Approvals & Safety Audits"]:::deptHeadBox
+
+        CO -->|Department Scope & SLA Allocation| D1
+        CO -->|Department Scope & SLA Allocation| D2
+        CO -->|Department Scope & SLA Allocation| D3
+        CO -->|Department Scope & SLA Allocation| D4
+        CO -->|Department Scope & SLA Allocation| D5
+        CO -->|Department Scope & SLA Allocation| D6
+    end
+
+    subgraph L3["LEVEL 3: SUPERVISION & WORKLOAD DELEGATION"]
+        TL1["👥 Customer Support Team Lead<br/>(support.lead@joshpetshub.com)<br/>Ticket Routing & SLA Monitoring"]:::teamLeadBox
+        TL2["📋 Operations Supervisor<br/>(ops.coord@joshpetshub.com)<br/>Booking Slot Distribution"]:::teamLeadBox
+        TL3["💳 Accounts Team Lead<br/>(billing@joshpetshub.com)<br/>Bank Payout Verification"]:::teamLeadBox
+
+        D1 -->|Assigns Queue & Escalations| TL1
+        D2 -->|Distributes Bookings by City/Vertical| TL2
+        D3 -->|Delegates Payout Audit Checks| TL3
+    end
+
+    subgraph L4["LEVEL 4: FRONTLINE EXECUTIVES & OPERATIONAL SPECIALISTS"]
+        E1["Support Executives<br/>• Call Support Exec<br/>• Email Support Exec<br/>• Live Chat Support"]:::execBox
+        E2["Ops Coordinators<br/>• Vet Appointment Coord<br/>• Grooming & Hostel Coord<br/>• Pet Transport Specialist"]:::execBox
+        E3["Finance Executives<br/>• Payout Auditor<br/>• Gateway Reconciler<br/>• Refund Officer"]:::execBox
+        E4["Partner Specialists<br/>• Breeder KCI Auditor<br/>• Service Partner KYC Exec<br/>• Verification Officer"]:::execBox
+        E5["Quality Auditors<br/>• Vet Prescription Auditor<br/>• Service Standards Auditor"]:::execBox
+
+        TL1 -->|Direct Task Assignment| E1
+        TL2 -->|Direct Task Assignment| E2
+        TL3 -->|Direct Task Assignment| E3
+        D4 -->|Direct Task Assignment| E4
+        D6 -->|Direct Task Assignment| E5
+    end
+
+    subgraph L5["LEVEL 5: TASK WORKFLOW, ESCALATIONS & AUDIT ENGINE"]
+        TW["🔄 COLLABORATIVE TASK WORKFLOW ENGINE<br/>State Progression: Pending ➔ In Progress ➔ Under Review ➔ Completed<br/>(Can Reopen with Mandatory Justification & Manager Review)"]:::taskBox
+        AU["📜 COMPREHENSIVE AUDIT LOG & NOTIFICATIONS<br/>• Real-time WebSocket/Polling Dispatch: crm_notifications.json<br/>• Immutable Audit Record with User, Action, Timestamp: crm_audit_logs.json"]:::auditBox
+
+        E1 <-->|Updates Task Status & Notes| TW
+        E2 <-->|Updates Task Status & Notes| TW
+        E3 <-->|Updates Task Status & Notes| TW
+        E4 <-->|Updates Task Status & Notes| TW
+        E5 <-->|Updates Task Status & Notes| TW
+
+        TW -->|Auto-Logs Every Status Shift| AU
+        AU -->|Feeds Live Dashboards & Alerts| SA
+        AU -->|Feeds Live Dashboards & Alerts| CO
+    end
+
+    subgraph L6["LEVEL 6: THE END STAKEHOLDERS (CUSTOMERS & PROVIDERS)"]
+        END_CUST["🐾 PET PARENTS & CUSTOMERS<br/>• Receives Fast Ticket Resolutions & Live Updates<br/>• Confirmed Pet Care Appointments (Vet, Grooming, Hostel)<br/>• Fast Doctor Prescription Verification for Medicines<br/>• Instant Online Refund Resolution & Order Fulfillment"]:::endUserBox
+
+        END_PROV["🏢 SERVICE PROVIDERS & PET BREEDERS<br/>• Verified Partner Trust Badge on Storefront<br/>• Direct Bank Transfer Payouts (NEFT/IMPS/UPI with UTR)<br/>• Smooth Service Booking Schedule without Clashes<br/>• Validated Stud & Pet Classified Listings"]:::endUserBox
+
+        E1 -->|Delivers Resolution & CSAT Survey| END_CUST
+        E2 -->|Dispatches Bookings & Schedules| END_PROV
+        E2 -->|Sends Booking Confirmations| END_CUST
+        E3 -->|Disburses Approved Bank Payouts| END_PROV
+        E3 -->|Issues Refunds to Original Payment Method| END_CUST
+        E4 -->|Issues Verified Seller/Breeder Badge| END_PROV
+        E5 -->|Approves Prescription for Rx Medicine Delivery| END_CUST
+    end
+
+    </div>
+  </div>
+
+  <div class="download-bar">
+    <a href="crm_flow_diagram.png" download="JoshPetsHub_CRM_Structure_Flow.png" class="btn">📥 Download High-Res PNG</a>
+    <a href="crm_flow_diagram.svg" download="JoshPetsHub_CRM_Structure_Flow.svg" class="btn">📥 Download Vector SVG</a>
+    <a href="index.html" class="btn">🔙 All Architecture Diagrams</a>
+  </div>
+
+  <script>
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: 'dark',
+      themeVariables: {
+        darkMode: true,
+        background: '#0F231B',
+        primaryColor: '#1D3B2E',
+        primaryTextColor: '#FAFBF9',
+        primaryBorderColor: '#34D399',
+        lineColor: '#6EE7B7',
+        secondaryColor: '#1E293B',
+        tertiaryColor: '#1E1B4B'
+      },
+      flowchart: {
+        useMaxWidth: false,
+        htmlLabels: true,
+        curve: 'basis'
+      }
+    });
+  </script>
+</body>
+</html>

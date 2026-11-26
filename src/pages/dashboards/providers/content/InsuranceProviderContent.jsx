@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { 
-  ShieldCheck, FileText, AlertCircle, CheckCircle, DollarSign, Clock, 
+  ShieldCheck, FileText, AlertCircle, CheckCircle, IndianRupee, Clock, 
   Plus, Search, X, ChevronRight, Download, Printer, Eye, Phone, Mail, 
   MessageSquare, Send, Check, Trash2, Edit3, ExternalLink, Building,
   Stethoscope, Filter, ArrowUpRight, Lock, Award, Heart, RefreshCw,
@@ -803,7 +803,7 @@ const InsuranceProviderContent = ({
               <span className="p-2 bg-emerald-100 text-emerald-800 rounded-xl">
                 <ShieldCheck size={20} />
               </span>
-              <h2 className="text-2xl font-sans font-black text-[#0F2E23]">Policy Registry & Underwriting</h2>
+              <h2 className="text-2xl font-sans font-black text-[#0F2E23] tracking-tight lining-nums tabular-nums">Policy Registry & Underwriting</h2>
             </div>
             <p className="text-sm text-slate-500 mt-1">
               Issue, renew, and manage active IRDAI compliant pet healthcare and liability policies.
@@ -1266,7 +1266,7 @@ const InsuranceProviderContent = ({
               <span className="p-2 bg-amber-100 text-amber-800 rounded-xl">
                 <AlertCircle size={20} />
               </span>
-              <h2 className="text-2xl font-sans font-black text-[#0F2E23]">Claims Adjudication Desk</h2>
+              <h2 className="text-2xl font-sans font-black text-[#0F2E23] tracking-tight lining-nums tabular-nums">Claims Adjudication Desk</h2>
             </div>
             <p className="text-sm text-slate-500 mt-1">
               Review veterinary hospital claims, verify cashless authorizations, and process instant settlements.
@@ -1719,7 +1719,7 @@ const InsuranceProviderContent = ({
             <span className="p-2 bg-emerald-100 text-emerald-800 rounded-xl">
               <MessageSquare size={20} />
             </span>
-            <h2 className="text-2xl font-sans font-black text-[#0F2E23]">Policyholder Inquiries & Support</h2>
+            <h2 className="text-2xl font-sans font-black text-[#0F2E23] tracking-tight lining-nums tabular-nums">Policyholder Inquiries & Support</h2>
           </div>
           <p className="text-sm text-slate-500 mt-1">
             Answer questions regarding cashless clinic networks, pre-existing waiting periods, and policy endorsements.

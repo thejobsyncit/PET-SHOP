@@ -1,0 +1,58 @@
+[
+  {
+    "id": "dept_crm_ops",
+    "department_name": "CRM Operations & Administration",
+    "department_code": "CRM_OPS",
+    "description": "Central command, customer/provider onboarding oversight, and system coordination.",
+    "head_role_id": "crm_role_admin",
+    "status": "Active"
+  },
+  {
+    "id": "dept_support",
+    "department_name": "Customer Support",
+    "department_code": "CUST_SUPP",
+    "description": "Customer service grievances, support tickets, booking assistance, and refund reviews.",
+    "head_role_id": "crm_role_customer_support",
+    "status": "Active"
+  },
+  {
+    "id": "dept_service_ops",
+    "department_name": "Service Operations",
+    "department_code": "SERV_OPS",
+    "description": "Fulfillment, scheduling, and quality assurance for pet care bookings.",
+    "head_role_id": "crm_role_service_ops",
+    "status": "Active"
+  },
+  {
+    "id": "dept_finance",
+    "department_name": "Finance & Accounts",
+    "department_code": "FIN_ACC",
+    "description": "Revenue reconciliation, gateway settlement, provider payouts, and refunds.",
+    "head_role_id": "crm_role_finance",
+    "status": "Active"
+  },
+  {
+    "id": "dept_providers",
+    "department_name": "Provider Relations",
+    "department_code": "PROV_REL",
+    "description": "Service partner onboarding, KYC document verification, and subscriptions.",
+    "head_role_id": "crm_role_provider_relations",
+    "status": "Active"
+  },
+  {
+    "id": "dept_marketing",
+    "department_name": "Marketing & Growth",
+    "department_code": "MKTG_GRW",
+    "description": "Campaign creation, promotional coupons, lead management, and growth analytics.",
+    "head_role_id": "crm_role_marketing",
+    "status": "Active"
+  },
+  {
+    "id": "dept_quality",
+    "department_name": "Quality & Compliance",
+    "department_code": "QUAL_CMP",
+    "description": "Service audits, prescription approvals, vendor compliance, and safety standards.",
+    "head_role_id": "crm_role_quality_compliance",
+    "status": "Active"
+  }
+]

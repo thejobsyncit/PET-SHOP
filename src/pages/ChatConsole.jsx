@@ -6,13 +6,34 @@ import { apiRequest } from '../services/api.js';
 import { getPetListingById } from '../data/classifiedsData.js';
 import toast from 'react-hot-toast';
 
-// Safe LocalStorage helpers for chat persistence across page refreshes and sessions
-const getChatStorageKey = (userId, contactId) => `joshpetshub_chat_msgs_${userId || 'usr'}_${contactId || 'unknown'}`;
+// Helper to clean contact/seller IDs from accidental stringified JSON or dirty formats
+const cleanContactId = (val) => {
+  if (!val) return '';
+  if (typeof val === 'object') {
+    return (val._id || val.id || '').toString();
+  }
+  let str = String(val).trim();
+  if (str.startsWith('{') && str.endsWith('}')) {
+    try {
+      const parsed = JSON.parse(str);
+      return (parsed._id || parsed.id || str).toString();
+    } catch (_) {}
+  }
+  return str;
+};
 
-const getStoredLocalMessages = (userId, contactId) => {
+// Safe LocalStorage helpers for chat persistence across page refreshes and sessions
+const getChatStorageKey = (userId, contactId, listingId) => {
+  const cleanId = cleanContactId(contactId);
+  return listingId 
+    ? `joshpetshub_chat_msgs_${userId || 'usr'}_${cleanId || 'unknown'}_${listingId}`
+    : `joshpetshub_chat_msgs_${userId || 'usr'}_${cleanId || 'unknown'}`;
+};
+
+const getStoredLocalMessages = (userId, contactId, listingId) => {
   if (!contactId) return [];
   try {
-    const raw = localStorage.getItem(getChatStorageKey(userId, contactId));
+    const raw = localStorage.getItem(getChatStorageKey(userId, contactId, listingId));
     if (raw) {
       const parsed = JSON.parse(raw);
       if (Array.isArray(parsed)) return parsed;
@@ -21,10 +42,10 @@ const getStoredLocalMessages = (userId, contactId) => {
   return [];
 };
 
-const saveStoredLocalMessages = (userId, contactId, messages) => {
+const saveStoredLocalMessages = (userId, contactId, listingId, messages) => {
   if (!contactId || !Array.isArray(messages)) return;
   try {
-    localStorage.setItem(getChatStorageKey(userId, contactId), JSON.stringify(messages.slice(-200)));
+    localStorage.setItem(getChatStorageKey(userId, contactId, listingId), JSON.stringify(messages.slice(-200)));
   } catch (_) {}
 };
 
@@ -76,14 +97,14 @@ const ChatConsole = () => {
   const initialMeta = getPersistedChatMeta();
 
   // Resolve initial active contact from state, search params, or persistent cache
-  const initialContactId = (
+  const initialContactId = cleanContactId(
     location.state?.recipientId ||
     contactParam ||
     initialMeta?.recipientId ||
     initialMeta?.id ||
     initialMeta?._id ||
     ''
-  ).toString();
+  );
 
   const initialListingId = location.state?.listingId || listingParam || initialMeta?.listingId || initialMeta?.listing?.id;
   const initialResolvedListing = resolvePetListing(initialListingId, {
@@ -93,6 +114,8 @@ const ChatConsole = () => {
     price: location.state?.listingPrice || initialMeta?.listingPrice || initialMeta?.listing?.price,
     breed: location.state?.listingBreed || initialMeta?.listingBreed || initialMeta?.listing?.breed
   });
+
+  const [filterToProductOnly, setFilterToProductOnly] = useState(Boolean(initialListingId || listingParam));
 
   const [activeContact, setActiveContact] = useState(() => {
     if (!initialContactId) return null;
@@ -109,7 +132,7 @@ const ChatConsole = () => {
 
   const [messages, setMessages] = useState(() => {
     if (initialContactId) {
-      return getStoredLocalMessages(currentUserId, initialContactId);
+      return getStoredLocalMessages(currentUserId, initialContactId, initialListingId || listingParam);
     }
     return [];
   });
@@ -185,8 +208,8 @@ const ChatConsole = () => {
 
   // Handle incoming redirect state (e.g. clicking CHAT on a pet classified card)
   useEffect(() => {
-    if (location.state && location.state.recipientId) {
-      const recipientId = (location.state.recipientId || '').toString();
+    if (location.state && (location.state.recipientId || location.state.listingId)) {
+      const recipientId = cleanContactId(location.state.recipientId);
       const ownerName = location.state.ownerName || 'Breeder / Seller';
 
       const listing = {
@@ -197,45 +220,60 @@ const ChatConsole = () => {
         breed: location.state.listingBreed
       };
 
-      if (listing.title) {
+      if (listing.title || listing.id) {
         setListingContext(listing);
+        setFilterToProductOnly(true);
       }
 
-      const contact = {
-        _id: recipientId,
-        id: recipientId,
-        name: ownerName,
-        email: location.state.ownerEmail || '',
-        listingTitle: listing.title || null
-      };
+      if (recipientId) {
+        const contact = {
+          _id: recipientId,
+          id: recipientId,
+          name: ownerName,
+          email: location.state.ownerEmail || '',
+          listingTitle: listing.title || null
+        };
 
-      setActiveContact(contact);
-      setShowMobileChat(true);
+        setActiveContact(contact);
+        setShowMobileChat(true);
 
-      setRooms((prev) => {
-        const exists = prev.some((r) => (r._id || r.id).toString() === recipientId);
-        if (!exists) {
-          return [contact, ...prev];
-        }
-        return prev;
-      });
+        setRooms((prev) => {
+          const exists = prev.some((r) => cleanContactId(r._id || r.id) === recipientId);
+          if (!exists) {
+            return [contact, ...prev];
+          }
+          return prev;
+        });
 
-      loadMessages(recipientId);
+        loadMessages(recipientId, listing.id);
+      }
     }
   }, [location.state]);
 
   // Load conversation messages whenever activeContact changes
   useEffect(() => {
     if (activeContact) {
-      const cId = (activeContact._id || activeContact.id).toString();
+      const cId = cleanContactId(activeContact._id || activeContact.id);
       loadMessages(cId);
     }
   }, [activeContact?._id, activeContact?.id]);
 
+  // Re-fetch rooms and messages whenever filter toggle changes
+  useEffect(() => {
+    if (activeContact) {
+      const cId = cleanContactId(activeContact._id || activeContact.id);
+      loadMessages(cId);
+    }
+    loadRooms();
+  }, [filterToProductOnly]);
+
   const loadRooms = async () => {
     setLoadingRooms(true);
     try {
-      const data = await apiRequest('/chats/rooms');
+      const activeListingId = filterToProductOnly ? (listingContext?.id || initialListingId || listingParam || '').toString() : '';
+      const activeTitle = filterToProductOnly ? (listingContext?.title || location.state?.listingTitle || '').toString() : '';
+      const endpoint = activeListingId ? `/chats/rooms?listing=${encodeURIComponent(activeListingId)}` : '/chats/rooms';
+      const data = await apiRequest(endpoint);
       const serverRooms = data && data.success && Array.isArray(data.rooms) ? data.rooms : [];
 
       setRooms((prev) => {
@@ -243,20 +281,44 @@ const ChatConsole = () => {
 
         // 1. Keep active contact first
         if (activeContactRef.current) {
-          const actId = (activeContactRef.current._id || activeContactRef.current.id).toString();
-          roomMap.set(actId, activeContactRef.current);
+          const actId = cleanContactId(activeContactRef.current._id || activeContactRef.current.id);
+          const actKey = activeListingId ? `${actId}_${activeListingId}` : actId;
+          roomMap.set(actKey, { ...activeContactRef.current, _id: actId, id: actId });
         }
 
-        // 2. Add server rooms
+        // 2. Add server rooms (strictly isolating if product chat is active)
         serverRooms.forEach((r) => {
-          const rId = (r._id || r.id).toString();
-          roomMap.set(rId, r);
+          const rId = cleanContactId(r._id || r.id);
+          const rListingId = (r.listingRef || r.listingId || '').toString();
+
+          if (activeListingId) {
+            const matchesId = rListingId && rListingId === activeListingId;
+            const matchesTitle = r.listingTitle && activeTitle && r.listingTitle.toLowerCase().trim() === activeTitle.toLowerCase().trim();
+            if (!matchesId && !matchesTitle) {
+              // Exclude rooms belonging to other products
+              return;
+            }
+          }
+
+          const rKey = activeListingId ? `${rId}_${activeListingId}` : (rListingId ? `${rId}_${rListingId}` : rId);
+          roomMap.set(rKey, { ...r, _id: rId, id: rId });
         });
 
-        // 3. Keep previous client rooms
+        // 3. Keep previous client rooms only if they match the product filter
         prev.forEach((p) => {
-          const pId = (p._id || p.id).toString();
-          if (!roomMap.has(pId)) roomMap.set(pId, p);
+          const pId = cleanContactId(p._id || p.id);
+          const pListingId = (p.listingRef || p.listingId || '').toString();
+
+          if (activeListingId) {
+            const matchesId = pListingId && pListingId === activeListingId;
+            const matchesTitle = p.listingTitle && activeTitle && p.listingTitle.toLowerCase().trim() === activeTitle.toLowerCase().trim();
+            if (!matchesId && !matchesTitle) {
+              return;
+            }
+          }
+
+          const pKey = activeListingId ? `${pId}_${activeListingId}` : (pListingId ? `${pId}_${pListingId}` : pId);
+          if (!roomMap.has(pKey)) roomMap.set(pKey, { ...p, _id: pId, id: pId });
         });
 
         return Array.from(roomMap.values());
@@ -277,12 +339,16 @@ const ChatConsole = () => {
     }
   };
 
-  const loadMessages = async (contactId) => {
+  const loadMessages = async (contactId, customListingId) => {
     if (!contactId) return;
-    const cid = contactId.toString();
+    const cid = cleanContactId(contactId);
+    const activeListingId = customListingId !== undefined
+      ? (customListingId || '').toString()
+      : (filterToProductOnly ? (listingContext?.id || initialListingId || listingParam || '').toString() : '');
+    const activeTitle = filterToProductOnly ? (listingContext?.title || location.state?.listingTitle || '').toString() : '';
 
     // 1. Immediately hydrate from local storage cache so chat box is NEVER empty!
-    const localCached = getStoredLocalMessages(currentUserId, cid);
+    const localCached = getStoredLocalMessages(currentUserId, cid, activeListingId);
     if (localCached.length > 0) {
       setMessages(localCached);
       scrollToBottom();
@@ -291,12 +357,26 @@ const ChatConsole = () => {
     setLoadingMessages(localCached.length === 0);
 
     try {
-      const data = await apiRequest(`/chats/messages/${cid}`);
+      const endpoint = activeListingId
+        ? `/chats/messages/${cid}?listing=${encodeURIComponent(activeListingId)}`
+        : `/chats/messages/${cid}`;
+      const data = await apiRequest(endpoint);
       if (data && data.success && Array.isArray(data.messages)) {
         const seenIds = new Set();
         const merged = [];
 
         data.messages.forEach((m) => {
+          // If product filter is active, exclude messages belonging to other products
+          if (activeListingId) {
+            const mRef = (m.listingRef || m.listingId || '').toString();
+            const mTitle = (m.listingTitle || '').trim().toLowerCase();
+            const matchesId = mRef && mRef === activeListingId;
+            const matchesTitle = mTitle && activeTitle && mTitle === activeTitle.toLowerCase().trim();
+            if (!matchesId && !matchesTitle) {
+              return;
+            }
+          }
+
           const mId = m._id || m.id;
           if (mId) seenIds.add(mId.toString());
           merged.push(m);
@@ -318,7 +398,7 @@ const ChatConsole = () => {
 
         merged.sort((a, b) => new Date(a.createdAt || 0) - new Date(b.createdAt || 0));
         setMessages(merged);
-        saveStoredLocalMessages(currentUserId, cid, merged);
+        saveStoredLocalMessages(currentUserId, cid, activeListingId, merged);
         scrollToBottom();
       }
     } catch (err) {
@@ -332,7 +412,20 @@ const ChatConsole = () => {
     setActiveContact(contact);
     setShowMobileChat(true);
 
-    const contactId = (contact._id || contact.id).toString();
+    const contactId = cleanContactId(contact._id || contact.id);
+    const contactListingId = contact.listingRef || contact.listingId;
+    const resolvedListing = resolvePetListing(contactListingId, {
+      id: contactListingId,
+      title: contact.listingTitle || listingContext?.title,
+      image: contact.listingImage || listingContext?.image,
+      price: listingContext?.price,
+      breed: listingContext?.breed
+    });
+
+    if (resolvedListing && resolvedListing.title) {
+      setListingContext(resolvedListing);
+    }
+
     try {
       const toSave = {
         recipientId: contactId,
@@ -342,32 +435,37 @@ const ChatConsole = () => {
         name: contact.name,
         ownerEmail: contact.email,
         email: contact.email,
-        listingTitle: contact.listingTitle || listingContext?.title,
-        listingImage: listingContext?.image,
-        listingPrice: listingContext?.price,
-        listingBreed: listingContext?.breed
+        listingId: resolvedListing?.id || contactListingId || listingContext?.id,
+        listingTitle: resolvedListing?.title || contact.listingTitle || listingContext?.title,
+        listingImage: resolvedListing?.image || contact.listingImage || listingContext?.image,
+        listingPrice: resolvedListing?.price || listingContext?.price,
+        listingBreed: resolvedListing?.breed || listingContext?.breed
       };
       sessionStorage.setItem('joshpetshub_active_chat', JSON.stringify(toSave));
       localStorage.setItem('joshpetshub_last_active_chat', JSON.stringify(toSave));
-      setSearchParams({ contact: contactId }, { replace: true });
+      const nextParams = { contact: contactId };
+      if (toSave.listingId) nextParams.listing = toSave.listingId;
+      setSearchParams(nextParams, { replace: true });
     } catch (_) {}
 
-    loadMessages(contactId);
+    loadMessages(contactId, resolvedListing?.id || contactListingId);
   };
 
   const handleSendMessage = async (e) => {
     if (e) e.preventDefault();
     if (!newMessage.trim() || !activeContact) return;
 
-    const contactId = (activeContact._id || activeContact.id).toString();
+    const contactId = cleanContactId(activeContact._id || activeContact.id);
     const currentUserName = user?.name || 'Pet Parent';
     const textToSend = newMessage.trim();
+    const activeListingId = (listingContext?.id || initialListingId || listingParam || '').toString();
 
     const payload = {
       recipientId: contactId,
       recipientName: activeContact.name,
       messageText: textToSend,
-      listingId: listingContext?.id || location.state?.listingId || undefined,
+      listingId: activeListingId || undefined,
+      listingRef: activeListingId || undefined,
       listingTitle: listingContext?.title || location.state?.listingTitle || undefined,
       listingImage: listingContext?.image || location.state?.listingImage || undefined
     };
@@ -386,6 +484,8 @@ const ChatConsole = () => {
         name: activeContact.name
       },
       messageText: textToSend,
+      listingRef: payload.listingRef,
+      listingId: payload.listingId,
       listingTitle: payload.listingTitle,
       listingImage: payload.listingImage,
       createdAt: new Date().toISOString()
@@ -394,7 +494,7 @@ const ChatConsole = () => {
     // 1. Immediately store and display
     setMessages((prev) => {
       const updated = [...prev, optimisticMsg];
-      saveStoredLocalMessages(currentUserId, contactId, updated);
+      saveStoredLocalMessages(currentUserId, contactId, activeListingId, updated);
       return updated;
     });
     setNewMessage('');
@@ -413,11 +513,11 @@ const ChatConsole = () => {
         if (saved && saved._id) {
           setMessages((prev) => {
             const replaced = prev.map((m) => (m._id === optimisticMsg._id ? saved : m));
-            saveStoredLocalMessages(currentUserId, contactId, replaced);
+            saveStoredLocalMessages(currentUserId, contactId, activeListingId, replaced);
             return replaced;
           });
         }
-        loadRoomsWithoutReset();
+        loadRooms();
       }
     } catch (err) {
       console.warn('Backend message save note: message safely persisted in local session:', err.message);
@@ -494,9 +594,40 @@ const ChatConsole = () => {
         
         {/* SIDEBAR: CONTACT ROOMS (Left 4 columns) */}
         <aside className={`md:col-span-4 border-r border-beige flex flex-col h-full min-h-0 overflow-hidden bg-white ${showMobileChat ? 'hidden md:flex' : 'flex'}`}>
-          <div className="shrink-0 bg-[#FAF9F5] p-4 border-b border-beige text-xs font-bold text-primary uppercase tracking-wider flex justify-between items-center">
-            <span>Active Chats</span>
-            <span className="text-[10px] bg-primary/10 text-primary px-2 py-0.5 rounded-full font-bold">{rooms.length}</span>
+          <div className="shrink-0 bg-[#FAF9F5] p-3.5 sm:p-4 border-b border-beige text-xs font-bold text-primary">
+            <div className="flex justify-between items-center">
+              <span className="uppercase tracking-wider">Active Chats</span>
+              <span className="text-[10px] bg-primary/10 text-primary px-2 py-0.5 rounded-full font-bold">{rooms.length}</span>
+            </div>
+
+            {(listingContext?.title || initialResolvedListing?.title || listingParam) && (
+              <div className="flex items-center gap-1.5 mt-2.5 pt-2 border-t border-beige/60">
+                <button
+                  type="button"
+                  onClick={() => setFilterToProductOnly(true)}
+                  className={`px-2.5 py-1 rounded-full text-[10px] font-bold transition cursor-pointer ${
+                    filterToProductOnly
+                      ? 'bg-primary text-white shadow-xs'
+                      : 'bg-white border border-beige text-gray-600 hover:bg-beige/40'
+                  }`}
+                  title="Show only chats associated with the current pet/product"
+                >
+                  🐾 This Pet Only
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setFilterToProductOnly(false)}
+                  className={`px-2.5 py-1 rounded-full text-[10px] font-bold transition cursor-pointer ${
+                    !filterToProductOnly
+                      ? 'bg-primary text-white shadow-xs'
+                      : 'bg-white border border-beige text-gray-600 hover:bg-beige/40'
+                  }`}
+                  title="Show chats across all listings and inquiries"
+                >
+                  All Chats
+                </button>
+              </div>
+            )}
           </div>
 
           <div className="flex-1 min-h-0 overflow-y-auto divide-y divide-beige">
@@ -509,7 +640,7 @@ const ChatConsole = () => {
 
                 return (
                   <button
-                    key={contactId || contact.name}
+                    key={contact.roomKey || contactId || contact.name}
                     onClick={() => handleSelectContact(contact)}
                     className={`w-full text-left p-3.5 sm:p-4 text-xs transition flex items-center gap-3 cursor-pointer ${
                       isActive 
@@ -530,8 +661,13 @@ const ChatConsole = () => {
                         )}
                       </div>
                       <p className="text-[11px] text-gray-500 truncate mt-0.5">
-                        {contact.lastMessage || contact.listingTitle || 'Click to view correspondence'}
+                        {contact.lastMessage || 'Click to view correspondence'}
                       </p>
+                      {contact.listingTitle && (
+                        <span className="inline-block text-[9px] bg-primary/10 text-primary px-1.5 py-0.5 rounded font-semibold truncate max-w-full mt-1">
+                          🐾 {contact.listingTitle}
+                        </span>
+                      )}
                     </div>
                   </button>
                 );

@@ -1,5 +1,34 @@
 [
   {
+    "id": "NOTIF-1795690440935-312",
+    "recipientType": "PROVIDER",
+    "recipientId": "prov-prod-11",
+    "title": "Payout Request Submitted",
+    "message": "Your withdrawal request for ₹5,000 has been submitted for Super Admin review. Ref: PO-REQ-440909",
+    "type": "payout",
+    "read": false,
+    "createdAt": "2026-11-26T10:54:00.935Z",
+    "metadata": {
+      "payoutId": "PO-REQ-440909",
+      "amount": 5000
+    }
+  },
+  {
+    "id": "NOTIF-1795690440932-511",
+    "recipientType": "ADMIN",
+    "recipientId": "all",
+    "title": "New Payout Request",
+    "message": "Josh Pet Store & Supplies requested a payout of ₹5,000 for Pet Products & Supplies",
+    "type": "payout",
+    "read": false,
+    "createdAt": "2026-11-26T10:54:00.932Z",
+    "metadata": {
+      "payoutId": "PO-REQ-440909",
+      "amount": 5000,
+      "providerId": "prov-prod-11"
+    }
+  },
+  {
     "id": "NOTIF-1794281357969-316",
     "recipientType": "PROVIDER",
     "recipientId": "prov-walk-06",

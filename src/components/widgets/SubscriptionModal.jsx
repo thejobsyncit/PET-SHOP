@@ -21,6 +21,7 @@ import {
 import toast from 'react-hot-toast';
 import { apiRequest } from '../../services/api.js';
 import { verifySubscriptionPayment } from '../../store/slices/authSlice.js';
+import { getStoredProviderPlans, fetchSubscriptionPlans } from '../../services/subscriptionPlanService.js';
 
 export const PLANS = [
   {
@@ -205,6 +206,28 @@ export default function SubscriptionModal({
   const { user } = useSelector((state) => state.auth);
 
   // Active Subscription & Plan Check
+  const [plansList, setPlansList] = useState(() => getStoredProviderPlans());
+
+  useEffect(() => {
+    fetchSubscriptionPlans().then((data) => {
+      if (data?.serviceProviders) {
+        setPlansList(data.serviceProviders.filter(p => p.active !== false));
+      }
+    });
+  }, []);
+
+  useEffect(() => {
+    const handlePlansUpdate = (e) => {
+      if (e?.detail?.serviceProviders) {
+        setPlansList(e.detail.serviceProviders.filter(p => p.active !== false));
+      } else {
+        setPlansList(getStoredProviderPlans().filter(p => p.active !== false));
+      }
+    };
+    window.addEventListener('subscription-plans-updated', handlePlansUpdate);
+    return () => window.removeEventListener('subscription-plans-updated', handlePlansUpdate);
+  }, []);
+
   const activeSub = currentSubscription || user?.subscription;
   const now = new Date();
   const expiryDate = activeSub?.expiryDate ? new Date(activeSub.expiryDate) : null;
@@ -218,7 +241,7 @@ export default function SubscriptionModal({
 
   // Locate current plan object
   const currentPlan = isSubscriptionActive
-    ? (PLANS.find((p) => p.id === activePlanId) || {
+    ? (plansList.find((p) => p.id === activePlanId) || {
         id: activePlanId || 'yearly',
         name: activeSub?.planName || (activePlanId ? `${activePlanId.toUpperCase()} Plan` : 'Current Plan'),
         basePrice: activeSub?.basePrice || (activePlanId === 'yearly' ? 999 : activePlanId === 'quarterly' ? 499 : 199),
@@ -250,7 +273,7 @@ export default function SubscriptionModal({
   // For ₹499 plan user -> only ₹999 Yearly Plan (lesser ₹199 Monthly Plan is NEVER included)
   // For ₹999 plan user -> empty (already on top tier)
   const upgradePlans = isSubscriptionActive
-    ? PLANS.filter((p) => p.basePrice > currentBasePrice)
+    ? plansList.filter((p) => p.basePrice > currentBasePrice)
     : [];
 
   const hasUpgradeOptions = upgradePlans.length > 0;
@@ -288,13 +311,13 @@ export default function SubscriptionModal({
 
   // Determine displayed plans based on active mode
   const displayedPlans = useMemo(() => {
-    if (!isSubscriptionActive) return PLANS;
+    if (!isSubscriptionActive) return plansList;
     if (activeTab === 'status' || activeTab === 'renew') {
-      return currentPlan ? [currentPlan] : [PLANS[PLANS.length - 1]];
+      return currentPlan ? [currentPlan] : [plansList[plansList.length - 1]];
     }
     // Upgrade tab: ONLY higher-tier plans
     return upgradePlans;
-  }, [isSubscriptionActive, activeTab, currentPlan, upgradePlans]);
+  }, [isSubscriptionActive, activeTab, currentPlan, upgradePlans, plansList]);
 
   const [selectedPlanId, setSelectedPlanId] = useState(() => {
     return displayedPlans[0]?.id || 'yearly';
@@ -312,7 +335,7 @@ export default function SubscriptionModal({
 
   if (!isOpen) return null;
 
-  const selectedPlan = displayedPlans.find((p) => p.id === selectedPlanId) || displayedPlans[0] || PLANS[0];
+  const selectedPlan = displayedPlans.find((p) => p.id === selectedPlanId) || displayedPlans[0] || plansList[0];
   const gstAmount = Math.round(selectedPlan.basePrice * GST_RATE * 100) / 100;
   const totalAmount = Math.round((selectedPlan.basePrice + gstAmount) * 100) / 100;
 

@@ -33,6 +33,12 @@ const ProviderRelationsView = ({ crmToken }) => {
 
   useEffect(() => {
     loadProviders();
+
+    const handleSync = () => {
+      loadProviders();
+    };
+    window.addEventListener('service-provider-updated', handleSync);
+    return () => window.removeEventListener('service-provider-updated', handleSync);
   }, [crmToken]);
 
   const handleUpdateStatus = async (providerId, newStatus) => {
@@ -48,9 +54,40 @@ const ProviderRelationsView = ({ crmToken }) => {
       });
       if (res?.success) {
         toast.success(`Provider status updated to ${newStatus}`);
-        setProviders(prev => prev.map(p => p.id === providerId ? { ...p, verificationStatus: newStatus } : p));
+        setProviders(prev => prev.map(p => (p.id === providerId || p._id === providerId) ? {
+          ...p,
+          verificationStatus: newStatus,
+          verification_status: newStatus,
+          isVerified: newStatus === 'Verified'
+        } : p));
         setSelectedProvider(null);
         setKycRemarks('');
+
+        // Keep local storage & provider dashboard in sync
+        try {
+          const storedUser = JSON.parse(localStorage.getItem('joshpetshub_user') || 'null');
+          if (storedUser && (storedUser.id === providerId || storedUser._id === providerId)) {
+            storedUser.verificationStatus = newStatus;
+            storedUser.verification_status = newStatus;
+            storedUser.isVerified = (newStatus === 'Verified');
+            localStorage.setItem('joshpetshub_user', JSON.stringify(storedUser));
+          }
+
+          const regUsers = JSON.parse(localStorage.getItem('joshpetshub_registered_users') || '[]');
+          if (Array.isArray(regUsers)) {
+            const updatedReg = regUsers.map(u => (u.id === providerId || u._id === providerId) ? {
+              ...u,
+              verificationStatus: newStatus,
+              verification_status: newStatus,
+              isVerified: (newStatus === 'Verified')
+            } : u);
+            localStorage.setItem('joshpetshub_registered_users', JSON.stringify(updatedReg));
+          }
+
+          window.dispatchEvent(new CustomEvent('service-provider-updated', {
+            detail: { id: providerId, verificationStatus: newStatus, isVerified: newStatus === 'Verified' }
+          }));
+        } catch (_) {}
       }
     } catch (err) {
       toast.error('Failed to update provider status');

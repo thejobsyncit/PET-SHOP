@@ -6,7 +6,7 @@ import {
   TrendingUp, DollarSign, CheckCircle2, AlertTriangle, AlertCircle,
   Truck, ArrowUpRight, Sparkles, Star, X, Check,
   Store, ExternalLink, ShieldCheck, MapPin, CheckCircle, Settings, Wallet,
-  UploadCloud, Upload, Image as ImageIcon
+  UploadCloud, Upload, Image as ImageIcon, Download, RefreshCw, SlidersHorizontal, FileSpreadsheet
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import ProviderProfileSection from '../../../components/dashboards/ProviderProfileSection.jsx';
@@ -193,12 +193,24 @@ const ProductSellerDashboard = ({
   currentProvider, 
   onOpenSubscriptionModal,
   onOpenPlanDetails,
-  subscription
+  subscription,
+  isVerified: propIsVerified
 }) => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const [searchParams, setSearchParams] = useSearchParams();
   const { user } = useSelector((state) => state.auth);
+
+  const isVerified = Boolean(
+    propIsVerified ||
+    user?.role === 'ADMIN' ||
+    user?.role === 'SUPERADMIN' ||
+    user?.verificationStatus === 'Verified' ||
+    user?.verification_status === 'Verified' ||
+    user?.isVerified === true ||
+    currentProvider?.isVerified === true ||
+    currentProvider?.verificationStatus === 'Verified'
+  );
 
   const activeTabParam = searchParams.get('tab') || safeGetItem('productSellerDashboardTab') || 'profile';
   const [activeTab, setActiveTab] = useState(activeTabParam);
@@ -275,6 +287,33 @@ const ProductSellerDashboard = ({
   const [selectedPetDept, setSelectedPetDept] = useState('all');
   const [selectedCategoryFilter, setSelectedCategoryFilter] = useState('all');
   const [stockStatusFilter, setStockStatusFilter] = useState('all'); // all, in_stock, low_stock, out_of_stock
+
+  // Low Stock Alert threshold (persisted)
+  const [lowStockThreshold, setLowStockThreshold] = useState(() => {
+    try {
+      const saved = localStorage.getItem('joshpetshub_seller_low_stock_threshold');
+      if (saved) {
+        const val = parseInt(saved, 10);
+        if (!isNaN(val) && val > 0) return val;
+      }
+    } catch {
+      // ignore storage error
+    }
+    return 5;
+  });
+  const [thresholdInput, setThresholdInput] = useState('');
+  const [customRestockAmounts, setCustomRestockAmounts] = useState({});
+
+  const handleUpdateThreshold = (val) => {
+    const num = Math.max(1, parseInt(val, 10) || 5);
+    setLowStockThreshold(num);
+    try {
+      safeSetItem('joshpetshub_seller_low_stock_threshold', String(num));
+    } catch {
+      // ignore error
+    }
+    toast.success(`Low stock alert threshold updated to ${num} units!`);
+  };
 
   // Add / Edit Product Modal state
   const [isProductModalOpen, setIsProductModalOpen] = useState(false);
@@ -359,12 +398,19 @@ const ProductSellerDashboard = ({
   // Calculate KPIs
   const stats = useMemo(() => {
     const total = productsList.length;
-    const inStock = productsList.filter(p => Number(p.stock) > 5).length;
-    const lowStock = productsList.filter(p => Number(p.stock) > 0 && Number(p.stock) <= 5).length;
+    const inStock = productsList.filter(p => Number(p.stock) > lowStockThreshold).length;
+    const lowStock = productsList.filter(p => Number(p.stock) > 0 && Number(p.stock) <= lowStockThreshold).length;
     const outOfStock = productsList.filter(p => Number(p.stock) === 0).length;
     const totalRevenue = orders.reduce((sum, ord) => sum + (ord.total || 0), 0);
     return { total, inStock, lowStock, outOfStock, totalRevenue };
-  }, [productsList, orders]);
+  }, [productsList, orders, lowStockThreshold]);
+
+  // Dedicated Low Stock and Out of Stock products (sorted ascending by stock level)
+  const lowStockProducts = useMemo(() => {
+    return productsList
+      .filter(p => Number(p.stock || 0) <= lowStockThreshold)
+      .sort((a, b) => Number(a.stock || 0) - Number(b.stock || 0));
+  }, [productsList, lowStockThreshold]);
 
   // Filtered Products
   const filteredProducts = useMemo(() => {
@@ -388,16 +434,20 @@ const ProductSellerDashboard = ({
         if (!pCat.includes(selectedCategoryFilter.toLowerCase())) return false;
       }
       // Stock Status filter
-      if (stockStatusFilter === 'in_stock' && Number(p.stock) <= 5) return false;
-      if (stockStatusFilter === 'low_stock' && (Number(p.stock) === 0 || Number(p.stock) > 5)) return false;
+      if (stockStatusFilter === 'in_stock' && Number(p.stock) <= lowStockThreshold) return false;
+      if (stockStatusFilter === 'low_stock' && (Number(p.stock) === 0 || Number(p.stock) > lowStockThreshold)) return false;
       if (stockStatusFilter === 'out_of_stock' && Number(p.stock) > 0) return false;
 
       return true;
     });
-  }, [productsList, searchQuery, selectedPetDept, selectedCategoryFilter, stockStatusFilter]);
+  }, [productsList, searchQuery, selectedPetDept, selectedCategoryFilter, stockStatusFilter, lowStockThreshold]);
 
   // Open modal for Create
   const handleOpenCreateModal = () => {
+    if (!isVerified) {
+      toast.error('Account Verification Pending: SuperAdmin verification is required before you can post products to the shop.', { duration: 4500 });
+      return;
+    }
     setIsEditing(false);
     setEditingId(null);
     setFormName('');
@@ -422,6 +472,10 @@ const ProductSellerDashboard = ({
 
   // Open modal for Edit
   const handleOpenEditModal = (prod) => {
+    if (!isVerified) {
+      toast.error('Account Verification Pending: SuperAdmin verification is required before you can edit or post products.', { duration: 4500 });
+      return;
+    }
     setIsEditing(true);
     setEditingId(prod._id || prod.id);
     setFormName(prod.name || '');
@@ -447,6 +501,11 @@ const ProductSellerDashboard = ({
   // Submit Handler: Post or Update Product
   const handleSubmitProduct = async (e) => {
     e.preventDefault();
+
+    if (!isVerified) {
+      toast.error('Account Verification Pending: SuperAdmin verification is required before you can post products to the shop.');
+      return;
+    }
 
     if (!formName.trim()) {
       toast.error('Please enter product name');
@@ -600,6 +659,77 @@ const ProductSellerDashboard = ({
     setProductsList(updated);
   };
 
+  // Restock specific product with positive quantity
+  const handleRestockProduct = (productId, amount) => {
+    const qty = parseInt(amount, 10);
+    if (isNaN(qty) || qty <= 0) {
+      toast.error('Please enter a valid restock quantity');
+      return;
+    }
+    let targetName = 'Product';
+    const updated = productsList.map(p => {
+      if ((p._id || p.id) === productId) {
+        targetName = p.name || 'Product';
+        const newStock = (Number(p.stock) || 0) + qty;
+        return { ...p, stock: newStock };
+      }
+      return p;
+    });
+    setProductsList(updated);
+    toast.success(`Restocked +${qty} units for "${targetName}"!`);
+  };
+
+  // Bulk restock all low stock / out of stock items
+  const handleBulkRestockAll = (amount = 10) => {
+    const qty = parseInt(amount, 10) || 10;
+    if (lowStockProducts.length === 0) {
+      toast('All products have healthy stock levels!');
+      return;
+    }
+    const updated = productsList.map(p => {
+      const current = Number(p.stock || 0);
+      if (current <= lowStockThreshold) {
+        return { ...p, stock: current + qty };
+      }
+      return p;
+    });
+    setProductsList(updated);
+    toast.success(`Bulk restocked +${qty} units for ${lowStockProducts.length} low-stock items!`);
+  };
+
+  // Export Low Stock Reorder List as CSV
+  const handleExportLowStockCsv = () => {
+    if (lowStockProducts.length === 0) {
+      toast('No low stock products to export. All inventory levels are healthy!');
+      return;
+    }
+    const headers = ['Product Name', 'Brand', 'SKU', 'Pet Department', 'Category', 'Current Stock', 'Stock Status', 'Alert Threshold', 'Suggested Reorder Qty', 'Unit Price (INR)'];
+    const rows = lowStockProducts.map(p => {
+      const stock = Number(p.stock || 0);
+      const status = stock === 0 ? 'OUT OF STOCK' : 'CRITICAL LOW';
+      const suggestedReorder = Math.max(15, (lowStockThreshold * 3) - stock);
+      const cleanName = (p.name || '').replace(/"/g, '""');
+      const cleanBrand = (p.brand || '').replace(/"/g, '""');
+      const cleanSku = (p.sku || 'N/A').replace(/"/g, '""');
+      const dept = (p.petType || p.pet_type || 'General').replace(/"/g, '""');
+      const cat = (p.category || 'Supplies').replace(/"/g, '""');
+      const price = p.discountPrice || p.price || 0;
+      return `"${cleanName}","${cleanBrand}","${cleanSku}","${dept}","${cat}",${stock},"${status}",${lowStockThreshold},${suggestedReorder},${price}`;
+    });
+
+    const csvContent = [headers.join(','), ...rows].join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', `low_stock_reorder_sheet_${new Date().toISOString().slice(0, 10)}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+    toast.success(`Exported ${lowStockProducts.length} low-stock items to CSV!`);
+  };
+
   // Order status update handler
   const handleUpdateOrderStatus = (orderId, newStatus) => {
     const updated = orders.map(ord => {
@@ -623,6 +753,13 @@ const ProductSellerDashboard = ({
   const navItems = [
     { id: 'profile', label: 'Store Profile & Plan', icon: Store },
     { id: 'products', label: 'Products & Inventory', icon: Package, count: productsList.length },
+    { 
+      id: 'low_stock', 
+      label: 'Low Stock Alerts', 
+      icon: AlertTriangle, 
+      count: stats.lowStock + stats.outOfStock,
+      alertBadge: (stats.lowStock + stats.outOfStock) > 0
+    },
     { id: 'orders', label: 'Orders & Shipping', icon: Truck, count: orders.length },
     { id: 'analytics', label: 'Revenue & Sales', icon: TrendingUp },
     { id: 'reviews', label: 'Customer Reviews', icon: Star },
@@ -693,8 +830,10 @@ const ProductSellerDashboard = ({
                       <span className="font-bold text-sm tracking-wide">{item.label}</span>
                     </div>
                     {item.count !== undefined && (
-                      <span className={`text-xs px-2 py-0.5 rounded-full font-bold ${
-                        activeTab === item.id ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-600'
+                      <span className={`text-xs px-2 py-0.5 rounded-full font-bold transition-all ${
+                        item.alertBadge && item.count > 0
+                          ? 'bg-rose-500 text-white font-extrabold shadow-sm ring-2 ring-rose-300'
+                          : activeTab === item.id ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-600'
                       }`}>
                         {item.count}
                       </span>
@@ -755,7 +894,7 @@ const ProductSellerDashboard = ({
                     <Package size={16} />
                   </div>
                 </div>
-                <div className="text-3xl font-sans font-black text-[#0F2E23] mb-1">{stats.total}</div>
+                <div className="text-3xl font-sans font-black text-[#0F2E23] tracking-tight lining-nums tabular-nums mb-1">{stats.total}</div>
                 <div className="text-[10px] text-slate-500 font-black uppercase tracking-wider mt-2">Active in shop</div>
               </div>
 
@@ -767,20 +906,29 @@ const ProductSellerDashboard = ({
                     <CheckCircle2 size={16} />
                   </div>
                 </div>
-                <div className="text-3xl font-sans font-black text-[#0F2E23] mb-1 relative z-10">{stats.inStock}</div>
+                <div className="text-3xl font-sans font-black text-[#0F2E23] tracking-tight lining-nums tabular-nums mb-1 relative z-10">{stats.inStock}</div>
                 <div className="text-[10px] text-emerald-600 font-black uppercase tracking-wider mt-2 relative z-10">Ready to ship</div>
               </div>
 
-              <div className="bg-white border border-slate-200 p-5 rounded-2xl hover:border-amber-500/50 transition duration-300 shadow-sm hover:shadow-md group relative overflow-hidden">
+              <div 
+                onClick={() => handleTabChange('low_stock')}
+                className="bg-white border border-slate-200 p-5 rounded-2xl hover:border-amber-500/70 transition duration-300 shadow-sm hover:shadow-md group relative overflow-hidden cursor-pointer"
+                title="Click to view Low Stock & Reorder Alert Center"
+              >
                 <div className="absolute inset-0 bg-gradient-to-br from-amber-50/50 to-transparent pointer-events-none"></div>
                 <div className="flex justify-between items-center mb-4 relative z-10">
-                  <span className="text-[10px] font-black text-amber-600 uppercase tracking-widest">Low Stock</span>
+                  <span className="text-[10px] font-black text-amber-600 uppercase tracking-widest flex items-center gap-1">
+                    Low Stock
+                    <ArrowUpRight size={12} className="opacity-0 group-hover:opacity-100 transition-opacity" />
+                  </span>
                   <div className="w-8 h-8 rounded-lg bg-amber-50 text-amber-500 flex items-center justify-center group-hover:scale-110 transition duration-300 border border-amber-100">
                     <AlertTriangle size={16} />
                   </div>
                 </div>
-                <div className="text-3xl font-sans font-black text-[#0F2E23] mb-1 relative z-10">{stats.lowStock}</div>
-                <div className="text-[10px] text-amber-600 font-black uppercase tracking-wider mt-2 relative z-10">Reorder needed</div>
+                <div className="text-3xl font-sans font-black text-[#0F2E23] tracking-tight lining-nums tabular-nums mb-1 relative z-10">{stats.lowStock}</div>
+                <div className="text-[10px] text-amber-600 font-black uppercase tracking-wider mt-2 relative z-10">
+                  {stats.outOfStock > 0 ? `+ ${stats.outOfStock} out of stock` : 'Reorder needed'}
+                </div>
               </div>
 
               <div className="bg-white border border-slate-200 p-5 rounded-2xl hover:border-[#ffd000]/50 transition duration-300 shadow-sm hover:shadow-md group relative overflow-hidden">
@@ -791,10 +939,51 @@ const ProductSellerDashboard = ({
                     <DollarSign size={16} />
                   </div>
                 </div>
-                <div className="text-3xl font-sans font-black text-[#0F2E23] mb-1 relative z-10">₹{stats.totalRevenue.toLocaleString()}</div>
+                <div className="text-3xl font-sans font-black text-[#0F2E23] tracking-tight lining-nums tabular-nums mb-1 relative z-10">₹{stats.totalRevenue.toLocaleString()}</div>
                 <div className="text-[10px] text-slate-500 font-black uppercase tracking-wider mt-2 relative z-10">From {orders.length} orders</div>
               </div>
             </div>
+
+            {/* Top Low Stock Alert Banner */}
+            {(stats.lowStock + stats.outOfStock) > 0 && activeTab !== 'low_stock' && (
+              <div className="mb-8 p-4 sm:p-5 rounded-2xl bg-amber-50 border border-amber-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-sm">
+                <div className="flex items-start sm:items-center gap-3.5">
+                  <div className="w-10 h-10 rounded-xl bg-amber-500 text-white flex items-center justify-center shrink-0 shadow-sm">
+                    <AlertTriangle size={20} />
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-black text-[#0F2E23] flex items-center gap-2">
+                      <span>Low Stock Alert Active</span>
+                      <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-rose-500 text-white">
+                        {stats.lowStock + stats.outOfStock} items critical
+                      </span>
+                    </h4>
+                    <p className="text-xs text-slate-600 mt-0.5">
+                      {stats.outOfStock > 0 ? `${stats.outOfStock} item(s) are out of stock and ` : ''}
+                      {stats.lowStock} item(s) are at or below alert threshold (≤ {lowStockThreshold} units). Review and reorder to prevent lost sales.
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2.5 w-full sm:w-auto justify-end shrink-0">
+                  <button
+                    type="button"
+                    onClick={() => handleBulkRestockAll(10)}
+                    className="px-3.5 py-2 bg-white hover:bg-slate-50 border border-slate-300 text-slate-700 font-bold text-xs rounded-xl shadow-xs transition flex items-center gap-1.5 cursor-pointer"
+                  >
+                    <RefreshCw size={13} />
+                    <span>Quick Restock +10 All</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleTabChange('low_stock')}
+                    className="px-4 py-2 bg-[#0F2E23] hover:bg-[#184435] text-white font-bold text-xs rounded-xl shadow-xs transition flex items-center gap-1.5 cursor-pointer"
+                  >
+                    <span>Manage Stock Alerts</span>
+                    <ArrowUpRight size={14} />
+                  </button>
+                </div>
+              </div>
+            )}
           </>
         ) : null}
 
@@ -871,8 +1060,8 @@ const ProductSellerDashboard = ({
                   className="px-3 py-2 border border-slate-200 rounded-xl text-xs font-bold text-slate-700 bg-slate-50 focus:outline-none focus:border-emerald-600"
                 >
                   <option value="all">All Stock Status</option>
-                  <option value="in_stock">In Stock ({'>'}5)</option>
-                  <option value="low_stock">Low Stock (1-5)</option>
+                  <option value="in_stock">In Stock ({'>'}{lowStockThreshold})</option>
+                  <option value="low_stock">Low Stock (1-{lowStockThreshold})</option>
                   <option value="out_of_stock">Out of Stock (0)</option>
                 </select>
               </div>
@@ -913,7 +1102,7 @@ const ProductSellerDashboard = ({
                       {filteredProducts.map((p) => {
                         const pid = p._id || p.id;
                         const stockNum = Number(p.stock) || 0;
-                        const isLow = stockNum > 0 && stockNum <= 5;
+                        const isLow = stockNum > 0 && stockNum <= lowStockThreshold;
                         const isOut = stockNum === 0;
 
                         return (
@@ -1052,6 +1241,336 @@ const ProductSellerDashboard = ({
         )}
 
         {/* =========================================================================
+            TAB: LOW STOCK ALERTS & REORDER CENTER
+           ========================================================================= */}
+        {activeTab === 'low_stock' && (
+          <div className="space-y-6">
+            {/* Header Control Card */}
+            <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
+              <div>
+                <div className="flex items-center gap-2.5">
+                  <div className="w-10 h-10 rounded-xl bg-amber-500/15 text-amber-600 flex items-center justify-center">
+                    <AlertTriangle size={20} />
+                  </div>
+                  <div>
+                    <h3 className="font-sans font-black text-lg text-[#0F2E23]">
+                      Low Stock & Reorder Alert Center
+                    </h3>
+                    <p className="text-xs text-slate-500 font-medium">
+                      Monitor low-stock items, adjust alert sensitivity thresholds, and reorder inventory.
+                    </p>
+                  </div>
+                </div>
+
+                {/* Threshold adjuster chips */}
+                <div className="mt-4 flex flex-wrap items-center gap-2 text-xs">
+                  <span className="font-black text-slate-600 text-[11px] uppercase tracking-wider flex items-center gap-1">
+                    <SlidersHorizontal size={13} className="text-emerald-700" />
+                    Alert Threshold:
+                  </span>
+                  {[3, 5, 10, 15, 20].map((tVal) => (
+                    <button
+                      key={tVal}
+                      type="button"
+                      onClick={() => handleUpdateThreshold(tVal)}
+                      className={`px-3 py-1 rounded-xl font-bold transition text-xs cursor-pointer ${
+                        lowStockThreshold === tVal
+                          ? 'bg-[#0F2E23] text-white shadow-xs'
+                          : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
+                      }`}
+                    >
+                      ≤ {tVal} units
+                    </button>
+                  ))}
+                  <form
+                    onSubmit={(e) => {
+                      e.preventDefault();
+                      if (thresholdInput) {
+                        handleUpdateThreshold(thresholdInput);
+                        setThresholdInput('');
+                      }
+                    }}
+                    className="flex items-center gap-1.5 ml-1"
+                  >
+                    <input
+                      type="number"
+                      min="1"
+                      max="999"
+                      placeholder="Custom"
+                      value={thresholdInput}
+                      onChange={(e) => setThresholdInput(e.target.value)}
+                      className="w-16 px-2.5 py-1 text-xs border border-slate-200 rounded-xl font-bold focus:outline-none focus:border-emerald-600"
+                    />
+                    <button
+                      type="submit"
+                      disabled={!thresholdInput}
+                      className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-40 text-white rounded-xl font-bold text-xs cursor-pointer"
+                    >
+                      Set
+                    </button>
+                  </form>
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex flex-wrap items-center gap-2.5 w-full lg:w-auto">
+                <button
+                  type="button"
+                  onClick={handleExportLowStockCsv}
+                  className="px-4 py-2.5 bg-white hover:bg-slate-50 border border-slate-300 text-slate-700 rounded-xl text-xs font-bold transition flex items-center gap-2 shadow-xs cursor-pointer"
+                  title="Export CSV of low stock products for supplier reordering"
+                >
+                  <FileSpreadsheet size={15} className="text-emerald-700" />
+                  <span>Export Reorder CSV</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => handleBulkRestockAll(10)}
+                  disabled={lowStockProducts.length === 0}
+                  className="px-4 py-2.5 bg-[#ffd000] hover:bg-[#ffdf4d] text-[#0F2E23] rounded-xl text-xs font-black uppercase tracking-wider transition flex items-center gap-2 shadow-xs cursor-pointer disabled:opacity-40"
+                  title="Add +10 stock units to all currently alerted products"
+                >
+                  <RefreshCw size={15} />
+                  <span>Bulk Restock (+10 All)</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Status Summary Cards */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div className="bg-white rounded-2xl p-4 border border-rose-200 shadow-xs flex items-center justify-between">
+                <div>
+                  <span className="text-[10px] font-black uppercase tracking-wider text-rose-600">Out of Stock</span>
+                  <div className="text-2xl font-sans font-black tracking-tight lining-nums tabular-nums text-rose-700 mt-1">{stats.outOfStock}</div>
+                  <span className="text-[11px] text-slate-500 font-medium">0 units remaining</span>
+                </div>
+                <div className="w-10 h-10 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center">
+                  <AlertCircle size={20} />
+                </div>
+              </div>
+
+              <div className="bg-white rounded-2xl p-4 border border-amber-200 shadow-xs flex items-center justify-between">
+                <div>
+                  <span className="text-[10px] font-black uppercase tracking-wider text-amber-600">Critically Low</span>
+                  <div className="text-2xl font-sans font-black tracking-tight lining-nums tabular-nums text-amber-700 mt-1">{stats.lowStock}</div>
+                  <span className="text-[11px] text-slate-500 font-medium">1 to {lowStockThreshold} units</span>
+                </div>
+                <div className="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center">
+                  <AlertTriangle size={20} />
+                </div>
+              </div>
+
+              <div className="bg-white rounded-2xl p-4 border border-emerald-200 shadow-xs flex items-center justify-between">
+                <div>
+                  <span className="text-[10px] font-black uppercase tracking-wider text-emerald-600">Healthy Stock</span>
+                  <div className="text-2xl font-sans font-black tracking-tight lining-nums tabular-nums text-emerald-700 mt-1">{stats.inStock}</div>
+                  <span className="text-[11px] text-slate-500 font-medium">&gt; {lowStockThreshold} units</span>
+                </div>
+                <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
+                  <CheckCircle2 size={20} />
+                </div>
+              </div>
+            </div>
+
+            {/* Low Stock Table / Empty State */}
+            {lowStockProducts.length === 0 ? (
+              <div className="bg-white rounded-3xl p-12 text-center border border-emerald-200 shadow-xs space-y-3">
+                <div className="w-16 h-16 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center mx-auto">
+                  <CheckCircle2 size={32} />
+                </div>
+                <h3 className="text-lg font-black text-[#0F2E23]">All Inventory Healthy!</h3>
+                <p className="text-xs text-slate-500 max-w-md mx-auto">
+                  None of your products are at or below your alert threshold of {lowStockThreshold} units. 
+                  Your store is fully stocked and ready to fulfill orders.
+                </p>
+                <div className="pt-2 flex justify-center gap-3">
+                  <button
+                    type="button"
+                    onClick={() => handleTabChange('products')}
+                    className="px-4 py-2 bg-[#0F2E23] text-white rounded-xl text-xs font-bold hover:bg-[#184435] transition cursor-pointer"
+                  >
+                    View All Products
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="bg-white rounded-2xl shadow-xs border border-slate-200 overflow-hidden">
+                <div className="p-4 bg-slate-50 border-b border-slate-200 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-black text-[#0F2E23] uppercase tracking-wider">
+                      Items Requiring Replenishment ({lowStockProducts.length})
+                    </span>
+                    <span className="text-[10px] bg-amber-100 text-amber-800 font-bold px-2 py-0.5 rounded-full">
+                      Threshold: ≤ {lowStockThreshold}
+                    </span>
+                  </div>
+                  <span className="text-[11px] text-slate-500 font-medium">
+                    Sorted by lowest remaining stock first
+                  </span>
+                </div>
+
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-xs">
+                    <thead className="bg-slate-50/80 text-slate-500 font-bold uppercase tracking-wider border-b border-slate-200 text-[10px]">
+                      <tr>
+                        <th className="py-3 px-4">Product Details</th>
+                        <th className="py-3 px-4">Category</th>
+                        <th className="py-3 px-4">Price</th>
+                        <th className="py-3 px-4">Current Stock</th>
+                        <th className="py-3 px-4">Suggested Reorder</th>
+                        <th className="py-3 px-4">Quick Restock</th>
+                        <th className="py-3 px-4 text-right">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100 font-medium">
+                      {lowStockProducts.map((p) => {
+                        const pid = p._id || p.id;
+                        const stockNum = Number(p.stock) || 0;
+                        const isOut = stockNum === 0;
+                        const suggestedReorder = Math.max(15, (lowStockThreshold * 3) - stockNum);
+                        const customVal = customRestockAmounts[pid] || '';
+
+                        return (
+                          <tr key={pid} className={`transition ${isOut ? 'bg-rose-50/20 hover:bg-rose-50/40' : 'hover:bg-slate-50/70'}`}>
+                            {/* Product Info */}
+                            <td className="py-3.5 px-4">
+                              <div className="flex items-center gap-3">
+                                <img
+                                  src={Array.isArray(p.images) && p.images[0] ? p.images[0] : (p.image || PRESET_PRODUCT_IMAGES[0].url)}
+                                  alt={p.name}
+                                  className="w-12 h-12 rounded-xl object-cover border border-slate-200 shrink-0 bg-slate-50"
+                                  onError={(e) => { e.target.src = PRESET_PRODUCT_IMAGES[0].url; }}
+                                />
+                                <div className="min-w-0 max-w-xs">
+                                  <div className="font-bold text-slate-900 truncate">
+                                    {p.name}
+                                  </div>
+                                  <div className="flex items-center gap-2 text-[10.5px] text-slate-400 mt-0.5">
+                                    <span>Brand: <strong className="text-slate-600">{p.brand || 'Generic'}</strong></span>
+                                    {p.sku && (
+                                      <>
+                                        <span>•</span>
+                                        <span>SKU: <strong className="text-slate-600">{p.sku}</strong></span>
+                                      </>
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+                            </td>
+
+                            {/* Department / Category */}
+                            <td className="py-3.5 px-4 whitespace-nowrap">
+                              <span className="inline-block px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-700 capitalize">
+                                {p.petType || p.pet_type || 'General'}
+                              </span>
+                              <div className="text-[10px] text-slate-400 mt-0.5 truncate max-w-[120px]">
+                                {p.category || 'Supplies'}
+                              </div>
+                            </td>
+
+                            {/* Price */}
+                            <td className="py-3.5 px-4 whitespace-nowrap">
+                              <div className="font-bold text-slate-900 text-sm">
+                                ₹{(p.discountPrice || p.price || 0).toLocaleString()}
+                              </div>
+                            </td>
+
+                            {/* Stock Badge */}
+                            <td className="py-3.5 px-4 whitespace-nowrap">
+                              {isOut ? (
+                                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-black bg-rose-100 text-rose-800 border border-rose-300">
+                                  <AlertCircle size={12} /> Out of Stock (0)
+                                </span>
+                              ) : (
+                                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-black bg-amber-100 text-amber-800 border border-amber-300">
+                                  <AlertTriangle size={12} /> Low Stock ({stockNum})
+                                </span>
+                              )}
+                            </td>
+
+                            {/* Suggested Reorder */}
+                            <td className="py-3.5 px-4 whitespace-nowrap">
+                              <span className="font-black text-[#0F2E23] text-xs">
+                                +{suggestedReorder} units
+                              </span>
+                              <div className="text-[10px] text-slate-400">to reach safety stock</div>
+                            </td>
+
+                            {/* Quick Restock Buttons */}
+                            <td className="py-3.5 px-4 whitespace-nowrap">
+                              <div className="flex items-center gap-1.5 flex-wrap">
+                                {[5, 10, 25].map(qty => (
+                                  <button
+                                    key={qty}
+                                    type="button"
+                                    onClick={() => handleRestockProduct(pid, qty)}
+                                    className="px-2 py-1 bg-emerald-50 hover:bg-emerald-600 hover:text-white text-emerald-700 border border-emerald-200 rounded-lg font-bold text-[11px] transition cursor-pointer"
+                                    title={`Add +${qty} units to stock`}
+                                  >
+                                    +{qty}
+                                  </button>
+                                ))}
+
+                                <div className="inline-flex items-center ml-1">
+                                  <input
+                                    type="number"
+                                    min="1"
+                                    placeholder="Qty"
+                                    value={customVal}
+                                    onChange={(e) => setCustomRestockAmounts(prev => ({ ...prev, [pid]: e.target.value }))}
+                                    className="w-14 px-2 py-1 text-xs border border-slate-200 rounded-l-lg font-bold focus:outline-none focus:border-emerald-600 bg-white"
+                                  />
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      if (customVal && Number(customVal) > 0) {
+                                        handleRestockProduct(pid, customVal);
+                                        setCustomRestockAmounts(prev => ({ ...prev, [pid]: '' }));
+                                      }
+                                    }}
+                                    disabled={!customVal || Number(customVal) <= 0}
+                                    className="px-2 py-1 bg-[#0F2E23] hover:bg-[#184435] disabled:opacity-40 text-white rounded-r-lg font-bold text-[11px] transition cursor-pointer"
+                                  >
+                                    Add
+                                  </button>
+                                </div>
+                              </div>
+                            </td>
+
+                            {/* Actions */}
+                            <td className="py-3.5 px-4 text-right whitespace-nowrap">
+                              <div className="flex items-center justify-end gap-1.5">
+                                <button
+                                  type="button"
+                                  onClick={() => handleOpenEditModal(p)}
+                                  className="p-1.5 text-slate-600 hover:text-emerald-700 hover:bg-emerald-50 rounded-lg transition cursor-pointer"
+                                  title="Edit Product Details"
+                                >
+                                  <Edit3 size={15} />
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => handleDeleteProduct(pid, p.name)}
+                                  className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition cursor-pointer"
+                                  title="Delete Product"
+                                >
+                                  <Trash2 size={15} />
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* =========================================================================
             TAB 2: ORDERS & SHIPPING
            ========================================================================= */}
         {activeTab === 'orders' && (
@@ -1062,7 +1581,7 @@ const ProductSellerDashboard = ({
                   Customer Orders & Fulfillment
                 </h3>
                 <p className="text-xs text-slate-500 mt-0.5">
-                  Fulfill customer shipments and update order tracking details
+                  Fulfill customer shipments and manage order status
                 </p>
               </div>
 
@@ -1142,17 +1661,9 @@ const ProductSellerDashboard = ({
                       </ul>
                     </div>
 
-                    <div className="bg-slate-50/70 p-3 rounded-xl border border-slate-100 flex flex-col justify-between">
-                      <div>
-                        <span className="text-slate-400 text-[10px] font-bold uppercase tracking-wider block">Shipping Tracking</span>
-                        <p className="font-mono text-slate-700 text-[11px] mt-0.5 font-bold">
-                          {ord.trackingNumber || 'Awaiting Dispatch'}
-                        </p>
-                      </div>
-                      <div className="pt-2 border-t border-slate-200/60 flex items-center justify-between">
-                        <span className="font-bold text-slate-600">Total Invoiced:</span>
-                        <span className="font-black text-emerald-800 text-sm">₹{ord.total.toLocaleString()}</span>
-                      </div>
+                    <div className="bg-slate-50/70 p-3 rounded-xl border border-slate-100 flex items-center justify-between">
+                      <span className="font-bold text-slate-600 text-xs">Total Invoiced:</span>
+                      <span className="font-black text-emerald-800 text-sm">₹{ord.total.toLocaleString()}</span>
                     </div>
                   </div>
                 </div>
@@ -1169,7 +1680,7 @@ const ProductSellerDashboard = ({
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="bg-white rounded-2xl p-5 border border-slate-200 shadow-xs">
                 <span className="text-slate-400 text-[11px] font-bold uppercase tracking-wider block">Gross Store Revenue</span>
-                <h3 className="text-2xl font-black text-slate-900 mt-1">₹{stats.totalRevenue.toLocaleString()}</h3>
+                <h3 className="text-2xl font-sans font-black tracking-tight lining-nums tabular-nums text-slate-900 mt-1">₹{stats.totalRevenue.toLocaleString()}</h3>
                 <p className="text-xs text-emerald-600 font-bold mt-2 flex items-center gap-1">
                   <TrendingUp size={13} /> +18.4% compared to last month
                 </p>
@@ -1177,7 +1688,7 @@ const ProductSellerDashboard = ({
 
               <div className="bg-white rounded-2xl p-5 border border-slate-200 shadow-xs">
                 <span className="text-slate-400 text-[11px] font-bold uppercase tracking-wider block">Average Order Value</span>
-                <h3 className="text-2xl font-black text-slate-900 mt-1">
+                <h3 className="text-2xl font-sans font-black tracking-tight lining-nums tabular-nums text-slate-900 mt-1">
                   ₹{orders.length > 0 ? Math.round(stats.totalRevenue / orders.length).toLocaleString() : 0}
                 </h3>
                 <p className="text-xs text-slate-500 font-medium mt-2">
@@ -1187,7 +1698,7 @@ const ProductSellerDashboard = ({
 
               <div className="bg-white rounded-2xl p-5 border border-slate-200 shadow-xs">
                 <span className="text-slate-400 text-[11px] font-bold uppercase tracking-wider block">Inventory Health</span>
-                <h3 className="text-2xl font-black text-emerald-700 mt-1">
+                <h3 className="text-2xl font-sans font-black tracking-tight lining-nums tabular-nums text-emerald-700 mt-1">
                   {stats.total > 0 ? Math.round((stats.inStock / stats.total) * 100) : 100}%
                 </h3>
                 <div className="w-full bg-slate-100 rounded-full h-2 mt-3 overflow-hidden">
@@ -1398,7 +1909,20 @@ const ProductSellerDashboard = ({
                 </div>
 
                 <div className="space-y-1">
-                  <label className="font-bold text-slate-700">Initial Stock *</label>
+                  <div className="flex items-center justify-between">
+                    <label className="font-bold text-slate-700">Stock Qty *</label>
+                    {formStock !== '' && (
+                      <span className={`text-[10px] font-black ${
+                        Number(formStock) === 0
+                          ? 'text-rose-600'
+                          : Number(formStock) <= lowStockThreshold
+                          ? 'text-amber-600'
+                          : 'text-emerald-600'
+                      }`}>
+                        {Number(formStock) === 0 ? 'Out of Stock' : Number(formStock) <= lowStockThreshold ? `Low Stock (≤${lowStockThreshold})` : 'Healthy Stock'}
+                      </span>
+                    )}
+                  </div>
                   <input
                     type="number"
                     min="0"
@@ -1406,8 +1930,17 @@ const ProductSellerDashboard = ({
                     value={formStock}
                     onChange={(e) => setFormStock(e.target.value)}
                     required
-                    className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs font-bold focus:outline-none focus:border-emerald-600"
+                    className={`w-full px-3 py-2 border rounded-xl text-xs font-bold focus:outline-none ${
+                      formStock !== '' && Number(formStock) <= lowStockThreshold
+                        ? 'border-amber-400 bg-amber-50/40 focus:border-amber-500'
+                        : 'border-slate-200 focus:border-emerald-600'
+                    }`}
                   />
+                  {formStock !== '' && Number(formStock) <= lowStockThreshold && (
+                    <p className="text-[10px] text-amber-700 font-semibold flex items-center gap-1 mt-0.5">
+                      <AlertTriangle size={11} className="shrink-0" /> Will trigger low stock alert (alert threshold is ≤ {lowStockThreshold})
+                    </p>
+                  )}
                 </div>
               </div>
 

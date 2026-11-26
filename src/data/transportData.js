@@ -694,21 +694,96 @@ export const saveTransportBooking = (bookingData) => {
     current.unshift(newBooking);
     saveStoredTransportBookings(current);
 
+    // Multi-key scoped storage persistence
+    const uEmail = (newBooking.userEmail || newBooking.customerEmail || newBooking.ownerEmail || newBooking.email || '').toLowerCase().trim();
+    const uId = String(newBooking.userId || newBooking.customerId || '').trim();
+    const uPhone = cleanDigits(newBooking.userPhone || newBooking.customerPhone || newBooking.ownerPhone || newBooking.mobile || newBooking.phone);
+
+    const keysToSave = [
+      uEmail && `joshpetshub_transport_bookings_${uEmail}`,
+      uId && uId !== 'usr-custom' && `joshpetshub_transport_bookings_${uId}`,
+      uPhone && uPhone.length >= 10 && `joshpetshub_transport_bookings_${uPhone}`
+    ].filter(Boolean);
+
+    for (const k of keysToSave) {
+      try {
+        const existing = JSON.parse(localStorage.getItem(k) || '[]');
+        const updated = [newBooking, ...(Array.isArray(existing) ? existing.filter(b => (b.id || b._id) !== newBooking.id) : [])];
+        localStorage.setItem(k, JSON.stringify(updated));
+      } catch (_) {}
+    }
+
+    // Persist to joshpetshub_registered_users
+    try {
+      const reg = JSON.parse(localStorage.getItem('joshpetshub_registered_users') || '[]');
+      if (Array.isArray(reg)) {
+        const idx = reg.findIndex(u => 
+          (uEmail && u.email && u.email.toLowerCase() === uEmail) ||
+          (uId && uId !== 'usr-custom' && (String(u._id) === uId || String(u.id) === uId)) ||
+          (uPhone && uPhone.length >= 10 && u.mobile && cleanDigits(u.mobile) === uPhone)
+        );
+        if (idx !== -1) {
+          const userBks = Array.isArray(reg[idx].transportBookings) ? reg[idx].transportBookings : [];
+          reg[idx].transportBookings = [newBooking, ...userBks.filter(b => (b.id || b._id) !== newBooking.id)];
+          localStorage.setItem('joshpetshub_registered_users', JSON.stringify(reg));
+        }
+      }
+    } catch (_) {}
+
     // Also mirror to transport enquiries so all relocation views stay unified
     try {
       const enqs = getStoredTransportEnquiries();
       const existingIdx = enqs.findIndex(e => e.id === newBooking.id);
+      const enqMirror = {
+        ...newBooking,
+        requestType: 'booking',
+        departureCity: newBooking.departureCity || newBooking.originCity,
+        destinationCity: newBooking.destinationCity || newBooking.destCity,
+        expectedDate: newBooking.expectedDate || newBooking.bookingDate || newBooking.travelDate,
+        quoteAmount: newBooking.quoteAmount || newBooking.packagePrice || newBooking.totalAmount,
+        relocationType: newBooking.relocationType || 'Confirmed Relocation Booking'
+      };
       if (existingIdx === -1) {
-        enqs.unshift({
-          ...newBooking,
-          requestType: 'booking',
-          departureCity: newBooking.departureCity || newBooking.originCity,
-          destinationCity: newBooking.destinationCity || newBooking.destCity,
-          expectedDate: newBooking.expectedDate || newBooking.bookingDate || newBooking.travelDate,
-          quoteAmount: newBooking.quoteAmount || newBooking.packagePrice || newBooking.totalAmount,
-          relocationType: newBooking.relocationType || 'Confirmed Relocation Booking'
-        });
+        enqs.unshift(enqMirror);
         saveStoredTransportEnquiries(enqs);
+      }
+      for (const k of [
+        uEmail && `joshpetshub_transport_enquiries_${uEmail}`,
+        uId && uId !== 'usr-custom' && `joshpetshub_transport_enquiries_${uId}`,
+        uPhone && uPhone.length >= 10 && `joshpetshub_transport_enquiries_${uPhone}`
+      ].filter(Boolean)) {
+        try {
+          const ex = JSON.parse(localStorage.getItem(k) || '[]');
+          localStorage.setItem(k, JSON.stringify([enqMirror, ...(Array.isArray(ex) ? ex.filter(e => (e.id || e._id) !== enqMirror.id) : [])]));
+        } catch (_) {}
+      }
+    } catch (_) {}
+
+    // Asynchronously sync to backend bookings API
+    try {
+      if (typeof window !== 'undefined') {
+        const token = localStorage.getItem('joshpetshub_token');
+        fetch('/api/bookings', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+          },
+          body: JSON.stringify({
+            ...newBooking,
+            serviceType: 'Pet Transport & Relocation',
+            service_type: 'Pet Transport & Relocation',
+            requestType: 'booking',
+            departureCity: newBooking.departureCity || newBooking.originCity,
+            destinationCity: newBooking.destinationCity || newBooking.destCity,
+            location: `${newBooking.departureCity || newBooking.originCity || 'Origin'} ➔ ${newBooking.destinationCity || newBooking.destCity || 'Destination'}`,
+            petName: newBooking.bookingPetName || newBooking.petName || 'Pet',
+            fee: Number(newBooking.quoteAmount || newBooking.totalAmount || newBooking.packagePrice || 0),
+            totalAmount: Number(newBooking.totalAmount || newBooking.quoteAmount || newBooking.packagePrice || 0),
+            status: newBooking.status || 'Confirmed',
+            paymentStatus: newBooking.paymentStatus || 'Paid'
+          })
+        }).catch(() => {});
       }
     } catch (_) {}
 
@@ -952,17 +1027,83 @@ export const saveTransportEnquiry = (enquiryData) => {
   try {
     const current = getStoredTransportEnquiries();
     const newEnquiry = {
-      id: 'ENQ-TRP-' + Math.floor(100000 + Math.random() * 900000),
-      createdAt: new Date().toISOString(),
+      id: enquiryData?.id || ('ENQ-TRP-' + Math.floor(100000 + Math.random() * 900000)),
+      createdAt: enquiryData?.createdAt || new Date().toISOString(),
       updatedAt: new Date().toISOString(),
-      status: 'Submitted / Pending Review',
-      quoteAmount: null,
-      providerReply: null,
+      status: enquiryData?.status || 'Submitted / Pending Review',
+      quoteAmount: enquiryData?.quoteAmount || null,
+      providerReply: enquiryData?.providerReply || null,
+      requestType: 'enquiry',
       ...enquiryData
     };
     current.unshift(newEnquiry);
     saveStoredTransportEnquiries(current);
+
+    // Multi-key scoped storage persistence
+    const uEmail = (newEnquiry.userEmail || newEnquiry.customerEmail || newEnquiry.ownerEmail || newEnquiry.email || '').toLowerCase().trim();
+    const uId = String(newEnquiry.userId || newEnquiry.customerId || '').trim();
+    const uPhone = cleanDigits(newEnquiry.userPhone || newEnquiry.customerPhone || newEnquiry.ownerPhone || newEnquiry.mobile || newEnquiry.phone);
+
+    const keysToSave = [
+      uEmail && `joshpetshub_transport_enquiries_${uEmail}`,
+      uId && uId !== 'usr-custom' && `joshpetshub_transport_enquiries_${uId}`,
+      uPhone && uPhone.length >= 10 && `joshpetshub_transport_enquiries_${uPhone}`
+    ].filter(Boolean);
+
+    for (const k of keysToSave) {
+      try {
+        const existing = JSON.parse(localStorage.getItem(k) || '[]');
+        const updated = [newEnquiry, ...(Array.isArray(existing) ? existing.filter(e => (e.id || e._id) !== newEnquiry.id) : [])];
+        localStorage.setItem(k, JSON.stringify(updated));
+      } catch (_) {}
+    }
+
+    // Persist to joshpetshub_registered_users
+    try {
+      const reg = JSON.parse(localStorage.getItem('joshpetshub_registered_users') || '[]');
+      if (Array.isArray(reg)) {
+        const idx = reg.findIndex(u => 
+          (uEmail && u.email && u.email.toLowerCase() === uEmail) ||
+          (uId && uId !== 'usr-custom' && (String(u._id) === uId || String(u.id) === uId)) ||
+          (uPhone && uPhone.length >= 10 && u.mobile && cleanDigits(u.mobile) === uPhone)
+        );
+        if (idx !== -1) {
+          const userEnqs = Array.isArray(reg[idx].transportEnquiries) ? reg[idx].transportEnquiries : [];
+          reg[idx].transportEnquiries = [newEnquiry, ...userEnqs.filter(e => (e.id || e._id) !== newEnquiry.id)];
+          localStorage.setItem('joshpetshub_registered_users', JSON.stringify(reg));
+        }
+      }
+    } catch (_) {}
+
+    // Asynchronously sync to backend bookings API
+    try {
+      if (typeof window !== 'undefined') {
+        const token = localStorage.getItem('joshpetshub_token');
+        fetch('/api/bookings', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+          },
+          body: JSON.stringify({
+            ...newEnquiry,
+            serviceType: 'Pet Transport & Relocation',
+            service_type: 'Pet Transport & Relocation',
+            requestType: 'enquiry',
+            departureCity: newEnquiry.departureCity,
+            destinationCity: newEnquiry.destinationCity,
+            location: `${newEnquiry.departureCity || 'Pickup City'} ➔ ${newEnquiry.destinationCity || 'Drop City'}`,
+            petName: newEnquiry.petName || `${newEnquiry.petSpecies || 'Pet'} (${newEnquiry.petBreed || 'Companion'})`,
+            status: newEnquiry.status || 'Under Review',
+            fee: 0,
+            totalAmount: 0
+          })
+        }).catch(() => {});
+      }
+    } catch (_) {}
+
     window.dispatchEvent(new CustomEvent('transport-enquiry-created', { detail: newEnquiry }));
+    window.dispatchEvent(new CustomEvent('transport-relocation-created', { detail: newEnquiry }));
     return newEnquiry;
   } catch (_e) {
     return null;
@@ -1002,40 +1143,34 @@ export const isTransportItemMatchingUser = (item, currentUser) => {
   const itemId = item.id || item._id;
   // Demo seeds must NEVER show up for normal customers (they are provider dashboard showcases)
   if (item.isDemoSeed || DEMO_SEED_REQUEST_IDS.has(itemId)) {
-    const demoEmail = (item.userEmail || item.customerEmail || '').toLowerCase().trim();
-    const uEmail = (currentUser.email || '').toLowerCase().trim();
-    return Boolean(uEmail && demoEmail && uEmail === demoEmail);
+    return false;
   }
 
-  const uId = String(currentUser.id || currentUser._id || '');
+  const uId = String(currentUser.id || currentUser._id || '').trim();
   const uEmail = (currentUser.email || '').toLowerCase().trim();
   const uPhone = cleanDigits(currentUser.mobile || currentUser.phone);
 
-  // 1. By ID match
-  if (uId) {
-    const itemUserId = String(item.userId || item.customerId || item.user?._id || item.user?.id || '');
-    if (itemUserId && itemUserId === uId) return true;
-  }
+  const itemUserId = String(item.userId || item.customerId || item.user_id || item.user?._id || item.user?.id || '').trim();
+  const itemEmail = (item.userEmail || item.customerEmail || item.ownerEmail || item.email || item.pet_details?.userEmail || '').toLowerCase().trim();
+  const itemPhone = cleanDigits(item.userPhone || item.customerPhone || item.ownerPhone || item.mobile || item.phone || item.pet_details?.userPhone);
+
+  // Strict isolation: if both records specify an email address and they don't match, they belong to different accounts
+  if (uEmail && itemEmail && uEmail !== itemEmail) return false;
+
+  // Strict isolation: if both records specify a valid user ID and they don't match, reject
+  if (uId && uId !== 'usr-custom' && itemUserId && itemUserId !== 'usr-custom' && uId !== itemUserId) return false;
+
+  // 1. By ID match (ignore generic fallback placeholders)
+  if (uId && itemUserId && itemUserId !== 'usr-custom' && itemUserId === uId) return true;
 
   // 2. By Email match
-  const itemEmail = (item.userEmail || item.customerEmail || item.ownerEmail || item.email || '').toLowerCase().trim();
   if (uEmail && itemEmail && itemEmail === uEmail) {
     return true;
   }
 
-  // Strict check: if emails are present and differ, never match
-  if (uEmail && itemEmail && itemEmail !== uEmail) return false;
-  if (uId && item.userId && String(item.userId).trim() !== uId) return false;
-
-  // 3. By Phone match (clean 10 digits), but ONLY if there is no conflicting email or userId
-  const itemPhone = cleanDigits(item.userPhone || item.customerPhone || item.ownerPhone || item.mobile);
-  if (uPhone && uPhone.length >= 10 && itemPhone && (itemPhone === uPhone || itemPhone.endsWith(uPhone) || uPhone.endsWith(itemPhone))) {
-    if (itemEmail && uEmail && itemEmail !== uEmail) {
-      return false;
-    }
-    if (item.userId && uId && String(item.userId).trim() !== uId) {
-      return false;
-    }
+  // 3. By Phone match (strictly ignored for common dummy/placeholder numbers like 9876543210)
+  const isGenericPhone = !itemPhone || itemPhone === '9876543210' || itemPhone === '9000000000' || itemPhone === '9000000001' || itemPhone === '9000000002';
+  if (!isGenericPhone && uPhone && uPhone.length >= 10 && itemPhone && (itemPhone === uPhone || itemPhone.endsWith(uPhone) || uPhone.endsWith(itemPhone))) {
     return true;
   }
 
@@ -1066,14 +1201,72 @@ export const getUserAllRelocationRequests = (user) => {
   }
   if (!currentUser) return [];
 
-  const storedEnquiries = getStoredTransportEnquiries()
+  const uEmail = (currentUser.email || '').toLowerCase().trim();
+  const uId = String(currentUser.id || currentUser._id || '').trim();
+  const uPhone = cleanDigits(currentUser.mobile || currentUser.phone);
+
+  const isDummyPhone = !uPhone || uPhone === '9876543210' || uPhone === '9000000000' || uPhone === '9000000001' || uPhone === '9000000002';
+
+  // Gather enquiries from user-scoped storage layers
+  const enquiryKeys = [
+    uEmail && `joshpetshub_transport_enquiries_${uEmail}`,
+    uId && uId !== 'usr-custom' && `joshpetshub_transport_enquiries_${uId}`,
+    !isDummyPhone && uPhone && uPhone.length >= 10 && `joshpetshub_transport_enquiries_${uPhone}`
+  ].filter(Boolean);
+
+  let rawEnquiries = [];
+  for (const k of enquiryKeys) {
+    try {
+      const raw = localStorage.getItem(k);
+      if (raw) {
+        const arr = JSON.parse(raw);
+        if (Array.isArray(arr)) rawEnquiries.push(...arr);
+      }
+    } catch (_) {}
+  }
+
+  // Gather bookings from user-scoped storage layers
+  const bookingKeys = [
+    uEmail && `joshpetshub_transport_bookings_${uEmail}`,
+    uId && uId !== 'usr-custom' && `joshpetshub_transport_bookings_${uId}`,
+    !isDummyPhone && uPhone && uPhone.length >= 10 && `joshpetshub_transport_bookings_${uPhone}`
+  ].filter(Boolean);
+
+  let rawBookings = [];
+  for (const k of bookingKeys) {
+    try {
+      const raw = localStorage.getItem(k);
+      if (raw) {
+        const arr = JSON.parse(raw);
+        if (Array.isArray(arr)) rawBookings.push(...arr);
+      }
+    } catch (_) {}
+  }
+
+  // Also read from registered users pool
+  try {
+    const reg = JSON.parse(localStorage.getItem('joshpetshub_registered_users') || '[]');
+    if (Array.isArray(reg)) {
+      const regUser = reg.find(u => 
+        (uEmail && u.email && u.email.toLowerCase() === uEmail) ||
+        (uId && uId !== 'usr-custom' && (String(u._id) === uId || String(u.id) === uId)) ||
+        (uPhone && uPhone.length >= 10 && u.mobile && cleanDigits(u.mobile) === uPhone)
+      );
+      if (regUser) {
+        if (Array.isArray(regUser.transportEnquiries)) rawEnquiries.push(...regUser.transportEnquiries);
+        if (Array.isArray(regUser.transportBookings)) rawBookings.push(...regUser.transportBookings);
+      }
+    }
+  } catch (_) {}
+
+  const storedEnquiries = rawEnquiries
     .filter(e => isTransportItemMatchingUser(e, currentUser))
     .map(e => ({
       ...e,
       requestType: e.requestType || 'enquiry'
     }));
 
-  const storedBookings = getStoredTransportBookings()
+  const storedBookings = rawBookings
     .filter(b => isTransportItemMatchingUser(b, currentUser))
     .map(b => ({
       ...b,
@@ -1092,7 +1285,7 @@ export const getUserAllRelocationRequests = (user) => {
   const seen = new Set();
   const deduped = [];
   for (const item of combined) {
-    const key = item.id || `${item.createdAt}-${item.providerId}`;
+    const key = item.id || item._id || `${item.createdAt}-${item.providerId}`;
     if (!seen.has(key)) {
       seen.add(key);
       deduped.push(item);

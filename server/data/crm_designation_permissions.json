@@ -1,0 +1,1474 @@
+[
+  {
+    "id": "dp_desig_ops_head_0",
+    "designationId": "desig_ops_head",
+    "permissionId": "perm_task_create",
+    "permissionKey": "task.create",
+    "scope": "Department",
+    "createdAt": "2026-11-17T06:00:00.000Z"
+  },
+  {
+    "id": "dp_desig_ops_head_1",
+    "designationId": "desig_ops_head",
+    "permissionId": "perm_task_assign",
+    "permissionKey": "task.assign",
+    "scope": "Department",
+    "createdAt": "2026-11-17T06:00:00.000Z"
+  },
+  {
+    "id": "dp_desig_ops_head_2",
+    "designationId": "desig_ops_head",
+    "permissionId": "perm_task_view_dept",
+    "permissionKey": "task.view_department",
+    "scope": "Department",
+    "createdAt": "2026-11-17T06:00:00.000Z"
+  },
+  {
+    "id": "dp_desig_ops_head_3",
+    "designationId": "desig_ops_head",
+    "permissionId": "perm_task_approve",
+    "permissionKey": "task.approve",
+    "scope": "Department",
+    "createdAt": "2026-11-17T06:00:00.000Z"
+  },
+  {
+    "id": "dp_desig_ops_head_4",
+    "designationId": "desig_ops_head",
+    "permissionId": "perm_emp_manage_dept",
+    "permissionKey": "employee.manage_department",
+    "scope": "Department",
+    "createdAt": "2026-11-17T06:00:00.000Z"
+  },
+  {
+    "id": "dp_desig_ops_head_5",
+    "designationId": "desig_ops_head",
+    "permissionId": "perm_custom_5",
+    "permissionKey": "crm.configure",
+    "scope": "Department",
+    "createdAt": "2026-11-17T06:00:00.000Z"
+  },
+  {
+    "id": "dp_desig_crm_admin_0",
+    "designationId": "desig_crm_admin",
+    "permissionId": "perm_emp_view_dept",
+    "permissionKey": "employee.view_department",
+    "scope": "Assigned records",
+    "createdAt": "2026-11-17T06:00:00.000Z"
+  },
+  {
+    "id": "dp_desig_crm_admin_1",
+    "designationId": "desig_crm_admin",
+    "permissionId": "perm_emp_manage_dept",
+    "permissionKey": "employee.manage_department",
+    "scope": "Assigned records",
+    "createdAt": "2026-11-17T06:00:00.000Z"
+  },
+  {
+    "id": "dp_desig_crm_admin_2",
+    "designationId": "desig_crm_admin",
+    "permissionId": "perm_custom_2",
+    "permissionKey": "crm.view_config",
+    "scope": "Assigned records",
+    "createdAt": "2026-11-17T06:00:00.000Z"
+  },
+  {
+    "id": "dp_desig_crm_admin_3",
+    "designationId": "desig_crm_admin",
+    "permissionId": "perm_custom_3",
+    "permissionKey": "task.view_assigned",
+    "scope": "Assigned records",
+    "createdAt": "2026-11-17T06:00:00.000Z"
+  },
+  {
+    "id": "dp_desig_crm_admin_4",
+    "designationId": "desig_crm_admin",
+    "permissionId": "perm_task_update_assigned",
+    "permissionKey": "task.update_assigned",
+    "scope": "Assigned records",
+    "createdAt": "2026-11-17T06:00:00.000Z"
+  },
+  {
+    "id": "dp_desig_ops_coord_0",
+    "designationId": "desig_ops_coord",
+    "permissionId": "perm_task_view_dept",
+    "permissionKey": "task.view_department",
+    "scope": "Assigned records",
+    "createdAt": "2026-11-17T06:00:00.000Z"
+  },
+  {
+    "id": "dp_desig_ops_coord_1",
+    "designationId": "desig_ops_coord",
+    "permissionId": "perm_custom_1",
+    "permissionKey": "task.escalate",
+    "scope": "Assigned records",
+    "createdAt": "2026-11-17T06:00:00.000Z"
+  },
+  {
+    "id": "dp_desig_ops_coord_2",
+    "designationId": "desig_ops_coord",
+    "permissionId": "perm_custom_2",
+    "permissionKey": "task.track_progress",
+    "scope": "Assigned records",
+    "createdAt": "2026-11-17T06:00:00.000Z"
+  },
+  {
+    "id": "dp_desig_ops_coord_3",
+    "designationId": "desig_ops_coord",
+    "permissionId": "perm_task_update_assigned",
+    "permissionKey": "task.update_assigned",
+    "scope": "Assigned records",
+    "createdAt": "2026-11-17T06:00:00.000Z"
+  },
+  {
+    "id": "dp_desig_ops_coord_4",
+    "designationId": "desig_ops_coord",
+    "permissionId": "perm_report_view_dept",
+    "permissionKey": "report.view_department",
+    "scope": "Assigned records",
+    "createdAt": "2026-11-17T06:00:00.000Z"
+  },
+  {
+    "id": "dp_desig_crm_exec_0",
+    "designationId": "desig_crm_exec",
+    "permissionId": "perm_custom_0",
+    "permissionKey": "customer.view",
+    "scope": "Assigned records",
+    "createdAt": "2026-11-17T06:00:00.000Z"
+  },
+  {
+    "id": "dp_desig_crm_exec_1",
+    "designationId": "desig_crm_exec",
+    "permissionId": "perm_custom_1",
+    "permissionKey": "customer.manage",
+    "scope": "Assigned records",
+    "createdAt": "2026-11-17T06:00:00.000Z"
+  },
+  {
+    "id": "dp_desig_crm_exec_2",
+    "designationId": "desig_crm_exec",
+    "permissionId": "perm_custom_2",
+    "permissionKey": "task.view_assigned",
+    "scope": "Assigned records",
+    "createdAt": "2026-11-17T06:00:00.000Z"
+  },
+  {
+    "id": "dp_desig_crm_exec_3",
+    "designationId": "desig_crm_exec",
+    "permissionId": "perm_task_update_assigned",
+    "permissionKey": "task.update_assigned",
+    "scope": "Assigned records",
+    "createdAt": "2026-11-17T06:00:00.000Z"
+  },
+  {
+    "id": "dp_desig_ops_analyst_0",
+    "designationId": "desig_ops_analyst",
+    "permissionId": "perm_report_view_dept",
+    "permissionKey": "report.view_department",
+    "scope": "Assigned records",
+    "createdAt": "2026-11-17T06:00:00.000Z"
+  },
+  {
+    "id": "dp_desig_ops_analyst_1",
+    "designationId": "desig_ops_analyst",
+    "permissionId": "perm_custom_1",
+    "permissionKey": "task.view_assigned",
+    "scope": "Assigned records",
+    "createdAt": "2026-11-17T06:00:00.000Z"
+  },
+  {
+    "id": "dp_desig_ops_analyst_2",
+    "designationId": "desig_ops_analyst",
+    "permissionId": "perm_task_update_assigned",
+    "permissionKey": "task.update_assigned",
+    "scope": "Assigned records",
+    "createdAt": "2026-11-17T06:00:00.000Z"
+  },
+  {
+    "id": "dp_desig_support_head_0",
+    "designationId": "desig_support_head",
+    "permissionId": "perm_custom_0",
+    "permissionKey": "ticket.view_all",
+    "scope": "Department",
+    "createdAt": "2026-11-17T06:00:00.000Z"
+  },
+  {
+    "id": "dp_desig_support_head_1",
+    "designationId": "desig_support_head",
+    "permissionId": "perm_custom_1",
+    "permissionKey": "ticket.manage",
+    "scope": "Department",
+    "createdAt": "2026-11-17T06:00:00.000Z"
+  },
+  {
+    "id": "dp_desig_support_head_2",
+    "designationId": "desig_support_head",
+    "permissionId": "perm_task_create",
+    "permissionKey": "task.create",
+    "scope": "Department",
+    "createdAt": "2026-11-17T06:00:00.000Z"
+  },
+  {
+    "id": "dp_desig_support_head_3",
+    "designationId": "desig_support_head",
+    "permissionId": "perm_task_assign",
+    "permissionKey": "task.assign",
+    "scope": "Department",
+    "createdAt": "2026-11-17T06:00:00.000Z"
+  },
+  {
+    "id": "dp_desig_support_head_4",
+    "designationId": "desig_support_head",
+    "permissionId": "perm_task_approve",
+    "permissionKey": "task.approve",
+    "scope": "Department",
+    "createdAt": "2026-11-17T06:00:00.000Z"
+  },
+  {
+    "id": "dp_desig_support_head_5",
+    "designationId": "desig_support_head",
+    "permissionId": "perm_report_view_dept",
+    "permissionKey": "report.view_department",
+    "scope": "Department",
+    "createdAt": "2026-11-17T06:00:00.000Z"
+  },
+  {
+    "id": "dp_desig_sr_support_exec_0",
+    "designationId": "desig_sr_support_exec",
+    "permissionId": "perm_custom_0",
+    "permissionKey": "ticket.view_team",
+    "scope": "Assigned team",
+    "createdAt": "2026-11-17T06:00:00.000Z"
+  },
+  {
+    "id": "dp_desig_sr_support_exec_1",
+    "designationId": "desig_sr_support_exec",
+    "permissionId": "perm_custom_1",
+    "permissionKey": "ticket.escalate",
+    "scope": "Assigned records",
+    "createdAt": "2026-11-17T06:00:00.000Z"
+  },
+  {
+    "id": "dp_desig_sr_support_exec_2",
+    "designationId": "desig_sr_support_exec",
+    "permissionId": "perm_custom_2",
+    "permissionKey": "task.view_team",
+    "scope": "Assigned team",
+    "createdAt": "2026-11-17T06:00:00.000Z"
+  },
+  {
+    "id": "dp_desig_sr_support_exec_3",
+    "designationId": "desig_sr_support_exec",
+    "permissionId": "perm_task_update_assigned",
+    "permissionKey": "task.update_assigned",
+    "scope": "Assigned records",
+    "createdAt": "2026-11-17T06:00:00.000Z"
+  },
+  {
+    "id": "dp_desig_cust_support_exec_0",
+    "designationId": "desig_cust_support_exec",
+    "permissionId": "perm_custom_0",
+    "permissionKey": "ticket.view_assigned",
+    "scope": "Assigned records",
+    "createdAt": "2026-11-17T06:00:00.000Z"
+  },
+  {
+    "id": "dp_desig_cust_support_exec_1",
+    "designationId": "desig_cust_support_exec",
+    "permissionId": "perm_custom_1",
+    "permissionKey": "ticket.reply",
+    "scope": "Assigned records",
+    "createdAt": "2026-11-17T06:00:00.000Z"
+  },
+  {
+    "id": "dp_desig_cust_support_exec_2",
+    "designationId": "desig_cust_support_exec",
+    "permissionId": "perm_custom_2",
+    "permissionKey": "ticket.update_status",
+    "scope": "Assigned records",
+    "createdAt": "2026-11-17T06:00:00.000Z"
+  },
+  {
+    "id": "dp_desig_cust_support_exec_3",
+    "designationId": "desig_cust_support_exec",
+    "permissionId": "perm_custom_3",
+    "permissionKey": "task.view_assigned",
+    "scope": "Assigned records",
+    "createdAt": "2026-11-17T06:00:00.000Z"
+  },
+  {
+    "id": "dp_desig_cust_support_exec_4",
+    "designationId": "desig_cust_support_exec",
+    "permissionId": "perm_task_update_assigned",
+    "permissionKey": "task.update_assigned",
+    "scope": "Assigned records",
+    "createdAt": "2026-11-17T06:00:00.000Z"
+  },
+  {
+    "id": "dp_desig_booking_support_exec_0",
+    "designationId": "desig_booking_support_exec",
+    "permissionId": "perm_custom_0",
+    "permissionKey": "booking.view_assigned",
+    "scope": "Assigned records",
+    "createdAt": "2026-11-17T06:00:00.000Z"
+  },
+  {
+    "id": "dp_desig_booking_support_exec_1",
+    "designationId": "desig_booking_support_exec",
+    "permissionId": "perm_custom_1",
+    "permissionKey": "booking.request_change",
+    "scope": "Assigned records",
+    "createdAt": "2026-11-17T06:00:00.000Z"
+  },
+  {
+    "id": "dp_desig_booking_support_exec_2",
+    "designationId": "desig_booking_support_exec",
+    "permissionId": "perm_custom_2",
+    "permissionKey": "ticket.reply",
+    "scope": "Assigned records",
+    "createdAt": "2026-11-17T06:00:00.000Z"
+  },
+  {
+    "id": "dp_desig_booking_support_exec_3",
+    "designationId": "desig_booking_support_exec",
+    "permissionId": "perm_custom_3",
+    "permissionKey": "task.view_assigned",
+    "scope": "Assigned records",
+    "createdAt": "2026-11-17T06:00:00.000Z"
+  },
+  {
+    "id": "dp_desig_booking_support_exec_4",
+    "designationId": "desig_booking_support_exec",
+    "permissionId": "perm_task_update_assigned",
+    "permissionKey": "task.update_assigned",
+    "scope": "Assigned records",
+    "createdAt": "2026-11-17T06:00:00.000Z"
+  },
+  {
+    "id": "dp_desig_refund_support_exec_0",
+    "designationId": "desig_refund_support_exec",
+    "permissionId": "perm_refund_review",
+    "permissionKey": "refund.view_complaints",
+    "scope": "Assigned records",
+    "createdAt": "2026-11-17T06:00:00.000Z"
+  },
+  {
+    "id": "dp_desig_refund_support_exec_1",
+    "designationId": "desig_refund_support_exec",
+    "permissionId": "perm_custom_1",
+    "permissionKey": "refund.collect_documents",
+    "scope": "Assigned records",
+    "createdAt": "2026-11-17T06:00:00.000Z"
+  },
+  {
+    "id": "dp_desig_refund_support_exec_2",
+    "designationId": "desig_refund_support_exec",
+    "permissionId": "perm_custom_2",
+    "permissionKey": "refund.forward_finance",
+    "scope": "Assigned records",
+    "createdAt": "2026-11-17T06:00:00.000Z"
+  },
+  {
+    "id": "dp_desig_refund_support_exec_3",
+    "designationId": "desig_refund_support_exec",
+    "permissionId": "perm_custom_3",
+    "permissionKey": "task.view_assigned",
+    "scope": "Assigned records",
+    "createdAt": "2026-11-17T06:00:00.000Z"
+  },
+  {
+    "id": "dp_desig_refund_support_exec_4",
+    "designationId": "desig_refund_support_exec",
+    "permissionId": "perm_task_update_assigned",
+    "permissionKey": "task.update_assigned",
+    "scope": "Assigned records",
+    "createdAt": "2026-11-17T06:00:00.000Z"
+  },
+  {
+    "id": "dp_desig_cust_escalation_exec_0",
+    "designationId": "desig_cust_escalation_exec",
+    "permissionId": "perm_custom_0",
+    "permissionKey": "ticket.view_escalations",
+    "scope": "Assigned records",
+    "createdAt": "2026-11-17T06:00:00.000Z"
+  },
+  {
+    "id": "dp_desig_cust_escalation_exec_1",
+    "designationId": "desig_cust_escalation_exec",
+    "permissionId": "perm_custom_1",
+    "permissionKey": "ticket.resolve_escalated",
+    "scope": "Assigned records",
+    "createdAt": "2026-11-17T06:00:00.000Z"
+  },
+  {
+    "id": "dp_desig_cust_escalation_exec_2",
+    "designationId": "desig_cust_escalation_exec",
+    "permissionId": "perm_custom_2",
+    "permissionKey": "task.view_assigned",
+    "scope": "Assigned records",
+    "createdAt": "2026-11-17T06:00:00.000Z"
+  },
+  {
+    "id": "dp_desig_cust_escalation_exec_3",
+    "designationId": "desig_cust_escalation_exec",
+    "permissionId": "perm_task_update_assigned",
+    "permissionKey": "task.update_assigned",
+    "scope": "Assigned records",
+    "createdAt": "2026-11-17T06:00:00.000Z"
+  },
+  {
+    "id": "dp_desig_service_ops_head_0",
+    "designationId": "desig_service_ops_head",
+    "permissionId": "perm_booking_view",
+    "permissionKey": "booking.view_all",
+    "scope": "Department",
+    "createdAt": "2026-11-17T06:00:00.000Z"
+  },
+  {
+    "id": "dp_desig_service_ops_head_1",
+    "designationId": "desig_service_ops_head",
+    "permissionId": "perm_custom_1",
+    "permissionKey": "booking.manage",
+    "scope": "Department",
+    "createdAt": "2026-11-17T06:00:00.000Z"
+  },
+  {
+    "id": "dp_desig_service_ops_head_2",
+    "designationId": "desig_service_ops_head",
+    "permissionId": "perm_provider_view",
+    "permissionKey": "provider.view_all",
+    "scope": "Department",
+    "createdAt": "2026-11-17T06:00:00.000Z"
+  },
+  {
+    "id": "dp_desig_service_ops_head_3",
+    "designationId": "desig_service_ops_head",
+    "permissionId": "perm_task_create",
+    "permissionKey": "task.create",
+    "scope": "Department",
+    "createdAt": "2026-11-17T06:00:00.000Z"
+  },
+  {
+    "id": "dp_desig_service_ops_head_4",
+    "designationId": "desig_service_ops_head",
+    "permissionId": "perm_task_assign",
+    "permissionKey": "task.assign",
+    "scope": "Department",
+    "createdAt": "2026-11-17T06:00:00.000Z"
+  },
+  {
+    "id": "dp_desig_service_ops_head_5",
+    "designationId": "desig_service_ops_head",
+    "permissionId": "perm_task_approve",
+    "permissionKey": "task.approve",
+    "scope": "Department",
+    "createdAt": "2026-11-17T06:00:00.000Z"
+  },
+  {
+    "id": "dp_desig_service_ops_head_6",
+    "designationId": "desig_service_ops_head",
+    "permissionId": "perm_report_view_dept",
+    "permissionKey": "report.view_department",
+    "scope": "Department",
+    "createdAt": "2026-11-17T06:00:00.000Z"
+  },
+  {
+    "id": "dp_desig_srv_ops_supervisor_0",
+    "designationId": "desig_srv_ops_supervisor",
+    "permissionId": "perm_custom_0",
+    "permissionKey": "booking.view_department",
+    "scope": "Assigned records",
+    "createdAt": "2026-11-17T06:00:00.000Z"
+  },
+  {
+    "id": "dp_desig_srv_ops_supervisor_1",
+    "designationId": "desig_srv_ops_supervisor",
+    "permissionId": "perm_custom_1",
+    "permissionKey": "booking.monitor_fulfillment",
+    "scope": "Assigned records",
+    "createdAt": "2026-11-17T06:00:00.000Z"
+  },
+  {
+    "id": "dp_desig_srv_ops_supervisor_2",
+    "designationId": "desig_srv_ops_supervisor",
+    "permissionId": "perm_custom_2",
+    "permissionKey": "ops.escalate",
+    "scope": "Assigned records",
+    "createdAt": "2026-11-17T06:00:00.000Z"
+  },
+  {
+    "id": "dp_desig_srv_ops_supervisor_3",
+    "designationId": "desig_srv_ops_supervisor",
+    "permissionId": "perm_custom_3",
+    "permissionKey": "task.view_assigned",
+    "scope": "Assigned records",
+    "createdAt": "2026-11-17T06:00:00.000Z"
+  },
+  {
+    "id": "dp_desig_srv_quality_exec_0",
+    "designationId": "desig_srv_quality_exec",
+    "permissionId": "perm_quality_inspect",
+    "permissionKey": "quality.inspect",
+    "scope": "Assigned records",
+    "createdAt": "2026-11-17T06:00:00.000Z"
+  },
+  {
+    "id": "dp_desig_srv_quality_exec_1",
+    "designationId": "desig_srv_quality_exec",
+    "permissionId": "perm_custom_1",
+    "permissionKey": "quality.report_issue",
+    "scope": "Assigned records",
+    "createdAt": "2026-11-17T06:00:00.000Z"
+  },
+  {
+    "id": "dp_desig_srv_quality_exec_2",
+    "designationId": "desig_srv_quality_exec",
+    "permissionId": "perm_custom_2",
+    "permissionKey": "task.view_assigned",
+    "scope": "Assigned records",
+    "createdAt": "2026-11-17T06:00:00.000Z"
+  },
+  {
+    "id": "dp_desig_srv_quality_exec_3",
+    "designationId": "desig_srv_quality_exec",
+    "permissionId": "perm_task_update_assigned",
+    "permissionKey": "task.update_assigned",
+    "scope": "Assigned records",
+    "createdAt": "2026-11-17T06:00:00.000Z"
+  },
+  {
+    "id": "dp_desig_srv_ops_exec_0",
+    "designationId": "desig_srv_ops_exec",
+    "permissionId": "perm_custom_0",
+    "permissionKey": "booking.view_assigned",
+    "scope": "Assigned records",
+    "createdAt": "2026-11-17T06:00:00.000Z"
+  },
+  {
+    "id": "dp_desig_srv_ops_exec_1",
+    "designationId": "desig_srv_ops_exec",
+    "permissionId": "perm_booking_update",
+    "permissionKey": "booking.update_status",
+    "scope": "Assigned records",
+    "createdAt": "2026-11-17T06:00:00.000Z"
+  },
+  {
+    "id": "dp_desig_srv_ops_exec_2",
+    "designationId": "desig_srv_ops_exec",
+    "permissionId": "perm_custom_2",
+    "permissionKey": "task.view_assigned",
+    "scope": "Assigned records",
+    "createdAt": "2026-11-17T06:00:00.000Z"
+  },
+  {
+    "id": "dp_desig_srv_ops_exec_3",
+    "designationId": "desig_srv_ops_exec",
+    "permissionId": "perm_task_update_assigned",
+    "permissionKey": "task.update_assigned",
+    "scope": "Assigned records",
+    "createdAt": "2026-11-17T06:00:00.000Z"
+  },
+  {
+    "id": "dp_desig_srv_dispatch_exec_0",
+    "designationId": "desig_srv_dispatch_exec",
+    "permissionId": "perm_custom_0",
+    "permissionKey": "booking.dispatch",
+    "scope": "Assigned records",
+    "createdAt": "2026-11-17T06:00:00.000Z"
+  },
+  {
+    "id": "dp_desig_srv_dispatch_exec_1",
+    "designationId": "desig_srv_dispatch_exec",
+    "permissionId": "perm_custom_1",
+    "permissionKey": "booking.view_department",
+    "scope": "Assigned records",
+    "createdAt": "2026-11-17T06:00:00.000Z"
+  },
+  {
+    "id": "dp_desig_srv_dispatch_exec_2",
+    "designationId": "desig_srv_dispatch_exec",
+    "permissionId": "perm_custom_2",
+    "permissionKey": "task.view_assigned",
+    "scope": "Assigned records",
+    "createdAt": "2026-11-17T06:00:00.000Z"
+  },
+  {
+    "id": "dp_desig_srv_dispatch_exec_3",
+    "designationId": "desig_srv_dispatch_exec",
+    "permissionId": "perm_task_update_assigned",
+    "permissionKey": "task.update_assigned",
+    "scope": "Assigned records",
+    "createdAt": "2026-11-17T06:00:00.000Z"
+  },
+  {
+    "id": "dp_desig_finance_head_0",
+    "designationId": "desig_finance_head",
+    "permissionId": "perm_custom_0",
+    "permissionKey": "finance.view_all",
+    "scope": "Department",
+    "createdAt": "2026-11-17T06:00:00.000Z"
+  },
+  {
+    "id": "dp_desig_finance_head_1",
+    "designationId": "desig_finance_head",
+    "permissionId": "perm_custom_1",
+    "permissionKey": "finance.manage",
+    "scope": "Department",
+    "createdAt": "2026-11-17T06:00:00.000Z"
+  },
+  {
+    "id": "dp_desig_finance_head_2",
+    "designationId": "desig_finance_head",
+    "permissionId": "perm_payment_view",
+    "permissionKey": "payment.view",
+    "scope": "Department",
+    "createdAt": "2026-11-17T06:00:00.000Z"
+  },
+  {
+    "id": "dp_desig_finance_head_3",
+    "designationId": "desig_finance_head",
+    "permissionId": "perm_refund_approve",
+    "permissionKey": "refund.approve",
+    "scope": "Department",
+    "createdAt": "2026-11-17T06:00:00.000Z"
+  },
+  {
+    "id": "dp_desig_finance_head_4",
+    "designationId": "desig_finance_head",
+    "permissionId": "perm_payout_approve",
+    "permissionKey": "payout.approve",
+    "scope": "Department",
+    "createdAt": "2026-11-17T06:00:00.000Z"
+  },
+  {
+    "id": "dp_desig_finance_head_5",
+    "designationId": "desig_finance_head",
+    "permissionId": "perm_task_create",
+    "permissionKey": "task.create",
+    "scope": "Department",
+    "createdAt": "2026-11-17T06:00:00.000Z"
+  },
+  {
+    "id": "dp_desig_finance_head_6",
+    "designationId": "desig_finance_head",
+    "permissionId": "perm_task_assign",
+    "permissionKey": "task.assign",
+    "scope": "Department",
+    "createdAt": "2026-11-17T06:00:00.000Z"
+  },
+  {
+    "id": "dp_desig_finance_head_7",
+    "designationId": "desig_finance_head",
+    "permissionId": "perm_task_approve",
+    "permissionKey": "task.approve",
+    "scope": "Department",
+    "createdAt": "2026-11-17T06:00:00.000Z"
+  },
+  {
+    "id": "dp_desig_finance_head_8",
+    "designationId": "desig_finance_head",
+    "permissionId": "perm_report_view_dept",
+    "permissionKey": "report.view_department",
+    "scope": "Department",
+    "createdAt": "2026-11-17T06:00:00.000Z"
+  },
+  {
+    "id": "dp_desig_accountant_0",
+    "designationId": "desig_accountant",
+    "permissionId": "perm_custom_0",
+    "permissionKey": "finance.view_ledger",
+    "scope": "Assigned records",
+    "createdAt": "2026-11-17T06:00:00.000Z"
+  },
+  {
+    "id": "dp_desig_accountant_1",
+    "designationId": "desig_accountant",
+    "permissionId": "perm_custom_1",
+    "permissionKey": "finance.reconcile",
+    "scope": "Assigned records",
+    "createdAt": "2026-11-17T06:00:00.000Z"
+  },
+  {
+    "id": "dp_desig_accountant_2",
+    "designationId": "desig_accountant",
+    "permissionId": "perm_custom_2",
+    "permissionKey": "finance.view_statements",
+    "scope": "Assigned records",
+    "createdAt": "2026-11-17T06:00:00.000Z"
+  },
+  {
+    "id": "dp_desig_accountant_3",
+    "designationId": "desig_accountant",
+    "permissionId": "perm_custom_3",
+    "permissionKey": "task.view_assigned",
+    "scope": "Assigned records",
+    "createdAt": "2026-11-17T06:00:00.000Z"
+  },
+  {
+    "id": "dp_desig_accountant_4",
+    "designationId": "desig_accountant",
+    "permissionId": "perm_task_update_assigned",
+    "permissionKey": "task.update_assigned",
+    "scope": "Assigned records",
+    "createdAt": "2026-11-17T06:00:00.000Z"
+  },
+  {
+    "id": "dp_desig_payment_exec_0",
+    "designationId": "desig_payment_exec",
+    "permissionId": "perm_custom_0",
+    "permissionKey": "payment.view_transactions",
+    "scope": "Assigned records",
+    "createdAt": "2026-11-17T06:00:00.000Z"
+  },
+  {
+    "id": "dp_desig_payment_exec_1",
+    "designationId": "desig_payment_exec",
+    "permissionId": "perm_payment_investigate",
+    "permissionKey": "payment.investigate_exceptions",
+    "scope": "Assigned records",
+    "createdAt": "2026-11-17T06:00:00.000Z"
+  },
+  {
+    "id": "dp_desig_payment_exec_2",
+    "designationId": "desig_payment_exec",
+    "permissionId": "perm_custom_2",
+    "permissionKey": "task.view_assigned",
+    "scope": "Assigned records",
+    "createdAt": "2026-11-17T06:00:00.000Z"
+  },
+  {
+    "id": "dp_desig_payment_exec_3",
+    "designationId": "desig_payment_exec",
+    "permissionId": "perm_task_update_assigned",
+    "permissionKey": "task.update_assigned",
+    "scope": "Assigned records",
+    "createdAt": "2026-11-17T06:00:00.000Z"
+  },
+  {
+    "id": "dp_desig_refund_exec_0",
+    "designationId": "desig_refund_exec",
+    "permissionId": "perm_refund_validate",
+    "permissionKey": "refund.validate",
+    "scope": "Assigned records",
+    "createdAt": "2026-11-17T06:00:00.000Z"
+  },
+  {
+    "id": "dp_desig_refund_exec_1",
+    "designationId": "desig_refund_exec",
+    "permissionId": "perm_refund_initiate",
+    "permissionKey": "refund.initiate_authorized",
+    "scope": "Assigned records",
+    "createdAt": "2026-11-17T06:00:00.000Z"
+  },
+  {
+    "id": "dp_desig_refund_exec_2",
+    "designationId": "desig_refund_exec",
+    "permissionId": "perm_custom_2",
+    "permissionKey": "refund.track_results",
+    "scope": "Assigned records",
+    "createdAt": "2026-11-17T06:00:00.000Z"
+  },
+  {
+    "id": "dp_desig_refund_exec_3",
+    "designationId": "desig_refund_exec",
+    "permissionId": "perm_custom_3",
+    "permissionKey": "task.view_assigned",
+    "scope": "Assigned records",
+    "createdAt": "2026-11-17T06:00:00.000Z"
+  },
+  {
+    "id": "dp_desig_refund_exec_4",
+    "designationId": "desig_refund_exec",
+    "permissionId": "perm_task_update_assigned",
+    "permissionKey": "task.update_assigned",
+    "scope": "Assigned records",
+    "createdAt": "2026-11-17T06:00:00.000Z"
+  },
+  {
+    "id": "dp_desig_payout_exec_0",
+    "designationId": "desig_payout_exec",
+    "permissionId": "perm_payout_verify",
+    "permissionKey": "payout.verify",
+    "scope": "Assigned records",
+    "createdAt": "2026-11-17T06:00:00.000Z"
+  },
+  {
+    "id": "dp_desig_payout_exec_1",
+    "designationId": "desig_payout_exec",
+    "permissionId": "perm_payout_prepare",
+    "permissionKey": "payout.prepare_authorized",
+    "scope": "Assigned records",
+    "createdAt": "2026-11-17T06:00:00.000Z"
+  },
+  {
+    "id": "dp_desig_payout_exec_2",
+    "designationId": "desig_payout_exec",
+    "permissionId": "perm_custom_2",
+    "permissionKey": "payout.track_results",
+    "scope": "Assigned records",
+    "createdAt": "2026-11-17T06:00:00.000Z"
+  },
+  {
+    "id": "dp_desig_payout_exec_3",
+    "designationId": "desig_payout_exec",
+    "permissionId": "perm_custom_3",
+    "permissionKey": "task.view_assigned",
+    "scope": "Assigned records",
+    "createdAt": "2026-11-17T06:00:00.000Z"
+  },
+  {
+    "id": "dp_desig_payout_exec_4",
+    "designationId": "desig_payout_exec",
+    "permissionId": "perm_task_update_assigned",
+    "permissionKey": "task.update_assigned",
+    "scope": "Assigned records",
+    "createdAt": "2026-11-17T06:00:00.000Z"
+  },
+  {
+    "id": "dp_desig_fin_reconciliation_exec_0",
+    "designationId": "desig_fin_reconciliation_exec",
+    "permissionId": "perm_custom_0",
+    "permissionKey": "finance.reconcile",
+    "scope": "Assigned records",
+    "createdAt": "2026-11-17T06:00:00.000Z"
+  },
+  {
+    "id": "dp_desig_fin_reconciliation_exec_1",
+    "designationId": "desig_fin_reconciliation_exec",
+    "permissionId": "perm_custom_1",
+    "permissionKey": "payment.view_transactions",
+    "scope": "Assigned records",
+    "createdAt": "2026-11-17T06:00:00.000Z"
+  },
+  {
+    "id": "dp_desig_fin_reconciliation_exec_2",
+    "designationId": "desig_fin_reconciliation_exec",
+    "permissionId": "perm_custom_2",
+    "permissionKey": "task.view_assigned",
+    "scope": "Assigned records",
+    "createdAt": "2026-11-17T06:00:00.000Z"
+  },
+  {
+    "id": "dp_desig_fin_reconciliation_exec_3",
+    "designationId": "desig_fin_reconciliation_exec",
+    "permissionId": "perm_task_update_assigned",
+    "permissionKey": "task.update_assigned",
+    "scope": "Assigned records",
+    "createdAt": "2026-11-17T06:00:00.000Z"
+  },
+  {
+    "id": "dp_desig_provider_head_0",
+    "designationId": "desig_provider_head",
+    "permissionId": "perm_provider_view",
+    "permissionKey": "provider.view_all",
+    "scope": "Department",
+    "createdAt": "2026-11-17T06:00:00.000Z"
+  },
+  {
+    "id": "dp_desig_provider_head_1",
+    "designationId": "desig_provider_head",
+    "permissionId": "perm_custom_1",
+    "permissionKey": "provider.manage",
+    "scope": "Department",
+    "createdAt": "2026-11-17T06:00:00.000Z"
+  },
+  {
+    "id": "dp_desig_provider_head_2",
+    "designationId": "desig_provider_head",
+    "permissionId": "perm_provider_verify",
+    "permissionKey": "provider.verify",
+    "scope": "Department",
+    "createdAt": "2026-11-17T06:00:00.000Z"
+  },
+  {
+    "id": "dp_desig_provider_head_3",
+    "designationId": "desig_provider_head",
+    "permissionId": "perm_custom_3",
+    "permissionKey": "subscription.manage",
+    "scope": "Department",
+    "createdAt": "2026-11-17T06:00:00.000Z"
+  },
+  {
+    "id": "dp_desig_provider_head_4",
+    "designationId": "desig_provider_head",
+    "permissionId": "perm_task_create",
+    "permissionKey": "task.create",
+    "scope": "Department",
+    "createdAt": "2026-11-17T06:00:00.000Z"
+  },
+  {
+    "id": "dp_desig_provider_head_5",
+    "designationId": "desig_provider_head",
+    "permissionId": "perm_task_assign",
+    "permissionKey": "task.assign",
+    "scope": "Department",
+    "createdAt": "2026-11-17T06:00:00.000Z"
+  },
+  {
+    "id": "dp_desig_provider_head_6",
+    "designationId": "desig_provider_head",
+    "permissionId": "perm_task_approve",
+    "permissionKey": "task.approve",
+    "scope": "Department",
+    "createdAt": "2026-11-17T06:00:00.000Z"
+  },
+  {
+    "id": "dp_desig_provider_head_7",
+    "designationId": "desig_provider_head",
+    "permissionId": "perm_report_view_dept",
+    "permissionKey": "report.view_department",
+    "scope": "Department",
+    "createdAt": "2026-11-17T06:00:00.000Z"
+  },
+  {
+    "id": "dp_desig_provider_onboard_exec_0",
+    "designationId": "desig_provider_onboard_exec",
+    "permissionId": "perm_custom_0",
+    "permissionKey": "provider.view_applications",
+    "scope": "Assigned records",
+    "createdAt": "2026-11-17T06:00:00.000Z"
+  },
+  {
+    "id": "dp_desig_provider_onboard_exec_1",
+    "designationId": "desig_provider_onboard_exec",
+    "permissionId": "perm_custom_1",
+    "permissionKey": "provider.onboard",
+    "scope": "Assigned records",
+    "createdAt": "2026-11-17T06:00:00.000Z"
+  },
+  {
+    "id": "dp_desig_provider_onboard_exec_2",
+    "designationId": "desig_provider_onboard_exec",
+    "permissionId": "perm_custom_2",
+    "permissionKey": "task.view_assigned",
+    "scope": "Assigned records",
+    "createdAt": "2026-11-17T06:00:00.000Z"
+  },
+  {
+    "id": "dp_desig_provider_onboard_exec_3",
+    "designationId": "desig_provider_onboard_exec",
+    "permissionId": "perm_task_update_assigned",
+    "permissionKey": "task.update_assigned",
+    "scope": "Assigned records",
+    "createdAt": "2026-11-17T06:00:00.000Z"
+  },
+  {
+    "id": "dp_desig_provider_verify_exec_0",
+    "designationId": "desig_provider_verify_exec",
+    "permissionId": "perm_custom_0",
+    "permissionKey": "provider.verify_docs",
+    "scope": "Assigned records",
+    "createdAt": "2026-11-17T06:00:00.000Z"
+  },
+  {
+    "id": "dp_desig_provider_verify_exec_1",
+    "designationId": "desig_provider_verify_exec",
+    "permissionId": "perm_custom_1",
+    "permissionKey": "provider.update_verification_status",
+    "scope": "Assigned records",
+    "createdAt": "2026-11-17T06:00:00.000Z"
+  },
+  {
+    "id": "dp_desig_provider_verify_exec_2",
+    "designationId": "desig_provider_verify_exec",
+    "permissionId": "perm_custom_2",
+    "permissionKey": "task.view_assigned",
+    "scope": "Assigned records",
+    "createdAt": "2026-11-17T06:00:00.000Z"
+  },
+  {
+    "id": "dp_desig_provider_verify_exec_3",
+    "designationId": "desig_provider_verify_exec",
+    "permissionId": "perm_task_update_assigned",
+    "permissionKey": "task.update_assigned",
+    "scope": "Assigned records",
+    "createdAt": "2026-11-17T06:00:00.000Z"
+  },
+  {
+    "id": "dp_desig_provider_support_exec_0",
+    "designationId": "desig_provider_support_exec",
+    "permissionId": "perm_custom_0",
+    "permissionKey": "provider.view_tickets",
+    "scope": "Assigned records",
+    "createdAt": "2026-11-17T06:00:00.000Z"
+  },
+  {
+    "id": "dp_desig_provider_support_exec_1",
+    "designationId": "desig_provider_support_exec",
+    "permissionId": "perm_custom_1",
+    "permissionKey": "provider.reply_ticket",
+    "scope": "Assigned records",
+    "createdAt": "2026-11-17T06:00:00.000Z"
+  },
+  {
+    "id": "dp_desig_provider_support_exec_2",
+    "designationId": "desig_provider_support_exec",
+    "permissionId": "perm_custom_2",
+    "permissionKey": "task.view_assigned",
+    "scope": "Assigned records",
+    "createdAt": "2026-11-17T06:00:00.000Z"
+  },
+  {
+    "id": "dp_desig_provider_support_exec_3",
+    "designationId": "desig_provider_support_exec",
+    "permissionId": "perm_task_update_assigned",
+    "permissionKey": "task.update_assigned",
+    "scope": "Assigned records",
+    "createdAt": "2026-11-17T06:00:00.000Z"
+  },
+  {
+    "id": "dp_desig_provider_rel_exec_0",
+    "designationId": "desig_provider_rel_exec",
+    "permissionId": "perm_custom_0",
+    "permissionKey": "provider.view_engagement",
+    "scope": "Assigned records",
+    "createdAt": "2026-11-17T06:00:00.000Z"
+  },
+  {
+    "id": "dp_desig_provider_rel_exec_1",
+    "designationId": "desig_provider_rel_exec",
+    "permissionId": "perm_custom_1",
+    "permissionKey": "provider.handle_complaints",
+    "scope": "Assigned records",
+    "createdAt": "2026-11-17T06:00:00.000Z"
+  },
+  {
+    "id": "dp_desig_provider_rel_exec_2",
+    "designationId": "desig_provider_rel_exec",
+    "permissionId": "perm_custom_2",
+    "permissionKey": "task.view_assigned",
+    "scope": "Assigned records",
+    "createdAt": "2026-11-17T06:00:00.000Z"
+  },
+  {
+    "id": "dp_desig_provider_rel_exec_3",
+    "designationId": "desig_provider_rel_exec",
+    "permissionId": "perm_task_update_assigned",
+    "permissionKey": "task.update_assigned",
+    "scope": "Assigned records",
+    "createdAt": "2026-11-17T06:00:00.000Z"
+  },
+  {
+    "id": "dp_desig_provider_sub_exec_0",
+    "designationId": "desig_provider_sub_exec",
+    "permissionId": "perm_custom_0",
+    "permissionKey": "subscription.view",
+    "scope": "Assigned records",
+    "createdAt": "2026-11-17T06:00:00.000Z"
+  },
+  {
+    "id": "dp_desig_provider_sub_exec_1",
+    "designationId": "desig_provider_sub_exec",
+    "permissionId": "perm_custom_1",
+    "permissionKey": "subscription.manage_renewals",
+    "scope": "Assigned records",
+    "createdAt": "2026-11-17T06:00:00.000Z"
+  },
+  {
+    "id": "dp_desig_provider_sub_exec_2",
+    "designationId": "desig_provider_sub_exec",
+    "permissionId": "perm_custom_2",
+    "permissionKey": "task.view_assigned",
+    "scope": "Assigned records",
+    "createdAt": "2026-11-17T06:00:00.000Z"
+  },
+  {
+    "id": "dp_desig_provider_sub_exec_3",
+    "designationId": "desig_provider_sub_exec",
+    "permissionId": "perm_task_update_assigned",
+    "permissionKey": "task.update_assigned",
+    "scope": "Assigned records",
+    "createdAt": "2026-11-17T06:00:00.000Z"
+  },
+  {
+    "id": "dp_desig_marketing_head_0",
+    "designationId": "desig_marketing_head",
+    "permissionId": "perm_custom_0",
+    "permissionKey": "campaign.view_all",
+    "scope": "Department",
+    "createdAt": "2026-11-17T06:00:00.000Z"
+  },
+  {
+    "id": "dp_desig_marketing_head_1",
+    "designationId": "desig_marketing_head",
+    "permissionId": "perm_custom_1",
+    "permissionKey": "campaign.manage",
+    "scope": "Department",
+    "createdAt": "2026-11-17T06:00:00.000Z"
+  },
+  {
+    "id": "dp_desig_marketing_head_2",
+    "designationId": "desig_marketing_head",
+    "permissionId": "perm_campaign_approve",
+    "permissionKey": "campaign.approve",
+    "scope": "Department",
+    "createdAt": "2026-11-17T06:00:00.000Z"
+  },
+  {
+    "id": "dp_desig_marketing_head_3",
+    "designationId": "desig_marketing_head",
+    "permissionId": "perm_custom_3",
+    "permissionKey": "lead.view_all",
+    "scope": "Department",
+    "createdAt": "2026-11-17T06:00:00.000Z"
+  },
+  {
+    "id": "dp_desig_marketing_head_4",
+    "designationId": "desig_marketing_head",
+    "permissionId": "perm_task_create",
+    "permissionKey": "task.create",
+    "scope": "Department",
+    "createdAt": "2026-11-17T06:00:00.000Z"
+  },
+  {
+    "id": "dp_desig_marketing_head_5",
+    "designationId": "desig_marketing_head",
+    "permissionId": "perm_task_assign",
+    "permissionKey": "task.assign",
+    "scope": "Department",
+    "createdAt": "2026-11-17T06:00:00.000Z"
+  },
+  {
+    "id": "dp_desig_marketing_head_6",
+    "designationId": "desig_marketing_head",
+    "permissionId": "perm_task_approve",
+    "permissionKey": "task.approve",
+    "scope": "Department",
+    "createdAt": "2026-11-17T06:00:00.000Z"
+  },
+  {
+    "id": "dp_desig_marketing_head_7",
+    "designationId": "desig_marketing_head",
+    "permissionId": "perm_report_view_dept",
+    "permissionKey": "report.view_department",
+    "scope": "Department",
+    "createdAt": "2026-11-17T06:00:00.000Z"
+  },
+  {
+    "id": "dp_desig_digital_mkt_exec_0",
+    "designationId": "desig_digital_mkt_exec",
+    "permissionId": "perm_campaign_create",
+    "permissionKey": "campaign.create_draft",
+    "scope": "Assigned records",
+    "createdAt": "2026-11-17T06:00:00.000Z"
+  },
+  {
+    "id": "dp_desig_digital_mkt_exec_1",
+    "designationId": "desig_digital_mkt_exec",
+    "permissionId": "perm_custom_1",
+    "permissionKey": "campaign.submit_approval",
+    "scope": "Assigned records",
+    "createdAt": "2026-11-17T06:00:00.000Z"
+  },
+  {
+    "id": "dp_desig_digital_mkt_exec_2",
+    "designationId": "desig_digital_mkt_exec",
+    "permissionId": "perm_custom_2",
+    "permissionKey": "campaign.view_analytics",
+    "scope": "Assigned records",
+    "createdAt": "2026-11-17T06:00:00.000Z"
+  },
+  {
+    "id": "dp_desig_digital_mkt_exec_3",
+    "designationId": "desig_digital_mkt_exec",
+    "permissionId": "perm_custom_3",
+    "permissionKey": "task.view_assigned",
+    "scope": "Assigned records",
+    "createdAt": "2026-11-17T06:00:00.000Z"
+  },
+  {
+    "id": "dp_desig_digital_mkt_exec_4",
+    "designationId": "desig_digital_mkt_exec",
+    "permissionId": "perm_task_update_assigned",
+    "permissionKey": "task.update_assigned",
+    "scope": "Assigned records",
+    "createdAt": "2026-11-17T06:00:00.000Z"
+  },
+  {
+    "id": "dp_desig_campaign_coord_exec_0",
+    "designationId": "desig_campaign_coord_exec",
+    "permissionId": "perm_custom_0",
+    "permissionKey": "campaign.distribute",
+    "scope": "Assigned records",
+    "createdAt": "2026-11-17T06:00:00.000Z"
+  },
+  {
+    "id": "dp_desig_campaign_coord_exec_1",
+    "designationId": "desig_campaign_coord_exec",
+    "permissionId": "perm_custom_1",
+    "permissionKey": "campaign.view_analytics",
+    "scope": "Assigned records",
+    "createdAt": "2026-11-17T06:00:00.000Z"
+  },
+  {
+    "id": "dp_desig_campaign_coord_exec_2",
+    "designationId": "desig_campaign_coord_exec",
+    "permissionId": "perm_custom_2",
+    "permissionKey": "task.view_assigned",
+    "scope": "Assigned records",
+    "createdAt": "2026-11-17T06:00:00.000Z"
+  },
+  {
+    "id": "dp_desig_campaign_coord_exec_3",
+    "designationId": "desig_campaign_coord_exec",
+    "permissionId": "perm_task_update_assigned",
+    "permissionKey": "task.update_assigned",
+    "scope": "Assigned records",
+    "createdAt": "2026-11-17T06:00:00.000Z"
+  },
+  {
+    "id": "dp_desig_growth_analyst_0",
+    "designationId": "desig_growth_analyst",
+    "permissionId": "perm_custom_0",
+    "permissionKey": "campaign.view_analytics",
+    "scope": "Assigned records",
+    "createdAt": "2026-11-17T06:00:00.000Z"
+  },
+  {
+    "id": "dp_desig_growth_analyst_1",
+    "designationId": "desig_growth_analyst",
+    "permissionId": "perm_report_view_dept",
+    "permissionKey": "report.view_department",
+    "scope": "Assigned records",
+    "createdAt": "2026-11-17T06:00:00.000Z"
+  },
+  {
+    "id": "dp_desig_growth_analyst_2",
+    "designationId": "desig_growth_analyst",
+    "permissionId": "perm_custom_2",
+    "permissionKey": "task.view_assigned",
+    "scope": "Assigned records",
+    "createdAt": "2026-11-17T06:00:00.000Z"
+  },
+  {
+    "id": "dp_desig_qc_head_0",
+    "designationId": "desig_qc_head",
+    "permissionId": "perm_custom_0",
+    "permissionKey": "quality.view_all",
+    "scope": "Department",
+    "createdAt": "2026-11-17T06:00:00.000Z"
+  },
+  {
+    "id": "dp_desig_qc_head_1",
+    "designationId": "desig_qc_head",
+    "permissionId": "perm_custom_1",
+    "permissionKey": "quality.manage",
+    "scope": "Department",
+    "createdAt": "2026-11-17T06:00:00.000Z"
+  },
+  {
+    "id": "dp_desig_qc_head_2",
+    "designationId": "desig_qc_head",
+    "permissionId": "perm_custom_2",
+    "permissionKey": "audit.view_all",
+    "scope": "Department",
+    "createdAt": "2026-11-17T06:00:00.000Z"
+  },
+  {
+    "id": "dp_desig_qc_head_3",
+    "designationId": "desig_qc_head",
+    "permissionId": "perm_custom_3",
+    "permissionKey": "policy.manage",
+    "scope": "Department",
+    "createdAt": "2026-11-17T06:00:00.000Z"
+  },
+  {
+    "id": "dp_desig_qc_head_4",
+    "designationId": "desig_qc_head",
+    "permissionId": "perm_custom_4",
+    "permissionKey": "policy.approve",
+    "scope": "Department",
+    "createdAt": "2026-11-17T06:00:00.000Z"
+  },
+  {
+    "id": "dp_desig_qc_head_5",
+    "designationId": "desig_qc_head",
+    "permissionId": "perm_task_create",
+    "permissionKey": "task.create",
+    "scope": "Department",
+    "createdAt": "2026-11-17T06:00:00.000Z"
+  },
+  {
+    "id": "dp_desig_qc_head_6",
+    "designationId": "desig_qc_head",
+    "permissionId": "perm_task_assign",
+    "permissionKey": "task.assign",
+    "scope": "Department",
+    "createdAt": "2026-11-17T06:00:00.000Z"
+  },
+  {
+    "id": "dp_desig_qc_head_7",
+    "designationId": "desig_qc_head",
+    "permissionId": "perm_task_approve",
+    "permissionKey": "task.approve",
+    "scope": "Department",
+    "createdAt": "2026-11-17T06:00:00.000Z"
+  },
+  {
+    "id": "dp_desig_qc_head_8",
+    "designationId": "desig_qc_head",
+    "permissionId": "perm_report_view_dept",
+    "permissionKey": "report.view_department",
+    "scope": "Department",
+    "createdAt": "2026-11-17T06:00:00.000Z"
+  },
+  {
+    "id": "dp_desig_qa_exec_0",
+    "designationId": "desig_qa_exec",
+    "permissionId": "perm_quality_inspect",
+    "permissionKey": "quality.inspect",
+    "scope": "Assigned records",
+    "createdAt": "2026-11-17T06:00:00.000Z"
+  },
+  {
+    "id": "dp_desig_qa_exec_1",
+    "designationId": "desig_qa_exec",
+    "permissionId": "perm_custom_1",
+    "permissionKey": "quality.submit findings",
+    "scope": "Assigned records",
+    "createdAt": "2026-11-17T06:00:00.000Z"
+  },
+  {
+    "id": "dp_desig_qa_exec_2",
+    "designationId": "desig_qa_exec",
+    "permissionId": "perm_custom_2",
+    "permissionKey": "task.view_assigned",
+    "scope": "Assigned records",
+    "createdAt": "2026-11-17T06:00:00.000Z"
+  },
+  {
+    "id": "dp_desig_qa_exec_3",
+    "designationId": "desig_qa_exec",
+    "permissionId": "perm_task_update_assigned",
+    "permissionKey": "task.update_assigned",
+    "scope": "Assigned records",
+    "createdAt": "2026-11-17T06:00:00.000Z"
+  },
+  {
+    "id": "dp_desig_srv_audit_exec_0",
+    "designationId": "desig_srv_audit_exec",
+    "permissionId": "perm_custom_0",
+    "permissionKey": "audit.view_authorized",
+    "scope": "Assigned records",
+    "createdAt": "2026-11-17T06:00:00.000Z"
+  },
+  {
+    "id": "dp_desig_srv_audit_exec_1",
+    "designationId": "desig_srv_audit_exec",
+    "permissionId": "perm_audit_submit",
+    "permissionKey": "audit.submit_findings",
+    "scope": "Assigned records",
+    "createdAt": "2026-11-17T06:00:00.000Z"
+  },
+  {
+    "id": "dp_desig_srv_audit_exec_2",
+    "designationId": "desig_srv_audit_exec",
+    "permissionId": "perm_custom_2",
+    "permissionKey": "task.view_assigned",
+    "scope": "Assigned records",
+    "createdAt": "2026-11-17T06:00:00.000Z"
+  },
+  {
+    "id": "dp_desig_srv_audit_exec_3",
+    "designationId": "desig_srv_audit_exec",
+    "permissionId": "perm_task_update_assigned",
+    "permissionKey": "task.update_assigned",
+    "scope": "Assigned records",
+    "createdAt": "2026-11-17T06:00:00.000Z"
+  },
+  {
+    "id": "dp_desig_doc_verify_exec_0",
+    "designationId": "desig_doc_verify_exec",
+    "permissionId": "perm_custom_0",
+    "permissionKey": "document.review",
+    "scope": "Assigned records",
+    "createdAt": "2026-11-17T06:00:00.000Z"
+  },
+  {
+    "id": "dp_desig_doc_verify_exec_1",
+    "designationId": "desig_doc_verify_exec",
+    "permissionId": "perm_custom_1",
+    "permissionKey": "document.submit_findings",
+    "scope": "Assigned records",
+    "createdAt": "2026-11-17T06:00:00.000Z"
+  },
+  {
+    "id": "dp_desig_doc_verify_exec_2",
+    "designationId": "desig_doc_verify_exec",
+    "permissionId": "perm_custom_2",
+    "permissionKey": "task.view_assigned",
+    "scope": "Assigned records",
+    "createdAt": "2026-11-17T06:00:00.000Z"
+  },
+  {
+    "id": "dp_desig_doc_verify_exec_3",
+    "designationId": "desig_doc_verify_exec",
+    "permissionId": "perm_task_update_assigned",
+    "permissionKey": "task.update_assigned",
+    "scope": "Assigned records",
+    "createdAt": "2026-11-17T06:00:00.000Z"
+  },
+  {
+    "id": "dp_desig_policy_exec_0",
+    "designationId": "desig_policy_exec",
+    "permissionId": "perm_policy_draft",
+    "permissionKey": "policy.draft",
+    "scope": "Assigned records",
+    "createdAt": "2026-11-17T06:00:00.000Z"
+  },
+  {
+    "id": "dp_desig_policy_exec_1",
+    "designationId": "desig_policy_exec",
+    "permissionId": "perm_custom_1",
+    "permissionKey": "policy.submit_approval",
+    "scope": "Assigned records",
+    "createdAt": "2026-11-17T06:00:00.000Z"
+  },
+  {
+    "id": "dp_desig_policy_exec_2",
+    "designationId": "desig_policy_exec",
+    "permissionId": "perm_custom_2",
+    "permissionKey": "task.view_assigned",
+    "scope": "Assigned records",
+    "createdAt": "2026-11-17T06:00:00.000Z"
+  },
+  {
+    "id": "dp_desig_policy_exec_3",
+    "designationId": "desig_policy_exec",
+    "permissionId": "perm_task_update_assigned",
+    "permissionKey": "task.update_assigned",
+    "scope": "Assigned records",
+    "createdAt": "2026-11-17T06:00:00.000Z"
+  },
+  {
+    "id": "dp_desig_compliance_monitor_0",
+    "designationId": "desig_compliance_monitor",
+    "permissionId": "perm_custom_0",
+    "permissionKey": "compliance.monitor",
+    "scope": "Assigned records",
+    "createdAt": "2026-11-17T06:00:00.000Z"
+  },
+  {
+    "id": "dp_desig_compliance_monitor_1",
+    "designationId": "desig_compliance_monitor",
+    "permissionId": "perm_custom_1",
+    "permissionKey": "audit.view_authorized",
+    "scope": "Assigned records",
+    "createdAt": "2026-11-17T06:00:00.000Z"
+  },
+  {
+    "id": "dp_desig_compliance_monitor_2",
+    "designationId": "desig_compliance_monitor",
+    "permissionId": "perm_custom_2",
+    "permissionKey": "task.view_assigned",
+    "scope": "Assigned records",
+    "createdAt": "2026-11-17T06:00:00.000Z"
+  },
+  {
+    "id": "dp_desig_compliance_monitor_3",
+    "designationId": "desig_compliance_monitor",
+    "permissionId": "perm_task_update_assigned",
+    "permissionKey": "task.update_assigned",
+    "scope": "Assigned records",
+    "createdAt": "2026-11-17T06:00:00.000Z"
+  }
+]
