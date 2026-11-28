@@ -25,6 +25,9 @@ import ServiceAccessLock, { isServicePathLockedForUser } from '../../components/
 import ScrollReveal from '../../components/ui/ScrollReveal.jsx';
 import PetBreedDropdown from '../../components/ui/PetBreedDropdown.jsx';
 import { handleServiceAction } from '../../components/widgets/ServicePackageAccessModal.jsx';
+import LocationDetector from '../../components/location/LocationDetector.jsx';
+import ProviderMapView from '../../components/location/ProviderMapView.jsx';
+import { calculateDistanceKm, resolveItemCoordinates, getStoredUserLocation } from '../../utils/locationUtils.js';
 
 // =========================================================================
 // Professional Lucide Vector Icon Renderer for Pet Hospitality & Commerce
@@ -154,6 +157,9 @@ const HostelServices = () => {
   const [selectedStayType, setSelectedStayType] = useState('All');
   const [sortBy, setSortBy] = useState('recommended');
   const [searchKeyword, setSearchKeyword] = useState('');
+  const [userLocation, setUserLocation] = useState(() => getStoredUserLocation());
+  const [radiusKm, setRadiusKm] = useState(25);
+  const [viewMode, setViewMode] = useState('list');
 
   // Booking Modal States
   const [selectedProvider, setSelectedProvider] = useState(null);
@@ -283,8 +289,18 @@ const HostelServices = () => {
 
   // Filter & Sort Providers
   const filteredProviders = useMemo(() => {
-    return (providers || []).filter((p) => {
-      // 1. Pet Type Filter
+    return (providers || [])
+      .map((p) => {
+        if (!userLocation) return { ...p, distanceKm: null };
+        const coords = resolveItemCoordinates(p);
+        const dist = coords ? calculateDistanceKm(userLocation.latitude, userLocation.longitude, coords.lat, coords.lng) : null;
+        return { ...p, distanceKm: dist, latitude: coords?.lat, longitude: coords?.lng };
+      })
+      .filter((p) => {
+        if (userLocation && radiusKm < 500 && p.distanceKm !== null && p.distanceKm > radiusKm) {
+          return false;
+        }
+        // 1. Pet Type Filter
       if (selectedPetType !== 'All') {
         const matchesPet = (p.petTypes || []).some(
           (t) => (t || '').toLowerCase() === selectedPetType.toLowerCase()
@@ -343,11 +359,15 @@ const HostelServices = () => {
       if (sortBy === 'price-high') return priceB - priceA;
       if (sortBy === 'rating') return (b.rating || 0) - (a.rating || 0);
       if (sortBy === 'reviews') return (b.reviews || 0) - (a.reviews || 0);
+      if (userLocation && sortBy === 'recommended') {
+        return (a.distanceKm ?? 99999) - (b.distanceKm ?? 99999);
+      }
       return 0; // recommended
     });
   }, [
     providers, selectedPetType, selectedState, selectedCity,
-    selectedAmenity, priceRange, selectedStayType, sortBy, searchKeyword
+    selectedAmenity, priceRange, selectedStayType, sortBy, searchKeyword,
+    userLocation, radiusKm
   ]);
 
   // Open Booking & Service Access Modal for a hostel
@@ -726,6 +746,16 @@ const HostelServices = () => {
           </div>
         </div>
 
+        <LocationDetector
+          userLocation={userLocation}
+          onLocationChange={setUserLocation}
+          radiusKm={radiusKm}
+          onRadiusChange={setRadiusKm}
+          viewMode={viewMode}
+          onViewModeChange={setViewMode}
+          resultCount={filteredProviders.length}
+        />
+
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
 
           {/* =====================================================================
@@ -932,7 +962,15 @@ const HostelServices = () => {
              ===================================================================== */}
           <div className="lg:col-span-9 space-y-6">
 
-            {filteredProviders.length > 0 ? (
+            {viewMode === 'map' ? (
+              <ProviderMapView
+                items={filteredProviders}
+                userLocation={userLocation}
+                radiusKm={radiusKm}
+                onSelectProvider={(p) => navigate(`/hostel/${p.id}`)}
+                actionLabel="View Hostel Details"
+              />
+            ) : filteredProviders.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {filteredProviders.map((provider) => {
                   const featuredPkg = getFeaturedPackageForOffering(provider, selectedAmenity);

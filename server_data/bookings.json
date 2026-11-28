@@ -201,32 +201,6 @@
     "updatedAt": "2026-11-03T08:17:50.842Z"
   },
   {
-    "id": "BK-TEST-001",
-    "serviceType": "Pet Grooming",
-    "serviceCategory": "Pet Grooming Spa",
-    "providerId": "prov-groom-02",
-    "providerName": "Velvet Fur Spa",
-    "packageName": "Full Grooming Spa",
-    "fee": 1500,
-    "ownerName": "Test Parent",
-    "ownerEmail": "customer1@joshpetshub.com",
-    "_id": "BK-TEST-001",
-    "status": "Completed",
-    "bookingStatus": "Completed",
-    "paymentStatus": "Paid",
-    "settlementStatus": "Settled",
-    "paymentDetails": {
-      "gateway": "Razorpay",
-      "orderId": "order_sim_test_123",
-      "paymentId": "pay_sim_test_456",
-      "paidAt": "2026-11-03T08:06:40.401Z",
-      "amount": 1500,
-      "currency": "INR"
-    },
-    "createdAt": "2026-11-03T08:06:40.401Z",
-    "updatedAt": "2026-11-03T08:06:40.401Z"
-  },
-  {
     "_id": "HSTBK-984887",
     "id": "HSTBK-984887",
     "serviceType": "Pet Hostel / Boarding",

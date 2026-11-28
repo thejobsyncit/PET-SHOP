@@ -2454,8 +2454,8 @@
     "govt_proof_number": "AWBI/BLR/2026/8892",
     "govtProofDoc": null,
     "govt_proof_doc": null,
-    "verificationStatus": "Pending",
-    "verification_status": "Pending",
+    "verificationStatus": "Verified",
+    "verification_status": "Verified",
     "shelterCapacity": 50,
     "shelter_capacity": 50,
     "bio": null,
@@ -2498,7 +2498,8 @@
     "addresses": [],
     "wishlist": [],
     "cart": [],
-    "prescription_history": []
+    "prescription_history": [],
+    "isVerified": true
   },
   {
     "_id": "f7fd2f11-733b-486d-8195-443c38c9e8fd",

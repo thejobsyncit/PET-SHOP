@@ -2660,7 +2660,8 @@ const AccountDashboard = () => {
                             ? 'border-red-500 ring-2 ring-red-100 text-red-900 bg-red-50/20'
                             : 'border-slate-200 focus:border-[#15559c] focus:ring-2 focus:ring-blue-100 bg-slate-50/50 hover:bg-white'
                         }`}
-                        autoComplete="current-password"
+                        name="change-pwd-current"
+                        autoComplete="new-password"
                       />
                       <button
                         type="button"

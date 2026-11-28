@@ -45,6 +45,9 @@ import ScrollReveal from '../../components/ui/ScrollReveal.jsx';
 import PetBreedDropdown from '../../components/ui/PetBreedDropdown.jsx';
 import { handleServiceAction } from '../../components/widgets/ServicePackageAccessModal.jsx';
 import RazorpayBookingPaymentModal from '../../components/widgets/RazorpayBookingPaymentModal.jsx';
+import LocationDetector from '../../components/location/LocationDetector.jsx';
+import ProviderMapView from '../../components/location/ProviderMapView.jsx';
+import { calculateDistanceKm, resolveItemCoordinates, getStoredUserLocation } from '../../utils/locationUtils.js';
 
 const renderBenefitIcon = (iconKey) => {
   switch (iconKey) {
@@ -81,6 +84,9 @@ const PetTraining = () => {
   const [priceRange, setPriceRange] = useState('all');
   const [searchKeyword, setSearchKeyword] = useState('');
   const [sortBy, setSortBy] = useState('recommended');
+  const [userLocation, setUserLocation] = useState(() => getStoredUserLocation());
+  const [radiusKm, setRadiusKm] = useState(25);
+  const [viewMode, setViewMode] = useState('list');
 
   // Modals state
   const [showBookingModal, setShowBookingModal] = useState(false);
@@ -179,8 +185,18 @@ const PetTraining = () => {
 
   // Filtered Providers
   const filteredProviders = useMemo(() => {
-    return providers.filter((p) => {
-      // 1. Training Type Filter
+    return providers
+      .map((p) => {
+        if (!userLocation) return { ...p, distanceKm: null };
+        const coords = resolveItemCoordinates(p);
+        const dist = coords ? calculateDistanceKm(userLocation.latitude, userLocation.longitude, coords.lat, coords.lng) : null;
+        return { ...p, distanceKm: dist, latitude: coords?.lat, longitude: coords?.lng };
+      })
+      .filter((p) => {
+        if (userLocation && radiusKm < 500 && p.distanceKm !== null && p.distanceKm > radiusKm) {
+          return false;
+        }
+        // 1. Training Type Filter
       if (selectedType !== 'All') {
         const specs = Array.isArray(p.specialties) ? p.specialties : [];
         const tagl = p.tagline || '';
@@ -246,9 +262,12 @@ const PetTraining = () => {
       if (sortBy === 'price-high') return b.pricePerSession - a.pricePerSession;
       if (sortBy === 'rating') return b.rating - a.rating;
       if (sortBy === 'reviews') return b.reviews - a.reviews;
+      if (userLocation && sortBy === 'recommended') {
+        return (a.distanceKm ?? 99999) - (b.distanceKm ?? 99999);
+      }
       return 0; // recommended
     });
-  }, [providers, selectedType, selectedMode, selectedPetType, selectedState, selectedCity, priceRange, verifiedOnly, forceFreeOnly, searchKeyword, sortBy]);
+  }, [providers, selectedType, selectedMode, selectedPetType, selectedState, selectedCity, priceRange, verifiedOnly, forceFreeOnly, searchKeyword, sortBy, userLocation, radiusKm]);
 
   // Open Booking & Service Access Modal (Auth-Gated)
   const handleOpenBookingModal = (provider, pkg = null) => {
@@ -803,6 +822,17 @@ const PetTraining = () => {
           </div>
         </div>
 
+        <LocationDetector
+          userLocation={userLocation}
+          onLocationChange={setUserLocation}
+          radiusKm={radiusKm}
+          onRadiusChange={setRadiusKm}
+          viewMode={viewMode}
+          onViewModeChange={setViewMode}
+          resultCount={filteredProviders.length}
+          className="mb-6"
+        />
+
         {/* Catalog Layout: Left Filter + Right Trainer Cards */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
           
@@ -970,7 +1000,15 @@ const PetTraining = () => {
           {/* Right-Side Trainer Cards Grid */}
           <div className="lg:col-span-9 space-y-6">
             
-            {filteredProviders.length === 0 ? (
+            {viewMode === 'map' ? (
+              <ProviderMapView
+                items={filteredProviders}
+                userLocation={userLocation}
+                radiusKm={radiusKm}
+                onSelectProvider={(p) => handleOpenBookingModal(p)}
+                actionLabel="Book Training Session"
+              />
+            ) : filteredProviders.length === 0 ? (
               <div className="bg-white rounded-3xl p-4 lg:p-12 text-center space-y-4 border border-stone-200 shadow-sm">
                 <div className="w-16 h-16 rounded-full bg-amber-100 text-amber-700 flex items-center justify-center mx-auto text-2xl">
                   🔍

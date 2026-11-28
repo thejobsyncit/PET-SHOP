@@ -289,45 +289,6 @@ const SuperAdminSubscriptionPlansView = () => {
 
   return (
     <div className="space-y-6 animate-in fade-in duration-200">
-      {/* Title & Action Bar */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-[#E3EBE5]">
-        <div>
-          <div className="flex items-center gap-2">
-            <span className="p-2 bg-[#0F2E23] text-white rounded-lg shadow-xs">
-              <CreditCard size={18} />
-            </span>
-            <h2 className="font-serif text-xl font-bold text-primary">
-              Subscription Plans & Pricing Management
-            </h2>
-          </div>
-          <p className="text-xs text-gray-500 mt-1">
-            Configure subscription tiers, base pricing, tax calculation, validity periods, and membership benefits for both Pet Parents (Users) and Service Provider Partners.
-          </p>
-        </div>
-
-        <div className="flex flex-wrap items-center gap-2">
-          <button
-            type="button"
-            onClick={loadPlans}
-            disabled={loading}
-            className="px-3 py-2 text-xs font-bold text-primary bg-white border border-[#E3EBE5] rounded-md hover:bg-[#FAFBF9] transition flex items-center gap-1.5 cursor-pointer shadow-xs"
-            title="Refresh Plans"
-          >
-            <RefreshCw size={14} className={loading ? 'animate-spin' : ''} />
-            <span>Refresh</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={handleResetDefaults}
-            className="px-3 py-2 text-xs font-bold text-gray-600 bg-white border border-[#E3EBE5] rounded-md hover:text-red-600 hover:border-red-200 transition flex items-center gap-1.5 cursor-pointer shadow-xs"
-            title="Reset to Defaults"
-          >
-            <span>Reset Defaults</span>
-          </button>
-        </div>
-      </div>
-
       {/* KPI Highlight Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="bg-white p-4 rounded-xl border border-[#E3EBE5] shadow-xs flex items-center justify-between">

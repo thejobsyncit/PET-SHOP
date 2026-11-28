@@ -559,7 +559,6 @@ const LeadConsultationModal = () => {
   const checkEmailAlreadyRegistered = (email) => {
     if (!email) return false;
     const clean = email.trim().toLowerCase();
-    if (clean === 'sooryas650@gmail.com') return false; // Developer testing account
     if (EXISTING_SYSTEM_EMAILS.includes(clean)) return true;
     try {
       const list = JSON.parse(localStorage.getItem('joshpetshub_registered_users') || '[]');

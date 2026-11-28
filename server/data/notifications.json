@@ -1,5 +1,117 @@
 [
   {
+    "id": "NOTIF-1795763674168-887",
+    "recipientType": "ADMIN",
+    "recipientId": "all",
+    "title": "Service Payment Credited to Central Wallet",
+    "message": "₹1000 collected for booking BK-TEST-1795763674154. Platform commission earned: ₹50.",
+    "type": "payment",
+    "read": false,
+    "createdAt": "2026-11-27T07:14:34.168Z",
+    "metadata": {
+      "bookingId": "BK-TEST-1795763674154",
+      "ledgerId": "TXN-LEDGER-1795763674160-430"
+    }
+  },
+  {
+    "id": "NOTIF-1795763674166-913",
+    "recipientType": "PROVIDER",
+    "recipientId": "prov-vet-01",
+    "title": "New Paid Booking Received",
+    "message": "New booking from Test Pet Parent for ₹1000. Payable earnings of ₹950 added to your pending settlement escrow.",
+    "type": "payment",
+    "read": false,
+    "createdAt": "2026-11-27T07:14:34.166Z",
+    "metadata": {
+      "bookingId": "BK-TEST-1795763674154",
+      "netEarnings": 950
+    }
+  },
+  {
+    "id": "NOTIF-1795763674164-891",
+    "recipientType": "USER",
+    "recipientId": "all",
+    "title": "Booking Confirmed & Payment Received",
+    "message": "Your booking for Full Wellness Checkup is confirmed! Payment Ref: pay_sim_1795763674154.",
+    "type": "booking",
+    "read": false,
+    "createdAt": "2026-11-27T07:14:34.164Z",
+    "metadata": {
+      "bookingId": "BK-TEST-1795763674154",
+      "amount": 1000
+    }
+  },
+  {
+    "id": "NOTIF-1795763581359-707",
+    "recipientType": "ADMIN",
+    "recipientId": "all",
+    "title": "Service Payment Credited to Central Wallet",
+    "message": "₹1000 collected for booking BK-TEST-1795763581341. Platform commission earned: ₹50.",
+    "type": "payment",
+    "read": false,
+    "createdAt": "2026-11-27T07:13:01.359Z",
+    "metadata": {
+      "bookingId": "BK-TEST-1795763581341",
+      "ledgerId": "TXN-LEDGER-1795763581351-453"
+    }
+  },
+  {
+    "id": "NOTIF-1795763581358-248",
+    "recipientType": "PROVIDER",
+    "recipientId": "prov-vet-01",
+    "title": "New Paid Booking Received",
+    "message": "New booking from Test Pet Parent for ₹1000. Payable earnings of ₹950 added to your pending settlement escrow.",
+    "type": "payment",
+    "read": false,
+    "createdAt": "2026-11-27T07:13:01.358Z",
+    "metadata": {
+      "bookingId": "BK-TEST-1795763581341",
+      "netEarnings": 950
+    }
+  },
+  {
+    "id": "NOTIF-1795763581356-561",
+    "recipientType": "USER",
+    "recipientId": "all",
+    "title": "Booking Confirmed & Payment Received",
+    "message": "Your booking for Full Wellness Checkup is confirmed! Payment Ref: pay_sim_1795763581341.",
+    "type": "booking",
+    "read": false,
+    "createdAt": "2026-11-27T07:13:01.356Z",
+    "metadata": {
+      "bookingId": "BK-TEST-1795763581341",
+      "amount": 1000
+    }
+  },
+  {
+    "id": "NOTIF-1795761607072-904",
+    "recipientType": "PROVIDER",
+    "recipientId": "prov-prod-11",
+    "title": "Payout Request Paid",
+    "message": "🎉 ₹5,000 has been settled to your UPI ID! Ref/UTR: UTR5761604685",
+    "type": "payout",
+    "read": false,
+    "createdAt": "2026-11-27T06:40:07.072Z",
+    "metadata": {
+      "payoutId": "PO-REQ-440909",
+      "status": "Paid"
+    }
+  },
+  {
+    "id": "NOTIF-1795761600781-700",
+    "recipientType": "PROVIDER",
+    "recipientId": "prov-prod-11",
+    "title": "Payout Request Approved",
+    "message": "Your payout request of ₹5,000 is now Approved. Note: Approved by Super Admin for bank settlement",
+    "type": "payout",
+    "read": false,
+    "createdAt": "2026-11-27T06:40:00.781Z",
+    "metadata": {
+      "payoutId": "PO-REQ-440909",
+      "status": "Approved"
+    }
+  },
+  {
     "id": "NOTIF-1795690440935-312",
     "recipientType": "PROVIDER",
     "recipientId": "prov-prod-11",

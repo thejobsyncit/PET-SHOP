@@ -298,22 +298,52 @@ export const getPlatformWalletSummary = () => {
 // -----------------------------------------------------------------------------
 // 4. Service Provider Earnings & Wallet Calculations
 // -----------------------------------------------------------------------------
+const normalizeServiceCategoryKey = (raw = '') => {
+  const s = String(raw || '').toLowerCase().trim();
+  if (!s) return '';
+  if (s.includes('vet')) return 'veterinary';
+  if (s.includes('groom')) return 'grooming';
+  if (s.includes('hostel') || s.includes('board') || s.includes('daycare')) return 'hostel';
+  if (s.includes('train')) return 'training';
+  if (s.includes('walk')) return 'walking';
+  if (s.includes('transport') || s.includes('relocat') || s.includes('taxi')) return 'transport';
+  if (s.includes('breed') || s.includes('mating')) return 'breeding';
+  if (s.includes('adopt')) return 'adoption';
+  if (s.includes('insur')) return 'insurance';
+  if (s.includes('product') || s.includes('supply') || s.includes('supplies')) return 'product_seller';
+  if (s.includes('pet seller') || s.includes('seller')) return 'pet_seller';
+  return s;
+};
+
 export const getProviderEarningsData = (providerIdentifier, serviceCategory = '') => {
   const bookings = loadJson(BOOKINGS_FILE, []);
   const payouts = loadJson(PAYOUTS_FILE, []);
 
-  const pid = (providerIdentifier || '').toLowerCase().trim();
+  const pidObj = typeof providerIdentifier === 'object' && providerIdentifier !== null
+    ? providerIdentifier
+    : { id: providerIdentifier, email: '', name: '' };
+
+  const pid = String(pidObj.id || '').toLowerCase().trim();
+  const pEmailKey = String(pidObj.email || '').toLowerCase().trim();
+  const pNameKey = String(pidObj.name || '').toLowerCase().trim();
   const cat = (serviceCategory || '').toLowerCase().trim();
+  const normalizedCat = normalizeServiceCategoryKey(cat);
 
   // Filter bookings belonging to this provider
   const providerBookings = bookings.filter(b => {
-    const bPid = String(b.providerId || '').toLowerCase().trim();
+    const bPid = String(b.providerId || b.doctorId || '').toLowerCase().trim();
     const bEmail = String(b.providerEmail || b.email || '').toLowerCase().trim();
-    const bName = String(b.providerName || '').toLowerCase().trim();
-    const bCat = String(b.serviceCategory || b.serviceType || '').toLowerCase().trim();
+    const bName = String(b.providerName || b.doctorName || b.groomerName || b.trainerName || '').toLowerCase().trim();
+    const bCat = String(b.serviceCategory || b.serviceType || b.service_type || '').toLowerCase().trim();
+    const bNormCat = normalizeServiceCategoryKey(bCat);
 
-    const matchesId = pid && (bPid === pid || bEmail === pid || bName.includes(pid));
-    const matchesCategory = cat && (bCat.includes(cat) || (cat.includes('vet') && bCat.includes('vet')));
+    const matchesId =
+      (pid && (bPid === pid || bEmail === pid || (bName && bName.includes(pid)))) ||
+      (pEmailKey && (bEmail === pEmailKey || bPid === pEmailKey)) ||
+      (pNameKey && bName && (bName.includes(pNameKey) || pNameKey.includes(bName)));
+    const matchesCategory =
+      (cat && (bCat.includes(cat) || cat.includes(bCat))) ||
+      (normalizedCat && bNormCat && normalizedCat === bNormCat);
 
     return matchesId || matchesCategory;
   });
@@ -327,22 +357,22 @@ export const getProviderEarningsData = (providerIdentifier, serviceCategory = ''
   let clearedEarnings = 0;
 
   const bookingsList = providerBookings.map(b => {
-    const isPaid = (b.paymentStatus || '').toLowerCase().includes('paid');
-    const price = Number(b.totalAmount || b.fee || b.totalPrice || b.price || b.dailyRate || 0);
+    const payStat = (b.paymentStatus || b.payment_status || '').toLowerCase();
+    const isPaid = payStat.includes('paid') || payStat === 'success' || payStat === 'completed';
+    const price = Number(b.totalAmount || b.total_amount || b.fee || b.totalPrice || b.price || b.dailyRate || 0);
     const commission = isPaid ? Math.round(price * COMMISSION_RATE) : 0;
     const netEarnings = isPaid ? (price - commission) : 0;
 
     let settlementStatus = b.settlementStatus;
-    if (!settlementStatus) {
-      if (!isPaid) {
-        settlementStatus = 'Unpaid';
-      } else if (b.status === 'Completed' || b.status === 'confirmed_completed') {
-        settlementStatus = 'Available';
-      } else if (b.status === 'Cancelled' || b.status === 'Refunded') {
-        settlementStatus = 'Refunded';
-      } else {
-        settlementStatus = 'Pending';
-      }
+    if (b.status === 'Cancelled' || b.status === 'Refunded' || settlementStatus === 'Refunded') {
+      settlementStatus = 'Refunded';
+    } else if (!isPaid) {
+      settlementStatus = 'Unpaid';
+    } else {
+      // Paid bookings are immediately available for payout after 5% Josh Fee deduction
+      settlementStatus = settlementStatus === 'Settled' || settlementStatus === 'Payout Requested'
+        ? settlementStatus
+        : 'Available';
     }
 
     if (isPaid && settlementStatus !== 'Refunded') {
@@ -399,8 +429,8 @@ export const getProviderEarningsData = (providerIdentifier, serviceCategory = ''
     }
   }
 
-  // Provide initial baseline for demo partners if they have zero bookings yet
-  const baselineBuffer = totalBookingsReceived === 0 ? 25000 : 0;
+  // Preserve initial baseline for demo partners with existing payout history or zero bookings
+  const baselineBuffer = (totalBookingsReceived === 0 || providerPayouts.length > 0) ? 25000 : 0;
   const availablePayoutBalance = Math.max(0, (clearedEarnings + baselineBuffer) - totalWithdrawn - reservedPayouts);
 
   return {

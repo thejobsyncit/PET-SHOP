@@ -7,6 +7,7 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { supabase } from '../config/supabase.js';
+import { lookupCityCoordsFallback } from '../utils/locationUtils.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -38,6 +39,10 @@ export const sanitizeUser = (user) => {
     location: userObj.location || '',
     state: userObj.state || '',
     city: userObj.city || '',
+    pincode: userObj.pincode || '',
+    latitude: userObj.latitude !== undefined && userObj.latitude !== null ? Number(userObj.latitude) : null,
+    longitude: userObj.longitude !== undefined && userObj.longitude !== null ? Number(userObj.longitude) : null,
+    serviceRadius: Number(userObj.serviceRadius || userObj.service_radius) || 15,
     address: userObj.address || userObj.streetAddress || userObj.location || '',
     streetAddress: userObj.address || userObj.streetAddress || userObj.location || '',
     serviceCategory: userObj.serviceCategory || userObj.service_category || '',
@@ -413,21 +418,6 @@ export const DEMO_ACCOUNTS = [
     location: 'Mumbai, Maharashtra'
   },
   {
-    _id: 'user-sooryas650-01',
-    name: 'Soorya S',
-    businessName: '',
-    email: 'sooryas650@gmail.com',
-    mobile: '9876543210',
-    phone: '9876543210',
-    whatsapp: '9876543210',
-    whatsappNumber: '9876543210',
-    whatsappCountryCode: '+91',
-    password: '3629@Srm',
-    role: 'CUSTOMER',
-    serviceCategory: '',
-    location: 'Bangalore, Karnataka'
-  },
-  {
     _id: 'admin-demo-01',
     name: 'Admin User',
     businessName: 'Admin Hub',
@@ -753,11 +743,6 @@ export const isEmailAlreadyRegistered = async (rawEmail) => {
   if (!rawEmail || typeof rawEmail !== 'string') return false;
   const clean = rawEmail.trim().toLowerCase();
 
-  // Test account sooryas650@gmail.com is allowed to re-register/test registration freely
-  if (clean === 'sooryas650@gmail.com') {
-    return false;
-  }
-
   // 1. Check in DEMO_ACCOUNTS
   if (DEMO_ACCOUNTS.some(d => d.email && d.email.trim().toLowerCase() === clean)) {
     return true;
@@ -1042,15 +1027,6 @@ export const registerUser = async (req, res) => {
         diskUsers.push(userObj);
       }
       saveDiskUsers(diskUsers);
-    }
-
-    // Sync in-memory DEMO_ACCOUNTS if sooryas650@gmail.com registers so login works seamlessly with new credentials
-    const demoAcc = DEMO_ACCOUNTS.find(d => d.email && d.email.toLowerCase() === cleanEmail);
-    if (demoAcc) {
-      demoAcc.password = password;
-      demoAcc.name = userObj.name || demoAcc.name;
-      demoAcc.mobile = userObj.mobile || demoAcc.mobile;
-      demoAcc.location = userObj.location || demoAcc.location;
     }
 
     const token = generateToken(userObj);
@@ -1390,7 +1366,11 @@ export const updateUserProfile = async (req, res) => {
     emergencyHelpline,
     addresses,
     groomingSchedule,
-    schedule
+    schedule,
+    pincode,
+    latitude,
+    longitude,
+    serviceRadius
   } = req.body;
 
   try {
@@ -1454,6 +1434,18 @@ export const updateUserProfile = async (req, res) => {
       if (address || streetAddress) {
         updateData.address = (address || streetAddress).trim();
         updateData.streetAddress = (address || streetAddress).trim();
+      }
+      if (pincode !== undefined) updateData.pincode = String(pincode).trim();
+      if (serviceRadius !== undefined) updateData.serviceRadius = Number(serviceRadius) || 15;
+      if (latitude !== undefined && longitude !== undefined && latitude !== null && longitude !== null) {
+        updateData.latitude = Number(latitude);
+        updateData.longitude = Number(longitude);
+      } else if (city || location || state) {
+        const fallbackCoords = lookupCityCoordsFallback(city || location || state);
+        if (fallbackCoords && (!user.latitude || !user.longitude)) {
+          updateData.latitude = fallbackCoords.lat;
+          updateData.longitude = fallbackCoords.lng;
+        }
       }
       if (govtProofType) updateData.govtProofType = govtProofType.trim();
       if (govtProofNumber) updateData.govtProofNumber = govtProofNumber.trim();
@@ -1524,11 +1516,6 @@ export const updateUserProfile = async (req, res) => {
             isMatch = await bcrypt.compare(currentPassword, storedPassword);
           } else {
             isMatch = storedPassword === currentPassword;
-          }
-        }
-        if (!isMatch && (targetEmail === 'sooryas650@gmail.com' || user.email === 'sooryas650@gmail.com')) {
-          if (currentPassword === '3629@Srm' || currentPassword === '3629@Srn' || currentPassword === 'Pass@1234') {
-            isMatch = true;
           }
         }
         // If storedPassword was not present, accept currentPassword
@@ -1873,15 +1860,7 @@ export const sendOtp = async (req, res) => {
 
     let isMatched = false;
     if (matchedDemo) {
-      isMatched = (
-        matchedDemo.password === password ||
-        password.toLowerCase() === (matchedDemo.password || '').toLowerCase() ||
-        password === 'Pass@1234' ||
-        password === 'pass@1234' ||
-        password === '123456' ||
-        password === '3629@Srm' ||
-        password === '3629@Srn'
-      );
+      isMatched = (matchedDemo.password === password);
     }
 
     // 2. Check Disk Users & In Memory
@@ -1896,9 +1875,6 @@ export const sendOtp = async (req, res) => {
           } else {
             isMatched = matchedLocal.password === password;
           }
-        }
-        if (!isMatched && (rawKey.toLowerCase() === 'sooryas650@gmail.com' || matchedLocal.email === 'sooryas650@gmail.com')) {
-          if (password === '3629@Srm' || password === '3629@Srn' || password === 'Pass@1234') isMatched = true;
         }
       }
     }
@@ -1921,12 +1897,6 @@ export const sendOtp = async (req, res) => {
         }
       } catch (dbErr) {
         console.warn('sendOtp DB check warning:', dbErr?.message || dbErr);
-      }
-    }
-
-    if (!isMatched && (rawKey.toLowerCase() === 'sooryas650@gmail.com')) {
-      if (password === '3629@Srm' || password === '3629@Srn' || password === 'Pass@1234') {
-        isMatched = true;
       }
     }
 
