@@ -295,7 +295,7 @@ export const register = createAsyncThunk('auth/register', async (userData, thunk
   try {
     const existing = JSON.parse(localStorage.getItem('joshpetshub_registered_users') || '[]');
     const isDuplicate = Array.isArray(existing) && existing.some(u => (u?.email || '').trim().toLowerCase() === candidateEmail);
-    if (candidateEmail && candidateEmail !== 'sooryas650@gmail.com' && (isDuplicate || SYSTEM_DEMO_EMAILS.includes(candidateEmail))) {
+    if (candidateEmail && (isDuplicate || SYSTEM_DEMO_EMAILS.includes(candidateEmail))) {
       return thunkAPI.rejectWithValue('An account with this email address already exists. Please login instead.');
     }
   } catch (e) {}
@@ -905,7 +905,6 @@ export const updateProfile = createAsyncThunk('auth/updateProfile', async (profi
           { email: 'pawinsure@joshpetshub.com', password: 'Pass@1234' },
           { email: 'elitebreed@joshpetshub.com', password: 'Pass@1234' },
           { email: 'priya@joshpetshub.com', password: 'Pass@1234' },
-          { email: 'sooryas650@gmail.com', password: '3629@Srm' },
           { email: 'admin@joshpetshub.com', password: 'Admin@123' },
           { email: 'superadmin@joshpetshub.com', password: 'SuperAdmin@123' }
         ];
@@ -914,12 +913,7 @@ export const updateProfile = createAsyncThunk('auth/updateProfile', async (profi
         const demoMatched = DEMO_ACCOUNTS.find(d => saved.email && d.email.toLowerCase() === saved.email.toLowerCase());
         const storedLocalPassword = localMatchedUser?.password || (localMatchedUser?.password_plain) || saved.password || demoMatched?.password;
         if (storedLocalPassword && !storedLocalPassword.startsWith('$2') && storedLocalPassword !== profileData.currentPassword) {
-          // If known explicitly mismatched
-          if (saved.email && saved.email.toLowerCase() === 'sooryas650@gmail.com' && (profileData.currentPassword === '3629@Srm' || profileData.currentPassword === '3629@Srn')) {
-            // allow
-          } else {
-            return thunkAPI.rejectWithValue('Current password does not match what is in the database. Please try again.');
-          }
+          return thunkAPI.rejectWithValue('Current password does not match what is in the database. Please try again.');
         }
       } catch (err) {}
     }

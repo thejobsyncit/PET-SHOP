@@ -8,7 +8,7 @@
     "amount": 5000,
     "payoutMethod": "UPI",
     "upiId": "productseller@okhdfcbank",
-    "status": "Requested",
+    "status": "Paid",
     "bankDetails": {
       "accountHolder": "Josh Pet Store & Supplies",
       "bankName": "Instant UPI",
@@ -17,9 +17,9 @@
       "upiId": "productseller@okhdfcbank"
     },
     "requestedAt": "2026-11-26T10:54:00.909Z",
-    "processedAt": null,
-    "adminNotes": null,
-    "transferReference": null
+    "processedAt": "2026-11-27T06:40:07.063Z",
+    "adminNotes": "Disbursed via Direct Bank Transfer",
+    "transferReference": "UTR5761604685"
   },
   {
     "id": "PO-REQ-932207",

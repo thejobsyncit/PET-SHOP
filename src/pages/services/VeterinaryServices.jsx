@@ -51,6 +51,9 @@ import { handleServiceAction } from '../../components/widgets/ServicePackageAcce
 import ScrollReveal from '../../components/ui/ScrollReveal.jsx';
 import PetBreedDropdown from '../../components/ui/PetBreedDropdown.jsx';
 import { apiRequest } from '../../services/api.js';
+import LocationDetector from '../../components/location/LocationDetector.jsx';
+import ProviderMapView from '../../components/location/ProviderMapView.jsx';
+import { calculateDistanceKm, resolveItemCoordinates, getStoredUserLocation } from '../../utils/locationUtils.js';
 
 export default function VeterinaryServices() {
   const navigate = useNavigate();
@@ -98,6 +101,9 @@ export default function VeterinaryServices() {
   const [sortBy, setSortBy] = useState('recommended');
   const [selectedState, setSelectedState] = useState('All States');
   const [selectedCity, setSelectedCity] = useState('All Cities');
+  const [userLocation, setUserLocation] = useState(() => getStoredUserLocation());
+  const [radiusKm, setRadiusKm] = useState(25);
+  const [viewMode, setViewMode] = useState('list');
   const [availableCities, setAvailableCities] = useState(['All Cities']);
   const [emergencyOnly, setEmergencyOnly] = useState(false);
   const [homeVisitOnly, setHomeVisitOnly] = useState(false);
@@ -216,10 +222,20 @@ export default function VeterinaryServices() {
     toast.success('All filters have been reset.');
   };
 
-  // Filtered & Sorted Doctors List
+  // Filtered & Sorted Doctors List (with Haversine distance enrichment)
   const filteredDoctors = useMemo(() => {
-    return doctors.filter((doc) => {
-      // 1. Keyword search (Name, clinic, specializations, address, city)
+    return doctors
+      .map((doc) => {
+        if (!userLocation) return { ...doc, distanceKm: null };
+        const coords = resolveItemCoordinates(doc);
+        const dist = coords ? calculateDistanceKm(userLocation.latitude, userLocation.longitude, coords.lat, coords.lng) : null;
+        return { ...doc, distanceKm: dist, latitude: coords?.lat, longitude: coords?.lng };
+      })
+      .filter((doc) => {
+        if (userLocation && radiusKm < 500 && doc.distanceKm !== null && doc.distanceKm > radiusKm) {
+          return false;
+        }
+        // 1. Keyword search (Name, clinic, specializations, address, city)
       if (searchKeyword.trim()) {
         const q = searchKeyword.toLowerCase();
         const matchName = (doc.name || '').toLowerCase().includes(q);
@@ -281,6 +297,9 @@ export default function VeterinaryServices() {
       if (sortBy === 'rating') {
         return b.rating - a.rating;
       }
+      if (userLocation && sortBy === 'recommended') {
+        return (a.distanceKm ?? 99999) - (b.distanceKm ?? 99999);
+      }
       // default: recommended (high rating & reviews)
       return b.rating * b.reviewsCount - a.rating * a.reviewsCount;
     });
@@ -295,7 +314,9 @@ export default function VeterinaryServices() {
     selectedCity,
     emergencyOnly,
     homeVisitOnly,
-    sortBy
+    sortBy,
+    userLocation,
+    radiusKm
   ]);
 
   // Handle WhatsApp Direct Consultation or Visit
@@ -673,6 +694,18 @@ export default function VeterinaryServices() {
           </div>
         </div>
 
+        <div className="mb-6">
+          <LocationDetector
+            userLocation={userLocation}
+            onLocationChange={setUserLocation}
+            radiusKm={radiusKm}
+            onRadiusChange={setRadiusKm}
+            viewMode={viewMode}
+            onViewModeChange={setViewMode}
+            resultCount={filteredDoctors.length}
+          />
+        </div>
+
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
 
           {/* ================= LEFT SIDEBAR: STANDARDIZED FILTERS ================= */}
@@ -905,7 +938,15 @@ export default function VeterinaryServices() {
           {/* ================= RIGHT MAIN: DOCTOR & CLINIC CARDS ================= */}
           <main className="lg:col-span-9">
             
-            {filteredDoctors.length === 0 ? (
+            {viewMode === 'map' ? (
+              <ProviderMapView
+                items={filteredDoctors}
+                userLocation={userLocation}
+                radiusKm={radiusKm}
+                onSelectProvider={handleOpenDetails}
+                actionLabel="View Profile & Book"
+              />
+            ) : filteredDoctors.length === 0 ? (
               <div className="bg-white border border-stone-200 rounded-3xl p-4 lg:p-12 text-center space-y-4 shadow-sm">
                 <div className="w-16 h-16 rounded-full bg-emerald-50 border border-emerald-200 text-[#1D3B2E] flex items-center justify-center mx-auto text-2xl">
                   🩺
@@ -978,6 +1019,12 @@ export default function VeterinaryServices() {
                             <span className="text-[11px] text-slate-400">
                               ({doc.reviewsCount} reviews)
                             </span>
+                            {doc.distanceKm !== null && doc.distanceKm !== undefined && (
+                              <span className="inline-flex items-center gap-0.5 text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-1.5 py-0.5 rounded-full">
+                                <MapPin size={10} />
+                                {doc.distanceKm} km away
+                              </span>
+                            )}
                             <span className="text-slate-300">•</span>
                             <span className="text-[11px] text-emerald-800 font-semibold truncate">
                               {doc.city}

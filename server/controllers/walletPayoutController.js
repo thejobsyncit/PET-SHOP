@@ -115,7 +115,9 @@ export const verifyBookingPayment = async (req, res) => {
       status: 'Confirmed',
       bookingStatus: 'Confirmed',
       paymentStatus: 'Paid',
-      settlementStatus: 'Pending', // Pending settlement in platform escrow
+      settlementStatus: 'Available', // Immediately available for payout after 5% Josh Fee deduction
+      platformCommission: platformFee,
+      netEarnings: providerShare,
       paymentDetails: {
         gateway: 'Razorpay',
         orderId: razorpay_order_id,
@@ -214,8 +216,13 @@ export const getProviderEarnings = async (req, res) => {
   try {
     const providerId = req.query.providerId || req.user?._id || req.user?.id || req.user?.email;
     const category = req.query.category || req.user?.serviceCategory || '';
+    const providerContext = {
+      id: providerId,
+      email: req.user?.email || '',
+      name: req.user?.businessName || req.user?.name || ''
+    };
 
-    const earnings = getProviderEarningsData(providerId, category);
+    const earnings = getProviderEarningsData(providerContext, category);
     const bankDetails = getProviderBankAccount(providerId || req.user?.email);
 
     return res.status(200).json({

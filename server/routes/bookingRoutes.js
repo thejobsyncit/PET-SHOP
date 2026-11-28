@@ -136,6 +136,12 @@ router.post('/', async (req, res) => {
       : ((body.serviceType && body.serviceType.toLowerCase().includes('train')) ? 'TRN-BK-'
       : 'GRM-'))));
     const bookingId = body.id || body._id || `${prefix}${Date.now().toString().slice(-6)}`;
+    const serviceFeeAmt = Number(body.totalAmount || body.fee || body.totalPrice || body.price || body.quoteAmount || 0);
+    const payStatLower = String(body.paymentStatus || body.payment_status || '').toLowerCase();
+    const isOnlinePaid = payStatLower.includes('paid') || payStatLower === 'success';
+    const platformCommission = isOnlinePaid ? Math.round(serviceFeeAmt * 0.05) : 0;
+    const netEarnings = isOnlinePaid ? (serviceFeeAmt - platformCommission) : 0;
+
     const newBooking = {
       _id: bookingId,
       id: bookingId,
@@ -144,6 +150,9 @@ router.post('/', async (req, res) => {
       ...body,
       status: body.status || 'Confirmed',
       paymentStatus: body.paymentStatus || ((body.serviceType && body.serviceType.toLowerCase().includes('vet')) ? 'Pay at Clinic' : 'Pay on Service'),
+      settlementStatus: isOnlinePaid ? 'Available' : (body.settlementStatus || 'Unpaid'),
+      platformCommission,
+      netEarnings,
       createdAt: body.createdAt || new Date().toISOString()
     };
 

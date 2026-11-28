@@ -8,7 +8,7 @@ import {
 import {
   TrendingUp, ShoppingBag, Users, AlertTriangle, Clock,
   Plus, Edit, Trash, Check, X, FileText, CheckCircle, RefreshCw, ChevronRight, MessageSquare, Heart, Lock, Mail, ShieldAlert, Award, ShieldCheck, Menu, Cookie, BookOpen, ExternalLink,
-  Landmark, Megaphone, Tag, Briefcase, Building, UserCheck, CreditCard, Sparkles, ChevronDown
+  Landmark, Megaphone, Tag, Briefcase, Building, UserCheck, CreditCard, Sparkles, ChevronDown, Wallet
 } from 'lucide-react';
 import { apiRequest } from '../../services/api.js';
 import { login, logout } from '../../store/slices/authSlice.js';
@@ -49,11 +49,17 @@ const SuperAdminDashboard = () => {
   // Tab control
   const [activeSection, setActiveSection] = useState('overview');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [marketingDropdownOpen, setMarketingDropdownOpen] = useState(true);
+  const [openGroups, setOpenGroups] = useState({
+    finance_group: true,
+    marketing_group: true
+  });
 
   useEffect(() => {
     if (['announcements', 'coupons', 'blogs'].includes(activeSection)) {
-      setMarketingDropdownOpen(true);
+      setOpenGroups((prev) => ({ ...prev, marketing_group: true }));
+    }
+    if (['subscriptions', 'wallet'].includes(activeSection)) {
+      setOpenGroups((prev) => ({ ...prev, finance_group: true }));
     }
   }, [activeSection]);
 
@@ -793,9 +799,17 @@ const SuperAdminDashboard = () => {
             <nav className="space-y-1">
             {[
               { id: 'overview', label: 'Stats Overview', icon: <TrendingUp size={15} /> },
-              { id: 'subscriptions', label: 'Subscription Plans', icon: <CreditCard size={15} /> },
+              {
+                id: 'finance_group',
+                label: 'Payout and Plans',
+                icon: <Wallet size={15} />,
+                isGroup: true,
+                children: [
+                  { id: 'subscriptions', label: 'Subscription Plans', icon: <CreditCard size={14} /> },
+                  { id: 'wallet', label: 'Central Wallet & Payouts', icon: <Landmark size={14} /> }
+                ]
+              },
               { id: 'crm_access', label: 'CRM Staff & Roles', icon: <Briefcase size={15} /> },
-              { id: 'wallet', label: 'Central Wallet & Payouts', icon: <Landmark size={15} /> },
               {
                 id: 'marketing_group',
                 label: 'Marketing & Offers',
@@ -818,11 +832,12 @@ const SuperAdminDashboard = () => {
             ].map((tab) => {
               if (tab.isGroup) {
                 const isGroupActive = tab.children.some(child => child.id === activeSection);
+                const isGroupOpen = Boolean(openGroups[tab.id]);
                 return (
                   <div key={tab.id} className="space-y-0.5">
                     <button
                       type="button"
-                      onClick={() => setMarketingDropdownOpen(prev => !prev)}
+                      onClick={() => setOpenGroups(prev => ({ ...prev, [tab.id]: !prev[tab.id] }))}
                       className={`w-full flex items-center justify-between px-4 py-3 text-xs font-bold uppercase tracking-wider rounded-r-md rounded-l-none transition-all duration-300 cursor-pointer ${
                         isGroupActive
                           ? 'bg-white/10 backdrop-blur-md text-white border-l-4 border-accent shadow-sm'
@@ -836,12 +851,12 @@ const SuperAdminDashboard = () => {
                       <ChevronDown
                         size={15}
                         className={`transition-transform duration-300 text-[#A1C0AA] ${
-                          marketingDropdownOpen ? 'rotate-180 text-white' : ''
+                          isGroupOpen ? 'rotate-180 text-white' : ''
                         }`}
                       />
                     </button>
 
-                    {marketingDropdownOpen && (
+                    {isGroupOpen && (
                       <div className="space-y-0.5 py-1 relative before:absolute before:left-5 before:top-1.5 before:bottom-1.5 before:w-[2px] before:bg-white/15">
                         {tab.children.map((child) => {
                           const isChildActive = activeSection === child.id;
@@ -932,7 +947,7 @@ const SuperAdminDashboard = () => {
       <main id="superadmin-main-content" className="flex-grow flex flex-col h-full min-w-0 overflow-hidden">
 
         {/* Top bar Header */}
-        {activeSection !== 'subscriptions' && (
+        {activeSection !== 'subscriptions' && activeSection !== 'wallet' && (
           <div className="shrink-0 bg-[#F4F6F4] border-b border-[#E3EBE5] px-4 lg:px-8 py-5 flex flex-col md:flex-row justify-between items-start md:items-center shadow-xs gap-4 z-20">
             <div>
               <span className="text-[10px] uppercase tracking-widest text-[#7CA085] font-bold block">ADMINISTRATION PORTAL</span>

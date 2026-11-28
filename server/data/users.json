@@ -779,12 +779,12 @@
     "mobileCountryCode": "+91"
   },
   {
-    "_id": "d22c008a-566f-4bcd-b89a-b2a6cb5962d0",
-    "id": "d22c008a-566f-4bcd-b89a-b2a6cb5962d0",
-    "name": "Soorya B",
+    "_id": "5c03a90d-6c0a-41e6-86a2-bef6e9b5bb22",
+    "id": "5c03a90d-6c0a-41e6-86a2-bef6e9b5bb22",
+    "name": "Soorya S",
     "email": "sooryas650@gmail.com",
-    "password": "$2b$10$AyNHkZaH9xIPgQgW4AjKxuf5N4tBIa0KBTGm3d1iwgTvENs1yOCOa",
-    "mobile": "9789883629",
+    "password": "$2b$10$c/twV3mYN1pWeYf90qaNuOzUCyXmruJnFtjCioFR1byIaCjhmsHiG",
+    "mobile": "9876543210",
     "phone": "9789883629",
     "mobileCountryCode": "+91",
     "whatsapp": "9789883629",
@@ -792,9 +792,9 @@
     "whatsappCountryCode": "+91",
     "role": "CUSTOMER",
     "location": "Chennai, Tamil Nadu",
-    "serviceCategory": null,
+    "serviceCategory": "",
     "service_category": null,
-    "businessName": "Soorya B",
+    "businessName": "Soorya S",
     "business_name": "Soorya B",
     "govtProofType": "AWBI / NGO Registration Certificate",
     "govt_proof_type": "AWBI / NGO Registration Certificate",
@@ -860,7 +860,8 @@
       }
     ],
     "cart": [],
-    "prescription_history": []
+    "prescription_history": [],
+    "password_plain": "3629@Srm"
   },
   {
     "_id": "user-pavi-01",
@@ -2318,8 +2319,8 @@
     "govt_proof_number": "AWBI/BLR/2026/8892",
     "govtProofDoc": null,
     "govt_proof_doc": null,
-    "verificationStatus": "Pending",
-    "verification_status": "Pending",
+    "verificationStatus": "Verified",
+    "verification_status": "Verified",
     "shelterCapacity": 50,
     "shelter_capacity": 50,
     "bio": null,
@@ -2362,7 +2363,8 @@
     "addresses": [],
     "wishlist": [],
     "cart": [],
-    "prescription_history": []
+    "prescription_history": [],
+    "isVerified": true
   },
   {
     "_id": "f7fd2f11-733b-486d-8195-443c38c9e8fd",

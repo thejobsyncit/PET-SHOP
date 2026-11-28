@@ -123,6 +123,10 @@ export default function ProviderProfileCompletionView({
     whatsapp: user?.whatsapp || user?.whatsappNumber || initialPhone || '',
     state: initialState,
     city: initialCity,
+    pincode: user?.pincode || '',
+    latitude: user?.latitude ?? null,
+    longitude: user?.longitude ?? null,
+    serviceRadius: Number(user?.serviceRadius) || 15,
     address: user?.address || user?.streetAddress || user?.location || '',
     govtProofType: user?.govtProofType || user?.govt_proof_type || GOVT_PROOF_OPTIONS[0],
     govtProofNumber: user?.govtProofNumber || user?.govt_proof_number || '',
@@ -144,6 +148,99 @@ export default function ProviderProfileCompletionView({
 
   const [errors, setErrors] = useState({});
   const [saving, setSaving] = useState(false);
+  const [locatingGps, setLocatingGps] = useState(false);
+  const [lookingUpPin, setLookingUpPin] = useState(false);
+
+  const handlePincodeLookup = async () => {
+    const cleanPin = String(formData.pincode || '').replace(/\D/g, '').slice(0, 6);
+    if (cleanPin.length !== 6) {
+      toast.error('Enter a valid 6-digit Indian pincode first.');
+      return;
+    }
+    setLookingUpPin(true);
+    try {
+      const res = await apiRequest(`/location/pincode/${cleanPin}`);
+      if (res?.success && res?.data) {
+        const d = res.data;
+        const matchedState = indianStates.find(
+          (s) => s.toLowerCase() === (d.state || '').toLowerCase()
+        ) || formData.state;
+        const stateDistricts = matchedState ? INDIAN_STATES_DISTRICTS[matchedState] || [] : [];
+        const matchedCity = stateDistricts.find(
+          (dist) =>
+            dist.toLowerCase() === (d.district || d.city || '').toLowerCase() ||
+            dist.toLowerCase().includes((d.district || d.city || '').toLowerCase())
+        ) || formData.city;
+
+        setFormData((prev) => ({
+          ...prev,
+          pincode: cleanPin,
+          state: matchedState || prev.state,
+          city: matchedCity || prev.city,
+          latitude: d.latitude ?? prev.latitude,
+          longitude: d.longitude ?? prev.longitude
+        }));
+        toast.success(`Location pinned: ${d.area ? d.area + ', ' : ''}${d.district || d.city}, ${d.state}`);
+      } else {
+        toast.error(res?.message || 'Pincode lookup failed');
+      }
+    } catch (err) {
+      toast.error('Could not lookup pincode right now.');
+    } finally {
+      setLookingUpPin(false);
+    }
+  };
+
+  const handlePinCurrentGps = () => {
+    if (!navigator.geolocation) {
+      toast.error('Browser GPS is not supported on this device.');
+      return;
+    }
+    setLocatingGps(true);
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        const { latitude, longitude } = pos.coords;
+        try {
+          const res = await apiRequest(`/location/reverse?lat=${latitude}&lng=${longitude}`);
+          if (res?.success && res?.data) {
+            const d = res.data;
+            const matchedState = indianStates.find(
+              (s) => s.toLowerCase() === (d.state || '').toLowerCase()
+            ) || formData.state;
+            const stateDistricts = matchedState ? INDIAN_STATES_DISTRICTS[matchedState] || [] : [];
+            const matchedCity = stateDistricts.find(
+              (dist) =>
+                dist.toLowerCase() === (d.city || '').toLowerCase() ||
+                dist.toLowerCase().includes((d.city || '').toLowerCase())
+            ) || formData.city;
+
+            setFormData((prev) => ({
+              ...prev,
+              latitude,
+              longitude,
+              pincode: d.pincode || prev.pincode,
+              state: matchedState || prev.state,
+              city: matchedCity || prev.city
+            }));
+            toast.success(`GPS location pinned (${d.city || 'Detected'})`);
+          } else {
+            setFormData((prev) => ({ ...prev, latitude, longitude }));
+            toast.success('GPS coordinates pinned!');
+          }
+        } catch {
+          setFormData((prev) => ({ ...prev, latitude, longitude }));
+          toast.success('GPS coordinates pinned!');
+        } finally {
+          setLocatingGps(false);
+        }
+      },
+      () => {
+        setLocatingGps(false);
+        toast.error('Location permission denied. Please enter your pincode instead.');
+      },
+      { enableHighAccuracy: true, timeout: 8000 }
+    );
+  };
 
   useEffect(() => {
     if (user) {
@@ -160,6 +257,10 @@ export default function ProviderProfileCompletionView({
         whatsapp: user.whatsapp || user.whatsappNumber || resolvedPhone || prev.whatsapp,
         state: user.state || resolvedSt || prev.state,
         city: user.city || resolvedCt || prev.city,
+        pincode: user.pincode || prev.pincode,
+        latitude: user.latitude ?? prev.latitude,
+        longitude: user.longitude ?? prev.longitude,
+        serviceRadius: Number(user.serviceRadius) || prev.serviceRadius || 15,
         address: user.address || user.streetAddress || user.location || prev.address,
         govtProofType: user.govtProofType || user.govt_proof_type || prev.govtProofType,
         govtProofNumber: user.govtProofNumber || user.govt_proof_number || prev.govtProofNumber,
@@ -544,6 +645,61 @@ export default function ProviderProfileCompletionView({
               ))}
             </select>
             {errors.city && <span className="text-[10px] text-red-500 font-bold block mt-1">{errors.city}</span>}
+          </div>
+
+          <div>
+            <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">
+              Facility Pincode (6-Digit)
+            </label>
+            <div className="flex gap-1.5">
+              <input
+                type="text"
+                name="pincode"
+                maxLength={6}
+                value={formData.pincode}
+                onChange={(e) => setFormData((prev) => ({ ...prev, pincode: e.target.value.replace(/\D/g, '').slice(0, 6) }))}
+                placeholder="e.g. 560034"
+                className="flex-1 p-2.5 bg-white border border-stone-200 rounded-xl text-xs font-medium focus:outline-none focus:border-[#0F2E23]"
+              />
+              <button
+                type="button"
+                onClick={handlePincodeLookup}
+                disabled={lookingUpPin}
+                className="px-3 py-2 bg-[#0F2E23] text-white rounded-xl text-[11px] font-bold hover:bg-[#1D6D4E] transition disabled:opacity-60 shrink-0"
+              >
+                {lookingUpPin ? '...' : 'Lookup'}
+              </button>
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">
+              Service Coverage Radius & GPS Pin
+            </label>
+            <div className="flex gap-1.5 items-center">
+              <select
+                name="serviceRadius"
+                value={formData.serviceRadius}
+                onChange={(e) => setFormData((prev) => ({ ...prev, serviceRadius: Number(e.target.value) }))}
+                className="flex-1 p-2.5 bg-white border border-stone-200 rounded-xl text-xs font-medium focus:outline-none focus:border-[#0F2E23]"
+              >
+                <option value={5}>Within 5 km</option>
+                <option value={10}>Within 10 km</option>
+                <option value={15}>Within 15 km</option>
+                <option value={25}>Within 25 km</option>
+                <option value={50}>Within 50 km</option>
+                <option value={100}>City / Metro Wide (100 km)</option>
+              </select>
+              <button
+                type="button"
+                onClick={handlePinCurrentGps}
+                disabled={locatingGps}
+                className="px-3 py-2.5 bg-emerald-50 text-[#0F2E23] border border-emerald-200 rounded-xl text-[11px] font-bold hover:bg-emerald-100 transition flex items-center gap-1 shrink-0"
+              >
+                <MapPin size={13} />
+                {locatingGps ? 'Locating...' : formData.latitude ? 'GPS Pinned ✓' : 'Pin GPS'}
+              </button>
+            </div>
           </div>
         </div>
 

@@ -36,6 +36,7 @@ import subscriptionRoutes from './routes/subscriptionRoutes.js';
 import walletPayoutRoutes from './routes/walletPayoutRoutes.js';
 import announcementRoutes from './routes/announcementRoutes.js';
 import crmRoutes from './routes/crmRoutes.js';
+import locationRoutes from './routes/locationRoutes.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -168,6 +169,7 @@ app.use('/api/subscriptions', subscriptionRoutes);
 app.use('/api/wallet-payouts', walletPayoutRoutes);
 app.use('/api/announcements', announcementRoutes);
 app.use('/api/crm', crmRoutes);
+app.use('/api/location', locationRoutes);
 
 // Health check endpoint
 app.get('/health', (req, res) => {
@@ -188,4 +190,4 @@ process.on('unhandledRejection', (err) => {
   server.close(() => process.exit(1));
 });
 
-export default app;
+export default app;

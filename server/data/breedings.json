@@ -101,8 +101,9 @@
     },
     "location": "Bengaluru, Karnataka",
     "contactPhone": "+91 98765 43212",
-    "isVerified": false,
-    "createdAt": "2026-08-30T10:30:00.000Z"
+    "isVerified": true,
+    "createdAt": "2026-08-30T10:30:00.000Z",
+    "is_verified": true
   },
   {
     "_id": "STUD-305",
@@ -127,8 +128,9 @@
     },
     "location": "Chennai, Tamil Nadu",
     "contactPhone": "+91 98765 43213",
-    "isVerified": false,
-    "createdAt": "2026-08-31T08:00:00.000Z"
+    "isVerified": true,
+    "createdAt": "2026-08-31T08:00:00.000Z",
+    "is_verified": true
   },
   {
     "_id": "STUD-306",

@@ -8,7 +8,7 @@ import {
   UserCheck, IndianRupee, Tag, FileText, ChevronDown, Check, Lock,
   Stethoscope, Truck, Package, ShieldCheck, Megaphone, BookOpen,
   Bell, CheckCircle2, RotateCcw, Play, CheckCheck, TrendingUp,
-  Building, Cookie, Landmark, Trash, Menu
+  Building, Cookie, Landmark, Trash, Menu, CreditCard, Wallet
 } from 'lucide-react';
 import {
   BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
@@ -33,6 +33,7 @@ import MarketingManagerView from '../../components/crm/MarketingManagerView.jsx'
 import QualityComplianceView from '../../components/crm/QualityComplianceView.jsx';
 import TechnicalSupportView from '../../components/crm/TechnicalSupportView.jsx';
 import AnnouncementsManagerView from '../../components/dashboards/AnnouncementsManagerView.jsx';
+import SuperAdminSubscriptionPlansView from '../../components/dashboards/SuperAdminSubscriptionPlansView.jsx';
 import CouponsManagerView from '../../components/dashboards/CouponsManagerView.jsx';
 import BlogsManagerView from '../../components/dashboards/BlogsManagerView.jsx';
 import SuperAdminPlatformWalletView from '../../components/dashboards/SuperAdminPlatformWalletView.jsx';
@@ -86,11 +87,17 @@ const CrmPortal = () => {
 
   // Active CRM Navigation Section
   const [activeSection, setActiveSection] = useState('overview');
-  const [crmMarketingDropdownOpen, setCrmMarketingDropdownOpen] = useState(true);
+  const [crmOpenGroups, setCrmOpenGroups] = useState({
+    finance_group: true,
+    marketing_group: true
+  });
 
   useEffect(() => {
     if (['announcements', 'coupons', 'blogs'].includes(activeSection)) {
-      setCrmMarketingDropdownOpen(true);
+      setCrmOpenGroups(prev => ({ ...prev, marketing_group: true }));
+    }
+    if (['subscriptions', 'wallet'].includes(activeSection)) {
+      setCrmOpenGroups(prev => ({ ...prev, finance_group: true }));
     }
   }, [activeSection]);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -102,6 +109,8 @@ const CrmPortal = () => {
         return 'Operations Command & Executive Metrics';
       case 'wallet':
         return 'Central Platform Wallet & Service Provider Payouts';
+      case 'subscriptions':
+        return 'Subscription Plans & Pricing Management';
       case 'ecommerce':
         return 'Store Orders & Inventory Operations';
       case 'compliance':
@@ -532,7 +541,16 @@ const CrmPortal = () => {
     if (isCrmAdmin) {
       return [
         { id: 'overview', label: 'Operations Command', icon: <Target size={16} />, highlight: true },
-        { id: 'wallet', label: 'Central Wallet & Payouts', icon: <Landmark size={16} /> },
+        {
+          id: 'finance_group',
+          label: 'Payout and Plans',
+          icon: <Wallet size={16} />,
+          isGroup: true,
+          children: [
+            { id: 'subscriptions', label: 'Subscription Plans', icon: <CreditCard size={14} /> },
+            { id: 'wallet', label: 'Central Wallet & Payouts', icon: <Landmark size={14} /> }
+          ]
+        },
         { id: 'ecommerce', label: 'Store Orders & Inventory', icon: <ShoppingBag size={16} /> },
         { id: 'compliance', label: 'Quality & Rx Compliance', icon: <FileText size={16} /> },
         { id: 'listings', label: 'Classified Listings', icon: <Award size={16} /> },
@@ -847,11 +865,12 @@ const CrmPortal = () => {
               {getNavItems().map((item) => {
                 if (item.isGroup) {
                   const isGroupActive = item.children.some(child => child.id === activeSection);
+                  const isGroupOpen = Boolean(crmOpenGroups[item.id]);
                   return (
                     <div key={item.id} className="space-y-0.5">
                       <button
                         type="button"
-                        onClick={() => setCrmMarketingDropdownOpen(prev => !prev)}
+                        onClick={() => setCrmOpenGroups(prev => ({ ...prev, [item.id]: !prev[item.id] }))}
                         className={`w-full flex items-center justify-between px-4 py-3 text-xs font-bold uppercase tracking-wider rounded-r-md rounded-l-none transition-all duration-300 cursor-pointer ${
                           isGroupActive
                             ? 'bg-white/10 backdrop-blur-md text-white border-l-4 border-accent shadow-sm'
@@ -865,12 +884,12 @@ const CrmPortal = () => {
                         <ChevronDown
                           size={15}
                           className={`transition-transform duration-300 text-[#A1C0AA] ${
-                            crmMarketingDropdownOpen ? 'rotate-180 text-white' : ''
+                            isGroupOpen ? 'rotate-180 text-white' : ''
                           }`}
                         />
                       </button>
 
-                      {crmMarketingDropdownOpen && (
+                      {isGroupOpen && (
                         <div className="space-y-0.5 py-1 relative before:absolute before:left-5 before:top-1.5 before:bottom-1.5 before:w-[2px] before:bg-white/15">
                           {item.children.map((child) => {
                             const isChildActive = activeSection === child.id;
@@ -1263,52 +1282,6 @@ const CrmPortal = () => {
                 </div>
               </div>
 
-              {/* Department Shortcut Cards for CRM Operations Head */}
-              {isCrmAdmin && (
-                <div className="bg-white p-6 rounded-2xl border border-[#E3EBE5] shadow-xs space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h3 className="font-serif font-bold text-primary text-base">7 Department Operational Consoles</h3>
-                      <p className="text-xs text-gray-500">Jump directly into any department manager workspace.</p>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => setActiveSection('staff_mgmt')}
-                      className="px-3.5 py-2 bg-[#1c4b3a] hover:bg-[#153a2d] text-white text-xs font-bold rounded-lg transition flex items-center gap-1.5 cursor-pointer shadow-xs uppercase tracking-wider"
-                    >
-                      <Briefcase size={13} /> Manage Staff Credentials
-                    </button>
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-                    {[
-                      { id: 'support', title: 'Customer Support', desc: 'Tickets & SLA resolution', icon: <MessageSquare size={16} />, color: '#0284C7' },
-                      { id: 'service_ops', title: 'Service Bookings Oversight', desc: 'Appointments & dispute resolution', icon: <Calendar size={16} />, color: '#059669' },
-                      { id: 'finance', title: 'Finance & Payouts', desc: 'Reconciliation & settlements', icon: <IndianRupee size={16} />, color: '#10B981' },
-                      { id: 'providers', title: 'Provider Relations', desc: 'KYC & partner vetting', icon: <Shield size={16} />, color: '#8B5CF6' },
-                      { id: 'coupons', title: 'Marketing & Offers', desc: 'Promos, banners & articles', icon: <Tag size={16} />, color: '#EC4899' },
-                      { id: 'compliance', title: 'Quality & Rx Safety', desc: 'Prescription audits & disputes', icon: <FileText size={16} />, color: '#6366F1' },
-                      { id: 'ecommerce', title: 'Store Orders Ledger', desc: 'Order fulfillment & inventory', icon: <ShoppingBag size={16} />, color: '#D97706' },
-                      { id: 'tech', title: 'Technical Support', desc: 'System health & IT telemetry', icon: <RefreshCw size={16} />, color: '#475569' }
-                    ].map(d => (
-                      <button
-                        key={d.id}
-                        type="button"
-                        onClick={() => setActiveSection(d.id)}
-                        className="p-3.5 bg-[#F1F6F2]/60 hover:bg-[#F1F6F2] rounded-xl border border-[#E3EBE5] text-left transition cursor-pointer flex items-start gap-3 group"
-                      >
-                        <span className="p-2 rounded-lg text-white shrink-0 mt-0.5 shadow-xs" style={{ backgroundColor: d.color }}>
-                          {d.icon}
-                        </span>
-                        <div>
-                          <span className="font-bold text-xs text-primary group-hover:text-primary/80 block">{d.title}</span>
-                          <span className="text-[11px] text-gray-500 block">{d.desc}</span>
-                        </div>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
             </div>
           )}
 
@@ -1362,6 +1335,13 @@ const CrmPortal = () => {
           {/* SECTION 6: FINANCE & PAYOUTS DESK */}
           {activeSection === 'finance' && (
             <FinanceManagerView crmToken={crmToken} />
+          )}
+
+          {/* SECTION: SUBSCRIPTION PLANS & PRICING */}
+          {activeSection === 'subscriptions' && isCrmAdmin && (
+            <div className="space-y-6">
+              <SuperAdminSubscriptionPlansView />
+            </div>
           )}
 
           {/* SECTION: CENTRAL WALLET & SERVICE PROVIDER PAYOUTS */}
